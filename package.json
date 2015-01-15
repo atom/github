@@ -1,0 +1,16 @@
+{
+  "name": "git-experiment",
+  "main": "./lib/main",
+  "version": "0.0.0",
+  "description": "Experimental git things",
+  "activationCommands": {
+    "atom-workspace": "git-experiment:view-diffs"
+  },
+  "repository": "https://github.com/atom/git-experiment",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=0.174.0, <2.0.0"
+  },
+  "dependencies": {
+  }
+}
