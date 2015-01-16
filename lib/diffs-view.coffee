@@ -5,7 +5,7 @@ BaseTemplate = """
   <div class="diffs"></div>
 """
 
-CommitTemplateString = """
+CommitSummaryTemplateString = """
   <div class="commit">
     <div class="sha"></div>
     <div class="author"></div>
@@ -71,9 +71,9 @@ class DiffsView extends HTMLElement
         commitNode = commitNode.parentNode
       if commitNode?
         sha = commitNode.querySelector('.sha').textContent
-        @renderDiff(sha)
+        @renderCommitDetail(sha)
 
-    @commitTemplate = TemplateHelper.addTemplate(this, CommitTemplateString)
+    @commitTemplate = TemplateHelper.addTemplate(this, CommitSummaryTemplateString)
 
     @renderHistory().catch (error) ->
       console.error error.message, error
@@ -82,7 +82,16 @@ class DiffsView extends HTMLElement
   getTitle: ->
     'Yeah, view that diff!'
 
-  renderCommit: (commit) ->
+  renderHistory: ->
+    new Promise (resolve, reject) =>
+      @history.walkHistory (commit) =>
+        promise = @renderCommitSummary(commit)
+        resolve(commit)
+        promise
+    .then (firstCommit) =>
+      @renderCommitDetail(firstCommit.sha())
+
+  renderCommitSummary: (commit) ->
     # We still dont have a good view framework yet
     commitNode = TemplateHelper.renderTemplate(@commitTemplate)
     commitNode.querySelector('.sha').textContent = commit.sha()
@@ -91,16 +100,7 @@ class DiffsView extends HTMLElement
     commitNode.firstElementChild.id = "sha-#{commit.sha()}"
     @historyNode.appendChild(commitNode)
 
-  renderHistory: ->
-    new Promise (resolve, reject) =>
-      @history.walkHistory (commit) =>
-        promise = @renderCommit(commit)
-        resolve(commit)
-        promise
-    .then (firstCommit) =>
-      @renderDiff(firstCommit.sha())
-
-  renderDiff: (sha) ->
+  renderCommitDetail: (sha) ->
     @diffsNode.innerHTML = ''
 
     for commitNode in @querySelectorAll('.commit')
