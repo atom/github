@@ -8,4 +8,4 @@
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
 'atom-workspace':
-  'ctrl-alt-d': 'git-experiment:view-diffs'
+  'ctrl-alt-d': 'git-experiment:view-history'

@@ -1,7 +1,7 @@
 {CompositeDisposable} = require 'atom'
 HistoryView = null
 
-URI = 'atom://git-experiment/view-diffs'
+URI = 'atom://git-experiment/view-history'
 
 module.exports = GitExperiment =
   subscriptions: null
@@ -25,7 +25,7 @@ module.exports = GitExperiment =
   openHistoryView: ->
     atom.workspace.open(URI)
 
-atom.commands.add 'atom-workspace', 'git-experiment:view-diffs', =>
+atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
   GitExperiment.openHistoryView()
 
 window.git = require 'nodegit'
