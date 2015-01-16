@@ -41,6 +41,31 @@ class GitHistory
           @addCommit(commit)
           commitCallback(commit)
 
+  walkPatches: (sha, patchCallback) ->
+    commit = @getCommit(sha)
+
+    commit.getDiff().then (diffList) ->
+      console.log diffList
+      for diff in diffList
+        window.diff = diff
+
+        diff.patches()[0].delta.newFile().path()
+
+    # appendDiffLists = (diffLists) ->
+    #   promise = Promise.resolve()
+    #
+    #   chunkSize = 50
+    #   diffLists.forEach (diff) ->
+    #     _.chunkAll(diff.patches(), chunkSize).forEach (patches) ->
+    #       promise = promise.then -> new Promise (resolve) ->
+    #         process.nextTick ->
+    #           patches.forEach (patch) -> document.body.appendChild(elementForPatch(patch))
+    #           console.log "#{chunkSize} patches added in #{(Date.now() - start) / 1000} seconds"
+    #           resolve()
+
+
+
+
 
 
 class TemplateHelper
@@ -86,6 +111,71 @@ class DiffsView extends HTMLElement
     @historyNode.appendChild(commitNode)
 
   renderHistory: ->
-    @history.walkHistory (commit) => @renderCommit(commit)
+    new Promise (resolve, reject) =>
+      @history.walkHistory (commit) =>
+        resolve(commit)
+        @renderCommit(commit)
+    .then (firstCommit) =>
+      @renderDiff(firstCommit.sha())
+
+  renderDiff: (sha) ->
+    @diffsNode.innerHTML = ''
+
+    commit = @history.getCommit(sha)
+    commit.getDiff().then (diffList) =>
+      console.log diffList
+      for diff in diffList
+        window.diff = diff
+        for patch in diff.patches()
+          patchView = document.createElement('patch-view')
+          patchView.setPatch(patch)
+          @diffsNode.appendChild(patchView)
+
+
+PatchTemplateString = """
+  <div class="diff-file"></div>
+  <table class="diff-hunk"></table>
+"""
+
+PatchLineTemplateString = """
+  <tr class="diff-hunk-line">
+    <td class="old-line-number"></td>
+    <td class="new-line-number"></td>
+    <td class="diff-hunk-data"></td>
+  </tr>
+"""
+
+class PatchView extends HTMLElement
+  @lineTemplate: TemplateHelper.addTemplate(document.body, PatchLineTemplateString)
+
+  setPatch: (@patch) ->
+    console.log @querySelector, this
+    @innerHTML = PatchTemplateString
+    fileNode = @querySelector('.diff-file')
+    hunkNode = @querySelector('.diff-hunk')
+
+    fileNode.textContent = @patch.newFile().path()
+
+    for hunk in @patch.hunks()
+      hunkHeaderNode = TemplateHelper.renderTemplate(PatchView.lineTemplate)
+      hunkHeaderNode.firstElementChild.classList.add('diff-hunk-header')
+      hunkHeaderNode.querySelector('.diff-hunk-data').textContent = hunk.header()
+      hunkNode.appendChild(hunkHeaderNode)
+
+      for line in hunk.lines()
+        hunkLineNode = TemplateHelper.renderTemplate(PatchView.lineTemplate)
+        content = line.content().split(/[\r\n]/g)[0] # srsly.
+        lineOrigin = String.fromCharCode(line.origin())
+
+        switch lineOrigin
+          when '-' then hunkLineNode.firstElementChild.classList.add('deletion')
+          when '+' then hunkLineNode.firstElementChild.classList.add('addition')
+
+        hunkLineNode.querySelector('.diff-hunk-data').textContent = lineOrigin + content
+        hunkLineNode.querySelector('.old-line-number').textContent = line.oldLineno() if line.oldLineno() > 0
+        hunkLineNode.querySelector('.new-line-number').textContent = line.newLineno() if line.newLineno() > 0
+        hunkNode.appendChild(hunkLineNode)
+
+document.registerElement 'patch-view', prototype: PatchView.prototype
 
 module.exports = document.registerElement 'git-experiment-diffs-view', prototype: DiffsView.prototype

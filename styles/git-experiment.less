@@ -3,13 +3,143 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@import "syntax-variables";
 
 git-experiment-diffs-view {
   display: flex;
+  background: @pane-item-background-color;
+
   .history {
     width: 300px;
     .commit {
       margin: 10px;
     }
+  }
+}
+
+/*
+  You have these available from syntax variables:
+
+  // General colors
+  @syntax-text-color: #333;
+  @syntax-cursor-color: #333;
+  @syntax-selection-color: #69c;
+  @syntax-selection-flash-color: #00f; // Color the selection is 'flashed' when you run find next
+  @syntax-background-color: #fff;
+
+  // Guide colors
+  @syntax-wrap-guide-color: #ccc;
+  @syntax-indent-guide-color: #ccc;
+  @syntax-invisible-character-color: #ccc;
+
+  // For find and replace markers
+  @syntax-result-marker-color: #444;
+  @syntax-result-marker-color-selected: #000;
+
+  // Gutter colors
+  @syntax-gutter-text-color: #333;
+  @syntax-gutter-text-color-selected: #000;
+  @syntax-gutter-background-color: #ccc;
+  @syntax-gutter-background-color-selected: #eee;
+
+  // For git diff info. i.e. in the gutter
+  @syntax-color-added: green;
+  @syntax-color-modified: orange;
+  @syntax-color-removed: red;
+  @syntax-color-renamed: blue;
+*/
+
+// Style straight up lifted from
+// https://github.com/github-prototype/diff-view/blob/master/app/style/default.css
+patch-view {
+  display: block;
+  font: 12px/18px Consolas, "Liberation Mono", Courier, monospace;
+  color: @syntax-text-color;
+  background: @syntax-background-color;
+
+  .diff-file {
+    padding: 0 12px;
+    height:32px;
+    line-height:32px;
+    border:1px solid #ccc;
+    border-width:1px 0;
+    position:relative;
+    color:#333;
+    font:11px/32px "Lucida Grande", "Helvetica Neue", sans-serif;
+  }
+
+  div:first-child .diff-file {
+    border-top:none;
+  }
+
+  .diff-file:after {
+    content:'';
+    top:32px;
+    left:0;
+    right:0;
+    height:2px;
+    background:linear-gradient(to right, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.03) 100%);
+    position:absolute;
+  }
+
+  .diff-hunk-header {
+    color:#999;
+    background:#f8fafd;
+    text-shadow:rgba(255,255,255, 0.25) 0 1px 0;
+    height:26px;
+    line-height:26px;
+  }
+
+  .diff-hunk-header .old-line-number, .diff-hunk-header .new-line-number {
+    background-color:#f0f5fa;
+    border-color:#d5e4f2;
+    height:26px;
+    line-height:26px;
+  }
+
+  .diff-hunk {
+    white-space: pre;
+    color: #333;
+    text-shadow:rgba(255,255,255, 0.25) 0 1px 0;
+    padding:0;
+    margin:0;
+    width:100%;
+    border-collapse:collapse;
+    line-height:18px;
+  }
+
+  td {
+    height:18px;
+  }
+
+  .old-line-number, .new-line-number {
+    width:40px;
+    text-align: center;
+    color: rgba(0,0,0,0.3);
+    border-right: 1px solid #eee;
+  }
+
+  .diff-hunk-data {
+    padding:0 8px;
+    white-space:pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .deletion {
+    background: #ffecec;
+  }
+
+  .deletion .old-line-number, .deletion .new-line-number {
+    background-color:#ffdddd;
+    border-color:#f1c0c0;
+  }
+
+  .addition {
+    background: #eaffea;
+  }
+
+  .addition .old-line-number, .addition .new-line-number {
+    background-color:#dbffdb;
+    border-color:#c1e9c1;
   }
 }
