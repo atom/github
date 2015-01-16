@@ -1,4 +1,5 @@
 Git = require 'nodegit'
+TemplateHelper = require 'template-helper'
 
 BaseTemplate = """
   <div class="history"></div>
@@ -40,19 +41,6 @@ class GitHistory
         walk repo, walker, @numberCommits, (commit) =>
           @addCommit(commit)
           commitCallback(commit)
-
-
-
-class TemplateHelper
-  @addTemplate: (parent, htmlString) ->
-    template = document.createElement('template')
-    template.innerHTML = htmlString
-    parent.appendChild(template)
-    template
-
-  @renderTemplate: (template) ->
-    document.importNode(template.content, true)
-
 
 
 class HistoryView extends HTMLElement
