@@ -1,10 +1,27 @@
 Git = require 'nodegit'
 
+BaseTemplate = """
+  <div class="history"></div>
+  <div class="diffs"></div>
+"""
+
+CommitTemplateString = """
+  <div class="commit">
+    <div class="sha"></div>
+    <div class="author"></div>
+    <div class="message"></div>
+  </div>
+"""
+
 class DiffsView extends HTMLElement
   createdCallback: ->
     window.diffsView = this
 
-    # @addAttribute('tabindex', -1)
+    @innerHTML = BaseTemplate
+    @historyNode = @querySelector('.history')
+    @diffsNode = @querySelector('.diffs')
+
+    @commitTemplate = @addTemplate(CommitTemplateString)
 
     Git.Repository.open(atom.project.getPaths()[0])
       .then (@repo) =>
@@ -19,33 +36,27 @@ class DiffsView extends HTMLElement
   getTitle: ->
     'Yeah, view that diff!'
 
+  addTemplate: (htmlString) ->
+    template = document.createElement('template')
+    template.innerHTML = htmlString
+    @appendChild(template)
+    template
+
+  renderTemplate: (template) ->
+    document.importNode(template.content, true)
+
   renderCommit: (commit) ->
-    # sorry for the DOM API noise. We dont have a good view framework yet
     console.log 'commit', commit.sha(), commit.author().name(), commit.message()
-    commitNode = document.createElement('div')
-    commitNode.classList.add('commit')
 
-    node = document.createElement('div')
-    node.textContent = commit.sha()
-    node.classList.add('sha')
-    commitNode.appendChild(node)
-
-    node = document.createElement('div')
-    node.textContent = commit.author().name()
-    node.classList.add('name')
-    commitNode.appendChild(node)
-
-    node = document.createElement('div')
-    node.textContent = commit.message().split('\n')[0]
-    node.classList.add('message')
-    commitNode.appendChild(node)
+    # We still dont have a good view framework yet
+    commitNode = @renderTemplate(@commitTemplate)
+    commitNode.querySelector('.sha').textContent = commit.sha()
+    commitNode.querySelector('.author').textContent = commit.author().name()
+    commitNode.querySelector('.message').textContent = commit.message().split('\n')[0]
 
     @historyNode.appendChild(commitNode)
 
   renderHistory: ->
-    @historyNode = document.createElement('div')
-    @historyNode.classList.add('history')
-    @appendChild(@historyNode)
     @walkHistory (commit) => @renderCommit(commit)
 
   walkHistory: (commitCallback) ->
