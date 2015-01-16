@@ -1,5 +1,14 @@
 # git-experiment package
 
-A short description of your package.
+```
+git clone git@github.com:atom/git-experiment.git
+cd git-experiment
+apm install
+apm link -d
+atom .
 
-![A screenshot of your package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+cd ../some-dir-with-a-git-repo
+atom -d
+```
+
+It is currently setup to open on start up, no matter what.
