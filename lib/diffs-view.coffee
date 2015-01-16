@@ -65,6 +65,14 @@ class DiffsView extends HTMLElement
     @historyNode = @querySelector('.history')
     @diffsNode = @querySelector('.diffs')
 
+    @historyNode.addEventListener 'click', (e) =>
+      commitNode = e.target
+      while commitNode? && !commitNode.classList?.contains('commit')
+        commitNode = commitNode.parentNode
+      if commitNode?
+        sha = commitNode.querySelector('.sha').textContent
+        @renderDiff(sha)
+
     @commitTemplate = TemplateHelper.addTemplate(this, CommitTemplateString)
 
     @renderHistory().catch (error) ->
@@ -75,30 +83,32 @@ class DiffsView extends HTMLElement
     'Yeah, view that diff!'
 
   renderCommit: (commit) ->
-    console.log 'commit', commit.sha(), commit.author().name(), commit.message()
-
     # We still dont have a good view framework yet
     commitNode = TemplateHelper.renderTemplate(@commitTemplate)
     commitNode.querySelector('.sha').textContent = commit.sha()
     commitNode.querySelector('.author').textContent = commit.author().name()
     commitNode.querySelector('.message').textContent = commit.message().split('\n')[0]
-
+    commitNode.firstElementChild.id = "sha-#{commit.sha()}"
     @historyNode.appendChild(commitNode)
 
   renderHistory: ->
     new Promise (resolve, reject) =>
       @history.walkHistory (commit) =>
+        promise = @renderCommit(commit)
         resolve(commit)
-        @renderCommit(commit)
+        promise
     .then (firstCommit) =>
       @renderDiff(firstCommit.sha())
 
   renderDiff: (sha) ->
     @diffsNode.innerHTML = ''
 
+    for commitNode in @querySelectorAll('.commit')
+      commitNode.classList.remove('selected')
+    @querySelector("#sha-#{sha}")?.classList.add('selected')
+
     commit = @history.getCommit(sha)
     commit.getDiff().then (diffList) =>
-      console.log diffList
       for diff in diffList
         window.diff = diff
         for patch in diff.patches()
@@ -124,7 +134,6 @@ class PatchView extends HTMLElement
   @lineTemplate: TemplateHelper.addTemplate(document.body, PatchLineTemplateString)
 
   setPatch: (@patch) ->
-    console.log @querySelector, this
     @innerHTML = PatchTemplateString
     fileNode = @querySelector('.diff-file')
     hunkNode = @querySelector('.diff-hunk')

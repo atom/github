@@ -10,10 +10,21 @@ git-experiment-diffs-view {
   background: @pane-item-background-color;
 
   .history {
-    width: 300px;
+    width: 30%;
+    overflow: auto;
+
     .commit {
       margin: 10px;
     }
+
+    .commit.selected {
+      background: rgba(200, 200, 255, .4);
+    }
+  }
+
+  .diffs {
+    width: 70%;
+    overflow: auto;
   }
 }
 
