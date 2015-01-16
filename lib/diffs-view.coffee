@@ -41,31 +41,6 @@ class GitHistory
           @addCommit(commit)
           commitCallback(commit)
 
-  walkPatches: (sha, patchCallback) ->
-    commit = @getCommit(sha)
-
-    commit.getDiff().then (diffList) ->
-      console.log diffList
-      for diff in diffList
-        window.diff = diff
-
-        diff.patches()[0].delta.newFile().path()
-
-    # appendDiffLists = (diffLists) ->
-    #   promise = Promise.resolve()
-    #
-    #   chunkSize = 50
-    #   diffLists.forEach (diff) ->
-    #     _.chunkAll(diff.patches(), chunkSize).forEach (patches) ->
-    #       promise = promise.then -> new Promise (resolve) ->
-    #         process.nextTick ->
-    #           patches.forEach (patch) -> document.body.appendChild(elementForPatch(patch))
-    #           console.log "#{chunkSize} patches added in #{(Date.now() - start) / 1000} seconds"
-    #           resolve()
-
-
-
-
 
 
 class TemplateHelper
