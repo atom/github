@@ -14,9 +14,10 @@ module.exports = GitExperiment =
         DiffsView ?= require './diffs-view'
         new DiffsView()
 
+    @openDiffsView()
+
   deactivate: ->
     @subscriptions.dispose()
-    @gitExperimentView.destroy()
 
   serialize: ->
     # gitExperimentViewState: @gitExperimentView.serialize()
@@ -26,3 +27,5 @@ module.exports = GitExperiment =
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-diffs', =>
   GitExperiment.openDiffsView()
+
+window.git = require 'nodegit'
