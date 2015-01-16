@@ -1,5 +1,5 @@
 {CompositeDisposable} = require 'atom'
-DiffsView = null
+HistoryView = null
 
 URI = 'atom://git-experiment/view-diffs'
 
@@ -11,10 +11,10 @@ module.exports = GitExperiment =
     @subscriptions = new CompositeDisposable
     @subscriptions.add atom.workspace.registerOpener (filePath) =>
       if filePath is URI
-        DiffsView ?= require './diffs-view'
-        new DiffsView()
+        HistoryView ?= require './history-view'
+        new HistoryView()
 
-    @openDiffsView()
+    @openHistoryView()
 
   deactivate: ->
     @subscriptions.dispose()
@@ -22,10 +22,10 @@ module.exports = GitExperiment =
   serialize: ->
     # gitExperimentViewState: @gitExperimentView.serialize()
 
-  openDiffsView: ->
+  openHistoryView: ->
     atom.workspace.open(URI)
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-diffs', =>
-  GitExperiment.openDiffsView()
+  GitExperiment.openHistoryView()
 
 window.git = require 'nodegit'

@@ -55,7 +55,7 @@ class TemplateHelper
 
 
 
-class DiffsView extends HTMLElement
+class HistoryView extends HTMLElement
   createdCallback: ->
     window.diffsView = this
 
@@ -80,7 +80,7 @@ class DiffsView extends HTMLElement
       console.error error.stack
 
   getTitle: ->
-    'Yeah, view that diff!'
+    'Git History View'
 
   renderHistory: ->
     new Promise (resolve, reject) =>
@@ -162,4 +162,4 @@ class PatchView extends HTMLElement
 
 document.registerElement 'patch-view', prototype: PatchView.prototype
 
-module.exports = document.registerElement 'git-experiment-diffs-view', prototype: DiffsView.prototype
+module.exports = document.registerElement 'git-experiment-history-view', prototype: HistoryView.prototype
