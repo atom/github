@@ -10,21 +10,61 @@ git-experiment-history-view {
   background: @pane-item-background-color;
 
   .history {
-    width: 30%;
+    font-family: @font-family;
+    font-size: @font-size;
+    color:@text-color;
+    width: 320px;
     overflow: auto;
+    border-right:1px solid @pane-item-border-color;
 
     .commit {
-      margin: 10px;
+      padding: 10px;
+      box-shadow:inset fade(@pane-item-border-color, 50%) 0 -1px 0;
     }
 
     .commit.selected {
-      background: rgba(200, 200, 255, .4);
+      background: @background-color-highlight;
+      color:@text-color-highlight;
+      margin-top:-1px;
+      padding-top:11px;
+      box-shadow:inset fade(@pane-item-border-color, 50%) 0 -1px 0, inset fade(@pane-item-border-color, 50%) 0 1px 0;
+
+      .meta > div {
+        color:fade(@text-color-highlight, 70%);
+      }
+    }
+
+    &:focus .commit.selected {
+      background: @background-color-selected;
+      color:@text-color-selected;
+    }
+
+    .message {
+      font-size:110%;
+      font-weight:bold;
+    }
+
+    .meta {
+      display:table;
+      width:100%;
+
+      & > div {
+        display:table-cell;
+        color:@text-color-subtle;
+      }
+    }
+
+    .sha {
+      font-family:Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+      width:1px;
+      text-align:right;
     }
   }
 
   .diffs {
     width: 70%;
     overflow: auto;
+    background:@syntax-background-color;
   }
 }
 
@@ -64,59 +104,48 @@ git-experiment-history-view {
 // https://github.com/github-prototype/diff-view/blob/master/app/style/default.css
 patch-view {
   display: block;
-  font: 12px/18px Consolas, "Liberation Mono", Courier, monospace;
+  font-family:Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  font-size:15px;
   color: @syntax-text-color;
   background: @syntax-background-color;
+  border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
 
   .diff-file {
     padding: 0 12px;
-    height:32px;
-    line-height:32px;
-    border:1px solid #ccc;
-    border-width:1px 0;
-    position:relative;
-    color:#333;
-    font:11px/32px "Lucida Grande", "Helvetica Neue", sans-serif;
+    font-family:@font-family;
+    font-size:@font-size;
+    line-height:2.5em;
+    color:@syntax-text-color;
+    background:contrast(@syntax-background-color, fade(#fff, 10%), fade(#000, 5%));
+    border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
   }
 
-  div:first-child .diff-file {
+  &:first-child .diff-file {
     border-top:none;
   }
 
-  .diff-file:after {
-    content:'';
-    top:32px;
-    left:0;
-    right:0;
-    height:2px;
-    background:linear-gradient(to right, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.03) 100%);
-    position:absolute;
-  }
+  @hunk-color: contrast(@syntax-background-color, fade(#4A90E2, 5%), fade(#4A90E2, 10%));
 
   .diff-hunk-header {
-    color:#999;
-    background:#f8fafd;
-    text-shadow:rgba(255,255,255, 0.25) 0 1px 0;
+    color:fade(@syntax-text-color, 50%);
+    background:@hunk-color;
     height:26px;
     line-height:26px;
   }
 
   .diff-hunk-header .old-line-number, .diff-hunk-header .new-line-number {
-    background-color:#f0f5fa;
-    border-color:#d5e4f2;
-    height:26px;
-    line-height:26px;
+    background-color:darken(@hunk-color, 10%);
+    border-color:darken(@hunk-color, 100%);
   }
 
   .diff-hunk {
     white-space: pre;
-    color: #333;
-    text-shadow:rgba(255,255,255, 0.25) 0 1px 0;
+    color:fade(@syntax-text-color, 50%);;
     padding:0;
     margin:0;
     width:100%;
     border-collapse:collapse;
-    line-height:18px;
+    line-height:1.5em;
   }
 
   td {
@@ -126,8 +155,9 @@ patch-view {
   .old-line-number, .new-line-number {
     width:40px;
     text-align: center;
-    color: rgba(0,0,0,0.3);
-    border-right: 1px solid #eee;
+    vertical-align:top;
+    color: fade(@syntax-text-color, 50%);
+    box-shadow:inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
   }
 
   .diff-hunk-data {
@@ -136,21 +166,26 @@ patch-view {
     word-wrap: break-word;
   }
 
-  .deletion {
-    background: #ffecec;
+  @deletion-number: fade(@syntax-color-removed, 50%);
+  @addition-number: fade(@syntax-color-added, 50%);
+
+  .deletion td {
+    background-color:fade(@syntax-color-removed, 15%);
+    color:@syntax-text-color;
   }
 
   .deletion .old-line-number, .deletion .new-line-number {
-    background-color:#ffdddd;
-    border-color:#f1c0c0;
+    background-color:fade(@syntax-color-removed, 25%);
+    color: fade(@syntax-text-color, 50%);
   }
 
-  .addition {
-    background: #eaffea;
+  .addition td {
+    background: fade(@syntax-color-added, 15%);
+    color:@syntax-text-color;
   }
 
   .addition .old-line-number, .addition .new-line-number {
-    background-color:#dbffdb;
-    border-color:#c1e9c1;
+    background-color:fade(@syntax-color-added, 25%);
+    color: fade(@syntax-text-color, 50%);
   }
 }
