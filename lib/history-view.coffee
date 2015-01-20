@@ -1,6 +1,7 @@
 TemplateHelper = require './template-helper'
 GitHistory = require './git-history'
 PatchView = require './patch-view'
+timeago = require 'timeago'
 
 BaseTemplate = """
   <div class="history"></div>
@@ -9,9 +10,14 @@ BaseTemplate = """
 
 CommitSummaryTemplateString = """
   <div class="commit">
-    <div class="sha"></div>
-    <div class="author"></div>
     <div class="message"></div>
+    <div class="meta">
+      <div>
+        <span class="time"></span> by
+        <span class="author"></span>
+      </div>
+      <div class="sha"></div>
+    </div>
   </div>
 """
 
@@ -30,7 +36,7 @@ class HistoryView extends HTMLElement
       while commitNode? && !commitNode.classList?.contains('commit')
         commitNode = commitNode.parentNode
       if commitNode?
-        sha = commitNode.querySelector('.sha').textContent
+        sha = commitNode.querySelector('.sha').dataset['sha']
         @renderCommitDetail(sha)
 
     @commitTemplate = TemplateHelper.addTemplate(this, CommitSummaryTemplateString)
@@ -54,8 +60,10 @@ class HistoryView extends HTMLElement
   renderCommitSummary: (commit) ->
     # We still dont have a good view framework yet
     commitNode = TemplateHelper.renderTemplate(@commitTemplate)
-    commitNode.querySelector('.sha').textContent = commit.sha()
+    commitNode.querySelector('.sha').textContent = commit.sha().slice(0,8)
+    commitNode.querySelector('.sha').dataset['sha'] = commit.sha()
     commitNode.querySelector('.author').textContent = commit.author().name()
+    commitNode.querySelector('.time').textContent = timeago(commit.date())
     commitNode.querySelector('.message').textContent = commit.message().split('\n')[0]
     commitNode.firstElementChild.id = "sha-#{commit.sha()}"
     @historyNode.appendChild(commitNode)
@@ -75,5 +83,7 @@ class HistoryView extends HTMLElement
           patchView = new PatchView
           patchView.setPatch(patch)
           @diffsNode.appendChild(patchView)
+
+    @historyNode.focus()
 
 module.exports = document.registerElement 'git-experiment-history-view', prototype: HistoryView.prototype

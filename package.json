@@ -9,6 +9,7 @@
     "atom": ">=0.174.0, <2.0.0"
   },
   "dependencies": {
-    "nodegit": "^0.2.4"
+    "nodegit": "^0.2.4",
+    "timeago": "~0.2.0"
   }
 }
