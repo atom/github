@@ -10,6 +10,9 @@ BaseTemplate = """
 
 CommitSummaryTemplateString = """
   <div class="commit">
+    <div class="avatar">
+      <img src="" />
+    </div>
     <div class="message"></div>
     <div class="meta">
       <div>
@@ -65,8 +68,15 @@ class HistoryView extends HTMLElement
     commitNode.querySelector('.author').textContent = commit.author().name()
     commitNode.querySelector('.time').textContent = timeago(commit.date())
     commitNode.querySelector('.message').textContent = commit.message().split('\n')[0]
+    commitNode.querySelector('.avatar img').src = authorAvatar(commit.author().email())
     commitNode.firstElementChild.id = "sha-#{commit.sha()}"
     @historyNode.appendChild(commitNode)
+
+  authorAvatar = (email) ->
+    if matches = email.match /([^@]+)@users\.noreply\.github\.com/i
+      "https://avatars.github.com/#{matches[1]}?s=80"
+    else
+      "https://avatars.githubusercontent.com/u/e?email=#{email}&s=80"
 
   renderCommitDetail: (sha) ->
     @diffsNode.innerHTML = ''
@@ -83,7 +93,5 @@ class HistoryView extends HTMLElement
           patchView = new PatchView
           patchView.setPatch(patch)
           @diffsNode.appendChild(patchView)
-
-    @historyNode.focus()
 
 module.exports = document.registerElement 'git-experiment-history-view', prototype: HistoryView.prototype

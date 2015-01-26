@@ -18,16 +18,18 @@ git-experiment-history-view {
     border-right:1px solid @pane-item-border-color;
 
     .commit {
-      padding: 10px;
-      box-shadow:inset fade(@pane-item-border-color, 50%) 0 -1px 0;
+      padding: 9px 10px 10px 52px;
+      box-shadow:inset fade(@pane-item-border-color, 20%) 0 -1px 0;
+      cursor:default;
+      position:relative;
+      min-height:52px;
+      box-sizing:border-box;
     }
 
     .commit.selected {
       background: @background-color-highlight;
       color:@text-color-highlight;
-      margin-top:-1px;
-      padding-top:11px;
-      box-shadow:inset fade(@pane-item-border-color, 50%) 0 -1px 0, inset fade(@pane-item-border-color, 50%) 0 1px 0;
+      box-shadow:@background-color-highlight 0 -1px 0;
 
       .meta > div {
         color:fade(@text-color-highlight, 70%);
@@ -42,6 +44,9 @@ git-experiment-history-view {
     .message {
       font-size:110%;
       font-weight:bold;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .meta {
@@ -58,6 +63,35 @@ git-experiment-history-view {
       font-family:Inconsolata, Monaco, Consolas, 'Courier New', Courier;
       width:1px;
       text-align:right;
+    }
+
+    .avatar {
+      position:absolute;
+      top:10px;
+      left:10px;
+      border-radius:3px;
+      background:rgba(0,0,0,0.1);
+      width:32px;
+      height:32px;
+
+      &:after {
+        content:'';
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        border-radius:3px;
+        box-shadow:inset rgba(0,0,0,0.1) 0 0 0 1px;
+        z-index:3;
+      }
+
+      img {
+        width:32px;
+        height:32px;
+        border-radius:3px;
+        // display:none;
+      }
     }
   }
 
@@ -108,7 +142,10 @@ patch-view {
   font-size:15px;
   color: @syntax-text-color;
   background: @syntax-background-color;
-  border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+
+  &:last-child {
+    border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+  }
 
   .diff-file {
     padding: 0 12px;
@@ -117,11 +154,13 @@ patch-view {
     line-height:2.5em;
     color:@syntax-text-color;
     background:contrast(@syntax-background-color, fade(#fff, 10%), fade(#000, 5%));
-    border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+    border-width:0 0 1px;
+    border-style: solid;
+    border-color: contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
   }
 
-  &:first-child .diff-file {
-    border-top:none;
+  & + patch-view .diff-file {
+    border-width:1px 0;
   }
 
   @hunk-color: contrast(@syntax-background-color, fade(#4A90E2, 5%), fade(#4A90E2, 10%));
@@ -145,7 +184,7 @@ patch-view {
     margin:0;
     width:100%;
     border-collapse:collapse;
-    line-height:1.5em;
+    line-height:1.3em;
   }
 
   td {
