@@ -80,7 +80,7 @@ class HistoryView extends HTMLElement
 
   authorAvatar = (email) ->
     if matches = email.match /([^@]+)@users\.noreply\.github\.com/i
-      "https://avatars.github.com/#{matches[1]}?s=80"
+      "https://avatars.githubusercontent.com/#{matches[1]}?s=80"
     else
       "https://avatars.githubusercontent.com/u/e?email=#{email}&s=80"
 
