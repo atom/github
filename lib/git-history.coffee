@@ -4,7 +4,7 @@ Git.Threads.init()
 module.exports =
 class GitHistory
   commits: {}
-  numberCommits: 10
+  numberCommits: 50
 
   constructor: ->
     @repoPromise = Git.Repository.open(atom.project.getPaths()[0])
@@ -31,10 +31,15 @@ class GitHistory
         walk(repo, walker, numberCommits - 1, callback)
 
     @repoPromise.then (repo) =>
-      repo.getHeadCommit().then (commit) =>
-        walker = repo.createRevWalk()
-        walker.simplifyFirstParent()
-        walker.push(commit.id())
-        walk repo, walker, @numberCommits, (commit) =>
-          @addCommit(commit)
-          commitCallback(commit)
+      walker = repo.createRevWalk()
+      walker.simplifyFirstParent()
+      walker.pushHead()
+
+      Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')]).then (commits) =>
+        console.log commits
+        Git.Merge.base(repo, commits[0], commits[1]).then (base) =>
+          console.log base
+          walker.hide(base)
+          walk repo, walker, @numberCommits, (commit) =>
+            @addCommit(commit)
+            commitCallback(commit)
