@@ -63,6 +63,7 @@ class HistoryView extends HTMLElement
         resolve(commit)
         promise
     .then (firstCommit) =>
+      @historyNode.focus()
       @renderCommitDetail(firstCommit.sha())
 
   renderCommitSummary: (commit) ->
