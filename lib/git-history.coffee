@@ -33,6 +33,7 @@ class GitHistory
     @repoPromise.then (repo) =>
       repo.getHeadCommit().then (commit) =>
         walker = repo.createRevWalk()
+        walker.simplifyFirstParent()
         walker.push(commit.id())
         walk repo, walker, @numberCommits, (commit) =>
           @addCommit(commit)
