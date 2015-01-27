@@ -2,6 +2,7 @@ TemplateHelper = require './template-helper'
 GitHistory = require './git-history'
 PatchView = require './patch-view'
 timeago = require 'timeago'
+_ = require 'underscore-contrib'
 
 BaseTemplate = """
   <div class="history"></div>
@@ -79,19 +80,39 @@ class HistoryView extends HTMLElement
       "https://avatars.githubusercontent.com/u/e?email=#{email}&s=80"
 
   renderCommitDetail: (sha) ->
-    @diffsNode.innerHTML = ''
+    diffsNode = @diffsNode
+
+    @selectCommit(@querySelector("#sha-#{sha}"))
+
+    @history.getDiff(sha).then (diffList) ->
+      window.actionTimestamp = actionTimestamp = Date.now()
+      diffsNode.innerHTML = ''
+      patchView = new PatchView
+      chunkSize = 5
+      promise = Promise.resolve()
+      diffList.forEach (diff) ->
+        _.chunkAll(diff.patches(), chunkSize).forEach (patches) ->
+          promise = promise.then -> new Promise (resolve) ->
+            setImmediate ->
+              return unless actionTimestamp == window.actionTimestamp
+              patches.forEach (patch) ->
+                patchView = new PatchView
+                patchView.setPatch(patch)
+                diffsNode.appendChild(patchView)
+              resolve()
+
+  selectCommit: (el) ->
+    return unless el
 
     for commitNode in @querySelectorAll('.commit')
       commitNode.classList.remove('selected')
-    @querySelector("#sha-#{sha}")?.classList.add('selected')
 
-    commit = @history.getCommit(sha)
-    commit.getDiff().then (diffList) =>
-      for diff in diffList
-        window.diff = diff
-        for patch in diff.patches()
-          patchView = new PatchView
-          patchView.setPatch(patch)
-          @diffsNode.appendChild(patchView)
+    el.classList.add('selected')
+
+  moveSelectionUp: ->
+    @querySelector(".commit.selected").previousElementSibling?.click()
+
+  moveSelectionDown: ->
+    @querySelector(".commit.selected").nextElementSibling?.click()
 
 module.exports = document.registerElement 'git-experiment-history-view', prototype: HistoryView.prototype

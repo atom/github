@@ -1,4 +1,5 @@
 Git = require 'nodegit'
+Git.Threads.init()
 
 module.exports =
 class GitHistory
@@ -11,6 +12,16 @@ class GitHistory
   addCommit: (commit) -> @commits[commit.sha()] = commit
 
   getCommit: (sha) -> @commits[sha]
+
+  getDiff: (sha) ->
+    commit = @getCommit(sha)
+    commit.getParents().then (parents) ->
+      diffs = parents.map (parent) ->
+        parent.getTree().then (parentTree) ->
+          commit.getTree().then (thisTree) ->
+            thisTree.diff parentTree
+
+      Promise.all diffs
 
   walkHistory: (commitCallback) ->
     walk = (repo, walker, numberCommits, callback) ->
