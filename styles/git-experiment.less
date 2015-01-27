@@ -39,6 +39,10 @@ git-experiment-history-view {
     &:focus .commit.selected {
       background: @background-color-selected;
       color:@text-color-selected;
+
+      .meta > div {
+        color:fade(@text-color-selected, 70%);
+      }
     }
 
     .message {
@@ -185,6 +189,7 @@ patch-view {
     width:100%;
     border-collapse:collapse;
     line-height:1.3em;
+    table-layout:fixed;
   }
 
   td {
@@ -192,7 +197,7 @@ patch-view {
   }
 
   .old-line-number, .new-line-number {
-    width:40px;
+    width:42px;
     text-align: center;
     vertical-align:top;
     color: fade(@syntax-text-color, 50%);
@@ -209,22 +214,22 @@ patch-view {
   @addition-number: fade(@syntax-color-added, 50%);
 
   .deletion td {
-    background-color:fade(@syntax-color-removed, 15%);
+    background-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
     color:@syntax-text-color;
   }
 
   .deletion .old-line-number, .deletion .new-line-number {
-    background-color:fade(@syntax-color-removed, 25%);
+    background-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 15%), fade(@syntax-color-removed, 25%));
     color: fade(@syntax-text-color, 50%);
   }
 
   .addition td {
-    background: fade(@syntax-color-added, 15%);
+    background-color:contrast(@syntax-background-color, fade(@syntax-color-added, 8%), fade(@syntax-color-added, 15%));
     color:@syntax-text-color;
   }
 
   .addition .old-line-number, .addition .new-line-number {
-    background-color:fade(@syntax-color-added, 25%);
+    background-color:contrast(@syntax-background-color, fade(@syntax-color-added, 15%), fade(@syntax-color-added, 25%));
     color: fade(@syntax-text-color, 50%);
   }
 }

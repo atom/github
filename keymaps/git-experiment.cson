@@ -9,3 +9,8 @@
 # https://atom.io/docs/latest/advanced/keymaps
 'atom-workspace':
   'ctrl-alt-d': 'git-experiment:view-history'
+'git-experiment-history-view .history':
+  'down': 'core:move-down'
+  'j': 'core:move-down'
+  'up': 'core:move-up'
+  'k': 'core:move-up'

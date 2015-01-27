@@ -5,7 +5,7 @@ timeago = require 'timeago'
 _ = require 'underscore-contrib'
 
 BaseTemplate = """
-  <div class="history"></div>
+  <div class="history" tabindex="-1"></div>
   <div class="diffs"></div>
 """
 
@@ -27,6 +27,10 @@ CommitSummaryTemplateString = """
 
 class HistoryView extends HTMLElement
   createdCallback: ->
+    atom.commands.add 'git-experiment-history-view .history',
+      'core:move-down': => @moveSelectionDown()
+      'core:move-up': => @moveSelectionUp()
+
     window.diffsView = this
 
     @history = new GitHistory()
