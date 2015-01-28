@@ -89,21 +89,23 @@ class HistoryView extends HTMLElement
 
     @selectCommit(@querySelector("#sha-#{sha}"))
 
-    @history.getDiff(sha).then (diffList) ->
-      window.actionTimestamp = actionTimestamp = Date.now()
-      patchView = new PatchView
-      chunkSize = 5
-      promise = Promise.resolve()
-      diffList.forEach (diff) ->
-        _.chunkAll(diff.patches(), chunkSize).forEach (patches) ->
-          promise = promise.then -> new Promise (resolve) ->
-            setImmediate ->
+    setImmediate =>
+      @history.getDiff(sha).then (diffList) ->
+        window.actionTimestamp = actionTimestamp = Date.now()
+
+        chunkSize = 5
+        promise = Promise.resolve()
+        diffList.forEach (diff) ->
+          _.chunkAll(diff.patches(), chunkSize).forEach (patches) ->
+            promise = promise.then -> new Promise (resolve) ->
               return unless actionTimestamp == window.actionTimestamp
-              patches.forEach (patch) ->
-                patchView = new PatchView
-                patchView.setPatch(patch)
-                diffsNode.appendChild(patchView)
-              resolve()
+              setImmediate ->
+                patches.forEach (patch) ->
+                    patchView = new PatchView
+                    patchView.setPatch(patch)
+                    diffsNode.appendChild(patchView)
+                    diffsNode.style.webkitTransform = 'scale(1)' # fixes redraw issues
+                resolve()
 
   selectCommit: (el) ->
     return unless el

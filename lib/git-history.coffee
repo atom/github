@@ -16,10 +16,15 @@ class GitHistory
   getDiff: (sha) ->
     commit = @getCommit(sha)
     commit.getParents().then (parents) ->
+      parents = [null] unless parents.length
       diffs = parents.map (parent) ->
-        parent.getTree().then (parentTree) ->
-          commit.getTree().then (thisTree) ->
-            thisTree.diff parentTree
+        commit.getTree().then (thisTree) ->
+          if parent
+            parent.getTree().then (parentTree) ->
+              thisTree.diff parentTree
+          else
+            thisTree.diff(null).then(null, (error) -> console.log error)
+            thisTree.diff(null)
 
       Promise.all diffs
 
@@ -36,10 +41,8 @@ class GitHistory
       walker.pushHead()
 
       Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')]).then (commits) =>
-        console.log commits
         Git.Merge.base(repo, commits[0], commits[1]).then (base) =>
-          console.log base
-          walker.hide(base)
+          walker.hide(base) unless commits[0].id().toString() == base.toString()
           walk repo, walker, @numberCommits, (commit) =>
             @addCommit(commit)
             commitCallback(commit)
