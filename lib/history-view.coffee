@@ -1,6 +1,7 @@
 TemplateHelper = require './template-helper'
 GitHistory = require './git-history'
 PatchView = require './patch-view'
+CommitHeaderView = require './commit-header-view'
 timeago = require 'timeago'
 _ = require 'underscore-contrib'
 
@@ -86,12 +87,16 @@ class HistoryView extends HTMLElement
 
   renderCommitDetail: (sha) ->
     diffsNode = @diffsNode
+    headerView = new CommitHeaderView
+    headerView.setData(@history.getCommit(sha))
+
+    diffsNode.innerHTML = ''
+    diffsNode.appendChild(headerView)
 
     @selectCommit(@querySelector("#sha-#{sha}"))
 
     @history.getDiff(sha).then (diffList) ->
       window.actionTimestamp = actionTimestamp = Date.now()
-      diffsNode.innerHTML = ''
       patchView = new PatchView
       chunkSize = 5
       promise = Promise.resolve()
