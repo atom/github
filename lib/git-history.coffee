@@ -43,3 +43,9 @@ class GitHistory
           walk repo, walker, @numberCommits, (commit) =>
             @addCommit(commit)
             commitCallback(commit)
+
+  @authorAvatar: (email) ->
+    if matches = email.match /([^@]+)@users\.noreply\.github\.com/i
+      "https://avatars.githubusercontent.com/#{matches[1]}?s=80"
+    else
+      "https://avatars.githubusercontent.com/u/e?email=#{email}&s=80"

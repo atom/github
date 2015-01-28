@@ -75,15 +75,9 @@ class HistoryView extends HTMLElement
     commitNode.querySelector('.author').textContent = commit.author().name()
     commitNode.querySelector('.time').textContent = timeago(commit.date())
     commitNode.querySelector('.message').textContent = commit.message().split('\n')[0]
-    commitNode.querySelector('.avatar img').src = authorAvatar(commit.author().email())
+    commitNode.querySelector('.avatar img').src = GitHistory.authorAvatar(commit.author().email())
     commitNode.firstElementChild.id = "sha-#{commit.sha()}"
     @historyNode.appendChild(commitNode)
-
-  authorAvatar = (email) ->
-    if matches = email.match /([^@]+)@users\.noreply\.github\.com/i
-      "https://avatars.githubusercontent.com/#{matches[1]}?s=80"
-    else
-      "https://avatars.githubusercontent.com/u/e?email=#{email}&s=80"
 
   renderCommitDetail: (sha) ->
     diffsNode = @diffsNode
