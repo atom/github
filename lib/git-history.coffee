@@ -13,6 +13,10 @@ class GitHistory
 
   getCommit: (sha) -> @commits[sha]
 
+  getBranch: ->
+    return @repoPromise.then (repo) ->
+      return repo.getBranch('HEAD')
+
   getDiff: (sha) ->
     commit = @getCommit(sha)
     commit.getDiff()

@@ -9,13 +9,45 @@ git-experiment-history-view {
   display: flex;
   background: @pane-item-background-color;
 
+  .column-header {
+    padding:0 12px;
+    width:100%;
+    height:30px;
+    line-height:29px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-weight:500;
+    text-align:center;
+    box-shadow:inset fade(@pane-item-border-color, 20%) 0 -1px 0;
+
+    .icon {
+      opacity:0.4;
+      margin:0;
+
+      &:before {
+        margin:0;
+      }
+    }
+  }
+
   .history {
     font-family: @font-family;
     font-size: @font-size;
     color:@text-color;
-    width: 320px;
-    overflow: auto;
+    width: 360px;
+    overflow:hidden;
+    position:relative;
     border-right:1px solid @pane-item-border-color;
+
+    .history-scroller {
+      position:absolute;
+      top:30px;
+      right:0;
+      bottom:0;
+      left:0;
+      overflow-y:auto;
+    }
 
     .commit {
       padding: 9px 10px 10px 52px;
@@ -113,7 +145,7 @@ commit-header-view {
   font-size: @font-size;
   color:@text-color;
   background: @pane-item-background-color;
-  border-bottom:1px solid @pane-item-border-color;
+  border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
 
   .message {
     font-size:160%;

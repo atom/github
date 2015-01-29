@@ -6,7 +6,13 @@ timeago = require 'timeago'
 _ = require 'underscore-contrib'
 
 BaseTemplate = """
-  <div class="history" tabindex="-1"></div>
+  <div class="history" tabindex="-1">
+    <div class="column-header">
+      <span class="icon icon-git-branch"></span>
+      <span class="branch-name"></span>
+    </div>
+    <div class="history-scroller"></div>
+  </div>
   <div class="diffs"></div>
 """
 
@@ -37,7 +43,7 @@ class HistoryView extends HTMLElement
     @history = new GitHistory()
 
     @innerHTML = BaseTemplate
-    @historyNode = @querySelector('.history')
+    @historyNode = @querySelector('.history-scroller')
     @diffsNode = @querySelector('.diffs')
 
     @historyNode.addEventListener 'click', (e) =>
@@ -49,6 +55,10 @@ class HistoryView extends HTMLElement
         @renderCommitDetail(sha)
 
     @commitTemplate = TemplateHelper.addTemplate(this, CommitSummaryTemplateString)
+
+    @history.getBranch().then (branch) =>
+      name = branch.name().replace('refs/heads/', '')
+      @querySelector('.branch-name').textContent = name
 
     @renderHistory().catch (error) ->
       console.error error.message, error
@@ -114,6 +124,11 @@ class HistoryView extends HTMLElement
       commitNode.classList.remove('selected')
 
     el.classList.add('selected')
+
+    if @historyNode.offsetHeight + @historyNode.scrollTop - el.offsetTop - el.offsetHeight < 0
+      el.scrollIntoView(false) # off the bottom of the scroll
+    else if el.offsetTop < @historyNode.scrollTop
+      el.scrollIntoView()
 
   moveSelectionUp: ->
     @querySelector(".commit.selected").previousElementSibling?.click()
