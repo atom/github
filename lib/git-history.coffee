@@ -15,18 +15,7 @@ class GitHistory
 
   getDiff: (sha) ->
     commit = @getCommit(sha)
-    commit.getParents().then (parents) ->
-      parents = [null] unless parents.length
-      diffs = parents.map (parent) ->
-        commit.getTree().then (thisTree) ->
-          if parent
-            parent.getTree().then (parentTree) ->
-              thisTree.diff parentTree
-          else
-            thisTree.diff(null).then(null, (error) -> console.log error)
-            thisTree.diff(null)
-
-      Promise.all diffs
+    commit.getDiff()
 
   walkHistory: (commitCallback) ->
     walk = (repo, walker, numberCommits, callback) ->

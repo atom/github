@@ -9,7 +9,7 @@
     "atom": ">=0.174.0, <2.0.0"
   },
   "dependencies": {
-    "nodegit": "^0.2.7",
+    "nodegit": "https://github.com/orderedlist/nodegit/tarball/53316e04901d2b89abbd5a5f3f9e05549c43c5ba",
     "timeago": "~0.2.0",
     "underscore-contrib": "^0.3.0"
   }
