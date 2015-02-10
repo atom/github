@@ -6,7 +6,7 @@
   "repository": "https://github.com/atom/git-experiment",
   "license": "MIT",
   "engines": {
-    "atom": ">=0.174.0, <2.0.0"
+    "atom": ">=0.174.0 <2.0.0"
   },
   "dependencies": {
     "nodegit": "https://github.com/orderedlist/nodegit/tarball/53316e04901d2b89abbd5a5f3f9e05549c43c5ba",
