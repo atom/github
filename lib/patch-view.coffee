@@ -22,7 +22,6 @@ class PatchView extends HTMLElement
     hunkNode = @querySelector('.diff-hunk')
 
     fileNode.textContent = @patch.newFile().path()
-
     for hunk in @patch.hunks()
       hunkHeaderNode = TemplateHelper.renderTemplate(PatchView.lineTemplate)
       hunkHeaderNode.firstElementChild.classList.add('diff-hunk-header')

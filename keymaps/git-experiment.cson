@@ -14,3 +14,8 @@
   'j': 'core:move-down'
   'up': 'core:move-up'
   'k': 'core:move-up'
+'git-experiment-history-view .changes':
+  'down': 'core:move-down'
+  'j': 'core:move-down'
+  'up': 'core:move-up'
+  'k': 'core:move-up'

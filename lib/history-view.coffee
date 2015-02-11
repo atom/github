@@ -6,12 +6,12 @@ timeago = require 'timeago'
 _ = require 'underscore-contrib'
 
 BaseTemplate = """
-  <div class="history" tabindex="-1">
+  <div class="data" tabindex="-1">
     <div class="column-header">
       <span class="icon icon-git-branch"></span>
       <span class="branch-name"></span>
     </div>
-    <div class="history-scroller"></div>
+    <div class="scroller"></div>
   </div>
   <div class="diffs"></div>
 """
@@ -34,7 +34,7 @@ CommitSummaryTemplateString = """
 
 class HistoryView extends HTMLElement
   createdCallback: ->
-    atom.commands.add 'git-experiment-history-view .history',
+    atom.commands.add 'git-experiment-history-view .data',
       'core:move-down': => @moveSelectionDown()
       'core:move-up': => @moveSelectionUp()
 
@@ -43,7 +43,7 @@ class HistoryView extends HTMLElement
     @history = new GitHistory()
 
     @innerHTML = BaseTemplate
-    @historyNode = @querySelector('.history-scroller')
+    @historyNode = @querySelector('.scroller')
     @diffsNode = @querySelector('.diffs')
 
     @historyNode.addEventListener 'click', (e) =>

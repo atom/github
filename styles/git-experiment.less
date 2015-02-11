@@ -5,21 +5,66 @@
 @import "ui-variables";
 @import "syntax-variables";
 
-git-experiment-history-view {
+@separator-border-color: contrast(@pane-item-background-color, fade(@pane-item-border-color, 20%), @pane-item-border-color);
+
+git-experiment-changes-view {
+  .data {
+    display: flex;
+    flex-direction:column;
+  }
+
+  .data > div {
+    flex: 1;
+    -webkit-transform:scale(1);
+
+    &.column-header {
+      flex-grow:0;
+      flex-shrink:0;
+      flex-basis:2.7em;
+    }
+
+    &.files {
+      overflow-y:auto;
+      min-height:2.7em;
+      flex-basis:auto;
+    }
+
+    &.files.staged {
+      flex-grow:0;
+      flex-shrink:1;
+    }
+
+    &.commit {
+      margin-top:-1px;
+      flex-grow:0;
+      flex-shrink:0;
+      flex-basis:180px;
+      box-shadow:inset @separator-border-color 0 1px 0;
+    }
+  }
+}
+
+git-experiment-history-view, git-experiment-changes-view {
   display: flex;
   background: @pane-item-background-color;
 
   .column-header {
     padding:0 12px;
     width:100%;
-    height:30px;
-    line-height:29px;
+    line-height:2.7em;
+    height:2.7em;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+    background:@panel-heading-background-color;
+    font-size: @font-size;
     font-weight:500;
     text-align:center;
-    box-shadow:inset fade(@pane-item-border-color, 20%) 0 -1px 0;
+    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+
+    &:first-child {
+      box-shadow:inset @separator-border-color 0 -1px 0;
+    }
 
     .icon {
       opacity:0.4;
@@ -31,7 +76,7 @@ git-experiment-history-view {
     }
   }
 
-  .history {
+  .data {
     font-family: @font-family;
     font-size: @font-size;
     color:@text-color;
@@ -40,9 +85,9 @@ git-experiment-history-view {
     position:relative;
     border-right:1px solid @pane-item-border-color;
 
-    .history-scroller {
+    .scroller {
       position:absolute;
-      top:30px;
+      top:2.7em;
       right:0;
       bottom:0;
       left:0;
@@ -51,29 +96,54 @@ git-experiment-history-view {
 
     .commit {
       padding: 9px 10px 10px 52px;
-      box-shadow:inset fade(@pane-item-border-color, 20%) 0 -1px 0;
+      box-shadow:inset @separator-border-color 0 -1px 0;
       cursor:default;
       position:relative;
       min-height:52px;
       box-sizing:border-box;
     }
 
-    .commit.selected {
+    .change {
+      padding: 0 10px;
+      box-shadow:inset @separator-border-color 0 -1px 0;
+      line-height:2.4em;
+      cursor:default;
+      position:relative;
+      box-sizing:border-box;
+
+      .btn {
+        position:absolute;
+        right:8px;
+        top:50%;
+        margin-top:-1em;
+        display:none;
+      }
+
+      &:hover {
+        .btn {
+          display:inline-block;
+        }
+      }
+    }
+
+    .commit.selected, .change.selected {
       background: @background-color-highlight;
       color:@text-color-highlight;
-      box-shadow:@background-color-highlight 0 -1px 0;
+      box-shadow:@pane-item-background-color 0 -1px 0;
 
       .meta > div {
         color:fade(@text-color-highlight, 70%);
       }
     }
 
-    &:focus .commit.selected {
-      background: @background-color-selected;
-      color:@text-color-selected;
+    &:focus {
+      .commit.selected, .change.selected {
+        background: @background-color-selected;
+        color:@text-color-selected;
 
-      .meta > div {
-        color:fade(@text-color-selected, 70%);
+        .meta > div {
+          color:fade(@text-color-selected, 70%);
+        }
       }
     }
 
@@ -145,7 +215,7 @@ commit-header-view {
   font-size: @font-size;
   color:@text-color;
   background: @pane-item-background-color;
-  border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+  box-shadow:inset @separator-border-color 0 -1px 0;
 
   .message {
     font-size:160%;
@@ -266,18 +336,17 @@ patch-view {
 
   .diff-file {
     padding: 0 12px;
-    font-family:@font-family;
-    font-size:@font-size;
-    line-height:2.5em;
-    color:@syntax-text-color;
-    background:contrast(@syntax-background-color, fade(#fff, 10%), fade(#000, 5%));
-    border-width:0 0 1px;
-    border-style: solid;
-    border-color: contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+    font-family: @font-family;
+    font-size: @font-size;
+    font-weight:500;
+    color:@text-color;
+    line-height:2.7em;
+    background:@panel-heading-background-color;
+    box-shadow:inset @separator-border-color 0 -1px 0;
   }
 
   & + patch-view .diff-file {
-    border-width:1px 0;
+    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
   }
 
   @hunk-color: contrast(@syntax-background-color, fade(#4A90E2, 5%), fade(#4A90E2, 10%));
