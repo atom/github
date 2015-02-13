@@ -11,11 +11,9 @@
   'ctrl-alt-d': 'git-experiment:view-history'
 'git-experiment-history-view .history':
   'down': 'core:move-down'
-  'j': 'core:move-down'
   'up': 'core:move-up'
-  'k': 'core:move-up'
-'git-experiment-history-view .changes':
+'git-experiment-changes-view .data':
   'down': 'core:move-down'
-  'j': 'core:move-down'
   'up': 'core:move-up'
-  'k': 'core:move-up'
+'git-experiment-changes-view atom-text-editor':
+  'cmd-enter': 'core:confirm'
