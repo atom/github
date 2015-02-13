@@ -22,7 +22,7 @@ BaseTemplate = """
     <div class="staged files"></div>
     <div class="staged column-header">Commit message</div>
     <div class="commit-message-box">
-      <atom-text-editor class="commit-description" data-placeholder="Enter the commit message describing your changes." style="height: 120px"></atom-text-editor>
+      <atom-text-editor class="commit-description" gutter-hidden data-placeholder="Enter the commit message describing your changes." style="height: 120px"></atom-text-editor>
 <button class="btn btn-commit">Commit</button>
     </div>
   </div>
