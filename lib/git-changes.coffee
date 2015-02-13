@@ -1,4 +1,5 @@
 Git = require 'nodegit'
+ChildProcess = require 'child_process'
 
 normalizeOptions = (options, Ctor) ->
   instance = (if options instanceof Ctor then options else new Ctor())
@@ -14,7 +15,8 @@ class GitChanges
   changes: {}
 
   constructor: ->
-    @repoPromise = Git.Repository.open(atom.project.getPaths()[0])
+    @repoPath = atom.project.getPaths()[0]
+    @repoPromise = Git.Repository.open(@repoPath)
     @indexPromise = @repoPromise.then (repo) ->
       repo.openIndex()
 
@@ -23,7 +25,6 @@ class GitChanges
       repo.getBranch('HEAD')
 
   getPatch: (path, state) ->
-    console.log('getting', path, state)
     if state == 'unstaged'
       @unstagedPromise.then (diff) ->
         for patch in diff.patches()
@@ -54,11 +55,31 @@ class GitChanges
       repo.getStatus()
 
   stagePath: (path) ->
+    @stageAllPaths([path])
+
+  stageAllPaths: (paths) ->
     @indexPromise.then (index) ->
-      index.addByPath(path)
+      index.addByPath(path) for path in paths
       index.write()
+      new Promise (resolve, reject) =>
+        process.nextTick =>
+          resolve()
 
   unstagePath: (path) ->
-    @indexPromise.then (index) ->
-      index.removeByPath(path)
-      index.write()
+    @unstageAllPaths([path])
+
+  unstageAllPaths: (paths) ->
+    new Promise (resolve, reject) =>
+      if paths.length
+        ChildProcess.execSync "git reset HEAD #{paths.join(' ')}",
+          cwd: @repoPath
+
+      process.nextTick => resolve()
+
+  commit: (message) ->
+    @repoPromise.then (repo) =>
+      @indexPromise.then (index) =>
+        index.writeTree().then (indexTree) =>
+          repo.getHeadCommit().then (parent) =>
+            author = Git.Signature.default(repo)
+            return repo.createCommit("HEAD", author, author, message, indexTree, [parent])
