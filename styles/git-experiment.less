@@ -20,26 +20,49 @@ git-experiment-changes-view {
     &.column-header {
       flex-grow:0;
       flex-shrink:0;
-      flex-basis:2.7em;
+      flex-basis:2.71em;
     }
 
     &.files {
       overflow-y:auto;
-      min-height:2.7em;
+      min-height:2.4em;
       flex-basis:auto;
+
+      &:empty:before {
+        content:'No unstaged changes';
+        line-height:2.4em;
+        text-align:center;
+        display:block;
+        opacity:0.4;
+        font-style:italic;
+      }
     }
 
     &.files.staged {
       flex-grow:0;
       flex-shrink:1;
+
+      &:empty:before {
+        content:'Nothing to commit';
+      }
     }
 
-    &.commit {
-      margin-top:-1px;
+    &.commit-message-box {
+      padding:0 12px;
       flex-grow:0;
       flex-shrink:0;
-      flex-basis:180px;
-      box-shadow:inset @separator-border-color 0 1px 0;
+      flex-basis:auto;
+
+      atom-text-editor {
+        border-bottom:1px solid @separator-border-color;
+        margin:0 -12px;
+      }
+
+      .btn {
+        margin:12px 0;
+        width:100%;
+        box-sizing:border-box;
+      }
     }
   }
 }
@@ -58,9 +81,22 @@ git-experiment-history-view, git-experiment-changes-view {
     text-overflow:ellipsis;
     background:@panel-heading-background-color;
     font-size: @font-size;
-    font-weight:500;
-    text-align:center;
+    font-weight:bold;
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+
+    .btn {
+      position:absolute;
+      right:8px;
+      top:50%;
+      margin-top:-1em;
+      display:none;
+    }
+
+    &:hover {
+      .btn {
+        display:inline-block;
+      }
+    }
 
     &:first-child {
       box-shadow:inset @separator-border-color 0 -1px 0;
@@ -124,6 +160,10 @@ git-experiment-history-view, git-experiment-changes-view {
           display:inline-block;
         }
       }
+    }
+
+    .files.staged .change:last-child {
+      box-shadow:none;
     }
 
     .commit.selected, .change.selected {
