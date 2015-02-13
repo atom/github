@@ -9,11 +9,10 @@
     "atom": ">=0.174.0 <2.0.0"
   },
   "dependencies": {
-    "nodegit": "https://github.com/nodegit/nodegit/tarball/f4ccf0eea9ea13ba3f3056e8b50545497a3c538b",
+    "nodegit": "https://github.com/orderedlist/nodegit/tarball/f0496195a857bb6144d61c1a122dd8da7bb24c0b",
     "timeago": "~0.2.0",
     "underscore-contrib": "^0.3.0",
     "pathwatcher": "^4.0.1",
-    "atom-space-pen-views": "^2.0.0",
     "jquery": "^2.1.3"
   }
 }
