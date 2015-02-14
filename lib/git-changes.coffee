@@ -76,10 +76,14 @@ class GitChanges
 
       process.nextTick => resolve()
 
+  wordwrap: (str) ->
+    return str unless str.length
+    str.match(/.{1,80}(\s|$)|\S+?(\s|$)/g).join("\n")
+
   commit: (message) ->
     @repoPromise.then (repo) =>
       @indexPromise.then (index) =>
         index.writeTree().then (indexTree) =>
           repo.getHeadCommit().then (parent) =>
             author = Git.Signature.default(repo)
-            return repo.createCommit("HEAD", author, author, message, indexTree, [parent])
+            return repo.createCommit("HEAD", author, author, @wordwrap(message), indexTree, [parent])

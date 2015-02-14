@@ -53,7 +53,7 @@ class ChangesView extends HTMLElement
         @commit()
 
     @changes = new GitChanges()
-
+    
     @innerHTML = BaseTemplate
     @unstagedChangesNode = @querySelector('.unstaged.files')
     @stagedChangesNode = @querySelector('.staged.files')
