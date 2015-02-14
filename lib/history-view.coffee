@@ -4,6 +4,7 @@ PatchView = require './patch-view'
 CommitHeaderView = require './commit-header-view'
 timeago = require 'timeago'
 _ = require 'underscore-contrib'
+$ = require 'jquery'
 
 BaseTemplate = """
   <div class="data" tabindex="-1">
@@ -56,19 +57,22 @@ class HistoryView extends HTMLElement
 
     @commitTemplate = TemplateHelper.addTemplate(this, CommitSummaryTemplateString)
 
+    $(window).on 'focus', =>
+      @renderHistory()
+
+    atom.workspace.onDidChangeActivePaneItem (pane) =>
+      @renderHistory() if pane == @
+
     @history.getBranch().then (branch) =>
       name = branch.name().replace('refs/heads/', '')
       @querySelector('.branch-name').textContent = name
-
-    @renderHistory().catch (error) ->
-      console.error error.message, error
-      console.error error.stack
 
   getTitle: ->
     'Git History View'
 
   renderHistory: ->
     new Promise (resolve, reject) =>
+      @historyNode.innerHTML = ''
       @history.walkHistory (commit) =>
         promise = @renderCommitSummary(commit)
         resolve(commit)
