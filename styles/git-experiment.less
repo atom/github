@@ -54,9 +54,27 @@ git-experiment-changes-view {
       flex-basis:auto;
 
       atom-text-editor {
-        border-bottom:1px solid @separator-border-color;
+        margin:8px -12px 0 0;
+        background:@pane-item-background-color;
+        color:@text-color;
+
+        .highlight.selection .region, &::shadow .highlight.selection .region {
+          background-color:fade(@background-color-highlight, 40%);
+        }
+
+        .line.cursor-line, &::shadow .line.cursor-line {
+          background-color:fade(@background-color-highlight, 20%);
+        }
+
+        .placeholder-text, &::shadow .placeholder-text {
+          color:fade(@text-color, 70%);
+        }
+      }
+
+      .commit-button {
+        border-top:1px solid @separator-border-color;
         margin:0 -12px;
-        padding:12px;
+        padding:0 12px;
       }
 
       .btn {
@@ -80,7 +98,7 @@ git-experiment-history-view, git-experiment-changes-view {
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    background:@panel-heading-background-color;
+    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
     font-size: @font-size;
     font-weight:bold;
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
