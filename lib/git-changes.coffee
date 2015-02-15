@@ -13,6 +13,7 @@ normalizeOptions = (options, Ctor) ->
 module.exports =
 class GitChanges
   changes: {}
+  statuses: {}
 
   constructor: ->
     @repoPath = atom.project.getPaths()[0]
@@ -52,14 +53,24 @@ class GitChanges
       @stagedPromise.catch (e) -> console.log e
       @unstagedPromise.catch (e) -> console.log e
 
-      repo.getStatus()
+      repo.getStatus().then (statuses) =>
+        for status in statuses
+          @statuses[status.path()] = status
+
+        statuses
 
   stagePath: (path) ->
     @stageAllPaths([path])
 
   stageAllPaths: (paths) ->
-    @indexPromise.then (index) ->
-      index.addByPath(path) for path in paths
+    @indexPromise.then (index) =>
+      for path in paths
+        status = @statuses[path]
+        if status.statusBit() & Git.Status.STATUS.WT_DELETED
+          index.removeByPath(path)
+        else
+          index.addByPath(path)
+
       index.write()
       new Promise (resolve, reject) =>
         process.nextTick =>
