@@ -73,6 +73,7 @@ git-experiment-changes-view {
 
       .commit-button {
         border-top:1px solid @separator-border-color;
+        background:@tool-panel-background-color;
         margin:0 -12px;
         padding:0 12px;
       }
@@ -202,6 +203,10 @@ git-experiment-history-view, git-experiment-changes-view {
 
         .meta > div {
           color:fade(@text-color-selected, 70%);
+        }
+
+        .icon:before {
+          color:@text-color-selected;
         }
       }
     }
@@ -400,7 +405,7 @@ patch-view {
     font-weight:500;
     color:@text-color;
     line-height:2.7em;
-    background:@panel-heading-background-color;
+    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
     box-shadow:inset @separator-border-color 0 -1px 0;
   }
 

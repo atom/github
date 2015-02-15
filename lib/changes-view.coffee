@@ -33,7 +33,10 @@ BaseTemplate = """
 
 ChangeSummaryTemplateString = """
   <div class="change" data-path="">
-    <div class="path"></div>
+    <div>
+      <span class='icon'></span>
+      <span class="path"></span>
+    </div>
     <button class="btn btn-xs"></button>
   </div>
 """
@@ -42,10 +45,8 @@ class ChangesView extends HTMLElement
   createdCallback: ->
     atom.commands.add 'git-experiment-changes-view .data',
       'core:move-down': =>
-        console.log this
         @moveSelectionDown()
       'core:move-up': =>
-        console.log this
         @moveSelectionUp()
 
     atom.commands.add 'git-experiment-changes-view atom-text-editor',
@@ -53,7 +54,7 @@ class ChangesView extends HTMLElement
         @commit()
 
     @changes = new GitChanges()
-    
+
     @innerHTML = BaseTemplate
     @unstagedChangesNode = @querySelector('.unstaged.files')
     @stagedChangesNode = @querySelector('.staged.files')
@@ -155,9 +156,39 @@ class ChangesView extends HTMLElement
     changeNode.firstElementChild.dataset['path'] = change.path()
     changeNode.firstElementChild.dataset['state'] = state
     changeNode.firstElementChild.classList.add('selected') if @selectedPath == change.path() and @selectedState == state
+
+    @addStatusClasses(change, state, changeNode.querySelector('.icon'))
+
     changeNode.querySelector('button').textContent = if state == 'unstaged' then 'Stage' else 'Unstage'
     node = if state == 'staged' then @stagedChangesNode else @unstagedChangesNode
     node.appendChild(changeNode)
+
+  addStatusClasses: (change, state, node) ->
+    bit = change.statusBit()
+    codes = Git.Status.STATUS
+
+
+    if state == 'unstaged'
+      className = if bit & codes.WT_NEW
+        'added'
+      else if bit & codes.WT_RENAMED
+        'renamed'
+      else if bit & codes.WT_DELETED
+        'removed'
+      else
+        'modified'
+    else
+      className = if bit & codes.INDEX_NEW
+        'added'
+      else if bit & codes.INDEX_RENAMED
+        'renamed'
+      else if bit & codes.INDEX_DELETED
+        'removed'
+      else
+        'modified'
+
+    node.classList.add("status-#{className}")
+    node.classList.add("icon-diff-#{className}")
 
   renderChangeDetail: (path, state) ->
     diffsNode = @diffsNode
