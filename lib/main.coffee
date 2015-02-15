@@ -21,7 +21,7 @@ module.exports = GitExperiment =
           ChangesView ?= require './changes-view'
           new ChangesView()
 
-    @openChangesView()
+    #@openChangesView()
 
   deactivate: ->
     @subscriptions.dispose()
@@ -33,7 +33,6 @@ module.exports = GitExperiment =
     atom.workspace.open(HISTORY_URI)
 
   openChangesView: ->
-    console.log 'in openChangesView'
     atom.workspace.open(CHANGES_URI)
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
