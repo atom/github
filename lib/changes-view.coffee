@@ -86,8 +86,10 @@ class ChangesView extends HTMLElement
     $(@).on 'click', '.column-header.staged .btn', => @unstageAll()
 
     $(@).on 'click', '.undo-wrapper .btn', =>
-      @changes.undoLastCommit()
-      @renderChanges()
+      @changes.getLatestUnpushed().then (commit) =>
+        @commitMessageModel.setText(commit.message())
+        @changes.undoLastCommit()
+        @renderChanges()
 
     $(window).on 'blur', =>
       @watch() if atom.workspace.getActivePaneItem() == @

@@ -63,16 +63,31 @@ class GitChanges
     @repoPromise.then (repo) ->
       repo.getCurrentBranch().then (branch) ->
         branchName = branch.name().replace('refs/heads/','')
-        repo.getBranchCommit('origin/' + branchName).then (origin) ->
-          walker = repo.createRevWalk()
-          walker.pushHead()
-          walker.hide(origin);
+        walker = repo.createRevWalk()
+        walker.pushHead()
 
-          walker.next().then (oid) ->
-            if oid
-              repo.getCommit(oid)
+        repo.getReferenceNames().then (names) ->
+          compareBranch = if names.indexOf("refs/remotes/origin/#{branchName}") >= 0
+            "origin/#{branchName}"
+          else if branchName != "master"
+            "master"
+          else
+            null
+
+          promise = new Promise (resolve, reject) =>
+            if compareBranch
+              repo.getBranchCommit(compareBranch).then (compare) =>
+                walker.hide(compare)
+                resolve()
             else
-              null
+              resolve()
+
+          promise.then ->
+            walker.next().then (oid) ->
+              if oid
+                repo.getCommit(oid)
+              else
+                null
 
   undoLastCommit: ->
     ChildProcess.execSync "git reset --soft HEAD~1",
