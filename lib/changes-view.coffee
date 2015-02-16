@@ -42,7 +42,10 @@ ChangeSummaryTemplateString = """
   <div class="change" data-path="">
     <div>
       <span class='icon'></span>
-      <span class="path"></span>
+      <span class="path">
+        <span class="dir"></span>
+        <span class="filename"></span>
+      </span>
     </div>
     <button class="btn btn-xs"></button>
   </div>
@@ -171,7 +174,17 @@ class ChangesView extends HTMLElement
 
   renderChangeSummary: (change, state) =>
     changeNode = TemplateHelper.renderTemplate(@changeTemplate)
-    changeNode.querySelector('.path').textContent = change.path()
+
+    pathParts = change.path().split("/")
+    if pathParts.length > 1
+      filename = "/#{pathParts.pop()}"
+      dir = "#{pathParts.join('/')}"
+    else
+      filename = pathParts[0]
+      dir = ''
+
+    changeNode.querySelector('.path .dir').textContent = dir
+    changeNode.querySelector('.path .filename').textContent = filename
     changeNode.firstElementChild.dataset['path'] = change.path()
     changeNode.firstElementChild.dataset['state'] = state
     changeNode.firstElementChild.classList.add('selected') if @selectedPath == change.path() and @selectedState == state
