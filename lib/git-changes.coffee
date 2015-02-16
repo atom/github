@@ -59,6 +59,25 @@ class GitChanges
 
         statuses
 
+  getLatestUnpushed: ->
+    @repoPromise.then (repo) ->
+      repo.getCurrentBranch().then (branch) ->
+        branchName = branch.name().replace('refs/heads/','')
+        repo.getBranchCommit('origin/' + branchName).then (origin) ->
+          walker = repo.createRevWalk()
+          walker.pushHead()
+          walker.hide(origin);
+
+          walker.next().then (oid) ->
+            if oid
+              repo.getCommit(oid)
+            else
+              null
+
+  undoLastCommit: ->
+    ChildProcess.execSync "git reset --soft HEAD~1",
+      cwd: @repoPath
+
   stagePath: (path) ->
     @stageAllPaths([path])
 

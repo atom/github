@@ -27,6 +27,13 @@ BaseTemplate = """
         <button class="btn btn-commit">Commit</button>
       </div>
     </div>
+    <div class="undo-last-commit-box">
+      <div class="undo-wrapper">
+        <button class="btn">Undo</button>
+        <div class="description">Committed <span class="time"></span></div>
+        <div class="title">Commit title</div>
+      </div>
+    </div>
   </div>
   <div class="diffs"></div>
 """
@@ -62,6 +69,7 @@ class ChangesView extends HTMLElement
     @diffsNode = @querySelector('.diffs')
     @commitMessageNode = @querySelector('atom-text-editor')
     @commitMessageModel = @commitMessageNode.getModel()
+    @undoNode = @querySelector('.undo-wrapper')
 
     @commitMessageModel.setSoftWrapped(true)
     @commitMessageModel.setPlaceholderText(@commitMessageNode.dataset['placeholder'])
@@ -76,6 +84,10 @@ class ChangesView extends HTMLElement
 
     $(@).on 'click', '.column-header.unstaged .btn', => @stageAll()
     $(@).on 'click', '.column-header.staged .btn', => @unstageAll()
+
+    $(@).on 'click', '.undo-wrapper .btn', =>
+      @changes.undoLastCommit()
+      @renderChanges()
 
     $(window).on 'blur', =>
       @watch() if atom.workspace.getActivePaneItem() == @
@@ -105,9 +117,6 @@ class ChangesView extends HTMLElement
 
     atom.workspace.onDidChangeActivePaneItem (pane) =>
       @renderChanges() if pane == @
-
-
-    @renderChanges()
 
   getTitle: ->
     'Commit Changes'
@@ -149,6 +158,14 @@ class ChangesView extends HTMLElement
 
       @querySelector('.change')?.click() unless @querySelector('.change.selected')
       @diffsNode.innerHTML = '' unless @querySelector('.change.selected')
+
+    @changes.getLatestUnpushed().then (commit) =>
+      if commit
+        @undoNode.querySelector('.title').textContent = commit.message()
+        @undoNode.querySelector('.time').textContent = timeago(commit.date())
+        @undoNode.classList.add('show')
+      else
+        @undoNode.classList.remove('show')
 
   renderChangeSummary: (change, state) =>
     changeNode = TemplateHelper.renderTemplate(@changeTemplate)
