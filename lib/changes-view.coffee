@@ -73,6 +73,7 @@ class ChangesView extends HTMLElement
     @commitMessageNode = @querySelector('atom-text-editor')
     @commitMessageModel = @commitMessageNode.getModel()
     @undoNode = @querySelector('.undo-wrapper')
+    @commitButtonNode = @querySelector('.btn-commit')
 
     @commitMessageModel.setSoftWrapped(true)
     @commitMessageModel.setPlaceholderText(@commitMessageNode.dataset['placeholder'])
@@ -121,6 +122,9 @@ class ChangesView extends HTMLElement
     $(@).on 'click', '.btn-commit', =>
       @commit()
 
+    @commitMessageModel.onDidChange =>
+      @updateCommitButton()
+
     @changeTemplate = TemplateHelper.addTemplate(this, ChangeSummaryTemplateString)
 
     atom.workspace.onDidChangeActivePaneItem (pane) =>
@@ -166,6 +170,8 @@ class ChangesView extends HTMLElement
 
       @querySelector('.change')?.click() unless @querySelector('.change.selected')
       @diffsNode.innerHTML = '' unless @querySelector('.change.selected')
+
+      @updateCommitButton()
 
     @changes.getLatestUnpushed().then (commit) =>
       if commit
@@ -279,6 +285,12 @@ class ChangesView extends HTMLElement
       @renderChanges()
     false
 
+  updateCommitButton: ->
+    if @stagedChangesNode.querySelector('.change') == null or $.trim(@commitMessageModel.getText()) == ''
+      @commitButtonNode.disabled = true
+    else
+      @commitButtonNode.disabled = false
+
   unwatch: ->
     if @watchSubscription?
       @watchSubscription.close()
@@ -293,6 +305,8 @@ class ChangesView extends HTMLElement
         , 10)
 
   commit: ->
+    console.log('try to commit')
+    return unless @stagedChangesNode.querySelector('.change') or $.trim(@commitMessageModel.getText()) == ''
     commitPromise = @changes.commit(@commitMessageModel.getText()).then =>
       @commitMessageModel.setText('')
       @renderChanges()
