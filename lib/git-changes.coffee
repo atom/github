@@ -36,19 +36,21 @@ class GitChanges
           return patch if patch.newFile().path() == path
 
   getStatuses: ->
-    @repoPromise.then (repo) =>
+    opts = {
+      flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT
+    }
 
-      opts = {
-        flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT
-      }
-
-      @unstagedPromise = @indexPromise.then (index) ->
+    @unstagedPromise = @indexPromise.then (index) =>
+      @repoPromise.then (repo) ->
         Git.Diff.indexToWorkdir(repo, index, opts)
 
-      @stagedPromise = @indexPromise.then (index) ->
+    @stagedPromise = @indexPromise.then (index) =>
+      @repoPromise.then (repo) ->
         repo.getHeadCommit().then (commit) ->
           commit.getTree().then (tree) ->
             Git.Diff.treeToIndex(repo, tree, index, opts)
+
+    @repoPromise.then (repo) =>
 
       @stagedPromise.catch (e) -> console.log e
       @unstagedPromise.catch (e) -> console.log e
@@ -106,9 +108,6 @@ class GitChanges
           index.addByPath(path)
 
       index.write()
-      new Promise (resolve, reject) =>
-        process.nextTick =>
-          resolve()
 
   unstagePath: (path) ->
     @unstageAllPaths([path])
@@ -119,7 +118,7 @@ class GitChanges
         ChildProcess.execSync "git reset HEAD #{paths.join(' ')}",
           cwd: @repoPath
 
-      process.nextTick => resolve()
+      resolve()
 
   wordwrap: (str) ->
     return str unless str.length

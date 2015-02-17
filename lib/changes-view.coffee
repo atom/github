@@ -22,7 +22,7 @@ BaseTemplate = """
     <div class="staged files"></div>
     <div class="staged column-header">Commit message</div>
     <div class="commit-message-box">
-      <atom-text-editor class="commit-description" gutter-hidden data-placeholder="Enter the commit message describing your changes." style="height: 120px"></atom-text-editor>
+      <atom-text-editor tabindex="-1" class="commit-description" gutter-hidden data-placeholder="Enter the commit message describing your changes." style="height: 120px"></atom-text-editor>
       <div class="commit-button">
         <button class="btn btn-commit">Commit</button>
       </div>
@@ -66,6 +66,7 @@ class ChangesView extends HTMLElement
     @changes = new GitChanges()
 
     @innerHTML = BaseTemplate
+    @sidebarNode = @querySelector('.data')
     @unstagedChangesNode = @querySelector('.unstaged.files')
     @stagedChangesNode = @querySelector('.staged.files')
     @commitNode = @querySelector('.commit')
@@ -103,7 +104,12 @@ class ChangesView extends HTMLElement
       @unwatch()
 
     stage = (e) =>
-      el = $(e.target).closest('.change').get(0)
+      el = if e.currentTarget
+        e.stopPropagation()
+        $(e.currentTarget).closest('.change').get(0)
+      else
+        e
+
       path = el.dataset['path']
       state = el.dataset['state']
       promise = if state == 'unstaged'
@@ -114,10 +120,13 @@ class ChangesView extends HTMLElement
       promise.then =>
         @renderChanges()
 
-      e.stopPropagation()
-
     $(@).on 'click', '.change .btn', stage
     $(@).on 'dblclick', '.change', stage
+
+    atom.commands.add 'git-experiment-changes-view .data',
+      'change:stage': (e) =>
+        change = @querySelector('.change.selected')
+        stage(change) if change and e.currentTarget != @commitMessageNode
 
     $(@).on 'click', '.btn-commit', =>
       @commit()
@@ -176,6 +185,8 @@ class ChangesView extends HTMLElement
       @diffsNode.innerHTML = '' unless @querySelector('.change.selected')
 
       @updateCommitButton()
+
+      @sidebarNode.focus()
 
     @changes.getLatestUnpushed().then (commit) =>
       if commit
@@ -266,10 +277,24 @@ class ChangesView extends HTMLElement
       el.scrollIntoView()
 
   moveSelectionUp: ->
-    @querySelector(".change.selected").previousElementSibling?.click()
+    el = @querySelector(".change.selected")
+    prev = el.previousElementSibling
+
+    unless prev
+      if $(el).closest('.staged').length
+        prev = @querySelector(".unstaged .change:last-of-type")
+
+    prev?.click()
 
   moveSelectionDown: ->
-    @querySelector(".change.selected").nextElementSibling?.click()
+    el = @querySelector(".change.selected")
+    next = el.nextElementSibling
+
+    unless next
+      if $(el).closest('.unstaged').length
+        next = @querySelector(".staged .change")
+
+    next?.click()
 
   stageAll: =>
     paths = $(@).find('.unstaged .change').map( ->
