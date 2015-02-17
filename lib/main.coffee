@@ -17,7 +17,6 @@ module.exports = GitExperiment =
           HistoryView ?= require './history-view'
           new HistoryView()
         when CHANGES_URI
-          console.log 'detected CHANGES_URI'
           ChangesView ?= require './changes-view'
           new ChangesView()
 

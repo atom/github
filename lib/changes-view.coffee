@@ -59,7 +59,7 @@ class ChangesView extends HTMLElement
       'core:move-up': =>
         @moveSelectionUp()
 
-    atom.commands.add 'git-experiment-changes-view atom-text-editor',
+    atom.commands.add 'git-experiment-changes-view .data atom-text-editor',
       'core:confirm': (event) =>
         @commit()
 
@@ -305,7 +305,6 @@ class ChangesView extends HTMLElement
         , 10)
 
   commit: ->
-    console.log('try to commit')
     return unless @stagedChangesNode.querySelector('.change') or $.trim(@commitMessageModel.getText()) == ''
     commitPromise = @changes.commit(@commitMessageModel.getText()).then =>
       @commitMessageModel.setText('')
