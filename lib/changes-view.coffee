@@ -101,7 +101,7 @@ class ChangesView extends HTMLElement
       @renderChanges() if atom.workspace.getActivePaneItem() == @
       @unwatch()
 
-    $(@).on 'click', '.change .btn', (e) =>
+    stage = (e) =>
       el = $(e.target).closest('.change').get(0)
       path = el.dataset['path']
       state = el.dataset['state']
@@ -114,6 +114,9 @@ class ChangesView extends HTMLElement
         @renderChanges()
 
       e.stopPropagation()
+
+    $(@).on 'click', '.change .btn', stage
+    $(@).on 'dblclick', '.change', stage
 
     $(@).on 'click', '.btn-commit', =>
       @commit()
