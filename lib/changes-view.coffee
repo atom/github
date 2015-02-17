@@ -168,7 +168,11 @@ class ChangesView extends HTMLElement
         if @changeIsStaged(status)
           @renderChangeSummary(status, 'staged')
 
-      @querySelector('.change')?.click() unless @querySelector('.change.selected')
+      if current = @querySelector('.change.selected')
+        current.click()
+      else
+        @querySelector('.change')?.click()
+
       @diffsNode.innerHTML = '' unless @querySelector('.change.selected')
 
       @updateCommitButton()
