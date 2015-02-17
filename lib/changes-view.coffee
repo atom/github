@@ -61,6 +61,7 @@ class ChangesView extends HTMLElement
 
     atom.commands.add 'git-experiment-changes-view .data atom-text-editor',
       'core:confirm': (event) =>
+        event.currentTarget.blur()
         @commit()
 
     @changes = new GitChanges()
