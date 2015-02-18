@@ -34,6 +34,8 @@ CommitSummaryTemplateString = """
 """
 
 class HistoryView extends HTMLElement
+  initialize: ({@uri}) ->
+
   createdCallback: ->
     atom.commands.add 'git-experiment-history-view .data',
       'core:move-down': => @moveSelectionDown()
@@ -60,15 +62,26 @@ class HistoryView extends HTMLElement
     $(window).on 'focus', =>
       @renderHistory()
 
-    atom.workspace.onDidChangeActivePaneItem (pane) =>
-      @renderHistory() if pane == @
-
     @history.getBranch().then (branch) =>
       name = branch.name().replace('refs/heads/', '')
       @querySelector('.branch-name').textContent = name
 
+    process.nextTick =>
+      # HACK: atom.workspace is weirdly not available when this is deserialized
+      atom.workspace.onDidChangeActivePaneItem (pane) =>
+        @renderHistory() if pane is this
+
+  attatchedCallback: ->
+    @renderHistory()
+
   getTitle: ->
     'Git History View'
+
+  getURI: -> @uri
+
+  serialize: ->
+    deserializer: 'GitHistoryView'
+    uri: @getURI()
 
   renderHistory: ->
     new Promise (resolve, reject) =>

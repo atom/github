@@ -15,11 +15,9 @@ module.exports = GitExperiment =
       @subscriptions.add atom.workspace.registerOpener (filePath) =>
         switch filePath
           when HISTORY_URI
-            HistoryView ?= require './history-view'
-            new HistoryView()
+            createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
-            ChangesView ?= require './changes-view'
-            new ChangesView()
+            createChangesView(uri: CHANGES_URI)
 
   deactivate: ->
     @subscriptions?.dispose()
@@ -38,3 +36,23 @@ atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-and-commit-changes', =>
   GitExperiment.openChangesView()
+
+createHistoryView = (state) ->
+  HistoryView ?= require './history-view'
+  view = new HistoryView()
+  view.initialize(state)
+  view
+
+createChangesView = (state) ->
+  ChangesView ?= require './changes-view'
+  view = new ChangesView()
+  view.initialize(state)
+  view
+
+atom.deserializers.add
+  name: 'GitHistoryView'
+  deserialize: (state) -> createHistoryView(state)
+
+atom.deserializers.add
+  name: 'GitChangesView'
+  deserialize: (state) -> createChangesView(state)

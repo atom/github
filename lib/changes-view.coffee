@@ -52,6 +52,8 @@ ChangeSummaryTemplateString = """
 """
 
 class ChangesView extends HTMLElement
+  initialize: ({@uri}) ->
+
   createdCallback: ->
     atom.commands.add 'git-experiment-changes-view .data',
       'core:move-down': =>
@@ -137,11 +139,22 @@ class ChangesView extends HTMLElement
 
     @changeTemplate = TemplateHelper.addTemplate(this, ChangeSummaryTemplateString)
 
-    atom.workspace.onDidChangeActivePaneItem (pane) =>
-      @renderChanges() if pane == @
+    process.nextTick =>
+      # HACK: atom.workspace is weirdly not available when this is deserialized
+      atom.workspace.onDidChangeActivePaneItem (pane) =>
+        @renderChanges() if pane == @
+
+  attachedCallback: ->
+    @renderChanges()
 
   getTitle: ->
     'Commit Changes'
+
+  getURI: -> @uri
+
+  serialize: ->
+    deserializer: 'GitChangesView'
+    uri: @getURI()
 
   updateColumnHeader: (count, state) ->
     @querySelector(".#{state}.column-header").textContent = "#{count} #{state} file#{if count == 1 then '' else 's'}"
