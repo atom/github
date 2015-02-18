@@ -20,8 +20,6 @@ module.exports = GitExperiment =
           ChangesView ?= require './changes-view'
           new ChangesView()
 
-    #@openChangesView()
-
   deactivate: ->
     @subscriptions.dispose()
 
@@ -39,5 +37,3 @@ atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-and-commit-changes', =>
   GitExperiment.openChangesView()
-
-window.git = require 'nodegit'
