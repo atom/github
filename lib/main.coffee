@@ -11,17 +11,18 @@ module.exports = GitExperiment =
   activate: (state) ->
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.workspace.registerOpener (filePath) =>
-      switch filePath
-        when HISTORY_URI
-          HistoryView ?= require './history-view'
-          new HistoryView()
-        when CHANGES_URI
-          ChangesView ?= require './changes-view'
-          new ChangesView()
+    process.nextTick =>
+      @subscriptions.add atom.workspace.registerOpener (filePath) =>
+        switch filePath
+          when HISTORY_URI
+            HistoryView ?= require './history-view'
+            new HistoryView()
+          when CHANGES_URI
+            ChangesView ?= require './changes-view'
+            new ChangesView()
 
   deactivate: ->
-    @subscriptions.dispose()
+    @subscriptions?.dispose()
 
   serialize: ->
     # gitExperimentViewState: @gitExperimentView.serialize()
