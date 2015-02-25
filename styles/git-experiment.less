@@ -181,6 +181,7 @@ git-experiment-history-view, git-experiment-changes-view {
     overflow:hidden;
     position:relative;
     border-right:1px solid @pane-item-border-color;
+    flex:0 0 360px;
 
     .scroller {
       position:absolute;
@@ -333,7 +334,7 @@ git-experiment-history-view, git-experiment-changes-view {
   }
 
   .diffs {
-    width: 70%;
+    flex:1 1 auto;
     overflow: auto;
     background:@syntax-background-color;
   }
@@ -476,13 +477,35 @@ patch-view {
     box-shadow:inset @separator-border-color 0 -1px 0;
   }
 
+  .btn {
+    position:absolute;
+    right:8px;
+    top:1px;
+    display:none;
+    font-family:@font-family;
+  }
+
+  .diff-hunk-header .btn {
+    top:3px;
+  }
+
+  .diff-hunk:hover {
+    .diff-hunk-header .btn, tr.selected .btn {
+      display:inline-block;
+    }
+
+    tr.selected ~ tr.selected .btn {
+      display:none;
+    }
+  }
+
   & + patch-view .diff-file {
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
   }
 
   @hunk-color: contrast(@syntax-background-color, fade(#4A90E2, 5%), fade(#4A90E2, 10%));
 
-  .diff-hunk-header {
+  .diff-hunk-header td {
     color:fade(@syntax-text-color, 50%);
     background:@hunk-color;
     height:26px;
@@ -490,7 +513,7 @@ patch-view {
   }
 
   .diff-hunk-header .old-line-number, .diff-hunk-header .new-line-number {
-    background-color:darken(@hunk-color, 10%);
+    background-color:fade(#4A90E2, 3%);
     border-color:darken(@hunk-color, 100%);
   }
 
@@ -507,6 +530,9 @@ patch-view {
 
   td {
     height:18px;
+    position:relative;
+    cursor:default;
+    -webkit-user-select:none;
   }
 
   .old-line-number, .new-line-number {
@@ -523,26 +549,72 @@ patch-view {
     word-wrap: break-word;
   }
 
-  @deletion-number: fade(@syntax-color-removed, 50%);
-  @addition-number: fade(@syntax-color-added, 50%);
+  @deletion-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
+  @addition-color:contrast(@syntax-background-color, fade(@syntax-color-added, 8%), fade(@syntax-color-added, 15%));
+  @deletion-number-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 5%), fade(@syntax-color-removed, 5%));
+  @addition-number-color:contrast(@syntax-background-color, fade(@syntax-color-added, 5%), fade(@syntax-color-added, 5%));
 
   .deletion td {
-    background-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
-    color:@syntax-text-color;
+    background-color:@deletion-color;
+    color:average(@syntax-color-removed, @syntax-text-color);
   }
 
   .deletion .old-line-number, .deletion .new-line-number {
-    background-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 15%), fade(@syntax-color-removed, 25%));
+    background-color:@deletion-number-color;
     color: fade(@syntax-text-color, 50%);
   }
 
   .addition td {
-    background-color:contrast(@syntax-background-color, fade(@syntax-color-added, 8%), fade(@syntax-color-added, 15%));
-    color:@syntax-text-color;
+    background-color:@addition-color;
+    color:average(@syntax-color-added, @syntax-text-color);
   }
 
   .addition .old-line-number, .addition .new-line-number {
-    background-color:contrast(@syntax-background-color, fade(@syntax-color-added, 15%), fade(@syntax-color-added, 25%));
+    background-color:@addition-number-color;
     color: fade(@syntax-text-color, 50%);
+  }
+
+  @active-color: average(@syntax-background-color, fade(@background-color-selected, 50%));
+
+  tr.active, tr.keyboard-active {
+    &.addition td {
+      background-color:average(@addition-color, fade(@active-color, 50%));
+    }
+
+    &.deletion td {
+      background-color:average(@deletion-color, fade(@active-color, 50%));
+    }
+
+    &.addition, &.deletion {
+      td.old-line-number, td.new-line-number {
+        background-color:@active-color;
+      }
+    }
+  }
+
+  tr.selected {
+    &.addition, &.deletion {
+      td.old-line-number, td.new-line-number {
+        background-color:@background-color-highlight;
+        color:@text-color-highlight;
+
+        :focus & {
+          background-color:@background-color-selected;
+          color:@text-color-selected;
+        }
+      }
+    }
+
+    &.active, &.keyboard-active {
+      &.addition, &.deletion {
+        td.old-line-number, td.new-line-number {
+          background-color:darken(@background-color-highlight, 10%);
+
+          :focus & {
+            background-color:darken(@background-color-selected, 10%);
+          }
+        }
+      }
+    }
   }
 }

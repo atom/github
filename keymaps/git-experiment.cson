@@ -16,7 +16,20 @@
 'git-experiment-changes-view .data':
   'down': 'core:move-down'
   'up': 'core:move-up'
+  'right': 'core:move-right'
+  'enter': 'change:stage'
+  'tab': 'core:focus-commit-message'
+'git-experiment-changes-view .diffs':
+  'down': 'core:move-down'
+  'up': 'core:move-up'
+  'left': 'core:move-left'
+  '/': 'core:change-diff-selection'
+  'a': 'core:add-selected-lines'
+  'shift-up': 'core:expand-line-selection-up'
+  'shift-down': 'core:expand-line-selection-down'
+  'escape': 'core:clear-selections'
+  'enter': 'core:stage'
+  'tab': 'core:focus-commit-message'
 'git-experiment-changes-view .data atom-text-editor':
   'cmd-enter': 'core:confirm'
-'git-experiment-changes-view .data':
-  'enter': 'change:stage'
+  'escape': 'core:focus-changes-list'

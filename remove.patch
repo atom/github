@@ -1,0 +1,14 @@
+--- a/testing.patch
++++ b/testing.patch
+@@ -0,1 +1,11 @@
++--- ./lib/changes-view.coffee
+++++ ./lib/changes-view.coffee
++@@ -261,8 +261,4 @@ class ChangesView extends HTMLElement
++     node.classList.add("icon-diff-#{className}")
++
+    renderChangeDetail: (path, state) ->
++-    top = @diffsNode.scrollTop
++-    selectedPath = @selectedPath
++-    selectedState = @selectedState
++-
++     diffsNode = @diffsNode
