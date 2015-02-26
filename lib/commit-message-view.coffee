@@ -5,7 +5,9 @@ BaseTemplate = """
 <atom-text-editor tabindex="-1" class="commit-description" gutter-hidden
   style="height: 120px"></atom-text-editor>
 <div class="commit-button">
-  <button class="btn btn-commit">Commit</button>
+  <button class="btn btn-commit">Commit to
+    <strong class="branch-name"></strong>
+  </button>
 </div>
 """
 
@@ -18,7 +20,7 @@ class CommitMessageView extends HTMLElement
     @innerHTML    = BaseTemplate
     @messageNode  = @querySelector('atom-text-editor')
     @messageModel = @messageNode.getModel()
-    @buttonNode   = @querySelector('.btn-commit')
+    @branchNode   = @querySelector('.branch-name')
 
     @messageModel.setSoftWrapped(true)
     @messageModel.setPlaceholderText(PlaceholderText)
@@ -36,7 +38,7 @@ class CommitMessageView extends HTMLElement
 
   update: ->
     @git.getBranchName().then (name) =>
-      @buttonNode.textContent = "Commit to #{name}"
+      @branchNode.textContent = name
 
   focusTextArea: ->
     @messageNode.focus()
