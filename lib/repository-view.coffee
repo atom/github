@@ -1,4 +1,5 @@
 $ = require 'jquery'
+StatusListView = require './status-list-view'
 
 BaseTemplate = """
 <div class="resizeable">
