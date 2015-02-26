@@ -9,8 +9,6 @@ BaseTemplate = """
 """
 
 class UndoCommitView extends HTMLElement
-  initialize: (@statusListView) ->
-
   createdCallback: ->
     # Elements
     @el         = $(@)
@@ -19,9 +17,12 @@ class UndoCommitView extends HTMLElement
     @titleNode  = @querySelector('.title')
     @timeNode   = @querySelector('.time')
 
-    @git = new GitChanges()
+    @git = new GitChanges
 
     @handleEvents()
+
+  attachedCallback: ->
+    @statusListView = @el.closest('git-experiment-status-list-view')[0]
 
   handleEvents: ->
     @el.on 'click', '.btn', @undoCommit.bind(@)
@@ -37,9 +38,9 @@ class UndoCommitView extends HTMLElement
 
   undoCommit: ->
     @git.getLatestUnpushed().then (commit) =>
-      @statusListView.commitMessageView.setText(commit.message())
+      @statusListView?.commitMessageNode.setMessage(commit.message())
       @git.undoLastCommit().then =>
-        @statusListView.update()
+        @statusListView?.update()
 
 module.exports = document.registerElement 'git-experiment-undo-commit-view',
   prototype: UndoCommitView.prototype

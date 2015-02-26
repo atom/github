@@ -21,8 +21,6 @@ BaseTemplate = """
 FileSummaryTag = "git-experiment-file-summary-view"
 
 class StatusListView extends HTMLElement
-  initialize: (@repositoryView) ->
-
   createdCallback: ->
     # Elements
     @el               = $(@)
@@ -33,15 +31,13 @@ class StatusListView extends HTMLElement
     @commitMessageBox = @querySelector(".commit-message-box")
     @undoCommitBox    = @querySelector(".undo-last-commit-box")
 
-    @git = new GitChanges()
+    @git = new GitChanges
 
     # Subviews
-    @commitMessageView = new CommitMessageView()
-    @commitMessageView.initialize(@)
+    @commitMessageView = new CommitMessageView
     @commitMessageBox.appendChild(@commitMessageView)
 
-    @undoCommitView = new UndoCommitView()
-    @undoCommitView.initialize(@)
+    @undoCommitView = new UndoCommitView
     @undoCommitBox.appendChild(@undoCommitView)
 
     @handleEvents()
@@ -69,13 +65,11 @@ class StatusListView extends HTMLElement
         # create two elements if that's the case
 
         if @isUnstaged(status)
-          unstagedSummary = new FileSummaryView()
-          unstagedSummary.initialize(@)
+          unstagedSummary = new FileSummaryView
           unstagedSummary.setFile(status, "unstaged")
           @unstagedNode.appendChild(unstagedSummary)
         if @isStaged(status)
-          stagedSummary = new FileSummaryView()
-          stagedSummary.initialize(@)
+          stagedSummary = new FileSummaryView
           stagedSummary.setFile(status, "staged")
           @stagedNode.appendChild(stagedSummary)
 

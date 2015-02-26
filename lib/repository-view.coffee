@@ -24,7 +24,6 @@ class RepositoryView extends HTMLElement
 
     # Child Nodes
     @statusListView = new StatusListView()
-    @statusListView.initialize(@)
     @summaryNode.appendChild(@statusListView)
 
     @update()

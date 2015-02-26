@@ -12,8 +12,6 @@ BaseTemplate = """
 PlaceholderText = "Please enter a commit message describing your changes"
 
 class CommitMessageView extends HTMLElement
-  initialize: (@statusListView) ->
-
   createdCallback: ->
     # Elements
     @el           = $(@)
@@ -25,9 +23,12 @@ class CommitMessageView extends HTMLElement
     @messageModel.setSoftWrapped(true)
     @messageModel.setPlaceholderText(PlaceholderText)
 
-    @git = new GitChanges()
+    @git = new GitChanges
 
     @handleEvents()
+
+  attachedCallback: ->
+    @statusListView = @el.closest('git-experiment-status-list-view')[0]
 
   handleEvents: ->
     atom.commands.add 'git-experiment-commit-message-view atom-text-editor',
@@ -41,9 +42,9 @@ class CommitMessageView extends HTMLElement
     @messageNode.focus()
 
   focusStatusList: ->
-    @statusListView.focus()
+    @statusListView?.focus()
 
-  setText: (text) ->
+  setMessage: (text) ->
     @messageModel.setText(text)
 
 module.exports = document.registerElement 'git-experiment-commit-message-view',
