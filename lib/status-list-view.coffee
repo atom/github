@@ -1,6 +1,7 @@
 $                 = require 'jquery'
 GitChanges        = require './git-changes'
 CommitMessageView = require './commit-message-view'
+UndoCommitView    = require './undo-commit-view'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
@@ -35,6 +36,10 @@ class StatusListView extends HTMLElement
     @commitMessageView = new CommitMessageView()
     @commitMessageView.initialize(@)
     @commitMessageBox.appendChild(@commitMessageView)
+
+    @undoCommitView = new UndoCommitView()
+    @undoCommitBox.appendChild(@undoCommitView)
+
     @handleEvents()
 
   handleEvents: =>
