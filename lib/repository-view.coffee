@@ -27,19 +27,28 @@ class RepositoryView extends HTMLElement
     @statusListView.initialize(@)
     @summaryNode.appendChild(@statusListView)
 
-    @statusListView.focus()
-    @statusListView.update()
+    @update()
 
     @width(width) if width > 0
     @handleEvents()
 
-  handleEvents: =>
+  handleEvents: ->
     @el.on 'mousedown', '.repository-view-resizer', (e) => @resizeStarted(e)
+    $(window).on 'focus', =>
+      @update() if atom.workspace?.getActivePaneItem() == @
+
+    process.nextTick =>
+      # HACK: atom.workspace is weirdly not available when this is deserialized
+      atom.workspace.onDidChangeActivePaneItem (pane) =>
+        @update() if pane == @
 
   getTitle: ->
     'Repository'
 
   getURI: -> @uri
+
+  update: ->
+    @statusListView.update()
 
   width: (setter) ->
     if setter
