@@ -22,6 +22,14 @@ class RepositoryView extends HTMLElement
     @resizeableNode = @querySelector('.resizeable')
     @resizerNode    = @querySelector('.repository-view-resizer')
 
+    # Child Nodes
+    @statusListView = new StatusListView()
+    @statusListView.initialize(@)
+    @summaryNode.appendChild(@statusListView)
+
+    @statusListView.focus()
+    @statusListView.update()
+
     @width(width) if width > 0
     @handleEvents()
 
