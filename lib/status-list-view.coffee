@@ -6,11 +6,11 @@ FileSummaryView   = require './file-summary-view'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
-  <button class="btn btn-xs">Stage all</button>
+  <button class="btn btn-xs btn-stage-all">Stage all</button>
 </div>
 <div class="unstaged files"></div>
 <div class="staged column-header">Staged changes
-  <button class="btn btn-xs">Unstage all</button>
+  <button class="btn btn-xs btn-unstage-all">Unstage all</button>
 </div>
 <div class="staged files"></div>
 <div class="staged column-header">Commit message</div>
@@ -47,10 +47,14 @@ class StatusListView extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
+    @el.on "click", ".btn-stage-all", @stageAll.bind(@)
+    @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
+
     atom.commands.add "git-experiment-status-list-view",
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
+      'core:confirm': @stageSelection
       'git-experiment:focus-commit-message': @focusCommitMessage
 
   update: ->
@@ -60,14 +64,20 @@ class StatusListView extends HTMLElement
       @unstagedNode.innerHTML = ''
 
       for status in statuses
+        # a status can indicate a file that has both
+        # staged and unstaged changes, so we need to
+        # create two elements if that's the case
+
         if @isUnstaged(status)
-          summary = new FileSummaryView()
-          summary.setFile(status, "unstaged")
-          @unstagedNode.appendChild(summary)
+          unstagedSummary = new FileSummaryView()
+          unstagedSummary.initialize(@)
+          unstagedSummary.setFile(status, "unstaged")
+          @unstagedNode.appendChild(unstagedSummary)
         if @isStaged(status)
-          summary = new FileSummaryView()
-          summary.setFile(status, "staged")
-          @stagedNode.appendChild(summary)
+          stagedSummary = new FileSummaryView()
+          stagedSummary.initialize(@)
+          stagedSummary.setFile(status, "staged")
+          @stagedNode.appendChild(stagedSummary)
 
       @commitMessageView.update()
       @undoCommitView.update()
@@ -125,8 +135,17 @@ class StatusListView extends HTMLElement
     entry.classList.add("selected")
     entry
 
+  stageSelection: ->
+    @selectedEntry()?.stage()
+
   getAllEntries: ->
     @querySelectorAll(FileSummaryTag)
+
+  getUnstagedEntries: ->
+    @unstagedNode.querySelectorAll(FileSummaryTag)
+
+  getStagedEntries: ->
+    @stagedNode.querySelectorAll(FileSummaryTag)
 
   getSelectedEntries: ->
     @querySelectorAll(".selected")
@@ -159,6 +178,16 @@ class StatusListView extends HTMLElement
       if selected.status == 'unstaged'
         next = @querySelector(".staged #{FileSummaryTag}")
     next?.click()
+
+  stageAll: ->
+    paths = []
+    paths.push entry.path for entry in @getUnstagedEntries()
+    @git.stageAllPaths(paths).then => @update()
+
+  unstageAll: ->
+    paths = []
+    paths.push entry.path for entry in @getStagedEntries()
+    @git.unstageAllPaths(paths).then => @update()
 
 module.exports = document.registerElement "git-experiment-status-list-view",
   prototype: StatusListView.prototype

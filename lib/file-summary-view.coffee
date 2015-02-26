@@ -13,19 +13,23 @@ BaseTemplate = """
 """
 
 class FileSummaryView extends HTMLElement
+  initialize: (@statusListView) ->
+
   createdCallback: ->
     # Elements
     @el           = $(@)
     @innerHTML    = BaseTemplate
-    @iconNode     = @querySelector('.icon')
-    @dirNode      = @querySelector('.dir')
-    @filenameNode = @querySelector('.filename')
-    @buttonNode   = @querySelector('.btn')
+    @iconNode     = @querySelector(".icon")
+    @dirNode      = @querySelector(".dir")
+    @filenameNode = @querySelector(".filename")
+    @buttonNode   = @querySelector(".btn")
     @index        = undefined
 
     @git          = new GitChanges()
 
   handleEvents: =>
+    @el.on "click", ".btn", @stage.bind(@)
+    @el.on "dblclick", @stage.bind(@)
 
   setFile: (@file, @status) ->
     @setPath()
@@ -74,6 +78,15 @@ class FileSummaryView extends HTMLElement
     else
       "Stage"
 
+  stage: ->
+    console.log 'staging'
+    promise = if @status == 'unstaged'
+      @git.stagePath(@path)
+    else
+      @git.unstagePath(@path)
+
+    promise.then =>
+      @statusListView.update()
 
 module.exports = document.registerElement "git-experiment-file-summary-view",
   prototype: FileSummaryView.prototype
