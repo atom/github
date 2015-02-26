@@ -39,6 +39,7 @@ class StatusListView extends HTMLElement
     @commitMessageBox.appendChild(@commitMessageView)
 
     @undoCommitView = new UndoCommitView()
+    @undoCommitView.initialize(@)
     @undoCommitBox.appendChild(@undoCommitView)
 
     @handleEvents()
@@ -65,6 +66,9 @@ class StatusListView extends HTMLElement
           summary = new FileSummaryView()
           summary.setFile(status, "staged")
           @stagedNode.appendChild(summary)
+
+      @commitMessageView.update()
+      @undoCommitView.update()
       @setIndices()
       @selectStatus()
 

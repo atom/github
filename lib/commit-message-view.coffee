@@ -33,11 +33,18 @@ class CommitMessageView extends HTMLElement
     atom.commands.add 'git-experiment-commit-message-view atom-text-editor',
       'git-experiment:focus-status-list': @focusStatusList.bind(@)
 
+  update: ->
+    @git.getBranchName().then (name) =>
+      @buttonNode.textContent = "Commit to #{name}"
+
   focusTextArea: ->
     @messageNode.focus()
 
   focusStatusList: ->
     @statusListView.focus()
+
+  setText: (text) ->
+    @messageModel.setText(text)
 
 module.exports = document.registerElement 'git-experiment-commit-message-view',
   prototype: CommitMessageView.prototype

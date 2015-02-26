@@ -17,9 +17,13 @@ class GitChanges
   statusCodes: ->
     Git.Status.STATUS
 
-  getBranch: ->
+  getBranchName: ->
     Git.Repository.open(@repoPath).then (repo) =>
-      repo.getBranch('HEAD')
+      repo.getBranch('HEAD').then (branch) =>
+        @normalizeBranchName(branch.name())
+
+  normalizeBranchName: (name) ->
+    name.replace('refs/heads/','')
 
   getPatch: (path, state) ->
     @diffsPromise.then (diffs) ->
@@ -76,7 +80,7 @@ class GitChanges
       repo.getCurrentBranch()
     .then (branch) =>
       data.branch     = branch
-      data.branchName = branch.name().replace('refs/heads/','')
+      data.branchName = @normalizeBranchName(branch.name())
       data.walker     = data.repo.createRevWalk()
       data.walker.pushHead()
       data.repo.getReferenceNames()
