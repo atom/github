@@ -18,6 +18,8 @@ BaseTemplate = """
 <div class="undo-last-commit-box"></div>
 """
 
+FileSummaryTag = "git-experiment-file-summary-view"
+
 class StatusListView extends HTMLElement
   initialize: (@repositoryView) ->
 
@@ -45,7 +47,7 @@ class StatusListView extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
-    @el.on "click", "git-experiment-file-summary-view", @entryClicked.bind(@)
+    @el.on "click", FileSummaryTag, @entryClicked.bind(@)
     atom.commands.add "git-experiment-status-list-view",
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
@@ -70,11 +72,11 @@ class StatusListView extends HTMLElement
       @commitMessageView.update()
       @undoCommitView.update()
       @setIndices()
-      @selectStatus()
+      @selectDefaultStatus()
+      @focus()
 
   setIndices: ->
-    entries = @querySelectorAll("git-experiment-file-summary-view")
-    for entry, idx in entries
+    for entry, idx in @getAllEntries()
       entry.index = idx
 
   isUnstaged: (status) ->
@@ -97,6 +99,17 @@ class StatusListView extends HTMLElement
            bit & codes.INDEX_RENAMED ||
            bit & codes.INDEX_TYPECHANGE
 
+  selectDefaultStatus: ->
+    entries = @getAllEntries()
+    for entry in entries
+      if entry.path == @selectedPath and entry.status == @selectedStatus
+        entry.click()
+        return
+    if entry = entries[@selectedIndex] || entries[@selectedIndex-1]
+      entry.click()
+      return
+    entries[0]?.click()
+
   selectedEntry: ->
     @querySelector(".selected")
 
@@ -111,6 +124,9 @@ class StatusListView extends HTMLElement
     @deselect(selectedEntries)
     entry.classList.add("selected")
     entry
+
+  getAllEntries: ->
+    @querySelectorAll(FileSummaryTag)
 
   getSelectedEntries: ->
     @querySelectorAll(".selected")
@@ -129,8 +145,20 @@ class StatusListView extends HTMLElement
     @commitMessageView.focusTextArea()
 
   moveSelectionUp: =>
+    selected = @selectedEntry()
+    prev = selected.previousElementSibling
+    unless prev
+      if selected.status == 'staged'
+        prev = @querySelector(".unstaged #{FileSummaryTag}:last-of-type")
+    prev?.click()
 
   moveSelectionDown: =>
+    selected = @selectedEntry()
+    next = selected.nextElementSibling
+    unless next
+      if selected.status == 'unstaged'
+        next = @querySelector(".staged #{FileSummaryTag}")
+    next?.click()
 
 module.exports = document.registerElement "git-experiment-status-list-view",
   prototype: StatusListView.prototype
