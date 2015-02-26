@@ -1,94 +1,99 @@
-Git = require 'nodegit'
+Git          = require 'nodegit'
 ChildProcess = require 'child_process'
-os = require 'os'
-fse = require 'fs-extra'
-Path = require 'path'
-exec = ChildProcess.exec
-
-normalizeOptions = (options, Ctor) ->
-  instance = (if options instanceof Ctor then options else new Ctor())
-  return null  unless options
-  Object.keys(options).forEach (key) ->
-    instance[key] = options[key]
-    return
-
-  instance
+os           = require 'os'
+fse          = require 'fs-extra'
+Path         = require 'path'
+_            = require 'underscore-contrib'
+exec         = ChildProcess.exec
 
 module.exports =
 class GitChanges
-  changes: {}
   statuses: {}
 
   constructor: ->
-    @tmpDir = os.tmpDir()
+    @tmpDir   = os.tmpDir()
     @repoPath = atom.project.getPaths()[0]
+
+  statusCodes: ->
+    Git.Status.STATUS
 
   getBranch: ->
     Git.Repository.open(@repoPath).then (repo) =>
       repo.getBranch('HEAD')
 
   getPatch: (path, state) ->
-    @stagedPromise.then (diffs) ->
-      for patch in diffs[state].patches()
-        return patch if patch.newFile().path() == path
-
-      gatherDiffs()
-      @getPatch(path, state)
+    @diffsPromise.then (diffs) ->
+      _.find diffs[state].patches(), (patch) ->
+        patch.newFile().path() == path
 
   gatherDiffs: ->
-    @stagedPromise = Git.Repository.open(@repoPath).then (repo) =>
-      repo.openIndex().then (index) =>
-        new Promise (resolve, reject) =>
-          setImmediate =>
-            opts = {
-              flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT
-            }
-            Git.Diff.indexToWorkdir(repo, index, opts).then (unstagedDiffs) ->
-              repo.getHeadCommit().then (commit) ->
-                commit.getTree().then (tree) ->
-                  Git.Diff.treeToIndex(repo, tree, index, opts).then (stagedDiffs) ->
-                    resolve
-                      staged: stagedDiffs
-                      unstaged: unstagedDiffs
+    data = {}
+    opts =
+      flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT
+
+    @diffsPromise = Git.Repository.open(@repoPath).then (repo) ->
+      data.repo = repo
+      data.repo.openIndex()
+    .then (index) ->
+      data.index = index
+      Git.Diff.indexToWorkdir(data.repo, data.index, opts)
+    .then (unstagedDiffs) ->
+      data.unstagedDiffs = unstagedDiffs
+      data.repo.getHeadCommit()
+    .then (commit) ->
+      commit.getTree()
+    .then (tree) ->
+      Git.Diff.treeToIndex(data.repo, tree, data.index, opts)
+    .then (stagedDiffs) ->
+      diffs =
+        staged:   stagedDiffs
+        unstaged: data.unstagedDiffs
 
   getStatuses: ->
     @gatherDiffs()
-    Git.Repository.open(@repoPath).then (repo) =>
-      repo.getStatus().then (statuses) =>
-        for status in statuses
-          @statuses[status.path()] = status
+    Git.Repository.open(@repoPath)
+    .then (repo) ->
+      repo.getStatus()
+    .then (statuses) =>
+      for status in statuses
+        @statuses[status.path()] = status
+      statuses
 
-        statuses
+  getComparisonBranch: (names, branchName) ->
+    origin = "refs/remotes/origin/#{branchName}"
+    if names.indexOf(origin) >= 0
+      origin
+    else if branchName != "master"
+      "master"
+    else
+      null
 
   getLatestUnpushed: ->
-    Git.Repository.open(@repoPath).then (repo) ->
-      repo.getCurrentBranch().then (branch) ->
-        branchName = branch.name().replace('refs/heads/','')
-        walker = repo.createRevWalk()
-        walker.pushHead()
-
-        repo.getReferenceNames().then (names) ->
-          compareBranch = if names.indexOf("refs/remotes/origin/#{branchName}") >= 0
-            "origin/#{branchName}"
-          else if branchName != "master"
-            "master"
-          else
-            null
-
-          promise = new Promise (resolve, reject) =>
-            if compareBranch
-              repo.getBranchCommit(compareBranch).then (compare) =>
-                walker.hide(compare)
-                resolve()
-            else
-              resolve()
-
-          promise.then ->
-            walker.next().then (oid) ->
-              if oid
-                repo.getCommit(oid)
-              else
-                null
+    data = {}
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      data.repo = repo
+      repo.getCurrentBranch()
+    .then (branch) =>
+      data.branch     = branch
+      data.branchName = branch.name().replace('refs/heads/','')
+      data.walker     = data.repo.createRevWalk()
+      data.walker.pushHead()
+      data.repo.getReferenceNames()
+    .then (names) =>
+      data.compareBranch = @getComparisonBranch(names, data.branchName)
+      new Promise (resolve, reject) =>
+        if data.compareBranch
+          data.repo.getBranchCommit(data.compareBranch)
+          .then (compare) =>
+            data.walker.hide(compare)
+            resolve()
+        else
+          resolve()
+    .then =>
+      data.walker.next()
+    .then (oid) =>
+      if oid then data.repo.getCommit(oid) else null
 
   undoLastCommit: ->
     new Promise (resolve, reject) =>
@@ -99,16 +104,18 @@ class GitChanges
     @stageAllPaths([path])
 
   stageAllPaths: (paths) ->
-    Git.Repository.open(@repoPath).then (repo) =>
-      repo.openIndex().then (index) =>
-        for path in paths
-          status = @statuses[path]
-          if status.statusBit() & Git.Status.STATUS.WT_DELETED
-            index.removeByPath(path)
-          else
-            index.addByPath(path)
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      repo.openIndex()
+    .then (index) =>
+      for path in paths
+        status = @statuses[path]
+        if status.statusBit() & Git.Status.STATUS.WT_DELETED
+          index.removeByPath(path)
+        else
+          index.addByPath(path)
 
-        index.write()
+      index.write()
 
   unstagePath: (path) ->
     @unstageAllPaths([path])
@@ -116,32 +123,47 @@ class GitChanges
   unstageAllPaths: (paths) ->
     new Promise (resolve, reject) =>
       if paths.length
-        ChildProcess.exec "git reset HEAD #{paths.join(' ')}", {cwd: @repoPath}, =>
-          setImmediate -> resolve()
-      else
-        resolve()
+        command = "git reset HEAD #{paths.join(' ')}"
+        ChildProcess.execSync command, {cwd: @repoPath}
+
+      resolve()
 
   wordwrap: (str) ->
     return str unless str.length
     str.match(/.{1,80}(\s|$)|\S+?(\s|$)/g).join("\n")
 
   commit: (message) ->
-    Git.Repository.open(@repoPath).then (repo) =>
-      repo.openIndex().then (index) =>
-        index.writeTree().then (indexTree) =>
-          repo.getHeadCommit().then (parent) =>
-            author = Git.Signature.default(repo)
-            return repo.createCommit("HEAD", author, author, @wordwrap(message), indexTree, [parent])
+    data = {}
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      data.repo = repo
+      repo.openIndex()
+    .then (index) =>
+      data.index = index
+      index.writeTree()
+    .then (indexTree) =>
+      data.indexTree = indexTree
+      data.repo.getHeadCommit()
+    .then (parent) =>
+      author = Git.Signature.default(data.repo)
+      return data.repo.createCommit("HEAD",
+        author,
+        author,
+        @wordwrap(message),
+        data.indexTree,
+        [parent])
 
   stagePatch: (patch, action) =>
-    reverse = if action == 'unstage' then '--reverse ' else ''
+    time = new Date().getTime()
+    file = Path.join(@tmpDir, "atom-file-patch-#{time}.patch")
+    path = @repoPath
 
-    new Promise (resolve, reject) =>
-      date = new Date
-      time = date.getTime()
+    command = "git apply --unidiff-zero --whitespace=nowarn --cached "
+    command += "--reverse " if action == 'unstage'
+    command += file
 
-      file = Path.join(@tmpDir, "atom-file-patch-#{time}.patch")
-      
-      fse.writeFile file, patch, (e) =>
-        ChildProcess.exec "git apply --unidiff-zero --whitespace=nowarn --cached #{reverse}#{file}", {cwd: @repoPath}, =>
+    new Promise (resolve, reject) ->
+      fse.writeFile file, patch, (e) ->
+        ChildProcess.exec command, {cwd: path}, (e) ->
+          console.log(e)
           setImmediate -> resolve()
