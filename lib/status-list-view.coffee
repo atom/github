@@ -1,5 +1,6 @@
 $                 = require 'jquery'
 GitChanges        = require './git-changes'
+CommitMessageView = require './commit-message-view'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
@@ -30,12 +31,18 @@ class StatusListView extends HTMLElement
 
     @git = new GitChanges()
 
+    # Subviews
+    @commitMessageView = new CommitMessageView()
+    @commitMessageView.initialize(@)
+    @commitMessageBox.appendChild(@commitMessageView)
     @handleEvents()
 
   handleEvents: =>
     atom.commands.add "git-experiment-status-list-view",
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
+      'git-experiment:focus-commit-message': @focusCommitMessage
+
   update: ->
     @git.getStatuses()
     .then (statuses) =>

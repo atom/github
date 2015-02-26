@@ -33,3 +33,9 @@
 'git-experiment-changes-view .data atom-text-editor':
   'cmd-enter': 'core:confirm'
   'escape': 'core:focus-changes-list'
+
+'git-experiment-status-list-view':
+  'tab': 'git-experiment:focus-commit-message'
+
+'git-experiment-commit-message-view atom-text-editor':
+  'escape': 'git-experiment:focus-status-list'
