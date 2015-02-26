@@ -13,7 +13,7 @@ class RepositoryView extends HTMLElement
 
   @statusListView: null
 
-  initialize: ({uri, width}) ->
+  initialize: ({@uri, width}) ->
     # Elements
     @el             = $(@)
     @innerHTML      = BaseTemplate
@@ -45,7 +45,7 @@ class RepositoryView extends HTMLElement
     if setter
       @resizeableNode.style.width = "#{setter}px"
     else
-      @resizeableNode.offsetWidth
+      $(@resizeableNode).width()
 
   serialize: ->
     deserializer: 'GitRepositoryView'
