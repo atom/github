@@ -1,0 +1,172 @@
+@import "variables";
+
+git-experiment-patch-view {
+  display: block;
+  color: @syntax-text-color;
+  background: @syntax-background-color;
+  -webkit-transform:scale(1);
+
+  &:last-child {
+    border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
+  }
+
+  .diff-file {
+    padding: 0 12px;
+    font-family: @font-family;
+    font-size: @font-size;
+    font-weight:500;
+    color:@text-color;
+    line-height:2.7em;
+    height:2.7em;
+    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
+    box-shadow:inset @separator-border-color 0 -1px 0;
+  }
+
+  .diff-hunk-line {
+    display:flex;
+    align-items:stretch;
+
+    & > div {
+      flex:1 1 auto;
+      cursor:default;
+      line-height:1.5em;
+      -webkit-user-select:none;
+
+      &.old-line-number, &.new-line-number {
+        flex: 0 0 42px;
+        width:42px;
+        text-align: center;
+        vertical-align:top;
+        color: fade(@syntax-text-color, 50%);
+        box-shadow:inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
+      }
+
+      &.diff-hunk-data {
+        padding:0 8px 0 40px;
+        text-indent:-32px;
+        white-space:pre-wrap;
+        word-wrap: break-word;
+        position:relative;
+      }
+    }
+  }
+
+  .btn {
+    position:absolute;
+    right:8px;
+    top:1px;
+    display:none;
+    font-family:@font-family;
+  }
+
+  .diff-hunk-header .btn {
+    top:3px;
+  }
+
+  .diff-hunk:hover {
+    .diff-hunk-header .btn, .selected .btn {
+      display:inline-block;
+    }
+
+    .selected ~ .selected .btn {
+      display:none;
+    }
+  }
+
+  & + patch-view .diff-file {
+    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+  }
+
+  @hunk-color: contrast(@syntax-background-color, fade(#4A90E2, 5%), fade(#4A90E2, 10%));
+
+  .diff-hunk-header > div {
+    color:fade(@syntax-text-color, 50%);
+    background:@hunk-color;
+    height:1.8em;
+    line-height:1.8em;
+  }
+
+  .diff-hunk-header .old-line-number, .diff-hunk-header .new-line-number {
+    background-color:fade(#4A90E2, 3%);
+    border-color:darken(@hunk-color, 100%);
+  }
+
+  .diff-hunk {
+    white-space: pre;
+    color:fade(@syntax-text-color, 50%);;
+    padding:0;
+    margin:0;
+    width:100%;
+    border-collapse:collapse;
+    line-height:1.3em;
+  }
+
+  @deletion-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
+  @addition-color:contrast(@syntax-background-color, fade(@syntax-color-added, 8%), fade(@syntax-color-added, 15%));
+  @deletion-number-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 5%), fade(@syntax-color-removed, 5%));
+  @addition-number-color:contrast(@syntax-background-color, fade(@syntax-color-added, 5%), fade(@syntax-color-added, 5%));
+
+  .deletion > div {
+    background-color:@deletion-color;
+    color:average(@syntax-color-removed, @syntax-text-color);
+  }
+
+  .deletion .old-line-number, .deletion .new-line-number {
+    background-color:@deletion-number-color;
+    color: fade(@syntax-text-color, 50%);
+  }
+
+  .addition > div {
+    background-color:@addition-color;
+    color:average(@syntax-color-added, @syntax-text-color);
+  }
+
+  .addition .old-line-number, .addition .new-line-number {
+    background-color:@addition-number-color;
+    color: fade(@syntax-text-color, 50%);
+  }
+
+  @active-color: average(@syntax-background-color, fade(@background-color-selected, 50%));
+
+  .active, .keyboard-active {
+    &.addition > div {
+      background-color:average(@addition-color, fade(@active-color, 50%));
+    }
+
+    &.deletion > div {
+      background-color:average(@deletion-color, fade(@active-color, 50%));
+    }
+
+    &.addition, &.deletion {
+      div.old-line-number, div.new-line-number {
+        background-color:@active-color;
+      }
+    }
+  }
+
+  .selected {
+    &.addition, &.deletion {
+      div.old-line-number, div.new-line-number {
+        background-color:@background-color-highlight;
+        color:@text-color-highlight;
+
+        :focus & {
+          background-color:@background-color-selected;
+          color:@text-color-selected;
+        }
+      }
+    }
+
+    &.active, &.keyboard-active {
+      &.addition, &.deletion {
+        div.old-line-number, div.new-line-number {
+          background-color:darken(@background-color-highlight, 10%);
+
+          :focus & {
+            background-color:darken(@background-color-selected, 10%);
+          }
+        }
+      }
+    }
+  }
+}
