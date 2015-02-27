@@ -24,7 +24,6 @@ class UndoCommitView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @base.on "index-updated", @update.bind(@)
     @el.on 'click', '.btn', @undoCommit.bind(@)
 
   update: ->

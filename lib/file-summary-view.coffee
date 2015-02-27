@@ -26,7 +26,8 @@ class FileSummaryView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @statusListView = @el.closest('git-experiment-status-list-view')[0]
+    @base = @el.closest('git-experiment-repository-view')
+    @handleEvents()
 
   handleEvents: =>
     @el.on "click", ".btn", @stage.bind(@)
@@ -36,7 +37,6 @@ class FileSummaryView extends HTMLElement
     @setPath()
     @setIcon()
     @setButtonText()
-    @handleEvents()
 
   setPath: ->
     @path = @file.path()
@@ -86,7 +86,7 @@ class FileSummaryView extends HTMLElement
       @git.unstagePath(@path)
 
     promise.then =>
-      @statusListView?.update()
+      @base.trigger('index-updated')
 
 module.exports = document.registerElement "git-experiment-file-summary-view",
   prototype: FileSummaryView.prototype

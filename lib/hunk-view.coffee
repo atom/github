@@ -1,4 +1,5 @@
-$ = require 'jquery'
+$          = require 'jquery'
+GitChanges = require './git-changes'
 
 BaseTemplate = """
 <div class="diff-hunk"></div>
@@ -24,6 +25,11 @@ class HunkView extends HTMLElement
   attachedCallback: ->
     @base = @el.closest('git-experiment-repository-view')
 
+    @el.on 'click', '.btn-stage-lines', @processLinesStage.bind(@)
+    @el.on 'click', '.btn-stage-hunk', @processHunkStage.bind(@)
+
+    @git = new GitChanges
+
   createLineNode: ->
     lineNode = document.createElement('div')
     lineNode.innerHTML = PatchLineTemplateString
@@ -42,6 +48,18 @@ class HunkView extends HTMLElement
     @oldSourceLines = oldSource.find('div.line')
     @newSourceLines = newSource.find('div.line')
 
+    for line in @allLines()
+      lineNumber = line.dataset.lineIndex
+      contentNode = line.querySelector('.diff-hunk-data')
+
+      if line.classList.contains('deletion')
+        highlighted = @oldSourceLines[line.dataset.oldIndex]?.innerHTML
+        contentNode.innerHTML = "-#{highlighted}" if highlighted
+      else
+        origin = if line.classList.contains('addition') then "+" else " "
+        highlighted = @newSourceLines[line.dataset.newIndex]?.innerHTML
+        contentNode.innerHTML = "#{origin}#{highlighted}" if highlighted
+
   setHunk: (@patch, @index, @status) ->
     @hunk = @patch.hunks()[@index]
     headerNode = @createLineNode()
@@ -54,8 +72,6 @@ class HunkView extends HTMLElement
     for line, lineIndex in @hunk.lines()
       lineNode              = @createLineNode()
       content               = line.content().split(/[\r\n]/g)[0] # srsly.
-      contentNode           = document.createElement('span')
-      contentNode.innerHTML = content
       lineOrigin            = String.fromCharCode(line.origin())
       oldLineNumber         = lineNode.querySelector('.old-line-number')
       newLineNumber         = lineNode.querySelector('.new-line-number')
@@ -65,19 +81,16 @@ class HunkView extends HTMLElement
       oldLine               = line.oldLineno()
       newLine               = line.newLineno()
 
-      oldSource = @oldSourceLines[oldLine-1] or contentNode
-      newSource = @newSourceLines[newLine-1] or contentNode
+      lineNode.dataset.oldIndex = oldLine - 1
+      lineNode.dataset.newIndex = newLine - 1
+
+      dataNode.textContent = lineOrigin + content
 
       switch lineOrigin
         when '-'
           lineNode.classList.add('deletion')
-          dataNode.innerHTML = lineOrigin + oldSource.innerHTML
         when '+'
           lineNode.classList.add('addition')
-          dataNode.innerHTML = lineOrigin + newSource.innerHTML
-        when '/'
-        else
-          dataNode.innerHTML = lineOrigin + newSource.innerHTML
 
       oldLineNumber.textContent = oldLine if oldLine > 0
       newLineNumber.textContent = newLine if newLine > 0
@@ -88,39 +101,59 @@ class HunkView extends HTMLElement
 
       @hunkNode.appendChild(lineNode)
 
-  processLinesStage: (el) ->
-    el = $(el).closest('.diff-hunk-line').get(0)
-    hunkEl = $(el).closest('.diff-hunk')
-    action = if hunkEl.get(0).dataset['hunkStatus'] == 'unstaged' then 'stage' else 'unstage'
-    hunkIndex = el.dataset['hunkIndex']
-    lineIndex = el.dataset['lineIndex']
-    path = el.dataset['path']
-    hunk = @patch.hunks()[hunkIndex]
+  allLines: ->
+    @querySelectorAll('.diff-hunk-line[data-line-index]')
 
-    totalChanges = hunkEl.find('tr.addition, tr.deletion').length
-    totalSelections = hunkEl.find('tr.selected').length
+  allChangedLines: ->
+    @querySelectorAll('.diff-hunk-line.addition, .diff-hunk-line.deletion')
+
+  selectedLines: ->
+    @querySelectorAll('.diff-hunk-line.selected')
+
+  processHunkStage: ->
+    for line in @allChangedLines()
+      line.classList.add('selected')
+
+    @processLinesStage()
+
+  processLinesStage: ->
+    action = if @status == 'unstaged' then 'stage' else 'unstage'
+    path = @patch.newFile().path()
+
+    totalChanges = @allChangedLines().length
+    totalSelections = @selectedLines().length
 
     allStaged = totalChanges == totalSelections
 
-    oldFile = if @patch.isAdded() and allStaged then "/dev/null" else "a/#{@patch.oldFile().path()}"
-    newFile = if @patch.isDeleted() and allStaged then "/dev/null" else "b/#{@patch.newFile().path()}"
+    oldFile = if @patch.isAdded() and allStaged
+      "/dev/null"
+    else
+      "a/#{@patch.oldFile().path()}"
+
+    newFile = if @patch.isDeleted() and allStaged
+      "/dev/null"
+    else
+      "b/#{@patch.newFile().path()}"
 
     fileInfo = "--- #{oldFile}\n"
     fileInfo += "+++ #{newFile}\n"
 
-    header = hunk.header()
-    headerParts = header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
+    header = @hunk.header()
+    headerParts =
+      header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
 
     oldStart = headerParts[1]
     oldCount = 0
     newStart = headerParts[3]
     newCount = 0
-    context = headerParts[5]
+    context  = headerParts[5]
 
     lines = []
 
-    for line, idx in hunk.lines()
-      selected = hunkEl.find("tr[data-line-index=#{idx}]").hasClass('selected')
+    for line, idx in @hunk.lines()
+      selected =
+        @querySelector(".diff-hunk-line.selected[data-line-index='#{idx}']")
+
       origin = String.fromCharCode(line.origin())
       content = line.content().split(/[\r\n]/g)[0]
       switch origin
@@ -145,12 +178,13 @@ class HunkView extends HTMLElement
             newCount++
             lines.push " #{content}"
 
-    header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
+    header =
+      "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
 
     patch = "#{fileInfo}#{header}#{lines.join("\n")}\n"
 
-    @changesView.changes.stagePatch(patch, action).then =>
-      @changesView.renderChanges()
+    @git.stagePatch(patch, action).then =>
+      @base.trigger('index-updated')
 
 module.exports = document.registerElement 'git-experiment-hunk-view',
   prototype: HunkView.prototype

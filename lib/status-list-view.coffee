@@ -45,7 +45,7 @@ class StatusListView extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
-    @base.on "focus-status-list", @focus.bind(@)
+    @base.on "focus-list", @focus.bind(@)
     @base.on "index-updated", @update.bind(@)
 
     @el.on "click", ".btn-stage-all", @stageAll.bind(@)
@@ -53,9 +53,10 @@ class StatusListView extends HTMLElement
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
 
     atom.commands.add "git-experiment-status-list-view",
-      'core:move-down': @moveSelectionDown
-      'core:move-up': @moveSelectionUp
-      'core:confirm': @stageSelection
+      'core:move-down':  @moveSelectionDown
+      'core:move-up':    @moveSelectionUp
+      'core:move-right': @focusDiffView
+      'core:confirm':    @stageSelection
       'git-experiment:focus-commit-message': @focusCommitMessage
 
   update: ->
@@ -78,6 +79,7 @@ class StatusListView extends HTMLElement
           stagedSummary.setFile(status, "staged")
           @stagedNode.appendChild(stagedSummary)
 
+      @undoCommitView.update()
       @setIndices()
       @selectDefaultStatus()
       @focus()
@@ -108,6 +110,9 @@ class StatusListView extends HTMLElement
 
   empty: ->
     @base.trigger("no-change-selected")
+
+  focusDiffView: ->
+    @base.trigger('focus-diff-view')
 
   selectDefaultStatus: ->
     entries = @getAllEntries()

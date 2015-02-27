@@ -45,7 +45,7 @@ class CommitMessageView extends HTMLElement
     @messageNode.focus()
 
   focusStatusList: ->
-    @base.trigger('focus-status-list')
+    @base.trigger('focus-list')
 
   setMessage: (e, text) ->
     @messageModel.setText(text)

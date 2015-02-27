@@ -185,16 +185,52 @@ class GitChanges
     .then (index) =>
       entry = index.getByPath(path, 0)
       if entry?
-        data.repo.getBlob(entry.id())
+        data.repo.getBlob(entry.id()).then (blob) ->
+          blob?.toString()
       else
-        data.repo.getHeadCommit().then (commit) ->
-          commit.getTree().then (tree) ->
-            tree.getEntry(path).then (entry) ->
-              entry.getBlob()
+        @treeBlob(path)
+
+  treeBlob: (path) ->
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      repo.getHeadCommit()
+    .then (commit) ->
+      commit.getTree()
+    .then (tree) ->
+      tree.getEntry(path)
+    .then (entry) ->
+      entry.getBlob()
     .then (blob) ->
       blob?.toString()
 
-  getBlobs: (patch) ->
+  getBlobs: (patch, status) ->
+    if status == 'staged'
+      @getStagedBlobs(patch)
+    else
+      @getUnstagedBlobs(patch)
+
+  getStagedBlobs: (patch) ->
+    oldPath = patch.oldFile().path()
+    newPath = patch.newFile().path()
+
+    if patch.isAdded() or patch.isUntracked()
+      @indexBlob(newPath).then (newBlob) =>
+        data =
+          new: newBlob
+          old: ''
+    else if patch.isDeleted()
+      @treeBlob(oldPath).then (oldBlob) =>
+        data =
+          old: oldBlob
+          new: ''
+    else
+      Git.Promise.all([@treeBlob(oldPath), @indexBlob(newPath)])
+      .then (blobs) ->
+        data =
+          old: blobs[0]
+          new: blobs[1]
+
+  getUnstagedBlobs: (patch) ->
     oldPath = patch.oldFile().path()
     newPath = patch.newFile().path()
 

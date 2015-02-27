@@ -22,13 +22,37 @@ class PatchView extends HTMLElement
     @base = @el.closest('git-experiment-repository-view')
 
   setPatch: (@patch, @status) ->
-    @git.getBlobs(@patch).then (blobs) =>
-      path = @patch.newFile().path()
-      grammar = atom.grammars.selectGrammar(path, blobs[1])
+    @path = @patch.newFile().path()
+    @fileNode.textContent = @path
+    for hunk in @getHunks()
+      @hunksNode.appendChild(hunk)
 
-      @fileNode.textContent = path
+  getHunks: ->
+    @constructor.hunkCache or= {}
+    @constructor.hunkCache["#{@status}#{@path}"] or= @createHunks()
 
-      if grammar
+  createHunks: ->
+    hunks = []
+
+    for hunk, idx in @patch.hunks()
+      hunkView = new HunkView
+      hunkView.setHunk(@patch, idx, @status)
+      hunks.push(hunkView)
+
+    @setSyntaxHighlights()
+
+    hunks
+
+  clearCache: ->
+    console.log 'clearing cache'
+    @constructor.hunkCache = {}
+
+  hunkViews: ->
+    @querySelectorAll("git-experiment-hunk-view")
+
+  setSyntaxHighlights: ->
+    @git.getBlobs(@patch, @status).then (blobs) =>
+      if grammar = atom.grammars.selectGrammar(@path, blobs.new)
         highlighter = new Highlights
         highlighter.requireGrammarsSync
           modulePath: grammar.path
@@ -41,14 +65,10 @@ class PatchView extends HTMLElement
           fileContents: blobs.new
           scopeName: grammar.scopeName
 
-      for hunk, idx in @patch.hunks()
-        hunkView = new HunkView
-        if grammar
+        for hunkView in @hunkViews()
           hunkView.setHighlightedSource
             oldSource: $(oldSource)
             newSource: $(newSource)
-        hunkView.setHunk(@patch, idx, @status)
-        @hunksNode.appendChild(hunkView)
 
 module.exports = document.registerElement 'git-experiment-patch-view',
   prototype: PatchView.prototype

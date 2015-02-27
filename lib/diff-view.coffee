@@ -9,6 +9,8 @@ EmptyTemplate = """
 """
 
 class DiffView extends HTMLElement
+  @diffSelectionMode: 'hunk'
+
   createdCallback: ->
     @el = $(@)
     @tabIndex = -1
@@ -22,8 +24,14 @@ class DiffView extends HTMLElement
   handleEvents: ->
     @base.on 'render-patch', @renderPatch.bind(@)
     @base.on 'no-change-selected', @empty.bind(@)
+    @base.on 'focus-diff-view', @focusAndSelect.bind(@)
+    @base.on 'index-updated', @clearHunkCache.bind(@)
+
     atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
+
+    atom.commands.add "git-experiment-diff-view",
+      'core:move-left':  @focusList
 
   setFont: ->
     fontFamily = atom.config.get('editor.fontFamily') or DefaultFontFamily
@@ -42,6 +50,19 @@ class DiffView extends HTMLElement
 
   empty: ->
     @innerHTML = EmptyTemplate
+
+  focusAndSelect: ->
+    @focus()
+
+  focusList: ->
+    @base.trigger('focus-list')
+    @selectFirstHunk() unless @selectedElements()
+
+  selectedElements: ->
+    @querySelector('.hunk-line.selected')
+
+  clearHunkCache: ->
+    @querySelector('git-experiment-patch-view')?.clearCache()
 
 
 module.exports = document.registerElement 'git-experiment-diff-view',
