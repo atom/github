@@ -106,6 +106,9 @@ class StatusListView extends HTMLElement
            bit & codes.INDEX_RENAMED ||
            bit & codes.INDEX_TYPECHANGE
 
+  empty: ->
+    @base.trigger("no-change-selected")
+
   selectDefaultStatus: ->
     entries = @getAllEntries()
     for entry in entries
@@ -115,7 +118,8 @@ class StatusListView extends HTMLElement
     if entry = entries[@selectedIndex] || entries[@selectedIndex-1]
       entry.click()
       return
-    entries[0]?.click()
+
+    entries[0]?.click() or @empty()
 
   selectedEntry: ->
     @querySelector(".selected")
