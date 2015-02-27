@@ -15,9 +15,11 @@ class HunkView extends HTMLElement
   @dragging: false
 
   createdCallback: ->
-    @el        = $(@)
-    @innerHTML = BaseTemplate
-    @hunkNode  = @querySelector('.diff-hunk')
+    @el             = $(@)
+    @innerHTML      = BaseTemplate
+    @hunkNode       = @querySelector('.diff-hunk')
+    @newSourceLines = []
+    @oldSourceLines = []
 
   attachedCallback: ->
     @base = @el.closest('git-experiment-repository-view')
@@ -36,6 +38,10 @@ class HunkView extends HTMLElement
     button.textContent = "Stage #{text}"
     button
 
+  setHighlightedSource: ({oldSource, newSource}) ->
+    @oldSourceLines = oldSource.find('div.line')
+    @newSourceLines = newSource.find('div.line')
+
   setHunk: (@patch, @index, @status) ->
     @hunk = @patch.hunks()[@index]
     headerNode = @createLineNode()
@@ -46,22 +52,35 @@ class HunkView extends HTMLElement
     @hunkNode.appendChild(headerNode)
 
     for line, lineIndex in @hunk.lines()
-      lineNode = @createLineNode()
-      content = line.content().split(/[\r\n]/g)[0] # srsly.
-      lineOrigin = String.fromCharCode(line.origin())
-      oldLineNumber = lineNode.querySelector('.old-line-number')
-      newLineNumber = lineNode.querySelector('.new-line-number')
+      lineNode              = @createLineNode()
+      content               = line.content().split(/[\r\n]/g)[0] # srsly.
+      contentNode           = document.createElement('span')
+      contentNode.innerHTML = content
+      lineOrigin            = String.fromCharCode(line.origin())
+      oldLineNumber         = lineNode.querySelector('.old-line-number')
+      newLineNumber         = lineNode.querySelector('.new-line-number')
+
+      dataNode              = lineNode.querySelector('.diff-hunk-data')
+      dataNode.dataset.path = @patch.newFile().path()
+      oldLine               = line.oldLineno()
+      newLine               = line.newLineno()
+
+      oldSource = @oldSourceLines[oldLine-1] or contentNode
+      newSource = @newSourceLines[newLine-1] or contentNode
 
       switch lineOrigin
-        when '-' then lineNode.classList.add('deletion')
-        when '+' then lineNode.classList.add('addition')
+        when '-'
+          lineNode.classList.add('deletion')
+          dataNode.innerHTML = lineOrigin + oldSource.innerHTML
+        when '+'
+          lineNode.classList.add('addition')
+          dataNode.innerHTML = lineOrigin + newSource.innerHTML
+        when '/'
+        else
+          dataNode.innerHTML = lineOrigin + newSource.innerHTML
 
-      dataNode = lineNode.querySelector('.diff-hunk-data')
-      dataNode.textContent = lineOrigin + content
-      dataNode.dataset.path = @patch.newFile().path()
-
-      oldLineNumber.textContent = line.oldLineno() if line.oldLineno() > 0
-      newLineNumber.textContent = line.newLineno() if line.newLineno() > 0
+      oldLineNumber.textContent = oldLine if oldLine > 0
+      newLineNumber.textContent = newLine if newLine > 0
       lineNode.dataset.lineIndex = lineIndex
 
       if @status and (lineOrigin == '-' or lineOrigin == '+')

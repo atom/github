@@ -13,6 +13,7 @@
     "jquery": "^2.1.3",
     "nodegit": "https://github.com/orderedlist/nodegit/tarball/f0496195a857bb6144d61c1a122dd8da7bb24c0b",
     "timeago": "~0.2.0",
-    "underscore-contrib": "^0.3.0"
+    "underscore-contrib": "^0.3.0",
+    "highlights": "^1.2.0"
   }
 }

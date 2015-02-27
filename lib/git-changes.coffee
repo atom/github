@@ -169,5 +169,40 @@ class GitChanges
     new Promise (resolve, reject) ->
       fse.writeFile file, patch, (e) ->
         ChildProcess.exec command, {cwd: path}, (e) ->
-          console.log(e)
           setImmediate -> resolve()
+
+  workingBlob: (path) ->
+    new Git.Promise (resolve, reject) =>
+      fse.readFile "#{@repoPath}/#{path}", "utf8", (e, text) ->
+        resolve(text)
+
+  indexBlob: (path) ->
+    data = {}
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      data.repo = repo
+      repo.openIndex()
+    .then (index) =>
+      entry = index.getByPath(path, 0)
+      data.repo.getBlob(entry.id())
+    .then (blob) ->
+      blob.toString()
+
+  getBlobs: (patch) ->
+    oldPath = patch.oldFile().path()
+    newPath = patch.newFile().path()
+
+    if patch.isAdded()
+      @workingBlob(newPath).then (newBlob) =>
+        data =
+          new: newBlob
+     else if patch.isDeleted()
+      @indexBlob(oldFile).then (oldBlob) =>
+        data =
+          old: oldBlob
+    else
+      Git.Promise.all([@indexBlob(oldPath), @workingBlob(newPath)])
+      .then (blobs) ->
+        data =
+          old: blobs[0]
+          new: blobs[1]
