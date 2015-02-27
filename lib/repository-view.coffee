@@ -1,5 +1,6 @@
-$ = require 'jquery'
+$              = require 'jquery'
 StatusListView = require './status-list-view'
+DiffView       = require './diff-view'
 
 BaseTemplate = """
 <div class="resizeable">
@@ -10,9 +11,6 @@ BaseTemplate = """
 """
 
 class RepositoryView extends HTMLElement
-
-  @statusListView: null
-
   initialize: ({@uri, width}) ->
     # Elements
     @el             = $(@)
@@ -23,8 +21,11 @@ class RepositoryView extends HTMLElement
     @resizerNode    = @querySelector('.repository-view-resizer')
 
     # Child Nodes
-    @statusListView = new StatusListView()
+    @statusListView = new StatusListView
+    @diffView       = new DiffView
+
     @summaryNode.appendChild(@statusListView)
+    @detailsNode.appendChild(@diffView)
 
     @update()
 

@@ -40,9 +40,14 @@ class StatusListView extends HTMLElement
     @undoCommitView = new UndoCommitView
     @undoCommitBox.appendChild(@undoCommitView)
 
+  attachedCallback: ->
+    @base = @el.closest('git-experiment-repository-view')
     @handleEvents()
 
   handleEvents: =>
+    @base.on "focus-status-list", @focus.bind(@)
+    @base.on "index-updated", @update.bind(@)
+
     @el.on "click", ".btn-stage-all", @stageAll.bind(@)
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
@@ -73,8 +78,6 @@ class StatusListView extends HTMLElement
           stagedSummary.setFile(status, "staged")
           @stagedNode.appendChild(stagedSummary)
 
-      @commitMessageView.update()
-      @undoCommitView.update()
       @setIndices()
       @selectDefaultStatus()
       @focus()
@@ -127,6 +130,10 @@ class StatusListView extends HTMLElement
     selectedEntries = @getSelectedEntries()
     @deselect(selectedEntries)
     entry.classList.add("selected")
+
+    @git.getPatch(entry.path, entry.status).then (patch) =>
+      @base.trigger('render-patch', [entry, patch])
+
     entry
 
   stageSelection: ->
@@ -176,12 +183,12 @@ class StatusListView extends HTMLElement
   stageAll: ->
     paths = []
     paths.push entry.path for entry in @getUnstagedEntries()
-    @git.stageAllPaths(paths).then => @update()
+    @git.stageAllPaths(paths).then => @base.trigger("index-updated")
 
   unstageAll: ->
     paths = []
     paths.push entry.path for entry in @getStagedEntries()
-    @git.unstageAllPaths(paths).then => @update()
+    @git.unstageAllPaths(paths).then => @base.trigger("index-updated")
 
 module.exports = document.registerElement "git-experiment-status-list-view",
   prototype: StatusListView.prototype

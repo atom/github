@@ -19,12 +19,12 @@ class UndoCommitView extends HTMLElement
 
     @git = new GitChanges
 
+  attachedCallback: ->
+    @base = @el.closest('git-experiment-repository-view')
     @handleEvents()
 
-  attachedCallback: ->
-    @statusListView = @el.closest('git-experiment-status-list-view')[0]
-
   handleEvents: ->
+    @base.on "index-updated", @update.bind(@)
     @el.on 'click', '.btn', @undoCommit.bind(@)
 
   update: ->

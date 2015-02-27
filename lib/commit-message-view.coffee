@@ -27,14 +27,15 @@ class CommitMessageView extends HTMLElement
 
     @git = new GitChanges
 
+  attachedCallback: ->
+    @base = @el.closest('git-experiment-repository-view')
     @handleEvents()
 
-  attachedCallback: ->
-    @statusListView = @el.closest('git-experiment-status-list-view')[0]
-
   handleEvents: ->
-    atom.commands.add 'git-experiment-commit-message-view atom-text-editor',
-      'git-experiment:focus-status-list': @focusStatusList.bind(@)
+    @base.on "index-updated", @update.bind(@)
+    @base.on "set-commit-message", @setMessage.bind(@)
+    atom.commands.add "git-experiment-commit-message-view atom-text-editor",
+      "git-experiment:focus-status-list": @focusStatusList.bind(@)
 
   update: ->
     @git.getBranchName().then (name) =>
@@ -44,9 +45,9 @@ class CommitMessageView extends HTMLElement
     @messageNode.focus()
 
   focusStatusList: ->
-    @statusListView?.focus()
+    @base.trigger('focus-status-list')
 
-  setMessage: (text) ->
+  setMessage: (e, text) ->
     @messageModel.setText(text)
 
 module.exports = document.registerElement 'git-experiment-commit-message-view',
