@@ -134,6 +134,7 @@ class StatusListView extends HTMLElement
     @git.getPatch(entry.path, entry.status).then (patch) =>
       @base.trigger('render-patch', [entry, patch])
 
+    @scrollIntoView(entry)
     entry
 
   stageSelection: ->
@@ -163,6 +164,15 @@ class StatusListView extends HTMLElement
 
   focusCommitMessage: =>
     @commitMessageView.focusTextArea()
+
+  scrollIntoView: (entry) ->
+    container    = $(entry).closest('.files')[0]
+    scrollBottom = container.offsetHeight + container.scrollTop
+    entryTop     = entry.offsetTop
+    if scrollBottom - entryTop < 0
+      entry.scrollIntoView(false)
+    else if entry.offsetTop - entry.offsetHeight < container.scrollTop
+      entry.scrollIntoView()
 
   moveSelectionUp: =>
     selected = @selectedEntry()
