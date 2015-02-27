@@ -184,22 +184,30 @@ class GitChanges
       repo.openIndex()
     .then (index) =>
       entry = index.getByPath(path, 0)
-      data.repo.getBlob(entry.id())
+      if entry?
+        data.repo.getBlob(entry.id())
+      else
+        data.repo.getHeadCommit().then (commit) ->
+          commit.getTree().then (tree) ->
+            tree.getEntry(path).then (entry) ->
+              entry.getBlob()
     .then (blob) ->
-      blob.toString()
+      blob?.toString()
 
   getBlobs: (patch) ->
     oldPath = patch.oldFile().path()
     newPath = patch.newFile().path()
 
-    if patch.isAdded()
+    if patch.isAdded() or patch.isUntracked()
       @workingBlob(newPath).then (newBlob) =>
         data =
           new: newBlob
-     else if patch.isDeleted()
-      @indexBlob(oldFile).then (oldBlob) =>
+          old: ''
+    else if patch.isDeleted()
+      @indexBlob(oldPath).then (oldBlob) =>
         data =
           old: oldBlob
+          new: ''
     else
       Git.Promise.all([@indexBlob(oldPath), @workingBlob(newPath)])
       .then (blobs) ->
