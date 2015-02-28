@@ -25,15 +25,12 @@ class HunkView extends HTMLElement
   attachedCallback: ->
     @base = @el.closest('git-experiment-repository-view')
 
-    @el.on 'click', '.btn-stage-lines', @processLinesStage.bind(@)
-    @el.on 'click', '.btn-stage-hunk', @processHunkStage.bind(@)
-
     @git = new GitChanges
 
   createLineNode: ->
     lineNode = document.createElement('div')
     lineNode.innerHTML = PatchLineTemplateString
-    lineNode.classList.add('diff-hunk-line')
+    lineNode.classList.add('hunk-line')
     lineNode
 
   stageButton: (text) ->
@@ -41,7 +38,8 @@ class HunkView extends HTMLElement
     button.classList.add("btn")
     button.classList.add("btn-xs")
     button.classList.add("btn-stage-#{text}")
-    button.textContent = "Stage #{text}"
+    action = if @status == 'unstaged' then 'Stage' else 'Unstage'
+    button.textContent = "#{action} #{text}"
     button
 
   setHighlightedSource: ({oldSource, newSource}) ->
@@ -50,15 +48,14 @@ class HunkView extends HTMLElement
 
     for line in @allLines()
       lineNumber = line.dataset.lineIndex
-      contentNode = line.querySelector('.diff-hunk-data')
+      contentNode = line.querySelector('.syntax-node')
 
       if line.classList.contains('deletion')
         highlighted = @oldSourceLines[line.dataset.oldIndex]?.innerHTML
-        contentNode.innerHTML = "-#{highlighted}" if highlighted
       else
-        origin = if line.classList.contains('addition') then "+" else " "
         highlighted = @newSourceLines[line.dataset.newIndex]?.innerHTML
-        contentNode.innerHTML = "#{origin}#{highlighted}" if highlighted
+
+      contentNode.innerHTML = highlighted if highlighted
 
   setHunk: (@patch, @index, @status) ->
     @hunk = @patch.hunks()[@index]
@@ -72,6 +69,7 @@ class HunkView extends HTMLElement
     for line, lineIndex in @hunk.lines()
       lineNode              = @createLineNode()
       content               = line.content().split(/[\r\n]/g)[0] # srsly.
+      contentNode           = document.createElement('span')
       lineOrigin            = String.fromCharCode(line.origin())
       oldLineNumber         = lineNode.querySelector('.old-line-number')
       newLineNumber         = lineNode.querySelector('.new-line-number')
@@ -84,7 +82,10 @@ class HunkView extends HTMLElement
       lineNode.dataset.oldIndex = oldLine - 1
       lineNode.dataset.newIndex = newLine - 1
 
-      dataNode.textContent = lineOrigin + content
+      contentNode.classList.add('syntax-node')
+      dataNode.textContent = lineOrigin
+      contentNode.textContent = content
+      dataNode.appendChild(contentNode)
 
       switch lineOrigin
         when '-'
@@ -97,24 +98,26 @@ class HunkView extends HTMLElement
       lineNode.dataset.lineIndex = lineIndex
 
       if @status and (lineOrigin == '-' or lineOrigin == '+')
-        dataNode.appendChild(@stageButton('line'))
+        dataNode.appendChild(@stageButton('lines'))
 
       @hunkNode.appendChild(lineNode)
 
   allLines: ->
-    @querySelectorAll('.diff-hunk-line[data-line-index]')
+    @querySelectorAll('.hunk-line[data-line-index]')
 
   allChangedLines: ->
-    @querySelectorAll('.diff-hunk-line.addition, .diff-hunk-line.deletion')
+    @querySelectorAll('.hunk-line.addition, .hunk-line.deletion')
 
   selectedLines: ->
-    @querySelectorAll('.diff-hunk-line.selected')
+    @querySelectorAll('.hunk-line.selected')
 
-  processHunkStage: ->
+  selectAllChangedLines: ->
     for line in @allChangedLines()
       line.classList.add('selected')
 
-    @processLinesStage()
+  unselectAllChangedLines: ->
+    for line in @allChangedLines()
+      line.classList.remove('selected')
 
   processLinesStage: ->
     action = if @status == 'unstaged' then 'stage' else 'unstage'
@@ -152,7 +155,7 @@ class HunkView extends HTMLElement
 
     for line, idx in @hunk.lines()
       selected =
-        @querySelector(".diff-hunk-line.selected[data-line-index='#{idx}']")
+        @querySelector(".hunk-line.selected[data-line-index='#{idx}']")
 
       origin = String.fromCharCode(line.origin())
       content = line.content().split(/[\r\n]/g)[0]

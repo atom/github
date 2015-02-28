@@ -47,6 +47,7 @@ class StatusListView extends HTMLElement
   handleEvents: =>
     @base.on "focus-list", @focus.bind(@)
     @base.on "index-updated", @update.bind(@)
+    @base.on "focus-commit-message", @focusCommitMessage.bind(@)
 
     @el.on "click", ".btn-stage-all", @stageAll.bind(@)
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
@@ -79,6 +80,7 @@ class StatusListView extends HTMLElement
           stagedSummary.setFile(status, "staged")
           @stagedNode.appendChild(stagedSummary)
 
+      @commitMessageView.setStagedCount(@getStagedEntries().length)
       @undoCommitView.update()
       @setIndices()
       @selectDefaultStatus()

@@ -203,11 +203,12 @@ class GitChanges
     .then (blob) ->
       blob?.toString()
 
-  getBlobs: (patch, status) ->
-    if status == 'staged'
-      @getStagedBlobs(patch)
-    else
-      @getUnstagedBlobs(patch)
+  getBlobs: ({patch, status, commit}) ->
+    if patch
+      if status == 'staged'
+        @getStagedBlobs(patch)
+      else
+        @getUnstagedBlobs(patch)      
 
   getStagedBlobs: (patch) ->
     oldPath = patch.oldFile().path()

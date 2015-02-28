@@ -21,11 +21,15 @@ class CommitMessageView extends HTMLElement
     @messageNode  = @querySelector('atom-text-editor')
     @messageModel = @messageNode.getModel()
     @branchNode   = @querySelector('.branch-name')
+    @buttonNode   = @querySelector('.btn')
 
     @messageModel.setSoftWrapped(true)
     @messageModel.setPlaceholderText(PlaceholderText)
 
+    @stagedCount = 0
+
     @git = new GitChanges
+    @update()
 
   attachedCallback: ->
     @base = @el.closest('git-experiment-repository-view')
@@ -34,10 +38,17 @@ class CommitMessageView extends HTMLElement
   handleEvents: ->
     @base.on "index-updated", @update.bind(@)
     @base.on "set-commit-message", @setMessage.bind(@)
+
+    @el.on "click", '.btn', @commit.bind(@)
+
+    @messageModel.onDidChange @updateCommitButton.bind(@)
+
     atom.commands.add "git-experiment-commit-message-view atom-text-editor",
-      "git-experiment:focus-status-list": @focusStatusList.bind(@)
+      "git-experiment:focus-status-list": @focusStatusList
+      "git-experiment:commit": @commit
 
   update: ->
+    @updateCommitButton()
     @git.getBranchName().then (name) =>
       @branchNode.textContent = name
 
@@ -49,6 +60,26 @@ class CommitMessageView extends HTMLElement
 
   setMessage: (e, text) ->
     @messageModel.setText(text)
+
+  getMessage: ->
+    $.trim(@messageModel.getText())
+
+  setStagedCount: (count) ->
+    @stagedCount = count
+    @updateCommitButton()
+
+  canCommit: ->
+    @stagedCount > 0 and @getMessage()
+
+  updateCommitButton: ->
+    @buttonNode.disabled = !@canCommit()
+
+  commit: ->
+    return unless @canCommit()
+    @git.commit(@getMessage()).then =>
+      @messageModel.setText('')
+      @base.trigger('index-updated')
+      @base.trigger('set-commit-message', [''])
 
 module.exports = document.registerElement 'git-experiment-commit-message-view',
   prototype: CommitMessageView.prototype

@@ -6,6 +6,10 @@ git-experiment-patch-view {
   background: @syntax-background-color;
   -webkit-transform:scale(1);
 
+  git-experiment-hunk-view {
+    display:block;
+  }
+
   &:last-child {
     border-bottom:1px solid contrast(@syntax-background-color, fade(#000, 10%), fade(#000, 35%));
   }
@@ -22,7 +26,7 @@ git-experiment-patch-view {
     box-shadow:inset @separator-border-color 0 -1px 0;
   }
 
-  .diff-hunk-line {
+  .hunk-line {
     display:flex;
     align-items:stretch;
 
@@ -126,33 +130,38 @@ git-experiment-patch-view {
     color: fade(@syntax-text-color, 50%);
   }
 
-  @active-color: average(@syntax-background-color, fade(@background-color-selected, 50%));
-
   .active, .keyboard-active {
     &.addition > div {
-      background-color:average(@addition-color, fade(@active-color, 50%));
+      background-color:average(@addition-color, fade(@syntax-selection-color, 50%));
     }
 
     &.deletion > div {
-      background-color:average(@deletion-color, fade(@active-color, 50%));
+      background-color:average(@deletion-color, fade(@syntax-selection-color, 50%));
     }
 
     &.addition, &.deletion {
       div.old-line-number, div.new-line-number {
-        background-color:@active-color;
+        background-color:@syntax-selection-color;
       }
     }
   }
 
   .selected {
     &.addition, &.deletion {
-      div.old-line-number, div.new-line-number {
-        background-color:@background-color-highlight;
-        color:@text-color-highlight;
+      div.old-line-number {
+        box-shadow:inset @background-color-highlight 3px 0 0, inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
 
         :focus & {
-          background-color:@background-color-selected;
-          color:@text-color-selected;
+          box-shadow:inset @background-color-selected 3px 0 0, inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
+        }
+      }
+
+      div.old-line-number, div.new-line-number {
+        background-color:fade(@syntax-selection-color, 20%);
+        color:@syntax-gutter-text-color-selected;
+
+        :focus & {
+          background-color:@syntax-selection-color;
         }
       }
     }
@@ -160,11 +169,7 @@ git-experiment-patch-view {
     &.active, &.keyboard-active {
       &.addition, &.deletion {
         div.old-line-number, div.new-line-number {
-          background-color:darken(@background-color-highlight, 10%);
-
-          :focus & {
-            background-color:darken(@background-color-selected, 10%);
-          }
+          background-color:contrast(@syntax-selection-color, lighten(@syntax-selection-color, 10%), darken(@syntax-selection-color, 10%));
         }
       }
     }

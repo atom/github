@@ -37,9 +37,10 @@ class UndoCommitView extends HTMLElement
 
   undoCommit: ->
     @git.getLatestUnpushed().then (commit) =>
-      @statusListView?.commitMessageNode.setMessage(commit.message())
+      @base.trigger('set-commit-message', [commit.message()])
       @git.undoLastCommit().then =>
-        @statusListView?.update()
+        @base.trigger("index-updated")
+        @base.trigger("")
 
 module.exports = document.registerElement 'git-experiment-undo-commit-view',
   prototype: UndoCommitView.prototype
