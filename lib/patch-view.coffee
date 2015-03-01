@@ -10,7 +10,7 @@ class PatchView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @base = @el.closest('git-experiment-repository-view')
+    @base = @el.closest('.git-experiment-root-view')
 
   setPatch: ({@patch, @status, @commit}) ->
     @path = @patch.newFile().path()

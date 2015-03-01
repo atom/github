@@ -49,19 +49,19 @@ atom.commands.add 'atom-workspace', 'git-experiment:view-repository', =>
 
 createHistoryView = (state) ->
   HistoryView ?= require './history-view'
-  view = new HistoryView()
+  view = new HistoryView
   view.initialize(state)
   view
 
 createChangesView = (state) ->
   ChangesView ?= require './changes-view'
-  view = new ChangesView()
+  view = new ChangesView
   view.initialize(state)
   view
 
 createRepositoryView = (state) ->
   RepositoryView ?= require './repository-view'
-  view = new RepositoryView()
+  view = new RepositoryView
   view.initialize(state)
   view
 

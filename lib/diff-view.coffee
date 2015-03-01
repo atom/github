@@ -21,7 +21,7 @@ class DiffView extends HTMLElement
     @empty()
 
   attachedCallback: ->
-    @base = @el.closest('git-experiment-repository-view')
+    @base = @el.closest('.git-experiment-root-view')
     @handleEvents()
 
   handleEvents: ->

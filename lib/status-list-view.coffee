@@ -41,7 +41,7 @@ class StatusListView extends HTMLElement
     @undoCommitBox.appendChild(@undoCommitView)
 
   attachedCallback: ->
-    @base = @el.closest('git-experiment-repository-view')
+    @base = @el.closest('.git-experiment-root-view')
     @handleEvents()
 
   handleEvents: =>

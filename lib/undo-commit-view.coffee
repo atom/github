@@ -20,7 +20,7 @@ class UndoCommitView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @base = @el.closest('git-experiment-repository-view')
+    @base = @el.closest('.git-experiment-root-view')
     @handleEvents()
 
   handleEvents: ->

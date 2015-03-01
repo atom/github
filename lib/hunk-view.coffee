@@ -23,7 +23,7 @@ class HunkView extends HTMLElement
     @oldSourceLines = []
 
   attachedCallback: ->
-    @base = @el.closest('git-experiment-repository-view')
+    @base = @el.closest('.git-experiment-root-view')
 
     @git = new GitChanges
 
