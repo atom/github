@@ -38,10 +38,10 @@ atom.commands.add 'atom-workspace', 'git-experiment:view-and-commit-changes', =>
   GitExperiment.openChangesView()
 
 createHistoryView = (state) ->
-#  HistoryView ?= require './history/history-view'
-#  view = new HistoryView
-#  view.initialize(state)
-#  view
+ HistoryView ?= require './history/history-view'
+ view = new HistoryView
+ view.initialize(state)
+ view
 
 createChangesView = (state) ->
   ChangesView ?= require './changes/changes-view'
