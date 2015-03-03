@@ -13,9 +13,9 @@ class GitHistory
     @repoPromise = Git.Repository.open(@repoPath)
 
   addCommit: (sha) ->
-    @repoPromise.then (repo) ->
+    @repoPromise.then (repo) =>
       repo.getCommit(sha)
-    .then (commit) ->
+    .then (commit) =>
       @commits[commit.sha()] = commit
       commit
 

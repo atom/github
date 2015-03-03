@@ -1,5 +1,6 @@
 $ = require 'jquery'
 GitHistory = require './git-history'
+CommitSummaryView = require './commit-summary-view'
 
 BaseTemplate = """
 <div class="column-header">
@@ -12,8 +13,9 @@ BaseTemplate = """
 class CommitListView extends HTMLElement
   createdCallback: ->
     @el = $(@)
-    @innerHTML = BaseTemplate
+    @innerHTML      = BaseTemplate
     @branchNameNode = @querySelector('.branch-name')
+    @commitsNode    = @querySelector('.scroller')
 
     @git = new GitHistory
 
@@ -22,8 +24,11 @@ class CommitListView extends HTMLElement
       @branchNameNode.textContent = name
 
     @git.walkHistory()
-    .then (oids) ->
-      console.log oids
+    .then (oids) =>
+      for oid in oids
+        commitSummaryView = new CommitSummaryView
+        commitSummaryView.setId(oid)
+        @commitsNode.appendChild(commitSummaryView)
 
 module.exports = document.registerElement 'git-experiment-commit-list-view',
   prototype: CommitListView.prototype
