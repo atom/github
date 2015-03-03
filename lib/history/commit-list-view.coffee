@@ -29,9 +29,12 @@ class CommitListView extends HTMLElement
     @el.on 'click keyup', '.btn-load-more', @loadMoreCommits.bind(@)
     @el.on 'click', 'git-experiment-commit-summary-view', @clickedCommitSummary.bind(@)
 
+    @base.on 'focus-commit-list', @focus.bind(@)
+
     atom.commands.add "git-experiment-commit-list-view",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
+      'git-experiment:focus-commit-details': @focusCommitDetails
 
   update: ->
     @focus()
@@ -61,6 +64,7 @@ class CommitListView extends HTMLElement
     Promise.all(commitPromises).then =>
       @selectDefaultCommit()
       @addLoadMoreButton()
+      @focus()
 
   removeLoadMoreButton: ->
     button = @commitsNode.querySelector('.btn')
@@ -135,6 +139,9 @@ class CommitListView extends HTMLElement
       entry.scrollIntoView(false)
     else if entry.offsetTop < @commitsNode.scrollTop
       entry.scrollIntoView(true)
+
+  focusCommitDetails: ->
+    @base.trigger('focus-commit-details')
 
 
 module.exports = document.registerElement 'git-experiment-commit-list-view',

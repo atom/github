@@ -294,21 +294,60 @@ class GitChanges
       else
         @treeBlob(path)
 
-  treeBlob: (path) ->
+  treeBlob: (path, sha) ->
     Git.Repository.open(@repoPath)
     .then (repo) =>
-      repo.getHeadCommit()
+      if sha
+        repo.getCommit(sha)
+      else
+        repo.getHeadCommit()
     .then (commit) ->
       commit.getTree()
     .then (tree) ->
       tree.getEntry(path)
     .then (entry) ->
-      entry.getBlob()
-    .then (blob) ->
-      blob?.toString()
+      if entry?
+        entry.getBlob().then (blob) ->
+          if blob?
+            blob.toString()
+          else
+            ""
+      else
+        ""
+
+  getCommitBlobs: (commit, patch) ->
+    oldPath = patch.oldFile().path()
+    oldSha = commit.parents()[0]
+    newPath = patch.newFile().path()
+    newSha = commit.id()
+
+    oldBlob = @treeBlob(oldPath, oldSha) unless patch.isAdded()
+    newBlob = @treeBlob(newPath, newSha) unless patch.isDeleted()
+
+    if oldBlob and newBlob
+      Git.Promise.all([oldBlob, newBlob]).then (blobs) ->
+        data =
+          old: blobs[0]
+          new: blobs[1]
+    else if newBlob
+      newBlob.then (blob) ->
+        data =
+          old: ''
+          new: blob
+    else if oldBlob
+      oldBlob.then (blob) ->
+        data =
+          old: blob
+          new: ''
+    else
+      data =
+        old: ''
+        new: ''
 
   getBlobs: ({patch, status, commit}) ->
-    if patch
+    if commit
+      @getCommitBlobs(commit, patch)
+    else
       if status == 'staged'
         @getStagedBlobs(patch)
       else

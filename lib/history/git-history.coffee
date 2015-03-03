@@ -2,7 +2,7 @@ Git = require 'nodegit'
 
 module.exports =
 class GitHistory
-  commits: {}
+  @commits: {}
   numberCommits: 100
 
   constructor: ->
@@ -16,12 +16,12 @@ class GitHistory
     @repoPromise.then (repo) =>
       repo.getCommit(sha)
     .then (commit) =>
-      @commits[commit.sha()] = commit
+      @constructor.commits[commit.sha()] = commit
       commit
 
   getCommit: (sha) ->
     new Promise (resolve, reject) =>
-      commit = @commits[sha] || @addCommit(sha)
+      commit = @constructor.commits[sha] || @addCommit(sha)
       resolve(commit)
 
   getBranch: ->
@@ -31,8 +31,20 @@ class GitHistory
       branch.name().replace('refs/heads/','')
 
   getDiff: (sha) ->
-    commit = @getCommit(sha)
-    commit.getDiff()
+    data = {}
+    findOpts =
+      flags: Git.Diff.FIND.RENAMES |
+             Git.Diff.FIND.RENAMES_FROM_REWRITES |
+             Git.Diff.FIND.FOR_UNTRACKED
+
+    @getCommit(sha).then (commit) ->
+      commit.getDiff()
+    .then (diffs) ->
+      data.diffs = diffs
+      promises = []
+      for diff in diffs
+        promises.push diff.findSimilar(findOpts).then -> diff
+      Git.Promise.all(promises)
 
   walkHistory: (fromSha) ->
     data = {}
