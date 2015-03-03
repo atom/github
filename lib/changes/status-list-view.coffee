@@ -81,6 +81,7 @@ class StatusListView extends HTMLElement
           @stagedNode.appendChild(stagedSummary)
 
       @commitMessageView.setStagedCount(@getStagedEntries().length)
+      @commitMessageView.update()
       @undoCommitView.update()
       @setIndices()
       @selectDefaultStatus()
