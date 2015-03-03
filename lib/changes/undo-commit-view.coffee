@@ -38,7 +38,7 @@ class UndoCommitView extends HTMLElement
   undoCommit: ->
     @git.getLatestUnpushed().then (commit) =>
       @base.trigger('set-commit-message', [commit.message()])
-      @git.undoLastCommit().then =>
+      @git.resetBeforeCommit(commit).then =>
         @base.trigger("index-updated")
         @base.trigger("")
 

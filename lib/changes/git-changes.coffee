@@ -111,10 +111,13 @@ class GitChanges
     .then (oid) =>
       if oid then data.repo.getCommit(oid) else null
 
-  undoLastCommit: ->
-    new Promise (resolve, reject) =>
-      ChildProcess.exec "git reset --soft HEAD~1", {cwd: @repoPath}, ->
-        setImmediate -> resolve()
+  resetBeforeCommit: (commit) ->
+    commit.getParents().then (parents) ->
+      Git.Reset.reset(commit.repo, parents[0], Git.Reset.TYPE.SOFT)
+    .then ->
+      commit.repo.openIndex()
+    .then (index) ->
+      index.write()
 
   stagePath: (path) ->
     @stageAllPaths([path])
