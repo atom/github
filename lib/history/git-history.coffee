@@ -3,10 +3,10 @@ Git = require 'nodegit'
 module.exports =
 class GitHistory
   commits: {}
-  numberCommits: 50
+  numberCommits: 100
 
   constructor: ->
-    @repoPromise = Git.Repository.open(atom.project.getPaths()[0])
+    @repoPath = atom.project.getPaths()[0]
 
   addCommit: (commit) -> @commits[commit.sha()] = commit
 
@@ -20,24 +20,36 @@ class GitHistory
     commit = @getCommit(sha)
     commit.getDiff()
 
-  walkHistory: (commitCallback) ->
-    walk = (repo, walker, numberCommits, callback) ->
-      return if numberCommits == 0
-      walker.next().then (oid) =>
-        repo.getCommit(oid).then(callback)
-        walk(repo, walker, numberCommits - 1, callback)
-
-    @repoPromise.then (repo) =>
-      walker = repo.createRevWalk()
-      walker.simplifyFirstParent()
-      walker.pushHead()
-
-      Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')]).then (commits) =>
-        Git.Merge.base(repo, commits[0], commits[1]).then (base) =>
-          walker.hide(base) unless commits[0].id().toString() == base.toString()
-          walk repo, walker, @numberCommits, (commit) =>
-            @addCommit(commit)
-            commitCallback(commit)
+  walkHistory: (afterSha) ->
+    data = {}
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      data.repo = repo
+      data.walker = repo.createRevWalk()
+      data.walker.simplifyFirstParent()
+      if afterSha
+        data.walker.push(Git.Oid.fromString(fromSha))
+      else
+        data.walker.pushHead()
+      Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')])
+    .then (commits) =>
+      data.head = commits[0]
+      data.headId = data.head.id().toString()
+      data.master = commits[1]
+      data.masterId = data.master.id().toString()
+      Git.Merge.base(data.repo, data.head, data.master)
+    .then (base) =>
+      data.walker.hide(base) unless data.headId == data.masterId
+      walk = (commits = [])=>
+        return commits if commits.length >= @numberCommits
+        data.walker.next().then (oid) =>
+          if oid
+            commits.push(oid)
+            walk(commits)
+          else
+            commits
+      commits = walk()
+      commits
 
   @authorAvatar: (email) ->
     if matches = email.match /([^@]+)@users\.noreply\.github\.com/i
