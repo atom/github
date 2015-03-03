@@ -36,3 +36,5 @@
 
 'git-experiment-commit-details-view':
   'left': 'git-experiment:focus-commit-list'
+  'down': 'native!'
+  'up': 'native!'
