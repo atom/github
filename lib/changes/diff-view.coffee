@@ -1,5 +1,5 @@
 $         = require 'jquery'
-PatchView = require './patch-view'
+PatchView = require '../patch/patch-view'
 
 DefaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
 DefaultFontSize = 14
@@ -163,7 +163,7 @@ class DiffView extends HTMLElement
     @removeClassFromLines('selected')
 
   selectHunk: (hunk) ->
-    return unless hunk?
+    return unless hunk? and hunk.tagName == 'GIT-EXPERIMENT-HUNK-VIEW'
     @diffSelectionMode = 'hunk'
     @unselectAllHunks()
     @scrollIntoView(hunk)

@@ -1,5 +1,5 @@
 $          = require 'jquery'
-GitChanges = require './git-changes'
+GitChanges = require '../changes/git-changes'
 
 BaseTemplate = """
 <div class="diff-hunk"></div>
@@ -147,7 +147,7 @@ class HunkView extends HTMLElement
 
     oldStart = headerParts[1]
     oldCount = 0
-    newStart = headerParts[3]
+    newStart = oldStart
     newCount = 0
     context  = headerParts[5]
 
@@ -181,12 +181,20 @@ class HunkView extends HTMLElement
             newCount++
             lines.push " #{content}"
 
+    oldStart = 1 if oldCount > 0 and oldStart == '0'
+    newStart = 1 if newCount > 0 and newStart == '0'
+
     header =
       "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
 
-    patch = "#{fileInfo}#{header}#{lines.join("\n")}\n"
+    patch = "#{header}#{lines.join("\n")}\n"
 
-    @git.stagePatch(patch, action).then =>
+    promise = if @status == 'unstaged'
+      @git.stagePatch(patch, @patch)
+    else
+      @git.unstagePatch(patch, @patch)
+
+    promise.then =>
       @base.trigger('index-updated')
 
 module.exports = document.registerElement 'git-experiment-hunk-view',

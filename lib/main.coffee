@@ -1,11 +1,9 @@
 {CompositeDisposable} = require 'atom'
 HistoryView = null
 ChangesView = null
-RepositoryView = null
 
 HISTORY_URI = 'atom://git-experiment/view-history'
 CHANGES_URI = 'atom://git-experiment/view-changes'
-REPOSITORY_URI  = 'atom://git-experiment/view-repository'
 
 module.exports = GitExperiment =
   subscriptions: null
@@ -20,8 +18,6 @@ module.exports = GitExperiment =
             createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
             createChangesView(uri: CHANGES_URI)
-          when REPOSITORY_URI
-            createRepositoryView(uri: REPOSITORY_URI)
 
   deactivate: ->
     @subscriptions?.dispose()
@@ -35,33 +31,21 @@ module.exports = GitExperiment =
   openChangesView: ->
     atom.workspace.open(CHANGES_URI)
 
-  openRepositoryView: ->
-    atom.workspace.open(REPOSITORY_URI)
-
 atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
   GitExperiment.openHistoryView()
 
 atom.commands.add 'atom-workspace', 'git-experiment:view-and-commit-changes', =>
   GitExperiment.openChangesView()
 
-atom.commands.add 'atom-workspace', 'git-experiment:view-repository', =>
-  GitExperiment.openRepositoryView()
-
 createHistoryView = (state) ->
-  HistoryView ?= require './history-view'
-  view = new HistoryView
-  view.initialize(state)
-  view
+#  HistoryView ?= require './history/history-view'
+#  view = new HistoryView
+#  view.initialize(state)
+#  view
 
 createChangesView = (state) ->
-  ChangesView ?= require './changes-view'
+  ChangesView ?= require './changes/changes-view'
   view = new ChangesView
-  view.initialize(state)
-  view
-
-createRepositoryView = (state) ->
-  RepositoryView ?= require './repository-view'
-  view = new RepositoryView
   view.initialize(state)
   view
 
@@ -72,7 +56,3 @@ atom.deserializers.add
 atom.deserializers.add
   name: 'GitChangesView'
   deserialize: (state) -> createChangesView(state)
-
-atom.deserializers.add
-  name: 'GitRepositoryView'
-  deserialize: (state) -> createRepositoryView(state)

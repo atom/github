@@ -12,6 +12,7 @@ BaseTemplate = """
 <button class="btn btn-xs"></button>
 """
 
+
 class FileSummaryView extends HTMLElement
   createdCallback: ->
     # Elements
@@ -79,7 +80,9 @@ class FileSummaryView extends HTMLElement
     else
       "Stage"
 
-  stage: ->
+  stage: (e) ->
+    e?.stopImmediatePropagation()
+
     promise = if @status == 'unstaged'
       @git.stagePath(@path)
     else

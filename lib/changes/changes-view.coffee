@@ -1,8 +1,7 @@
 $              = require 'jquery'
-SplitView      = require './split-view'
+SplitView      = require '../utils/split-view'
 StatusListView = require './status-list-view'
 DiffView       = require './diff-view'
-Mixin          = require './diff-view'
 
 class ChangesView extends SplitView
   initialize: ({@uri, width}) ->

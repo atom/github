@@ -43,13 +43,13 @@ class SplitView extends HTMLElement
     else
       $(@resizeableNode).width()
 
-  resizeStarted: ->
+  resizeStarted: =>
     @el.on('mousemove', @resizeSummary.bind(@))
     @el.on('mouseup', @resizeStopped.bind(@))
 
-  resizeStopped: ->
-    @el.off('mousemove', @resizeSummary.bind(@))
-    @el.off('mouseup', @resizeStopped.bind(@))
+  resizeStopped: =>
+    @el.off('mousemove')
+    @el.off('mouseup')
 
   resizeSummary: ({pageX, which, currentTarget}) ->
     return @resizeStopped() unless which is 1
