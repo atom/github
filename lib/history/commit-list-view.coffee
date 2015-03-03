@@ -25,7 +25,12 @@ class CommitListView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @el.on 'click', '.btn-load-more', @loadMoreCommits.bind(@)
+    @el.on 'click keyup', '.btn-load-more', @loadMoreCommits.bind(@)
+    @el.on 'click', 'git-experiment-commit-summary-view', @clickedCommitSummary.bind(@)
+
+    atom.commands.add "git-experiment-commit-list-view",
+      'core:move-down':  @moveSelectionDown
+      'core:move-up':    @moveSelectionUp
 
   update: ->
     @git.getBranch().then (name) =>
@@ -69,6 +74,7 @@ class CommitListView extends HTMLElement
       @commitsNode.appendChild(button)
 
   loadMoreCommits: (e) ->
+    return if e.keyCode and e.keyCode != 13
     sha = e.currentTarget.dataset.sha
     @git.walkHistory(sha)
     .then (oids) =>
@@ -79,7 +85,6 @@ class CommitListView extends HTMLElement
     return if @selectedCommit()
     node = @querySelector("[data-sha='#{@selectedSha}']") or
            @commitsNode.firstElementChild
-    console.log node
     @selectCommit(node)
 
   selectCommit: (node) ->
@@ -90,9 +95,41 @@ class CommitListView extends HTMLElement
     sha = node.dataset.sha
     @selectedSha = sha
     @base.trigger('render-commit', [sha])
+    @scrollIntoView(node)
 
   selectedCommit: ->
     @querySelector('.selected')
+
+  clickedCommitSummary: (e) ->
+    @selectCommit(e.currentTarget)
+
+  moveSelectionDown: ->
+    selected = @selectedCommit()
+    next = selected.nextElementSibling
+    return unless next?
+    if next.tagName == 'BUTTON'
+      next.focus()
+    else
+      @selectCommit(next)
+
+  moveSelectionUp: ->
+    if document.activeElement == @
+      selected = @selectedCommit()
+      previous = selected.previousElementSibling
+      @selectCommit(previous) if previous?
+    else
+      @focus()
+
+  scrollIntoView: (entry) ->
+    scrollBottom = @commitsNode.offsetHeight + @commitsNode.scrollTop
+    entryTop     = entry.offsetTop
+    entryBottom  = entryTop + entry.offsetHeight
+
+    if entryBottom > scrollBottom
+      entry.scrollIntoView(false)
+    else if entry.offsetTop < @commitsNode.scrollTop
+      entry.scrollIntoView(true)
+
 
 module.exports = document.registerElement 'git-experiment-commit-list-view',
   prototype: CommitListView.prototype
