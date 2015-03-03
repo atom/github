@@ -5,6 +5,7 @@ git-experiment-patch-view {
   color: @syntax-text-color;
   background: @syntax-background-color;
   -webkit-transform:scale(1);
+  border-bottom:1px solid @patch-border-color;
 
   .patch-description {
     font-size: @font-size;
@@ -23,11 +24,6 @@ git-experiment-patch-view {
 
   git-experiment-hunk-view {
     display:block;
-  }
-
-
-  &:last-child {
-    border-bottom:1px solid @patch-border-color;
   }
 
   .diff-file {
