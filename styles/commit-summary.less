@@ -10,6 +10,29 @@ git-experiment-commit-summary-view {
   box-sizing:border-box;
   -webkit-user-select: none;
 
+  &.selected {
+    background: @background-color-highlight;
+    color:@text-color-highlight;
+    box-shadow:@pane-item-background-color 0 -1px 0;
+
+    .meta > div {
+      color:fade(@text-color-highlight, 70%);
+    }
+
+    :focus & {
+      background: @background-color-selected;
+      color:@text-color-selected;
+
+      .meta > div {
+        color:fade(@text-color-selected, 70%);
+      }
+
+      .icon:before {
+        color:@text-color-selected;
+      }
+    }
+  }
+
   .message {
     font-size:110%;
     font-weight:500;

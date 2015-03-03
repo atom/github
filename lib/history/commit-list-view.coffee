@@ -13,12 +13,15 @@ BaseTemplate = """
 class CommitListView extends HTMLElement
   createdCallback: ->
     @el = $(@)
+    @tabIndex       = -1
     @innerHTML      = BaseTemplate
     @branchNameNode = @querySelector('.branch-name')
     @commitsNode    = @querySelector('.scroller')
 
     @git = new GitHistory
 
+  attachedCallback: ->
+    @base = @el.closest('.git-experiment-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -44,7 +47,9 @@ class CommitListView extends HTMLElement
       @commitsNode.appendChild(commitSummaryView)
 
     Promise.all(commitPromises).then =>
+      @selectDefaultCommit()
       @addLoadMoreButton()
+      @focus()
 
   removeLoadMoreButton: ->
     button = @commitsNode.querySelector('.btn')
@@ -69,6 +74,25 @@ class CommitListView extends HTMLElement
     .then (oids) =>
       @removeLoadMoreButton()
       @addCommitSummaries(oids)
+
+  selectDefaultCommit: ->
+    return if @selectedCommit()
+    node = @querySelector("[data-sha='#{@selectedSha}']") or
+           @commitsNode.firstElementChild
+    console.log node
+    @selectCommit(node)
+
+  selectCommit: (node) ->
+    return unless node?.dataset.sha
+    selected = @selectedCommit()
+    selected?.classList.remove('selected')
+    node.classList.add('selected')
+    sha = node.dataset.sha
+    @selectedSha = sha
+    @base.trigger('render-commit', [sha])
+
+  selectedCommit: ->
+    @querySelector('.selected')
 
 module.exports = document.registerElement 'git-experiment-commit-list-view',
   prototype: CommitListView.prototype
