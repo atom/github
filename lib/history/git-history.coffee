@@ -34,14 +34,14 @@ class GitHistory
     commit = @getCommit(sha)
     commit.getDiff()
 
-  walkHistory: (afterSha) ->
+  walkHistory: (fromSha) ->
     data = {}
     @repoPromise
     .then (repo) =>
       data.repo = repo
       data.walker = repo.createRevWalk()
       data.walker.simplifyFirstParent()
-      if afterSha
+      if fromSha
         data.walker.push(Git.Oid.fromString(fromSha))
       else
         data.walker.pushHead()
@@ -53,6 +53,7 @@ class GitHistory
       data.masterId = data.master.sha()
       Git.Merge.base(data.repo, data.head, data.master)
     .then (base) =>
+      @currentBase = base
       data.walker.hide(base) unless data.headId == data.masterId
       walk = (commits = [])=>
         return commits if commits.length >= @numberCommits

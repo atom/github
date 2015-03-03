@@ -27,13 +27,17 @@ class SplitView extends HTMLElement
 
   handleEvents: ->
     @el.on 'mousedown', '.repository-view-resizer', @resizeStarted.bind(@)
-    $(window).on 'focus', =>
-      @update() if atom.workspace?.getActivePaneItem() == @
+    $(window).on 'focus', @updateIfActive.bind()
 
     process.nextTick =>
       # HACK: atom.workspace is weirdly not available when this is deserialized
       atom.workspace.onDidChangeActivePaneItem (pane) =>
         @update() if pane == @
+
+    process.nextTick => @updateIfActive()
+
+  updateIfActive: ->
+    @update() if atom.workspace?.getActivePaneItem() == @
 
   update: ->
 

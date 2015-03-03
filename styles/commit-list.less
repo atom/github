@@ -6,7 +6,7 @@ git-experiment-commit-list-view {
   right:0;
   top:0;
   bottom:0;
-  
+
   .column-header {
     flex:0 0 2.7em;
   }
@@ -14,5 +14,16 @@ git-experiment-commit-list-view {
   .scroller {
     flex:1 1 auto;
     overflow:auto;
+    padding:0 12px;
+
+    & > git-experiment-commit-summary-view {
+      margin:0 -12px;
+    }
+  }
+
+  .btn-load-more {
+    margin:12px 0;
+    display:block;
+    width:100%;
   }
 }
