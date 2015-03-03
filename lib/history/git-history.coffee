@@ -7,14 +7,28 @@ class GitHistory
 
   constructor: ->
     @repoPath = atom.project.getPaths()[0]
+    @setRepoPromise()
 
-  addCommit: (commit) -> @commits[commit.sha()] = commit
+  setRepoPromise: ->
+    @repoPromise = Git.Repository.open(@repoPath)
 
-  getCommit: (sha) -> @commits[sha]
+  addCommit: (sha) ->
+    @repoPromise.then (repo) ->
+      repo.getCommit(sha)
+    .then (commit) ->
+      @commits[commit.sha()] = commit
+      commit
+
+  getCommit: (sha) ->
+    new Promise (resolve, reject) =>
+      commit = @commits[sha] || @addCommit(sha)
+      resolve(commit)
 
   getBranch: ->
-    return @repoPromise.then (repo) ->
-      return repo.getBranch('HEAD')
+    @repoPromise.then (repo) ->
+      repo.getBranch('HEAD')
+    .then (branch) ->
+      branch.name().replace('refs/heads/','')
 
   getDiff: (sha) ->
     commit = @getCommit(sha)
@@ -22,7 +36,7 @@ class GitHistory
 
   walkHistory: (afterSha) ->
     data = {}
-    Git.Repository.open(@repoPath)
+    @repoPromise
     .then (repo) =>
       data.repo = repo
       data.walker = repo.createRevWalk()
@@ -34,9 +48,9 @@ class GitHistory
       Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')])
     .then (commits) =>
       data.head = commits[0]
-      data.headId = data.head.id().toString()
+      data.headId = data.head.sha()
       data.master = commits[1]
-      data.masterId = data.master.id().toString()
+      data.masterId = data.master.sha()
       Git.Merge.base(data.repo, data.head, data.master)
     .then (base) =>
       data.walker.hide(base) unless data.headId == data.masterId
