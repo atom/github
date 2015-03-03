@@ -20,6 +20,32 @@ git-experiment-commit-list-view {
     & > git-experiment-commit-summary-view {
       margin:0 -12px;
     }
+
+    &:empty:before {
+      content:'No commits';
+      line-height:2.4em;
+      text-align:center;
+      display:block;
+      opacity:0.4;
+      font-style:italic;
+    }
+  }
+
+  .loading {
+    position:absolute;
+    right:6px;
+    top:5px;
+    display:none;
+  }
+
+  &.loading-data {
+    .loading {
+      display:block;
+    }
+
+    .scroller:empty:before {
+      content:'Loading commits...';
+    }
   }
 
   .btn-load-more {

@@ -6,6 +6,7 @@ BaseTemplate = """
 <div class="column-header">
   <span class="icon icon-git-branch"></span>
   <span class="branch-name"></span>
+  <span class="loading loading-spinner-tiny"></span>
 </div>
 <div class="scroller"></div>
 """
@@ -33,17 +34,23 @@ class CommitListView extends HTMLElement
       'core:move-up':    @moveSelectionUp
 
   update: ->
+    @focus()
+
     @git.getBranch().then (name) =>
       @branchNameNode.textContent = name
 
-    @git.walkHistory()
-    .then (oids) =>
+    @loadCommits().then (oids) =>
       @commitsNode.innerHTML = ''
       @addCommitSummaries(oids)
 
+  loadCommits: (fromSha) ->
+    @classList.add('loading-data')
+    @git.walkHistory(fromSha).then (oids) =>
+      @classList.remove('loading-data')
+      oids
+
   addCommitSummaries: (oids) ->
     @removeLoadMoreButton()
-
     commitPromises = []
 
     for oid in oids
@@ -54,7 +61,6 @@ class CommitListView extends HTMLElement
     Promise.all(commitPromises).then =>
       @selectDefaultCommit()
       @addLoadMoreButton()
-      @focus()
 
   removeLoadMoreButton: ->
     button = @commitsNode.querySelector('.btn')
@@ -76,7 +82,7 @@ class CommitListView extends HTMLElement
   loadMoreCommits: (e) ->
     return if e.keyCode and e.keyCode != 13
     sha = e.currentTarget.dataset.sha
-    @git.walkHistory(sha)
+    @loadCommits(sha)
     .then (oids) =>
       @removeLoadMoreButton()
       @addCommitSummaries(oids)
@@ -88,7 +94,7 @@ class CommitListView extends HTMLElement
     @selectCommit(node)
 
   selectCommit: (node) ->
-    return unless node?.dataset.sha
+    return unless node?.tagName == 'GIT-EXPERIMENT-COMMIT-SUMMARY-VIEW'
     selected = @selectedCommit()
     selected?.classList.remove('selected')
     node.classList.add('selected')

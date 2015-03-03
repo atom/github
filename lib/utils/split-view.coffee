@@ -27,7 +27,7 @@ class SplitView extends HTMLElement
 
   handleEvents: ->
     @el.on 'mousedown', '.repository-view-resizer', @resizeStarted.bind(@)
-    $(window).on 'focus', @updateIfActive.bind()
+    $(window).on 'focus', @updateIfActive.bind(@)
 
     process.nextTick =>
       # HACK: atom.workspace is weirdly not available when this is deserialized
