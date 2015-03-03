@@ -37,9 +37,10 @@
 'git-experiment-status-list-view':
   'tab': 'git-experiment:focus-commit-message'
 
-'git-experiment-commit-message-view atom-text-editor':
+'git-experiment-commit-message-view atom-text-editor:not(.mini)':
   'escape': 'git-experiment:focus-status-list'
-  'shift-enter': 'git-experiment:commit'
+  'cmd-enter': 'git-experiment:commit'
+  'ctrl-enter': 'git-experiment:commit'
 
 'git-experiment-diff-view':
   '/': 'git-experiment:toggle-selection-mode'

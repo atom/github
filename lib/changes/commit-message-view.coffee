@@ -43,9 +43,9 @@ class CommitMessageView extends HTMLElement
 
     @messageModel.onDidChange @updateCommitButton.bind(@)
 
-    atom.commands.add "git-experiment-commit-message-view atom-text-editor",
-      "git-experiment:focus-status-list": @focusStatusList
-      "git-experiment:commit": @commit
+    atom.commands.add "git-experiment-commit-message-view atom-text-editor:not(.mini)",
+      "git-experiment:focus-status-list": @focusStatusList.bind(@)
+      "git-experiment:commit": @commit.bind(@)
 
   update: ->
     @updateCommitButton()
