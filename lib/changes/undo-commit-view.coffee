@@ -31,6 +31,10 @@ class UndoCommitView extends HTMLElement
       if commit
         @titleNode.textContent = commit.message()
         @timeNode.textContent = timeago(commit.date())
+        if commit.parents().length
+          @buttonNode.style.display = 'inline-block'
+        else
+          @buttonNode.style.display = 'none'
         @classList.add('show')
       else
         @classList.remove('show')

@@ -20,15 +20,18 @@ class GitChanges
 
   getBranchName: ->
     Git.Repository.open(@repoPath).then (repo) =>
-      repo.getBranch('HEAD').then (branch) =>
-        @normalizeBranchName(branch.name())
+      repo.getBranch('HEAD')
+    .then (branch) =>
+      @normalizeBranchName(branch.name())
+    .catch ->
+      Promise.resolve("master")
 
   normalizeBranchName: (name) ->
     name.replace('refs/heads/','')
 
   getPatch: (path, state) ->
     @diffsPromise.then (diffs) ->
-      _.find diffs[state].patches(), (patch) ->
+      _.find diffs[state]?.patches(), (patch) ->
         patch.newFile().path() == path
 
   gatherDiffs: ->
@@ -52,9 +55,9 @@ class GitChanges
       data.unstagedDiffs = unstagedDiffs
       unstagedDiffs.findSimilar(findOpts)
     .then ->
-      data.repo.getHeadCommit()
+      data.repo.getHeadCommit() unless data.repo.isEmpty()
     .then (commit) ->
-      commit.getTree()
+      commit.getTree() unless data.repo.isEmpty()
     .then (tree) ->
       Git.Diff.treeToIndex(data.repo, tree, data.index, diffOpts)
     .then (stagedDiffs) ->
@@ -113,7 +116,9 @@ class GitChanges
 
   resetBeforeCommit: (commit) ->
     commit.getParents().then (parents) ->
-      Git.Reset.reset(commit.repo, parents[0], Git.Reset.TYPE.SOFT)
+      Git.Reset.reset(commit.repo,
+        if parents.length then parents[0] else null,
+        Git.Reset.TYPE.SOFT)
     .then ->
       commit.repo.openIndex()
     .then (index) ->
@@ -147,15 +152,21 @@ class GitChanges
     Git.Repository.open(@repoPath)
     .then (repo) =>
       data.repo = repo
-      repo.getHeadCommit()
-    .then (commit) =>
-      for path in paths
-        status = @statuses[path]
-        if status.isRenamed()
-          Git.Reset.default(data.repo, commit,
-            status.headToIndex().oldFile().path())
+      if repo.isEmpty()
+        repo.openIndex()
+        .then (index) =>
+          index.removeByPath(path) for path in paths
+          index.write()
+      else
+        repo.getHeadCommit()
+        .then (commit) =>
+          for path in paths
+            status = @statuses[path]
+            if status.isRenamed()
+              Git.Reset.default(data.repo, commit,
+                status.headToIndex().oldFile().path())
 
-        Git.Reset.default(data.repo, commit, path)
+            Git.Reset.default(data.repo, commit, path)
 
   wordwrap: (str) ->
     return str unless str.length
@@ -173,14 +184,16 @@ class GitChanges
     .then (indexTree) =>
       data.indexTree = indexTree
       data.repo.getHeadCommit()
+    .catch -> data.parent = null
     .then (parent) =>
+      parents = if parent? then [parent] else null
       author = Git.Signature.default(data.repo)
-      return data.repo.createCommit("HEAD",
+      data.repo.createCommit("HEAD",
         author,
         author,
         @wordwrap(message),
         data.indexTree,
-        [parent])
+        parents)
 
   stagePatch: (patchText, patch) =>
     data = {}
