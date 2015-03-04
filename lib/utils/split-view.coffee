@@ -23,20 +23,14 @@ class SplitView extends HTMLElement
   attachedCallback: ->
     @handleEvents()
 
-  detachedCallback: ->
-    @el.off 'mousedown', '.repository-view-resizer'
-    $(window).off 'focus'
-
-    if @workspaceSubscription
-      @workspaceSubscription.dispose()
-
   setSubViews: ({@summaryView, @detailsView}) =>
     @summaryNode.appendChild(@summaryView)
     @detailsNode.appendChild(@detailsView)
 
   handleEvents: ->
     @el.on 'mousedown', '.repository-view-resizer', @resizeStarted.bind(@)
-    $(window).on 'focus', @updateIfActive.bind(@)
+    @boundUpdate = @updateIfActive.bind(@)
+    $(window).on 'focus', @boundUpdate
 
     process.nextTick =>
       # HACK: atom.workspace is weirdly not available when this is deserialized
@@ -44,6 +38,13 @@ class SplitView extends HTMLElement
         @update() if pane == @
 
     process.nextTick => @updateIfActive()
+
+  detachedCallback: ->
+    @el.off 'mousedown', '.repository-view-resizer'
+    $(window).off 'focus', @boundUpdate
+
+    if @workspaceSubscription
+      @workspaceSubscription.dispose()
 
   updateIfActive: ->
     @update() if atom.workspace?.getActivePaneItem() == @
