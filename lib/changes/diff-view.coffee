@@ -1,6 +1,8 @@
 $         = require 'jquery'
 PatchView = require '../patch/patch-view'
 
+{CompositeDisposable} = require 'atom'
+
 DefaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
 DefaultFontSize = 14
 
@@ -19,6 +21,7 @@ class DiffView extends HTMLElement
     @tabIndex = -1
     @setFont()
     @empty()
+    @disposables = new CompositeDisposable
 
   attachedCallback: ->
     @base = @el.closest('.git-experiment-root-view')
@@ -38,10 +41,10 @@ class DiffView extends HTMLElement
     @el.on 'click', '.btn-stage-lines', @stageLines.bind(@)
     @el.on 'click', '.btn-stage-hunk', @stageHunk.bind(@)
 
-    atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
-    atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
+    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
 
-    atom.commands.add "git-experiment-diff-view",
+    @disposables.add  atom.commands.add "git-experiment-diff-view",
       'core:move-left': @focusList
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
@@ -52,6 +55,22 @@ class DiffView extends HTMLElement
       'git-experiment:expand-selection-up': @expandSelectionUp
       'git-experiment:clear-selections': @clearSelections
       'git-experiment:focus-commit-message': @focusCommitMessage
+
+  detachedCallback: ->
+    @disposables.dispose()
+
+    @base.off 'render-patch'
+    @base.off 'no-change-selected'
+    @base.off 'focus-diff-view'
+    @base.off 'index-updated'
+
+    @el.off 'mousedown', '.btn'
+    @el.off 'mouseenter', ChangedLineSelector
+    @el.off 'mouseleave', ChangedLineSelector
+    @el.off 'mousedown', ChangedLineSelector
+    @el.off 'mouseup mouseleave'
+    @el.off 'click', '.btn-stage-lines'
+    @el.off 'click', '.btn-stage-hunk'
 
   setFont: ->
     fontFamily = atom.config.get('editor.fontFamily') or DefaultFontFamily

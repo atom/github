@@ -41,11 +41,24 @@ class CommitMessageView extends HTMLElement
 
     @el.on "click", '.btn', @commit.bind(@)
 
-    @messageModel.onDidChange @updateCommitButton.bind(@)
+    @messageSub = @messageModel.onDidChange @updateCommitButton.bind(@)
 
-    atom.commands.add "git-experiment-commit-message-view atom-text-editor:not(.mini)",
+    @commandSub = atom.commands.add "git-experiment-commit-message-view atom-text-editor:not(.mini)",
       "git-experiment:focus-status-list": @focusStatusList.bind(@)
       "git-experiment:commit": @commit.bind(@)
+
+  detatchedCallback: ->
+    @base.off "index-updated"
+    @base.off "set-commit-message"
+    @el.off "click", ".btn"
+
+    if @messagesSub
+      @messagesSub.dispose()
+      @messagesSub = null
+
+    if @commandSub
+      @commandSub.dispose()
+      @commandSub = null
 
   update: ->
     @updateCommitButton()

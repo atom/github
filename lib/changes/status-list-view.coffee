@@ -3,6 +3,7 @@ GitChanges        = require './git-changes'
 CommitMessageView = require './commit-message-view'
 UndoCommitView    = require './undo-commit-view'
 FileSummaryView   = require './file-summary-view'
+shell             = require 'shell'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
@@ -53,14 +54,30 @@ class StatusListView extends HTMLElement
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
 
-    atom.commands.add "git-experiment-status-list-view",
+    @commands = atom.commands.add "git-experiment-status-list-view",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
       'core:move-right': @focusDiffView
       'core:confirm':    @stageSelection
+      #'core:backspace':  @promptToDiscardChanges
       'git-experiment:focus-commit-message': @focusCommitMessage
 
+  detachedCallback: ->
+    @base.off "focus-list"
+    @base.off "index-updated"
+    @base.off "focus-commit-message"
+
+    @el.off "click", ".btn-stage-all"
+    @el.off "click", ".btn-unstage-all"
+    @el.off "click", FileSummaryTag
+
+    if @commands
+      @commands.dispose()
+      @commands = null
+
   update: ->
+    atom.project.getRepo().refreshStatus()
+
     @git.getStatuses()
     .then (statuses) =>
       @stagedNode.innerHTML = ''
@@ -211,6 +228,25 @@ class StatusListView extends HTMLElement
     paths = []
     paths.push entry.path for entry in @getStagedEntries()
     @git.unstageAllPaths(paths).then => @base.trigger("index-updated")
+
+  # promptToDiscardChanges: ->
+  #   selected = @selectedEntry()
+  #   return unless selected? and selected.path
+  #   path = selected.path
+  #   localPath = "#{@git.repoPath}/#{path}"
+  #
+  #   atom.confirm
+  #     message: "Are you sure you want to discard these changes?"
+  #     detailedMessage: "You are resetting #{path} to the last committed \
+  #                       version on this branch. The modified file will be \
+  #                       placed in the trash."
+  #     buttons:
+  #       "Move to Trash": =>
+  #         shell.moveItemToTrash(localPath)
+  #         @git.forceCheckoutPath(path).then =>
+  #           @base.trigger("index-updated")
+  #
+  #       "Cancel": null
 
 module.exports = document.registerElement "git-experiment-status-list-view",
   prototype: StatusListView.prototype

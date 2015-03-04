@@ -34,6 +34,10 @@ class FileSummaryView extends HTMLElement
     @el.on "click", ".btn", @stage.bind(@)
     @el.on "dblclick", @stage.bind(@)
 
+  detatchedCallback: ->
+    @el.off "click", ".btn"
+    @el.off "dblclick"
+
   setFile: (@file, @status) ->
     @setPath()
     @setIcon()

@@ -4,6 +4,8 @@ CommitHeaderView = require './commit-header-view'
 PatchView        = require '../patch/patch-view'
 _                = require 'underscore-contrib'
 
+{CompositeDisposable} = require 'atom'
+
 DefaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
 DefaultFontSize = 14
 
@@ -15,6 +17,7 @@ class CommitDetailsView extends HTMLElement
 
     @setFont()
     @git = new GitHistory
+    @disposables = new CompositeDisposable
 
   attachedCallback: ->
     @base = @el.closest('.git-experiment-root-view')
@@ -24,11 +27,17 @@ class CommitDetailsView extends HTMLElement
     @base.on 'focus-commit-details', @focus.bind(@)
     @base.on 'render-commit', @renderCommit.bind(@)
 
-    atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
-    atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
+    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
 
-    atom.commands.add 'git-experiment-commit-details-view',
+    @disposables.add atom.commands.add 'git-experiment-commit-details-view',
       'git-experiment:focus-commit-list':  @focusCommitList
+
+  detatchedCallback: ->
+    @base.off 'focus-commit-details'
+    @base.off 'render-commit'
+
+    @disposables.dispose()
 
   focusCommitList: ->
     @base.trigger('focus-commit-list')
@@ -41,7 +50,6 @@ class CommitDetailsView extends HTMLElement
 
   renderCommit: (e, sha) ->
     if view = @viewCache[sha]
-      console.log view, @firstElementChild
       unless view.isSameNode(@firstElementChild)
         @innerHTML = ''
         @appendChild(view)

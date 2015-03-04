@@ -19,6 +19,9 @@ class HistoryView extends SplitView
   update: ->
     @commitListView.update()
 
+  detatchedCallback: ->
+    @destroy()
+
   getTitle: ->
     'Branch history'
 

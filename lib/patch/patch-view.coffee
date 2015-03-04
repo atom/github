@@ -54,9 +54,6 @@ class PatchView extends HTMLElement
     @el  = $(@)
     @git = new GitChanges
 
-  attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
-
   setPatch: ({@patch, @status, @commit}) ->
     @path = @patch.newFile().path()
     @addHeaders()

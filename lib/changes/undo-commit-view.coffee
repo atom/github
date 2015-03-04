@@ -26,6 +26,9 @@ class UndoCommitView extends HTMLElement
   handleEvents: ->
     @el.on 'click', '.btn', @undoCommit.bind(@)
 
+  detatchedCallback: ->
+    @el.off 'click', '.btn'
+
   update: ->
     @git.getLatestUnpushed().then (commit) =>
       if commit

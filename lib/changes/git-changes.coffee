@@ -407,3 +407,12 @@ class GitChanges
         data =
           old: blobs[0]
           new: blobs[1]
+
+  forceCheckoutPath: ->
+    opts =
+      checkoutStrategy: Git.Checkout.STRATEGY.FORCE
+      paths: path
+
+    Git.Repository.open(@repoPath)
+    .then (repo) ->
+      Git.Checkout.head(repo, opts)

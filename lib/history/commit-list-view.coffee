@@ -31,10 +31,19 @@ class CommitListView extends HTMLElement
 
     @base.on 'focus-commit-list', @focus.bind(@)
 
-    atom.commands.add "git-experiment-commit-list-view",
+    @commands = atom.commands.add "git-experiment-commit-list-view",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
       'git-experiment:focus-commit-details': @focusCommitDetails
+
+  detachedCallback: ->
+    @el.off 'click keyup', '.btn-load-more'
+    @el.off 'click', 'git-experiment-commit-summary-view'
+    @base.off 'focus-commit-list'
+
+    if @commands
+      @commands.dispose()
+      @commands = null
 
   update: ->
     @focus()

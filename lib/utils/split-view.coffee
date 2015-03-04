@@ -19,7 +19,16 @@ class SplitView extends HTMLElement
     @resizerNode    = @querySelector('.repository-view-resizer')
 
     @classList.add('git-experiment-root-view')
+
+  attachedCallback: ->
     @handleEvents()
+
+  detachedCallback: ->
+    @el.off 'mousedown', '.repository-view-resizer'
+    $(window).off 'focus'
+
+    if @workspaceSubscription
+      @workspaceSubscription.dispose()
 
   setSubViews: ({@summaryView, @detailsView}) =>
     @summaryNode.appendChild(@summaryView)
@@ -31,7 +40,7 @@ class SplitView extends HTMLElement
 
     process.nextTick =>
       # HACK: atom.workspace is weirdly not available when this is deserialized
-      atom.workspace.onDidChangeActivePaneItem (pane) =>
+      @workspaceSubscription = atom.workspace.onDidChangeActivePaneItem (pane) =>
         @update() if pane == @
 
     process.nextTick => @updateIfActive()
