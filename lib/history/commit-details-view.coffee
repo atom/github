@@ -9,8 +9,9 @@ DefaultFontSize = 14
 
 class CommitDetailsView extends HTMLElement
   createdCallback: ->
-    @el       = $(@)
-    @tabIndex = -1
+    @el        = $(@)
+    @tabIndex  = -1
+    @viewCache = {}
 
     @setFont()
     @git = new GitHistory
@@ -39,14 +40,30 @@ class CommitDetailsView extends HTMLElement
     @style.fontSize   = "#{fontSize}px"
 
   renderCommit: (e, sha) ->
-    self = @
+    if view = @viewCache[sha]
+      console.log view, @firstElementChild
+      unless view.isSameNode(@firstElementChild)
+        @innerHTML = ''
+        @appendChild(view)
+        @scrollTop = 0
+    else
+      @innerHTML = ''
+      @createCommitView(sha)
+
+  getCommitView: (sha) ->
+    new Promise (resolve, reject) =>
+
+
+  createCommitView: (sha) ->
+    commitNode = document.createElement('div')
+    @appendChild(commitNode)
+    @viewCache[sha] = commitNode
     @git.getCommit(sha)
     .then (commit) =>
-      self.commit = commit
-      @innerHTML = ''
+      @commit = commit
       header = new CommitHeaderView
       header.setCommit(@commit)
-      @appendChild(header)
+      commitNode.appendChild(header)
       @git.getDiff(sha)
     .then (diffList) =>
       window.actionTimestamp = actionTimestamp = Date.now()
@@ -54,15 +71,15 @@ class CommitDetailsView extends HTMLElement
       promise = Promise.resolve()
       for diff in diffList
         _.chunkAll(diff.patches(), chunkSize).forEach (patches) =>
-          promise = promise.then -> new Promise (resolve) =>
+          promise = promise.then => new Promise (resolve) =>
             return unless actionTimestamp == window.actionTimestamp
             setImmediate =>
               patches.forEach (patch) =>
                 patchView = new PatchView
                 patchView.setPatch
                   patch: patch
-                  commit: self.commit
-                self.appendChild(patchView)
+                  commit: @commit
+                commitNode.appendChild(patchView)
 
               resolve()
 
