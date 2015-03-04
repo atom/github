@@ -1,8 +1,8 @@
 @import "variables";
 
 git-experiment-commit-message-view {
-  atom-text-editor {
-    margin:8px -12px 0 0;
+  atom-text-editor, atom-text-editor::shadow {
+    margin:0 -12px;
     background:@pane-item-background-color;
     color:@text-color;
 
@@ -11,11 +11,21 @@ git-experiment-commit-message-view {
     }
 
     .line.cursor-line, &::shadow .line.cursor-line {
-      background-color:fade(@background-color-highlight, 20%);
+      background-color:transparent;
     }
 
     .placeholder-text, &::shadow .placeholder-text {
       color:fade(@text-color, 70%);
+    }
+
+    .cursors .cursor {
+      border-color:darken(@text-color, 70%);
+      border-width:1px;
+      background:transparent;
+    }
+
+    .scroll-view {
+      padding:8px 12px;
     }
   }
 
