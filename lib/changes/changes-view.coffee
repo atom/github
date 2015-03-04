@@ -17,7 +17,7 @@ class ChangesView extends SplitView
     @update()
 
   update: ->
-    @statusListView.update()
+    @el.trigger('index-updated')
 
   getTitle: ->
     'Commit changes'
