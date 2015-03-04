@@ -102,7 +102,7 @@ class PatchView extends HTMLElement
     if @patch.isRenamed()
       @addRenamedHeader()
     else
-      node = if @patch.isAdded()
+      node = if @patch.isAdded() or @patch.isUntracked()
         $(AddedTemplate)[0]
       else if @patch.isDeleted()
         $(RemovedTemplate)[0]
