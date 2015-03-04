@@ -23,7 +23,6 @@ module.exports = GitExperiment =
     @subscriptions?.dispose()
 
   serialize: ->
-    # gitExperimentViewState: @gitExperimentView.serialize()
 
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
@@ -50,9 +49,9 @@ createChangesView = (state) ->
   view
 
 atom.deserializers.add
-  name: 'GitHistoryView'
+  name: 'HistoryView'
   deserialize: (state) -> createHistoryView(state)
 
 atom.deserializers.add
-  name: 'GitChangesView'
+  name: 'ChangesView'
   deserialize: (state) -> createChangesView(state)
