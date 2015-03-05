@@ -4,6 +4,7 @@ CommitMessageView = require './commit-message-view'
 UndoCommitView    = require './undo-commit-view'
 FileSummaryView   = require './file-summary-view'
 shell             = require 'shell'
+fs                = require 'fs'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
@@ -59,7 +60,7 @@ class StatusListView extends HTMLElement
       'core:move-up':    @moveSelectionUp
       'core:move-right': @focusDiffView
       'core:confirm':    @stageSelection
-      #'core:backspace':  @promptToDiscardChanges
+      'core:backspace':  @promptToDiscardChanges
       'git:focus-commit-message': @focusCommitMessage
 
   detachedCallback: ->
@@ -231,24 +232,31 @@ class StatusListView extends HTMLElement
     paths.push entry.path for entry in @getStagedEntries()
     @git.unstageAllPaths(paths).then => @base.trigger("index-updated")
 
-  # promptToDiscardChanges: ->
-  #   selected = @selectedEntry()
-  #   return unless selected? and selected.path
-  #   path = selected.path
-  #   localPath = "#{@git.repoPath}/#{path}"
-  #
-  #   atom.confirm
-  #     message: "Are you sure you want to discard these changes?"
-  #     detailedMessage: "You are resetting #{path} to the last committed \
-  #                       version on this branch. The modified file will be \
-  #                       placed in the trash."
-  #     buttons:
-  #       "Move to Trash": =>
-  #         shell.moveItemToTrash(localPath)
-  #         @git.forceCheckoutPath(path).then =>
-  #           @base.trigger("index-updated")
-  #
-  #       "Cancel": null
+  promptToDiscardChanges: ->
+    selected = @selectedEntry()
+    return unless selected? and selected.path
+    path = selected.path
+    localPath = "#{@git.repoPath}/#{path}"
+    exists = try
+      !!fs.statSync(localPath)
+    catch
+      false
+
+    message = "Are you sure you want to discard these changes?"
+    details = "You are resetting #{path} to the last committed \
+               version on this branch. "
+    details += "The modified file will be placed in the trash." if exists
+
+    atom.confirm
+      message: message
+      detailedMessage: details
+      buttons:
+        "Move to Trash": =>
+          shell.moveItemToTrash(localPath) if exists
+          @git.forceCheckoutPath(path).then =>
+            @base.trigger("index-updated")
+
+        "Cancel": null
 
 module.exports = document.registerElement "git-status-list-view",
   prototype: StatusListView.prototype

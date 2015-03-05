@@ -408,7 +408,7 @@ class GitChanges
           old: blobs[0]
           new: blobs[1]
 
-  forceCheckoutPath: ->
+  forceCheckoutPath: (path) ->
     opts =
       checkoutStrategy: Git.Checkout.STRATEGY.FORCE
       paths: path
