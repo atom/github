@@ -1,9 +1,9 @@
 {
-  "name": "git-experiment",
+  "name": "git",
   "main": "./lib/main",
   "version": "0.0.0",
   "description": "Experimental git things",
-  "repository": "https://github.com/atom/git-experiment",
+  "repository": "https://github.com/atom/git",
   "license": "MIT",
   "engines": {
     "atom": ">=0.174.0 <2.0.0"

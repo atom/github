@@ -29,5 +29,5 @@ class ChangesView extends SplitView
     uri: @getURI()
     width: @width()
 
-module.exports = document.registerElement 'git-experiment-changes-view',
+module.exports = document.registerElement 'git-changes-view',
   prototype: ChangesView.prototype

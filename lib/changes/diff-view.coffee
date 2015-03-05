@@ -24,7 +24,7 @@ class DiffView extends HTMLElement
     @disposables = new CompositeDisposable
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -44,17 +44,17 @@ class DiffView extends HTMLElement
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
 
-    @disposables.add  atom.commands.add "git-experiment-diff-view",
+    @disposables.add  atom.commands.add "git-diff-view",
       'core:move-left': @focusList
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
-      'git-experiment:toggle-selection-mode': @toggleSelectionMode
-      'git-experiment:select-active-lines': @selectActiveLines
-      'git-experiment:expand-selection-down': @expandSelectionDown
-      'git-experiment:expand-selection-up': @expandSelectionUp
-      'git-experiment:clear-selections': @clearSelections
-      'git-experiment:focus-commit-message': @focusCommitMessage
+      'git:toggle-selection-mode': @toggleSelectionMode
+      'git:select-active-lines': @selectActiveLines
+      'git:expand-selection-down': @expandSelectionDown
+      'git:expand-selection-up': @expandSelectionUp
+      'git:clear-selections': @clearSelections
+      'git:focus-commit-message': @focusCommitMessage
 
   detachedCallback: ->
     @disposables.dispose()
@@ -93,7 +93,7 @@ class DiffView extends HTMLElement
 
   renderPatch: (e, entry, patch) ->
     if patch
-      currentPatch = @querySelector('git-experiment-patch-view')
+      currentPatch = @querySelector('git-patch-view')
       patchView = @getPatchView(patch, entry.status)
       if !currentPatch or !currentPatch.isSameNode(patchView)
         @currentScroll = @scrollTop
@@ -145,18 +145,18 @@ class DiffView extends HTMLElement
     @hunkForLine(line)
 
   hunkForLine: (line) ->
-    $(line).closest('git-experiment-hunk-view')[0]
+    $(line).closest('git-hunk-view')[0]
 
   selectFirstHunk: ->
     @diffSelectionMode = 'hunk'
-    hunk = @querySelector('git-experiment-hunk-view')
+    hunk = @querySelector('git-hunk-view')
     @selectHunk(hunk)
 
   clearCache: ->
     @constructor.patchCache = {}
 
   allHunkViews: ->
-    hunks = @querySelectorAll('git-experiment-hunk-view')
+    hunks = @querySelectorAll('git-hunk-view')
     hunks
 
   hunkSelectionMode: ->
@@ -182,7 +182,7 @@ class DiffView extends HTMLElement
     @removeClassFromLines('selected')
 
   selectHunk: (hunk) ->
-    return unless hunk? and hunk.tagName == 'GIT-EXPERIMENT-HUNK-VIEW'
+    return unless hunk? and hunk.tagName == 'git-HUNK-VIEW'
     @diffSelectionMode = 'hunk'
     @unselectAllHunks()
     @scrollIntoView(hunk)
@@ -364,14 +364,14 @@ class DiffView extends HTMLElement
 
   stageHunk: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-experiment-hunk-view')[0]
+    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
     hunk?.selectAllChangedLines()
     hunk?.processLinesStage()
 
   stageLines: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-experiment-hunk-view')[0]
+    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
     hunk?.processLinesStage()
 
-module.exports = document.registerElement 'git-experiment-diff-view',
+module.exports = document.registerElement 'git-diff-view',
   prototype: DiffView.prototype

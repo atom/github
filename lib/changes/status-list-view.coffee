@@ -19,7 +19,7 @@ BaseTemplate = """
 <div class="undo-last-commit-box"></div>
 """
 
-FileSummaryTag = "git-experiment-file-summary-view"
+FileSummaryTag = "git-file-summary-view"
 
 class StatusListView extends HTMLElement
   createdCallback: ->
@@ -42,7 +42,7 @@ class StatusListView extends HTMLElement
     @undoCommitBox.appendChild(@undoCommitView)
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: =>
@@ -54,13 +54,13 @@ class StatusListView extends HTMLElement
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
 
-    @commands = atom.commands.add "git-experiment-status-list-view",
+    @commands = atom.commands.add "git-status-list-view",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
       'core:move-right': @focusDiffView
       'core:confirm':    @stageSelection
       #'core:backspace':  @promptToDiscardChanges
-      'git-experiment:focus-commit-message': @focusCommitMessage
+      'git:focus-commit-message': @focusCommitMessage
 
   detachedCallback: ->
     @base.off "focus-list"
@@ -248,5 +248,5 @@ class StatusListView extends HTMLElement
   #
   #       "Cancel": null
 
-module.exports = document.registerElement "git-experiment-status-list-view",
+module.exports = document.registerElement "git-status-list-view",
   prototype: StatusListView.prototype

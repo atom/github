@@ -23,7 +23,7 @@ class HunkView extends HTMLElement
     @oldSourceLines = []
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
 
     @git = new GitChanges
 
@@ -197,5 +197,5 @@ class HunkView extends HTMLElement
     promise.then =>
       @base.trigger('index-updated')
 
-module.exports = document.registerElement 'git-experiment-hunk-view',
+module.exports = document.registerElement 'git-hunk-view',
   prototype: HunkView.prototype

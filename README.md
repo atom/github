@@ -1,8 +1,8 @@
-# git-experiment package
+# git package
 
 ```
-git clone git@github.com:atom/git-experiment.git
-cd git-experiment
+git clone git@github.com:atom/git.git
+cd git
 apm install
 apm link -d
 atom .

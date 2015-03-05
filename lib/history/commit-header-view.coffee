@@ -35,5 +35,5 @@ class CommitHeaderView extends HTMLElement
 
     lines.join("\n").replace(/^\n+|\n+$/, '')
 
-module.exports = document.registerElement 'git-experiment-commit-header-view',
+module.exports = document.registerElement 'git-commit-header-view',
   prototype: CommitHeaderView.prototype

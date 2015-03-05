@@ -22,23 +22,23 @@ class CommitListView extends HTMLElement
     @git = new GitHistory
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
     @el.on 'click keyup', '.btn-load-more', @loadMoreCommits.bind(@)
-    @el.on 'click', 'git-experiment-commit-summary-view', @clickedCommitSummary.bind(@)
+    @el.on 'click', 'git-commit-summary-view', @clickedCommitSummary.bind(@)
 
     @base.on 'focus-commit-list', @focus.bind(@)
 
-    @commands = atom.commands.add "git-experiment-commit-list-view",
+    @commands = atom.commands.add "git-commit-list-view",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
-      'git-experiment:focus-commit-details': @focusCommitDetails
+      'git:focus-commit-details': @focusCommitDetails
 
   detachedCallback: ->
     @el.off 'click keyup', '.btn-load-more'
-    @el.off 'click', 'git-experiment-commit-summary-view'
+    @el.off 'click', 'git-commit-summary-view'
     @base.off 'focus-commit-list'
 
     if @commands
@@ -80,7 +80,7 @@ class CommitListView extends HTMLElement
     @commitsNode.removeChild(button) if button
 
   addLoadMoreButton: ->
-    last = @commitsNode.querySelector('git-experiment-commit-summary-view:last-child')
+    last = @commitsNode.querySelector('git-commit-summary-view:last-child')
     parent = last.dataset.parent
     base = @git.currentBase?.toString()
     if parent != base
@@ -107,7 +107,7 @@ class CommitListView extends HTMLElement
     @selectCommit(node)
 
   selectCommit: (node) ->
-    return unless node?.tagName == 'GIT-EXPERIMENT-COMMIT-SUMMARY-VIEW'
+    return unless node?.tagName == 'GIT-COMMIT-SUMMARY-VIEW'
     selected = @selectedCommit()
     selected?.classList.remove('selected')
     node.classList.add('selected')
@@ -153,5 +153,5 @@ class CommitListView extends HTMLElement
     @base.trigger('focus-commit-details')
 
 
-module.exports = document.registerElement 'git-experiment-commit-list-view',
+module.exports = document.registerElement 'git-commit-list-view',
   prototype: CommitListView.prototype

@@ -43,5 +43,5 @@ class CommitSummaryView extends HTMLElement
   firstLine: (message) ->
     message.split("\n")[0]
 
-module.exports = document.registerElement 'git-experiment-commit-summary-view',
+module.exports = document.registerElement 'git-commit-summary-view',
   prototype: CommitSummaryView.prototype

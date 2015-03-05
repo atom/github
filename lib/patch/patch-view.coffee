@@ -66,7 +66,7 @@ class PatchView extends HTMLElement
     @setSyntaxHighlights()
 
   hunkViews: ->
-    @querySelectorAll("git-experiment-hunk-view")
+    @querySelectorAll("git-hunk-view")
 
   clearSelections: ->
     hunk.unselectAllChangedLines() for hunk in @hunkViews()
@@ -127,5 +127,5 @@ class PatchView extends HTMLElement
     node = $(EmptyTemplate)[0]
     @appendChild(node)
 
-module.exports = document.registerElement 'git-experiment-patch-view',
+module.exports = document.registerElement 'git-patch-view',
   prototype: PatchView.prototype

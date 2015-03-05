@@ -20,7 +20,7 @@ class UndoCommitView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -49,5 +49,5 @@ class UndoCommitView extends HTMLElement
         @base.trigger("index-updated")
         @base.trigger("")
 
-module.exports = document.registerElement 'git-experiment-undo-commit-view',
+module.exports = document.registerElement 'git-undo-commit-view',
   prototype: UndoCommitView.prototype

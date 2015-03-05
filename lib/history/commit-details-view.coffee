@@ -20,7 +20,7 @@ class CommitDetailsView extends HTMLElement
     @disposables = new CompositeDisposable
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -30,8 +30,8 @@ class CommitDetailsView extends HTMLElement
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
 
-    @disposables.add atom.commands.add 'git-experiment-commit-details-view',
-      'git-experiment:focus-commit-list':  @focusCommitList
+    @disposables.add atom.commands.add 'git-commit-details-view',
+      'git:focus-commit-list':  @focusCommitList
 
   detatchedCallback: ->
     @base.off 'focus-commit-details'
@@ -74,7 +74,6 @@ class CommitDetailsView extends HTMLElement
       commitNode.appendChild(header)
       @git.getDiff(sha)
     .then (diff) =>
-      console.log diff
       window.actionTimestamp = actionTimestamp = Date.now()
       chunkSize = 5
       promise = Promise.resolve()
@@ -91,6 +90,5 @@ class CommitDetailsView extends HTMLElement
 
             resolve()
 
-
-module.exports = document.registerElement 'git-experiment-commit-details-view',
+module.exports = document.registerElement 'git-commit-details-view',
   prototype: CommitDetailsView.prototype

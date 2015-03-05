@@ -27,7 +27,7 @@ class FileSummaryView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: =>
@@ -95,5 +95,5 @@ class FileSummaryView extends HTMLElement
     promise.then =>
       @base.trigger('index-updated')
 
-module.exports = document.registerElement "git-experiment-file-summary-view",
+module.exports = document.registerElement "git-file-summary-view",
   prototype: FileSummaryView.prototype

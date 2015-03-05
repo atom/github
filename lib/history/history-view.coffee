@@ -32,5 +32,5 @@ class HistoryView extends SplitView
     uri: @getURI()
     width: @width()
 
-module.exports = document.registerElement 'git-experiment-history-view',
+module.exports = document.registerElement 'git-history-view',
   prototype: HistoryView.prototype

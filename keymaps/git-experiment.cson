@@ -8,33 +8,33 @@
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
 'atom-workspace':
-  'cmd-shift-h': 'git-experiment:view-history'
-  'cmd-shift-c': 'git-experiment:view-and-commit-changes'
+  'cmd-shift-h': 'git:view-history'
+  'cmd-shift-c': 'git:view-and-commit-changes'
 
-'git-experiment-changes-view .data atom-text-editor':
+'git-changes-view .data atom-text-editor':
   'cmd-enter': 'core:confirm'
   'escape': 'core:focus-changes-list'
 
-'git-experiment-status-list-view':
-  'tab': 'git-experiment:focus-commit-message'
+'git-status-list-view':
+  'tab': 'git:focus-commit-message'
 
-'git-experiment-commit-message-view atom-text-editor:not(.mini)':
-  'escape': 'git-experiment:focus-status-list'
-  'cmd-enter': 'git-experiment:commit'
-  'ctrl-enter': 'git-experiment:commit'
+'git-commit-message-view atom-text-editor:not(.mini)':
+  'escape': 'git:focus-status-list'
+  'cmd-enter': 'git:commit'
+  'ctrl-enter': 'git:commit'
 
-'git-experiment-diff-view':
-  '/': 'git-experiment:toggle-selection-mode'
-  'a': 'git-experiment:select-active-lines'
-  'shift-up': 'git-experiment:expand-selection-up'
-  'shift-down': 'git-experiment:expand-selection-down'
-  'escape': 'git-experiment:clear-selections'
-  'tab': 'git-experiment:focus-commit-message'
+'git-diff-view':
+  '/': 'git:toggle-selection-mode'
+  'a': 'git:select-active-lines'
+  'shift-up': 'git:expand-selection-up'
+  'shift-down': 'git:expand-selection-down'
+  'escape': 'git:clear-selections'
+  'tab': 'git:focus-commit-message'
 
-'git-experiment-commit-list-view':
-  'right': 'git-experiment:focus-commit-details'
+'git-commit-list-view':
+  'right': 'git:focus-commit-details'
 
-'git-experiment-commit-details-view':
-  'left': 'git-experiment:focus-commit-list'
+'git-commit-details-view':
+  'left': 'git:focus-commit-list'
   'down': 'native!'
   'up': 'native!'

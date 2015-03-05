@@ -32,7 +32,7 @@ class CommitMessageView extends HTMLElement
     @update()
 
   attachedCallback: ->
-    @base = @el.closest('.git-experiment-root-view')
+    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -43,9 +43,9 @@ class CommitMessageView extends HTMLElement
 
     @messageSub = @messageModel.onDidChange @updateCommitButton.bind(@)
 
-    @commandSub = atom.commands.add "git-experiment-commit-message-view atom-text-editor:not(.mini)",
-      "git-experiment:focus-status-list": @focusStatusList.bind(@)
-      "git-experiment:commit": @commit.bind(@)
+    @commandSub = atom.commands.add "git-commit-message-view atom-text-editor:not(.mini)",
+      "git:focus-status-list": @focusStatusList.bind(@)
+      "git:commit": @commit.bind(@)
 
   detatchedCallback: ->
     @base.off "index-updated"
@@ -94,5 +94,5 @@ class CommitMessageView extends HTMLElement
       @base.trigger('index-updated')
       @base.trigger('set-commit-message', [''])
 
-module.exports = document.registerElement 'git-experiment-commit-message-view',
+module.exports = document.registerElement 'git-commit-message-view',
   prototype: CommitMessageView.prototype

@@ -18,7 +18,7 @@ class SplitView extends HTMLElement
     @resizeableNode = @querySelector('.resizeable')
     @resizerNode    = @querySelector('.repository-view-resizer')
 
-    @classList.add('git-experiment-root-view')
+    @classList.add('git-root-view')
 
   attachedCallback: ->
     @handleEvents()

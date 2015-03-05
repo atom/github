@@ -2,8 +2,8 @@
 HistoryView = null
 ChangesView = null
 
-HISTORY_URI = 'atom://git-experiment/view-history'
-CHANGES_URI = 'atom://git-experiment/view-changes'
+HISTORY_URI = 'atom://git/view-history'
+CHANGES_URI = 'atom://git/view-changes'
 
 module.exports = GitExperiment =
   subscriptions: null
@@ -48,10 +48,10 @@ module.exports = GitExperiment =
   openChangesView: ->
     atom.workspace.open(CHANGES_URI)
 
-atom.commands.add 'atom-workspace', 'git-experiment:view-history', =>
+atom.commands.add 'atom-workspace', 'git:view-history', =>
   GitExperiment.openHistoryView()
 
-atom.commands.add 'atom-workspace', 'git-experiment:view-and-commit-changes', =>
+atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
   GitExperiment.openChangesView()
 
 createHistoryView = (state) ->
