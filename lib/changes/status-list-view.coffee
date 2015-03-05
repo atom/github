@@ -251,7 +251,7 @@ class StatusListView extends HTMLElement
       message: message
       detailedMessage: details
       buttons:
-        "Move to Trash": =>
+        "Discard Changes": =>
           shell.moveItemToTrash(localPath) if exists
           @git.forceCheckoutPath(path).then =>
             @base.trigger("index-updated")
