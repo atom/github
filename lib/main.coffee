@@ -26,12 +26,12 @@ module.exports = GitExperiment =
       @subscriptions.add atom.workspace.registerOpener (filePath) =>
         switch filePath
           when HISTORY_URI
-            @historyView = if @state.history?
+            @historyView or= if @state.history?
               atom.deserializers.deserialize(@state.history)
             else
               createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
-            @changesView = if @state.changes?
+            @changesView or= if @state.changes?
               atom.deserializers.deserialize(@state.changes)
             else
               createChangesView(uri: CHANGES_URI)
