@@ -15,8 +15,9 @@
   'cmd-enter': 'core:confirm'
   'escape': 'core:focus-changes-list'
 
-'git-status-list-view':
+'git-status-list-view:focus':
   'tab': 'git:focus-commit-message'
+  'o': 'git:open-file'
 
 'git-commit-message-view atom-text-editor:not(.mini)':
   'escape': 'git:focus-status-list'
@@ -30,6 +31,7 @@
   'shift-down': 'git:expand-selection-down'
   'escape': 'git:clear-selections'
   'tab': 'git:focus-commit-message'
+  'o': 'git:open-file-to-line'
 
 'git-commit-list-view':
   'right': 'git:focus-commit-details'

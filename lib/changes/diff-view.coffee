@@ -55,6 +55,7 @@ class DiffView extends HTMLElement
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
       'git:focus-commit-message': @focusCommitMessage
+      'git:open-file-to-line': @openFileToLine
 
   detachedCallback: ->
     @disposables.dispose()
@@ -182,7 +183,7 @@ class DiffView extends HTMLElement
     @removeClassFromLines('selected')
 
   selectHunk: (hunk) ->
-    return unless hunk? and hunk.tagName == 'git-HUNK-VIEW'
+    return unless hunk? and hunk.tagName == 'GIT-HUNK-VIEW'
     @diffSelectionMode = 'hunk'
     @unselectAllHunks()
     @scrollIntoView(hunk)
@@ -372,6 +373,14 @@ class DiffView extends HTMLElement
     e.stopImmediatePropagation()
     hunk = $(e.currentTarget).closest('git-hunk-view')[0]
     hunk?.processLinesStage()
+
+  openFileToLine: ->
+    hunk = @selectedHunk()
+    line = hunk?.activeLine()
+    return unless line
+    path = hunk.patch.newFile().path()
+    atom.workspace.open path,
+      initialLine: line.dataset.newIndex
 
 module.exports = document.registerElement 'git-diff-view',
   prototype: DiffView.prototype

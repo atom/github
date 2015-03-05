@@ -55,13 +55,14 @@ class StatusListView extends HTMLElement
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
 
-    @commands = atom.commands.add "git-status-list-view",
+    @commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
       'core:move-right': @focusDiffView
       'core:confirm':    @stageSelection
       'core:backspace':  @promptToDiscardChanges
       'git:focus-commit-message': @focusCommitMessage
+      'git:open-file': @openInPane
 
   detachedCallback: ->
     @base.off "focus-list"
@@ -231,6 +232,10 @@ class StatusListView extends HTMLElement
     paths = []
     paths.push entry.path for entry in @getStagedEntries()
     @git.unstageAllPaths(paths).then => @base.trigger("index-updated")
+
+  openInPane: (e) ->
+    selected = @selectedEntry()
+    atom.workspace.open(selected.path) if selected?.path
 
   promptToDiscardChanges: ->
     selected = @selectedEntry()
