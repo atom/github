@@ -198,10 +198,12 @@ class StatusListView extends HTMLElement
     container    = $(entry).closest('.files')[0]
     scrollBottom = container.offsetHeight + container.scrollTop
     entryTop     = entry.offsetTop
-    if scrollBottom - entryTop < 0
+    entryBottom  = entryTop + entry.offsetHeight
+
+    if entryBottom > scrollBottom
       entry.scrollIntoView(false)
-    else if entry.offsetTop - entry.offsetHeight < container.scrollTop
-      entry.scrollIntoView()
+    else if entry.offsetTop < container.scrollTop
+      entry.scrollIntoView(true)
 
   moveSelectionUp: =>
     selected = @selectedEntry()
