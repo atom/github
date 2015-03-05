@@ -1,0 +1,68 @@
+@import "variables";
+
+git-status-list-view {
+  display:flex;
+  flex-direction:column;
+  position:absolute;
+  bottom:0;
+  top:0;
+  left:0;
+  right:0;
+
+  & > div {
+    flex: 1;
+    -webkit-transform:scale(1);
+
+    &.column-header {
+      flex-grow:0;
+      flex-shrink:0;
+      flex-basis:2.7em;
+
+      & ~ .column-header {
+        flex-basis:2.71em;
+      }
+    }
+
+    &.files {
+      overflow-y:auto;
+      min-height:2.4em;
+      flex-basis:auto;
+      position:relative;
+
+      &:empty:before {
+        content:'No unstaged changes';
+        line-height:2.4em;
+        text-align:center;
+        display:block;
+        opacity:0.4;
+        font-style:italic;
+      }
+    }
+
+    &.files.staged {
+      flex-grow:0;
+      flex-shrink:1;
+
+      &:empty:before {
+        content:'Nothing to commit';
+      }
+
+      git-file-summary-view:last-child {
+        box-shadow:none;
+      }
+    }
+
+    &.commit-message-box {
+      padding:0 12px;
+      flex-grow:0;
+      flex-shrink:0;
+      flex-basis:auto;
+    }
+
+    &.undo-last-commit-box {
+      flex-grow:0;
+      flex-shrink:0;
+      flex-basis:auto;
+    }
+  }
+}

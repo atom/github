@@ -14,7 +14,7 @@ CommitHeaderTemplateString = """
 """
 
 class CommitHeaderView extends HTMLElement
-  setData: (@commit) ->
+  setCommit: (@commit) ->
     @innerHTML = CommitHeaderTemplateString
     @querySelector('.sha').textContent = @commit.sha().slice(0,8)
     @querySelector('.author').textContent = @commit.author().name()
@@ -35,4 +35,5 @@ class CommitHeaderView extends HTMLElement
 
     lines.join("\n").replace(/^\n+|\n+$/, '')
 
-module.exports = document.registerElement 'commit-header-view', prototype: CommitHeaderView.prototype
+module.exports = document.registerElement 'git-commit-header-view',
+  prototype: CommitHeaderView.prototype

@@ -1,4 +1,4 @@
-GitExperimentView = require '../lib/git-experiment-view'
+GitExperimentView = require '../lib/git-view'
 
 describe "GitExperimentView", ->
   it "has one valid test", ->

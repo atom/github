@@ -1,0 +1,69 @@
+@import "variables";
+
+git-file-summary-view {
+  -webkit-user-select: none;
+  display:block;
+  padding: 0 10px;
+  box-shadow:inset @separator-border-color 0 -1px 0;
+  line-height:2.4em;
+  cursor:default;
+  position:relative;
+  box-sizing:border-box;
+  overflow:hidden;
+
+  .icon {
+    position:absolute;
+  }
+
+  .path {
+    display:flex;
+    margin-left:20px;
+
+    .dir {
+      flex:0;
+      flex-basis:auto;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .filename {
+      flex-grow:1;
+      flex-shrink:0;
+      flex-basis:auto;
+    }
+  }
+
+  .btn {
+    position:absolute;
+    right:8px;
+    top:50%;
+    margin-top:-1em;
+    display:none;
+  }
+
+  &:hover {
+    .btn {
+      display:inline-block;
+    }
+  }
+
+  &.selected {
+    background: @background-color-highlight;
+    color:@text-color-highlight;
+    box-shadow:@pane-item-background-color 0 -1px 0;
+
+    .meta > div {
+      color:fade(@text-color-highlight, 70%);
+    }
+
+    :focus & {
+      background: @background-color-selected;
+      color:@text-color-selected;
+
+      .meta > div {
+        color:fade(@text-color-selected, 70%);
+      }
+    }
+  }
+}

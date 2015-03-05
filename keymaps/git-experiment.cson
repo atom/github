@@ -8,28 +8,33 @@
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
 'atom-workspace':
-  'cmd-shift-h': 'git-experiment:view-history'
-  'cmd-shift-c': 'git-experiment:view-and-commit-changes'
-'git-experiment-history-view .history':
-  'down': 'core:move-down'
-  'up': 'core:move-up'
-'git-experiment-changes-view .data':
-  'down': 'core:move-down'
-  'up': 'core:move-up'
-  'right': 'core:move-right'
-  'enter': 'change:stage'
-  'tab': 'core:focus-commit-message'
-'git-experiment-changes-view .diffs':
-  'down': 'core:move-down'
-  'up': 'core:move-up'
-  'left': 'core:move-left'
-  '/': 'core:change-diff-selection'
-  'a': 'core:add-selected-lines'
-  'shift-up': 'core:expand-line-selection-up'
-  'shift-down': 'core:expand-line-selection-down'
-  'escape': 'core:clear-selections'
-  'enter': 'core:stage'
-  'tab': 'core:focus-commit-message'
-'git-experiment-changes-view .data atom-text-editor':
+  'cmd-shift-h': 'git:view-history'
+  'cmd-shift-c': 'git:view-and-commit-changes'
+
+'git-changes-view .data atom-text-editor':
   'cmd-enter': 'core:confirm'
   'escape': 'core:focus-changes-list'
+
+'git-status-list-view':
+  'tab': 'git:focus-commit-message'
+
+'git-commit-message-view atom-text-editor:not(.mini)':
+  'escape': 'git:focus-status-list'
+  'cmd-enter': 'git:commit'
+  'ctrl-enter': 'git:commit'
+
+'git-diff-view':
+  '/': 'git:toggle-selection-mode'
+  'a': 'git:select-active-lines'
+  'shift-up': 'git:expand-selection-up'
+  'shift-down': 'git:expand-selection-down'
+  'escape': 'git:clear-selections'
+  'tab': 'git:focus-commit-message'
+
+'git-commit-list-view':
+  'right': 'git:focus-commit-details'
+
+'git-commit-details-view':
+  'left': 'git:focus-commit-list'
+  'down': 'native!'
+  'up': 'native!'
