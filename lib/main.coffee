@@ -5,10 +5,12 @@ ChangesView = null
 HISTORY_URI = 'atom://git/view-history'
 CHANGES_URI = 'atom://git/view-changes'
 
+changesView = null
+historyView = null
+serializedState = {}
+
 module.exports = GitExperiment =
   subscriptions: null
-  historyView: null
-  changesView: null
   state: null
 
   activate: (@state) ->
@@ -18,29 +20,31 @@ module.exports = GitExperiment =
     process.nextTick =>
       @subscriptions.add atom.workspace.onWillDestroyPaneItem (pane) =>
         switch pane.item
-          when @historyView
-            @state.history = @historyView.serialize()
-          when @changesView
-            @state.changes = @changesView.serialize()
+          when historyView
+            serializedState.history = historyView.serialize()
+          when changesView
+            serializedState.changes = changesView.serialize()
 
       @subscriptions.add atom.workspace.registerOpener (filePath) =>
         switch filePath
           when HISTORY_URI
-            @historyView or= if @state.history?
+            historyView or= if @state.history?
+              console.log 'deserialized'
               atom.deserializers.deserialize(@state.history)
             else
+              console.log 'created'
               createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
-            @changesView or= if @state.changes?
+            changesView or= if @state.changes?
               atom.deserializers.deserialize(@state.changes)
             else
               createChangesView(uri: CHANGES_URI)
 
+  serialize: ->
+    serializedState
+
   deactivate: ->
     @subscriptions?.dispose()
-
-  serialize: ->
-    @state
 
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
@@ -56,15 +60,15 @@ atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
 
 createHistoryView = (state) ->
  HistoryView ?= require './history/history-view'
- view = new HistoryView
- view.initialize(state)
- view
+ historyView = new HistoryView
+ historyView.initialize(state)
+ historyView
 
 createChangesView = (state) ->
   ChangesView ?= require './changes/changes-view'
-  view = new ChangesView
-  view.initialize(state)
-  view
+  changesView = new ChangesView
+  changesView.initialize(state)
+  changesView
 
 atom.deserializers.add
   name: 'GitHistoryView'
