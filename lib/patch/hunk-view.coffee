@@ -59,12 +59,18 @@ class HunkView extends HTMLElement
 
   setHunk: (@patch, @index, @status) ->
     @hunk = @patch.hunks()[@index]
+    header = @hunk.header()
     headerNode = @createLineNode()
     headerNode.classList.add('diff-hunk-header')
     headerDataNode = headerNode.querySelector('.diff-hunk-data')
-    headerDataNode.textContent = @hunk.header()
+    headerDataNode.textContent = header
     headerDataNode.appendChild(@stageButton('hunk')) if @status
     @hunkNode.appendChild(headerNode)
+
+    {oldStart, newStart} = @parseHeader(header)
+
+    oldLine = oldStart
+    newLine = newStart
 
     for line, lineIndex in @hunk.lines()
       lineNode              = @createLineNode()
@@ -76,8 +82,8 @@ class HunkView extends HTMLElement
 
       dataNode              = lineNode.querySelector('.diff-hunk-data')
       dataNode.dataset.path = @patch.newFile().path()
-      oldLine               = line.oldLineno()
-      newLine               = line.newLineno()
+      oldLine               = line.oldLineno() if line.oldLineno() > 0
+      newLine               = line.newLineno() if line.newLineno() > 0
 
       lineNode.dataset.oldIndex = oldLine - 1
       lineNode.dataset.newIndex = newLine - 1
@@ -93,8 +99,8 @@ class HunkView extends HTMLElement
         when '+'
           lineNode.classList.add('addition')
 
-      oldLineNumber.textContent = oldLine if oldLine > 0
-      newLineNumber.textContent = newLine if newLine > 0
+      oldLineNumber.textContent = oldLine if line.oldLineno() > 0
+      newLineNumber.textContent = newLine if line.newLineno() > 0
       lineNode.dataset.lineIndex = lineIndex
 
       if @status and (lineOrigin == '-' or lineOrigin == '+')
@@ -108,6 +114,9 @@ class HunkView extends HTMLElement
   allChangedLines: ->
     @querySelectorAll('.hunk-line.addition, .hunk-line.deletion')
 
+  activeLine: ->
+    @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
+
   selectedLines: ->
     @querySelectorAll('.hunk-line.selected')
 
@@ -118,6 +127,18 @@ class HunkView extends HTMLElement
   unselectAllChangedLines: ->
     for line in @allChangedLines()
       line.classList.remove('selected')
+
+  parseHeader: (header)->
+    headerParts =
+      header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
+    return false unless headerParts
+
+    data =
+      oldStart: headerParts[1]
+      oldCount: headerParts[2]
+      newStart: headerParts[3]
+      newCount: headerParts[4]
+      context:  headerParts[5]
 
   processLinesStage: ->
     action = if @status == 'unstaged' then 'stage' else 'unstage'
@@ -142,14 +163,10 @@ class HunkView extends HTMLElement
     fileInfo += "+++ #{newFile}\n"
 
     header = @hunk.header()
-    headerParts =
-      header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
 
-    oldStart = headerParts[1]
-    oldCount = 0
+    {oldStart, context} = @parseHeader(header)
     newStart = oldStart
-    newCount = 0
-    context  = headerParts[5]
+    oldCount = newCount = 0
 
     lines = []
 
