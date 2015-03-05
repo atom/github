@@ -7,22 +7,40 @@ CHANGES_URI = 'atom://git-experiment/view-changes'
 
 module.exports = GitExperiment =
   subscriptions: null
+  historyView: null
+  changesView: null
+  state: null
 
-  activate: (state) ->
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+  activate: (@state) ->
+    # Events subscribed to in atom's system can be easily
+    # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
     process.nextTick =>
+      @subscriptions.add atom.workspace.onWillDestroyPaneItem (pane) =>
+        switch pane.item
+          when @historyView
+            @state.history = @historyView.serialize()
+          when @changesView
+            @state.changes = @changesView.serialize()
+
       @subscriptions.add atom.workspace.registerOpener (filePath) =>
         switch filePath
           when HISTORY_URI
-            createHistoryView(uri: HISTORY_URI)
+            @historyView = if @state.history?
+              atom.deserializers.deserialize(@state.history)
+            else
+              createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
-            createChangesView(uri: CHANGES_URI)
+            @changesView = if @state.changes?
+              atom.deserializers.deserialize(@state.changes)
+            else
+              createChangesView(uri: CHANGES_URI)
 
   deactivate: ->
     @subscriptions?.dispose()
 
   serialize: ->
+    @state
 
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
@@ -49,9 +67,9 @@ createChangesView = (state) ->
   view
 
 atom.deserializers.add
-  name: 'HistoryView'
+  name: 'GitHistoryView'
   deserialize: (state) -> createHistoryView(state)
 
 atom.deserializers.add
-  name: 'ChangesView'
+  name: 'GitChangesView'
   deserialize: (state) -> createChangesView(state)

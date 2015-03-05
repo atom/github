@@ -28,7 +28,7 @@ class HistoryView extends SplitView
   getURI: -> @uri
 
   serialize: ->
-    deserializer: 'HistoryView'
+    deserializer: 'GitHistoryView'
     uri: @getURI()
     width: @width()
 

@@ -25,7 +25,7 @@ class ChangesView extends SplitView
   getURI: -> @uri
 
   serialize: ->
-    deserializer: 'ChangesView'
+    deserializer: 'GitChangesView'
     uri: @getURI()
     width: @width()
 
