@@ -11,14 +11,17 @@ cd ../some-dir-with-a-git-repo
 atom -d
 ```
 
-It is currently setup to open on start up, no matter what.
+## Keyboard shortcuts
 
-### Notes
+- `cmd-shift-c` Opens changes
+- `cmd-shift-h` Opens history
 
-* `PatchView` renders one file's diff; it's reusable; it's an HTMLElement
-* `HistoryView` creates one or more `PatchView` elements
-* `nodegit` has the worst incorrect docs ever. Read the [code](https://github.com/nodegit/nodegit/tree/master/lib) and tinker in the console.
+### Staging Changes
 
-### Broken
-
-* Merge commits dont render, dunno why
+- `right` on a file focuses hunk
+- select hunks with `up` or `down`
+- `enter` to stage hunk
+- `/` to toggle line selection mode
+- `shift-up` or `shift-down` to expand line selection
+- `a` to select lines
+- `enter` to stage selected lines
