@@ -38,13 +38,23 @@ class GitHistory
              Git.Diff.FIND.FOR_UNTRACKED
 
     @getCommit(sha).then (commit) ->
-      commit.getDiff()
-    .then (diffs) ->
-      data.diffs = diffs
-      promises = []
-      for diff in diffs
-        promises.push diff.findSimilar(findOpts).then -> diff
-      Git.Promise.all(promises)
+      data.commit = commit
+      commit.getTree()
+    .then (commitTree) ->
+      data.commitTree = commitTree
+      parentId = data.commit.parents()[0]
+      data.commit.repo.getCommit(parentId)
+    .then (parent) ->
+      parent.getTree()
+    .then (parentTree) ->
+      Git.Diff.treeToTree(data.commit.repo,
+                          parentTree,
+                          data.commitTree)
+    .then (diff) ->
+      data.diff = diff
+      diff.findSimilar(findOpts)
+    .then ->
+      data.diff
 
   walkHistory: (fromSha) ->
     data = {}

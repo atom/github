@@ -73,23 +73,23 @@ class CommitDetailsView extends HTMLElement
       header.setCommit(@commit)
       commitNode.appendChild(header)
       @git.getDiff(sha)
-    .then (diffList) =>
+    .then (diff) =>
+      console.log diff
       window.actionTimestamp = actionTimestamp = Date.now()
       chunkSize = 5
       promise = Promise.resolve()
-      for diff in diffList
-        _.chunkAll(diff.patches(), chunkSize).forEach (patches) =>
-          promise = promise.then => new Promise (resolve) =>
-            return unless actionTimestamp == window.actionTimestamp
-            setImmediate =>
-              patches.forEach (patch) =>
-                patchView = new PatchView
-                patchView.setPatch
-                  patch: patch
-                  commit: @commit
-                commitNode.appendChild(patchView)
+      _.chunkAll(diff.patches(), chunkSize).forEach (patches) =>
+        promise = promise.then => new Promise (resolve) =>
+          return unless actionTimestamp == window.actionTimestamp
+          setImmediate =>
+            patches.forEach (patch) =>
+              patchView = new PatchView
+              patchView.setPatch
+                patch: patch
+                commit: @commit
+              commitNode.appendChild(patchView)
 
-              resolve()
+            resolve()
 
 
 module.exports = document.registerElement 'git-experiment-commit-details-view',
