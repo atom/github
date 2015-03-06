@@ -78,7 +78,7 @@ class StatusListView extends HTMLElement
       @commands = null
 
   update: ->
-    atom.project.getRepo().refreshStatus()
+    repo.refreshStatus() for repo in atom.project.getRepositories()
 
     @git.getStatuses()
     .then (statuses) =>

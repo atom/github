@@ -25,7 +25,7 @@ module.exports = GitExperiment =
           when changesView
             serializedState.changes = changesView.serialize()
 
-      @subscriptions.add atom.workspace.registerOpener (filePath) =>
+      @subscriptions.add atom.workspace.addOpener (filePath) =>
         switch filePath
           when HISTORY_URI
             historyView or= if @state.history?
