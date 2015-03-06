@@ -42,7 +42,6 @@ class GitChanges
 
     findOpts =
       flags: Git.Diff.FIND.RENAMES |
-             Git.Diff.FIND.RENAMES_FROM_REWRITES |
              Git.Diff.FIND.FOR_UNTRACKED
 
     @diffsPromise = Git.Repository.open(@repoPath).then (repo) ->
@@ -69,10 +68,16 @@ class GitChanges
         unstaged: data.unstagedDiffs
 
   getStatuses: ->
+    opts =
+      flags: Git.Status.OPT.INCLUDE_UNTRACKED |
+             Git.Status.OPT.RECURSE_UNTRACKED_DIRS |
+             Git.Status.OPT.RENAMES_INDEX_TO_WORKDIR |
+             Git.Status.OPT.RENAMES_HEAD_TO_INDEX
+
     @gatherDiffs()
     Git.Repository.open(@repoPath)
     .then (repo) ->
-      repo.getStatusExt()
+      repo.getStatusExt(opts)
     .then (statuses) =>
       for status in statuses
         @statuses[status.path()] = status
