@@ -25,6 +25,9 @@ module.exports = GitExperiment =
           when changesView
             serializedState.changes = changesView.serialize()
 
+    @subscriptions.add atom.on 'did-update-git-repository', @didUpdateRepository
+
+    process.nextTick =>
       @subscriptions.add atom.workspace.addOpener (filePath) =>
         switch filePath
           when HISTORY_URI
@@ -42,6 +45,8 @@ module.exports = GitExperiment =
 
   serialize: ->
     serializedState
+  didUpdateRepository: ->
+    repo.refreshStatus() for repo in atom.project.getRepositories()
 
   deactivate: ->
     @subscriptions?.dispose()

@@ -46,7 +46,7 @@ class UndoCommitView extends HTMLElement
     @git.getLatestUnpushed().then (commit) =>
       @base.trigger('set-commit-message', [commit.message()])
       @git.resetBeforeCommit(commit).then =>
-        @base.trigger("index-updated")
+        atom.emit('did-update-git-repository')
         @base.trigger("")
 
 module.exports = document.registerElement 'git-undo-commit-view',

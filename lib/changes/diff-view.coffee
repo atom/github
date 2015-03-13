@@ -31,7 +31,6 @@ class DiffView extends HTMLElement
     @base.on 'render-patch', @renderPatch.bind(@)
     @base.on 'no-change-selected', @empty.bind(@)
     @base.on 'focus-diff-view', @focusAndSelect.bind(@)
-    @base.on 'index-updated', @clearCache.bind(@)
 
     @el.on 'mousedown', '.btn', (e) -> e.stopPropagation()
     @el.on 'mouseenter', ChangedLineSelector, @mouseEnterLine.bind(@)
@@ -43,6 +42,7 @@ class DiffView extends HTMLElement
 
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
+    @disposables.add atom.on 'did-update-git-repository', @clearCache.bind(@)
 
     @disposables.add  atom.commands.add "git-diff-view",
       'core:move-left': @focusList
@@ -63,7 +63,6 @@ class DiffView extends HTMLElement
     @base.off 'render-patch'
     @base.off 'no-change-selected'
     @base.off 'focus-diff-view'
-    @base.off 'index-updated'
 
     @el.off 'mousedown', '.btn'
     @el.off 'mouseenter', ChangedLineSelector

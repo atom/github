@@ -93,7 +93,7 @@ class FileSummaryView extends HTMLElement
       @git.unstagePath(@path)
 
     promise.then =>
-      @base.trigger('index-updated')
+      atom.emit('did-update-git-repository')
 
 module.exports = document.registerElement "git-file-summary-view",
   prototype: FileSummaryView.prototype

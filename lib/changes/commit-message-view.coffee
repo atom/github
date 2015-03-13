@@ -36,7 +36,7 @@ class CommitMessageView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @base.on "index-updated", @update.bind(@)
+    @updateSubscription = atom.on 'did-update-git-repository', @update.bind(@)
     @base.on "set-commit-message", @setMessage.bind(@)
 
     @el.on "click", '.btn', @commit.bind(@)
@@ -48,7 +48,7 @@ class CommitMessageView extends HTMLElement
       "git:commit": @commit.bind(@)
 
   detatchedCallback: ->
-    @base.off "index-updated"
+    @updateSubscription?.dispose()
     @base.off "set-commit-message"
     @el.off "click", ".btn"
 
@@ -91,7 +91,7 @@ class CommitMessageView extends HTMLElement
     return unless @canCommit()
     @git.commit(@getMessage()).then =>
       @messageModel.setText('')
-      @base.trigger('index-updated')
+      atom.emit('did-update-git-repository')
       @base.trigger('set-commit-message', [''])
 
 module.exports = document.registerElement 'git-commit-message-view',
