@@ -10,6 +10,8 @@
 'atom-workspace':
   'cmd-shift-h': 'git:view-history'
   'cmd-shift-c': 'git:view-and-commit-changes'
+  'cmd-ctrl-b': 'git:checkout-branch'
+  'cmd-ctrl-shift-b': 'git:create-branch'
 
 'git-changes-view .data atom-text-editor':
   'cmd-enter': 'core:confirm'

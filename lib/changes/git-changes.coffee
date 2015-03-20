@@ -29,6 +29,74 @@ class GitChanges
   normalizeBranchName: (name) ->
     name.replace('refs/heads/','')
 
+  localBranches: ->
+    data = {}
+    branches = []
+    @getBranchName()
+    .then (branchName) =>
+      data.branchName = branchName
+      Git.Repository.open(@repoPath)
+    .then (repo) =>
+      repo.getReferenceNames()
+    .then (refs) =>
+      for ref in refs
+        if matches = ref.match /^refs\/heads\/(.*)/
+          branch =
+            name: matches[1]
+            current: matches[1] == data.branchName
+          branches.push branch
+
+      for ref in refs
+        if matches = ref.match /^refs\/remotes\/origin\/(.*)/
+          branch =
+            name: matches[1]
+            current: matches[1] == data.branchName
+            remote: true
+
+          local = _.find branches, (br) ->
+            br.name == branch.name
+
+          branches.push branch unless local or branch.name is "HEAD"
+
+      branches.sort (a, b) ->
+        aName = a.name.toLowerCase()
+        bName = b.name.toLowerCase()
+        if aName < bName
+          -1
+        else if aName > bName
+          1
+        else
+          0
+    .catch ->
+      Promise.resolve(name: 'master', current: true)
+
+  createBranch: ({name, from}) ->
+    data = {}
+    name = @normalizeBranchName(name)
+    Git.Repository.open(@repoPath)
+    .then (repo) =>
+      data.repo = repo
+      repo.getBranchCommit(from)
+    .then (branch) =>
+      signature = data.repo.defaultSignature()
+      message = "Created #{name} from #{from}"
+      data.repo.createBranch(name, branch, 0, signature, message).then =>
+        @checkoutBranch(name)
+
+  trackRemoteBranch: (name) ->
+    @createBranch({name: name, from: "origin/#{name}"})
+    .then =>
+      Git.Repository.open(@repoPath)
+    .then (repo) ->
+      repo.getBranch(name)
+    .then (branch) ->
+      Git.Branch.setUpstream(branch, "origin/#{name}")
+
+  checkoutBranch: (name) ->
+    Git.Repository.open(@repoPath)
+    .then (repo) ->
+      repo.checkoutBranch(name)
+
   getPatch: (path, state) ->
     @diffsPromise.then (diffs) ->
       _.find diffs[state]?.patches(), (patch) ->
