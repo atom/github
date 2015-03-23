@@ -48,12 +48,13 @@ class StatusListView extends HTMLElement
 
   handleEvents: =>
     @base.on "focus-list", @focus.bind(@)
-    @base.on "index-updated", @update.bind(@)
     @base.on "focus-commit-message", @focusCommitMessage.bind(@)
 
     @el.on "click", ".btn-stage-all", @stageAll.bind(@)
     @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
     @el.on "click", FileSummaryTag, @entryClicked.bind(@)
+
+    @updateSubscription = atom.on 'did-update-git-repository', @update.bind(@)
 
     @commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
@@ -77,9 +78,11 @@ class StatusListView extends HTMLElement
       @commands.dispose()
       @commands = null
 
-  update: ->
-    repo.refreshStatus() for repo in atom.project.getRepositories()
+    if @updateSubscription
+      @updateSubscription.dispose()
+      @updateSubscription = null
 
+  update: ->
     @git.getStatuses()
     .then (statuses) =>
       @stagedNode.innerHTML = ''
@@ -226,12 +229,12 @@ class StatusListView extends HTMLElement
   stageAll: ->
     paths = []
     paths.push entry.path for entry in @getUnstagedEntries()
-    @git.stageAllPaths(paths).then => @base.trigger("index-updated")
+    @git.stageAllPaths(paths).then => atom.emit('did-update-git-repository')
 
   unstageAll: ->
     paths = []
     paths.push entry.path for entry in @getStagedEntries()
-    @git.unstageAllPaths(paths).then => @base.trigger("index-updated")
+    @git.unstageAllPaths(paths).then => atom.emit('did-update-git-repository')
 
   openInPane: (e) ->
     selected = @selectedEntry()
@@ -259,7 +262,7 @@ class StatusListView extends HTMLElement
         "Discard Changes": =>
           shell.moveItemToTrash(localPath) if exists
           @git.forceCheckoutPath(path).then =>
-            @base.trigger("index-updated")
+            atom.emit('did-update-git-repository')
 
         "Cancel": null
 

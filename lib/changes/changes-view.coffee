@@ -17,7 +17,7 @@ class ChangesView extends SplitView
     @update()
 
   update: ->
-    @el.trigger('index-updated')
+    atom.emit('did-update-git-repository')
 
   getTitle: ->
     'Commit changes'
