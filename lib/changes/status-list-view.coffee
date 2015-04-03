@@ -95,11 +95,11 @@ class StatusListView extends HTMLElement
 
         if @isUnstaged(status)
           unstagedSummary = new FileSummaryView
-          unstagedSummary.setFile(status, "unstaged")
+          unstagedSummary.initialize {file: status, status: 'unstaged'}
           @unstagedNode.appendChild(unstagedSummary)
         if @isStaged(status)
           stagedSummary = new FileSummaryView
-          stagedSummary.setFile(status, "staged")
+          stagedSummary.initialize {file: status, status: 'staged'}
           @stagedNode.appendChild(stagedSummary)
 
       @commitMessageView.setStagedCount(@getStagedEntries().length)

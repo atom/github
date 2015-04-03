@@ -1,4 +1,4 @@
-GitExperiment = require '../lib/git'
+GitExperiment = require '../lib/main'
 
 # Use the command `window:run-package-specs` (cmd-alt-ctrl-p) to run specs.
 #

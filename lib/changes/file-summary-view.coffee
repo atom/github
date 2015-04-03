@@ -1,4 +1,3 @@
-$          = require 'jquery'
 GitChanges = require './git-changes'
 
 BaseTemplate = """
@@ -12,11 +11,24 @@ BaseTemplate = """
 <button class="btn btn-xs"></button>
 """
 
+# model=
+#   file:
+#     path: -> String
+#     statusBit: -> Enum
+#   status: String
 
 class FileSummaryView extends HTMLElement
+  initialize: (@model) ->
+    Object.observe @model, (changes) =>
+      changes.forEach (change) ->
+        if change.name is 'file'
+          @setFile()
+
+    @setFile()
+
+
   createdCallback: ->
     # Elements
-    @el           = $(@)
     @innerHTML    = BaseTemplate
     @iconNode     = @querySelector(".icon")
     @dirNode      = @querySelector(".dir")
@@ -27,25 +39,23 @@ class FileSummaryView extends HTMLElement
     @git = new GitChanges
 
   attachedCallback: ->
-    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: =>
-    @el.on "click", ".btn", @stage.bind(@)
-    @el.on "dblclick", @stage.bind(@)
+    @querySelector('.btn').addEventListener 'click', @stage
+    @addEventListener 'dblclick', @stage
 
   detatchedCallback: ->
-    @el.off "click", ".btn"
-    @el.off "dblclick"
+    @querySelector('.btn').removeEventListener 'click', @stage
+    @removeEventListener 'dblclick', @stage
 
-  setFile: (@file, @status) ->
+  setFile: ->
     @setPath()
     @setIcon()
     @setButtonText()
 
   setPath: ->
-    @path = @file.path()
-    pathParts = @path.split("/")
+    pathParts = @model.file.path().split("/")
     filename  = pathParts.pop()
     dir       = pathParts.join('/')
     dir      += "/" if dir
@@ -54,10 +64,10 @@ class FileSummaryView extends HTMLElement
     @filenameNode.textContent = filename
 
   setIcon: ->
-    bit = @file.statusBit()
+    bit = @model.file.statusBit()
     codes = @git.statusCodes()
 
-    if @status == 'unstaged'
+    if @model.status == 'unstaged'
       className = if bit & codes.WT_NEW
         'added'
       else if bit & codes.WT_RENAMED
@@ -79,18 +89,18 @@ class FileSummaryView extends HTMLElement
     @iconNode.classList.add("icon-diff-#{className}")
 
   setButtonText: ->
-    @buttonNode.textContent = if @status == "staged"
+    @buttonNode.textContent = if @model.status == "staged"
       "Unstage"
     else
       "Stage"
 
-  stage: (e) ->
+  stage: (e) =ch  >
     e?.stopImmediatePropagation()
 
-    promise = if @status == 'unstaged'
-      @git.stagePath(@path)
+    promise = if @model.status == 'unstaged'
+      @git.stagePath(@model.path)
     else
-      @git.unstagePath(@path)
+      @git.unstagePath(@model.path)
 
     promise.then =>
       atom.emit('did-update-git-repository')
