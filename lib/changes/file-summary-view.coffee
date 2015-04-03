@@ -94,7 +94,7 @@ class FileSummaryView extends HTMLElement
     else
       "Stage"
 
-  stage: (e) =ch  >
+  stage: (e) =>
     e?.stopImmediatePropagation()
 
     promise = if @model.status == 'unstaged'
