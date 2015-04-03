@@ -20,9 +20,8 @@ BaseTemplate = """
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
     Object.observe @model, (changes) =>
-      changes.forEach (change) ->
-        if change.name is 'file'
-          @setFile()
+      changes.forEach (change) =>
+        @setFile()
 
     @setFile()
 
