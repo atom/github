@@ -2,6 +2,8 @@ $                 = require 'jquery'
 GitChanges        = require './git-changes'
 CommitMessageView = require './commit-message-view'
 UndoCommitView    = require './undo-commit-view'
+
+FileSummary   = require './file-summary'
 FileSummaryView   = require './file-summary-view'
 shell             = require 'shell'
 fs                = require 'fs'
@@ -94,13 +96,15 @@ class StatusListView extends HTMLElement
         # create two elements if that's the case
 
         if @isUnstaged(status)
-          unstagedSummary = new FileSummaryView
-          unstagedSummary.initialize {file: status, status: 'unstaged'}
-          @unstagedNode.appendChild(unstagedSummary)
+          unstagedSummaryView = new FileSummaryView
+          unstagedSummary = new FileSummary({file: status, status: 'unstaged'})
+          unstagedSummaryView.initialize(unstagedSummary)
+          @unstagedNode.appendChild(unstagedSummaryView)
         if @isStaged(status)
-          stagedSummary = new FileSummaryView
-          stagedSummary.initialize {file: status, status: 'staged'}
-          @stagedNode.appendChild(stagedSummary)
+          stagedSummaryView = new FileSummaryView
+          stagedSummary = new FileSummary({file: status, status: 'staged'})
+          stagedSummaryView.initialize(stagedSummary)
+          @stagedNode.appendChild(stagedSummaryView)
 
       @commitMessageView.setStagedCount(@getStagedEntries().length)
       @commitMessageView.update()

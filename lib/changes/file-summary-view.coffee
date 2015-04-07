@@ -19,9 +19,7 @@ BaseTemplate = """
 
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
-    Object.observe @model, (changes) =>
-      changes.forEach (change) =>
-        @setFile()
+    @model.observe ['file', 'status'], @setFile.bind(@)
 
     @setFile()
 
@@ -48,7 +46,8 @@ class FileSummaryView extends HTMLElement
     @querySelector('.btn').removeEventListener 'click', @stage
     @removeEventListener 'dblclick', @stage
 
-  setFile: ->
+  setFile: (model) ->
+    @model = model if model
     @setPath()
     @setIcon()
     @setButtonText()

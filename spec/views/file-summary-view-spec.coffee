@@ -1,14 +1,16 @@
 FileSummaryView = require '../../lib/changes/file-summary-view.coffee'
+FileSummary = require '../../lib/changes/file-summary.coffee'
 GitChanges = require '../../lib/changes/git-changes.coffee'
 
 fdescribe 'FileSummaryView', ->
   beforeEach ->
     @view = new FileSummaryView
-    model =
+    model = new FileSummary(
       file:
         path: -> '/test/file.md'
         statusBit: -> (new GitChanges).statusCodes().WT_NEW
       status: 'unstaged'
+      )
 
     @view.initialize(model)
 
