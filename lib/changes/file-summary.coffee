@@ -1,7 +1,6 @@
 GitChanges = require './git-changes'
-Model = require '../model'
 
-module.exports = class FileSummary extends Model
+module.exports = class FileSummary
   constructor: ({@file, @status, @icon}) ->
     @git = new GitChanges
 

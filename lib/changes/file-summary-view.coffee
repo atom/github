@@ -1,5 +1,7 @@
 {CompositeDisposable, Disposable} = require 'atom'
 
+observe = require '../observe'
+
 BaseTemplate = """
 <div>
   <span class="icon"></span>
@@ -13,7 +15,7 @@ BaseTemplate = """
 
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
-    @model.observe ['file', 'status'], @update.bind(@)
+    observe @model, ['file', 'status'], @update.bind(@)
     @subscriptions = new CompositeDisposable
     @update()
 
