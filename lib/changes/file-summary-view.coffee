@@ -1,5 +1,4 @@
 {CompositeDisposable, Disposable} = require 'atom'
-GitChanges = require './git-changes'
 
 BaseTemplate = """
 <div>
@@ -20,9 +19,9 @@ BaseTemplate = """
 
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
-    @model.observe ['file', 'status'], @setFile.bind(@)
+    @model.observe ['file', 'status'], @update.bind(@)
     @subscriptions = new CompositeDisposable
-    @setFile()
+    @update()
 
 
   createdCallback: ->
@@ -33,8 +32,6 @@ class FileSummaryView extends HTMLElement
     @filenameNode = @querySelector(".filename")
     @buttonNode   = @querySelector(".btn")
     @index        = undefined
-
-    @git = new GitChanges
 
   attachedCallback: ->
     @handleEvents()
@@ -51,62 +48,27 @@ class FileSummaryView extends HTMLElement
   detatchedCallback: ->
     @subscriptions.dispose()
 
-  setFile: (model) =>
+  update: (model) =>
     @model = model if model
     @setPath()
     @setIcon()
     @setButtonText()
 
   setPath: ->
-    pathParts = @model.file.path().split("/")
-    filename  = pathParts.pop()
-    dir       = pathParts.join('/')
-    dir      += "/" if dir
-
+    [dir, filename] = @model.pathInfo()
     @dirNode.textContent      = dir
     @filenameNode.textContent = filename
 
   setIcon: ->
-    bit = @model.file.statusBit()
-    codes = @git.statusCodes()
-
-    if @model.status == 'unstaged'
-      className = if bit & codes.WT_NEW
-        'added'
-      else if bit & codes.WT_RENAMED
-        'renamed'
-      else if bit & codes.WT_DELETED
-        'removed'
-      else
-        'modified'
-    else
-      className = if bit & codes.INDEX_NEW
-        'added'
-      else if bit & codes.INDEX_RENAMED
-        'renamed'
-      else if bit & codes.INDEX_DELETED
-        'removed'
-      else
-        'modified'
-    @iconNode.classList.add("status-#{className}")
-    @iconNode.classList.add("icon-diff-#{className}")
+    @iconNode.classList.add("status-#{@model.iconClass()}")
+    @iconNode.classList.add("icon-diff-#{@model.iconClass()}")
 
   setButtonText: ->
-    @buttonNode.textContent = if @model.status == "staged"
-      "Unstage"
-    else
-      "Stage"
+    @buttonNode.textContent = @model.buttonText()
 
   stage: (e) =>
     e?.stopImmediatePropagation()
-
-    promise = if @model.status == 'unstaged'
-      @git.stagePath(@model.file.path())
-    else
-      @git.unstagePath(@model.file.path())
-
-    promise.then =>
-      atom.emit('did-update-git-repository')
+    @model.stage()
 
 module.exports = document.registerElement "git-file-summary-view",
   prototype: FileSummaryView.prototype

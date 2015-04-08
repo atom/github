@@ -21,8 +21,11 @@ fdescribe 'FileSummaryView', ->
     expect(@view.iconNode.classList.contains('status-added')).toBe(true)
 
   it 'updates the filename on change', ->
-    # Why doesn't this pass?
     @view.model.file =
       path: -> '/test/new-file-name.md'
-      statusBit: -> (new GitChanges).statusCodes().WT_NEW
-    expect(@view.filenameNode.textContent).toEqual('new-file-name.md')
+      statusBit: => @view.model.git.statusCodes().WT_NEW
+
+    waitsFor ->
+      @view.filenameNode.textContent != 'file.md'
+    runs ->
+      expect(@view.filenameNode.textContent).toEqual('new-file-name.md')

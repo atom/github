@@ -4,3 +4,4 @@ module.exports = class Model
       for change in changes
         if change.name in keys
           fn(@)
+          break
