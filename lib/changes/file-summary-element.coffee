@@ -13,7 +13,7 @@ BaseTemplate = """
 <button class="btn btn-xs"></button>
 """
 
-class FileSummaryView extends HTMLElement
+class FileSummaryElement extends HTMLElement
   initialize: (@model) ->
     observe @model, ['file', 'status'], @update.bind(@)
     @subscriptions = new CompositeDisposable
@@ -62,5 +62,5 @@ class FileSummaryView extends HTMLElement
     e?.stopImmediatePropagation()
     @model.stage()
 
-module.exports = document.registerElement "git-file-summary-view",
-  prototype: FileSummaryView.prototype
+module.exports = document.registerElement "git-file-summary-element",
+  prototype: FileSummaryElement.prototype

@@ -4,7 +4,7 @@ CommitMessageView = require './commit-message-view'
 UndoCommitView    = require './undo-commit-view'
 
 FileSummary   = require './file-summary'
-FileSummaryView   = require './file-summary-view'
+FileSummaryElement   = require './file-summary-element'
 shell             = require 'shell'
 fs                = require 'fs'
 
@@ -22,7 +22,7 @@ BaseTemplate = """
 <div class="undo-last-commit-box"></div>
 """
 
-FileSummaryTag = "git-file-summary-view"
+FileSummaryTag = "git-file-summary-element"
 
 class StatusListView extends HTMLElement
   createdCallback: ->
@@ -96,12 +96,12 @@ class StatusListView extends HTMLElement
         # create two elements if that's the case
 
         if @isUnstaged(status)
-          unstagedSummaryView = new FileSummaryView
+          unstagedSummaryView = new FileSummaryElement
           unstagedSummary = new FileSummary({file: status, status: 'unstaged'})
           unstagedSummaryView.initialize(unstagedSummary)
           @unstagedNode.appendChild(unstagedSummaryView)
         if @isStaged(status)
-          stagedSummaryView = new FileSummaryView
+          stagedSummaryView = new FileSummaryElement
           stagedSummary = new FileSummary({file: status, status: 'staged'})
           stagedSummaryView.initialize(stagedSummary)
           @stagedNode.appendChild(stagedSummaryView)

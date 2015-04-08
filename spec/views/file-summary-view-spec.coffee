@@ -1,10 +1,10 @@
-FileSummaryView = require '../../lib/changes/file-summary-view.coffee'
+FileSummaryElement = require '../../lib/changes/file-summary-element.coffee'
 FileSummary = require '../../lib/changes/file-summary.coffee'
 GitChanges = require '../../lib/changes/git-changes.coffee'
 
-fdescribe 'FileSummaryView', ->
+fdescribe 'FileSummaryElement', ->
   beforeEach ->
-    @view = new FileSummaryView
+    @view = new FileSummaryElement
     model = new FileSummary(
       file:
         path: -> '/test/file.md'
