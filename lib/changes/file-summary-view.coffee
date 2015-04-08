@@ -40,7 +40,6 @@ class FileSummaryView extends HTMLElement
     @subscriptions.dispose()
 
   update: (model) =>
-    @model = model if model
     @setPath()
     @setIcon()
     @setButtonText()
