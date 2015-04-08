@@ -39,7 +39,7 @@ class FileSummaryView extends HTMLElement
   detatchedCallback: ->
     @subscriptions.dispose()
 
-  update: (model) =>
+  update: ->
     @setPath()
     @setIcon()
     @setButtonText()
