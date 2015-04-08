@@ -11,12 +11,6 @@ BaseTemplate = """
 <button class="btn btn-xs"></button>
 """
 
-# model=
-#   file:
-#     path: -> String
-#     statusBit: -> Enum
-#   status: String
-
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
     @model.observe ['file', 'status'], @update.bind(@)
