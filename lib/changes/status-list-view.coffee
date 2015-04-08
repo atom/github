@@ -1,7 +1,10 @@
-$                 = require 'jquery'
+{CompositeDisposable, Disposable} = require 'atom'
+
 GitChanges        = require './git-changes'
 CommitMessageView = require './commit-message-view'
 UndoCommitView    = require './undo-commit-view'
+StatusList        = require './status-list'
+observe = require '../observe'
 
 FileSummary   = require './file-summary'
 FileSummaryElement   = require './file-summary-element'
@@ -24,18 +27,25 @@ BaseTemplate = """
 
 FileSummaryTag = "git-file-summary-element"
 
-class StatusListView extends HTMLElement
+class StatusListElement extends HTMLElement
+  initialize: ({@changesView}) ->
+    # XXX remove @git after this is refactored
+    @git = @changesView.model.git
+    @model = new StatusList(git: @changesView.model.git)
+    observe @model, ['staged', 'unstaged'], @update.bind(@)
+    # XXX chained initialize, bad smell?
+    @model.initialize()
+
   createdCallback: ->
+    @subscriptions = new CompositeDisposable
+
     # Elements
-    @el               = $(@)
     @innerHTML        = BaseTemplate
     @tabIndex         = -1
     @stagedNode       = @querySelector(".files.staged")
     @unstagedNode     = @querySelector(".files.unstaged")
     @commitMessageBox = @querySelector(".commit-message-box")
     @undoCommitBox    = @querySelector(".undo-last-commit-box")
-
-    @git = new GitChanges
 
     # Subviews
     @commitMessageView = new CommitMessageView
@@ -45,20 +55,31 @@ class StatusListView extends HTMLElement
     @undoCommitBox.appendChild(@undoCommitView)
 
   attachedCallback: ->
-    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: =>
-    @base.on "focus-list", @focus.bind(@)
-    @base.on "focus-commit-message", @focusCommitMessage.bind(@)
+    focus = @focus.bind(@)
+    focusCommitMessage = @focusCommitMessage.bind(@)
+    stageAll = @stageAll.bind(@)
+    unstageAll = @unstageAll.bind(@)
+    # XXX: I think these events should be past-tense reaction to some state change, not
+    # a dispatched command
+    @changesView.addEventListener('focus-list', focus)
+    @changesView.addEventListener('focus-commit-message', focusCommitMessage)
 
-    @el.on "click", ".btn-stage-all", @stageAll.bind(@)
-    @el.on "click", ".btn-unstage-all", @unstageAll.bind(@)
-    @el.on "click", FileSummaryTag, @entryClicked.bind(@)
+    @querySelector('.btn-stage-all').addEventListener(stageAll)
+    @querySelector('.btn-unstage-all').addEventListener(unstageAll)
 
-    @updateSubscription = atom.on 'did-update-git-repository', @update.bind(@)
+    @subscriptions.add new Disposable =>
+      @changesView.removeEventListener(focus)
+      @changesView.removeEventListener(focusCommitMessage)
+      @querySelector('.btn-stage-all').removeEventListener(stageAll)
+      @querySelector('.btn-stage-all').removeEventListener(unstageAll)
 
-    @commands = atom.commands.add "git-status-list-view:focus",
+    # TODO
+    # @el.on "click", FileSummaryTag, @entryClicked.bind(@)
+    #
+    commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
       'core:move-right': @focusDiffView
@@ -67,75 +88,50 @@ class StatusListView extends HTMLElement
       'git:focus-commit-message': @focusCommitMessage
       'git:open-file': @openInPane
 
+    @subscriptions.add(commands)
+
   detachedCallback: ->
-    @base.off "focus-list"
-    @base.off "index-updated"
-    @base.off "focus-commit-message"
+    @subscriptions.dispose()
 
-    @el.off "click", ".btn-stage-all"
-    @el.off "click", ".btn-unstage-all"
-    @el.off "click", FileSummaryTag
+  update: =>
+    @stagedNode.innerHTML = ''
+    @unstagedNode.innerHTML = ''
+    # XXX: should append these all at once
+    @model.unstaged.forEach @appendUnstaged.bind(@)
+    @model.staged.forEach @appendStaged.bind(@)
+    @commitMessageView.setStagedCount(@model.staged.length)
+    @commitMessageView.update()
+    @undoCommitView.update()
+    @setIndices()
+    @selectDefaultStatus()
+    @focus()
 
-    if @commands
-      @commands.dispose()
-      @commands = null
 
-    if @updateSubscription
-      @updateSubscription.dispose()
-      @updateSubscription = null
+  appendUnstaged: (status) ->
+    unstagedSummaryView = new FileSummaryElement
+    # XXX: confusing use of status to mean two things here
+    unstagedSummary = new FileSummary
+      file: status
+      status: 'unstaged'
+      git: @changesView.model.git
 
-  update: ->
-    @git.getStatuses()
-    .then (statuses) =>
-      @stagedNode.innerHTML = ''
-      @unstagedNode.innerHTML = ''
+    unstagedSummaryView.initialize(unstagedSummary)
+    @unstagedNode.appendChild(unstagedSummaryView)
 
-      for status in statuses
-        # a status can indicate a file that has both
-        # staged and unstaged changes, so we need to
-        # create two elements if that's the case
+  appendStaged: (status) ->
+    stagedSummaryView = new FileSummaryElement
+    # XXX: confusing use of status to mean two things here
+    stagedSummary = new FileSummary
+      file: status
+      status: 'staged'
+      git: @changesView.model.git
 
-        if @isUnstaged(status)
-          unstagedSummaryView = new FileSummaryElement
-          unstagedSummary = new FileSummary({file: status, status: 'unstaged'})
-          unstagedSummaryView.initialize(unstagedSummary)
-          @unstagedNode.appendChild(unstagedSummaryView)
-        if @isStaged(status)
-          stagedSummaryView = new FileSummaryElement
-          stagedSummary = new FileSummary({file: status, status: 'staged'})
-          stagedSummaryView.initialize(stagedSummary)
-          @stagedNode.appendChild(stagedSummaryView)
-
-      @commitMessageView.setStagedCount(@getStagedEntries().length)
-      @commitMessageView.update()
-      @undoCommitView.update()
-      @setIndices()
-      @selectDefaultStatus()
-      @focus()
+    stagedSummaryView.initialize(stagedSummary)
+    @stagedNode.appendChild(stagedSummaryView)
 
   setIndices: ->
     for entry, idx in @getAllEntries()
       entry.index = idx
-
-  isUnstaged: (status) ->
-    bit = status.statusBit()
-    codes = @git.statusCodes()
-
-    return bit & codes.WT_NEW ||
-           bit & codes.WT_MODIFIED ||
-           bit & codes.WT_DELETED ||
-           bit & codes.WT_RENAMED ||
-           bit & codes.WT_TYPECHANGE
-
-  isStaged: (status) ->
-    bit = status.statusBit()
-    codes = @git.statusCodes()
-
-    return bit & codes.INDEX_NEW ||
-           bit & codes.INDEX_MODIFIED ||
-           bit & codes.INDEX_DELETED ||
-           bit & codes.INDEX_RENAMED ||
-           bit & codes.INDEX_TYPECHANGE
 
   empty: ->
     @base.trigger("no-change-selected")
@@ -204,15 +200,16 @@ class StatusListView extends HTMLElement
     @commitMessageView.focusTextArea()
 
   scrollIntoView: (entry) ->
-    container    = $(entry).closest('.files')[0]
-    scrollBottom = container.offsetHeight + container.scrollTop
-    entryTop     = entry.offsetTop
-    entryBottom  = entryTop + entry.offsetHeight
-
-    if entryBottom > scrollBottom
-      entry.scrollIntoView(false)
-    else if entry.offsetTop < container.scrollTop
-      entry.scrollIntoView(true)
+    # TODO without jQuery
+    # container    = $(entry).closest('.files')[0]
+    # scrollBottom = container.offsetHeight + container.scrollTop
+    # entryTop     = entry.offsetTop
+    # entryBottom  = entryTop + entry.offsetHeight
+    #
+    # if entryBottom > scrollBottom
+    #   entry.scrollIntoView(false)
+    # else if entry.offsetTop < container.scrollTop
+    #   entry.scrollIntoView(true)
 
   moveSelectionUp: =>
     selected = @selectedEntry()
@@ -271,4 +268,4 @@ class StatusListView extends HTMLElement
         "Cancel": null
 
 module.exports = document.registerElement "git-status-list-view",
-  prototype: StatusListView.prototype
+  prototype: StatusListElement.prototype

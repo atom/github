@@ -1,23 +1,29 @@
 $              = require 'jquery'
 SplitView      = require '../utils/split-view'
-StatusListView = require './status-list-view'
+StatusListElement = require './status-list-view'
 DiffView       = require './diff-view'
+Changes        = require './changes'
 
 class ChangesView extends SplitView
+  # This is the root view for view-and-commit-changes.
   initialize: ({@uri, width}) ->
-    @statusListView = new StatusListView
+    @model = new Changes
+    @StatusListElement = new StatusListElement
+
+    # The children maintain a reference to the root view
+    @StatusListElement.initialize(changesView: @)
     @diffView       = new DiffView
 
     @width(width) if width > 0
 
     @setSubViews
-      summaryView: @statusListView
+      summaryView: @StatusListElement
       detailsView: @diffView
 
     @update()
 
   update: ->
-    atom.emit('did-update-git-repository')
+    @model.git.emit('did-update-repository')
 
   getTitle: ->
     'Commit changes'

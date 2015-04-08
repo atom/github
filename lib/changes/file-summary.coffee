@@ -1,8 +1,8 @@
 GitChanges = require './git-changes'
 
 module.exports = class FileSummary
-  constructor: ({@file, @status, @icon}) ->
-    @git = new GitChanges
+  constructor: ({@file, @status, @icon, @git}) ->
+    # We pass around one instance of GitChanges for all view-models.
 
   getIconClass: ->
     bit = @file.statusBit()
@@ -40,7 +40,7 @@ module.exports = class FileSummary
       @git.unstagePath(@file.path())
 
     promise.then =>
-      atom.emit('did-update-git-repository')
+      @git.emit('did-update-repository')
 
   getPathInfo: ->
     pathParts = @file.path().split("/")

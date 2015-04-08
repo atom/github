@@ -2,7 +2,7 @@ FileSummaryElement = require '../../lib/changes/file-summary-element.coffee'
 FileSummary = require '../../lib/changes/file-summary.coffee'
 GitChanges = require '../../lib/changes/git-changes.coffee'
 
-fdescribe 'FileSummaryElement', ->
+describe 'FileSummaryElement', ->
   beforeEach ->
     @view = new FileSummaryElement
     model = new FileSummary(

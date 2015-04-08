@@ -1,3 +1,4 @@
+{Emitter}    = require 'atom'
 Git          = require 'nodegit'
 ChildProcess = require 'child_process'
 os           = require 'os'
@@ -14,6 +15,13 @@ class GitChanges
   constructor: ->
     @tmpDir   = os.tmpDir()
     @repoPath = atom.project.getPaths()[0]
+    @emitter = new Emitter
+
+  emit: (event) ->
+    @emitter.emit(event)
+
+  onDidUpdateRepsitory: (callback) ->
+    @emitter.on('did-update-repository', callback)
 
   statusCodes: ->
     Git.Status.STATUS
