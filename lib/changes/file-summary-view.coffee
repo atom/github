@@ -27,9 +27,7 @@ class FileSummaryView extends HTMLElement
     @buttonNode   = @querySelector(".btn")
 
   attachedCallback: ->
-    @handleEvents()
-
-  handleEvents: =>
+    # Handle events
     boundStage = @stage.bind(@)
     @querySelector('.btn').addEventListener('click', boundStage)
     @addEventListener('dblclick', boundStage)
