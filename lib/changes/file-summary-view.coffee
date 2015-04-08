@@ -1,3 +1,4 @@
+{CompositeDisposable, Disposable} = require 'atom'
 GitChanges = require './git-changes'
 
 BaseTemplate = """
@@ -20,7 +21,7 @@ BaseTemplate = """
 class FileSummaryView extends HTMLElement
   initialize: (@model) ->
     @model.observe ['file', 'status'], @setFile.bind(@)
-
+    @subscriptions = new CompositeDisposable
     @setFile()
 
 
@@ -39,14 +40,18 @@ class FileSummaryView extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
-    @querySelector('.btn').addEventListener 'click', @stage
-    @addEventListener 'dblclick', @stage
+    boundStage = @stage.bind(@)
+    @querySelector('.btn').addEventListener('click', boundStage)
+    @addEventListener('dblclick', boundStage)
+
+    @subscriptions.add new Disposable =>
+      @querySelector('.btn').removeEventListener(boundStage)
+      @removeEventListener(boundStage)
 
   detatchedCallback: ->
-    @querySelector('.btn').removeEventListener 'click', @stage
-    @removeEventListener 'dblclick', @stage
+    @subscriptions.dispose()
 
-  setFile: (model) ->
+  setFile: (model) =>
     @model = model if model
     @setPath()
     @setIcon()
@@ -96,9 +101,9 @@ class FileSummaryView extends HTMLElement
     e?.stopImmediatePropagation()
 
     promise = if @model.status == 'unstaged'
-      @git.stagePath(@model.path)
+      @git.stagePath(@model.file.path())
     else
-      @git.unstagePath(@model.path)
+      @git.unstagePath(@model.file.path())
 
     promise.then =>
       atom.emit('did-update-git-repository')
