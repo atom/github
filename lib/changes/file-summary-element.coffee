@@ -47,16 +47,16 @@ class FileSummaryElement extends HTMLElement
     @setButtonText()
 
   setPath: ->
-    [dir, filename] = @model.pathInfo()
+    [dir, filename] = @model.getPathInfo()
     @dirNode.textContent      = dir
     @filenameNode.textContent = filename
 
   setIcon: ->
-    @iconNode.classList.add("status-#{@model.iconClass()}")
-    @iconNode.classList.add("icon-diff-#{@model.iconClass()}")
+    @iconNode.classList.add("status-#{@model.getIconClass()}")
+    @iconNode.classList.add("icon-diff-#{@model.getIconClass()}")
 
   setButtonText: ->
-    @buttonNode.textContent = @model.buttonText()
+    @buttonNode.textContent = @model.getButtonText()
 
   stage: (e) =>
     e?.stopImmediatePropagation()

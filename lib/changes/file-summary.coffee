@@ -4,7 +4,7 @@ module.exports = class FileSummary
   constructor: ({@file, @status, @icon}) ->
     @git = new GitChanges
 
-  iconClass: ->
+  getIconClass: ->
     bit = @file.statusBit()
     codes = @git.statusCodes()
 
@@ -27,7 +27,7 @@ module.exports = class FileSummary
       else
         'modified'
 
-  buttonText: ->
+  getButtonText: ->
     if @status == "staged"
       "Unstage"
     else
@@ -42,7 +42,7 @@ module.exports = class FileSummary
     promise.then =>
       atom.emit('did-update-git-repository')
 
-  pathInfo: ->
+  getPathInfo: ->
     pathParts = @file.path().split("/")
     filename  = pathParts.pop()
     dir       = pathParts.join('/')
