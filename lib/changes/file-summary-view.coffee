@@ -25,7 +25,6 @@ class FileSummaryView extends HTMLElement
     @dirNode      = @querySelector(".dir")
     @filenameNode = @querySelector(".filename")
     @buttonNode   = @querySelector(".btn")
-    @index        = undefined
 
   attachedCallback: ->
     @handleEvents()
