@@ -68,8 +68,8 @@ class StatusListElement extends HTMLElement
     @changesView.addEventListener('focus-list', focus)
     @changesView.addEventListener('focus-commit-message', focusCommitMessage)
 
-    @querySelector('.btn-stage-all').addEventListener(stageAll)
-    @querySelector('.btn-unstage-all').addEventListener(unstageAll)
+    @querySelector('.btn-stage-all').addEventListener('click', stageAll)
+    @querySelector('.btn-unstage-all').addEventListener('click', unstageAll)
 
     @subscriptions.add new Disposable =>
       @changesView.removeEventListener(focus)
