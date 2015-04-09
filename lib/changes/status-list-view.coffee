@@ -109,26 +109,26 @@ class StatusListElement extends HTMLElement
 
 
   appendUnstaged: (status) ->
-    unstagedSummaryView = new FileSummaryElement
+    unstagedSummaryElement = new FileSummaryElement
     # XXX: confusing use of status to mean two things here
     unstagedSummary = new FileSummary
       file: status
       status: 'unstaged'
       git: @changesView.model.git
 
-    unstagedSummaryView.initialize(unstagedSummary)
-    @unstagedNode.appendChild(unstagedSummaryView)
+    unstagedSummaryElement.initialize(unstagedSummary)
+    @unstagedNode.appendChild(unstagedSummaryElement)
 
   appendStaged: (status) ->
-    stagedSummaryView = new FileSummaryElement
+    stagedSummaryElement = new FileSummaryElement
     # XXX: confusing use of status to mean two things here
     stagedSummary = new FileSummary
       file: status
       status: 'staged'
       git: @changesView.model.git
 
-    stagedSummaryView.initialize(stagedSummary)
-    @stagedNode.appendChild(stagedSummaryView)
+    stagedSummaryElement.initialize(stagedSummary)
+    @stagedNode.appendChild(stagedSummaryElement)
 
   setIndices: ->
     for entry, idx in @getAllEntries()
