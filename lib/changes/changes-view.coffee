@@ -36,5 +36,10 @@ class ChangesView extends SplitView
     uri: @getURI()
     width: @width()
 
+  focusList: =>
+    # Some UI actions need to focus the StatusListElement after completion. The
+    # components are loosely coupled so we'll use this view as a DOM event bus.
+    @dispatchEvent(new Event('focus-list'))
+
 module.exports = document.registerElement 'git-changes-view',
   prototype: ChangesView.prototype

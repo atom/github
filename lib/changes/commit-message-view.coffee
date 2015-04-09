@@ -46,7 +46,7 @@ class CommitMessageView extends HTMLElement
     @messageSub = @messageModel.onDidChange @updateCommitButton.bind(@)
 
     @commandSub = atom.commands.add "git-commit-message-view atom-text-editor:not(.mini)",
-      "git:focus-status-list": @focusStatusList.bind(@)
+      "git:focus-status-list": @changesView.focusList.bind(@)
       "git:commit": @commit.bind(@)
 
   detatchedCallback: ->
@@ -69,9 +69,6 @@ class CommitMessageView extends HTMLElement
 
   focusTextArea: ->
     @messageNode.focus()
-
-  focusStatusList: ->
-    @base.trigger('focus-list')
 
   setMessage: (e, text) ->
     @messageModel.setText(text)

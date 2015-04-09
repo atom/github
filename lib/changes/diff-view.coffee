@@ -137,7 +137,7 @@ class DiffView extends HTMLElement
     @focus()
 
   focusList: ->
-    @base.trigger('focus-list')
+    @changesView.focusList()
 
   focusCommitMessage: ->
     @base.trigger('focus-commit-message')
