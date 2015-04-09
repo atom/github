@@ -36,6 +36,14 @@ class StatusListElement extends HTMLElement
     # XXX chained initialize, bad smell?
     @model.initialize()
 
+    # Subviews
+    @commitMessageView = new CommitMessageView
+    @commitMessageView.initialize({changesView: @changesView})
+    @commitMessageBox.appendChild(@commitMessageView)
+
+    @undoCommitView = new UndoCommitView
+    @undoCommitBox.appendChild(@undoCommitView)
+
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
@@ -46,13 +54,6 @@ class StatusListElement extends HTMLElement
     @unstagedNode     = @querySelector(".files.unstaged")
     @commitMessageBox = @querySelector(".commit-message-box")
     @undoCommitBox    = @querySelector(".undo-last-commit-box")
-
-    # Subviews
-    @commitMessageView = new CommitMessageView
-    @commitMessageBox.appendChild(@commitMessageView)
-
-    @undoCommitView = new UndoCommitView
-    @undoCommitBox.appendChild(@undoCommitView)
 
   attachedCallback: ->
     @handleEvents()
