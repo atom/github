@@ -90,6 +90,8 @@ class GitChanges
       message = "Created #{name} from #{from}"
       data.repo.createBranch(name, branch, 0, signature, message).then =>
         @checkoutBranch(name)
+    .then =>
+      @emitter.emit('did-update-repository')
 
   trackRemoteBranch: (name) ->
     @createBranch({name: name, from: "origin/#{name}"})
@@ -99,11 +101,16 @@ class GitChanges
       repo.getBranch(name)
     .then (branch) ->
       Git.Branch.setUpstream(branch, "origin/#{name}")
+    .then =>
+      @emitter.emit('did-update-repository')
+
 
   checkoutBranch: (name) ->
     Git.Repository.open(@repoPath)
     .then (repo) ->
       repo.checkoutBranch(name)
+    .then =>
+      @emitter.emit('did-update-repository')
 
   getPatch: (path, state) ->
     @diffsPromise.then (diffs) ->
@@ -204,6 +211,8 @@ class GitChanges
       commit.repo.openIndex()
     .then (index) ->
       index.write()
+    .then =>
+      @emitter.emit('did-update-repository')
 
   stagePath: (path) ->
     @stageAllPaths([path])
@@ -224,6 +233,8 @@ class GitChanges
           index.addByPath(path)
 
       index.write()
+    .then =>
+      @emitter.emit('did-update-repository')
 
   unstagePath: (path) ->
     @unstageAllPaths([path])
@@ -248,6 +259,8 @@ class GitChanges
                 status.headToIndex().oldFile().path())
 
             Git.Reset.default(data.repo, commit, path)
+    .then =>
+      @emitter.emit('did-update-repository')
 
   wordwrap: (str) ->
     return str unless str.length
@@ -275,6 +288,8 @@ class GitChanges
         @wordwrap(message),
         data.indexTree,
         parents)
+    .then =>
+      @emitter.emit('did-update-repository')
 
   stagePatch: (patchText, patch) =>
     data = {}
@@ -306,6 +321,8 @@ class GitChanges
       data.index.removeByPath(oldPath) if oldPath != newPath
       data.index.add(entry)
       data.index.write()
+    .then =>
+      @emitter.emit('did-update-repository')
 
   unstagePatch: (patchText, patch) =>
     patchText = @reversePatch(patchText)
@@ -337,6 +354,8 @@ class GitChanges
           mode: patch.newFile().mode()
         data.index.add(entry)
         data.index.write()
+    .then =>
+      @emitter.emit('did-update-repository')
 
   createIndexEntry: ({oid, path, fileSize, mode}) ->
     entry  = new Git.IndexEntry()
@@ -497,3 +516,5 @@ class GitChanges
     Git.Repository.open(@repoPath)
     .then (repo) ->
       Git.Checkout.head(repo, opts)
+    .then =>
+      @emitter.emit('did-update-repository')
