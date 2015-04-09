@@ -41,6 +41,8 @@ module.exports = class StatusList
            bit & codes.INDEX_TYPECHANGE
 
 
-  stageAll: ->
+  stageAll: =>
+    @git.stageAllPaths((status.path() for status in @unstaged))
 
-  unstageAll: ->
+  unstageAll: =>
+    @git.unstageAllPaths((status.path() for status in @staged))

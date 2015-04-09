@@ -61,8 +61,8 @@ class StatusListElement extends HTMLElement
   handleEvents: =>
     focus = @focus.bind(@)
     focusCommitMessage = @focusCommitMessage.bind(@)
-    stageAll = @stageAll.bind(@)
-    unstageAll = @unstageAll.bind(@)
+    stageAll = @model.stageAll
+    unstageAll = @model.unstageAll
     # XXX: I think these events should be past-tense reaction to some state change, not
     # a dispatched command
     @changesView.addEventListener('focus-list', focus)
@@ -227,16 +227,6 @@ class StatusListElement extends HTMLElement
       if selected.status == 'unstaged'
         next = @querySelector(".staged #{FileSummaryTag}")
     next?.click()
-
-  stageAll: ->
-    paths = []
-    paths.push entry.path for entry in @getUnstagedEntries()
-    @git.stageAllPaths(paths).then => atom.emit('did-update-git-repository')
-
-  unstageAll: ->
-    paths = []
-    paths.push entry.path for entry in @getStagedEntries()
-    @git.unstageAllPaths(paths).then => atom.emit('did-update-git-repository')
 
   openInPane: (e) ->
     selected = @selectedEntry()
