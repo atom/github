@@ -262,9 +262,7 @@ class StatusListElement extends HTMLElement
       buttons:
         "Discard Changes": =>
           shell.moveItemToTrash(localPath) if exists
-          @git.forceCheckoutPath(path).then =>
-            atom.emit('did-update-git-repository')
-
+          @git.forceCheckoutPath(path)
         "Cancel": null
 
 module.exports = document.registerElement "git-status-list-view",

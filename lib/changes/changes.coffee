@@ -25,6 +25,9 @@
 # than templates & data binding, these views use Object.observe (exposed through
 # a simple `observe` helper module).
 #
+# We can't override the constructor on custom elements so all of them but
+# GitChangesElement has an `initialize` that is called immediately to set it.
+#
 # A view will typically have an update function that updates some `textContent`
 # and some `classList` attributes when model attributes change. For simple views
 # (most views) this will probably mean just one update function total, but it's

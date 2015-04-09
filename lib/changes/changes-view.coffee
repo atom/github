@@ -8,16 +8,17 @@ class ChangesView extends SplitView
   # This is the root view for view-and-commit-changes.
   initialize: ({@uri, width}) ->
     @model = new Changes
-    @StatusListElement = new StatusListElement
+    @statusListElement = new StatusListElement
+    @diffView = new DiffView
 
     # The children maintain a reference to the root view
-    @StatusListElement.initialize(changesView: @)
-    @diffView       = new DiffView
+    @statusListElement.initialize(changesView: @)
+    @diffView.initialize(changesView: @)
 
     @width(width) if width > 0
 
     @setSubViews
-      summaryView: @StatusListElement
+      summaryView: @statusListElement
       detailsView: @diffView
 
     @update()

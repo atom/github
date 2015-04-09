@@ -14,6 +14,8 @@ BaseTemplate = """
 PlaceholderText = "Please enter a commit message describing your changes"
 
 class CommitMessageView extends HTMLElement
+  initialize: ({@changesView}) ->
+
   createdCallback: ->
     # Elements
     @el           = $(@)
@@ -36,7 +38,7 @@ class CommitMessageView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @updateSubscription = atom.on 'did-update-git-repository', @update.bind(@)
+    @updateSubscription = @changesView.model.git.onDidUpdateRepository(@update.bind(@))
     @base.on "set-commit-message", @setMessage.bind(@)
 
     @el.on "click", '.btn', @commit.bind(@)
@@ -91,7 +93,6 @@ class CommitMessageView extends HTMLElement
     return unless @canCommit()
     @git.commit(@getMessage()).then =>
       @messageModel.setText('')
-      atom.emit('did-update-git-repository')
       @base.trigger('set-commit-message', [''])
 
 module.exports = document.registerElement 'git-commit-message-view',

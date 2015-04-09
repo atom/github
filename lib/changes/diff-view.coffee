@@ -16,6 +16,8 @@ class DiffView extends HTMLElement
   @diffSelectionMode: 'hunk'
   @dragging: false
 
+  initialize: ({@changesView}) ->
+
   createdCallback: ->
     @el = $(@)
     @tabIndex = -1
@@ -42,7 +44,7 @@ class DiffView extends HTMLElement
 
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
-    @disposables.add atom.on 'did-update-git-repository', @clearCache.bind(@)
+    @disposables.add @changesView.model.git.onDidUpdateRepository(@clearCache.bind(@))
 
     @disposables.add  atom.commands.add "git-diff-view",
       'core:move-left': @focusList

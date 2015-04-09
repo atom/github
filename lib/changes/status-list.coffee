@@ -8,7 +8,7 @@ module.exports = class StatusList
     @staged = []
 
   initialize: ->
-    @git.onDidUpdateRepsitory(@loadGitStatuses)
+    @git.onDidUpdateRepository(@loadGitStatuses)
     @loadGitStatuses()
 
   loadGitStatuses: =>

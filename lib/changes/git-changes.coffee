@@ -20,7 +20,7 @@ class GitChanges
   emit: (event) ->
     @emitter.emit(event)
 
-  onDidUpdateRepsitory: (callback) ->
+  onDidUpdateRepository: (callback) ->
     @emitter.on('did-update-repository', callback)
 
   statusCodes: ->
