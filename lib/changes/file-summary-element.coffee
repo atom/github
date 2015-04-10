@@ -14,7 +14,7 @@ BaseTemplate = """
 """
 
 class FileSummaryElement extends HTMLElement
-  initialize: (@model) ->
+  initialize: ({@model, @changesView}) ->
     observe @model, ['file', 'status'], @update.bind(@)
     @subscriptions = new CompositeDisposable
     @update()
@@ -31,12 +31,15 @@ class FileSummaryElement extends HTMLElement
   attachedCallback: ->
     # Handle events
     boundStage = @stage.bind(@)
+    select = @select.bind(@)
     @querySelector('.btn').addEventListener('click', boundStage)
     @addEventListener('dblclick', boundStage)
+    @addEventListener('click', select)
 
     @subscriptions.add new Disposable =>
-      @querySelector('.btn').removeEventListener(boundStage)
-      @removeEventListener(boundStage)
+      @querySelector('.btn').removeEventListener('click', boundStage)
+      @removeEventListener('dblclick', boundStage)
+      @removeEventListener('click', select)
 
   detatchedCallback: ->
     @subscriptions.dispose()
@@ -46,7 +49,7 @@ class FileSummaryElement extends HTMLElement
     @setIcon()
     @setButtonText()
 
-  setPath: ->
+  setPath: =>
     [dir, filename] = @model.getPathInfo()
     @dirNode.textContent      = dir
     @filenameNode.textContent = filename
@@ -61,6 +64,15 @@ class FileSummaryElement extends HTMLElement
   stage: (e) =>
     e?.stopImmediatePropagation()
     @model.stage()
+
+  deselect: (e) =>
+    @classList.remove('selected')
+
+  select: (e) =>
+    @classList.add('selected')
+    # TODO: setRenderedPatch should probably just take @model
+    @changesView.model.setRenderedPatch(status: @model.status, path: @model.file.path())
+
 
 module.exports = document.registerElement "git-file-summary-element",
   prototype: FileSummaryElement.prototype

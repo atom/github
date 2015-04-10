@@ -52,5 +52,12 @@ GitChanges = require './git-changes'
 
 module.exports = class Changes
   # The view-model for the root ChangesView
+  renderedPatch: null
   constructor: ->
     @git = new GitChanges
+
+  setRenderedPatch: (entry) ->
+    @git.getPatch(entry.path, entry.status).then (patch) =>
+      @renderedPatch =
+        entry: entry
+        patch: patch

@@ -1,4 +1,5 @@
-GitChanges = require './git-changes'
+shell = require 'shell'
+fs = require 'fs'
 
 module.exports = class FileSummary
   constructor: ({@file, @status, @icon, @git}) ->
@@ -48,3 +49,15 @@ module.exports = class FileSummary
     dir       = pathParts.join('/')
     dir      += "/" if dir
     [dir, filename]
+
+  path: ->
+    @file.path()
+
+  localPath: ->
+    "#{@git.repoPath}/#{@path()}"
+
+  exists: ->
+
+  discard: ->
+    shell.moveItemToTrash(localPath()) if @exists()
+    @git.forceCheckoutPath(path())

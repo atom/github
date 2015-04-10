@@ -3,6 +3,7 @@ SplitView      = require '../utils/split-view'
 StatusListElement = require './status-list-view'
 DiffView       = require './diff-view'
 Changes        = require './changes'
+observe        = require '../observe'
 
 class ChangesView extends SplitView
   # This is the root view for view-and-commit-changes.
@@ -20,6 +21,8 @@ class ChangesView extends SplitView
     @setSubViews
       summaryView: @statusListElement
       detailsView: @diffView
+
+    observe @model, ['renderedPatch'], @renderPatch.bind(@)
 
     @update()
 
@@ -40,6 +43,15 @@ class ChangesView extends SplitView
     # Some UI actions need to focus the StatusListElement after completion. The
     # components are loosely coupled so we'll use this view as a DOM event bus.
     @dispatchEvent(new Event('focus-list'))
+
+  noChangeSelected: =>
+    @dispatchEvent(new Event('no-change-selected'))
+
+  focusDiffView: =>
+    @dispatchEvent(new Event('focus-diff-view'))
+
+  renderPatch: =>
+    @dispatchEvent(new CustomEvent('render-patch', detail: @model.renderedPatch))
 
 module.exports = document.registerElement 'git-changes-view',
   prototype: ChangesView.prototype
