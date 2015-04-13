@@ -1,5 +1,4 @@
 $         = require 'jquery'
-PatchView = require '../patch/patch-view'
 PatchElement = require './patch-element'
 Patch = require './patch'
 
@@ -62,9 +61,9 @@ class DiffView extends HTMLElement
       'git:focus-commit-message': @focusCommitMessage
       'git:open-file-to-line': @openFileToLine
 
-    @handlePatchViewEvents(listener)
+    @handlePatchElementEvents(listener)
 
-  handlePatchViewEvents: (listener) ->
+  handlePatchElementEvents: (listener) ->
     # this stuff belongs on PatchElement maybe?
 
     @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(@))
@@ -86,13 +85,13 @@ class DiffView extends HTMLElement
     @style.fontFamily = fontFamily
     @style.fontSize   = "#{fontSize}px"
 
-  getPatchView: (patch, status) ->
+  getPatchElement: (patch, status) ->
     path = patch.newFile().path()
     @constructor.patchCache or= {}
     @constructor.patchCache["#{status}#{path}"] or=
-      @createPatchView(patch, status)
+      @createPatchElement(patch, status)
 
-  createPatchView: (_patch, status) ->
+  createPatchElement: (_patch, status) ->
     patchElement  = new PatchElement
     patch = new Patch(patch: _patch, status: status)
     patchElement.initialize({changesView: @changesView, patch: patch})
@@ -102,7 +101,7 @@ class DiffView extends HTMLElement
     {patch, entry} = e.detail
     if patch
       currentPatch = @querySelector('git-patch-view, git-patch')
-      patchView = @getPatchView(patch, entry.status)
+      patchView = @getPatchElement(patch, entry.status)
       if !currentPatch or !currentPatch.isSameNode(patchView)
         @currentScroll = @scrollTop
         @innerHTML = ''
