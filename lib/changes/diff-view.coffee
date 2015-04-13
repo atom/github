@@ -101,7 +101,7 @@ class DiffView extends HTMLElement
   renderPatch: (e) ->
     {patch, entry} = e.detail
     if patch
-      currentPatch = @querySelector('git-patch-view')
+      currentPatch = @querySelector('git-patch-view, git-patch')
       patchView = @getPatchView(patch, entry.status)
       if !currentPatch or !currentPatch.isSameNode(patchView)
         @currentScroll = @scrollTop
