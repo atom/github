@@ -63,6 +63,7 @@ class StatusListElement extends HTMLElement
     focusCommitMessage = @focusCommitMessage.bind(@)
     stageAll = @model.stageAll
     unstageAll = @model.unstageAll
+
     # XXX: I think these events should be past-tense reaction to some state change, not
     # a dispatched command
     @changesView.addEventListener('focus-list', focus)
@@ -115,8 +116,7 @@ class StatusListElement extends HTMLElement
       file: status
       status: 'unstaged'
       git: @changesView.model.git
-
-    unstagedSummaryElement.initialize(unstagedSummary)
+    unstagedSummaryElement.initialize(model: unstagedSummary, changesView: @changesView)
     @unstagedNode.appendChild(unstagedSummaryElement)
 
   appendStaged: (status) ->
@@ -127,7 +127,7 @@ class StatusListElement extends HTMLElement
       status: 'staged'
       git: @changesView.model.git
 
-    stagedSummaryElement.initialize(stagedSummary)
+    stagedSummaryElement.initialize(model: stagedSummary, changesView: @changesView)
     @stagedNode.appendChild(stagedSummaryElement)
 
   setIndices: ->
@@ -135,10 +135,10 @@ class StatusListElement extends HTMLElement
       entry.index = idx
 
   empty: ->
-    @base.trigger("no-change-selected")
+    @changesView.noChangeSelected()
 
   focusDiffView: ->
-    @base.trigger('focus-diff-view')
+    @changesView.focusDiffView()
 
   selectDefaultStatus: ->
     entries = @getAllEntries()
@@ -167,7 +167,7 @@ class StatusListElement extends HTMLElement
     entry.classList.add("selected")
 
     @git.getPatch(entry.path, entry.status).then (patch) =>
-      @base.trigger('render-patch', [entry, patch])
+    @changesView.model.setRenderedPatch(entry)
 
     @scrollIntoView(entry)
     entry
@@ -234,26 +234,20 @@ class StatusListElement extends HTMLElement
 
   promptToDiscardChanges: ->
     selected = @selectedEntry()
-    return unless selected? and selected.path
-    path = selected.path
-    localPath = "#{@git.repoPath}/#{path}"
-    exists = try
-      !!fs.statSync(localPath)
-    catch
-      false
+    return unless selected? and selected.model?.path()
+    fileSummary = selected.model
 
     message = "Are you sure you want to discard these changes?"
-    details = "You are resetting #{path} to the last committed \
+    details = "You are resetting #{fileSummary.path()} to the last committed \
                version on this branch. "
-    details += "The modified file will be placed in the trash." if exists
+    details += "The modified file will be placed in the trash." if fileSummary.exists()
 
     atom.confirm
       message: message
       detailedMessage: details
       buttons:
         "Discard Changes": =>
-          shell.moveItemToTrash(localPath) if exists
-          @git.forceCheckoutPath(path)
+          fileSummary.discard()
         "Cancel": null
 
 module.exports = document.registerElement "git-status-list-view",
