@@ -24,10 +24,7 @@ class ChangesElement extends SplitView
 
     observe @model, ['renderedPatch'], @renderPatch.bind(@)
 
-    @update()
-
-  update: ->
-    @model.git.emit('did-update-repository')
+    @model.updateRepository()
 
   getTitle: ->
     'Commit changes'

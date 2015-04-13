@@ -61,3 +61,6 @@ module.exports = class Changes
       @renderedPatch =
         entry: entry
         patch: patch
+
+  updateRepository: () ->
+    @git.emit('did-update-repository')
