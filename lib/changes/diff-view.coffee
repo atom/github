@@ -1,5 +1,7 @@
 $         = require 'jquery'
 PatchView = require '../patch/patch-view'
+PatchElement = require './patch-element'
+Patch = require './patch'
 
 {CompositeDisposable} = require 'atom'
 
@@ -86,14 +88,14 @@ class DiffView extends HTMLElement
     @constructor.patchCache["#{status}#{path}"] or=
       @createPatchView(patch, status)
 
-  createPatchView: (patch, status) ->
-    patchView  = new PatchView
-    patchView.setPatch
-      patch: patch
-      status: status
-    patchView
+  createPatchView: (_patch, status) ->
+    patchElement  = new PatchElement
+    patch = new Patch(patch: _patch, status: status)
+    patchElement.initialize({changesView: @changesView, patch: patch})
+    patchElement
 
-  renderPatch: (e, entry, patch) ->
+  renderPatch: (e) ->
+    {patch, entry} = e.detail
     if patch
       currentPatch = @querySelector('git-patch-view')
       patchView = @getPatchView(patch, entry.status)
