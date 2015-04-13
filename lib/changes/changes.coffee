@@ -10,10 +10,10 @@
 # in the git index.
 #
 # This class and its accompanying view are one step above, and the base of the
-# view hierarchy. A reference to ChangesView is passed down the tree to each child
+# view hierarchy. A reference to ChangesElement is passed down the tree to each child
 # view, and if there are events that need to be emitted that are purely the concern
 # of the UI (that is to say not bubbled up from an attribute changing on a view-model),
-# we can dispatch events on the ChangesView element. (I'm not sure if this is the
+# we can dispatch events on the ChangesElement element. (I'm not sure if this is the
 # right way to do things, but some of the prototype followed this pattern - i suspect
 # every view change should be driven by an observed model attribute changing)
 #
@@ -51,7 +51,7 @@
 GitChanges = require './git-changes'
 
 module.exports = class Changes
-  # The view-model for the root ChangesView
+  # The view-model for the root ChangesElement
   renderedPatch: null
   constructor: ->
     @git = new GitChanges

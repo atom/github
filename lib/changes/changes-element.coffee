@@ -5,7 +5,7 @@ DiffView       = require './diff-view'
 Changes        = require './changes'
 observe        = require '../observe'
 
-class ChangesView extends SplitView
+class ChangesElement extends SplitView
   # This is the root view for view-and-commit-changes.
   initialize: ({@uri, width}) ->
     @model = new Changes
@@ -35,7 +35,7 @@ class ChangesView extends SplitView
   getURI: -> @uri
 
   serialize: ->
-    deserializer: 'GitChangesView'
+    deserializer: 'GitChangesElement'
     uri: @getURI()
     width: @width()
 
@@ -54,4 +54,4 @@ class ChangesView extends SplitView
     @dispatchEvent(new CustomEvent('render-patch', detail: @model.renderedPatch))
 
 module.exports = document.registerElement 'git-changes-view',
-  prototype: ChangesView.prototype
+  prototype: ChangesElement.prototype
