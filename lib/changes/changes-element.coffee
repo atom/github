@@ -8,7 +8,7 @@ observe        = require '../observe'
 class ChangesElement extends SplitView
   # This is the root view for view-and-commit-changes.
   initialize: ({@uri, width}) ->
-    @model = new Changes
+    @model ?= new Changes
     @statusListElement = new StatusListElement
     @diffView = new DiffView
 
