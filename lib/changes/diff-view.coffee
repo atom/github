@@ -3,6 +3,7 @@ PatchView = require '../patch/patch-view'
 PatchElement = require './patch-element'
 Patch = require './patch'
 
+DOMListener = require 'dom-listener'
 {CompositeDisposable} = require 'atom'
 
 DefaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
@@ -32,17 +33,17 @@ class DiffView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @base.on 'render-patch', @renderPatch.bind(@)
-    @base.on 'no-change-selected', @empty.bind(@)
-    @base.on 'focus-diff-view', @focusAndSelect.bind(@)
+    # Listen to events from the root view
+    # This should probably have an api like @changesView.onDidRenderPatch(fn)
+    changesViewListener = new DOMListener(@changesView)
+    @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(@))
+    @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(@))
+    @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(@))
 
-    @el.on 'mousedown', '.btn', (e) -> e.stopPropagation()
-    @el.on 'mouseenter', ChangedLineSelector, @mouseEnterLine.bind(@)
-    @el.on 'mouseleave', ChangedLineSelector, @mouseLeaveLine.bind(@)
-    @el.on 'mousedown', ChangedLineSelector, @mouseDownLine.bind(@)
-    @el.on 'mouseup mouseleave', @mouseUp.bind(@)
-    @el.on 'click', '.btn-stage-lines', @stageLines.bind(@)
-    @el.on 'click', '.btn-stage-hunk', @stageHunk.bind(@)
+    # Events here
+    listener = new DOMListener(@)
+    stopIt = (e) -> e.stopPropagation() if e.target and e.target.classList.contains('.btn')
+    @disposables.add listener.add(@, 'mousedown', stopIt)
 
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
@@ -61,20 +62,23 @@ class DiffView extends HTMLElement
       'git:focus-commit-message': @focusCommitMessage
       'git:open-file-to-line': @openFileToLine
 
+    @handlePatchViewEvents(listener)
+
+  handlePatchViewEvents: (listener) ->
+    # this stuff belongs on PatchElement maybe?
+
+    @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(@))
+    @disposables.add listener.add(ChangedLineSelector, 'mouseleave', @mouseLeaveLine.bind(@))
+    @disposables.add listener.add(ChangedLineSelector, 'mousedown', @mouseDownLine.bind(@))
+
+    @disposables.add listener.add(@, 'mouseup', @mouseUp.bind(@))
+    @disposables.add listener.add(@, 'mouseleave', @mouseUp.bind(@))
+
+    @disposables.add listener.add('.btn-stage-lines', 'click', @stageLines.bind(@))
+    @disposables.add listener.add('.btn-stage-hunk', 'click', @stageHunk.bind(@))
+
   detachedCallback: ->
     @disposables.dispose()
-
-    @base.off 'render-patch'
-    @base.off 'no-change-selected'
-    @base.off 'focus-diff-view'
-
-    @el.off 'mousedown', '.btn'
-    @el.off 'mouseenter', ChangedLineSelector
-    @el.off 'mouseleave', ChangedLineSelector
-    @el.off 'mousedown', ChangedLineSelector
-    @el.off 'mouseup mouseleave'
-    @el.off 'click', '.btn-stage-lines'
-    @el.off 'click', '.btn-stage-hunk'
 
   setFont: ->
     fontFamily = atom.config.get('editor.fontFamily') or DefaultFontFamily
