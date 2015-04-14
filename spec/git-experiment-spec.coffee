@@ -5,7 +5,7 @@ GitExperiment = require '../lib/main'
 # To run a specific `it` or `describe` block add an `f` to the front (e.g. `fit`
 # or `fdescribe`). Remove the `f` to unfocus the block.
 
-describe "GitExperiment", ->
+xdescribe "GitExperiment", ->
   [workspaceElement, activationPromise] = []
 
   beforeEach ->
