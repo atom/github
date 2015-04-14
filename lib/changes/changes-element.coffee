@@ -1,4 +1,3 @@
-$              = require 'jquery'
 SplitView      = require '../utils/split-view'
 StatusListElement = require './status-list-view'
 DiffView       = require './diff-view'
