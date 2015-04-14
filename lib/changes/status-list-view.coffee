@@ -1,7 +1,7 @@
 {CompositeDisposable, Disposable} = require 'atom'
 
 GitChanges        = require './git-changes'
-CommitMessageView = require './commit-message-view'
+CommitMessageElement = require './commit-message-element'
 UndoCommitView    = require './undo-commit-view'
 StatusList        = require './status-list'
 observe = require '../observe'
@@ -32,17 +32,17 @@ class StatusListElement extends HTMLElement
     # XXX remove @git after this is refactored
     @git = @changesView.model.git
     @model = new StatusList(git: @changesView.model.git)
-    observe @model, ['staged', 'unstaged'], @update.bind(@)
-    # XXX chained initialize, bad smell?
-    @model.initialize()
 
     # Subviews
-    @commitMessageView = new CommitMessageView
+    @commitMessageView = new CommitMessageElement
     @commitMessageView.initialize({changesView: @changesView})
     @commitMessageBox.appendChild(@commitMessageView)
 
     @undoCommitView = new UndoCommitView
     @undoCommitBox.appendChild(@undoCommitView)
+
+    observe @model, ['staged', 'unstaged'], @update.bind(@)
+    @model.initialize()
 
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -101,7 +101,8 @@ class StatusListElement extends HTMLElement
     # XXX: should append these all at once
     @model.unstaged.forEach @appendUnstaged.bind(@)
     @model.staged.forEach @appendStaged.bind(@)
-    @commitMessageView.setStagedCount(@model.staged.length)
+    # TODO the commit message view could probably keep track of this itself
+    @commitMessageView.model.setStagedCount(@model.staged.length)
     @commitMessageView.update()
     @undoCommitView.update()
     @setIndices()
