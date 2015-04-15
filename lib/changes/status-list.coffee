@@ -1,3 +1,9 @@
+# StatusList
+# ==========
+#
+# This is the viewmodel for StatusListElement. It represents the state of the
+# list of staged and unstaged changes in the left pane.
+
 GitChanges = require './git-changes'
 {CompositeDisposable, Disposable} = require 'atom'
 

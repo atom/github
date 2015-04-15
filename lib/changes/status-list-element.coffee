@@ -5,7 +5,8 @@
 # represent the list of staged and unstaged changes, and it has CommitMessageElement
 # and UndoCommitView as its children.
 #
-# Its initial refactor is still in progress.
+# Its initial refactor is still in progress, in other words there's still a bunch
+# of stuff that needs to be moved into the viewmodel and tested.
 
 {CompositeDisposable, Disposable} = require 'atom'
 
