@@ -1,6 +1,6 @@
 SplitView      = require '../utils/split-view'
 StatusListElement = require './status-list-view'
-DiffView       = require './diff-view'
+DiffElement       = require './diff-element'
 Changes        = require './changes'
 observe        = require '../observe'
 
@@ -9,7 +9,7 @@ class ChangesElement extends SplitView
   initialize: ({@uri, width}) ->
     @model ?= new Changes
     @statusListElement = new StatusListElement
-    @diffView = new DiffView
+    @diffView = new DiffElement
 
     # The children maintain a reference to the root view
     @statusListElement.initialize(changesView: @)
@@ -35,15 +35,18 @@ class ChangesElement extends SplitView
     uri: @getURI()
     width: @width()
 
+  # Some UI actions need to focus the StatusListElement after completion. The
+  # components are loosely coupled so we'll use this view as a DOM event bus.
   focusList: =>
-    # Some UI actions need to focus the StatusListElement after completion. The
-    # components are loosely coupled so we'll use this view as a DOM event bus.
     @dispatchEvent(new Event('focus-list'))
+
+  focusCommitMessage: =>
+    @dispatchEvent(new Event('focus-commit-message'))
 
   noChangeSelected: =>
     @dispatchEvent(new Event('no-change-selected'))
 
-  focusDiffView: =>
+  focusDiffElement: =>
     @dispatchEvent(new Event('focus-diff-view'))
 
   renderPatch: =>

@@ -1,4 +1,16 @@
+# DiffElement
+# ===========
+#
+# This element has the most complex behaviors of all of ChangesElement's
+# children. It's probably ripe for a refactoring. I'm not sure the best way to
+# decompose it - I could follow the pattern of the other prototype views and just
+# split out some functionality to a model and write tests, but it might make more
+# sense to split it into multiple views...
+
 $         = require 'jquery'
+
+Diff = require './diff'
+
 PatchElement = require './patch-element'
 Patch = require './patch'
 
@@ -14,21 +26,20 @@ EmptyTemplate = """
 
 ChangedLineSelector = ".hunk-line.addition, .hunk-line.deletion"
 
-class DiffView extends HTMLElement
+class DiffElement extends HTMLElement
   @diffSelectionMode: 'hunk'
   @dragging: false
 
   initialize: ({@changesView}) ->
+    @model = new Diff(git: @changesView.model.git)
 
   createdCallback: ->
-    @el = $(@)
     @tabIndex = -1
     @setFont()
     @empty()
     @disposables = new CompositeDisposable
 
   attachedCallback: ->
-    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
@@ -49,7 +60,7 @@ class DiffView extends HTMLElement
     @disposables.add @changesView.model.git.onDidUpdateRepository(@clearCache.bind(@))
 
     @disposables.add  atom.commands.add "git-diff-view",
-      'core:move-left': @focusList
+      'core:move-left': @changesView.focusList
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
@@ -58,7 +69,7 @@ class DiffView extends HTMLElement
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
-      'git:focus-commit-message': @focusCommitMessage
+      'git:focus-commit-message': @changesView.focusCommitMessage
       'git:open-file-to-line': @openFileToLine
 
     @handlePatchElementEvents(listener)
@@ -84,6 +95,10 @@ class DiffView extends HTMLElement
     fontSize   = atom.config.get('editor.fontSize') or DefaultFontSize
     @style.fontFamily = fontFamily
     @style.fontSize   = "#{fontSize}px"
+
+  # I'm not sure exactly the best way to organize / refactor this stuff
+  # (`getPatchElement`, `createPatchElement`, `renderPatch`, `setScrollPosition`,
+  # `setHunkSelection`) in light of viewmodels
 
   getPatchElement: (patch, status) ->
     path = patch.newFile().path()
@@ -140,12 +155,6 @@ class DiffView extends HTMLElement
     @selectFirstHunk() unless @selectedHunk()
     @removeClassFromLines('active')
     @focus()
-
-  focusList: ->
-    @changesView.focusList()
-
-  focusCommitMessage: ->
-    @base.trigger('focus-commit-message')
 
   selectedHunk: ->
     line = @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
@@ -389,4 +398,4 @@ class DiffView extends HTMLElement
       initialLine: line.dataset.newIndex
 
 module.exports = document.registerElement 'git-diff-view',
-  prototype: DiffView.prototype
+  prototype: DiffElement.prototype

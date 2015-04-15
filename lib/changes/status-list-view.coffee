@@ -84,7 +84,7 @@ class StatusListElement extends HTMLElement
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
-      'core:move-right': @focusDiffView
+      'core:move-right': @focusDiffElement
       'core:confirm':    @stageSelection
       'core:backspace':  @promptToDiscardChanges
       'git:focus-commit-message': @focusCommitMessage
@@ -138,8 +138,8 @@ class StatusListElement extends HTMLElement
   empty: ->
     @changesView.noChangeSelected()
 
-  focusDiffView: ->
-    @changesView.focusDiffView()
+  focusDiffElement: ->
+    @changesView.focusDiffElement()
 
   selectDefaultStatus: ->
     entries = @getAllEntries()
