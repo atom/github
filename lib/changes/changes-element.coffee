@@ -1,5 +1,5 @@
 SplitView      = require '../utils/split-view'
-StatusListElement = require './status-list-view'
+StatusListElement = require './status-list-element'
 DiffElement       = require './diff-element'
 Changes        = require './changes'
 observe        = require '../observe'

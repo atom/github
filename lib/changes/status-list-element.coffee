@@ -1,3 +1,12 @@
+# StatusListElement
+# =================
+#
+# This element contains everything in the left pane. This element and its model
+# represent the list of staged and unstaged changes, and it has CommitMessageElement
+# and UndoCommitView as its children.
+#
+# Its initial refactor is still in progress.
+
 {CompositeDisposable, Disposable} = require 'atom'
 
 GitChanges        = require './git-changes'
