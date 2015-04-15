@@ -9,10 +9,11 @@ describe 'FileSummaryElement', ->
       file:
         path: -> '/test/file.md'
         statusBit: -> (new GitChanges).statusCodes().WT_NEW
-      status: 'unstaged'
+      status: 'unstaged',
+      git: new GitChanges
       )
 
-    @view.initialize(model)
+    @view.initialize(model: model)
 
   it 'displays the filename', ->
     expect(@view.filenameNode.textContent).toEqual('file.md')

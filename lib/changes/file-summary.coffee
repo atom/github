@@ -59,5 +59,5 @@ module.exports = class FileSummary
   exists: ->
 
   discard: ->
-    shell.moveItemToTrash(localPath()) if @exists()
+    shell.moveItemToTrash(localPath()) if @exists() # XXX where was this originally defined
     @git.forceCheckoutPath(path())
