@@ -1,11 +1,16 @@
-# DiffElement
-# ===========
+# DiffElement <git-diff-view>
+# ===========================
 #
 # This element has the most complex behaviors of all of ChangesElement's
 # children. It's probably ripe for a refactoring. I'm not sure the best way to
 # decompose it - I could follow the pattern of the other prototype views and just
 # split out some functionality to a model and write tests, but it might make more
 # sense to split it into multiple views...
+#
+# DiffElement is the container for the right half of "View and Commit Changes".
+# When you select something from the list of statuses on the left, DiffElement
+# is updated with a diff that has a set of patches and hunks that can be
+# interacted with to stage and unstage
 
 $         = require 'jquery'
 
@@ -45,12 +50,13 @@ class DiffElement extends HTMLElement
   handleEvents: ->
     # Listen to events from the root view
     # This should probably have an api like @changesView.onDidRenderPatch(fn)
+    # TODO: push these events down into the model if possible
     changesViewListener = new DOMListener(@changesView)
     @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(@))
     @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(@))
     @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(@))
 
-    # Events here
+    # This view's DOM events
     listener = new DOMListener(@)
     stopIt = (e) -> e.stopPropagation() if e.target and e.target.classList.contains('.btn')
     @disposables.add listener.add(@, 'mousedown', stopIt)
@@ -99,6 +105,7 @@ class DiffElement extends HTMLElement
   # I'm not sure exactly the best way to organize / refactor this stuff
   # (`getPatchElement`, `createPatchElement`, `renderPatch`, `setScrollPosition`,
   # `setHunkSelection`) in light of viewmodels
+
 
   getPatchElement: (patch, status) ->
     path = patch.newFile().path()
