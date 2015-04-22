@@ -56,10 +56,13 @@ module.exports = class Changes
   constructor: ->
     @git = new GitChanges
 
-  setRenderedPatch: (entry) ->
-    @git.getPatch(entry.path, entry.status).then (patch) =>
+  setRenderedPatch: (fileSummary) ->
+    @git.getPatch(fileSummary.file.path(), fileSummary.status).then (patch) =>
       @renderedPatch =
-        entry: entry
+      # TODO get rid of the concept of `entry` being passed around
+        entry:
+          path: fileSummary.file.path()
+          status: fileSummary.status
         patch: patch
 
   updateRepository: () ->

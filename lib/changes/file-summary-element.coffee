@@ -70,8 +70,7 @@ class FileSummaryElement extends HTMLElement
 
   select: (e) =>
     @classList.add('selected')
-    # TODO: setRenderedPatch should probably just take @model
-    @changesView.model.setRenderedPatch(status: @model.status, path: @model.file.path())
+    @changesView.model.setRenderedPatch(@model)
 
 
 module.exports = document.registerElement "git-file-summary-element",

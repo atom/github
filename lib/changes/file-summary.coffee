@@ -61,3 +61,6 @@ module.exports = class FileSummary
   discard: ->
     shell.moveItemToTrash(localPath()) if @exists() # XXX where was this originally defined
     @git.forceCheckoutPath(path())
+
+  open: ->
+    atom.workspace.open(@path()) if @exists()

@@ -158,18 +158,21 @@ class StatusListElement extends HTMLElement
     @querySelector(".selected")
 
   selectEntry: (entry) ->
+    # Entry is a FileSummaryElement
     return unless entry?
 
-    @selectedPath   = entry.path
-    @selectedStatus = entry.status
-    @selectedIndex  = entry.index
+    @selectedPath   = entry.model.path()
+    @selectedStatus = entry.model.status
+    @selectedIndex  = entry.index # ?
 
+    # XXX this stuff should just react to model attribute changes
     selectedEntries = @getSelectedEntries()
+
+    # At the very least, invert this
     @deselect(selectedEntries)
     entry.classList.add("selected")
 
-    @git.getPatch(entry.path, entry.status).then (patch) =>
-    @changesView.model.setRenderedPatch(entry)
+    @changesView.model.setRenderedPatch(entry.model)
 
     @scrollIntoView(entry)
     entry
@@ -231,8 +234,7 @@ class StatusListElement extends HTMLElement
     next?.click()
 
   openInPane: (e) ->
-    selected = @selectedEntry()
-    atom.workspace.open(selected.path) if selected?.path
+    @selectedEntry()?.model?.open()
 
   promptToDiscardChanges: ->
     selected = @selectedEntry()
