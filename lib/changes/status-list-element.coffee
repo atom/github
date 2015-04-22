@@ -18,8 +18,6 @@ observe = require '../observe'
 
 FileSummary   = require './file-summary'
 FileSummaryElement   = require './file-summary-element'
-shell             = require 'shell'
-fs                = require 'fs'
 
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
