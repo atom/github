@@ -111,25 +111,14 @@ class StatusListElement extends HTMLElement
     @focus()
 
 
-  appendUnstaged: (status) ->
+  appendUnstaged: (fileSummary) ->
     unstagedSummaryElement = new FileSummaryElement
-    # XXX: confusing use of status to mean two things here
-    unstagedSummary = new FileSummary
-      file: status
-      status: 'unstaged'
-      git: @changesView.model.git
-    unstagedSummaryElement.initialize(model: unstagedSummary, changesView: @changesView)
+    unstagedSummaryElement.initialize(model: fileSummary, changesView: @changesView)
     @unstagedNode.appendChild(unstagedSummaryElement)
 
-  appendStaged: (status) ->
+  appendStaged: (fileSummary) ->
     stagedSummaryElement = new FileSummaryElement
-    # XXX: confusing use of status to mean two things here
-    stagedSummary = new FileSummary
-      file: status
-      status: 'staged'
-      git: @changesView.model.git
-
-    stagedSummaryElement.initialize(model: stagedSummary, changesView: @changesView)
+    stagedSummaryElement.initialize(model: fileSummary, changesView: @changesView)
     @stagedNode.appendChild(stagedSummaryElement)
 
   setIndices: ->
@@ -217,11 +206,17 @@ class StatusListElement extends HTMLElement
     # else if entry.offsetTop < container.scrollTop
     #   entry.scrollIntoView(true)
 
+
+  # TODO: these things that modify the selection should probably be managed
+  # by the StatusList or FileSummary view models. It's a good rule of thumb to
+  # be skeptical of views calling into the models of their child views to check
+  # whether to then update the DOM.
+
   moveSelectionUp: =>
     selected = @selectedEntry()
     prev = selected.previousElementSibling
     unless prev
-      if selected.status == 'staged'
+      if selected.model.status == 'staged'
         prev = @querySelector(".unstaged #{FileSummaryTag}:last-of-type")
     prev?.click()
 
@@ -229,7 +224,7 @@ class StatusListElement extends HTMLElement
     selected = @selectedEntry()
     next = selected.nextElementSibling
     unless next
-      if selected.status == 'unstaged'
+      if selected.model.status == 'unstaged'
         next = @querySelector(".staged #{FileSummaryTag}")
     next?.click()
 

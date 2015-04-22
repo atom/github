@@ -4,6 +4,7 @@
 # This is the viewmodel for StatusListElement. It represents the state of the
 # list of staged and unstaged changes in the left pane.
 
+FileSummary = require './file-summary'
 GitChanges = require './git-changes'
 {CompositeDisposable, Disposable} = require 'atom'
 
@@ -23,8 +24,17 @@ module.exports = class StatusList
         # a status can indicate a file that has both
         # staged and unstaged changes, so it's possible
         # for it to end up in both arrays here.
-        @unstaged = statuses.filter (status) => @isUnstaged(status)
-        @staged = statuses.filter (status) => @isStaged(status)
+        @unstaged = statuses.filter((status) => @isUnstaged(status)).map (status) =>
+          new FileSummary
+            file: status
+            status: 'unstaged'
+            git: @git
+
+        @staged = statuses.filter((status) => @isStaged(status)).map (status) =>
+          new FileSummary
+            file: status
+            status: 'staged'
+            git: @git
 
   isUnstaged: (status) ->
     bit = status.statusBit()
@@ -48,7 +58,7 @@ module.exports = class StatusList
 
 
   stageAll: =>
-    @git.stageAllPaths((status.path() for status in @unstaged))
+    @git.stageAllPaths((fileSummary.path() for fileSummary in @unstaged))
 
   unstageAll: =>
-    @git.unstageAllPaths((status.path() for status in @staged))
+    @git.unstageAllPaths((fileSummary.path() for fileSummary in @staged))
