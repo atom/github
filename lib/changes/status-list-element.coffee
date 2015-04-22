@@ -19,6 +19,8 @@ observe = require '../observe'
 FileSummary   = require './file-summary'
 FileSummaryElement   = require './file-summary-element'
 
+DOMListener = require 'dom-listener'
+
 BaseTemplate = """
 <div class="unstaged column-header">Unstaged changes
   <button class="btn btn-xs btn-stage-all">Stage all</button>
@@ -67,28 +69,19 @@ class StatusListElement extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
-    focus = @focus.bind(@)
-    focusCommitMessage = @focusCommitMessage.bind(@)
-    stageAll = @model.stageAll
-    unstageAll = @model.unstageAll
+    listener = new DOMListener(@)
+    @subscriptions.add listener.add('.btn-stage-all', 'click', @model.stageAll)
+    @subscriptions.add listener.add('.btn-unstage-all', 'click', @model.unstageAll)
 
-    # XXX: I think these events should be past-tense reaction to some state change, not
-    # a dispatched command
-    @changesView.addEventListener('focus-list', focus)
-    @changesView.addEventListener('focus-commit-message', focusCommitMessage)
+    # TODO: move this to the FileSummaryView itself.
+    @subscriptions.add listener.add(FileSummaryTag, 'click', @entryClicked.bind(@))
 
-    @querySelector('.btn-stage-all').addEventListener('click', stageAll)
-    @querySelector('.btn-unstage-all').addEventListener('click', unstageAll)
+    # XXX: These events should be past-tense reaction to a model state change, not
+    # a dispatched command on a DOM elelemt
+    changesListener = new DOMListener(@changesView)
+    @subscriptions.add changesListener.add(@, 'focus-list', @focus.bind(@))
+    @subscriptions.add changesListener.add(@, 'focus-commit-message', @focusCommitMessage.bind(@))
 
-    @subscriptions.add new Disposable =>
-      @changesView.removeEventListener(focus)
-      @changesView.removeEventListener(focusCommitMessage)
-      @querySelector('.btn-stage-all').removeEventListener(stageAll)
-      @querySelector('.btn-stage-all').removeEventListener(unstageAll)
-
-    # TODO
-    # @el.on "click", FileSummaryTag, @entryClicked.bind(@)
-    #
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
