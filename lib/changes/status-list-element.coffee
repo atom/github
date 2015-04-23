@@ -39,8 +39,6 @@ FileSummaryTag = "git-file-summary-element"
 
 class StatusListElement extends HTMLElement
   initialize: ({@changesView}) ->
-    # XXX remove @git after this is refactored
-    @git = @changesView.model.git
     @model = new StatusList(git: @changesView.model.git)
 
     # Subviews
