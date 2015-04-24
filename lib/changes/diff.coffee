@@ -5,4 +5,5 @@
 # refactor that element, see its comment block.
 
 module.exports = class Diff
-  constructor: ({@git}) ->
+  constructor: ({@git, @hunks}) ->
+    @hunks ?= []
