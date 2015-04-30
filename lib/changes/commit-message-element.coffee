@@ -7,7 +7,7 @@ DOMListener = require 'dom-listener'
 {CompositeDisposable, Disposable} = require 'atom'
 
 BaseTemplate = """
-<atom-text-editor tabindex="-1" class="commit-description gutter-hidden"
+<atom-text-editor tabindex="-1" class="commit-description" gutter-hidden
   style="height: 120px"></atom-text-editor>
 <div class="commit-button">
   <button class="btn btn-commit">Commit to
