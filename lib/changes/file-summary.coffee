@@ -1,5 +1,6 @@
 shell = require 'shell'
 fs = require 'fs'
+path = require 'path'
 
 module.exports = class FileSummary
   constructor: ({@file, @status, @icon, @git}) ->
@@ -44,17 +45,17 @@ module.exports = class FileSummary
       @git.emit('did-update-repository')
 
   getPathInfo: ->
-    pathParts = @file.path().split("/")
+    pathParts = @file.path().split(path.sep)
     filename  = pathParts.pop()
-    dir       = pathParts.join('/')
-    dir      += "/" if dir
+    dir       = pathParts.join(path.sep)
+    dir      += path.sep if dir
     [dir, filename]
 
   path: ->
     @file.path()
 
   localPath: ->
-    "#{@git.repoPath}/#{@path()}"
+    "#{@git.repoPath}#{path.sep}#{@path()}"
 
   exists: ->
 
