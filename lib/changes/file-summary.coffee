@@ -49,6 +49,7 @@ module.exports = class FileSummary
     filename  = pathParts.pop()
     dir       = pathParts.join(path.sep)
     dir      += path.sep if dir
+    # TODO: This should probably return an object with descriptive keys.
     [dir, filename]
 
   path: ->
