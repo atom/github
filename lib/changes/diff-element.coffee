@@ -31,6 +31,19 @@ EmptyTemplate = """
 
 ChangedLineSelector = ".hunk-line.addition, .hunk-line.deletion"
 
+
+# XXX These are temporary helpers that can probably be removed when we aren't
+# traversing the dom to get ahold of models anymore.
+
+closest = (element, matchFn) ->
+  while element
+    return element if matchFn(element)
+    element = element.parentNode
+
+closestSelector = (element, selector) ->
+  closest element, (elt) ->
+    elt.matches?(selector)
+
 class DiffElement extends HTMLElement
   @diffSelectionMode: 'hunk'
   @dragging: false
@@ -164,11 +177,13 @@ class DiffElement extends HTMLElement
     @focus()
 
   selectedHunk: ->
+    # XXX this shouldn't be traversing the DOM, the selected state should live '
+    # on the hunk model
     line = @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
-    @hunkForLine(line)
+    @closestHunkForElement(line)
 
-  hunkForLine: (line) ->
-    $(line).closest('git-hunk-view')[0]
+  closestHunkForElement: (line) ->
+    closest line, (elt) -> elt.tagName == 'GIT-HUNK-VIEW'
 
   selectFirstHunk: ->
     @diffSelectionMode = 'hunk'
@@ -299,7 +314,7 @@ class DiffElement extends HTMLElement
 
   mouseUp: (e) ->
     @dragging = false
-    line = $(e.target).closest(ChangedLineSelector)[0]
+    line = closestSelector(e.target, ChangedLineSelector)
     return unless line
     if e.shiftKey
       @processLineSelection(line)
@@ -308,7 +323,7 @@ class DiffElement extends HTMLElement
       @removeClassFromLines('dragged')
 
   selectHunkLine: (line) ->
-    hunk = @hunkForLine(line)
+    hunk = @closestHunkForElement(line)
     @unselectAllHunks() unless hunk.isSameNode(@selectedHunk())
     @removeClassFromLines('selection-point')
     line.classList.add('selection-point')
@@ -320,7 +335,7 @@ class DiffElement extends HTMLElement
     lines
 
   processLineSelection: (line) ->
-    hunk = @hunkForLine(line)
+    hunk = @closestHunkForElement(line)
     start = hunk.querySelector('.selection-point')
     return unless start
 
@@ -387,13 +402,13 @@ class DiffElement extends HTMLElement
 
   stageHunk: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
+    hunk = @closestHunkForElement(e.currentTarget)
     hunk?.selectAllChangedLines()
     hunk?.processLinesStage()
 
   stageLines: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
+    hunk = @closestHunkForElement(e.currentTarget)
     hunk?.processLinesStage()
 
   openFileToLine: ->
