@@ -104,7 +104,6 @@ class GitChanges
     .then =>
       @emitter.emit('did-update-repository')
 
-
   checkoutBranch: (name) ->
     Git.Repository.open(@repoPath)
     .then (repo) ->
