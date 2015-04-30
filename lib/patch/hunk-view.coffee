@@ -1,5 +1,5 @@
 $          = require 'jquery'
-GitChanges = require '../changes/git-changes'
+GitIndex = require '../changes/git-changes'
 
 BaseTemplate = """
 <div class="diff-hunk"></div>
@@ -25,7 +25,7 @@ class HunkView extends HTMLElement
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
 
-    @git = new GitChanges
+    @git = new GitIndex
 
   createLineNode: ->
     lineNode = document.createElement('div')

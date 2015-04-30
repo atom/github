@@ -2,7 +2,7 @@
 # It seems as good a place as any to describe the approximate architecture of this
 # element and how the component parts work together.
 #
-# There is one data model, `GitChanges` that can be considered the foundational
+# There is one data model, `GitIndex` that can be considered the foundational
 # object. It performs all git commands and tracks the on-disk state of the index, and
 # provides an `onDidUpdateRepository(callback)` function to register to be notified
 # of repo state changes. One instance of this model is shared among all view-models
@@ -18,7 +18,7 @@
 # every view change should be driven by an observed model attribute changing)
 #
 # Each view is a custom HTML element and should follow the naming pattern
-# {name-of-view-model}Element. The view-model can listen to events on GitChanges
+# {name-of-view-model}Element. The view-model can listen to events on GitIndex
 # and update its attributes appropriately. The custom element itself should only
 # have code concerned with displaying data from the view-model and responding to
 # events from the DOM and handing off the real work to the view-model. Rather
@@ -48,17 +48,17 @@
 # in terms of display and correctness, without having to rely entirely on
 # integration tests or elaborate mocking.
 
-GitChanges = require './git-changes'
+GitIndex = require './git-changes'
 
 module.exports =
 class Changes
   # The view-model for the root ChangesElement
   renderedPatch: null
   constructor: ->
-    @git = new GitChanges
+    @gitIndex = new GitIndex
 
   setRenderedPatch: (fileSummary) ->
-    @git.getPatch(fileSummary.file.path(), fileSummary.status).then (patch) =>
+    @gitIndex.getPatch(fileSummary.file.path(), fileSummary.status).then (patch) =>
       @renderedPatch =
       # TODO get rid of the concept of `entry` being passed around
         entry:
@@ -67,4 +67,4 @@ class Changes
         patch: patch
 
   updateRepository: () ->
-    @git.emit('did-update-repository')
+    @gitIndex.emit('did-update-repository')

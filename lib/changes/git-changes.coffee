@@ -9,7 +9,7 @@ exec         = ChildProcess.exec
 JsDiff       = require 'diff'
 
 module.exports =
-class GitChanges
+class GitIndex
   statuses: {}
 
   constructor: ->

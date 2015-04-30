@@ -1,6 +1,6 @@
 $          = require 'jquery'
 HunkView   = require './hunk-view'
-GitChanges = require '../changes/git-changes'
+GitIndex = require '../changes/git-changes'
 Highlights = require 'highlights'
 path       = require 'path'
 
@@ -52,7 +52,7 @@ EmptyTemplate = """
 class PatchView extends HTMLElement
   createdCallback: ->
     @el  = $(@)
-    @git = new GitChanges
+    @git = new GitIndex
 
   setPatch: ({@patch, @status, @commit}) ->
     @path = @patch.newFile().path()

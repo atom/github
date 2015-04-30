@@ -3,12 +3,12 @@ fs = require 'fs'
 path = require 'path'
 
 module.exports = class FileSummary
-  constructor: ({@file, @status, @icon, @git}) ->
-    # We pass around one instance of GitChanges for all view-models.
+  constructor: ({@file, @status, @icon, @gitIndex}) ->
+    # We pass around one instance of GitIndex for all view-models.
 
   getIconClass: ->
     bit = @file.statusBit()
-    codes = @git.statusCodes()
+    codes = @gitIndex.statusCodes()
 
     if @status == 'unstaged'
       className = if bit & codes.WT_NEW
@@ -37,12 +37,12 @@ module.exports = class FileSummary
 
   stage: ->
     promise = if @status == 'unstaged'
-      @git.stagePath(@file.path())
+      @gitIndex.stagePath(@file.path())
     else
-      @git.unstagePath(@file.path())
+      @gitIndex.unstagePath(@file.path())
 
     promise.then =>
-      @git.emit('did-update-repository')
+      @gitIndex.emit('did-update-repository')
 
   getPathInfo: ->
     pathParts = @file.path().split(path.sep)
@@ -56,13 +56,13 @@ module.exports = class FileSummary
     @file.path()
 
   localPath: ->
-    "#{@git.repoPath}#{path.sep}#{@path()}"
+    "#{@gitIndex.repoPath}#{path.sep}#{@path()}"
 
   exists: ->
 
   discard: ->
     shell.moveItemToTrash(localPath()) if @exists() # XXX where was this originally defined
-    @git.forceCheckoutPath(path())
+    @gitIndex.forceCheckoutPath(path())
 
   open: ->
     atom.workspace.open(@path()) if @exists()

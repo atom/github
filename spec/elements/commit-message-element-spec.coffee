@@ -1,10 +1,10 @@
 CommitMessageElement = require '../../lib/changes/commit-message-element'
-GitChanges = require '../../lib/changes/git-changes'
+GitIndex = require '../../lib/changes/git-changes'
 
 describe 'CommitMessageElement', ->
   beforeEach ->
     @commitMessageElement = new CommitMessageElement
-    @commitMessageElement.initialize(changesView: {model: {git: new GitChanges}})
+    @commitMessageElement.initialize(changesView: {model: {gitIndex: new GitIndex}})
 
   it "disables the commit button when the commit cannot be made", ->
     @commitMessageElement.model.stagedCount = 0

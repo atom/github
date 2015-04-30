@@ -49,7 +49,7 @@ class DiffElement extends HTMLElement
   @dragging: false
 
   initialize: ({@changesView}) ->
-    @model = new Diff(git: @changesView.model.git)
+    @model = new Diff(gitIndex: @changesView.model.gitIndex)
 
   createdCallback: ->
     @tabIndex = -1
@@ -76,7 +76,7 @@ class DiffElement extends HTMLElement
 
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(this)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(this)
-    @disposables.add @changesView.model.git.onDidUpdateRepository(@clearCache.bind(this))
+    @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
       'core:move-left': @changesView.focusList

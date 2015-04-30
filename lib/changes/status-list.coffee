@@ -5,21 +5,21 @@
 # list of staged and unstaged changes in the left pane.
 
 FileSummary = require './file-summary'
-GitChanges = require './git-changes'
+GitIndex = require './git-changes'
 {CompositeDisposable, Disposable} = require 'atom'
 
 module.exports = class StatusList
-  constructor: ({@git}) ->
-    # We pass around one instance of GitChanges for all view-models.
+  constructor: ({@gitIndex}) ->
+    # We pass around one instance of GitIndex for all view-models.
     @unstaged = []
     @staged = []
 
   initialize: ->
-    @git.onDidUpdateRepository(@loadGitStatuses)
+    @gitIndex.onDidUpdateRepository(@loadGitStatuses)
     @loadGitStatuses()
 
   loadGitStatuses: =>
-    @git.getStatuses()
+    @gitIndex.getStatuses()
       .then (statuses) =>
         # a status can indicate a file that has both
         # staged and unstaged changes, so it's possible
@@ -28,17 +28,17 @@ module.exports = class StatusList
           new FileSummary
             file: status
             status: 'unstaged'
-            git: @git
+            gitIndex: @gitIndex
 
         @staged = statuses.filter((status) => @isStaged(status)).map (status) =>
           new FileSummary
             file: status
             status: 'staged'
-            git: @git
+            gitIndex: @gitIndex
 
   isUnstaged: (status) ->
     bit = status.statusBit()
-    codes = @git.statusCodes()
+    codes = @gitIndex.statusCodes()
 
     return bit & codes.WT_NEW ||
            bit & codes.WT_MODIFIED ||
@@ -48,7 +48,7 @@ module.exports = class StatusList
 
   isStaged: (status) ->
     bit = status.statusBit()
-    codes = @git.statusCodes()
+    codes = @gitIndex.statusCodes()
 
     return bit & codes.INDEX_NEW ||
            bit & codes.INDEX_MODIFIED ||
@@ -58,7 +58,7 @@ module.exports = class StatusList
 
 
   stageAll: =>
-    @git.stageAllPaths((fileSummary.path() for fileSummary in @unstaged))
+    @gitIndex.stageAllPaths((fileSummary.path() for fileSummary in @unstaged))
 
   unstageAll: =>
-    @git.unstageAllPaths((fileSummary.path() for fileSummary in @staged))
+    @gitIndex.unstageAllPaths((fileSummary.path() for fileSummary in @staged))

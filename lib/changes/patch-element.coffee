@@ -58,7 +58,7 @@ EmptyTemplate = """
 class PatchElement extends HTMLElement
   initialize: ({@changesView, patch}) ->
     @model = patch
-    @git = @changesView.model.git
+    @gitIndex = @changesView.model.gitIndex
     observe @model, [], @update.bind(this)
     @update()
 
@@ -85,7 +85,7 @@ class PatchElement extends HTMLElement
     hunk.unselectAllChangedLines() for hunk in @hunkViews()
 
   setSyntaxHighlights: ->
-    @git.getBlobs
+    @gitIndex.getBlobs
       patch: @model.patch
       status: @model.status
       commit: @model.commit

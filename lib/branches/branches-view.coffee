@@ -1,12 +1,12 @@
 {$$, SelectListView} = require 'atom-space-pen-views'
-GitChanges = require '../changes/git-changes'
+GitIndex = require '../changes/git-changes'
 
 module.exports =
 class BranchesView extends SelectListView
   initialize: ->
     super
     @addClass('branches-list')
-    @git = new GitChanges
+    @git = new GitIndex
 
   toggle: ->
     if @panel?.isVisible()

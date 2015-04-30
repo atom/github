@@ -1,5 +1,5 @@
 $          = require 'jquery'
-GitChanges = require './git-changes'
+GitIndex = require './git-changes'
 timeago    = require 'timeago'
 
 BaseTemplate = """
@@ -17,7 +17,7 @@ class UndoCommitView extends HTMLElement
     @titleNode  = @querySelector('.title')
     @timeNode   = @querySelector('.time')
 
-    @git = new GitChanges
+    @gitIndex = new GitIndex
 
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
@@ -30,7 +30,7 @@ class UndoCommitView extends HTMLElement
     @el.off 'click', '.btn'
 
   update: ->
-    @git.getLatestUnpushed().then (commit) =>
+    @gitIndex.getLatestUnpushed().then (commit) =>
       if commit
         @titleNode.textContent = commit.message()
         @timeNode.textContent = timeago(commit.date())
@@ -43,9 +43,9 @@ class UndoCommitView extends HTMLElement
         @classList.remove('show')
 
   undoCommit: ->
-    @git.getLatestUnpushed().then (commit) =>
+    @gitIndex.getLatestUnpushed().then (commit) =>
       @base.trigger('set-commit-message', [commit.message()])
-      @git.resetBeforeCommit(commit).then =>
+      @gitIndex.resetBeforeCommit(commit).then =>
         @base.trigger("")
 
 module.exports = document.registerElement 'git-undo-commit-view',

@@ -10,7 +10,7 @@
 
 {CompositeDisposable, Disposable} = require 'atom'
 
-GitChanges        = require './git-changes'
+GitIndex        = require './git-changes'
 CommitMessageElement = require './commit-message-element'
 UndoCommitView    = require './undo-commit-view'
 StatusList        = require './status-list'
@@ -39,7 +39,7 @@ FileSummaryTag = "git-file-summary-element"
 
 class StatusListElement extends HTMLElement
   initialize: ({@changesView}) ->
-    @model = new StatusList(git: @changesView.model.git)
+    @model = new StatusList(gitIndex: @changesView.model.gitIndex)
 
     # Subviews
     @commitMessageView = new CommitMessageElement

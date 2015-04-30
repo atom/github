@@ -1,5 +1,5 @@
 module.exports = class CommitMessage
-  constructor: ({@branchName, @stagedCount, @message, @git, @complete}) ->
+  constructor: ({@branchName, @stagedCount, @message, @gitIndex, @complete}) ->
     @stagedCount ?= 0
     @message ?= ''
     @complete ?= false
@@ -12,7 +12,7 @@ module.exports = class CommitMessage
     @message = ''
 
   refreshBranch: =>
-    @git.getBranchName().then (name) =>
+    @gitIndex.getBranchName().then (name) =>
       @branchName = name
 
   canCommit: ->
@@ -23,6 +23,6 @@ module.exports = class CommitMessage
 
   commit: =>
     return false unless @canCommit()
-    @git.commit(@message.trim()).then =>
+    @gitIndex.commit(@message.trim()).then =>
       @message = ''
       @complete = true

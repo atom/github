@@ -1,5 +1,5 @@
 CommitMessage = require './commit-message'
-GitChanges = require './git-changes'
+GitIndex = require './git-changes'
 observe = require '../observe'
 
 DOMListener = require 'dom-listener'
@@ -20,7 +20,7 @@ PlaceholderText = "Please enter a commit message describing your changes"
 
 class CommitMessageElement extends HTMLElement
   initialize: ({@changesView}) ->
-    @model = new CommitMessage(git: @changesView.model.git)
+    @model = new CommitMessage(gitIndex: @changesView.model.gitIndex)
     # branchName could maybe get its own update function
     observe @model, ['branchName', 'message', 'complete'], @update.bind(this)
     @model.initialize()
@@ -43,7 +43,7 @@ class CommitMessageElement extends HTMLElement
 
   attachedCallback: ->
     # Model events
-    @disposables.add @changesView.model.git.onDidUpdateRepository(@update.bind(this))
+    @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@update.bind(this))
     @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(this))
     @disposables.add @messageModel.onDidChange =>
       # This is a little bit of awkwardness but it keeps this element/model
