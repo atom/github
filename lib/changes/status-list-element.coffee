@@ -49,7 +49,7 @@ class StatusListElement extends HTMLElement
     @undoCommitView = new UndoCommitView
     @undoCommitBox.appendChild(@undoCommitView)
 
-    observe @model, ['staged', 'unstaged'], @update.bind(@)
+    observe @model, ['staged', 'unstaged'], @update.bind(this)
     @model.initialize()
 
   createdCallback: ->
@@ -67,18 +67,18 @@ class StatusListElement extends HTMLElement
     @handleEvents()
 
   handleEvents: =>
-    listener = new DOMListener(@)
+    listener = new DOMListener(this)
     @subscriptions.add listener.add('.btn-stage-all', 'click', @model.stageAll)
     @subscriptions.add listener.add('.btn-unstage-all', 'click', @model.unstageAll)
 
     # TODO: move this to the FileSummaryView itself.
-    @subscriptions.add listener.add(FileSummaryTag, 'click', @entryClicked.bind(@))
+    @subscriptions.add listener.add(FileSummaryTag, 'click', @entryClicked.bind(this))
 
     # XXX: These events should be past-tense reaction to a model state change, not
     # a dispatched command on a DOM elelemt
     changesListener = new DOMListener(@changesView)
-    @subscriptions.add changesListener.add(@, 'focus-list', @focus.bind(@))
-    @subscriptions.add changesListener.add(@, 'focus-commit-message', @focusCommitMessage.bind(@))
+    @subscriptions.add changesListener.add(@, 'focus-list', @focus.bind(this))
+    @subscriptions.add changesListener.add(@, 'focus-commit-message', @focusCommitMessage.bind(this))
 
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
@@ -98,8 +98,8 @@ class StatusListElement extends HTMLElement
     @stagedNode.innerHTML = ''
     @unstagedNode.innerHTML = ''
     # XXX: should append these all at once
-    @model.unstaged.forEach @appendUnstaged.bind(@)
-    @model.staged.forEach @appendStaged.bind(@)
+    @model.unstaged.forEach @appendUnstaged.bind(this)
+    @model.staged.forEach @appendStaged.bind(this)
     # TODO the commit message view could probably keep track of this itself
     @commitMessageView.model.setStagedCount(@model.staged.length)
     @commitMessageView.update()

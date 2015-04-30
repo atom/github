@@ -15,7 +15,7 @@ BaseTemplate = """
 
 class FileSummaryElement extends HTMLElement
   initialize: ({@model, @changesView}) ->
-    observe @model, ['file', 'status'], @update.bind(@)
+    observe @model, ['file', 'status'], @update.bind(this)
     @subscriptions = new CompositeDisposable
     @update()
 
@@ -30,8 +30,8 @@ class FileSummaryElement extends HTMLElement
 
   attachedCallback: ->
     # Handle events
-    boundStage = @stage.bind(@)
-    select = @select.bind(@)
+    boundStage = @stage.bind(this)
+    select = @select.bind(this)
     @querySelector('.btn').addEventListener('click', boundStage)
     @addEventListener('dblclick', boundStage)
     @addEventListener('click', select)

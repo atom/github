@@ -59,7 +59,7 @@ class PatchElement extends HTMLElement
   initialize: ({@changesView, patch}) ->
     @model = patch
     @git = @changesView.model.git
-    observe @model, [], @update.bind(@)
+    observe @model, [], @update.bind(this)
     @update()
 
   createdCallback: ->

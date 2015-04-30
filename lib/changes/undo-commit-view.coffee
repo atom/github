@@ -11,7 +11,7 @@ BaseTemplate = """
 class UndoCommitView extends HTMLElement
   createdCallback: ->
     # Elements
-    @el         = $(@)
+    @el         = $(this)
     @innerHTML  = BaseTemplate
     @buttonNode = @querySelector('.btn')
     @titleNode  = @querySelector('.title')
@@ -24,7 +24,7 @@ class UndoCommitView extends HTMLElement
     @handleEvents()
 
   handleEvents: ->
-    @el.on 'click', '.btn', @undoCommit.bind(@)
+    @el.on 'click', '.btn', @undoCommit.bind(this)
 
   detatchedCallback: ->
     @el.off 'click', '.btn'

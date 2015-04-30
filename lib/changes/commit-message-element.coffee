@@ -7,7 +7,7 @@ DOMListener = require 'dom-listener'
 {CompositeDisposable, Disposable} = require 'atom'
 
 BaseTemplate = """
-<atom-text-editor tabindex="-1" class="commit-description" gutter-hidden
+<atom-text-editor tabindex="-1" class="commit-description gutter-hidden"
   style="height: 120px"></atom-text-editor>
 <div class="commit-button">
   <button class="btn btn-commit">Commit to
@@ -22,7 +22,7 @@ class CommitMessageElement extends HTMLElement
   initialize: ({@changesView}) ->
     @model = new CommitMessage(git: @changesView.model.git)
     # branchName could maybe get its own update function
-    observe @model, ['branchName', 'message', 'complete'], @update.bind(@)
+    observe @model, ['branchName', 'message', 'complete'], @update.bind(this)
     @model.initialize()
 
   createdCallback: ->
@@ -35,6 +35,7 @@ class CommitMessageElement extends HTMLElement
 
     @branchNode   = @querySelector('.branch-name')
     @buttonNode   = @querySelector('.btn')
+    console.log "THE BUTTON NODE: in creation", @buttonNode
 
     @messageModel.setSoftWrapped(true)
     @messageModel.setPlaceholderText(PlaceholderText)
@@ -43,8 +44,9 @@ class CommitMessageElement extends HTMLElement
 
   attachedCallback: ->
     # Model events
-    @disposables.add @changesView.model.git.onDidUpdateRepository(@update.bind(@))
-    @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(@))
+    console.log "button in attached:", @buttonNode
+    @disposables.add @changesView.model.git.onDidUpdateRepository(@update.bind(this))
+    @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(this))
     @disposables.add @messageModel.onDidChange =>
       # This is a little bit of awkwardness but it keeps this element/model
       # relationship consistent with the rest of the elements.
@@ -54,15 +56,15 @@ class CommitMessageElement extends HTMLElement
     changesViewListener = new DOMListener(@changesView)
 
     # TODO figure out if this is needed
-    @disposables.add changesViewListener.add(@changesView, 'set-commit-message', @setMessage.bind(@))
+    @disposables.add changesViewListener.add(@changesView, 'set-commit-message', @setMessage.bind(this))
 
     # Events on this element
-    listener = new DOMListener(@)
+    listener = new DOMListener(this)
     @disposables.add listener.add('.btn', 'click', @model.commit)
 
     # Atom commands
     @disposables.add atom.commands.add "git-commit-message-view atom-text-editor:not(.mini)",
-      "git:focus-status-list": @changesView.focusList.bind(@)
+      "git:focus-status-list": @changesView.focusList.bind(this)
       "git:commit": @model.commit
 
   detatchedCallback: ->

@@ -35,7 +35,7 @@
 # of keys to prevent overdoing DOM updates. using observe in this way looks like:
 #
 # ```
-# observe @model, ['dog', 'cat', 'horse'], @update.bind(@)
+# observe @model, ['dog', 'cat', 'horse'], @update.bind(this)
 # ```
 #
 # `update()` will then just take a look at the model and update the elements in

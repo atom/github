@@ -21,7 +21,7 @@ class ChangesElement extends SplitView
       summaryView: @statusListElement
       detailsView: @diffView
 
-    observe @model, ['renderedPatch'], @renderPatch.bind(@)
+    observe @model, ['renderedPatch'], @renderPatch.bind(this)
 
     @model.updateRepository()
 

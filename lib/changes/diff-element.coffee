@@ -52,18 +52,18 @@ class DiffElement extends HTMLElement
     # This should probably have an api like @changesView.onDidRenderPatch(fn)
     # TODO: push these events down into the model if possible
     changesViewListener = new DOMListener(@changesView)
-    @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(@))
-    @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(@))
-    @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(@))
+    @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(this))
+    @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(this))
+    @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(this))
 
     # This view's DOM events
-    listener = new DOMListener(@)
+    listener = new DOMListener(this)
     stopIt = (e) -> e.stopPropagation() if e.target and e.target.classList.contains('.btn')
-    @disposables.add listener.add(@, 'mousedown', stopIt)
+    @disposables.add listener.add(this, 'mousedown', stopIt)
 
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
-    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
-    @disposables.add @changesView.model.git.onDidUpdateRepository(@clearCache.bind(@))
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(this)
+    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(this)
+    @disposables.add @changesView.model.git.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
       'core:move-left': @changesView.focusList
@@ -83,15 +83,15 @@ class DiffElement extends HTMLElement
   handlePatchElementEvents: (listener) ->
     # this stuff belongs on PatchElement maybe?
 
-    @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(@))
-    @disposables.add listener.add(ChangedLineSelector, 'mouseleave', @mouseLeaveLine.bind(@))
-    @disposables.add listener.add(ChangedLineSelector, 'mousedown', @mouseDownLine.bind(@))
+    @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(this))
+    @disposables.add listener.add(ChangedLineSelector, 'mouseleave', @mouseLeaveLine.bind(this))
+    @disposables.add listener.add(ChangedLineSelector, 'mousedown', @mouseDownLine.bind(this))
 
-    @disposables.add listener.add(@, 'mouseup', @mouseUp.bind(@))
-    @disposables.add listener.add(@, 'mouseleave', @mouseUp.bind(@))
+    @disposables.add listener.add(this, 'mouseup', @mouseUp.bind(this))
+    @disposables.add listener.add(this, 'mouseleave', @mouseUp.bind(this))
 
-    @disposables.add listener.add('.btn-stage-lines', 'click', @stageLines.bind(@))
-    @disposables.add listener.add('.btn-stage-hunk', 'click', @stageHunk.bind(@))
+    @disposables.add listener.add('.btn-stage-lines', 'click', @stageLines.bind(this))
+    @disposables.add listener.add('.btn-stage-hunk', 'click', @stageHunk.bind(this))
 
   detachedCallback: ->
     @disposables.dispose()
