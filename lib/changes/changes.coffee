@@ -50,7 +50,8 @@
 
 GitChanges = require './git-changes'
 
-module.exports = class Changes
+module.exports =
+class Changes
   # The view-model for the root ChangesElement
   renderedPatch: null
   constructor: ->

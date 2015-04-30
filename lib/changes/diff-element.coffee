@@ -116,7 +116,7 @@ class DiffElement extends HTMLElement
   createPatchElement: (_patch, status) ->
     patchElement  = new PatchElement
     patch = new Patch(patch: _patch, status: status)
-    patchElement.initialize({changesView: @changesView, patch: patch})
+    patchElement.initialize({@changesView, patch})
     patchElement
 
   renderPatch: (e) ->

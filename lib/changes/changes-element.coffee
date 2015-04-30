@@ -12,8 +12,8 @@ class ChangesElement extends SplitView
     @diffView = new DiffElement
 
     # The children maintain a reference to the root view
-    @statusListElement.initialize(changesView: @)
-    @diffView.initialize(changesView: @)
+    @statusListElement.initialize(changesView: this)
+    @diffView.initialize(changesView: this)
 
     @width(width) if width > 0
 
