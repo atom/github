@@ -1,4 +1,4 @@
-Change = require '../../lib/changes/changes.coffee'
+Change = require '../../lib/changes/changes'
 
 describe 'Changes', ->
   beforeEach ->

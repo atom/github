@@ -4,3 +4,4 @@ module.exports = (observed, keys, callback) ->
         if (change.name in keys) or (keys.length is 0)
           callback()
           break
+      return true

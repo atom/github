@@ -5,13 +5,12 @@ GitChanges = require '../../lib/changes/git-changes.coffee'
 describe 'FileSummaryElement', ->
   beforeEach ->
     @view = new FileSummaryElement
-    model = new FileSummary(
+    model = new FileSummary
       file:
         path: -> '/test/file.md'
         statusBit: -> (new GitChanges).statusCodes().WT_NEW
       status: 'unstaged',
       git: new GitChanges
-      )
 
     @view.initialize(model: model)
 

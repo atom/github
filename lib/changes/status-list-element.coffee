@@ -43,7 +43,7 @@ class StatusListElement extends HTMLElement
 
     # Subviews
     @commitMessageView = new CommitMessageElement
-    @commitMessageView.initialize({changesView: @changesView})
+    @commitMessageView.initialize({@changesView})
     @commitMessageBox.appendChild(@commitMessageView)
 
     @undoCommitView = new UndoCommitView
