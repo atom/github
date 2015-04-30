@@ -82,6 +82,7 @@ class CommitMessageElement extends HTMLElement
     @messageNode.focus()
 
   setMessage: (e, text) ->
+    text = e if text is undefined
     @messageModel.setText(text)
 
   updateCommitButton: ->
