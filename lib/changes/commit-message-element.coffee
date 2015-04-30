@@ -35,7 +35,6 @@ class CommitMessageElement extends HTMLElement
 
     @branchNode   = @querySelector('.branch-name')
     @buttonNode   = @querySelector('.btn')
-    console.log "THE BUTTON NODE: in creation", @buttonNode
 
     @messageModel.setSoftWrapped(true)
     @messageModel.setPlaceholderText(PlaceholderText)
@@ -44,7 +43,6 @@ class CommitMessageElement extends HTMLElement
 
   attachedCallback: ->
     # Model events
-    console.log "button in attached:", @buttonNode
     @disposables.add @changesView.model.git.onDidUpdateRepository(@update.bind(this))
     @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(this))
     @disposables.add @messageModel.onDidChange =>
