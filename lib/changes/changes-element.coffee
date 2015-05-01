@@ -37,6 +37,7 @@ class ChangesElement extends SplitView
 
   # Some UI actions need to focus the StatusListElement after completion. The
   # components are loosely coupled so we'll use this view as a DOM event bus.
+  # XXX this stuff should get removed!
   focusList: =>
     @dispatchEvent(new Event('focus-list'))
 
@@ -51,6 +52,9 @@ class ChangesElement extends SplitView
 
   renderPatch: =>
     @dispatchEvent(new CustomEvent('render-patch', detail: @model.renderedPatch))
+
+  setCommitMessage: (message) =>
+    @dispatchEvent(new CustomEvent('set-commit-message', detail: message))
 
 module.exports = document.registerElement 'git-changes-view',
   prototype: ChangesElement.prototype

@@ -3,7 +3,7 @@
 #
 # This element contains everything in the left pane. This element and its model
 # represent the list of staged and unstaged changes, and it has CommitMessageElement
-# and UndoCommitView as its children.
+# and UndoCommitElement as its children.
 #
 # Its initial refactor is still in progress, in other words there's still a bunch
 # of stuff that needs to be moved into the viewmodel and tested.
@@ -12,7 +12,7 @@
 
 GitIndex        = require './git-changes'
 CommitMessageElement = require './commit-message-element'
-UndoCommitView    = require './undo-commit-view'
+UndoCommitElement    = require './undo-commit-view'
 StatusList        = require './status-list'
 observe = require '../observe'
 
@@ -46,7 +46,8 @@ class StatusListElement extends HTMLElement
     @commitMessageView.initialize({@changesView})
     @commitMessageBox.appendChild(@commitMessageView)
 
-    @undoCommitView = new UndoCommitView
+    @undoCommitView = new UndoCommitElement
+    @undoCommitView.initialize({@changesView})
     @undoCommitBox.appendChild(@undoCommitView)
 
     observe @model, ['staged', 'unstaged'], @update.bind(this)
