@@ -1,6 +1,25 @@
-$         = require 'jquery'
-PatchView = require '../patch/patch-view'
+# DiffElement <git-diff-view>
+# ===========================
+#
+# This element has the most complex behaviors of all of ChangesElement's
+# children. It's probably ripe for a refactoring. I'm not sure the best way to
+# decompose it - I could follow the pattern of the other prototype views and just
+# split out some functionality to a model and write tests, but it might make more
+# sense to split it into multiple views...
+#
+# DiffElement is the container for the right half of "View and Commit Changes".
+# When you select something from the list of statuses on the left, DiffElement
+# is updated with a diff that has a set of patches and hunks that can be
+# interacted with to stage and unstage
 
+$         = require 'jquery'
+
+Diff = require './diff'
+
+PatchElement = require './patch-element'
+Patch = require './patch'
+
+DOMListener = require 'dom-listener'
 {CompositeDisposable} = require 'atom'
 
 DefaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
@@ -12,40 +31,55 @@ EmptyTemplate = """
 
 ChangedLineSelector = ".hunk-line.addition, .hunk-line.deletion"
 
-class DiffView extends HTMLElement
+
+# XXX These are temporary helpers that can probably be removed when we aren't
+# traversing the dom to get ahold of models anymore.
+
+closest = (element, matchFn) ->
+  while element
+    return element if matchFn(element)
+    element = element.parentNode
+
+closestSelector = (element, selector) ->
+  closest element, (elt) ->
+    elt.matches?(selector)
+
+class DiffElement extends HTMLElement
   @diffSelectionMode: 'hunk'
   @dragging: false
 
+  initialize: ({@changesView}) ->
+    @model = new Diff(gitIndex: @changesView.model.gitIndex)
+
   createdCallback: ->
-    @el = $(@)
     @tabIndex = -1
     @setFont()
     @empty()
     @disposables = new CompositeDisposable
 
   attachedCallback: ->
-    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
-    @base.on 'render-patch', @renderPatch.bind(@)
-    @base.on 'no-change-selected', @empty.bind(@)
-    @base.on 'focus-diff-view', @focusAndSelect.bind(@)
+    # Listen to events from the root view
+    # This should probably have an api like @changesView.onDidRenderPatch(fn)
+    # TODO: push these events down into the model if possible
+    changesViewListener = new DOMListener(@changesView)
+    @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(this))
+    @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(this))
+    @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(this))
 
-    @el.on 'mousedown', '.btn', (e) -> e.stopPropagation()
-    @el.on 'mouseenter', ChangedLineSelector, @mouseEnterLine.bind(@)
-    @el.on 'mouseleave', ChangedLineSelector, @mouseLeaveLine.bind(@)
-    @el.on 'mousedown', ChangedLineSelector, @mouseDownLine.bind(@)
-    @el.on 'mouseup mouseleave', @mouseUp.bind(@)
-    @el.on 'click', '.btn-stage-lines', @stageLines.bind(@)
-    @el.on 'click', '.btn-stage-hunk', @stageHunk.bind(@)
+    # This view's DOM events
+    listener = new DOMListener(this)
+    stopIt = (e) -> e.stopPropagation() if e.target and e.target.classList.contains('.btn')
+    @disposables.add listener.add(this, 'mousedown', stopIt)
 
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(@)
-    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(@)
-    @disposables.add atom.on 'did-update-git-repository', @clearCache.bind(@)
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(this)
+    @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(this)
+    @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
-      'core:move-left': @focusList
+      'core:move-left': @changesView.focusList
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
@@ -54,23 +88,26 @@ class DiffView extends HTMLElement
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
-      'git:focus-commit-message': @focusCommitMessage
+      'git:focus-commit-message': @changesView.focusCommitMessage
       'git:open-file-to-line': @openFileToLine
+
+    @handlePatchElementEvents(listener)
+
+  handlePatchElementEvents: (listener) ->
+    # this stuff belongs on PatchElement maybe?
+
+    @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(this))
+    @disposables.add listener.add(ChangedLineSelector, 'mouseleave', @mouseLeaveLine.bind(this))
+    @disposables.add listener.add(ChangedLineSelector, 'mousedown', @mouseDownLine.bind(this))
+
+    @disposables.add listener.add(this, 'mouseup', @mouseUp.bind(this))
+    @disposables.add listener.add(this, 'mouseleave', @mouseUp.bind(this))
+
+    @disposables.add listener.add('.btn-stage-lines', 'click', @stageLines.bind(this))
+    @disposables.add listener.add('.btn-stage-hunk', 'click', @stageHunk.bind(this))
 
   detachedCallback: ->
     @disposables.dispose()
-
-    @base.off 'render-patch'
-    @base.off 'no-change-selected'
-    @base.off 'focus-diff-view'
-
-    @el.off 'mousedown', '.btn'
-    @el.off 'mouseenter', ChangedLineSelector
-    @el.off 'mouseleave', ChangedLineSelector
-    @el.off 'mousedown', ChangedLineSelector
-    @el.off 'mouseup mouseleave'
-    @el.off 'click', '.btn-stage-lines'
-    @el.off 'click', '.btn-stage-hunk'
 
   setFont: ->
     fontFamily = atom.config.get('editor.fontFamily') or DefaultFontFamily
@@ -78,23 +115,28 @@ class DiffView extends HTMLElement
     @style.fontFamily = fontFamily
     @style.fontSize   = "#{fontSize}px"
 
-  getPatchView: (patch, status) ->
+  # I'm not sure exactly the best way to organize / refactor this stuff
+  # (`getPatchElement`, `createPatchElement`, `renderPatch`, `setScrollPosition`,
+  # `setHunkSelection`) in light of viewmodels
+
+
+  getPatchElement: (patch, status) ->
     path = patch.newFile().path()
     @constructor.patchCache or= {}
     @constructor.patchCache["#{status}#{path}"] or=
-      @createPatchView(patch, status)
+      @createPatchElement(patch, status)
 
-  createPatchView: (patch, status) ->
-    patchView  = new PatchView
-    patchView.setPatch
-      patch: patch
-      status: status
-    patchView
+  createPatchElement: (_patch, status) ->
+    patchElement  = new PatchElement
+    patch = new Patch(patch: _patch, status: status)
+    patchElement.initialize({@changesView, patch})
+    patchElement
 
-  renderPatch: (e, entry, patch) ->
+  renderPatch: (e) ->
+    {patch, entry} = e.detail
     if patch
-      currentPatch = @querySelector('git-patch-view')
-      patchView = @getPatchView(patch, entry.status)
+      currentPatch = @querySelector('git-patch-view, git-patch')
+      patchView = @getPatchElement(patch, entry.status)
       if !currentPatch or !currentPatch.isSameNode(patchView)
         @currentScroll = @scrollTop
         @innerHTML = ''
@@ -134,18 +176,14 @@ class DiffView extends HTMLElement
     @removeClassFromLines('active')
     @focus()
 
-  focusList: ->
-    @base.trigger('focus-list')
-
-  focusCommitMessage: ->
-    @base.trigger('focus-commit-message')
-
   selectedHunk: ->
+    # XXX this shouldn't be traversing the DOM, the selected state should live '
+    # on the hunk model
     line = @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
-    @hunkForLine(line)
+    @closestHunkForElement(line)
 
-  hunkForLine: (line) ->
-    $(line).closest('git-hunk-view')[0]
+  closestHunkForElement: (line) ->
+    closest line, (elt) -> elt.tagName == 'GIT-HUNK-VIEW'
 
   selectFirstHunk: ->
     @diffSelectionMode = 'hunk'
@@ -276,7 +314,7 @@ class DiffView extends HTMLElement
 
   mouseUp: (e) ->
     @dragging = false
-    line = $(e.target).closest(ChangedLineSelector)[0]
+    line = closestSelector(e.target, ChangedLineSelector)
     return unless line
     if e.shiftKey
       @processLineSelection(line)
@@ -285,7 +323,7 @@ class DiffView extends HTMLElement
       @removeClassFromLines('dragged')
 
   selectHunkLine: (line) ->
-    hunk = @hunkForLine(line)
+    hunk = @closestHunkForElement(line)
     @unselectAllHunks() unless hunk.isSameNode(@selectedHunk())
     @removeClassFromLines('selection-point')
     line.classList.add('selection-point')
@@ -297,7 +335,7 @@ class DiffView extends HTMLElement
     lines
 
   processLineSelection: (line) ->
-    hunk = @hunkForLine(line)
+    hunk = @closestHunkForElement(line)
     start = hunk.querySelector('.selection-point')
     return unless start
 
@@ -364,13 +402,13 @@ class DiffView extends HTMLElement
 
   stageHunk: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
+    hunk = @closestHunkForElement(e.currentTarget)
     hunk?.selectAllChangedLines()
     hunk?.processLinesStage()
 
   stageLines: (e) ->
     e.stopImmediatePropagation()
-    hunk = $(e.currentTarget).closest('git-hunk-view')[0]
+    hunk = @closestHunkForElement(e.currentTarget)
     hunk?.processLinesStage()
 
   openFileToLine: ->
@@ -382,4 +420,4 @@ class DiffView extends HTMLElement
       initialLine: line.dataset.newIndex
 
 module.exports = document.registerElement 'git-diff-view',
-  prototype: DiffView.prototype
+  prototype: DiffElement.prototype

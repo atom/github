@@ -1,6 +1,6 @@
 {CompositeDisposable} = require 'atom'
 HistoryView = null
-ChangesView = null
+ChangesElement = null
 
 HISTORY_URI = 'atom://git/view-history'
 CHANGES_URI = 'atom://git/view-changes'
@@ -32,7 +32,7 @@ module.exports = GitExperiment =
             changesView or= if @state.changes?
               atom.deserializers.deserialize(@state.changes)
             else
-              createChangesView(uri: CHANGES_URI)
+              createChangesElement(uri: CHANGES_URI)
 
   serialize: ->
     serializedState
@@ -46,14 +46,14 @@ module.exports = GitExperiment =
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
 
-  openChangesView: ->
+  openChangesElement: ->
     atom.workspace.open(CHANGES_URI)
 
 atom.commands.add 'atom-workspace', 'git:view-history', =>
   GitExperiment.openHistoryView()
 
 atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
-  GitExperiment.openChangesView()
+  GitExperiment.openChangesElement()
 
 atom.commands.add 'atom-workspace', 'git:checkout-branch', =>
   createBranchesView().toggle()
@@ -67,9 +67,9 @@ createHistoryView = (state) ->
   historyView.initialize(state)
   historyView
 
-createChangesView = (state) ->
-  ChangesView ?= require './changes/changes-view'
-  changesView = new ChangesView
+createChangesElement = (state) ->
+  ChangesElement ?= require './changes/changes-element'
+  changesView = new ChangesElement
   changesView.initialize(state)
   changesView
 
@@ -90,5 +90,5 @@ atom.deserializers.add
   deserialize: (state) -> createHistoryView(state)
 
 atom.deserializers.add
-  name: 'GitChangesView'
-  deserialize: (state) -> createChangesView(state)
+  name: 'GitChangesElement'
+  deserialize: (state) -> createChangesElement(state)

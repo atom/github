@@ -1,5 +1,5 @@
 $ = require 'jquery'
-GitChanges = require '../changes/git-changes'
+GitIndex = require '../changes/git-changes'
 
 BaseTemplate = """
 <div>
@@ -23,7 +23,7 @@ class CreateBranchView extends HTMLElement
     @fromNode = @querySelector('select')
 
     @boundFocus = @detectFocus.bind(@)
-    @git = new GitChanges
+    @git = new GitIndex
 
   toggle: ->
     if @panel?.isVisible()

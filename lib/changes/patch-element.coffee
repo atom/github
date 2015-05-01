@@ -1,11 +1,17 @@
-$          = require 'jquery'
-HunkView   = require './hunk-view'
-GitIndex = require '../changes/git-changes'
 Highlights = require 'highlights'
-path       = require 'path'
+Patch = require './patch.coffee'
+observe = require '../observe'
 
-EmptyTemplate = """
-<ul class='background-message centered'>No Change Selected</ul>
+# /--TODO remove-
+HunkView = require '../patch/hunk-view.coffee'
+$ = require 'jquery'
+# --------------/
+
+PatchTemplate = """
+<div class="patch-description">
+  <span class="status-icon"></span>
+  <span class="text"></span>
+</div>
 """
 
 RenamedTemplate = """
@@ -49,20 +55,27 @@ EmptyTemplate = """
 <div class="empty">No content changes</div>
 """
 
-class PatchView extends HTMLElement
-  createdCallback: ->
-    @el  = $(@)
-    @git = new GitIndex
+class PatchElement extends HTMLElement
+  initialize: ({@changesView, patch}) ->
+    @model = patch
+    @gitIndex = @changesView.model.gitIndex
+    observe @model, [], @update.bind(this)
+    @update()
 
-  setPatch: ({@patch, @status, @commit}) ->
-    @path = @patch.newFile().path()
+  createdCallback: ->
+    @innerHTML = PatchTemplate
+
+  attachedCallback: ->
+
+  update: ->
+    @path = @model.patch.newFile().path()
     @addHeaders()
-    for hunk, idx in @patch.hunks()
+    for hunk, idx in @model.patch.hunks()
       hunkView = new HunkView
-      hunkView.setHunk(@patch, idx, @status)
+      hunkView.setHunk(@model.patch, idx, @model.status)
       @appendChild(hunkView)
 
-    @addEmpty() unless @patch.hunks().length
+    @addEmpty() unless @model.patch.hunks().length
     @setSyntaxHighlights()
 
   hunkViews: ->
@@ -72,10 +85,10 @@ class PatchView extends HTMLElement
     hunk.unselectAllChangedLines() for hunk in @hunkViews()
 
   setSyntaxHighlights: ->
-    @git.getBlobs
-      patch: @patch
-      status: @status
-      commit: @commit
+    @gitIndex.getBlobs
+      patch: @model.patch
+      status: @model.status
+      commit: @model.commit
     .then (blobs) =>
       if grammar = atom.grammars.selectGrammar(@path, blobs.new)
         highlighter = new Highlights
@@ -96,25 +109,25 @@ class PatchView extends HTMLElement
             newSource: $(newSource)
 
   addHeaders: ->
-    if @patch.isRenamed()
+    if @model.patch.isRenamed()
       @addRenamedHeader()
     else
-      node = if @patch.isAdded() or @patch.isUntracked()
+      node = if @model.patch.isAdded() or @model.patch.isUntracked()
         $(AddedTemplate)[0]
-      else if @patch.isDeleted()
+      else if @model.patch.isDeleted()
         $(RemovedTemplate)[0]
       else
         $(ModifiedTemplate)[0]
 
-      path     = @patch.newFile().path()
+      path     = @model.patch.newFile().path()
       pathNode = node.querySelector('.path')
       pathNode.textContent = path
       @appendChild(node)
 
   addRenamedHeader: ->
     node     = $(RenamedTemplate)[0]
-    from     = @patch.oldFile().path()
-    to       = @patch.newFile().path()
+    from     = @model.patch.oldFile().path()
+    to       = @model.patch.newFile().path()
     fromNode = node.querySelector('.from')
     toNode   = node.querySelector('.to')
 
@@ -124,8 +137,7 @@ class PatchView extends HTMLElement
     @appendChild(node)
 
   addEmpty: ->
-    node = $(EmptyTemplate)[0]
-    @appendChild(node)
+    @insertAdjacentHTML('beforeend', EmptyTemplate)
 
-module.exports = document.registerElement 'git-patch-view',
-  prototype: PatchView.prototype
+module.exports = document.registerElement 'git-patch',
+  prototype: PatchElement.prototype

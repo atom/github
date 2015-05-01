@@ -1,36 +1,40 @@
-$          = require 'jquery'
-GitChanges = require './git-changes'
+GitIndex = require './git-changes'
 timeago    = require 'timeago'
+{CompositeDisposable, Disposable} = require 'atom'
 
 BaseTemplate = """
-<button class="btn">Undo</button>
+<button class="btn undo-button">Undo</button>
 <div class="description">Committed <span class="time"></span></div>
 <div class="title"></div>
 """
 
-class UndoCommitView extends HTMLElement
+class UndoCommitElement extends HTMLElement
   createdCallback: ->
     # Elements
-    @el         = $(@)
     @innerHTML  = BaseTemplate
     @buttonNode = @querySelector('.btn')
     @titleNode  = @querySelector('.title')
     @timeNode   = @querySelector('.time')
 
-    @git = new GitChanges
+    @disposables = new CompositeDisposable
+    @gitIndex = new GitIndex
+
+  initialize: ({@changesView}) ->
 
   attachedCallback: ->
-    @base = @el.closest('.git-root-view')
     @handleEvents()
 
   handleEvents: ->
-    @el.on 'click', '.btn', @undoCommit.bind(@)
+    undo = @undoCommit.bind(this)
+    @querySelector('.undo-button').addEventListener('click', undo)
+    @disposables.add new Disposable =>
+      @querySelector('.undo-button').removeEventListener(undo)
 
-  detatchedCallback: ->
-    @el.off 'click', '.btn'
+  detachedCallback: ->
+    @disposables.dispose()
 
   update: ->
-    @git.getLatestUnpushed().then (commit) =>
+    @gitIndex.getLatestUnpushed().then (commit) =>
       if commit
         @titleNode.textContent = commit.message()
         @timeNode.textContent = timeago(commit.date())
@@ -43,11 +47,10 @@ class UndoCommitView extends HTMLElement
         @classList.remove('show')
 
   undoCommit: ->
-    @git.getLatestUnpushed().then (commit) =>
-      @base.trigger('set-commit-message', [commit.message()])
-      @git.resetBeforeCommit(commit).then =>
-        atom.emit('did-update-git-repository')
-        @base.trigger("")
+    @gitIndex.getLatestUnpushed().then (commit) =>
+      @changesView.setCommitMessage(commit.message())
+      @gitIndex.resetBeforeCommit(commit).then =>
+        #@base.trigger("") # what was this supposed to be?
 
 module.exports = document.registerElement 'git-undo-commit-view',
-  prototype: UndoCommitView.prototype
+  prototype: UndoCommitElement.prototype
