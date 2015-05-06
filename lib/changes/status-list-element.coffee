@@ -12,7 +12,7 @@
 
 GitIndex        = require './git-changes'
 CommitMessageElement = require './commit-message-element'
-UndoCommitElement    = require './undo-commit-view'
+UndoCommitElement    = require './undo-commit-element'
 StatusList        = require './status-list'
 observe = require '../observe'
 
