@@ -14,6 +14,9 @@ module.exports = GitExperiment =
   state: null
 
   activate: (@state) ->
+    atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
+      GitExperiment.openChangesElement()
+
     # Events subscribed to in atom's system can be easily
     # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
@@ -51,9 +54,6 @@ module.exports = GitExperiment =
 
 atom.commands.add 'atom-workspace', 'git:view-history', =>
   GitExperiment.openHistoryView()
-
-atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
-  GitExperiment.openChangesElement()
 
 atom.commands.add 'atom-workspace', 'git:checkout-branch', =>
   createBranchesView().toggle()
