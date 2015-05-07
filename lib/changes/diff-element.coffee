@@ -79,7 +79,7 @@ class DiffElement extends HTMLElement
     @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
-      'core:move-left': @changesView.focusList
+      'core:move-left': @changesView.focusList.bind(@changesView)
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
@@ -88,7 +88,7 @@ class DiffElement extends HTMLElement
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
-      'git:focus-commit-message': @changesView.focusCommitMessage
+      'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 
     @handlePatchElementEvents(listener)
