@@ -35,8 +35,9 @@ describe 'View and Commit Changes', ->
       fs.writeFileSync(path.join(projectPath, 'foo.md'), 'some more text')
       dispatchCommand('view-and-commit-changes')
 
-      waitsFor "changes view to open", ->
-        workspaceElement.querySelector('git-changes-view')?
+      waitsFor "status list to populate", ->
+        wrapper = workspaceElement.querySelector('git-changes-view .unstaged.files')
+        wrapper? and (wrapper.innerHTML.indexOf('foo.md') isnt -1)
 
       runs ->
         expect(workspaceElement.querySelector('.unstaged.files').innerHTML).toContain('foo.md')
