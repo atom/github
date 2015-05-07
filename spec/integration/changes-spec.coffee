@@ -1,8 +1,10 @@
 path = require 'path'
 fs = require 'fs'
+Git = require 'nodegit'
 
 describe 'View and Commit Changes', ->
   workspaceElement = null
+  projectPath = null
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
@@ -10,6 +12,19 @@ describe 'View and Commit Changes', ->
     atom.project.setPaths([projectPath])
     waitsForPromise ->
       atom.packages.activatePackage('git')
+
+  afterEach ->
+    console.log "after"
+    Reset = Git.Reset
+    repository = null
+    console.log "projectPath", projectPath
+    Git.Repository.open(projectPath).then (repo) ->
+      repository = repo
+      repo.head()
+    .then (reference) ->
+      repository.getBranchCommit(reference.toString())
+    .then (commit) ->
+      Reset.reset(repository, commit, Reset.TYPE.HARD)
 
   dispatchCommand = (command) ->
     commandText = "git:#{command}"
