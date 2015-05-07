@@ -14,10 +14,9 @@ describe 'View and Commit Changes', ->
       atom.packages.activatePackage('git')
 
   afterEach ->
-    console.log "after"
     Reset = Git.Reset
     repository = null
-    console.log "projectPath", projectPath
+
     Git.Repository.open(projectPath).then (repo) ->
       repository = repo
       repo.head()
