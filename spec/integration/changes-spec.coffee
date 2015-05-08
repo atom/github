@@ -12,7 +12,6 @@ describe 'View and Commit Changes', ->
     workspaceElement = atom.views.getView(atom.workspace)
     jasmine.attachToDOM(workspaceElement)
     projectPath = path.join(__dirname, '../fixtures/a')
-    fs.renameSync(path.join(projectPath, '.renamedgit'), path.join(projectPath, '.git'))
     atom.project.setPaths([projectPath])
     waitsForPromise ->
       atom.packages.activatePackage('git')
@@ -32,8 +31,6 @@ describe 'View and Commit Changes', ->
       .then (statuses) ->
         for status in statuses
           fs.unlinkSync(path.join(projectPath, status.path())) if status.isNew()
-      .then ->
-        fs.renameSync(path.join(projectPath, '.git'), path.join(projectPath, '.renamedgit'))
 
   dispatchCommand = (command='view-and-commit-changes') ->
     commandText = "git:#{command}"
