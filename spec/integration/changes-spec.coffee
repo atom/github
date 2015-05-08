@@ -88,3 +88,39 @@ describe 'View and Commit Changes', ->
 
       runs ->
         expect($('git-status-list-view:focus').length).toBe(1)
+
+    it 'focuses the commit message when the status list is selected and the tab key is pressed', ->
+      makeChange()
+      dispatchCommand()
+
+      waitsFor 'the changes element to be displayed', ->
+        workspaceElement.querySelector('git-changes-view')?
+
+      runs ->
+        statusListView = document.querySelector('git-status-list-view')
+        statusListView.focus()
+        atom.commands.dispatch(statusListView, 'git:focus-commit-message')
+
+      waitsFor 'the commit message view to be focused', ->
+        $('atom-text-editor.commit-description.is-focused').length > 0
+
+      runs ->
+        expect($('atom-text-editor.commit-description.is-focused').length).toBe(1)
+
+    it 'focuses the commit message when a hunk is selected and the tab key is pressed', ->
+      makeChange()
+      dispatchCommand()
+
+      waitsFor 'the changes element to be displayed', ->
+        workspaceElement.querySelector('git-changes-view')?
+
+      runs ->
+        diffView = document.querySelector('git-diff-view')
+        diffView.focus()
+        atom.commands.dispatch(diffView, 'git:focus-commit-message')
+
+      waitsFor 'the commit message view to be focused', ->
+        $('atom-text-editor.commit-description.is-focused').length > 0
+
+      runs ->
+        expect($('atom-text-editor.commit-description.is-focused').length).toBe(1)

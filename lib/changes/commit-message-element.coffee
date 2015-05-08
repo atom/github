@@ -61,8 +61,8 @@ class CommitMessageElement extends HTMLElement
     @disposables.add listener.add('.btn', 'click', @model.commit)
 
     # Atom commands
-      "git:focus-status-list": @changesView.focusList.bind(this)
     @disposables.add atom.commands.add "git-commit-message-view atom-text-editor",
+      "git:focus-status-list": @changesView.focusList.bind(@changesView)
       "git:commit": @model.commit
 
   detatchedCallback: ->
