@@ -2,11 +2,16 @@ path = require 'path'
 fs = require 'fs'
 Git = require 'nodegit'
 $ = require 'jquery'
+exec = require("child_process").execSync
 
 
 describe 'View and Commit Changes', ->
   workspaceElement = null
   projectPath = null
+
+  fixturesPath = path.join(__dirname, '../fixtures')
+  exec("tar -xvf a.tar", {cwd: fixturesPath})
+  exec("tar -xvf b.tar", {cwd: fixturesPath})
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
