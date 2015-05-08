@@ -12,6 +12,7 @@ describe 'View and Commit Changes', ->
     workspaceElement = atom.views.getView(atom.workspace)
     jasmine.attachToDOM(workspaceElement)
     projectPath = path.join(__dirname, '../fixtures/a')
+    fs.renameSync(path.join(projectPath, '.renamedgit'), path.join(projectPath, '.git'))
     atom.project.setPaths([projectPath])
     waitsForPromise ->
       atom.packages.activatePackage('git')
@@ -20,13 +21,19 @@ describe 'View and Commit Changes', ->
     Reset = Git.Reset
     repository = null
 
-    Git.Repository.open(projectPath).then (repo) ->
-      repository = repo
-      repo.head()
-    .then (reference) ->
-      repository.getBranchCommit(reference.toString())
-    .then (commit) ->
-      Reset.reset(repository, commit, Reset.TYPE.HARD)
+    waitsForPromise ->
+      Git.Repository.open(projectPath).then (repo) ->
+        repository = repo
+        repo.getMasterCommit()
+      .then (commit) ->
+        Reset.reset(repository, commit, Reset.TYPE.HARD)
+      .then ->
+        repository.getStatus()
+      .then (statuses) ->
+        for status in statuses
+          fs.unlinkSync(path.join(projectPath, status.path())) if status.isNew()
+      .then ->
+        fs.renameSync(path.join(projectPath, '.git'), path.join(projectPath, '.renamedgit'))
 
   dispatchCommand = (command='view-and-commit-changes') ->
     commandText = "git:#{command}"
@@ -48,7 +55,7 @@ describe 'View and Commit Changes', ->
       runs ->
         expect(workspaceElement.querySelector('.unstaged.files').innerHTML).toContain('foo.md')
 
-  fdescribe 'keyboard navigation', ->
+  describe 'keyboard navigation', ->
     it 'focuses a hunk when the status list is focused and the right arrow key is pressed', ->
       makeChange()
       dispatchCommand()
@@ -61,7 +68,7 @@ describe 'View and Commit Changes', ->
         statusList.focus()
 
       waitsFor 'the highlight to be applied', ->
-        $(workspaceElement).find('git-file-summary-element.selected').length > 0
+        workspaceElement.querySelector('git-file-summary-element.selected')?
 
       runs ->
         atom.commands.dispatch(statusList, 'core:move-right')
@@ -76,11 +83,11 @@ describe 'View and Commit Changes', ->
 
       runs ->
         diffView = document.querySelector('git-diff-view')
-      #   diffView.focus()
-      #   atom.commands.dispatch(diffView, 'core:move-left')
-      #
-      # waitsFor 'the status list view to be focused', ->
-      #   $('git-status-list-view:focus').length > 0
-      #
-      # runs ->
-      #   expect($('git-status-list-view:focus').length).toBe(1)
+        diffView.focus()
+        atom.commands.dispatch(diffView, 'core:move-left')
+
+      waitsFor 'the status list view to be focused', ->
+        $('git-status-list-view:focus').length > 0
+
+      runs ->
+        expect($('git-status-list-view:focus').length).toBe(1)
