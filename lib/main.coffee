@@ -38,7 +38,7 @@ module.exports = GitExperiment =
               createChangesElement(uri: CHANGES_URI)
 
   serialize: ->
-    serializedState
+    @state
 
   didUpdateRepository: ->
     repo.refreshStatus() for repo in atom.project.getRepositories()
