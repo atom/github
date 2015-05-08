@@ -128,7 +128,7 @@ class HunkView extends HTMLElement
     for line in @allChangedLines()
       line.classList.remove('selected')
 
-  parseHeader: (header)->
+  parseHeader: (header) ->
     headerParts =
       header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
     return false unless headerParts
@@ -211,7 +211,7 @@ class HunkView extends HTMLElement
     else
       @git.unstagePatch(patch, @patch)
 
-    promise.then =>
+    promise.then ->
       atom.emit('did-update-git-repository')
 
 module.exports = document.registerElement 'git-hunk-view',

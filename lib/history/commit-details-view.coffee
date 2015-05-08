@@ -59,7 +59,7 @@ class CommitDetailsView extends HTMLElement
       @createCommitView(sha)
 
   getCommitView: (sha) ->
-    new Promise (resolve, reject) =>
+    new Promise (resolve, reject) ->
 
 
   createCommitView: (sha) ->

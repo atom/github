@@ -245,7 +245,7 @@ class StatusListElement extends HTMLElement
       message: message
       detailedMessage: details
       buttons:
-        "Discard Changes": =>
+        "Discard Changes": ->
           fileSummary.discard()
         "Cancel": null
 

@@ -14,7 +14,7 @@ module.exports = GitExperiment =
   state: null
 
   activate: (@state) ->
-    atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
+    atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', ->
       GitExperiment.openChangesElement()
 
     # Events subscribed to in atom's system can be easily
@@ -52,13 +52,13 @@ module.exports = GitExperiment =
   openChangesElement: ->
     atom.workspace.open(CHANGES_URI)
 
-atom.commands.add 'atom-workspace', 'git:view-history', =>
+atom.commands.add 'atom-workspace', 'git:view-history', ->
   GitExperiment.openHistoryView()
 
-atom.commands.add 'atom-workspace', 'git:checkout-branch', =>
+atom.commands.add 'atom-workspace', 'git:checkout-branch', ->
   createBranchesView().toggle()
 
-atom.commands.add 'atom-workspace', 'git:create-branch', =>
+atom.commands.add 'atom-workspace', 'git:create-branch', ->
   createNewBranchView().toggle()
 
 createHistoryView = (state) ->

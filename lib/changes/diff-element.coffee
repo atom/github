@@ -149,7 +149,7 @@ class DiffElement extends HTMLElement
     else
       @empty()
 
-  setScrollPosition: (patchView)->
+  setScrollPosition: (patchView) ->
     status = patchView.status
     path   = patchView.path
     if @currentStatus == status and @currentPath == path

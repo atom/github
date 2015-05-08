@@ -10,6 +10,9 @@
 'atom-workspace':
   'cmd-shift-h': 'git:view-history'
   'cmd-shift-c': 'git:view-and-commit-changes'
+
+
+
   'cmd-ctrl-b': 'git:checkout-branch'
   'cmd-ctrl-shift-b': 'git:create-branch'
 
@@ -31,6 +34,9 @@
   'a': 'git:select-active-lines'
   'shift-up': 'git:expand-selection-up'
   'shift-down': 'git:expand-selection-down'
+
+
+  
   'escape': 'git:clear-selections'
   'tab': 'git:focus-commit-message'
   'o': 'git:open-file-to-line'

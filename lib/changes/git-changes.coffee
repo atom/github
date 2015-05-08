@@ -27,7 +27,7 @@ class GitIndex
     Git.Status.STATUS
 
   getBranchName: ->
-    Git.Repository.open(@repoPath).then (repo) =>
+    Git.Repository.open(@repoPath).then (repo) ->
       repo.getBranch('HEAD')
     .then (branch) =>
       @normalizeBranchName(branch.name())
@@ -44,9 +44,9 @@ class GitIndex
     .then (branchName) =>
       data.branchName = branchName
       Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       repo.getReferenceNames()
-    .then (refs) =>
+    .then (refs) ->
       for ref in refs
         if matches = ref.match /^refs\/heads\/(.*)/
           branch =
@@ -82,7 +82,7 @@ class GitIndex
     data = {}
     name = @normalizeBranchName(name)
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.getBranchCommit(from)
     .then (branch) =>
@@ -177,7 +177,7 @@ class GitIndex
   getLatestUnpushed: ->
     data = {}
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.getCurrentBranch()
     .then (branch) =>
@@ -188,17 +188,17 @@ class GitIndex
       data.repo.getReferenceNames()
     .then (names) =>
       data.compareBranch = @getComparisonBranch(names, data.branchName)
-      new Promise (resolve, reject) =>
+      new Promise (resolve, reject) ->
         if data.compareBranch
           data.repo.getBranchCommit(data.compareBranch)
-          .then (compare) =>
+          .then (compare) ->
             data.walker.hide(compare)
             resolve()
         else
           resolve()
-    .then =>
+    .then ->
       data.walker.next()
-    .then (oid) =>
+    .then (oid) ->
       if oid then data.repo.getCommit(oid) else null
 
   resetBeforeCommit: (commit) ->
@@ -218,7 +218,7 @@ class GitIndex
 
   stageAllPaths: (paths) ->
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       repo.openIndex()
     .then (index) =>
       for path in paths
@@ -245,7 +245,7 @@ class GitIndex
       data.repo = repo
       if repo.isEmpty()
         repo.openIndex()
-        .then (index) =>
+        .then (index) ->
           index.removeByPath(path) for path in paths
           index.write()
       else
@@ -268,13 +268,13 @@ class GitIndex
   commit: (message) ->
     data = {}
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.openIndex()
-    .then (index) =>
+    .then (index) ->
       data.index = index
       index.writeTree()
-    .then (indexTree) =>
+    .then (indexTree) ->
       data.indexTree = indexTree
       data.repo.getHeadCommit()
     .catch -> data.parent = null
@@ -295,7 +295,7 @@ class GitIndex
     oldPath = patch.oldFile().path()
     newPath = patch.newFile().path()
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.openIndex()
     .then (index) =>
@@ -330,10 +330,10 @@ class GitIndex
     oldPath = patch.oldFile().path()
     newPath = patch.newFile().path()
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.openIndex()
-    .then (index) =>
+    .then (index) ->
       data.index = index
       entry = index.getByPath(newPath, 0)
       if entry?
@@ -395,7 +395,7 @@ class GitIndex
   indexBlob: (path) ->
     data = {}
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       repo.openIndex()
     .then (index) =>
@@ -408,7 +408,7 @@ class GitIndex
 
   treeBlob: (path, sha) ->
     Git.Repository.open(@repoPath)
-    .then (repo) =>
+    .then (repo) ->
       if sha
         repo.getCommit(sha)
       else
@@ -470,12 +470,12 @@ class GitIndex
     newPath = patch.newFile().path()
 
     if patch.isAdded() or patch.isUntracked()
-      @indexBlob(newPath).then (newBlob) =>
+      @indexBlob(newPath).then (newBlob) ->
         data =
           new: newBlob
           old: ''
     else if patch.isDeleted()
-      @treeBlob(oldPath).then (oldBlob) =>
+      @treeBlob(oldPath).then (oldBlob) ->
         data =
           old: oldBlob
           new: ''
@@ -491,12 +491,12 @@ class GitIndex
     newPath = patch.newFile().path()
 
     if patch.isAdded() or patch.isUntracked()
-      @workingBlob(newPath).then (newBlob) =>
+      @workingBlob(newPath).then (newBlob) ->
         data =
           new: newBlob
           old: ''
     else if patch.isDeleted()
-      @indexBlob(oldPath).then (oldBlob) =>
+      @indexBlob(oldPath).then (oldBlob) ->
         data =
           old: oldBlob
           new: ''
