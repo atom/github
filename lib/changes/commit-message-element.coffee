@@ -31,17 +31,17 @@ class CommitMessageElement extends HTMLElement
     # Elements
     @innerHTML    = BaseTemplate
     @messageNode  = @querySelector('atom-text-editor')
-    @messageModel = @messageNode.getModel()
 
     @branchNode   = @querySelector('.branch-name')
     @buttonNode   = @querySelector('.btn')
 
-    @messageModel.setSoftWrapped(true)
-    @messageModel.setPlaceholderText(PlaceholderText)
-
     @stagedCount = 0
 
   attachedCallback: ->
+    @messageModel = @messageNode.getModel()
+    @messageModel.setSoftWrapped(true)
+    @messageModel.setPlaceholderText(PlaceholderText)
+
     # Model events
     @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@update.bind(this))
     @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(this))
