@@ -9,12 +9,12 @@ describe "FileSummary", ->
 
   it "stages if status is unstaged", ->
     @fileSummary.status = 'unstaged'
-    spyOn(@fileSummary.gitIndex, 'stagePath').andReturn(new Promise ->)
+    spyOn(@fileSummary.gitIndex, 'stagePath').andReturn(new Promise -> )
     @fileSummary.stage()
     expect(@fileSummary.gitIndex.stagePath).toHaveBeenCalled()
 
   it "unstages if status is not unstaged", ->
     @fileSummary.status = 'staged'
-    spyOn(@fileSummary.gitIndex, 'unstagePath').andReturn(new Promise ->)
+    spyOn(@fileSummary.gitIndex, 'unstagePath').andReturn(new Promise -> )
     @fileSummary.stage()
     expect(@fileSummary.gitIndex.unstagePath).toHaveBeenCalled()
