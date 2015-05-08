@@ -21,7 +21,7 @@
   'tab': 'git:focus-commit-message'
   'o': 'git:open-file'
 
-'git-commit-message-view atom-text-editor:not(.mini)':
+'git-commit-message-view atom-text-editor':
   'escape': 'git:focus-status-list'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
