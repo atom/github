@@ -45,10 +45,10 @@ closestSelector = (element, selector) ->
     elt.matches?(selector)
 
 class DiffElement extends HTMLElement
-  @diffSelectionMode: 'hunk'
-  @dragging: false
-
   initialize: ({@changesView}) ->
+    @diffSelectionMode = 'hunk'
+    @dragging = false
+
     @model = new Diff(gitIndex: @changesView.model.gitIndex)
 
   createdCallback: ->
@@ -251,7 +251,7 @@ class DiffElement extends HTMLElement
         @selectPreviousLine()
 
   selectNextLine: ->
-    active = @selectedHunk().querySelectorAll('.keyboard-active')
+    active = @selectedHunk()?.querySelectorAll('.keyboard-active')
     selection = active[active.length - 1]
     if selection
       next = $(selection).nextAll(ChangedLineSelector)[0] #or selection

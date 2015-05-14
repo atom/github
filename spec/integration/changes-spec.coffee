@@ -15,6 +15,8 @@ describe 'View and Commit Changes', ->
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
+    changes = workspaceElement.querySelector('git-changes-view')
+    changes.parentNode.removeChild(changes) if changes
     jasmine.attachToDOM(workspaceElement)
     projectPath = path.join(__dirname, '../fixtures/a')
     atom.project.setPaths([projectPath])
@@ -41,9 +43,9 @@ describe 'View and Commit Changes', ->
     commandText = "git:#{command}"
     atom.commands.dispatch(workspaceElement, commandText)
 
-  makeChange = ->
-    projectPath = path.join(__dirname, '../fixtures/a')
-    fs.writeFileSync(path.join(projectPath, 'foo.md'), 'some more text')
+  makeChange = (file='foo.md', content='some more text', project='../fixtures/a') ->
+    projectPath = path.join(__dirname, project)
+    fs.writeFileSync(path.join(projectPath, file), content)
 
   describe 'editing an existing file', ->
     it 'Shows the change in the changes list', ->
@@ -129,3 +131,24 @@ describe 'View and Commit Changes', ->
 
       runs ->
         expect($('atom-text-editor.commit-description.is-focused').length).toBe(1)
+
+    it 'selects hunks using the arrow keys', ->
+      makeChange('list.md', "oneish\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\ntwelve\nthirteen\nfourteen\n")
+      dispatchCommand()
+
+      waitsFor 'the changes element to be displayed', ->
+        workspaceElement.querySelector('git-file-summary-element .filename')?.textContent == 'list.md' and
+          $('git-hunk-view').length == 2
+
+      runs ->
+        statusListView = document.querySelector('git-status-list-view')
+        statusListView.focus()
+        atom.commands.dispatch(statusListView, 'core:move-right')
+        atom.commands.dispatch(document.querySelector('git-diff-view'), 'core:move-down')
+
+      waitsFor 'second hunk to be selected', ->
+        workspaceElement.querySelector('git-diff-view git-hunk-view:nth-of-type(2) .hunk-line.selected')?
+
+      runs ->
+        expect($('git-diff-view git-hunk-view:nth-of-type(1) .hunk-line.selected').length).toBe(0)
+        expect($('git-diff-view git-hunk-view:nth-of-type(2) .hunk-line.selected').length).toBe(1)
