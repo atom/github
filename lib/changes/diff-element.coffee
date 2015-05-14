@@ -177,7 +177,7 @@ class DiffElement extends HTMLElement
     @focus()
 
   selectedHunk: ->
-    # XXX this shouldn't be traversing the DOM, the selected state should live '
+    # XXX this shouldn't be traversing the DOM, the selected state should live
     # on the hunk model
     line = @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
     @closestHunkForElement(line)
