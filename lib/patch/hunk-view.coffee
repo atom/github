@@ -25,8 +25,6 @@ class HunkView extends HTMLElement
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
 
-    @git = new GitIndex
-
   createLineNode: ->
     lineNode = document.createElement('div')
     lineNode.innerHTML = PatchLineTemplateString
@@ -57,7 +55,7 @@ class HunkView extends HTMLElement
 
       contentNode.innerHTML = highlighted if highlighted
 
-  setHunk: (@patch, @index, @status) ->
+  setHunk: (@patch, @index, @status, @git) ->
     @hunk = @patch.hunks()[@index]
     header = @hunk.header()
     headerNode = @createLineNode()
@@ -211,8 +209,8 @@ class HunkView extends HTMLElement
     else
       @git.unstagePatch(patch, @patch)
 
-    promise.then ->
-      atom.emit('did-update-git-repository')
+    promise.then =>
+      @git.emit('did-update-repository')
 
 module.exports = document.registerElement 'git-hunk-view',
   prototype: HunkView.prototype
