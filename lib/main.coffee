@@ -1,4 +1,8 @@
 {CompositeDisposable} = require 'atom'
+
+GitIndex = require './changes/git-changes'
+Changes = require './changes/changes'
+
 HistoryView = null
 ChangesElement = null
 
@@ -12,6 +16,9 @@ branchesView = null
 module.exports = GitExperiment =
   subscriptions: null
   state: null
+  _gitIndex: null
+  gitIndex: ->
+    @_gitIndex ?= new GitIndex
 
   activate: (@state) ->
     atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
@@ -21,7 +28,8 @@ module.exports = GitExperiment =
     # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
-    @subscriptions.add atom.on 'did-update-git-repository', @didUpdateRepository
+    # XXX not firing
+    @gitIndex().onDidUpdateRepository @didUpdateRepository
 
     process.nextTick =>
       @subscriptions.add atom.workspace.addOpener (filePath) =>
@@ -35,7 +43,8 @@ module.exports = GitExperiment =
             changesView or= if @state.changes?
               atom.deserializers.deserialize(@state.changes)
             else
-              createChangesElement(uri: CHANGES_URI)
+              changes = new Changes(gitIndex: @gitIndex())
+              createChangesElement(uri: CHANGES_URI, model: changes)
 
   serialize: ->
     serializedState
