@@ -40,14 +40,15 @@ module.exports = GitExperiment =
             else
               createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
+            model = new Changes(gitIndex: @gitIndex())
             changesView or= if @state.changes?
+              @state.changes.model = model
               atom.deserializers.deserialize(@state.changes)
             else
-              changes = new Changes(gitIndex: @gitIndex())
-              createChangesElement(uri: CHANGES_URI, model: changes)
+              createChangesElement(uri: CHANGES_URI, model: model)
 
   serialize: ->
-    serializedState
+    @state
 
   didUpdateRepository: ->
     repo.refreshStatus() for repo in atom.project.getRepositories()
