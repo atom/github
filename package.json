@@ -11,7 +11,7 @@
   "dependencies": {
     "fs-extra": "^0.16.3",
     "jquery": "^2.1.3",
-    "nodegit": "nodegit/nodegit#master",
+    "nodegit": "nodegit/nodegit#9876b89248ec2679b92e9f68e7f90b3a9b2ded8b",
     "timeago": "~0.2.0",
     "underscore-contrib": "^0.3.0",
     "highlights": "^1.2.0",
