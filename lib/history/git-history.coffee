@@ -13,9 +13,9 @@ class GitHistory
     @repoPromise = Git.Repository.open(@repoPath)
 
   addCommit: (sha) ->
-    @repoPromise.then (repo) =>
+    @repoPromise.then (repo) ->
       repo.getCommit(sha)
-    .then (commit) =>
+    .then (commit) ->
       @constructor.commits[commit.sha()] = commit
       commit
 
@@ -59,7 +59,7 @@ class GitHistory
   walkHistory: (fromSha) ->
     data = {}
     @repoPromise
-    .then (repo) =>
+    .then (repo) ->
       data.repo = repo
       data.walker = repo.createRevWalk()
       data.walker.simplifyFirstParent()
@@ -68,7 +68,7 @@ class GitHistory
       else
         data.walker.pushHead()
       Promise.all([repo.getHeadCommit(), repo.getBranchCommit('master')])
-    .then (commits) =>
+    .then (commits) ->
       data.head = commits[0]
       data.headId = data.head.sha()
       data.master = commits[1]
@@ -77,9 +77,9 @@ class GitHistory
     .then (base) =>
       @currentBase = base
       data.walker.hide(base) unless data.headId == data.masterId
-      walk = (commits = [])=>
+      walk = (commits = []) =>
         return commits if commits.length >= @numberCommits
-        data.walker.next().then (oid) =>
+        data.walker.next().then (oid) ->
           if oid
             commits.push(oid)
             walk(commits)
