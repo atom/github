@@ -58,7 +58,12 @@ class HunkView extends HTMLElement
       contentNode.innerHTML = highlighted if highlighted
 
   setHunk: (@patch, @index, @status) ->
-    @hunk = @patch.hunks()[@index]
+    @hunk = null
+    @patch.hunks().then (hunks) =>
+      @hunk = hunks[@index]
+      @_setHunk()
+
+  _setHunk: ->
     header = @hunk.header()
     headerNode = @createLineNode()
     headerNode.classList.add('diff-hunk-header')
