@@ -40,17 +40,16 @@ module.exports = GitExperiment =
             else
               createHistoryView(uri: HISTORY_URI)
           when CHANGES_URI
-            model = new Changes(gitIndex: @gitIndex())
             changesView or= if @state.changes?
-              @state.changes.model = model
               atom.deserializers.deserialize(@state.changes)
             else
-              createChangesElement(uri: CHANGES_URI, model: model)
+              createChangesElement(uri: CHANGES_URI)
 
   serialize: ->
-    @state
+    {}
 
   didUpdateRepository: ->
+    console.log "calling didUpdateRepository"
     repo.refreshStatus() for repo in atom.project.getRepositories()
 
   deactivate: ->
@@ -80,6 +79,7 @@ createHistoryView = (state) ->
 createChangesElement = (state) ->
   ChangesElement ?= require './changes/changes-element'
   changesView = new ChangesElement
+  state.model ?= new Changes(gitIndex: GitExperiment.gitIndex())
   changesView.initialize(state)
   changesView
 
@@ -101,4 +101,6 @@ atom.deserializers.add
 
 atom.deserializers.add
   name: 'GitChangesElement'
-  deserialize: (state) -> createChangesElement(state)
+  deserialize: (state) ->
+    console.log "In the GitChangesElement deserializer"
+    createChangesElement(state)
