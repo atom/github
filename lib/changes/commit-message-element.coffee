@@ -53,12 +53,15 @@ class CommitMessageElement extends HTMLElement
     # Global UI events
     changesViewListener = new DOMListener(@changesView)
 
-    # TODO figure out if this is needed
+    # TODO move this to the model. We shouldn't add listeners to outside elements
     @disposables.add changesViewListener.add(@changesView, 'set-commit-message', @setMessage.bind(this))
 
     # Events on this element
     listener = new DOMListener(this)
     @disposables.add listener.add('.btn', 'click', @model.commit)
+    @disposables.add listener.add '.commit-description', 'keydown', (event) =>
+      if event.keyCode is 13 and event.shiftKey
+        @model.commit()
 
     # Atom commands
     @disposables.add atom.commands.add "git-commit-message-view atom-text-editor",
