@@ -113,8 +113,8 @@ class GitIndex
 
   getPatch: (path, state) ->
     @diffsPromise.then (diffs) ->
-      _.find diffs[state]?.patches(), (patch) ->
-        patch.newFile().path() == path
+      diffs[state]?.patches().then (patchList) ->
+        _.find patchList, (patch) -> patch.newFile().path() == path
 
   gatherDiffs: ->
     data = {}

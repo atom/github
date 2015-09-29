@@ -1,4 +1,8 @@
 {CompositeDisposable} = require 'atom'
+
+GitIndex = require './changes/git-changes'
+Changes = require './changes/changes'
+
 HistoryView = null
 ChangesElement = null
 
@@ -12,6 +16,9 @@ branchesView = null
 module.exports = GitExperiment =
   subscriptions: null
   state: null
+  _gitIndex: null
+  gitIndex: ->
+    @_gitIndex ?= new GitIndex
 
   activate: (@state) ->
     atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
@@ -21,7 +28,8 @@ module.exports = GitExperiment =
     # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
-    @subscriptions.add atom.on 'did-update-git-repository', @didUpdateRepository
+    # XXX not firing
+    @gitIndex().onDidUpdateRepository @didUpdateRepository
 
     process.nextTick =>
       @subscriptions.add atom.workspace.addOpener (filePath) =>
@@ -38,9 +46,10 @@ module.exports = GitExperiment =
               createChangesElement(uri: CHANGES_URI)
 
   serialize: ->
-    serializedState
+    {}
 
   didUpdateRepository: ->
+    console.log "calling didUpdateRepository"
     repo.refreshStatus() for repo in atom.project.getRepositories()
 
   deactivate: ->
@@ -70,6 +79,7 @@ createHistoryView = (state) ->
 createChangesElement = (state) ->
   ChangesElement ?= require './changes/changes-element'
   changesView = new ChangesElement
+  state.model ?= new Changes(gitIndex: GitExperiment.gitIndex())
   changesView.initialize(state)
   changesView
 
@@ -91,4 +101,6 @@ atom.deserializers.add
 
 atom.deserializers.add
   name: 'GitChangesElement'
-  deserialize: (state) -> createChangesElement(state)
+  deserialize: (state) ->
+    console.log "In the GitChangesElement deserializer"
+    createChangesElement(state)
