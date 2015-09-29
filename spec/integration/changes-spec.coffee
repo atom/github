@@ -59,7 +59,7 @@ describe 'View and Commit Changes', ->
       runs ->
         expect(workspaceElement.querySelector('.unstaged.files').innerHTML).toContain('foo.md')
 
-  describe 'keyboard navigation', ->
+  xdescribe 'keyboard navigation', ->
     it 'focuses a hunk when the status list is focused and the right arrow key is pressed', ->
       runs ->
         makeChange()
