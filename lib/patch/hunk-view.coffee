@@ -25,7 +25,7 @@ class HunkView extends HTMLElement
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
 
-    @git = new GitIndex
+    @gitIndex = new GitIndex
 
   createLineNode: ->
     lineNode = document.createElement('div')
@@ -213,12 +213,12 @@ class HunkView extends HTMLElement
     patch = "#{header}#{lines.join("\n")}\n"
 
     promise = if @status == 'unstaged'
-      @git.stagePatch(patch, @patch)
+      @gitIndex.stagePatch(patch, @patch)
     else
-      @git.unstagePatch(patch, @patch)
+      @gitIndex.unstagePatch(patch, @patch)
 
     promise.then ->
-      atom.emit('did-update-git-repository')
+      @gitIndex.emit('did-update-git-repository')
 
 module.exports = document.registerElement 'git-hunk-view',
   prototype: HunkView.prototype
