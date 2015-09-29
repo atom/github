@@ -98,6 +98,7 @@ class DiffElement extends HTMLElement
 
     @disposables.add listener.add(ChangedLineSelector, 'mouseenter', @mouseEnterLine.bind(this))
     @disposables.add listener.add(ChangedLineSelector, 'mouseleave', @mouseLeaveLine.bind(this))
+    # This next line is causing an illegal invocation for some reason
     @disposables.add listener.add(ChangedLineSelector, 'mousedown', @mouseDownLine.bind(this))
 
     @disposables.add listener.add(this, 'mouseup', @mouseUp.bind(this))
