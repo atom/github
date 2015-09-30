@@ -54,8 +54,7 @@ module.exports =
 class Changes
   # The view-model for the root ChangesElement
   renderedPatch: null
-  constructor: ->
-    @gitIndex = new GitIndex
+  constructor: ({@gitIndex})->
 
   setRenderedPatch: (fileSummary) ->
     @gitIndex.getPatch(fileSummary.file.path(), fileSummary.status).then (patch) =>

@@ -55,8 +55,13 @@ class HunkView extends HTMLElement
 
       contentNode.innerHTML = highlighted if highlighted
 
-  setHunk: (@patch, @index, @status, @git) ->
-    @hunk = @patch.hunks()[@index]
+  setHunk: (@patch, @index, @status) ->
+    @hunk = null
+    @patch.hunks().then (hunks) =>
+      @hunk = hunks[@index]
+      @_setHunk()
+
+  _setHunk: ->
     header = @hunk.header()
     headerNode = @createLineNode()
     headerNode.classList.add('diff-hunk-header')
@@ -70,41 +75,42 @@ class HunkView extends HTMLElement
     oldLine = oldStart
     newLine = newStart
 
-    for line, lineIndex in @hunk.lines()
-      lineNode              = @createLineNode()
-      content               = line.content().split(/[\r\n]/g)[0] # srsly.
-      contentNode           = document.createElement('span')
-      lineOrigin            = String.fromCharCode(line.origin())
-      oldLineNumber         = lineNode.querySelector('.old-line-number')
-      newLineNumber         = lineNode.querySelector('.new-line-number')
+    @hunk.lines().then (lines) =>
+      for line, lineIndex in lines
+        lineNode              = @createLineNode()
+        content               = line.content().split(/[\r\n]/g)[0] # srsly.
+        contentNode           = document.createElement('span')
+        lineOrigin            = String.fromCharCode(line.origin())
+        oldLineNumber         = lineNode.querySelector('.old-line-number')
+        newLineNumber         = lineNode.querySelector('.new-line-number')
 
-      dataNode              = lineNode.querySelector('.diff-hunk-data')
-      dataNode.dataset.path = @patch.newFile().path()
-      oldLine               = line.oldLineno() if line.oldLineno() > 0
-      newLine               = line.newLineno() if line.newLineno() > 0
+        dataNode              = lineNode.querySelector('.diff-hunk-data')
+        dataNode.dataset.path = @patch.newFile().path()
+        oldLine               = line.oldLineno() if line.oldLineno() > 0
+        newLine               = line.newLineno() if line.newLineno() > 0
 
-      lineNode.dataset.oldIndex = oldLine - 1
-      lineNode.dataset.newIndex = newLine - 1
+        lineNode.dataset.oldIndex = oldLine - 1
+        lineNode.dataset.newIndex = newLine - 1
 
-      contentNode.classList.add('syntax-node')
-      dataNode.textContent = lineOrigin
-      contentNode.textContent = content
-      dataNode.appendChild(contentNode)
+        contentNode.classList.add('syntax-node')
+        dataNode.textContent = lineOrigin
+        contentNode.textContent = content
+        dataNode.appendChild(contentNode)
 
-      switch lineOrigin
-        when '-'
-          lineNode.classList.add('deletion')
-        when '+'
-          lineNode.classList.add('addition')
+        switch lineOrigin
+          when '-'
+            lineNode.classList.add('deletion')
+          when '+'
+            lineNode.classList.add('addition')
 
-      oldLineNumber.textContent = oldLine if line.oldLineno() > 0
-      newLineNumber.textContent = newLine if line.newLineno() > 0
-      lineNode.dataset.lineIndex = lineIndex
+        oldLineNumber.textContent = oldLine if line.oldLineno() > 0
+        newLineNumber.textContent = newLine if line.newLineno() > 0
+        lineNode.dataset.lineIndex = lineIndex
 
-      if @status and (lineOrigin == '-' or lineOrigin == '+')
-        dataNode.appendChild(@stageButton('lines'))
+        if @status and (lineOrigin == '-' or lineOrigin == '+')
+          dataNode.appendChild(@stageButton('lines'))
 
-      @hunkNode.appendChild(lineNode)
+        @hunkNode.appendChild(lineNode)
 
   allLines: ->
     @querySelectorAll('.hunk-line[data-line-index]')

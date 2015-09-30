@@ -1,3 +1,11 @@
+# FileSummaryElement
+# ==================
+#
+# This is the element that is shown in the left pane when committing under
+# "Unstaged changes" and "Staged changes". It shows the filename for a change,
+# color coded and with an icon for add/remove/modify, and affords stage and
+# unstage actions.
+
 {CompositeDisposable, Disposable} = require 'atom'
 
 observe = require '../observe'

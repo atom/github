@@ -15,7 +15,7 @@ class GitHistory
   addCommit: (sha) ->
     @repoPromise.then (repo) ->
       repo.getCommit(sha)
-    .then (commit) =>
+    .then (commit) ->
       @constructor.commits[commit.sha()] = commit
       commit
 

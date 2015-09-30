@@ -70,12 +70,16 @@ class PatchElement extends HTMLElement
   update: ->
     @path = @model.patch.newFile().path()
     @addHeaders()
-    for hunk, idx in @model.patch.hunks()
-      hunkView = new HunkView
-      hunkView.setHunk(@model.patch, idx, @model.status, @changesView.model.gitIndex)
-      @appendChild(hunkView)
+    
+    @model.patch.hunks().then (hunks) =>
+      console.log "hunks", hunks
+      for hunk, idx in hunks
+        hunkView = new HunkView
+        hunkView.setHunk(@model.patch, idx, @model.status)
+        @appendChild(hunkView)
 
-    @addEmpty() unless @model.patch.hunks().length
+    @addEmpty() unless @model.patch.size() > 0
+
     @setSyntaxHighlights()
 
   hunkViews: ->
