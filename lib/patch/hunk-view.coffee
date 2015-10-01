@@ -173,50 +173,50 @@ class HunkView extends HTMLElement
     newStart = oldStart
     oldCount = newCount = 0
 
-    lines = []
+    @hunk.lines().then (_lines) =>
+      lines = []
 
-    for line, idx in @hunk.lines()
-      selected =
-        @querySelector(".hunk-line.selected[data-line-index='#{idx}']")
+      for line, idx in _lines
+        selected =
+          @querySelector(".hunk-line.selected[data-line-index='#{idx}']")
 
-      origin = String.fromCharCode(line.origin())
-      content = line.content().split(/[\r\n]/g)[0]
-      switch origin
-        when ' '
-          oldCount++
-          newCount++
-          lines.push "#{origin}#{content}"
-        when '+'
-          if selected
+        origin = String.fromCharCode(line.origin())
+        content = line.content().split(/[\r\n]/g)[0]
+        switch origin
+          when ' '
+            oldCount++
             newCount++
             lines.push "#{origin}#{content}"
-          else if action == 'unstage'
-            oldCount++
-            newCount++
-            lines.push " #{content}"
-        when '-'
-          if selected
-            oldCount++
-            lines.push "#{origin}#{content}"
-          else if action == 'stage'
-            oldCount++
-            newCount++
-            lines.push " #{content}"
+          when '+'
+            if selected
+              newCount++
+              lines.push "#{origin}#{content}"
+            else if action == 'unstage'
+              oldCount++
+              newCount++
+              lines.push " #{content}"
+          when '-'
+            if selected
+              oldCount++
+              lines.push "#{origin}#{content}"
+            else if action == 'stage'
+              oldCount++
+              newCount++
+              lines.push " #{content}"
+      lines
+    .then (lines) =>
+      oldStart = 1 if oldCount > 0 and oldStart == '0'
+      newStart = 1 if newCount > 0 and newStart == '0'
 
-    oldStart = 1 if oldCount > 0 and oldStart == '0'
-    newStart = 1 if newCount > 0 and newStart == '0'
-
-    header =
-      "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
-
-    patch = "#{header}#{lines.join("\n")}\n"
-
-    promise = if @status == 'unstaged'
-      @gitIndex.stagePatch(patch, @patch)
-    else
-      @gitIndex.unstagePatch(patch, @patch)
-
-    promise.then =>
+      header =
+        "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
+      patch = "#{header}#{lines.join("\n")}\n"
+    .then (patch) =>
+      promise = if @status == 'unstaged'
+        @gitIndex.stagePatch(patch, @patch)
+      else
+        @gitIndex.unstagePatch(patch, @patch)
+    .then =>
       @gitIndex.emit('did-update-repository')
 
 module.exports = document.registerElement 'git-hunk-view',
