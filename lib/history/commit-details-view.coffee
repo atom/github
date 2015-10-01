@@ -1,6 +1,7 @@
 $                = require 'jquery'
 GitHistory       = require './git-history'
 CommitHeaderView = require './commit-header-view'
+# XXX this should be replaced with patch-element
 PatchView        = require '../patch/patch-view'
 _                = require 'underscore-contrib'
 
