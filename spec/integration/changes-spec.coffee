@@ -158,3 +158,26 @@ describe 'View and Commit Changes', ->
       runs ->
         expect($('git-diff-view git-hunk-view:nth-of-type(1) .hunk-line.selected').length).toBe(0)
         expect($('git-diff-view git-hunk-view:nth-of-type(2) .hunk-line.selected').length).toBe(1)
+
+    fit 'stages selected hunk with core:confirm', ->
+      makeChange('list.md', "oneish\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\ntwelve\nthirteen\nfourteen\n")
+      dispatchCommand()
+
+      waitsFor 'the changes element to be displayed', ->
+        workspaceElement.querySelector('git-file-summary-element .filename')?.textContent == 'list.md' and
+          $('git-hunk-view').length == 2
+
+      runs ->
+        expect($('git-file-summary-element').length).toBe(1)
+        statusListView = document.querySelector('git-status-list-view')
+        statusListView.focus()
+        atom.commands.dispatch(statusListView, 'core:move-right')
+        atom.commands.dispatch(document.querySelector('git-diff-view'), 'core:confirm')
+
+      waitsFor 'first hunk to be staged', ->
+        $('git-hunk-view').length == 1
+
+      runs ->
+        expect($('git-hunk-view').length).toBe(1)
+        expect($('.staged.files git-file-summary-element').length).toBe(1)
+        expect($('git-diff-view git-hunk-view:nth-of-type(1) .hunk-line.selected').length).toBe(1)

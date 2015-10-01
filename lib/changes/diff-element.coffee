@@ -16,8 +16,8 @@ $         = require 'jquery'
 
 Diff = require './diff'
 
-PatchElement = require './patch-element'
-Patch = require './patch'
+PatchElement = require '../patch/patch-element'
+Patch = require '../patch/patch'
 
 DOMListener = require 'dom-listener'
 {CompositeDisposable} = require 'atom'
@@ -143,15 +143,15 @@ class DiffElement extends HTMLElement
         @innerHTML = ''
         patchView.clearSelections()
         @appendChild(patchView)
-        @setScrollPosition(patchView)
 
+      @setScrollPosition(patchView)
       @currentStatus = entry.status
       @currentPath   = patch.newFile().path()
     else
       @empty()
 
   setScrollPosition: (patchView) ->
-    status = patchView.status
+    status = patchView.model.status
     path   = patchView.path
     if @currentStatus == status and @currentPath == path
       @scrollTop = @currentScroll

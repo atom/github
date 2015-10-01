@@ -49,7 +49,6 @@ module.exports = GitExperiment =
     {}
 
   didUpdateRepository: ->
-    console.log "calling didUpdateRepository"
     repo.refreshStatus() for repo in atom.project.getRepositories()
 
   deactivate: ->

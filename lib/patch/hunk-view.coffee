@@ -24,7 +24,6 @@ class HunkView extends HTMLElement
 
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
-
     @gitIndex = new GitIndex
 
   createLineNode: ->
