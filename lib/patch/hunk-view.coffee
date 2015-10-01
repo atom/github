@@ -15,6 +15,8 @@ class HunkView extends HTMLElement
   @keyboardSelectionMode: 'hunk'
   @dragging: false
 
+  initialize: ({@gitIndex}) ->
+
   createdCallback: ->
     @el             = $(@)
     @innerHTML      = BaseTemplate
@@ -24,7 +26,6 @@ class HunkView extends HTMLElement
 
   attachedCallback: ->
     @base = @el.closest('.git-root-view')
-    @gitIndex = new GitIndex
 
   createLineNode: ->
     lineNode = document.createElement('div')
