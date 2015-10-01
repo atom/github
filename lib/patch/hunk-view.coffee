@@ -217,7 +217,7 @@ class HunkView extends HTMLElement
       @gitIndex.unstagePatch(patch, @patch)
 
     promise.then =>
-      @gitIndex.emit('did-update-git-repository')
+      @gitIndex.emit('did-update-repository')
 
 module.exports = document.registerElement 'git-hunk-view',
   prototype: HunkView.prototype

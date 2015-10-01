@@ -70,7 +70,7 @@ class PatchElement extends HTMLElement
   update: ->
     @path = @model.patch.newFile().path()
     @addHeaders()
-
+    
     @model.patch.hunks().then (hunks) =>
       for hunk, idx in hunks
         hunkView = new HunkView
