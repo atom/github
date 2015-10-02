@@ -1,6 +1,7 @@
 $                = require 'jquery'
 GitHistory       = require './git-history'
 CommitHeaderView = require './commit-header-view'
+# XXX this should be replaced with patch-element
 PatchView        = require '../patch/patch-view'
 _                = require 'underscore-contrib'
 
@@ -59,7 +60,7 @@ class CommitDetailsView extends HTMLElement
       @createCommitView(sha)
 
   getCommitView: (sha) ->
-    new Promise (resolve, reject) =>
+    new Promise (resolve, reject) ->
 
 
   createCommitView: (sha) ->

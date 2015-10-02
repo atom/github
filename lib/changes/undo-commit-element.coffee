@@ -49,7 +49,7 @@ class UndoCommitElement extends HTMLElement
   undoCommit: ->
     @gitIndex.getLatestUnpushed().then (commit) =>
       @changesView.setCommitMessage(commit.message())
-      @gitIndex.resetBeforeCommit(commit).then =>
+      @gitIndex.resetBeforeCommit(commit).then ->
         #@base.trigger("") # what was this supposed to be?
 
 module.exports = document.registerElement 'git-undo-commit-view',

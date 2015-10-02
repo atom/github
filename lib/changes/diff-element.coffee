@@ -16,8 +16,8 @@ $         = require 'jquery'
 
 Diff = require './diff'
 
-PatchElement = require './patch-element'
-Patch = require './patch'
+PatchElement = require '../patch/patch-element'
+Patch = require '../patch/patch'
 
 DOMListener = require 'dom-listener'
 {CompositeDisposable} = require 'atom'
@@ -45,10 +45,10 @@ closestSelector = (element, selector) ->
     elt.matches?(selector)
 
 class DiffElement extends HTMLElement
-  @diffSelectionMode: 'hunk'
-  @dragging: false
-
   initialize: ({@changesView}) ->
+    @diffSelectionMode = 'hunk'
+    @dragging = false
+
     @model = new Diff(gitIndex: @changesView.model.gitIndex)
 
   createdCallback: ->
@@ -79,7 +79,7 @@ class DiffElement extends HTMLElement
     @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
-      'core:move-left': @changesView.focusList
+      'core:move-left': @changesView.focusList.bind(@changesView)
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
@@ -88,7 +88,7 @@ class DiffElement extends HTMLElement
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
-      'git:focus-commit-message': @changesView.focusCommitMessage
+      'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 
     @handlePatchElementEvents(listener)
@@ -143,15 +143,15 @@ class DiffElement extends HTMLElement
         @innerHTML = ''
         patchView.clearSelections()
         @appendChild(patchView)
-        @setScrollPosition(patchView)
 
+      @setScrollPosition(patchView)
       @currentStatus = entry.status
       @currentPath   = patch.newFile().path()
     else
       @empty()
 
   setScrollPosition: (patchView) ->
-    status = patchView.status
+    status = patchView.model.status
     path   = patchView.path
     if @currentStatus == status and @currentPath == path
       @scrollTop = @currentScroll
@@ -178,7 +178,7 @@ class DiffElement extends HTMLElement
     @focus()
 
   selectedHunk: ->
-    # XXX this shouldn't be traversing the DOM, the selected state should live '
+    # XXX this shouldn't be traversing the DOM, the selected state should live
     # on the hunk model
     line = @querySelector('.hunk-line.selected, .hunk-line.keyboard-active')
     @closestHunkForElement(line)
@@ -252,7 +252,7 @@ class DiffElement extends HTMLElement
         @selectPreviousLine()
 
   selectNextLine: ->
-    active = @selectedHunk().querySelectorAll('.keyboard-active')
+    active = @selectedHunk()?.querySelectorAll('.keyboard-active')
     selection = active[active.length - 1]
     if selection
       next = $(selection).nextAll(ChangedLineSelector)[0] #or selection

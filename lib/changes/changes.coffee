@@ -65,5 +65,5 @@ class Changes
           status: fileSummary.status
         patch: patch
 
-  updateRepository: () ->
+  updateRepository: ->
     @gitIndex.emit('did-update-repository')

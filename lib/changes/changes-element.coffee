@@ -34,6 +34,9 @@ class ChangesElement extends SplitView
     uri: @getURI()
     width: @width()
 
+  update: ->
+    @model.updateRepository()
+
   # Some UI actions need to focus the StatusListElement after completion. The
   # components are loosely coupled so we'll use this view as a DOM event bus.
   # XXX this stuff should get removed!

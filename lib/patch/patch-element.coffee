@@ -3,7 +3,7 @@ Patch = require './patch.coffee'
 observe = require '../observe'
 
 # /--TODO remove-
-HunkView = require '../patch/hunk-view.coffee'
+HunkView = require './hunk-view.coffee'
 $ = require 'jquery'
 # --------------/
 
@@ -72,9 +72,9 @@ class PatchElement extends HTMLElement
     @addHeaders()
 
     @model.patch.hunks().then (hunks) =>
-      console.log "hunks", hunks
       for hunk, idx in hunks
         hunkView = new HunkView
+        hunkView.initialize(gitIndex: @gitIndex)
         hunkView.setHunk(@model.patch, idx, @model.status)
         @appendChild(hunkView)
 

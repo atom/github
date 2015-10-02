@@ -78,8 +78,9 @@ class StatusListElement extends HTMLElement
     # XXX: These events should be past-tense reaction to a model state change, not
     # a dispatched command on a DOM elelemt
     changesListener = new DOMListener(@changesView)
-    @subscriptions.add changesListener.add(@, 'focus-list', @focus.bind(this))
-    @subscriptions.add changesListener.add(@, 'focus-commit-message', @focusCommitMessage.bind(this))
+
+    @subscriptions.add changesListener.add(@changesView, 'focus-list', @focus.bind(this))
+    @subscriptions.add changesListener.add(@changesView, 'focus-commit-message', @focusCommitMessage.bind(this))
 
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
@@ -244,7 +245,7 @@ class StatusListElement extends HTMLElement
       message: message
       detailedMessage: details
       buttons:
-        "Discard Changes": =>
+        "Discard Changes": ->
           fileSummary.discard()
         "Cancel": null
 
