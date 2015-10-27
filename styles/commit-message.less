@@ -2,30 +2,10 @@
 
 git-commit-message-view {
   atom-text-editor, atom-text-editor::shadow {
-    margin:0 -12px;
-    background:@pane-item-background-color;
-    color:@text-color;
-
-    .highlight.selection .region, &::shadow .highlight.selection .region {
-      background-color:fade(@background-color-highlight, 40%);
-    }
-
-    .line.cursor-line, &::shadow .line.cursor-line {
-      background-color:transparent;
-    }
-
-    .placeholder-text, &::shadow .placeholder-text {
-      color:fade(@text-color, 70%);
-    }
-
-    .cursors .cursor {
-      border-color:darken(@text-color, 70%);
-      border-width:1px;
-      background:transparent;
-    }
+    margin: 0 -12px;
 
     .scroll-view {
-      padding:8px 12px;
+      padding: 8px 12px;
     }
   }
 
