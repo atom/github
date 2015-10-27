@@ -24,6 +24,9 @@ module.exports = GitExperiment =
     atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
       GitExperiment.openChangesPanel()
 
+    atom.commands.add 'atom-workspace', 'git:close-commit-panel', =>
+      GitExperiment.closeChangesPanel()
+
     # Events subscribed to in atom's system can be easily
     # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
@@ -56,6 +59,9 @@ module.exports = GitExperiment =
 
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
+
+  closeChangesPanel: ->
+    @changesPanel?.hide()
 
   openChangesPanel: ->
     if @changesPanel?

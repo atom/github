@@ -10,19 +10,20 @@
 'atom-workspace':
   'cmd-shift-h': 'git:view-history'
   'cmd-shift-c': 'git:view-and-commit-changes'
-  'cmd-ctrl-b': 'git:checkout-branch'
-  'cmd-ctrl-shift-b': 'git:create-branch'
+  # 'cmd-ctrl-b': 'git:checkout-branch'
+  # 'cmd-ctrl-shift-b': 'git:create-branch'
 
-'git-changes-view .data atom-text-editor':
-  'cmd-enter': 'core:confirm'
-  'escape': 'core:focus-changes-list'
+# 'git-changes-view .data atom-text-editor':
+#   'cmd-enter': 'core:confirm'
+#   'escape': 'core:focus-changes-list'
 
 'git-status-list-view:focus':
+  'escape': 'git:close-commit-panel'
   'tab': 'git:focus-commit-message'
   'o': 'git:open-file'
 
 'git-commit-message-view atom-text-editor':
-  'escape': 'git:focus-status-list'
+  'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
 
