@@ -1,13 +1,14 @@
 @import "variables";
 
 git-status-list-view {
+
+  width: 300px;
   display:flex;
   flex-direction:column;
-  position:absolute;
-  bottom:0;
-  top:0;
-  left:0;
-  right:0;
+  height: 100%;
+
+  background: @pane-item-background-color;
+  border-left: 1px solid @pane-item-border-color;
 
   & > div {
     flex: 1;

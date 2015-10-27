@@ -38,16 +38,17 @@ BaseTemplate = """
 FileSummaryTag = "git-file-summary-element"
 
 class StatusListElement extends HTMLElement
-  initialize: ({@changesView}) ->
-    @model = new StatusList(gitIndex: @changesView.model.gitIndex)
+  initialize: ({@model}) ->
+    gitIndex = @model.gitIndex
+    @classList.add('git-root-view')
 
     # Subviews
     @commitMessageView = new CommitMessageElement
-    @commitMessageView.initialize({@changesView})
+    @commitMessageView.initialize({gitIndex})
     @commitMessageBox.appendChild(@commitMessageView)
 
     @undoCommitView = new UndoCommitElement
-    @undoCommitView.initialize({@changesView})
+    @undoCommitView.initialize({gitIndex})
     @undoCommitBox.appendChild(@undoCommitView)
 
     observe @model, ['staged', 'unstaged'], @update.bind(this)
@@ -77,10 +78,10 @@ class StatusListElement extends HTMLElement
 
     # XXX: These events should be past-tense reaction to a model state change, not
     # a dispatched command on a DOM elelemt
-    changesListener = new DOMListener(@changesView)
-
-    @subscriptions.add changesListener.add(@changesView, 'focus-list', @focus.bind(this))
-    @subscriptions.add changesListener.add(@changesView, 'focus-commit-message', @focusCommitMessage.bind(this))
+    # changesListener = new DOMListener(@changesView)
+    #
+    # @subscriptions.add changesListener.add(@changesView, 'focus-list', @focus.bind(this))
+    # @subscriptions.add changesListener.add(@changesView, 'focus-commit-message', @focusCommitMessage.bind(this))
 
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
@@ -113,12 +114,12 @@ class StatusListElement extends HTMLElement
 
   appendUnstaged: (fileSummary) ->
     unstagedSummaryElement = new FileSummaryElement
-    unstagedSummaryElement.initialize(model: fileSummary, changesView: @changesView)
+    unstagedSummaryElement.initialize(model: fileSummary)
     @unstagedNode.appendChild(unstagedSummaryElement)
 
   appendStaged: (fileSummary) ->
     stagedSummaryElement = new FileSummaryElement
-    stagedSummaryElement.initialize(model: fileSummary, changesView: @changesView)
+    stagedSummaryElement.initialize(model: fileSummary)
     @stagedNode.appendChild(stagedSummaryElement)
 
   setIndices: ->
@@ -126,10 +127,10 @@ class StatusListElement extends HTMLElement
       entry.index = idx
 
   empty: ->
-    @changesView.noChangeSelected()
+    # @changesView.noChangeSelected()
 
   focusDiffElement: ->
-    @changesView.focusDiffElement()
+    # @changesView.focusDiffElement()
 
   selectDefaultStatus: ->
     entries = @getAllEntries()
@@ -161,7 +162,7 @@ class StatusListElement extends HTMLElement
     @deselect(selectedEntries)
     entry.classList.add("selected")
 
-    @changesView.model.setRenderedPatch(entry.model)
+    # @changesView.model.setRenderedPatch(entry.model)
 
     @scrollIntoView(entry)
     entry

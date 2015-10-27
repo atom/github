@@ -23,6 +23,9 @@ class GitIndex
   onDidUpdateRepository: (callback) ->
     @emitter.on('did-update-repository', callback)
 
+  updateRepository: ->
+    @emitter.emit('did-update-repository')
+
   statusCodes: ->
     Git.Status.STATUS
 

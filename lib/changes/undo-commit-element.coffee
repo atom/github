@@ -19,7 +19,7 @@ class UndoCommitElement extends HTMLElement
     @disposables = new CompositeDisposable
     @gitIndex = new GitIndex
 
-  initialize: ({@changesView}) ->
+  initialize: ({@gitIndex}) ->
 
   attachedCallback: ->
     @handleEvents()
@@ -48,7 +48,7 @@ class UndoCommitElement extends HTMLElement
 
   undoCommit: ->
     @gitIndex.getLatestUnpushed().then (commit) =>
-      @changesView.setCommitMessage(commit.message())
+      # @changesView.setCommitMessage(commit.message())
       @gitIndex.resetBeforeCommit(commit).then ->
         #@base.trigger("") # what was this supposed to be?
 

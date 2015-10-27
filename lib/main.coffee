@@ -21,8 +21,8 @@ module.exports = GitExperiment =
     @_gitIndex ?= new GitIndex
 
   activate: (@state) ->
-    atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', ->
-      GitExperiment.openChangesElement()
+    atom.commands.add 'atom-workspace', 'git:view-and-commit-changes', =>
+      GitExperiment.openChangesPanel()
 
     # Events subscribed to in atom's system can be easily
     # cleaned up with a CompositeDisposable
@@ -57,8 +57,13 @@ module.exports = GitExperiment =
   openHistoryView: ->
     atom.workspace.open(HISTORY_URI)
 
-  openChangesElement: ->
-    atom.workspace.open(CHANGES_URI)
+  openChangesPanel: ->
+    if @changesPanel?
+      @gitIndex().updateRepository()
+      @changesPanel.show()
+    else
+      StatusList = require './changes/status-list'
+      @changesPanel = atom.workspace.addRightPanel(item: new StatusList(gitIndex: @gitIndex()))
 
 atom.commands.add 'atom-workspace', 'git:view-history', ->
   GitExperiment.openHistoryView()

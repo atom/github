@@ -22,7 +22,7 @@ BaseTemplate = """
 """
 
 class FileSummaryElement extends HTMLElement
-  initialize: ({@model, @changesView}) ->
+  initialize: ({@model}) ->
     observe @model, ['file', 'status'], @update.bind(this)
     @subscriptions = new CompositeDisposable
     @update()
@@ -78,7 +78,7 @@ class FileSummaryElement extends HTMLElement
 
   select: (e) =>
     @classList.add('selected')
-    @changesView.model.setRenderedPatch(@model)
+    # @changesView.model.setRenderedPatch(@model)
 
 
 module.exports = document.registerElement "git-file-summary-element",

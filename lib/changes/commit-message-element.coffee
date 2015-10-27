@@ -19,8 +19,8 @@ BaseTemplate = """
 PlaceholderText = "Please enter a commit message describing your changes"
 
 class CommitMessageElement extends HTMLElement
-  initialize: ({@changesView}) ->
-    @model = new CommitMessage(gitIndex: @changesView.model.gitIndex)
+  initialize: ({@gitIndex}) ->
+    @model = new CommitMessage(gitIndex: @gitIndex)
     # branchName could maybe get its own update function
     observe @model, ['branchName', 'message', 'complete'], @update.bind(this)
     @model.initialize()
@@ -43,7 +43,7 @@ class CommitMessageElement extends HTMLElement
     @messageModel.setPlaceholderText(PlaceholderText)
 
     # Model events
-    @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@update.bind(this))
+    @disposables.add @gitIndex.onDidUpdateRepository(@update.bind(this))
     @disposables.add @messageModel.onDidChange(@updateCommitButton.bind(this))
     @disposables.add @messageModel.onDidChange =>
       # This is a little bit of awkwardness but it keeps this element/model
@@ -51,10 +51,10 @@ class CommitMessageElement extends HTMLElement
       @model.message = @messageModel.getText()
 
     # Global UI events
-    changesViewListener = new DOMListener(@changesView)
-
-    # TODO move this to the model. We shouldn't add listeners to outside elements
-    @disposables.add changesViewListener.add(@changesView, 'set-commit-message', @setMessage.bind(this))
+    # changesViewListener = new DOMListener(@changesView)
+    #
+    # # TODO move this to the model. We shouldn't add listeners to outside elements
+    # @disposables.add changesViewListener.add(@changesView, 'set-commit-message', @setMessage.bind(this))
 
     # Events on this element
     listener = new DOMListener(this)
@@ -65,7 +65,7 @@ class CommitMessageElement extends HTMLElement
 
     # Atom commands
     @disposables.add atom.commands.add "git-commit-message-view atom-text-editor",
-      "git:focus-status-list": @changesView.focusList.bind(@changesView)
+      # "git:focus-status-list": @changesView.focusList.bind(@changesView)
       "git:commit": @model.commit
 
   detatchedCallback: ->

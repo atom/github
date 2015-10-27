@@ -62,3 +62,10 @@ module.exports = class StatusList
 
   unstageAll: =>
     @gitIndex.unstageAllPaths((fileSummary.path() for fileSummary in @staged))
+
+StatusListElement = null
+atom.views.addViewProvider StatusList, (statusList) ->
+  StatusListElement ?= require './status-list-element'
+  statusListElement = new StatusListElement
+  statusListElement.initialize(model: statusList)
+  statusListElement
