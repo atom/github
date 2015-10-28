@@ -65,4 +65,9 @@ module.exports = class FileSummary
     @gitIndex.forceCheckoutPath(path())
 
   open: ->
+    console.log 'open', @path()
     atom.workspace.open(@path()) if @exists()
+
+  openDiff: ->
+    console.log 'open diff', @path()
+    atom.workspace.open('atom://git/patch/' + @path())

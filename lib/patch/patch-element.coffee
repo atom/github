@@ -56,9 +56,8 @@ EmptyTemplate = """
 """
 
 class PatchElement extends HTMLElement
-  initialize: ({@changesView, patch}) ->
+  initialize: ({@gitIndex, patch}) ->
     @model = patch
-    @gitIndex = @changesView.model.gitIndex
     observe @model, [], @update.bind(this)
     @update()
 

@@ -45,11 +45,11 @@ closestSelector = (element, selector) ->
     elt.matches?(selector)
 
 class DiffElement extends HTMLElement
-  initialize: ({@changesView}) ->
+  initialize: ({@gitIndex, @model}) ->
     @diffSelectionMode = 'hunk'
     @dragging = false
 
-    @model = new Diff(gitIndex: @changesView.model.gitIndex)
+    console.log 'init', @model
 
   createdCallback: ->
     @tabIndex = -1
@@ -60,14 +60,19 @@ class DiffElement extends HTMLElement
   attachedCallback: ->
     @handleEvents()
 
+    console.log 'attached', @model
+    @model.getPatch().then (patch) =>
+      console.log 'have patch', patch
+      @renderPatch(patch)
+
   handleEvents: ->
     # Listen to events from the root view
     # This should probably have an api like @changesView.onDidRenderPatch(fn)
     # TODO: push these events down into the model if possible
-    changesViewListener = new DOMListener(@changesView)
-    @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(this))
-    @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(this))
-    @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(this))
+    # changesViewListener = new DOMListener(@changesView)
+    # @disposables.add changesViewListener.add(@changesView, 'render-patch', @renderPatch.bind(this))
+    # @disposables.add changesViewListener.add(@changesView, 'no-change-selected', @empty.bind(this))
+    # @disposables.add changesViewListener.add(@changesView, 'focus-diff-view', @focusAndSelect.bind(this))
 
     # This view's DOM events
     listener = new DOMListener(this)
@@ -76,10 +81,10 @@ class DiffElement extends HTMLElement
 
     @disposables.add atom.config.onDidChange 'editor.fontFamily', @setFont.bind(this)
     @disposables.add atom.config.onDidChange 'editor.fontSize', @setFont.bind(this)
-    @disposables.add @changesView.model.gitIndex.onDidUpdateRepository(@clearCache.bind(this))
+    @disposables.add @gitIndex.onDidUpdateRepository(@clearCache.bind(this))
 
     @disposables.add  atom.commands.add "git-diff-view",
-      'core:move-left': @changesView.focusList.bind(@changesView)
+      # 'core:move-left': @changesView.focusList.bind(@changesView)
       'core:move-down': @moveSelectionDown
       'core:move-up': @moveSelectionUp
       'core:confirm': @stageSelectedLines
@@ -88,7 +93,7 @@ class DiffElement extends HTMLElement
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
       'git:clear-selections': @clearSelections
-      'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
+      # 'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 
     @handlePatchElementEvents(listener)
@@ -130,11 +135,10 @@ class DiffElement extends HTMLElement
   createPatchElement: (_patch, status) ->
     patchElement  = new PatchElement
     patch = new Patch(patch: _patch, status: status)
-    patchElement.initialize({@changesView, patch})
+    patchElement.initialize({@gitIndex, patch})
     patchElement
 
-  renderPatch: (e) ->
-    {patch, entry} = e.detail
+  renderPatch: ({patch, entry}) ->
     if patch
       currentPatch = @querySelector('git-patch-view, git-patch')
       patchView = @getPatchElement(patch, entry.status)

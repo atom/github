@@ -4,10 +4,12 @@ GitIndex = require './changes/git-changes'
 Changes = require './changes/changes'
 
 HistoryView = null
+DiffPaneItem = null
 ChangesElement = null
 
 HISTORY_URI = 'atom://git/view-history'
 CHANGES_URI = 'atom://git/view-changes'
+PATCH_URI = 'atom://git/patch/'
 
 changesView = null
 historyView = null
@@ -36,17 +38,14 @@ module.exports = GitExperiment =
 
     process.nextTick =>
       @subscriptions.add atom.workspace.addOpener (filePath) =>
-        switch filePath
-          when HISTORY_URI
-            historyView or= if @state.history?
-              atom.deserializers.deserialize(@state.history)
-            else
-              createHistoryView(uri: HISTORY_URI)
-          when CHANGES_URI
-            changesView or= if @state.changes?
-              atom.deserializers.deserialize(@state.changes)
-            else
-              createChangesElement(uri: CHANGES_URI)
+        if filePath is HISTORY_URI
+          historyView or= if @state.history?
+            atom.deserializers.deserialize(@state.history)
+          else
+            createHistoryView(uri: HISTORY_URI)
+        else if filePath.startsWith(PATCH_URI)
+          console.log 'opening diff...', filePath
+          createPatchView(uri: filePath, filePath: filePath.replace(PATCH_URI, ''), gitIndex: @gitIndex())
 
   serialize: ->
     {}
@@ -86,12 +85,13 @@ createHistoryView = (state) ->
   historyView.initialize(state)
   historyView
 
-createChangesElement = (state) ->
-  ChangesElement ?= require './changes/changes-element'
-  changesView = new ChangesElement
-  state.model ?= new Changes(gitIndex: GitExperiment.gitIndex())
-  changesView.initialize(state)
-  changesView
+createPatchView = (state) ->
+  DiffPaneItem ?= require './changes/diff-pane-item'
+  diffPaneItem = new DiffPaneItem
+  diffPaneItem.initialize(state)
+  diffPaneItem
+
+
 
 createBranchesView = ->
   unless branchesView?

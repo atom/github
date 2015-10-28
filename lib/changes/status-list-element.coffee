@@ -91,6 +91,7 @@ class StatusListElement extends HTMLElement
       'core:backspace':  @promptToDiscardChanges
       'git:focus-commit-message': @focusCommitMessage
       'git:open-file': @openInPane
+      'git:open-diff': @openDiff
 
     @subscriptions.add(commands)
 
@@ -231,6 +232,9 @@ class StatusListElement extends HTMLElement
 
   openInPane: (e) ->
     @selectedEntry()?.model?.open()
+
+  openDiff: (e) ->
+    @selectedEntry()?.model?.openDiff()
 
   promptToDiscardChanges: ->
     selected = @selectedEntry()
