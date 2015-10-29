@@ -110,8 +110,6 @@ class StatusListElement extends HTMLElement
     @undoCommitView.update()
     @setIndices()
     @selectDefaultStatus()
-    @focus()
-
 
   appendUnstaged: (fileSummary) ->
     unstagedSummaryElement = new FileSummaryElement

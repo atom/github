@@ -8,9 +8,10 @@ module.exports = class Diff
   constructor: ({@gitIndex, @filePath}) ->
 
   getPatch: ->
-    @gitIndex.getPatch(@filePath, 'unstaged').then (patch) =>
-      # TODO get rid of the concept of `entry` being passed around
-        entry:
-          path: @filePath
-          status: 'unstaged'
-        patch: patch
+    @gitIndex.getStatuses().then =>
+      @gitIndex.getPatch(@filePath, 'unstaged')
+    .then (patch) =>
+      entry:
+        path: @filePath
+        status: 'unstaged'
+      patch: patch

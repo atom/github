@@ -49,8 +49,6 @@ class DiffElement extends HTMLElement
     @diffSelectionMode = 'hunk'
     @dragging = false
 
-    console.log 'init', @model
-
   createdCallback: ->
     @tabIndex = -1
     @setFont()
@@ -60,10 +58,16 @@ class DiffElement extends HTMLElement
   attachedCallback: ->
     @handleEvents()
 
-    console.log 'attached', @model
     @model.getPatch().then (patch) =>
-      console.log 'have patch', patch
       @renderPatch(patch)
+
+      # OH YEAH
+      # This really should have a model component where we can specify the selected hunk.
+      firstPatch = @querySelector('git-patch')
+      firstPatch.model.patch.hunks().then =>
+        setTimeout =>
+          @selectFirstHunk()
+        , 10
 
   handleEvents: ->
     # Listen to events from the root view

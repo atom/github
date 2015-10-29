@@ -9,7 +9,7 @@ ChangesElement = null
 
 HISTORY_URI = 'atom://git/view-history'
 CHANGES_URI = 'atom://git/view-changes'
-PATCH_URI = 'atom://git/patch/'
+DIFF_URI = 'atom://git/diff/'
 
 changesView = null
 historyView = null
@@ -29,6 +29,14 @@ module.exports = GitExperiment =
     atom.commands.add 'atom-workspace', 'git:close-commit-panel', =>
       GitExperiment.closeChangesPanel()
 
+    atom.commands.add 'atom-workspace', 'git:open-file-diff', =>
+      editor = atom.workspace.getActiveTextEditor()
+      filePath = atom.project.relativizePath(editor.getPath())[1]
+      atom.workspace.open(DIFF_URI + filePath)
+
+    atom.commands.add 'atom-workspace', 'git:log-focused', =>
+      console.log document.activeElement
+
     # Events subscribed to in atom's system can be easily
     # cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
@@ -43,9 +51,9 @@ module.exports = GitExperiment =
             atom.deserializers.deserialize(@state.history)
           else
             createHistoryView(uri: HISTORY_URI)
-        else if filePath.startsWith(PATCH_URI)
+        else if filePath.startsWith(DIFF_URI)
           console.log 'opening diff...', filePath
-          createPatchView(uri: filePath, filePath: filePath.replace(PATCH_URI, ''), gitIndex: @gitIndex())
+          createPatchView(uri: filePath, filePath: filePath.replace(DIFF_URI, ''), gitIndex: @gitIndex())
 
   serialize: ->
     {}
@@ -69,6 +77,7 @@ module.exports = GitExperiment =
     else
       StatusList = require './changes/status-list'
       @changesPanel = atom.workspace.addRightPanel(item: new StatusList(gitIndex: @gitIndex()))
+      # @changesPanel.focus()
 
 atom.commands.add 'atom-workspace', 'git:view-history', ->
   GitExperiment.openHistoryView()
