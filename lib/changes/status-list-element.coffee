@@ -41,6 +41,7 @@ class StatusListElement extends HTMLElement
   initialize: ({@model}) ->
     gitIndex = @model.gitIndex
     @classList.add('git-root-view')
+    @classList.add('focusable-panel')
 
     # Subviews
     @commitMessageView = new CommitMessageElement
@@ -86,7 +87,6 @@ class StatusListElement extends HTMLElement
     commands = atom.commands.add "git-status-list-view:focus",
       'core:move-down':  @moveSelectionDown
       'core:move-up':    @moveSelectionUp
-      'core:move-right': @focusDiffElement
       'core:confirm':    @stageSelection
       'core:backspace':  @promptToDiscardChanges
       'git:focus-commit-message': @focusCommitMessage
@@ -127,9 +127,6 @@ class StatusListElement extends HTMLElement
 
   empty: ->
     # @changesView.noChangeSelected()
-
-  focusDiffElement: ->
-    # @changesView.focusDiffElement()
 
   selectDefaultStatus: ->
     entries = @getAllEntries()

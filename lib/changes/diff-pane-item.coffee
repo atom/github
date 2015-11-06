@@ -12,6 +12,9 @@ class DiffPaneItem extends HTMLElement
 
   initialize: ({@uri, @filePath, @gitIndex}) ->
     @addEventListener 'focus', => @diffElement.focus()
+    @subscriptions = atom.commands.add this,
+      'core:move-right': =>
+        atom.commands.dispatch(this, 'git:view-and-commit-changes')
 
   detatchedCallback: ->
 
@@ -20,6 +23,9 @@ class DiffPaneItem extends HTMLElement
   getURI: -> @uri
 
   getPath: -> @filePath
+
+  destroy: ->
+    @subscriptions.dispose()
 
   serialize: ->
     deserializer: 'GitDiffPaneItem'

@@ -70,4 +70,4 @@ module.exports = class FileSummary
 
   openDiff: ->
     console.log 'open diff', @path()
-    atom.workspace.open('atom://git/patch/' + @path())
+    atom.workspace.open('atom://git/diff/' + @path())

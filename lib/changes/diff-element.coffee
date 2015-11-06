@@ -96,7 +96,7 @@ class DiffElement extends HTMLElement
       'git:select-active-lines': @selectActiveLines
       'git:expand-selection-down': @expandSelectionDown
       'git:expand-selection-up': @expandSelectionUp
-      'git:clear-selections': @clearSelections
+      # 'git:clear-selections': @clearSelections
       # 'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 

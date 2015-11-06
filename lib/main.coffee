@@ -28,6 +28,8 @@ module.exports = GitExperiment =
 
     atom.commands.add 'atom-workspace', 'git:close-commit-panel', =>
       GitExperiment.closeChangesPanel()
+      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement.focus()
 
     atom.commands.add 'atom-workspace', 'git:open-file-diff', =>
       editor = atom.workspace.getActiveTextEditor()
@@ -77,7 +79,8 @@ module.exports = GitExperiment =
     else
       StatusList = require './changes/status-list'
       @changesPanel = atom.workspace.addRightPanel(item: new StatusList(gitIndex: @gitIndex()))
-      # @changesPanel.focus()
+    statusList = @changesPanel.getItem()
+    atom.views.getView(statusList).focus()
 
 atom.commands.add 'atom-workspace', 'git:view-history', ->
   GitExperiment.openHistoryView()
