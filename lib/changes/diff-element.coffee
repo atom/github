@@ -93,11 +93,13 @@ class DiffElement extends HTMLElement
       # 'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 
-    # refresh
-    @addEventListener 'focus', =>
+    refreshUI = =>
       @model.getPatch().then (patch) =>
         @renderPatch(patch)
         @selectFirstHunk()
+
+    @disposables.add listener.add(this, 'focus', refreshUI)
+    @disposables.add @gitIndex.onDidUpdateRepository(refreshUI)
 
     @handlePatchElementEvents(listener)
 
