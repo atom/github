@@ -63,11 +63,7 @@ class DiffElement extends HTMLElement
 
       # OH YEAH
       # This really should have a model component where we can specify the selected hunk.
-      firstPatch = @querySelector('git-patch')
-      firstPatch.model.patch.hunks().then =>
-        setTimeout =>
-          @selectFirstHunk()
-        , 10
+      @selectFirstHunk()
 
   handleEvents: ->
     # Listen to events from the root view
@@ -100,6 +96,11 @@ class DiffElement extends HTMLElement
       # 'git:focus-commit-message': @changesView.focusCommitMessage.bind(@changesView)
       'git:open-file-to-line': @openFileToLine
 
+    # refresh
+    @addEventListener 'focus', =>
+      @model.getPatch().then (patch) =>
+        @renderPatch(patch)
+
     @handlePatchElementEvents(listener)
 
   handlePatchElementEvents: (listener) ->
@@ -131,7 +132,7 @@ class DiffElement extends HTMLElement
 
 
   getPatchElement: (patch, status) ->
-    path = patch.newFile().path()
+    path = patch.newPathName
     @constructor.patchCache or= {}
     @constructor.patchCache["#{status}#{path}"] or=
       @createPatchElement(patch, status)
@@ -154,7 +155,7 @@ class DiffElement extends HTMLElement
 
       @setScrollPosition(patchView)
       @currentStatus = entry.status
-      @currentPath   = patch.newFile().path()
+      @currentPath   = patch.newPathName
     else
       @empty()
 
@@ -424,7 +425,7 @@ class DiffElement extends HTMLElement
     hunk = @selectedHunk()
     line = hunk?.activeLine()
     return unless line
-    path = hunk.patch.newFile().path()
+    path = hunk.patch.newPathName
     atom.workspace.open path,
       initialLine: line.dataset.newIndex
 

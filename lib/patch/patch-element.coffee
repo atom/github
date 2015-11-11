@@ -67,17 +67,18 @@ class PatchElement extends HTMLElement
   attachedCallback: ->
 
   update: ->
-    @path = @model.patch.newFile().path()
+    patch = @model.patch
+    status = @model.status
+    @path = patch.newPathName
     @addHeaders()
 
-    @model.patch.hunks().then (hunks) =>
-      for hunk, idx in hunks
-        hunkView = new HunkView
-        hunkView.initialize(gitIndex: @gitIndex)
-        hunkView.setHunk(@model.patch, idx, @model.status)
-        @appendChild(hunkView)
+    for hunk, idx in patch.hunks
+      hunkView = new HunkView
+      hunkView.initialize(gitIndex: @gitIndex)
+      hunkView.setHunk(patch, idx, status)
+      @appendChild(hunkView)
 
-    @addEmpty() unless @model.patch.size() > 0
+    @addEmpty() unless patch.size() > 0
 
     @setSyntaxHighlights()
 
@@ -89,7 +90,7 @@ class PatchElement extends HTMLElement
 
   setSyntaxHighlights: ->
     @gitIndex.getBlobs
-      patch: @model.patch
+      patch: @model.patch.getRaw()
       status: @model.status
       commit: @model.commit
     .then (blobs) =>
@@ -122,15 +123,15 @@ class PatchElement extends HTMLElement
       else
         $(ModifiedTemplate)[0]
 
-      path     = @model.patch.newFile().path()
+      path     = @model.patch.newPathName
       pathNode = node.querySelector('.path')
       pathNode.textContent = path
       @appendChild(node)
 
   addRenamedHeader: ->
     node     = $(RenamedTemplate)[0]
-    from     = @model.patch.oldFile().path()
-    to       = @model.patch.newFile().path()
+    from     = @model.patch.oldPathName
+    to       = @model.patch.newPathName
     fromNode = node.querySelector('.from')
     toNode   = node.querySelector('.to')
 

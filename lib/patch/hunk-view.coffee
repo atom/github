@@ -43,28 +43,26 @@ class HunkView extends HTMLElement
     button
 
   setHighlightedSource: ({oldSource, newSource}) ->
-    @oldSourceLines = oldSource.find('div.line')
-    @newSourceLines = newSource.find('div.line')
-
-    for line in @allLines()
-      lineNumber = line.dataset.lineIndex
-      contentNode = line.querySelector('.syntax-node')
-
-      if line.classList.contains('deletion')
-        highlighted = @oldSourceLines[line.dataset.oldIndex]?.innerHTML
-      else
-        highlighted = @newSourceLines[line.dataset.newIndex]?.innerHTML
-
-      contentNode.innerHTML = highlighted if highlighted
+    # @oldSourceLines = oldSource.find('div.line')
+    # @newSourceLines = newSource.find('div.line')
+    #
+    # for line in @allLines()
+    #   lineNumber = line.dataset.lineIndex
+    #   contentNode = line.querySelector('.syntax-node')
+    #
+    #   if line.classList.contains('deletion')
+    #     highlighted = @oldSourceLines[line.dataset.oldIndex]?.innerHTML
+    #   else
+    #     highlighted = @newSourceLines[line.dataset.newIndex]?.innerHTML
+    #
+    #   contentNode.innerHTML = highlighted if highlighted
 
   setHunk: (@patch, @index, @status) ->
-    @hunk = null
-    @patch.hunks().then (hunks) =>
-      @hunk = hunks[@index]
-      @_setHunk()
+    @hunk = @patch.hunks[@index]
+    @_setHunk()
 
   _setHunk: ->
-    header = @hunk.header()
+    header = @hunk.header
     headerNode = @createLineNode()
     headerNode.classList.add('diff-hunk-header')
     headerDataNode = headerNode.querySelector('.diff-hunk-data')
@@ -77,42 +75,44 @@ class HunkView extends HTMLElement
     oldLine = oldStart
     newLine = newStart
 
-    @hunk.lines().then (lines) =>
-      for line, lineIndex in lines
-        lineNode              = @createLineNode()
-        content               = line.content().split(/[\r\n]/g)[0] # srsly.
-        contentNode           = document.createElement('span')
-        lineOrigin            = String.fromCharCode(line.origin())
-        oldLineNumber         = lineNode.querySelector('.old-line-number')
-        newLineNumber         = lineNode.querySelector('.new-line-number')
+    console.log 'OMGOMGOMGOMGOMGOMGOMGOMG'
+    console.log header
+    for line, lineIndex in @hunk.lines
+      lineNode              = @createLineNode()
+      content               = line.content().split(/[\r\n]/g)[0] # srsly.
+      contentNode           = document.createElement('span')
+      lineOrigin            = String.fromCharCode(line.origin())
+      oldLineNumber         = lineNode.querySelector('.old-line-number')
+      newLineNumber         = lineNode.querySelector('.new-line-number')
 
-        dataNode              = lineNode.querySelector('.diff-hunk-data')
-        dataNode.dataset.path = @patch.newFile().path()
-        oldLine               = line.oldLineno() if line.oldLineno() > 0
-        newLine               = line.newLineno() if line.newLineno() > 0
+      dataNode              = lineNode.querySelector('.diff-hunk-data')
+      dataNode.dataset.path = @patch.newPathName
+      oldLine               = line.oldLineno() if line.oldLineno() > 0
+      newLine               = line.newLineno() if line.newLineno() > 0
 
-        lineNode.dataset.oldIndex = oldLine - 1
-        lineNode.dataset.newIndex = newLine - 1
+      lineNode.dataset.oldIndex = oldLine - 1
+      lineNode.dataset.newIndex = newLine - 1
 
-        contentNode.classList.add('syntax-node')
-        dataNode.textContent = lineOrigin
-        contentNode.textContent = content
-        dataNode.appendChild(contentNode)
+      contentNode.classList.add('syntax-node')
+      dataNode.textContent = lineOrigin
+      contentNode.textContent = content
+      dataNode.appendChild(contentNode)
 
-        switch lineOrigin
-          when '-'
-            lineNode.classList.add('deletion')
-          when '+'
-            lineNode.classList.add('addition')
+      switch lineOrigin
+        when '-'
+          lineNode.classList.add('deletion')
+        when '+'
+          lineNode.classList.add('addition')
 
-        oldLineNumber.textContent = oldLine if line.oldLineno() > 0
-        newLineNumber.textContent = newLine if line.newLineno() > 0
-        lineNode.dataset.lineIndex = lineIndex
+      console.log line.staged || false, oldLine, newLine, lineIndex, content
+      oldLineNumber.textContent = oldLine if line.oldLineno() > 0
+      newLineNumber.textContent = newLine if line.newLineno() > 0
+      lineNode.dataset.lineIndex = lineIndex
 
-        if @status and (lineOrigin == '-' or lineOrigin == '+')
-          dataNode.appendChild(@stageButton('lines'))
+      if @status and (lineOrigin == '-' or lineOrigin == '+')
+        dataNode.appendChild(@stageButton('lines'))
 
-        @hunkNode.appendChild(lineNode)
+      @hunkNode.appendChild(lineNode)
 
   allLines: ->
     @querySelectorAll('.hunk-line[data-line-index]')
@@ -148,7 +148,7 @@ class HunkView extends HTMLElement
 
   processLinesStage: ->
     action = if @status == 'unstaged' then 'stage' else 'unstage'
-    path = @patch.newFile().path()
+    path = @patch.newPathName
 
     totalChanges = @allChangedLines().length
     totalSelections = @selectedLines().length
@@ -158,66 +158,64 @@ class HunkView extends HTMLElement
     oldFile = if @patch.isAdded() and allStaged
       "/dev/null"
     else
-      "a/#{@patch.oldFile().path()}"
+        "a/#{@patch.oldPathName}"
 
     newFile = if @patch.isDeleted() and allStaged
       "/dev/null"
     else
-      "b/#{@patch.newFile().path()}"
+      "b/#{@patch.newPathName}"
 
     fileInfo = "--- #{oldFile}\n"
     fileInfo += "+++ #{newFile}\n"
 
-    header = @hunk.header()
+    header = @hunk.header
 
     {oldStart, context} = @parseHeader(header)
     newStart = oldStart
     oldCount = newCount = 0
 
-    @hunk.lines().then (_lines) =>
-      lines = []
+    lines = []
 
-      for line, idx in _lines
-        selected =
-          @querySelector(".hunk-line.selected[data-line-index='#{idx}']")
+    for line, idx in @hunk.lines
+      selected =
+        @querySelector(".hunk-line.selected[data-line-index='#{idx}']")
 
-        origin = String.fromCharCode(line.origin())
-        content = line.content().split(/[\r\n]/g)[0]
-        switch origin
-          when ' '
-            oldCount++
+      origin = String.fromCharCode(line.origin())
+      content = line.content().split(/[\r\n]/g)[0]
+      switch origin
+        when ' '
+          oldCount++
+          newCount++
+          lines.push "#{origin}#{content}"
+        when '+'
+          if selected
             newCount++
             lines.push "#{origin}#{content}"
-          when '+'
-            if selected
-              newCount++
-              lines.push "#{origin}#{content}"
-            else if action == 'unstage'
-              oldCount++
-              newCount++
-              lines.push " #{content}"
-          when '-'
-            if selected
-              oldCount++
-              lines.push "#{origin}#{content}"
-            else if action == 'stage'
-              oldCount++
-              newCount++
-              lines.push " #{content}"
-      lines
-    .then (lines) =>
-      oldStart = 1 if oldCount > 0 and oldStart == '0'
-      newStart = 1 if newCount > 0 and newStart == '0'
+          else if action == 'unstage'
+            oldCount++
+            newCount++
+            lines.push " #{content}"
+        when '-'
+          if selected
+            oldCount++
+            lines.push "#{origin}#{content}"
+          else if action == 'stage'
+            oldCount++
+            newCount++
+            lines.push " #{content}"
 
-      header =
-        "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
-      patch = "#{header}#{lines.join("\n")}\n"
-    .then (patch) =>
-      promise = if @status == 'unstaged'
-        @gitIndex.stagePatch(patch, @patch)
-      else
-        @gitIndex.unstagePatch(patch, @patch)
-    .then =>
+    oldStart = 1 if oldCount > 0 and oldStart == '0'
+    newStart = 1 if newCount > 0 and newStart == '0'
+
+    header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
+    patch = "#{header}#{lines.join("\n")}\n"
+
+    promise = if @status == 'unstaged'
+      @gitIndex.stagePatch(patch, @patch.getRaw())
+    else
+      @gitIndex.unstagePatch(patch, @patch.getRaw())
+
+    promise.then =>
       @gitIndex.emit('did-update-repository')
 
 module.exports = document.registerElement 'git-hunk-view',

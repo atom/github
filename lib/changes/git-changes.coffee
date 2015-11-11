@@ -143,12 +143,20 @@ class GitIndex
     .then (commit) ->
       commit.getTree() unless data.repo.isEmpty()
     .then (tree) ->
+      data.tree = tree
       Git.Diff.treeToIndex(data.repo, tree, data.index, diffOpts)
     .then (stagedDiffs) ->
       data.stagedDiffs = stagedDiffs
       stagedDiffs.findSimilar(findOpts)
     .then ->
+      # Git.Diff.treeToWorkdirWithIndex(data.repo, data.tree, diffOpts)
+      Git.Diff.treeToWorkdir(data.repo, data.tree, diffOpts)
+    .then (allDiffs) ->
+      data.allDiffs = allDiffs
+      allDiffs.findSimilar(findOpts)
+    .then ->
       diffs =
+        all: data.allDiffs
         staged: data.stagedDiffs
         unstaged: data.unstagedDiffs
 
