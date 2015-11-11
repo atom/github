@@ -149,8 +149,8 @@ class GitIndex
       data.stagedDiffs = stagedDiffs
       stagedDiffs.findSimilar(findOpts)
     .then ->
-      # Git.Diff.treeToWorkdirWithIndex(data.repo, data.tree, diffOpts)
-      Git.Diff.treeToWorkdir(data.repo, data.tree, diffOpts)
+      # Git.Diff.treeToWorkdir(data.repo, data.tree, diffOpts)
+      Git.Diff.treeToWorkdirWithIndex(data.repo, data.tree, diffOpts)
     .then (allDiffs) ->
       data.allDiffs = allDiffs
       allDiffs.findSimilar(findOpts)
@@ -313,7 +313,8 @@ class GitIndex
       data.index = index
       @indexBlob(oldPath) unless patch.isUntracked()
     .then (content) =>
-      newContent = JsDiff.applyPatch(content or '', patchText)
+      newContent = JsDiff.applyPatch(content ? '', patchText)
+      console.log patchText, newContent
       buffer = new Buffer(newContent)
       oid    = data.repo.createBlobFromBuffer(buffer)
 
