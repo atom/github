@@ -75,8 +75,6 @@ class HunkView extends HTMLElement
     oldLine = oldStart
     newLine = newStart
 
-    console.log 'OMGOMGOMGOMGOMGOMGOMGOMG'
-    console.log header
     for line, lineIndex in @hunk.lines
       lineNode              = @createLineNode()
       content               = line.content().split(/[\r\n]/g)[0] # srsly.
@@ -106,7 +104,6 @@ class HunkView extends HTMLElement
 
       lineNode.classList.add('staged') if lineOrigin in ['-', '+'] and line.staged
 
-      console.log line.staged || false, oldLine, newLine, lineIndex, content
       oldLineNumber.textContent = oldLine if line.oldLineno() > 0
       newLineNumber.textContent = newLine if line.newLineno() > 0
       lineNode.dataset.lineIndex = lineIndex
@@ -149,7 +146,6 @@ class HunkView extends HTMLElement
       context:  headerParts[5]
 
   processLinesStage: ->
-    action = if @status == 'unstaged' then 'stage' else 'unstage'
     path = @patch.newPathName
 
     totalChanges = @allChangedLines().length
@@ -177,6 +173,14 @@ class HunkView extends HTMLElement
     oldCount = newCount = 0
 
     lines = []
+
+    selectedLineCount = @querySelectorAll(".hunk-line.selected").length
+    stagedLineCount = @querySelectorAll(".hunk-line.selected.staged").length
+
+    action = if stagedLineCount < selectedLineCount - stagedLineCount
+      'stage'
+    else
+      'unstage'
 
     for line, idx in @hunk.lines
       selected =
@@ -212,7 +216,7 @@ class HunkView extends HTMLElement
     header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
     patch = "#{header}#{lines.join("\n")}\n"
 
-    promise = if @status == 'unstaged'
+    promise = if action is 'stage'
       @gitIndex.stagePatch(patch, @patch.getRaw())
     else
       @gitIndex.unstagePatch(patch, @patch.getRaw())
