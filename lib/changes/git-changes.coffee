@@ -333,6 +333,9 @@ class GitIndex
       data.index.write()
     .then =>
       @emitter.emit('did-update-repository')
+    .catch (error) ->
+      console.log error.message
+      console.log error.stack
 
   unstagePatch: (patchText, patch) =>
     patchText = @reversePatch(patchText)
