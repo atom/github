@@ -104,6 +104,8 @@ class HunkView extends HTMLElement
         when '+'
           lineNode.classList.add('addition')
 
+      lineNode.classList.add('staged') if lineOrigin in ['-', '+'] and line.staged
+
       console.log line.staged || false, oldLine, newLine, lineIndex, content
       oldLineNumber.textContent = oldLine if line.oldLineno() > 0
       newLineNumber.textContent = newLine if line.newLineno() > 0

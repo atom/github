@@ -119,6 +119,9 @@ git-patch-view, git-patch {
     line-height:1.3em;
   }
 
+  @staged-color:@syntax-color-keyword;
+  @staged-number-color:contrast(@syntax-background-color, fade(@staged-color, 65%), fade(@staged-color, 85%));
+
   @deletion-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
   @addition-color:contrast(@syntax-background-color, fade(@syntax-color-added, 8%), fade(@syntax-color-added, 15%));
   @deletion-number-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 5%), fade(@syntax-color-removed, 5%));
@@ -142,6 +145,15 @@ git-patch-view, git-patch {
   .addition .old-line-number, .addition .new-line-number {
     background-color:@addition-number-color;
     color: fade(@syntax-text-color, 50%);
+  }
+
+  .staged div.old-line-number, .staged div.new-line-number {
+    background-color:fade(@staged-number-color, 70%);
+    color: darken(@staged-color, 30%);
+
+    :focus & {
+      background-color:@staged-number-color;
+    }
   }
 
   .active, .keyboard-active {
@@ -176,6 +188,18 @@ git-patch-view, git-patch {
 
         :focus & {
           background-color:@syntax-selection-color;
+        }
+      }
+
+      &.staged {
+        div.old-line-number, div.new-line-number {
+          background-color:fade(@staged-number-color, 80%);
+          color: darken(@staged-color, 40%);
+          box-shadow:inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
+
+          :focus & {
+            background-color:lighten(@staged-number-color, 2%);
+          }
         }
       }
     }

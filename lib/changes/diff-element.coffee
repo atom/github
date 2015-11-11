@@ -60,9 +60,6 @@ class DiffElement extends HTMLElement
 
     @model.getPatch().then (patch) =>
       @renderPatch(patch)
-
-      # OH YEAH
-      # This really should have a model component where we can specify the selected hunk.
       @selectFirstHunk()
 
   handleEvents: ->
@@ -100,6 +97,7 @@ class DiffElement extends HTMLElement
     @addEventListener 'focus', =>
       @model.getPatch().then (patch) =>
         @renderPatch(patch)
+        @selectFirstHunk()
 
     @handlePatchElementEvents(listener)
 
