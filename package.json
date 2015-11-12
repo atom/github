@@ -1,9 +1,9 @@
 {
-  "name": "git",
+  "name": "git-prototype",
   "main": "./lib/main",
   "version": "0.0.0",
   "description": "Experimental git things",
-  "repository": "https://github.com/atom/git",
+  "repository": "https://github.com/atom/git-prototype",
   "license": "MIT",
   "engines": {
     "atom": ">=0.174.0 <2.0.0"
@@ -17,7 +17,8 @@
     "highlights": "^1.2.0",
     "diff": "^1.3.0",
     "atom-space-pen-views": "^2.0.0",
-    "dom-listener": "0.1.2"
+    "dom-listener": "0.1.2",
+    "etch": "0.1.0"
   },
   "devDependencies": {
     "coffeelint": "^1.9.3"
