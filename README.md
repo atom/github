@@ -1,4 +1,11 @@
-# git package
+# git prototype package
+
+Take some of the original git package code, add a model, and use etch.
+
+Goal is to prototype:
+
+* https://github.com/atom/design/issues/35
+* https://github.com/atom/design/issues/36
 
 ```
 git clone git@github.com:atom/git.git
@@ -11,12 +18,15 @@ cd ../some-dir-with-a-git-repo
 atom -d
 ```
 
+## TODO
+
 ## Keyboard shortcuts
 
-- `cmd-shift-c` Opens changes
-- `cmd-shift-h` Opens history
+- `cmd-shift-c` Opens changes panel
 
 ### Staging Changes
+
+NOT WORKING YET LOLOLOLOLOL
 
 - `right` on a file focuses hunk
 - select hunks with `up` or `down`
