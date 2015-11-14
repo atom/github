@@ -18,6 +18,9 @@ class GitService
       @_instance = new GitService
     @_instance
 
+  @statusCodes: ->
+    Git.Status.STATUS
+
   constructor: ->
     @tmpDir   = os.tmpDir()
     @repoPath = atom.project.getPaths()[0]
@@ -31,9 +34,6 @@ class GitService
 
   updateRepository: ->
     @emitter.emit('did-update-repository')
-
-  statusCodes: ->
-    Git.Status.STATUS
 
   getBranchName: ->
     Git.Repository.open(@repoPath).then (repo) ->
@@ -120,10 +120,15 @@ class GitService
     .then =>
       @emitter.emit('did-update-repository')
 
-  getPatch: (path, state) ->
+  getDiffForPath: (path, state) ->
     @diffsPromise.then (diffs) ->
       diffs[state]?.patches().then (patchList) ->
         _.find patchList, (patch) -> patch.newFile().path() == path
+
+  getDiffs: (state) ->
+    @diffsPromise.then (diffs) ->
+      diffs[state]?.patches().then (patchList) ->
+        patchList
 
   gatherDiffs: ->
     data = {}
