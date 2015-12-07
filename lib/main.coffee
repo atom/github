@@ -46,8 +46,9 @@ module.exports = GitExperiment =
       @gitIndex().updateRepository()
       @changesPanel.show()
     else
-      console.log 'making one'
-      @changesPanel = atom.workspace.addRightPanel(item: new FileList())
+      fileList = new FileList()
+      fileList.loadFromGitUtils()
+      @changesPanel = atom.workspace.addRightPanel(item: fileList)
     fileList = @changesPanel.getItem()
     atom.views.getView(fileList).focus()
 
