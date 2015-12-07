@@ -6,8 +6,26 @@
   flex-direction:column;
   height: 100%;
 
+  font-family: @font-family;
+  font-size: @font-size;
+  color:@text-color;
+
   background: @pane-item-background-color;
   border-left: 1px solid @pane-item-border-color;
+
+  .column-header {
+    padding:0 12px;
+    width:100%;
+    line-height:2.7em;
+    height:2.7em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
+    font-size: @font-size;
+    font-weight:bold;
+    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+  }
 
   & > div {
     flex: 1;
@@ -47,7 +65,7 @@
         content:'Nothing to commit';
       }
 
-      git-file-summary-element:last-child {
+      .file-summary:last-child {
         box-shadow:none;
       }
     }
