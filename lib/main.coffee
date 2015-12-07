@@ -1,7 +1,7 @@
 {CompositeDisposable} = require 'atom'
 
 FileList = require './file-list'
-FileListSelectionModel = require './file-list-selection-model'
+FileListViewModel = require './file-list-view-model'
 FileListComponent = null
 DiffPaneItem = null
 
@@ -61,8 +61,8 @@ createDiffPaneItem = (state) ->
 
 atom.views.addViewProvider FileList, (fileList) ->
   FileListComponent ?= require './file-list-component'
-  fileListSelectionModel = new FileListSelectionModel(fileList)
-  component = new FileListComponent({fileList: fileList, fileListSelectionModel: fileListSelectionModel})
+  fileListViewModel = new FileListViewModel(fileList)
+  component = new FileListComponent({fileList: fileList, fileListViewModel: fileListViewModel})
   component.element
 
 # Maybe add this later?
