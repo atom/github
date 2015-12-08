@@ -21,7 +21,7 @@
 'atom-text-editor':
   'cmd-ctrl-shift-d': 'git:open-file-diff'
 
-'git-status-list-view:focus':
+'.git-file-status-list:focus':
   'escape': 'git:close-commit-panel'
   'tab': 'git:focus-commit-message'
   'o': 'git:open-file'

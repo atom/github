@@ -2,10 +2,12 @@
 
 FileList = require './file-list'
 FileListViewModel = require './file-list-view-model'
+DiffViewModel = require './diff-view-model'
 FileListComponent = null
+DiffComponent = null
 DiffPaneItem = null
 
-DIFF_URI = 'atom://git/diff/'
+Common = require './common'
 
 module.exports = GitExperiment =
   subscriptions: null
@@ -24,14 +26,17 @@ module.exports = GitExperiment =
     atom.commands.add 'atom-workspace', 'git:open-file-diff', =>
       editor = atom.workspace.getActiveTextEditor()
       filePath = atom.project.relativizePath(editor.getPath())[1]
-      atom.workspace.open(DIFF_URI + filePath)
+      atom.workspace.open(Common.DiffURI + filePath)
 
     @subscriptions = new CompositeDisposable
 
+    @fileList = new FileList()
+    @fileList.loadFromGitUtils()
+
     process.nextTick =>
       @subscriptions.add atom.workspace.addOpener (filePath) =>
-        if filePath.startsWith(DIFF_URI)
-          createDiffPaneItem(uri: filePath, filePath: filePath.replace(DIFF_URI, ''), gitIndex: @gitIndex())
+        return unless filePath.startsWith(Common.DiffURI)
+        createDiffPaneItem(uri: filePath, pathName: filePath.replace(Common.DiffURI, ''), fileList: @fileList)
 
   serialize: ->
     {}
@@ -47,18 +52,19 @@ module.exports = GitExperiment =
       @gitIndex().updateRepository()
       @changesPanel.show()
     else
-      fileList = new FileList()
-      fileList.loadFromGitUtils()
-      fileListViewModel = new FileListViewModel(fileList)
+      fileListViewModel = new FileListViewModel(@fileList)
       @changesPanel = atom.workspace.addRightPanel(item: fileListViewModel)
     fileList = @changesPanel.getItem()
     atom.views.getView(fileList).focus()
 
-createDiffPaneItem = (state) ->
-  DiffPaneItem ?= require './changes/diff-pane-item'
-  diffPaneItem = new DiffPaneItem
-  diffPaneItem.initialize(state)
-  diffPaneItem
+createDiffPaneItem = ({uri, pathName, fileList}) ->
+  fileDiff = fileList.getFileDiffFromPathName(pathName)
+  new DiffViewModel({uri: uri, fileDiffs: [fileDiff]})
+
+atom.views.addViewProvider DiffViewModel, (diffViewModel) ->
+  DiffComponent ?= require './diff-component'
+  component = new DiffComponent({diffViewModel: diffViewModel})
+  component.element
 
 atom.views.addViewProvider FileListViewModel, (fileListViewModel) ->
   FileListComponent ?= require './file-list-component'
