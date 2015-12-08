@@ -49,7 +49,8 @@ module.exports = GitExperiment =
     else
       fileList = new FileList()
       fileList.loadFromGitUtils()
-      @changesPanel = atom.workspace.addRightPanel(item: fileList)
+      fileListViewModel = new FileListViewModel(fileList)
+      @changesPanel = atom.workspace.addRightPanel(item: fileListViewModel)
     fileList = @changesPanel.getItem()
     atom.views.getView(fileList).focus()
 
@@ -59,10 +60,9 @@ createDiffPaneItem = (state) ->
   diffPaneItem.initialize(state)
   diffPaneItem
 
-atom.views.addViewProvider FileList, (fileList) ->
+atom.views.addViewProvider FileListViewModel, (fileListViewModel) ->
   FileListComponent ?= require './file-list-component'
-  fileListViewModel = new FileListViewModel(fileList)
-  component = new FileListComponent({fileList: fileList, fileListViewModel: fileListViewModel})
+  component = new FileListComponent({fileListViewModel: fileListViewModel})
   component.element
 
 # Maybe add this later?
