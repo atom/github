@@ -4,8 +4,7 @@ FileList = require './file-list'
 FileListViewModel = require './file-list-view-model'
 DiffViewModel = require './diff-view-model'
 FileListComponent = null
-DiffComponent = null
-DiffPaneItem = null
+DiffPaneItemComponent = null
 
 Common = require './common'
 
@@ -62,8 +61,8 @@ createDiffPaneItem = ({uri, pathName, fileList}) ->
   new DiffViewModel({uri: uri, fileDiffs: [fileDiff]})
 
 atom.views.addViewProvider DiffViewModel, (diffViewModel) ->
-  DiffComponent ?= require './diff-component'
-  component = new DiffComponent({diffViewModel: diffViewModel})
+  DiffPaneItemComponent ?= require './diff-pane-item-component'
+  component = new DiffPaneItemComponent({diffViewModel: diffViewModel})
   component.element
 
 atom.views.addViewProvider FileListViewModel, (fileListViewModel) ->
