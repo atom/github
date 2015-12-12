@@ -1,0 +1,48 @@
+FILE src/config.coffee - modified - unstaged
+HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
+  85 85   #
+  86 86   # ## Config Schemas
+  87 87   #
+  88 --- - # We use [json schema](http://json-schema.org) which allows you to define your value's
+  89 --- - # default, the type it should be, etc. A simple example:
+  90 --- - #
+  91 88   # ```coffee
+  92 89   # # We want to provide an `enableThing`, and a `thingVolume`
+  93 90   # config:
+HUNK @@ -434,6 +431,9 @@ class Config
+  434 431         [keyPath, options, callback] = arguments
+  435 432         scopeDescriptor = options.scope
+  436 433
+  --- 434 +     # Some new linesssss
+  --- 435 +     #
+  --- 436 +     #
+  437 437       if scopeDescriptor?
+  438 438         @onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
+  439 439       else
+HUNK @@ -512,13 +512,13 @@ class Config
+  512 512       else
+  513 513         @getRawValue(keyPath, options)
+  514 514
+  515 --- -   # Extended: Get all of the values for the given key-path, along with their
+  516 --- -   # associated scope selector.
+  --- 515 +   # Extended: Get some of the values for the given key-path, along with their
+  --- 516 +   # associated scoped selector.
+  517 517     #
+  518 518     # * `keyPath` The {String} name of the key to retrieve
+  519 519     # * `options` (optional) {Object} see the `options` argument to {::get}
+  520 520     #
+  521 --- -   # Returns an {Array} of {Object}s with the following keys:
+  --- 521 +   # Returns annn {Array} of {Object}s with the following keys:
+  522 522     #  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
+  523 523     #  * `value` The value for the key-path
+  524 524     getAll: (keyPath, options) ->
+FILE src/workspace.coffee - modified - unstaged
+HUNK @@ -403,6 +403,8 @@ class Workspace extends Model
+  403 403     #     If `false`, only the active pane will be searched for
+  404 404     #     an existing item for the same URI. Defaults to `false`.
+  405 405     #
+  --- 406 +   #
+  --- 407 +   # This is some new lines
+  406 408     # Returns a promise that resolves to the {TextEditor} for the file URI.
+  407 409     open: (uri, options={}) ->
+  408 410       searchAllPanes = options.searchAllPanes
