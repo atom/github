@@ -27,7 +27,7 @@ function expectHunkToBeSelected(isSelected, viewModel, fileDiffIndex, diffHunkIn
   }
 }
 
-fdescribe("DiffViewModel", function() {
+describe("DiffViewModel", function() {
   describe("selecting diffs", function() {
     let viewModel
     beforeEach(function() {
@@ -40,27 +40,27 @@ fdescribe("DiffViewModel", function() {
       expectHunkToBeSelected(false, viewModel, 1, 0)
     })
 
-    describe("::selectNext()", function() {
+    describe("::moveSelectionDown()", function() {
       it("selects the next hunk until the end is reached, then stops", function() {
-        viewModel.selectNext()
+        viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(true, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
 
-        viewModel.selectNext()
+        viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(true, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
 
-        viewModel.selectNext()
+        viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(true, viewModel, 1, 0)
 
-        viewModel.selectNext()
+        viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
@@ -68,38 +68,96 @@ fdescribe("DiffViewModel", function() {
       })
     })
 
-    describe("::selectPrevious()", function() {
-      it("selects the next hunk until the end is reached, then stops", function() {
-        viewModel.selectNext()
-        viewModel.selectNext()
-        viewModel.selectNext()
-        viewModel.selectNext()
+    describe("::moveSelectionUp()", function() {
+      it("selects the previous hunk until the end is reached, then stops", function() {
+        viewModel.moveSelectionDown()
+        viewModel.moveSelectionDown()
+        viewModel.moveSelectionDown()
+        viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(true, viewModel, 1, 0)
 
-        viewModel.selectPrevious()
+        viewModel.moveSelectionUp()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(true, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
 
-        viewModel.selectPrevious()
+        viewModel.moveSelectionUp()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(true, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
 
-        viewModel.selectPrevious()
+        viewModel.moveSelectionUp()
         expectHunkToBeSelected(true, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
 
-        viewModel.selectPrevious()
+        viewModel.moveSelectionUp()
         expectHunkToBeSelected(true, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+      })
+    })
+
+    describe("::expandSelectionUp() and ::expandSelectionDown()", function() {
+      it("selects the next hunk until the end is reached, then stops", function() {
+        viewModel.moveSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.expandSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.expandSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+
+        viewModel.expandSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+
+        viewModel.expandSelectionUp()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.expandSelectionUp()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.expandSelectionUp()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.expandSelectionUp()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.moveSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
         expectHunkToBeSelected(false, viewModel, 0, 2)
         expectHunkToBeSelected(false, viewModel, 1, 0)
       })
