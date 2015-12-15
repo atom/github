@@ -14,15 +14,95 @@ function readFileSync(fileName) {
   return fs.readFileSync(path.join(__dirname, fileName), 'utf-8')
 }
 
+function createDiffs(fileName) {
+  let diffStr = readFileSync(fileName)
+  let fileDiffs = createFileDiffsFromString(diffStr)
+  return new DiffViewModel({fileDiffs})
+}
+
+function expectHunkToBeSelected(isSelected, viewModel, fileDiffIndex, diffHunkIndex) {
+  let lines = viewModel.getFileDiffs()[fileDiffIndex].getHunks()[diffHunkIndex].getLines()
+  for (var i = 0; i < lines.length; i++) {
+    expect(viewModel.isLineSelected(fileDiffIndex, diffHunkIndex, i)).toBe(isSelected)
+  }
+}
+
 fdescribe("DiffViewModel", function() {
   describe("selecting diffs", function() {
-    let diffStr
+    let viewModel
     beforeEach(function() {
-      diffStr = readFileSync('fixtures/two-file-diff.txt')
+      viewModel = createDiffs('fixtures/two-file-diff.txt')
     })
     it("initially selects the first hunk", function() {
-      let fileDiffs = createFileDiffsFromString(diffStr)
-      console.log(fileDiffs[0].toString());
+      expectHunkToBeSelected(true, viewModel, 0, 0)
+      expectHunkToBeSelected(false, viewModel, 0, 1)
+      expectHunkToBeSelected(false, viewModel, 0, 2)
+      expectHunkToBeSelected(false, viewModel, 1, 0)
+    })
+
+    describe("::selectNext()", function() {
+      it("selects the next hunk until the end is reached, then stops", function() {
+        viewModel.selectNext()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.selectNext()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.selectNext()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+
+        viewModel.selectNext()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+      })
+    })
+
+    describe("::selectPrevious()", function() {
+      it("selects the next hunk until the end is reached, then stops", function() {
+        viewModel.selectNext()
+        viewModel.selectNext()
+        viewModel.selectNext()
+        viewModel.selectNext()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+
+        viewModel.selectPrevious()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.selectPrevious()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.selectPrevious()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+
+        viewModel.selectPrevious()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(false, viewModel, 1, 0)
+      })
     })
   })
 })
