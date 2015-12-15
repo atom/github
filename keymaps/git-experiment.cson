@@ -1,25 +1,18 @@
-# Keybindings require three things to be fully defined: A selector that is
-# matched against the focused element, the keystroke and the command to
-# execute.
-#
-# Below is a basic keybinding which registers on all platforms by applying to
-# the root workspace element.
-
-# For more detailed documentation see
-# https://atom.io/docs/latest/advanced/keymaps
 'atom-workspace':
-  'cmd-shift-h': 'git:view-history'
   'cmd-shift-c': 'git:view-and-commit-changes'
-  'cmd-ctrl-shift-f': 'git:log-focused'
-  # 'cmd-ctrl-b': 'git:checkout-branch'
-  # 'cmd-ctrl-shift-b': 'git:create-branch'
+
+'.git-diff-container':
+  '/': 'git:toggle-selection-mode'
+  'a': 'git:select-active-lines'
+  'shift-up': 'git:expand-selection-up'
+  'shift-down': 'git:expand-selection-down'
+  'escape': 'git:clear-selections'
+  'tab': 'git:focus-commit-message'
+  'o': 'git:open-file-to-line'
 
 # 'git-changes-view .data atom-text-editor':
 #   'cmd-enter': 'core:confirm'
 #   'escape': 'core:focus-changes-list'
-
-'atom-text-editor':
-  'cmd-ctrl-shift-d': 'git:open-file-diff'
 
 '.git-file-status-list:focus':
   'escape': 'git:close-commit-panel'
@@ -32,15 +25,6 @@
   'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
-
-'git-diff-view':
-  '/': 'git:toggle-selection-mode'
-  'a': 'git:select-active-lines'
-  'shift-up': 'git:expand-selection-up'
-  'shift-down': 'git:expand-selection-down'
-  'escape': 'git:clear-selections'
-  'tab': 'git:focus-commit-message'
-  'o': 'git:open-file-to-line'
 
 'git-commit-list-view':
   'right': 'git:focus-commit-details'
