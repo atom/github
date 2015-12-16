@@ -225,7 +225,7 @@ describe("DiffViewModel", function() {
         })
       })
 
-      fdescribe("::moveSelectionUp()", function() {
+      describe("::moveSelectionUp()", function() {
         it("selects previous changed line in a hunk", function() {
           expectLineToBeSelected(false, viewModel, 0, 0, 2)
           expectLineToBeSelected(true, viewModel, 0, 0, 3)
