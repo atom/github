@@ -1,12 +1,41 @@
 /** @babel */
 
 import FileDiff from '../lib/file-diff'
+import {createFileDiffsFromPath} from './helpers'
 
 describe("FileDiff", function() {
   it("roundtrips toString and fromString", function() {
     let file = FileStr
     let fileDiff = FileDiff.fromString(file)
     expect(fileDiff.toString()).toEqual(file)
+  })
+
+  it("stages all hunks with ::stage() and unstages all hunks with ::unstage()", function() {
+    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+    expect(fileDiff.getStageStatus()).toBe('unstaged')
+
+    fileDiff.stage()
+    expect(fileDiff.getStageStatus()).toBe('staged')
+    expect(fileDiff.getHunks()[0].getStageStatus()).toBe('staged')
+    expect(fileDiff.getHunks()[1].getStageStatus()).toBe('staged')
+    expect(fileDiff.getHunks()[2].getStageStatus()).toBe('staged')
+
+    fileDiff.unstage()
+    expect(fileDiff.getStageStatus()).toBe('unstaged')
+    expect(fileDiff.getHunks()[0].getStageStatus()).toBe('unstaged')
+    expect(fileDiff.getHunks()[1].getStageStatus()).toBe('unstaged')
+    expect(fileDiff.getHunks()[2].getStageStatus()).toBe('unstaged')
+  })
+
+  it("returns 'partial' from getStageStatus() when some of the hunks are staged", function() {
+    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+    expect(fileDiff.getStageStatus()).toBe('unstaged')
+
+    fileDiff.getHunks()[1].stage()
+    expect(fileDiff.getStageStatus()).toBe('partial')
+
+    fileDiff.getHunks()[1].unstage()
+    expect(fileDiff.getStageStatus()).toBe('unstaged')
   })
 })
 

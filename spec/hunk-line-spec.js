@@ -24,4 +24,15 @@ describe("HunkLine", function() {
     hunkLine = HunkLine.fromString(line)
     expect(hunkLine.toString()).toEqual(line)
   })
+
+  it("can be staged and unstaged with ::stage() and ::unstage()", function() {
+    let hunkLine = HunkLine.fromString('  89 --- - # a comment')
+    expect(hunkLine.isStaged()).toEqual(false)
+
+    hunkLine.stage()
+    expect(hunkLine.isStaged()).toEqual(true)
+
+    hunkLine.unstage()
+    expect(hunkLine.isStaged()).toEqual(false)
+  })
 })
