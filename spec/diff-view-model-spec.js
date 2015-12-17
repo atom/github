@@ -4,19 +4,10 @@ import fs from 'fs'
 import path from 'path'
 import DiffViewModel from '../lib/diff-view-model'
 import FileDiff from '../lib/file-diff'
-import {createObjectsFromString} from '../lib/common'
+import {createFileDiffsFromPath} from './helpers'
 
-function createFileDiffsFromString(str) {
-  return createObjectsFromString(str, 'FILE', FileDiff)
-}
-
-function readFileSync(fileName) {
-  return fs.readFileSync(path.join(__dirname, fileName), 'utf-8')
-}
-
-function createDiffs(fileName) {
-  let diffStr = readFileSync(fileName)
-  let fileDiffs = createFileDiffsFromString(diffStr)
+function createDiffs(filePath) {
+  let fileDiffs = createFileDiffsFromPath(filePath)
   return new DiffViewModel({fileDiffs})
 }
 
@@ -272,6 +263,39 @@ describe("DiffViewModel", function() {
           expectHunkToBeSelected(false, viewModel, 0, 1)
         })
       })
+    })
+  })
+
+  describe("staging diffs", function() {
+    let viewModel
+    beforeEach(function() {
+      viewModel = createDiffs('fixtures/two-file-diff.txt')
+    })
+    it("stages and unsages the selected hunk", function() {
+      expectHunkToBeSelected(true, viewModel, 0, 0)
+      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
+
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('partial')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('staged')
+
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
+    })
+    it("stages and unsages the selected line", function() {
+      viewModel.setSelectionMode('line')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
+
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('partial')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('partial')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(true)
+
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
+      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
     })
   })
 })
