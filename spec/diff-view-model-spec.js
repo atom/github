@@ -263,6 +263,31 @@ describe("DiffViewModel", function() {
           expectHunkToBeSelected(false, viewModel, 0, 1)
         })
       })
+
+      describe("::expandSelectionDown()", function() {
+        it("selects previous changed line in a hunk", function() {
+          expectLineToBeSelected(true, viewModel, 0, 0, 3)
+          expectLineToBeSelected(false, viewModel, 0, 0, 4)
+
+          viewModel.expandSelectionDown()
+          viewModel.expandSelectionDown()
+          viewModel.expandSelectionDown()
+          viewModel.expandSelectionDown()
+          viewModel.expandSelectionDown()
+          expectLineToBeSelected(true, viewModel, 0, 0, 3)
+          expectLineToBeSelected(true, viewModel, 0, 0, 4)
+          expectLineToBeSelected(true, viewModel, 0, 0, 5)
+          expectLineToBeSelected(false, viewModel, 0, 0, 6)
+
+          expectLineToBeSelected(false, viewModel, 0, 1, 0)
+          expectLineToBeSelected(false, viewModel, 0, 1, 1)
+          expectLineToBeSelected(false, viewModel, 0, 1, 2)
+          expectLineToBeSelected(true, viewModel, 0, 1, 3)
+          expectLineToBeSelected(true, viewModel, 0, 1, 4)
+          expectLineToBeSelected(true, viewModel, 0, 1, 5)
+          expectLineToBeSelected(false, viewModel, 0, 1, 6)
+        })
+      })
     })
   })
 
