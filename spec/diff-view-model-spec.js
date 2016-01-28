@@ -3,6 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 import DiffViewModel from '../lib/diff-view-model'
+import DiffSelection from '../lib/diff-selection'
 import FileDiff from '../lib/file-diff'
 import {createFileDiffsFromPath} from './helpers'
 
@@ -339,6 +340,25 @@ describe("DiffViewModel", function() {
           expectLineToBeSelected(true, viewModel, 0, 1, 4)
           expectLineToBeSelected(false, viewModel, 0, 1, 5)
         })
+      })
+    })
+
+    describe("setting a custom selection", function() {
+      it("updates the model when the selection is set", function() {
+        let selection = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 1, 2],
+          tailPosition: [0, 1, 4]
+        })
+        viewModel.setSelection(selection)
+
+        expect(viewModel.getSelectionMode()).toBe('line')
+        expectLineToBeSelected(false, viewModel, 0, 0, 3)
+        expectLineToBeSelected(false, viewModel, 0, 0, 4)
+        expectLineToBeSelected(false, viewModel, 0, 1, 2)
+        expectLineToBeSelected(true, viewModel, 0, 1, 3)
+        expectLineToBeSelected(true, viewModel, 0, 1, 4)
+        expectLineToBeSelected(false, viewModel, 0, 1, 5)
       })
     })
   })
