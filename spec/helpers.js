@@ -18,8 +18,41 @@ function createFileDiffsFromPath(filePath) {
   return createFileDiffsFromString(fileStr)
 }
 
+// Lifted from atom/atom
+function buildMouseEvent(type, properties) {
+  if (properties.detail == null)
+    properties.detail = 1
+  if (properties.bubbles == null)
+    properties.bubbles = true
+  if (properties.cancelable == null)
+    properties.cancelable = true
+
+  let event = new MouseEvent(type, properties)
+  if (properties.which != null) {
+    Object.defineProperty(event, 'which', {
+      get: function () {
+        return properties.which
+      }
+    })
+  }
+  if (properties.target != null) {
+    Object.defineProperty(event, 'target', {
+      get: function () {
+        return properties.target
+      }
+    })
+    Object.defineProperty(event, 'srcObject', {
+      get: function () {
+        return properties.target
+      }
+    })
+  }
+  return event
+}
+
 module.exports = {
   createFileDiffsFromString,
   createFileDiffsFromPath,
-  readFileSync
+  readFileSync,
+  buildMouseEvent
 }
