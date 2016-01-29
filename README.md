@@ -26,8 +26,6 @@ atom -d
 
 ### Staging Changes
 
-NOT WORKING YET LOLOLOLOLOL
-
 - `right` on a file focuses hunk
 - select hunks with `up` or `down`
 - `enter` to stage hunk
