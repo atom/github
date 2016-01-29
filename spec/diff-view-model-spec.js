@@ -343,7 +343,7 @@ describe("DiffViewModel", function() {
       })
     })
 
-    describe("setting a custom selection", function() {
+    describe("::setSelection()", function() {
       it("updates the model when the selection is set", function() {
         let selection = new DiffSelection(viewModel, {
           mode: 'line',
@@ -355,6 +355,34 @@ describe("DiffViewModel", function() {
         expect(viewModel.getSelectionMode()).toBe('line')
         expectLineToBeSelected(false, viewModel, 0, 0, 3)
         expectLineToBeSelected(false, viewModel, 0, 0, 4)
+        expectLineToBeSelected(false, viewModel, 0, 1, 2)
+        expectLineToBeSelected(true, viewModel, 0, 1, 3)
+        expectLineToBeSelected(true, viewModel, 0, 1, 4)
+        expectLineToBeSelected(false, viewModel, 0, 1, 5)
+      })
+    })
+
+    describe("::addSelection()", function() {
+      it("updates the model when the selection is set", function() {
+        let selection = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 1, 2],
+          tailPosition: [0, 1, 4]
+        })
+        viewModel.setSelection(selection)
+
+        selection = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 0, 2],
+          tailPosition: [0, 0, 4]
+        })
+        viewModel.addSelection(selection)
+
+        expect(viewModel.getSelectionMode()).toBe('line')
+        expectLineToBeSelected(false, viewModel, 0, 0, 2)
+        expectLineToBeSelected(true, viewModel, 0, 0, 3)
+        expectLineToBeSelected(true, viewModel, 0, 0, 4)
+        expectLineToBeSelected(false, viewModel, 0, 0, 5)
         expectLineToBeSelected(false, viewModel, 0, 1, 2)
         expectLineToBeSelected(true, viewModel, 0, 1, 3)
         expectLineToBeSelected(true, viewModel, 0, 1, 4)
