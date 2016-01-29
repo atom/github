@@ -154,8 +154,8 @@ describe("DiffViewModel", function() {
 
           viewModel.moveSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
-          expectHunkToBeSelected(true, viewModel, 0, 1)
-          expectHunkToBeSelected(false, viewModel, 0, 2)
+          expectHunkToBeSelected(false, viewModel, 0, 1)
+          expectHunkToBeSelected(true, viewModel, 0, 2)
           expectHunkToBeSelected(false, viewModel, 1, 0)
         })
       })
@@ -215,6 +215,19 @@ describe("DiffViewModel", function() {
           expectLineToBeSelected(true, viewModel, 0, 1, 4)
           expectLineToBeSelected(false, viewModel, 0, 1, 5)
         })
+
+        it("moves to the bottom of a multi-select", function() {
+          viewModel.moveSelectionDown()
+          viewModel.expandSelectionUp()
+          expectLineToBeSelected(true, viewModel, 0, 0, 3)
+          expectLineToBeSelected(true, viewModel, 0, 0, 4)
+          expectLineToBeSelected(false, viewModel, 0, 0, 5)
+
+          viewModel.moveSelectionDown()
+          expectLineToBeSelected(false, viewModel, 0, 0, 3)
+          expectLineToBeSelected(false, viewModel, 0, 0, 4)
+          expectLineToBeSelected(true, viewModel, 0, 0, 5)
+        })
       })
 
       describe("::moveSelectionUp()", function() {
@@ -262,6 +275,19 @@ describe("DiffViewModel", function() {
           expectLineToBeSelected(true, viewModel, 0, 0, 5)
           expectLineToBeSelected(false, viewModel, 0, 0, 6)
           expectHunkToBeSelected(false, viewModel, 0, 1)
+        })
+
+        it("moves to the top of a multi-select", function() {
+          viewModel.moveSelectionDown()
+          viewModel.expandSelectionDown()
+          expectLineToBeSelected(false, viewModel, 0, 0, 3)
+          expectLineToBeSelected(true, viewModel, 0, 0, 4)
+          expectLineToBeSelected(true, viewModel, 0, 0, 5)
+
+          viewModel.moveSelectionUp()
+          expectLineToBeSelected(true, viewModel, 0, 0, 3)
+          expectLineToBeSelected(false, viewModel, 0, 0, 4)
+          expectLineToBeSelected(false, viewModel, 0, 0, 5)
         })
       })
 
