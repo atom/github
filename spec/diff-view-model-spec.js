@@ -431,6 +431,16 @@ describe("DiffViewModel", function() {
         })
       })
 
+      it("stays in hunk mode when ::moveSelectionUp() is called in hunk mode", function() {
+        viewModel.setSelectionMode('hunk')
+        viewModel.setSelection(selection1)
+
+        viewModel.moveSelectionUp()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+      })
+
       it("selects above the top selection when ::moveSelectionUp() is called in hunk mode", function() {
         viewModel.setSelectionMode('hunk')
         viewModel.setSelection(selection1)
@@ -454,7 +464,7 @@ describe("DiffViewModel", function() {
         expectHunkToBeSelected(true, viewModel, 1, 0)
       })
 
-      it("selects below the bottom selection when ::moveSelectionDown() is called in hunk mode", function() {
+      it("keeps the last selection when ::toggleSelectionMode() is called", function() {
         viewModel.setSelectionMode('hunk')
         viewModel.setSelection(selection1)
         viewModel.addSelection(selection2)
