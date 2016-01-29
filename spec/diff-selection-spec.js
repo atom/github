@@ -9,7 +9,7 @@ function createDiffs(filePath) {
   return new DiffViewModel({fileDiffs})
 }
 
-fdescribe("DiffSelection", function() {
+describe("DiffSelection", function() {
   let viewModel
   beforeEach(function() {
     viewModel = createDiffs('fixtures/two-file-diff.txt')
