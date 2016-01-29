@@ -352,7 +352,7 @@ describe("DiffViewModel", function() {
         })
         viewModel.setSelection(selection)
 
-        expect(viewModel.getSelectionMode()).toBe('line')
+        expect(viewModel.getSelectionMode()).toBe('hunk')
         expectLineToBeSelected(false, viewModel, 0, 0, 3)
         expectLineToBeSelected(false, viewModel, 0, 0, 4)
         expectLineToBeSelected(false, viewModel, 0, 1, 2)
@@ -363,7 +363,7 @@ describe("DiffViewModel", function() {
     })
 
     describe("::addSelection()", function() {
-      it("updates the model when the selection is set", function() {
+      it("updates the model when the selection is added", function() {
         let selection = new DiffSelection(viewModel, {
           mode: 'line',
           headPosition: [0, 1, 2],
@@ -378,7 +378,7 @@ describe("DiffViewModel", function() {
         })
         viewModel.addSelection(selection)
 
-        expect(viewModel.getSelectionMode()).toBe('line')
+        expect(viewModel.getSelectionMode()).toBe('hunk')
         expectLineToBeSelected(false, viewModel, 0, 0, 2)
         expectLineToBeSelected(true, viewModel, 0, 0, 3)
         expectLineToBeSelected(true, viewModel, 0, 0, 4)
@@ -387,6 +387,56 @@ describe("DiffViewModel", function() {
         expectLineToBeSelected(true, viewModel, 0, 1, 3)
         expectLineToBeSelected(true, viewModel, 0, 1, 4)
         expectLineToBeSelected(false, viewModel, 0, 1, 5)
+      })
+    })
+
+    describe("modifying the selection after adding custom selections", function() {
+      let selection1, selection2
+      beforeEach(function() {
+        selection1 = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 1, 5],
+          tailPosition: [0, 1, 4]
+        })
+        selection2 = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 2, 4],
+          tailPosition: [0, 2, 5]
+        })
+      })
+
+      it("selects above the top selection when ::moveSelectionUp() is called in hunk mode", function() {
+        viewModel.setSelectionMode('hunk')
+        viewModel.setSelection(selection1)
+        viewModel.addSelection(selection2)
+
+        viewModel.moveSelectionUp()
+        expectHunkToBeSelected(true, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+      })
+
+      it("selects below the bottom selection when ::moveSelectionDown() is called in hunk mode", function() {
+        viewModel.setSelectionMode('hunk')
+        viewModel.setSelection(selection1)
+        viewModel.addSelection(selection2)
+
+        viewModel.moveSelectionDown()
+        expectHunkToBeSelected(false, viewModel, 0, 0)
+        expectHunkToBeSelected(false, viewModel, 0, 1)
+        expectHunkToBeSelected(false, viewModel, 0, 2)
+        expectHunkToBeSelected(true, viewModel, 1, 0)
+      })
+
+      it("selects below the bottom selection when ::moveSelectionDown() is called in hunk mode", function() {
+        viewModel.setSelectionMode('hunk')
+        viewModel.setSelection(selection1)
+        viewModel.addSelection(selection2)
+
+        viewModel.toggleSelectionMode()
+        expect(viewModel.getSelectionMode()).toBe('line')
+        expectLineToBeSelected(false, viewModel, 0, 1, 4)
+        expectLineToBeSelected(true, viewModel, 0, 2, 4)
       })
     })
   })

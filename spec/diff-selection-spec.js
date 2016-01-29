@@ -32,4 +32,40 @@ fdescribe("DiffSelection", function() {
     expect(selection.getHeadPosition()).toEqual([0, 1, 1])
     expect(selection.getTailPosition()).toEqual([0, 1, 3])
   })
+
+  describe("sorting selections", function() {
+    it("::sortSelectionsAscending()", function() {
+      let selectionBottom = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 1, 3],
+        tailPosition: [0, 1, 1]
+      })
+      let selectionTop = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 2, 3],
+        tailPosition: [0, 1, 0],
+      })
+      let selections = [selectionBottom, selectionTop]
+      let sortedSelections = DiffSelection.sortSelectionsAscending(selections)
+      expect(sortedSelections[0]).toBe(selectionTop)
+      expect(sortedSelections[1]).toBe(selectionBottom)
+    })
+
+    it("::sortSelectionsDescending()", function() {
+      let selectionTop = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 1, 3],
+        tailPosition: [0, 0, 1]
+      })
+      let selectionBottom = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 2, 3],
+        tailPosition: [0, 1, 0],
+      })
+      let selections = [selectionTop, selectionBottom]
+      let sortedSelections = DiffSelection.sortSelectionsDescending(selections)
+      expect(sortedSelections[0]).toBe(selectionBottom)
+      expect(sortedSelections[1]).toBe(selectionTop)
+    })
+  })
 })
