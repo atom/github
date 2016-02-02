@@ -36,6 +36,24 @@ describe("DiffHunk", function() {
     diffHunk.getLines()[3].unstage()
     expect(diffHunk.getStageStatus()).toBe('unstaged')
   })
+
+  it("emits one change event when the hunk is staged", function() {
+    let changeHandler = jasmine.createSpy()
+    let diffHunk = DiffHunk.fromString(HunkStr)
+    diffHunk.onDidChange(changeHandler)
+
+    diffHunk.stage()
+    expect(changeHandler.callCount).toBe(1)
+  })
+
+  it("emits a change event when a line is staged", function() {
+    let changeHandler = jasmine.createSpy()
+    let diffHunk = DiffHunk.fromString(HunkStr)
+    diffHunk.onDidChange(changeHandler)
+
+    diffHunk.getLines()[3].stage()
+    expect(changeHandler).toHaveBeenCalled()
+  })
 })
 
 HunkStr = `HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
