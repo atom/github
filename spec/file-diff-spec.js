@@ -37,6 +37,24 @@ describe("FileDiff", function() {
     fileDiff.getHunks()[1].unstage()
     expect(fileDiff.getStageStatus()).toBe('unstaged')
   })
+
+  it("emits one change event when the file is staged", function() {
+    let changeHandler = jasmine.createSpy()
+    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+    fileDiff.onDidChange(changeHandler)
+
+    fileDiff.stage()
+    expect(changeHandler.callCount).toBe(1)
+  })
+
+  it("emits a change event when a hunk is staged", function() {
+    let changeHandler = jasmine.createSpy()
+    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+    fileDiff.onDidChange(changeHandler)
+
+    fileDiff.getHunks()[1].stage()
+    expect(changeHandler).toHaveBeenCalled()
+  })
 })
 
 FileStr = `FILE src/config.coffee - modified - unstaged
