@@ -12,6 +12,16 @@ describe("DiffHunk", function() {
     expect(diffHunk.toString()).toEqual(HunkStr)
   })
 
+  it("emits an event when created from a string on an empty object", function() {
+    let changeHandler = jasmine.createSpy()
+    diffHunk = new DiffHunk()
+    diffHunk.onDidChange(changeHandler)
+
+    diffHunk.fromString(HunkStr)
+    expect(changeHandler).toHaveBeenCalled()
+    expect(diffHunk.toString()).toEqual(HunkStr)
+  })
+
   it("stages all lines with ::stage() and unstages all lines with ::unstage()", function() {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
 
