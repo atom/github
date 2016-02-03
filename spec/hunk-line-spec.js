@@ -79,6 +79,7 @@ describe("HunkLine", function() {
 
     waitsForPromise(() => line.unstage())
     runs(() => {
+      console.log(repoPath)
       expect(line.isStaged()).toEqual(false)
     })
   })
