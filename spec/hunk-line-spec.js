@@ -1,11 +1,11 @@
 /** @babel */
 
 import path from 'path'
+import temp from 'temp'
+import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
-import temp from 'temp'
-import fs from 'fs-plus'
 
 temp.track()
 
@@ -58,7 +58,7 @@ describe("HunkLine", function() {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  fit("can be staged and unstaged with ::stage() and ::unstage()", function() {
+  it("can be staged and unstaged with ::stage() and ::unstage()", function() {
     const diff = fileList.getFileDiffFromPathName(fileName)
     expect(diff).not.toBeUndefined()
 
@@ -75,24 +75,12 @@ describe("HunkLine", function() {
 
     waitsForPromise(() => line.stage())
     runs(() => {
-      console.log('heyoo!')
-      console.log(repoPath)
       expect(line.isStaged()).toEqual(true)
     })
 
-    // waitsForPromise(() => line.unstage())
-    // runs(() => {
-    //   console.log('heyoo!')
-    //   console.log(repoPath)
-    //   expect(line.isStaged()).toEqual(false)
-    // })
-    // let hunkLine = HunkLine.fromString('  89 --- - # a comment')
-    // expect(hunkLine.isStaged()).toEqual(false)
-    //
-    // hunkLine.stage()
-    // expect(hunkLine.isStaged()).toEqual(true)
-    //
-    // hunkLine.unstage()
-    // expect(hunkLine.isStaged()).toEqual(false)
+    waitsForPromise(() => line.unstage())
+    runs(() => {
+      expect(line.isStaged()).toEqual(false)
+    })
   })
 })
