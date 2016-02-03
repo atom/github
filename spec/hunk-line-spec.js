@@ -69,7 +69,7 @@ describe("HunkLine", function() {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  fit("can be staged and unstaged with ::stage() and ::unstage()", function() {
+  it("can be staged and unstaged with ::stage() and ::unstage()", function() {
     const diff = fileList.getFileDiffFromPathName(fileName)
     expect(diff).not.toBeUndefined()
 
