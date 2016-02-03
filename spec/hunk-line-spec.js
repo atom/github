@@ -71,7 +71,6 @@ describe("HunkLine", function() {
 
     const line = lines[0]
     expect(line.isStaged()).toEqual(false)
-    console.log(line)
 
     waitsForPromise(() => line.stage())
     runs(() => {
