@@ -3,13 +3,13 @@
   'cmd-alt-r': 'git:refresh-status'
 
 '.git-diff-container':
+  'o': 'git:open-file-to-line'
   '/': 'git:toggle-selection-mode'
-  'a': 'git:select-active-lines'
   'shift-up': 'git:expand-selection-up'
   'shift-down': 'git:expand-selection-down'
   'escape': 'git:clear-selections'
-  'tab': 'git:focus-commit-message'
-  'o': 'git:open-file-to-line'
+  'right': 'git:view-and-commit-changes'
+  # 'tab': 'git:focus-commit-message'
 
 # 'git-changes-view .data atom-text-editor':
 #   'cmd-enter': 'core:confirm'
