@@ -38,6 +38,17 @@ describe("FileDiff", function() {
     expect(fileDiff.getStageStatus()).toBe('unstaged')
   })
 
+  it("emits an event when FileDiff::fromString() is called", function() {
+    let changeHandler = jasmine.createSpy()
+    let file = FileStr
+    let fileDiff = new FileDiff
+    fileDiff.onDidChange(changeHandler)
+
+    fileDiff.fromString(file)
+    expect(changeHandler).toHaveBeenCalled()
+    expect(fileDiff.toString()).toEqual(file)
+  })
+
   it("emits one change event when the file is staged", function() {
     let changeHandler = jasmine.createSpy()
     let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
