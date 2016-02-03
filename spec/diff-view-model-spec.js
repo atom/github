@@ -5,11 +5,12 @@ import path from 'path'
 import DiffViewModel from '../lib/diff-view-model'
 import DiffSelection from '../lib/diff-selection'
 import FileDiff from '../lib/file-diff'
+import FileList from '../lib/file-list'
 import {createFileDiffsFromPath} from './helpers'
 
 function createDiffs(filePath) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileDiffs})
+  return new DiffViewModel({fileList: new FileList(fileDiffs)})
 }
 
 function expectHunkToBeSelected(isSelected, viewModel, fileDiffIndex, diffHunkIndex) {
@@ -482,7 +483,8 @@ describe("DiffViewModel", function() {
     beforeEach(function() {
       viewModel = createDiffs('fixtures/two-file-diff.txt')
     })
-    it("stages and unsages the selected hunk", function() {
+
+    it("stages and unstages the selected hunk", function() {
       expectHunkToBeSelected(true, viewModel, 0, 0)
       expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
 
@@ -494,7 +496,8 @@ describe("DiffViewModel", function() {
       expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
     })
-    it("stages and unsages the selected line", function() {
+
+    it("stages and unstages the selected line", function() {
       viewModel.setSelectionMode('line')
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
 
@@ -509,4 +512,25 @@ describe("DiffViewModel", function() {
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
     })
   })
+
+  describe("handling events from the fileList", function() {
+    let viewModel
+    beforeEach(function() {
+      viewModel = createDiffs('fixtures/two-file-diff.txt')
+    })
+
+    it("emits an event when the fileDiff is updated", function() {
+      let changeHandler = jasmine.createSpy()
+      viewModel.onDidChange(changeHandler)
+      fileDiff = viewModel.getFileDiffs()[0]
+
+      fileDiff.fromString(FileStr)
+      expect(changeHandler).toHaveBeenCalled()
+    })
+  })
 })
+
+FileStr = `FILE src/config.coffee - modified - unstaged
+  HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require
+  87 87   #
+  88 --- - # We use [json schema]`

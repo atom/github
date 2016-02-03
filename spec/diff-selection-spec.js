@@ -2,11 +2,12 @@
 
 import DiffSelection from '../lib/diff-selection'
 import DiffViewModel from '../lib/diff-view-model'
+import FileList from '../lib/file-list'
 import {createFileDiffsFromPath} from './helpers'
 
 function createDiffs(filePath) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileDiffs})
+  return new DiffViewModel({fileList: new FileList(fileDiffs)})
 }
 
 describe("DiffSelection", function() {
