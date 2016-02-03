@@ -1,5 +1,6 @@
 'atom-workspace':
   'cmd-shift-c': 'git:view-and-commit-changes'
+  'cmd-alt-r': 'git:refresh-status'
 
 '.git-diff-container':
   '/': 'git:toggle-selection-mode'

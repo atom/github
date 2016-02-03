@@ -3,7 +3,7 @@
 import HunkLine from '../lib/hunk-line'
 
 describe("HunkLine", function() {
-  it("roundtrips toString and fromString", function() {
+  it("roundtrips toString and HunkLine.fromString", function() {
     let line = '  89 --- - # default, the type it should be, etc. A simple example:'
     let hunkLine = HunkLine.fromString(line)
     expect(hunkLine.toString()).toEqual(line)
@@ -22,6 +22,17 @@ describe("HunkLine", function() {
 
     line = '  85 85   #'
     hunkLine = HunkLine.fromString(line)
+    expect(hunkLine.toString()).toEqual(line)
+  })
+
+  it("emits and event when HunkLine::fromString() is called", function() {
+    let changeHandler = jasmine.createSpy()
+    let line = '  89 --- - # default, the type it should be, etc. A simple example:'
+    let hunkLine = new HunkLine
+
+    hunkLine.onDidChange(changeHandler)
+    hunkLine.fromString(line)
+    expect(changeHandler).toHaveBeenCalled()
     expect(hunkLine.toString()).toEqual(line)
   })
 
