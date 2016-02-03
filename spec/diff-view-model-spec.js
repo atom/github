@@ -25,11 +25,12 @@ function expectLineToBeSelected(isSelected, viewModel, fileDiffIndex, diffHunkIn
 }
 
 describe("DiffViewModel", function() {
+  let viewModel
   describe("selecting diffs", function() {
-    let viewModel
     beforeEach(function() {
       viewModel = createDiffs('fixtures/two-file-diff.txt')
     })
+
     it("initially selects the first hunk", function() {
       expectHunkToBeSelected(true, viewModel, 0, 0)
       expectHunkToBeSelected(false, viewModel, 0, 1)
@@ -479,7 +480,6 @@ describe("DiffViewModel", function() {
   })
 
   describe("staging diffs", function() {
-    let viewModel
     beforeEach(function() {
       viewModel = createDiffs('fixtures/two-file-diff.txt')
     })
@@ -514,7 +514,6 @@ describe("DiffViewModel", function() {
   })
 
   describe("handling events from the fileList", function() {
-    let viewModel
     beforeEach(function() {
       viewModel = createDiffs('fixtures/two-file-diff.txt')
     })
@@ -526,6 +525,38 @@ describe("DiffViewModel", function() {
 
       fileDiff.fromString(FileStr)
       expect(changeHandler).toHaveBeenCalled()
+    })
+  })
+
+  describe("opening the selected file", function() {
+    beforeEach(function() {
+      viewModel = createDiffs('fixtures/two-file-diff.txt')
+      spyOn(atom.workspace, 'open')
+    })
+
+    it("opens the file to the first line in the selected hunk when in hunk mode and ::openFileAtSelection() is called", function() {
+      viewModel.moveSelectionDown()
+
+      viewModel.openFileAtSelection()
+      expect(atom.workspace.open).toHaveBeenCalled()
+      args = atom.workspace.open.mostRecentCall.args
+      expect(args[0]).toBe('src/config.coffee')
+      expect(args[1]).toEqual({initialLine: 433})
+    })
+
+    it("opens the file to the first selected line in line mode when ::openFileAtSelection() is called", function() {
+      let selection = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 2, 4],
+        tailPosition: [0, 2, 5]
+      })
+      viewModel.setSelection(selection)
+
+      viewModel.openFileAtSelection()
+      expect(atom.workspace.open).toHaveBeenCalled()
+      args = atom.workspace.open.mostRecentCall.args
+      expect(args[0]).toBe('src/config.coffee')
+      expect(args[1]).toEqual({initialLine: 515})
     })
   })
 })
