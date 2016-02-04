@@ -70,7 +70,7 @@ describe("HunkLine", function() {
   })
 
   it("can be staged and unstaged with ::stage() and ::unstage()", function() {
-    const diff = fileList.getFileDiffFromPathName(fileName)
+    const diff = fileList.getFileFromPathName(fileName)
     expect(diff).not.toBeUndefined()
 
     const hunks = diff.getHunks()
