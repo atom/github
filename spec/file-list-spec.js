@@ -47,7 +47,7 @@ describe("FileList", function() {
       fileList = new FileList([fileDiffA, fileDiffB])
     })
 
-    it("", function() {
+    it("creates and retreives fileDiffs", function() {
       expect(fileList.getFileFromPathName(fileDiffA.getNewPathName())).toBe(fileDiffA)
       expect(fileList.getFileFromPathName(fileDiffB.getNewPathName())).toBe(fileDiffB)
 
