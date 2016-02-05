@@ -2,7 +2,8 @@
 
 .file-summary {
   -webkit-user-select: none;
-  display:block;
+  display: flex;
+  align-items: center;
   padding: 0 10px;
   box-shadow:inset @separator-border-color 0 -1px 0;
   line-height:2.4em;
@@ -12,39 +13,28 @@
   overflow:hidden;
 
   .icon {
-    position:absolute;
+    margin-top: 2px;
   }
 
-  .path {
-    display:flex;
-    margin-left:20px;
+  .stage-status {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #ccc;
+    margin-right: 8px;
+    padding: 0;
 
-    .dir {
-      flex:0;
-      flex-basis:auto;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+    &:after {
+      display: block;
+      line-height: 12px;
+      text-align: center;
     }
 
-    .filename {
-      flex-grow:1;
-      flex-shrink:0;
-      flex-basis:auto;
+    &.stage-status-partial:after {
+      content: '-';
     }
-  }
 
-  .btn {
-    position:absolute;
-    right:8px;
-    top:50%;
-    margin-top:-1em;
-    display:none;
-  }
-
-  &:hover {
-    .btn {
-      display:inline-block;
+    &.stage-status-staged:after {
+      content: '✓';
     }
   }
 
