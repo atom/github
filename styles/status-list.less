@@ -27,6 +27,28 @@
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
   }
 
+  .stage-status {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #ccc;
+    margin-right: 8px;
+    padding: 0;
+
+    &:after {
+      display: block;
+      line-height: 12px;
+      text-align: center;
+    }
+
+    &.stage-status-partial:after {
+      content: '-';
+    }
+
+    &.stage-status-staged:after {
+      content: '✓';
+    }
+  }
+
   & > div {
     flex: 1;
     -webkit-transform:scale(1);
