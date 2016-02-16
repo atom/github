@@ -2,17 +2,17 @@
 
 import DiffHunk from '../lib/diff-hunk'
 
-describe("DiffHunk", function() {
+describe('DiffHunk', function () {
   let diffHunk
-  beforeEach(function() {
+  beforeEach(function () {
     diffHunk = DiffHunk.fromString(HunkStr)
   })
 
-  it("roundtrips toString and fromString", function() {
+  it('roundtrips toString and fromString', function () {
     expect(diffHunk.toString()).toEqual(HunkStr)
   })
 
-  it("emits an event when created from a string on an empty object", function() {
+  it('emits an event when created from a string on an empty object', function () {
     let changeHandler = jasmine.createSpy()
     diffHunk = new DiffHunk()
     diffHunk.onDidChange(changeHandler)
@@ -22,7 +22,7 @@ describe("DiffHunk", function() {
     expect(diffHunk.toString()).toEqual(HunkStr)
   })
 
-  it("stages all lines with ::stage() and unstages all lines with ::unstage()", function() {
+  it('stages all lines with ::stage() and unstages all lines with ::unstage()', function () {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
 
     diffHunk.stage()
@@ -38,7 +38,7 @@ describe("DiffHunk", function() {
     expect(diffHunk.getLines()[5].isStaged()).toBe(false)
   })
 
-  it("returns 'partial' from getStageStatus() when some of the lines are staged", function() {
+  it('returns "partial" from getStageStatus() when some of the lines are staged', function () {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
 
     diffHunk.getLines()[3].stage()
@@ -48,7 +48,7 @@ describe("DiffHunk", function() {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
   })
 
-  it("emits one change event when the hunk is staged", function() {
+  it('emits one change event when the hunk is staged', function () {
     let changeHandler = jasmine.createSpy()
     diffHunk.onDidChange(changeHandler)
 
@@ -56,7 +56,7 @@ describe("DiffHunk", function() {
     expect(changeHandler.callCount).toBe(1)
   })
 
-  it("emits a change event when a line is staged", function() {
+  it('emits a change event when a line is staged', function () {
     let changeHandler = jasmine.createSpy()
     diffHunk.onDidChange(changeHandler)
 
@@ -64,7 +64,7 @@ describe("DiffHunk", function() {
     expect(changeHandler).toHaveBeenCalled()
   })
 
-  it("emits events when the header and lines change", function() {
+  it('emits events when the header and lines change', function () {
     let changeHandler = jasmine.createSpy()
     diffHunk.onDidChange(changeHandler)
 
@@ -77,7 +77,7 @@ describe("DiffHunk", function() {
   })
 })
 
-HunkStr = `HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
+const HunkStr = `HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
   85 85   #
   86 86   # ## Config Schemas
   87 87   #
