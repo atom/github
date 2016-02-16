@@ -6,6 +6,7 @@ import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
+import {waitsForPromise} from './async-spec-helpers'
 
 temp.track()
 

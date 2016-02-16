@@ -39,3 +39,5 @@ function waitsForPromise (fn) {
     })
   })
 }
+
+exports.waitsForPromise = waitsForPromise
