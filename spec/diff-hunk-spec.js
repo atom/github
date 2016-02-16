@@ -54,6 +54,10 @@ describe('DiffHunk', function () {
 
     diffHunk.stage()
     expect(changeHandler.callCount).toBe(1)
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].hunk).toBe(diffHunk)
+    expect(args[0].events).toHaveLength(3)
+    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
   })
 
   it('emits a change event when a line is staged', function () {
@@ -62,6 +66,10 @@ describe('DiffHunk', function () {
 
     diffHunk.getLines()[3].stage()
     expect(changeHandler).toHaveBeenCalled()
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].hunk).toBe(diffHunk)
+    expect(args[0].events).toHaveLength(1)
+    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
   })
 
   it('emits events when the header and lines change', function () {
