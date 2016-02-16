@@ -508,6 +508,18 @@ describe('DiffViewModel', function () {
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
     })
+
+    it('emits only one event for all liines staged', function () {
+      let selection = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 0, 5],
+        tailPosition: [0, 0, 4]
+      })
+
+      viewModel.setSelection(selection)
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.fileList.stageLines.callCount).toBe(1)
+    })
   })
 
   describe('handling events from the fileList', function () {
