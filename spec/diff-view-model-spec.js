@@ -7,7 +7,9 @@ import {createFileDiffsFromPath} from './helpers'
 
 function createDiffs (filePath) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs)})
+  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, {stageOnChange: true})})
+  spyOn(viewModel.fileList, 'stageLines')
+  return viewModel
 }
 
 function expectHunkToBeSelected (isSelected, viewModel, fileDiffIndex, diffHunkIndex) {
