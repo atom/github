@@ -44,7 +44,6 @@ describe('FileList', function () {
     fileList.openFileDiffAtIndex(0)
 
     let args = atom.workspace.open.mostRecentCall.args
-    console.log(args)
     expect(args[0]).toContain('config.coffee')
     expect(args[1].pending).toBe(true)
   })
