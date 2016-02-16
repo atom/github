@@ -1,22 +1,19 @@
 /** @babel */
 
-import fs from 'fs'
-import path from 'path'
 import DiffViewModel from '../lib/diff-view-model'
 import DiffComponent from '../lib/diff-component'
-import FileDiff from '../lib/file-diff'
 import FileList from '../lib/file-list'
 import {createFileDiffsFromPath, buildMouseEvent} from './helpers'
 
-function createDiffs(filePath) {
+function createDiffs (filePath) {
   let fileDiffs = createFileDiffsFromPath(filePath)
   return new DiffViewModel({fileList: new FileList(fileDiffs)})
 }
 
-describe("DiffComponent", function() {
+describe('DiffComponent', function () {
   let viewModel, component, element
 
-  function getLineNumberAtPosition(position) {
+  function getLineNumberAtPosition (position) {
     let [fileIndex, hunkIndex, lineIndex] = position
     let fileElement = element.querySelectorAll('.git-file-diff')[fileIndex]
     let hunkElement = fileElement.querySelectorAll('.git-diff-hunk')[hunkIndex]
@@ -24,21 +21,21 @@ describe("DiffComponent", function() {
     return lineElement.querySelector('.old-line-number')
   }
 
-  beforeEach(function() {
+  beforeEach(function () {
     viewModel = createDiffs('fixtures/two-file-diff.txt')
     component = new DiffComponent({diffViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
   })
 
-  it("renders correctly", function() {
+  it('renders correctly', function () {
     expect(element.querySelectorAll('.git-file-diff')).toHaveLength(2)
     expect(element.querySelector('.git-diff-hunk')).toBeDefined()
     expect(element.querySelector('.git-hunk-line')).toBeDefined()
   })
 
-  describe("mouse selection of diff lines", function() {
-    it("selects a line when clicked", function() {
+  describe('mouse selection of diff lines', function () {
+    it('selects a line when clicked', function () {
       let selection = viewModel.getLastSelection()
       expect(selection.getMode()).toBe('hunk')
 
@@ -53,7 +50,7 @@ describe("DiffComponent", function() {
       expect(selection.getTailPosition()).toEqual([0, 0, 4])
     })
 
-    it("selects multiple lines when dragged", function() {
+    it('selects multiple lines when dragged', function () {
       let selection
       let line1 = getLineNumberAtPosition([0, 0, 4])
       let line2 = getLineNumberAtPosition([0, 0, 5])
@@ -69,7 +66,7 @@ describe("DiffComponent", function() {
       expect(selection.getTailPosition()).toEqual([0, 0, 5])
     })
 
-    it("creates a new selection when dragging a new part of the gutter", function() {
+    it('creates a new selection when dragging a new part of the gutter', function () {
       let selection
       let lineOld = getLineNumberAtPosition([0, 0, 4])
       lineOld.dispatchEvent(buildMouseEvent('mousedown', { target: lineOld }))
@@ -89,7 +86,7 @@ describe("DiffComponent", function() {
       expect(selection.getTailPosition()).toEqual([0, 1, 4])
     })
 
-    it("adds to the selection when dragging a new part of the gutter with the shift key down", function() {
+    it('adds to the selection when dragging a new part of the gutter with the shift key down', function () {
       let selection
       let lineOld = getLineNumberAtPosition([0, 0, 4])
       lineOld.dispatchEvent(buildMouseEvent('mousedown', { target: lineOld }))

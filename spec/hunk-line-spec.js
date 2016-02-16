@@ -16,7 +16,7 @@ function copyRepository (name = 'test-repo') {
   return fs.realpathSync(workingDirPath)
 }
 
-describe("HunkLine", function() {
+describe('HunkLine', function () {
   let fileList = null
   let repoPath = null
 
@@ -36,7 +36,7 @@ describe("HunkLine", function() {
     waitsForPromise(() => fileList.loadFromGitUtils())
   })
 
-  it("roundtrips toString and HunkLine.fromString", function() {
+  it('roundtrips toString and HunkLine.fromString', function () {
     let line = '  89 --- - # default, the type it should be, etc. A simple example:'
     let hunkLine = HunkLine.fromString(line)
     expect(hunkLine.toString()).toEqual(line)
@@ -58,10 +58,10 @@ describe("HunkLine", function() {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  it("emits and event when HunkLine::fromString() is called", function() {
+  it('emits and event when HunkLine::fromString() is called', function () {
     let changeHandler = jasmine.createSpy()
     let line = '  89 --- - # default, the type it should be, etc. A simple example:'
-    let hunkLine = new HunkLine
+    let hunkLine = new HunkLine()
 
     hunkLine.onDidChange(changeHandler)
     hunkLine.fromString(line)
@@ -69,7 +69,7 @@ describe("HunkLine", function() {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  it("can be staged and unstaged with ::stage() and ::unstage()", function() {
+  it('can be staged and unstaged with ::stage() and ::unstage()', function () {
     const diff = fileList.getFileFromPathName(fileName)
     expect(diff).not.toBeUndefined()
 

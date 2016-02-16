@@ -45,7 +45,9 @@
       "runs",
       "spyOn",
       "waitsFor",
-      "waitsForPromise"
+      "waitsForPromise",
+      "MouseEvent",
+      "localStorage"
     ]
   }
 }
