@@ -30,8 +30,7 @@ matchers.forEach(function (name) {
   }
 })
 
-/* jshint -W020 */
-waitsForPromise = function (fn) {
+function waitsForPromise (fn) {
   var promise = fn()
   waitsFor('spec promise to resolve', 30000, function (done) {
     promise.then(done, function (error) {
