@@ -5,27 +5,30 @@ import path from 'path'
 import FileDiff from '../lib/file-diff'
 import {createObjectsFromString} from '../lib/common'
 
-function readFileSync(filePath) {
+function readFileSync (filePath) {
   return fs.readFileSync(path.join(__dirname, filePath), 'utf-8')
 }
 
-function createFileDiffsFromString(str) {
+function createFileDiffsFromString (str) {
   return createObjectsFromString(str, 'FILE', FileDiff)
 }
 
-function createFileDiffsFromPath(filePath) {
+function createFileDiffsFromPath (filePath) {
   let fileStr = readFileSync(filePath)
   return createFileDiffsFromString(fileStr)
 }
 
 // Lifted from atom/atom
-function buildMouseEvent(type, properties) {
-  if (properties.detail == null)
+function buildMouseEvent (type, properties) {
+  if (properties.detail == null) {
     properties.detail = 1
-  if (properties.bubbles == null)
+  }
+  if (properties.bubbles == null) {
     properties.bubbles = true
-  if (properties.cancelable == null)
+  }
+  if (properties.cancelable == null) {
     properties.cancelable = true
+  }
 
   let event = new MouseEvent(type, properties)
   if (properties.which != null) {
