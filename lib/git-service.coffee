@@ -331,41 +331,46 @@ class GitService
     newStart = oldStart
     oldCount = newCount = 0
 
-    _lines = hunk.getLines().map (line) -> line.line
-    lines = []
+    hunkLines = hunk.getLines()
+    patchLines = []
+    for line, idx in hunkLines
+      selected = selectedLines.some (selectedLine) ->
+        if line.isAddition()
+          line.getNewLineNumber() == selectedLine.getNewLineNumber()
+        else if line.isDeletion()
+          line.getOldLineNumber() == selectedLine.getOldLineNumber()
+        else
+          false
 
-    for line, idx in _lines
-      origin = String.fromCharCode(line.origin())
-      selected = selectedLines.filter (selectedLine) -> line.newLineno == selectedLine.newLineno || line.oldLineno == selectedLine.oldLineno
-
-      content = line.content().split(/[\r\n]/g)[0]
+      content = line.getContent()
+      origin = line.getLineOrigin()
       switch origin
         when ' '
           oldCount++
           newCount++
-          lines.push "#{origin}#{content}"
+          patchLines.push "#{origin}#{content}"
         when '+'
           if selected
             newCount++
-            lines.push "#{origin}#{content}"
+            patchLines.push "#{origin}#{content}"
           else if not stage
             oldCount++
             newCount++
-            lines.push " #{content}"
+            patchLines.push " #{content}"
         when '-'
           if selected
             oldCount++
-            lines.push "#{origin}#{content}"
+            patchLines.push "#{origin}#{content}"
           else if stage
             oldCount++
             newCount++
-            lines.push " #{content}"
+            patchLines.push " #{content}"
 
     oldStart = 1 if oldCount > 0 and oldStart == '0'
     newStart = 1 if newCount > 0 and newStart == '0'
 
     header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
-    patchText = "#{header}#{lines.join("\n")}\n"
+    patchText = "#{header}#{patchLines.join("\n")}\n"
     Promise.resolve(patchText)
 
   stagePatch: (fileDiff, patchText) =>
@@ -381,7 +386,6 @@ class GitService
       @indexBlob(oldPath) unless fileDiff.isUntracked()
     .then (content) =>
       newContent = JsDiff.applyPatch(content ? '', patchText)
-      console.log patchText, newContent
       buffer = new Buffer(newContent)
       oid    = data.repo.createBlobFromBuffer(buffer)
 
