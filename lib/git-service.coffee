@@ -368,24 +368,24 @@ class GitService
     patchText = "#{header}#{lines.join("\n")}\n"
     Promise.resolve(patchText)
 
-  stagePatch: (patchText, patch) =>
+  stagePatch: (fileDiff, patchText) =>
     data = {}
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
+    oldPath = fileDiff.getOldPathName()
+    newPath = fileDiff.getNewPathName()
     Git.Repository.open(@repoPath)
     .then (repo) ->
       data.repo = repo
       repo.openIndex()
     .then (index) =>
       data.index = index
-      @indexBlob(oldPath) unless patch.isUntracked()
+      @indexBlob(oldPath) unless fileDiff.isUntracked()
     .then (content) =>
       newContent = JsDiff.applyPatch(content ? '', patchText)
       console.log patchText, newContent
       buffer = new Buffer(newContent)
       oid    = data.repo.createBlobFromBuffer(buffer)
 
-      if patch.isDeleted()
+      if fileDiff.isDeleted()
         entry = data.index.getByPath(oldPath)
         entry.id = oid
         entry.fileSize = buffer.length
@@ -394,7 +394,7 @@ class GitService
           oid: oid
           path: newPath
           fileSize: buffer.length
-          mode: patch.newFile().mode()
+          mode: fileDiff.getMode()
 
       data.index.removeByPath(oldPath) if oldPath != newPath
       data.index.add(entry)
@@ -405,12 +405,12 @@ class GitService
       console.log error.message
       console.log error.stack
 
-  unstagePatch: (patchText, patch) =>
+  unstagePatch: (fileDiff, patchText) =>
     patchText = @reversePatch(patchText)
 
     data = {}
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
+    oldPath = fileDiff.getOldPathName()
+    newPath = fileDiff.getNewPathName()
     Git.Repository.open(@repoPath)
     .then (repo) ->
       data.repo = repo
@@ -423,7 +423,7 @@ class GitService
           blob?.toString()
     .then (content) =>
       newContent = JsDiff.applyPatch(content or '', patchText)
-      if !newContent and patch.isAdded()
+      if !newContent and fileDiff.isAdded()
         @unstagePath(newPath)
       else
         buffer = new Buffer(newContent)
@@ -432,7 +432,7 @@ class GitService
           oid: oid
           path: newPath
           fileSize: buffer.length
-          mode: patch.newFile().mode()
+          mode: fileDiff.getMode()
         data.index.add(entry)
         data.index.write()
     .then =>
