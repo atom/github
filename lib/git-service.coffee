@@ -312,6 +312,62 @@ class GitService
     .then =>
       @emitter.emit('did-update-repository')
 
+  parseHeader: (header) ->
+    headerParts =
+      header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
+    return false unless headerParts
+
+    data =
+      oldStart: headerParts[1]
+      oldCount: headerParts[2]
+      newStart: headerParts[3]
+      newCount: headerParts[4]
+      context:  headerParts[5]
+
+  calculatePatchText: (hunk, selectedLines, stage) ->
+    header = hunk.getHeader()
+
+    {oldStart, context} = @parseHeader(header)
+    newStart = oldStart
+    oldCount = newCount = 0
+
+    _lines = hunk.getLines().map (line) -> line.line
+    lines = []
+
+    for line, idx in _lines
+      origin = String.fromCharCode(line.origin())
+      selected = selectedLines.filter (selectedLine) -> line.newLineno == selectedLine.newLineno || line.oldLineno == selectedLine.oldLineno
+
+      content = line.content().split(/[\r\n]/g)[0]
+      switch origin
+        when ' '
+          oldCount++
+          newCount++
+          lines.push "#{origin}#{content}"
+        when '+'
+          if selected
+            newCount++
+            lines.push "#{origin}#{content}"
+          else if not stage
+            oldCount++
+            newCount++
+            lines.push " #{content}"
+        when '-'
+          if selected
+            oldCount++
+            lines.push "#{origin}#{content}"
+          else if stage
+            oldCount++
+            newCount++
+            lines.push " #{content}"
+
+    oldStart = 1 if oldCount > 0 and oldStart == '0'
+    newStart = 1 if newCount > 0 and newStart == '0'
+
+    header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
+    patchText = "#{header}#{lines.join("\n")}\n"
+    Promise.resolve(patchText)
+
   stagePatch: (patchText, patch) =>
     data = {}
     oldPath = patch.oldFile().path()
