@@ -318,10 +318,10 @@ class GitService
     return false unless headerParts
 
     data =
-      oldStart: headerParts[1]
-      oldCount: headerParts[2]
-      newStart: headerParts[3]
-      newCount: headerParts[4]
+      oldStart: parseInt(headerParts[1], 10)
+      oldCount: parseInt(headerParts[2], 10)
+      newStart: parseInt(headerParts[3], 10)
+      newCount: parseInt(headerParts[4], 10)
       context:  headerParts[5]
 
   calculatePatchText: (hunk, selectedLines, stage) ->
