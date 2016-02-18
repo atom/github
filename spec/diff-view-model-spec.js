@@ -7,7 +7,9 @@ import {createFileDiffsFromPath} from './helpers'
 
 function createDiffs (filePath) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs)})
+  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, {stageOnChange: true})})
+  spyOn(viewModel.fileList, 'stageLines')
+  return viewModel
 }
 
 function expectHunkToBeSelected (isSelected, viewModel, fileDiffIndex, diffHunkIndex) {
@@ -507,6 +509,18 @@ describe('DiffViewModel', function () {
       expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
+    })
+
+    it('emits only one event for all lines staged', function () {
+      let selection = new DiffSelection(viewModel, {
+        mode: 'line',
+        headPosition: [0, 0, 5],
+        tailPosition: [0, 0, 4]
+      })
+
+      viewModel.setSelection(selection)
+      viewModel.toggleSelectedLinesStageStatus()
+      expect(viewModel.fileList.stageLines.callCount).toBe(1)
     })
   })
 
