@@ -511,7 +511,7 @@ describe('DiffViewModel', function () {
       expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
     })
 
-    it('emits only one event for all liines staged', function () {
+    it('emits only one event for all lines staged', function () {
       let selection = new DiffSelection(viewModel, {
         mode: 'line',
         headPosition: [0, 0, 5],
