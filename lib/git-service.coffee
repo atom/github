@@ -324,7 +324,7 @@ class GitService
       newCount: parseInt(headerParts[4], 10)
       context:  headerParts[5]
 
-  calculatePatchTexts: (selectedLinesByHunk) ->
+  calculatePatchTexts: (selectedLinesByHunk, stage) ->
     offset = 0
     patches = []
     for hunkString of selectedLinesByHunk
@@ -333,12 +333,12 @@ class GitService
       linesToUse = if linesToStage.length > 0 then linesToStage else linesToUnstage
 
       hunk = linesToUse[0].hunk
-      result = @calculatePatchText(hunk, linesToUse, offset)
+      result = @calculatePatchText(hunk, linesToUse, offset, stage)
       offset += result.offset
       patches.push(result.patchText)
     Promise.resolve(patches)
 
-  calculatePatchText: (hunk, selectedLines, offset) ->
+  calculatePatchText: (hunk, selectedLines, offset, stage) ->
     header = hunk.getHeader()
 
     {oldStart, context} = @parseHeader(header)
@@ -368,11 +368,15 @@ class GitService
           if selected
             newCount++
             patchLines.push "#{origin}#{content}"
+          else if not stage
+            oldCount++
+            newCount++
+            patchLines.push " #{content}"
         when '-'
           if selected
             oldCount++
             patchLines.push "#{origin}#{content}"
-          else
+          else if stage
             oldCount++
             newCount++
             patchLines.push " #{content}"
