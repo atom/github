@@ -2,7 +2,8 @@
 
 .file-summary {
   -webkit-user-select: none;
-  display:block;
+  display: flex;
+  align-items: center;
   padding: 0 10px;
   box-shadow:inset @separator-border-color 0 -1px 0;
   line-height:2.4em;
@@ -12,40 +13,7 @@
   overflow:hidden;
 
   .icon {
-    position:absolute;
-  }
-
-  .path {
-    display:flex;
-    margin-left:20px;
-
-    .dir {
-      flex:0;
-      flex-basis:auto;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .filename {
-      flex-grow:1;
-      flex-shrink:0;
-      flex-basis:auto;
-    }
-  }
-
-  .btn {
-    position:absolute;
-    right:8px;
-    top:50%;
-    margin-top:-1em;
-    display:none;
-  }
-
-  &:hover {
-    .btn {
-      display:inline-block;
-    }
+    margin-top: 2px;
   }
 
   &.selected {
