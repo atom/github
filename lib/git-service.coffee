@@ -312,24 +312,101 @@ class GitService
     .then =>
       @emitter.emit('did-update-repository')
 
-  stagePatch: (patchText, patch) =>
+  parseHeader: (header) ->
+    headerParts =
+      header.match(/^@@ \-([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@(.*)/)
+    return false unless headerParts
+
+    data =
+      oldStart: parseInt(headerParts[1], 10)
+      oldCount: parseInt(headerParts[2], 10)
+      newStart: parseInt(headerParts[3], 10)
+      newCount: parseInt(headerParts[4], 10)
+      context:  headerParts[5]
+
+  calculatePatchTexts: (selectedLinesByHunk, stage) ->
+    offset = 0
+    patches = []
+    for hunkString of selectedLinesByHunk
+      {linesToStage, linesToUnstage} = selectedLinesByHunk[hunkString]
+
+      linesToUse = if linesToStage.length > 0 then linesToStage else linesToUnstage
+
+      hunk = linesToUse[0].hunk
+      result = @calculatePatchText(hunk, linesToUse, offset, stage)
+      offset += result.offset
+      patches.push(result.patchText)
+    Promise.resolve(patches)
+
+  calculatePatchText: (hunk, selectedLines, offset, stage) ->
+    header = hunk.getHeader()
+
+    {oldStart, context} = @parseHeader(header)
+    oldStart += offset
+    newStart = oldStart
+    oldCount = newCount = 0
+
+    hunkLines = hunk.getLines()
+    patchLines = []
+    for line, idx in hunkLines
+      selected = selectedLines.some (selectedLine) ->
+        if line.isAddition()
+          line.getNewLineNumber() == selectedLine.getNewLineNumber()
+        else if line.isDeletion()
+          line.getOldLineNumber() == selectedLine.getOldLineNumber()
+        else
+          false
+
+      content = line.getContent()
+      origin = line.getLineOrigin()
+      switch origin
+        when ' '
+          oldCount++
+          newCount++
+          patchLines.push "#{origin}#{content}"
+        when '+'
+          if selected
+            newCount++
+            patchLines.push "#{origin}#{content}"
+          else if not stage
+            oldCount++
+            newCount++
+            patchLines.push " #{content}"
+        when '-'
+          if selected
+            oldCount++
+            patchLines.push "#{origin}#{content}"
+          else if stage
+            oldCount++
+            newCount++
+            patchLines.push " #{content}"
+
+    oldStart = 1 if oldCount > 0 and oldStart == 0
+    newStart = 1 if newCount > 0 and newStart == 0
+
+    header = "@@ -#{oldStart},#{oldCount} +#{newStart},#{newCount} @@#{context}\n"
+    patchText = "#{header}#{patchLines.join("\n")}\n"
+    {patchText, offset: newCount - oldCount}
+
+  stagePatches: (fileDiff, patches) =>
     data = {}
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
+    oldPath = fileDiff.getOldPathName()
+    newPath = fileDiff.getNewPathName()
     Git.Repository.open(@repoPath)
     .then (repo) ->
       data.repo = repo
       repo.openIndex()
     .then (index) =>
       data.index = index
-      @indexBlob(oldPath) unless patch.isUntracked()
+      @indexBlob(oldPath) unless fileDiff.isUntracked()
     .then (content) =>
-      newContent = JsDiff.applyPatch(content ? '', patchText)
-      console.log patchText, newContent
+      newContent = content ? ''
+      for patchText in patches
+        newContent = JsDiff.applyPatch(newContent, patchText)
       buffer = new Buffer(newContent)
       oid    = data.repo.createBlobFromBuffer(buffer)
 
-      if patch.isDeleted()
+      if fileDiff.isDeleted()
         entry = data.index.getByPath(oldPath)
         entry.id = oid
         entry.fileSize = buffer.length
@@ -338,7 +415,7 @@ class GitService
           oid: oid
           path: newPath
           fileSize: buffer.length
-          mode: patch.newFile().mode()
+          mode: fileDiff.getMode()
 
       data.index.removeByPath(oldPath) if oldPath != newPath
       data.index.add(entry)
@@ -349,12 +426,10 @@ class GitService
       console.log error.message
       console.log error.stack
 
-  unstagePatch: (patchText, patch) =>
-    patchText = @reversePatch(patchText)
-
+  unstagePatches: (fileDiff, patches) =>
     data = {}
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
+    oldPath = fileDiff.getOldPathName()
+    newPath = fileDiff.getNewPathName()
     Git.Repository.open(@repoPath)
     .then (repo) ->
       data.repo = repo
@@ -366,8 +441,12 @@ class GitService
         data.repo.getBlob(entry.id).then (blob) ->
           blob?.toString()
     .then (content) =>
-      newContent = JsDiff.applyPatch(content or '', patchText)
-      if !newContent and patch.isAdded()
+      newContent = content ? ''
+      for patchText in patches
+        patchText = @reversePatch(patchText)
+        newContent = JsDiff.applyPatch(newContent, patchText)
+
+      if !newContent and fileDiff.isAdded()
         @unstagePath(newPath)
       else
         buffer = new Buffer(newContent)
@@ -376,7 +455,7 @@ class GitService
           oid: oid
           path: newPath
           fileSize: buffer.length
-          mode: patch.newFile().mode()
+          mode: fileDiff.getMode()
         data.index.add(entry)
         data.index.write()
     .then =>

@@ -14,7 +14,17 @@ describe('FileDiff', function () {
     let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
     expect(fileDiff.getStageStatus()).toBe('unstaged')
 
+    let changeHandler = jasmine.createSpy()
+    fileDiff.onDidChange(changeHandler)
+
     fileDiff.stage()
+
+    expect(changeHandler).toHaveBeenCalled()
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].file).toBe(fileDiff)
+    expect(args[0].events).toHaveLength(3)
+    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[0])
+
     expect(fileDiff.getStageStatus()).toBe('staged')
     expect(fileDiff.getHunks()[0].getStageStatus()).toBe('staged')
     expect(fileDiff.getHunks()[1].getStageStatus()).toBe('staged')
@@ -25,6 +35,30 @@ describe('FileDiff', function () {
     expect(fileDiff.getHunks()[0].getStageStatus()).toBe('unstaged')
     expect(fileDiff.getHunks()[1].getStageStatus()).toBe('unstaged')
     expect(fileDiff.getHunks()[2].getStageStatus()).toBe('unstaged')
+  })
+
+  it('stages all hunks with ::stage() and unstages all hunks with ::unstage()', function () {
+    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+    expect(fileDiff.getStageStatus()).toBe('unstaged')
+
+    let changeHandler = jasmine.createSpy()
+    fileDiff.onDidChange(changeHandler)
+
+    fileDiff.getHunks()[1].stage()
+
+    expect(changeHandler).toHaveBeenCalled()
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].file).toBe(fileDiff)
+    expect(args[0].events).toHaveLength(1)
+    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[1])
+    expect(args[0].events[0].events[0].line).toBe(fileDiff.getHunks()[1].getLines()[3])
+
+    fileDiff.getHunks()[1].getLines()[3].unstage()
+    args = changeHandler.mostRecentCall.args
+    expect(args[0].file).toBe(fileDiff)
+    expect(args[0].events).toHaveLength(1)
+    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[1])
+    expect(args[0].events[0].events[0].line).toBe(fileDiff.getHunks()[1].getLines()[3])
   })
 
   it('returns "partial" from getStageStatus() when some of the hunks are staged', function () {

@@ -21,6 +21,22 @@ describe('FileList', function () {
     let fileDiff = fileList.getFiles()[0]
     fileDiff.stage()
     expect(changeHandler.callCount).toBe(1)
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].fileList).toBe(fileList)
+    expect(args[0].events).toHaveLength(1)
+    expect(args[0].events[0].file).toBe(fileDiff)
+  })
+
+  it('emits a change event when a file is staged', function () {
+    fileList = createFileList('fixtures/two-file-diff.txt')
+    let changeHandler = jasmine.createSpy()
+    fileList.onDidChange(changeHandler)
+
+    fileList.getFiles()[0].getHunks()[0].stage()
+    let args = changeHandler.mostRecentCall.args
+    expect(args[0].fileList).toBe(fileList)
+    expect(args[0].events).toHaveLength(1)
+    expect(args[0].events[0].file).toBe(fileList.getFiles()[0])
   })
 
   it('opens a new diff item as pending when openFileDiffAtIndex is called', function () {
@@ -28,7 +44,6 @@ describe('FileList', function () {
     fileList.openFileDiffAtIndex(0)
 
     let args = atom.workspace.open.mostRecentCall.args
-    console.log(args)
     expect(args[0]).toContain('config.coffee')
     expect(args[1].pending).toBe(true)
   })

@@ -84,15 +84,10 @@ describe('HunkLine', function () {
     const line = lines[0]
     expect(line.isStaged()).toEqual(false)
 
-    waitsForPromise(() => line.stage())
-    runs(() => {
-      expect(line.isStaged()).toEqual(true)
-    })
+    line.stage()
+    expect(line.isStaged()).toEqual(true)
 
-    waitsForPromise(() => line.unstage())
-    runs(() => {
-      console.log(repoPath)
-      expect(line.isStaged()).toEqual(false)
-    })
+    line.unstage()
+    expect(line.isStaged()).toEqual(false)
   })
 })
