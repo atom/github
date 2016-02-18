@@ -388,7 +388,7 @@ class GitService
     patchText = "#{header}#{patchLines.join("\n")}\n"
     {patchText, offset: newCount - oldCount}
 
-  stagePatch: (fileDiff, patchText) =>
+  stagePatches: (fileDiff, patches) =>
     data = {}
     oldPath = fileDiff.getOldPathName()
     newPath = fileDiff.getNewPathName()
@@ -400,7 +400,9 @@ class GitService
       data.index = index
       @indexBlob(oldPath) unless fileDiff.isUntracked()
     .then (content) =>
-      newContent = JsDiff.applyPatch(content ? '', patchText)
+      newContent = content ? ''
+      for patchText in patches
+        newContent = JsDiff.applyPatch(newContent, patchText)
       buffer = new Buffer(newContent)
       oid    = data.repo.createBlobFromBuffer(buffer)
 
@@ -424,9 +426,7 @@ class GitService
       console.log error.message
       console.log error.stack
 
-  unstagePatch: (fileDiff, patchText) =>
-    patchText = @reversePatch(patchText)
-
+  unstagePatches: (fileDiff, patches) =>
     data = {}
     oldPath = fileDiff.getOldPathName()
     newPath = fileDiff.getNewPathName()
@@ -441,7 +441,11 @@ class GitService
         data.repo.getBlob(entry.id).then (blob) ->
           blob?.toString()
     .then (content) =>
-      newContent = JsDiff.applyPatch(content or '', patchText)
+      newContent = content ? ''
+      for patchText in patches
+        patchText = @reversePatch(patchText)
+        newContent = JsDiff.applyPatch(newContent, patchText)
+
       if !newContent and fileDiff.isAdded()
         @unstagePath(newPath)
       else
