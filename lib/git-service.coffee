@@ -329,8 +329,11 @@ class GitService
     patches = []
     for hunkString of selectedLinesByHunk
       {linesToStage, linesToUnstage} = selectedLinesByHunk[hunkString]
-      hunk = linesToStage[0].hunk
-      result = @calculatePatchText(hunk, linesToStage, offset)
+
+      linesToUse = if linesToStage.length > 0 then linesToStage else linesToUnstage
+
+      hunk = linesToUse[0].hunk
+      result = @calculatePatchText(hunk, linesToUse, offset)
       offset += result.offset
       patches.push(result.patchText)
     Promise.resolve(patches)
