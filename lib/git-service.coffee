@@ -401,7 +401,7 @@ class GitService
       data.index = index
       @indexBlob(oldPath) unless fileDiff.isUntracked()
     .then (content) =>
-      newContent = content ? ''
+      newContent = if content then content else ''
       for patchText in patches
         newContent = JsDiff.applyPatch(newContent, patchText)
       buffer = new Buffer(newContent)
@@ -442,7 +442,7 @@ class GitService
         data.repo.getBlob(entry.id).then (blob) ->
           blob?.toString()
     .then (content) =>
-      newContent = content ? ''
+      newContent = if content then content else ''
       for patchText in patches
         patchText = @reversePatch(patchText)
         newContent = JsDiff.applyPatch(newContent, patchText)
