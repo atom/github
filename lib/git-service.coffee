@@ -19,107 +19,8 @@ class GitService
       @_instance = new GitService
     @_instance
 
-  @statusCodes: ->
-    Git.Status.STATUS
-
   constructor: ->
-    @tmpDir   = os.tmpDir()
     @repoPath = atom.project.getPaths()[0]
-    @emitter = new Emitter
-
-  emit: (event) ->
-    @emitter.emit(event)
-
-  onDidUpdateRepository: (callback) ->
-    @emitter.on('did-update-repository', callback)
-
-  updateRepository: ->
-    @emitter.emit('did-update-repository')
-
-  getBranchName: ->
-    Git.Repository.open(@repoPath).then (repo) ->
-      repo.getBranch('HEAD')
-    .then (branch) =>
-      @normalizeBranchName(branch.name())
-    .catch ->
-      Promise.resolve("master")
-
-  normalizeBranchName: (name) ->
-    name.replace('refs/heads/','')
-
-  localBranches: ->
-    data = {}
-    branches = []
-    @getBranchName()
-    .then (branchName) =>
-      data.branchName = branchName
-      Git.Repository.open(@repoPath)
-    .then (repo) ->
-      repo.getReferenceNames()
-    .then (refs) ->
-      for ref in refs
-        if matches = ref.match /^refs\/heads\/(.*)/
-          branch =
-            name: matches[1]
-            current: matches[1] == data.branchName
-          branches.push branch
-
-      for ref in refs
-        if matches = ref.match /^refs\/remotes\/origin\/(.*)/
-          branch =
-            name: matches[1]
-            current: matches[1] == data.branchName
-            remote: true
-
-          local = _.find branches, (br) ->
-            br.name == branch.name
-
-          branches.push branch unless local or branch.name is "HEAD"
-
-      branches.sort (a, b) ->
-        aName = a.name.toLowerCase()
-        bName = b.name.toLowerCase()
-        if aName < bName
-          -1
-        else if aName > bName
-          1
-        else
-          0
-    .catch ->
-      Promise.resolve(name: 'master', current: true)
-
-  createBranch: ({name, from}) ->
-    data = {}
-    name = @normalizeBranchName(name)
-    Git.Repository.open(@repoPath)
-    .then (repo) ->
-      data.repo = repo
-      repo.getBranchCommit(from)
-    .then (branch) =>
-      signature = data.repo.defaultSignature()
-      message = "Created #{name} from #{from}"
-      data.repo.createBranch(name, branch, 0, signature, message).then =>
-        @checkoutBranch(name)
-    .then =>
-      @emitter.emit('did-update-repository')
-
-  trackRemoteBranch: (name) ->
-    @createBranch({name: name, from: "origin/#{name}"})
-    .then =>
-      Git.Repository.open(@repoPath)
-    .then (repo) ->
-      repo.getBranch(name)
-    .then (branch) ->
-      Git.Branch.setUpstream(branch, "origin/#{name}")
-    .then =>
-      @emitter.emit('did-update-repository')
-
-  checkoutBranch: (name) ->
-    Git.Repository.open(@repoPath)
-    .then (repo) ->
-      repo.checkoutBranch(name)
-    .then =>
-      @emitter.emit('did-update-repository')
 
   getDiffForPath: (path, state) ->
     @diffsPromise.then (diffs) ->
@@ -188,54 +89,6 @@ class GitService
         @statuses[status.path()] = status
       statuses
 
-  getComparisonBranch: (names, branchName) ->
-    origin = "refs/remotes/origin/#{branchName}"
-    if names.indexOf(origin) >= 0
-      origin
-    else if branchName != "master"
-      "master"
-    else
-      null
-
-  getLatestUnpushed: ->
-    data = {}
-    Git.Repository.open(@repoPath)
-    .then (repo) ->
-      data.repo = repo
-      repo.getCurrentBranch()
-    .then (branch) =>
-      data.branch     = branch
-      data.branchName = @normalizeBranchName(branch.name())
-      data.walker     = data.repo.createRevWalk()
-      data.walker.pushHead()
-      data.repo.getReferenceNames()
-    .then (names) =>
-      data.compareBranch = @getComparisonBranch(names, data.branchName)
-      new Promise (resolve, reject) ->
-        if data.compareBranch
-          data.repo.getBranchCommit(data.compareBranch)
-          .then (compare) ->
-            data.walker.hide(compare)
-            resolve()
-        else
-          resolve()
-    .then ->
-      data.walker.next()
-    .then (oid) ->
-      if oid then data.repo.getCommit(oid) else null
-
-  resetBeforeCommit: (commit) ->
-    commit.getParents().then (parents) ->
-      Git.Reset.reset(commit.repo,
-        if parents.length then parents[0] else null,
-        Git.Reset.TYPE.SOFT)
-    .then ->
-      commit.repo.openIndex()
-    .then (index) ->
-      index.write()
-    .then =>
-      @emitter.emit('did-update-repository')
-
   stagePath: (path) ->
     @stageAllPaths([path])
 
@@ -255,8 +108,6 @@ class GitService
           index.addByPath(path)
 
       index.write()
-    .then =>
-      @emitter.emit('did-update-repository')
 
   unstagePath: (path) ->
     @unstageAllPaths([path])
@@ -281,8 +132,6 @@ class GitService
                 status.headToIndex().oldFile().path())
 
             Git.Reset.default(data.repo, commit, path)
-    .then =>
-      @emitter.emit('did-update-repository')
 
   wordwrap: (str) ->
     return str unless str.length
@@ -310,8 +159,6 @@ class GitService
         @wordwrap(message),
         data.indexTree,
         parents)
-    .then =>
-      @emitter.emit('did-update-repository')
 
   parseHeader: (header) ->
     headerParts =
@@ -421,8 +268,6 @@ class GitService
       data.index.removeByPath(oldPath) if oldPath != newPath
       data.index.add(entry)
       data.index.write()
-    .then =>
-      @emitter.emit('did-update-repository')
     .catch (error) ->
       console.log error.message
       console.log error.stack
@@ -459,8 +304,6 @@ class GitService
           mode: fileDiff.getMode()
         data.index.add(entry)
         data.index.write()
-    .then =>
-      @emitter.emit('did-update-repository')
 
   createIndexEntry: ({oid, path, fileSize, mode}) ->
     entry  = new Git.IndexEntry()
@@ -492,11 +335,6 @@ class GitService
 
     newLines.unshift(newHeader)
     newLines.join("\n")
-
-  workingBlob: (path) ->
-    new Git.Promise (resolve, reject) =>
-      fse.readFile "#{@repoPath}/#{path}", "utf8", (e, text) ->
-        resolve(text)
 
   indexBlob: (path) ->
     data = {}
@@ -532,94 +370,3 @@ class GitService
             ""
       else
         ""
-
-  getCommitBlobs: (commit, patch) ->
-    oldPath = patch.oldFile().path()
-    oldSha = commit.parents()[0]
-    newPath = patch.newFile().path()
-    newSha = commit.id()
-
-    oldBlob = @treeBlob(oldPath, oldSha) unless patch.isAdded()
-    newBlob = @treeBlob(newPath, newSha) unless patch.isDeleted()
-
-    if oldBlob and newBlob
-      Git.Promise.all([oldBlob, newBlob]).then (blobs) ->
-        data =
-          old: blobs[0]
-          new: blobs[1]
-    else if newBlob
-      newBlob.then (blob) ->
-        data =
-          old: ''
-          new: blob
-    else if oldBlob
-      oldBlob.then (blob) ->
-        data =
-          old: blob
-          new: ''
-    else
-      data =
-        old: ''
-        new: ''
-
-  getBlobs: ({patch, status, commit}) ->
-    if commit
-      @getCommitBlobs(commit, patch)
-    else
-      if status == 'staged'
-        @getStagedBlobs(patch)
-      else
-        @getUnstagedBlobs(patch)
-
-  getStagedBlobs: (patch) ->
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
-
-    if patch.isAdded() or patch.isUntracked()
-      @indexBlob(newPath).then (newBlob) ->
-        data =
-          new: newBlob
-          old: ''
-    else if patch.isDeleted()
-      @treeBlob(oldPath).then (oldBlob) ->
-        data =
-          old: oldBlob
-          new: ''
-    else
-      Git.Promise.all([@treeBlob(oldPath), @indexBlob(newPath)])
-      .then (blobs) ->
-        data =
-          old: blobs[0]
-          new: blobs[1]
-
-  getUnstagedBlobs: (patch) ->
-    oldPath = patch.oldFile().path()
-    newPath = patch.newFile().path()
-
-    if patch.isAdded() or patch.isUntracked()
-      @workingBlob(newPath).then (newBlob) ->
-        data =
-          new: newBlob
-          old: ''
-    else if patch.isDeleted()
-      @indexBlob(oldPath).then (oldBlob) ->
-        data =
-          old: oldBlob
-          new: ''
-    else
-      Git.Promise.all([@indexBlob(oldPath), @workingBlob(newPath)])
-      .then (blobs) ->
-        data =
-          old: blobs[0]
-          new: blobs[1]
-
-  forceCheckoutPath: (path) ->
-    opts =
-      checkoutStrategy: Git.Checkout.STRATEGY.FORCE
-      paths: path
-
-    Git.Repository.open(@repoPath)
-    .then (repo) ->
-      Git.Checkout.head(repo, opts)
-    .then =>
-      @emitter.emit('did-update-repository')
