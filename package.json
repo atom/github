@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "babel-eslint": "^4.1.8",
-    "coffeelint": "^1.9.3",
     "fs-plus": "^2.8.1",
     "standard": "^5.4.1",
     "temp": "^0.8.3"
