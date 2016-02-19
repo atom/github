@@ -9,6 +9,16 @@ declare module 'atom' {
 
   declare class Emitter {
     on(name: string, callback: Function): Disposable;
-    emit(name: string): void;
+    emit(name: string, context?: ?Object): void;
   }
 }
+
+declare class Workspace {
+  open(uri: string, options?: Object): Promise<void>;
+}
+
+declare class AtomEnvironment {
+  workspace: Workspace;
+}
+
+declare var atom: AtomEnvironment;
