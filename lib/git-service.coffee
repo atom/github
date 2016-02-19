@@ -1,12 +1,13 @@
-{Emitter}    = require 'atom'
-Git          = require 'nodegit'
-ChildProcess = require 'child_process'
-os           = require 'os'
-fse          = require 'fs-extra'
-Path         = require 'path'
-_            = require 'underscore-contrib'
-exec         = ChildProcess.exec
-JsDiff       = require 'diff'
+{Emitter, GitRepositoryAsync} = require 'atom'
+ChildProcess                  = require 'child_process'
+os                            = require 'os'
+fse                           = require 'fs-extra'
+Path                          = require 'path'
+_                             = require 'underscore-contrib'
+exec                          = ChildProcess.exec
+JsDiff                        = require 'diff'
+
+Git = GitRepositoryAsync.Git
 
 module.exports =
 class GitService
