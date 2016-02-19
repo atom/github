@@ -7,3 +7,6 @@ interfaces/
 
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
+munge_underscores=true
+esproposal.class_static_fields=enable
+esproposal.class_instance_fields=enable
