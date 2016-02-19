@@ -12,7 +12,6 @@
     "lint": "./node_modules/.bin/standard lib/**/*.js spec/**/*.js"
   },
   "dependencies": {
-    "atom-space-pen-views": "^2.0.0",
     "diff": "^2.2.1",
     "dom-listener": "0.1.2",
     "etch": "0.1.0",
