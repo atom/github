@@ -17,7 +17,7 @@ describe('Git Main Module', function () {
 
     fileDiffs = createFileDiffs('fixtures/two-file-diff.txt')
 
-    gitPackage = atom.packages.loadPackage('git-prototype')
+    gitPackage = atom.packages.loadPackage('git')
     gitPackageModule = gitPackage.mainModule
 
     fileList = gitPackageModule.getFileListInstance()
@@ -25,7 +25,7 @@ describe('Git Main Module', function () {
       fileList.setFiles(fileDiffs)
     })
 
-    await atom.packages.activatePackage('git-prototype')
+    await atom.packages.activatePackage('git')
   })
 
   afterEach(function () {
