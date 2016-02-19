@@ -11,6 +11,10 @@ declare module 'atom' {
     on(name: string, callback: Function): Disposable;
     emit(name: string, context?: ?Object): void;
   }
+
+  declare class GitRepositoryAsync {
+    static Git: Object;
+  }
 }
 
 declare class Workspace {
