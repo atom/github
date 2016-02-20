@@ -48,10 +48,7 @@
       "spyOn",
       "waitsFor",
       "MouseEvent",
-      "localStorage",
-      "ConvenientPatch",
-      "ConvenientHunk",
-      "DiffFile"
+      "localStorage"
     ]
   }
 }

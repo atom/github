@@ -12,8 +12,10 @@ declare module 'atom' {
     emit(name: string, context?: ?Object): void;
   }
 
+  declare var _nodegit: $Exports<'nodegit'>;
+
   declare class GitRepositoryAsync {
-    static Git: Object;
+    static Git: typeof _nodegit;
   }
 }
 
