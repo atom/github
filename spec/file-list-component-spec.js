@@ -51,4 +51,16 @@ describe('FileListComponent', function () {
       expect(getFileElement(0)).toHaveClass('selected')
     })
   })
+
+  describe('keyboard staging of files', function () {
+    it('toggle stagedness on core:confirm', () => {
+      expect(viewModel.getSelectedFile().getStageStatus()).toBe('unstaged')
+
+      atom.commands.dispatch(element, 'core:confirm')
+      expect(viewModel.getSelectedFile().getStageStatus()).toBe('staged')
+
+      atom.commands.dispatch(element, 'core:confirm')
+      expect(viewModel.getSelectedFile().getStageStatus()).toBe('unstaged')
+    })
+  })
 })
