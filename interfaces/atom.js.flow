@@ -29,9 +29,14 @@ declare class CommandRegistry {
   add(target: string | Element, commandName: string | Object, callback?: Function): Disposable;
 }
 
+declare class Config {
+  get(key: string): string;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
   commands: CommandRegistry;
+  config: Config;
 }
 
 declare var atom: AtomEnvironment;
