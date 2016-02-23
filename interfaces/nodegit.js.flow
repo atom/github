@@ -1,6 +1,11 @@
 declare module 'nodegit' {
-  declare class ConvenientHunk {
+  declare class DiffLine {
 
+  }
+
+  declare class ConvenientHunk {
+    lines(): Promise<Array<DiffLine>>;
+    header(): string;
   }
 
   declare class DiffFile {
