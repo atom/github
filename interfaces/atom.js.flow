@@ -19,12 +19,19 @@ declare module 'atom' {
   }
 }
 
+import type {Disposable} from 'atom'
+
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
 }
 
+declare class CommandRegistry {
+  add(target: string | Element, commandName: string | Object, callback?: Function): Disposable;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
+  commands: CommandRegistry;
 }
 
 declare var atom: AtomEnvironment;
