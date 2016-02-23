@@ -1,0 +1,27 @@
+declare module 'nodegit' {
+  declare class DiffLine {
+
+  }
+
+  declare class ConvenientHunk {
+    lines(): Promise<Array<DiffLine>>;
+    header(): string;
+  }
+
+  declare class DiffFile {
+    mode(): number;
+    path(): string;
+  }
+
+  declare class ConvenientPatch {
+    hunks(): Promise<Array<ConvenientHunk>>;
+    size(): number;
+    isRenamed(): boolean;
+    isUntracked(): boolean;
+    isAdded(): boolean;
+    isRenamed(): boolean;
+    isDeleted(): boolean;
+    newFile(): ?DiffFile;
+    oldFile(): ?DiffFile;
+  }
+}

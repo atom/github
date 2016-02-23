@@ -9,7 +9,8 @@
     "atom": ">=0.174.0 <2.0.0"
   },
   "scripts": {
-    "lint": "./node_modules/.bin/standard lib/**/*.js spec/**/*.js"
+    "lint": "./node_modules/.bin/standard lib/**/*.js spec/**/*.js",
+    "check": "./node_modules/.bin/flow check"
   },
   "dependencies": {
     "diff": "^2.2.1",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^4.1.8",
+    "flow-bin": "^0.22.0",
     "fs-plus": "^2.8.1",
     "standard": "^5.4.1",
     "temp": "^0.8.3"
@@ -46,7 +48,9 @@
       "spyOn",
       "waitsFor",
       "MouseEvent",
-      "localStorage"
+      "localStorage",
+      "HTMLElement",
+      "Event"
     ]
   }
 }

@@ -8,7 +8,9 @@ notifications:
 env:
   - ATOM_CHANNEL=beta
 
-script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
+script:
+  - 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
+  - npm run check
 
 branches:
   only:
