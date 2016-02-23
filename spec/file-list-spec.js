@@ -48,6 +48,15 @@ describe('FileList', function () {
     expect(args[1].pending).toBe(true)
   })
 
+  it('opens a file for editing when openFile is called', function () {
+    spyOn(atom.workspace, 'open')
+    fileList.openFile(fileList.getFiles()[0])
+
+    let args = atom.workspace.open.mostRecentCall.args
+    expect(args[0]).toEqual('src/config.coffee')
+    expect(args[1].pending).toBe(true)
+  })
+
   describe('the file cache', function () {
     let fileDiffA, fileDiffB
     beforeEach(function () {
