@@ -22,7 +22,7 @@
   'd': 'git:open-diff'
   'left': 'git:open-diff'
 
-'.git-commit-message-view atom-text-editor':
+'.git-commit-message-view atom-text-editor:not([mini])':
   'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
