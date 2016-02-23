@@ -39,9 +39,9 @@ describe('FileList', function () {
     expect(args[0].events[0].file).toBe(fileList.getFiles()[0])
   })
 
-  it('opens a new diff item as pending when openFileDiffAtIndex is called', function () {
+  it('opens a new diff item as pending when openFileDiff is called', function () {
     spyOn(atom.workspace, 'open')
-    fileList.openFileDiffAtIndex(0)
+    fileList.openFileDiff(fileList.getFiles()[0])
 
     let args = atom.workspace.open.mostRecentCall.args
     expect(args[0]).toContain('config.coffee')
