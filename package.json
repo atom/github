@@ -48,7 +48,8 @@
       "spyOn",
       "waitsFor",
       "MouseEvent",
-      "localStorage"
+      "localStorage",
+      "HTMLElement"
     ]
   }
 }
