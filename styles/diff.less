@@ -23,14 +23,11 @@ git-patch-view, .git-file-diff {
   color: @syntax-text-color;
   background: @syntax-background-color;
   -webkit-transform:scale(1);
-  border-bottom:1px solid @patch-border-color;
 
   .patch-description {
     font-size: @font-size;
     font-family: @font-family;
-    padding: 0 12px;
-    line-height:2.7em;
-    box-shadow:inset 0 -1px 0 @patch-border-color;
+    margin: @component-padding;
   }
 
   .empty {
@@ -131,10 +128,10 @@ git-patch-view, .git-file-diff {
     white-space: pre;
     color:@syntax-text-color;
     padding:0;
-    margin:0;
-    width:100%;
+    margin: @component-padding;
     border-collapse:collapse;
     line-height:1.3em;
+    border: 1px solid @patch-border-color;
   }
 
   @staged-color:@syntax-color-keyword;
