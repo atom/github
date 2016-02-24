@@ -1,24 +1,24 @@
 @import "variables";
 
-git-commit-message-view {
-  atom-text-editor, atom-text-editor::shadow {
-    margin: 0 -12px;
+.git-commit-message-view {
+  padding: @component-padding;
+  border-top: 1px solid @base-border-color;
 
-    .scroll-view {
-      padding: 8px 12px;
-    }
+  atom-text-editor {
+    height: 100px;
+    border: 1px solid @input-border-color;
+    border-radius: @component-border-radius;
+    background-color: @input-background-color;
+    overflow: auto;
   }
 
   .commit-button {
-    border-top:1px solid @separator-border-color;
-    background:@tool-panel-background-color;
-    margin:0 -12px;
-    padding:0 12px;
+    width: 100%;
+    margin-top: @component-padding;
   }
+}
 
-  .btn {
-    margin:12px 0;
-    width:100%;
-    box-sizing:border-box;
-  }
+// TODO: Refactor, once things settle
+.git-commit-message-view.git-commit-message-view {
+  flex: 0 0 auto; // Use auto-height
 }
