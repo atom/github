@@ -2,9 +2,14 @@
 
 .git-commit-message-view {
   padding: @component-padding;
+  border-top: 1px solid @base-border-color;
 
-  atom-text-editor, atom-text-editor::shadow {
-
+  atom-text-editor {
+    height: 100px;
+    border: 1px solid @input-border-color;
+    border-radius: @component-border-radius;
+    background-color: @input-background-color;
+    overflow: auto;
   }
 
   .commit-button {
