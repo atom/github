@@ -1,18 +1,14 @@
 @import "variables";
 
 .git-commit-message-view {
+  padding: @component-padding;
 
   atom-text-editor, atom-text-editor::shadow {
 
   }
 
   .commit-button {
-    border-top:1px solid @separator-border-color;
-    background:@tool-panel-background-color;
-
-    padding:0 12px;
-    margin:12px 0;
-    width:90%;
-    box-sizing:border-box;
+    width: 100%;
+    margin-top: @component-padding;
   }
 }
