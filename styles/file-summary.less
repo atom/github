@@ -3,18 +3,13 @@
 .file-summary {
   -webkit-user-select: none;
   display: flex;
-  align-items: center;
-  padding: 0 10px;
+  align-items: flex-start;
+  padding: @component-padding/2 @component-padding;
   box-shadow:inset @separator-border-color 0 -1px 0;
-  line-height:2.4em;
   cursor:default;
   position:relative;
   box-sizing:border-box;
   overflow:hidden;
-
-  .icon {
-    margin-top: 2px;
-  }
 
   &.selected {
     background: @background-color-highlight;
@@ -32,6 +27,20 @@
       .meta > div {
         color:fade(@text-color-selected, 70%);
       }
+    }
+  }
+
+  .path {
+    flex: 1;
+  }
+  .stage-status-unstaged + .path {
+    color: @text-color-subtle;
+  }
+
+  .icon {
+    margin: 2px 0 0 @component-padding;
+    &::before {
+      margin-right: 0;
     }
   }
 }
