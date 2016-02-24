@@ -17,6 +17,15 @@ declare module 'atom' {
   declare class GitRepositoryAsync {
     static Git: typeof _nodegit;
   }
+
+  declare class TextEditorElement extends HTMLElement {
+    getModel(): TextEditor;
+  }
+
+  declare class TextEditor {
+    getText(): string;
+    setText(text: string): void;
+  }
 }
 
 import type {Disposable} from 'atom'

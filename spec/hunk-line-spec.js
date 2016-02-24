@@ -1,21 +1,12 @@
 /** @babel */
 
 import path from 'path'
-import temp from 'temp'
 import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
 import {waitsForPromise} from './async-spec-helpers'
-
-temp.track()
-
-function copyRepository (name = 'test-repo') {
-  const workingDirPath = temp.mkdirSync('git-prototype-fixture')
-  fs.copySync(path.join(__dirname, 'fixtures', name), workingDirPath)
-  fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
-  return fs.realpathSync(workingDirPath)
-}
+import {copyRepository} from './helpers'
 
 describe('HunkLine', function () {
   let fileList = null
