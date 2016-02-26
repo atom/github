@@ -61,7 +61,7 @@ describe('HunkLine', () => {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  fdescribe('staging', () => {
+  describe('staging', () => {
     let getFirstLine
     let changeStagednessAndWait
 
