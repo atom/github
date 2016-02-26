@@ -5,7 +5,7 @@ import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
-import {waitsForPromise} from './async-spec-helpers'
+import {waitsForPromise, runs} from './async-spec-helpers'
 import {copyRepository} from './helpers'
 
 describe('HunkLine', () => {
@@ -79,18 +79,19 @@ describe('HunkLine', () => {
       }
 
       changeStagednessAndWait = (stage) => {
-        const line = getFirstLine()
-        expect(line.isStaged()).toEqual(!stage)
-
         const changeHandler = jasmine.createSpy()
-        fileList.onDidUserChange(changeHandler)
+        runs(() => {
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(!stage)
 
-        if (stage) {
-          line.stage()
-        } else {
-          line.unstage()
-        }
+          fileList.onDidUserChange(changeHandler)
 
+          if (stage) {
+            line.stage()
+          } else {
+            line.unstage()
+          }
+        })
         waitsFor(() => changeHandler.callCount === 1)
       }
     })
@@ -98,33 +99,28 @@ describe('HunkLine', () => {
     describe('.stage()', () => {
       it('stages', () => {
         changeStagednessAndWait(true)
-        runs(() => {
-          waitsForPromise(() => fileList.loadFromGitUtils())
-          runs(() => {
-            const line = getFirstLine()
-            expect(line.isStaged()).toEqual(true)
-          })
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(true)
         })
       })
     })
 
     describe('.unstage()', () => {
       it('unstages', () => {
-        // All this crazy nesting *shouldn't* be necessary. But Jasmine is
-        // terrible.
         changeStagednessAndWait(true)
-        runs(() => {
-          waitsForPromise(() => fileList.loadFromGitUtils())
-          runs(() => {
-            changeStagednessAndWait(false)
-            runs(() => {
-              waitsForPromise(() => fileList.loadFromGitUtils())
-              runs(() => {
-                const line = getFirstLine()
-                expect(line.isStaged()).toEqual(false)
-              })
-            })
-          })
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+        })
+
+        changeStagednessAndWait(false)
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(false)
         })
       })
     })
