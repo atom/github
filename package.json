@@ -15,7 +15,7 @@
   "dependencies": {
     "diff": "^2.2.1",
     "dom-listener": "0.1.2",
-    "etch": "0.1.0"
+    "etch": "0.2.0"
   },
   "devDependencies": {
     "babel-eslint": "^4.1.8",

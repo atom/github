@@ -28,8 +28,8 @@ describe('FileListComponent', function () {
     component = new FileListComponent({fileListViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
-    spyOn(etch, 'updateElement').andCallFake((component) => {
-      return etch.updateElementSync(component)
+    spyOn(etch, 'update').andCallFake((component) => {
+      return etch.updateSync(component)
     })
   })
 
