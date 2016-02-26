@@ -25,13 +25,28 @@ declare module 'atom' {
   declare class TextEditor {
     getText(): string;
     setText(text: string): void;
+
+    getPath(): ?string;
+  }
+
+  declare class Panel<T> {
+    getItem(): T;
+
+    isVisible(): boolean;
+    hide(): void;
+    show(): void;
   }
 }
 
-import type {Disposable} from 'atom'
+import type {Disposable, TextEditor, Panel} from 'atom'
 
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
+  addOpener<OptionsType, ItemType>(fn: (uri: string, options: OptionsType) => ItemType): Disposable;
+
+  getActiveTextEditor(): TextEditor;
+
+  addRightPanel<T>(options: {item: T}): Panel<T>;
 }
 
 declare class CommandRegistry {
@@ -42,10 +57,26 @@ declare class Config {
   get(key: string): string;
 }
 
+declare class DeserializerManager {
+  add<StateType, ObjectType>(info: {name: string, deserialize: (state: StateType) => ObjectType}): Disposable;
+}
+
+declare class Project {
+  relativizePath(p: string): string;
+}
+
+declare class ViewRegistry {
+  getView(object: Object): HTMLElement;
+  addViewProvider<ObjectType, ViewType>(class: Class<ObjectType>, fn: (object: ObjectType) => ViewType): Disposable;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
   commands: CommandRegistry;
   config: Config;
+  deserializers: DeserializerManager;
+  views: ViewRegistry;
+  project: Project;
 }
 
 declare var atom: AtomEnvironment;
