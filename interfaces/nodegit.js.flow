@@ -24,4 +24,107 @@ declare module 'nodegit' {
     newFile(): ?DiffFile;
     oldFile(): ?DiffFile;
   }
+
+  declare class Status {
+    static OPT: {INCLUDE_UNTRACKED: number, RECURSE_UNTRACKED_DIRS: number, RENAMES_INDEX_TO_WORKDIR: number, RENAMES_HEAD_TO_INDEX: number};
+  }
+
+  declare class Diff {
+    static indexToWorkdir(repo: Repository, index: Index, options: Object): Promise<Diff>;
+    static treeToIndex(repo: Repository, tree: ?Tree, index: Index, options: Object): Promise<Diff>;
+    static treeToWorkdirWithIndex(repo: Repository, tree: ?Tree, options: Object): Promise<Diff>;
+
+    static OPTION: {SHOW_UNTRACKED_CONTENT: number, RECURSE_UNTRACKED_DIRS: number};
+    static FIND: {RENAMES: number, FOR_UNTRACKED: number};
+
+    patches(): Promise<Array<ConvenientPatch>>;
+
+    findSimilar(options: Object): Promise<number>;
+  }
+
+  declare class Oid {
+
+  }
+
+  declare class IndexEntry {
+    id: Oid;
+    mode: number;
+    path: string;
+    fileSize: number;
+    flags: number;
+    flagsExtended: number;
+  }
+
+  declare class Index {
+    removeByPath(path: string): number;
+    addByPath(path: string): number;
+    add(entry: IndexEntry): number;
+
+    getByPath(path: string, stage?: number): ?IndexEntry;
+
+    write(): Promise<number>;
+    writeTree(): Promise<Oid>;
+  }
+
+  declare class TreeEntry {
+    getBlob(): Promise<Blob>;
+  }
+
+  declare class Tree {
+    getEntry(path: string): TreeEntry;
+  }
+
+  declare class Commit {
+    getTree(): Promise<Tree>;
+  }
+
+  declare class Blob {
+    toString(): string;
+  }
+
+  declare class StatusFile {
+    path(): string;
+
+    headToIndex(): DiffDelta;
+    indexToWorkdir(): DiffDelta;
+
+    isDeleted(): boolean;
+    isRenamed(): boolean;
+  }
+
+  declare class DiffDelta {
+    newFile(): DiffFile;
+    oldFile(): DiffFile;
+  }
+
+  declare class StatusEntry {
+    headToIndex(): DiffDelta;
+    indexToWorkdir(): DiffDelta;
+  }
+
+  declare class Reset {
+    static default(repo: Repository, target: Commit, path: string): Promise<number>;
+  }
+
+  declare class Signature {
+    static default(repo: Repository): Signature;
+  }
+
+  declare class Repository {
+    static open(path: string): Promise<Repository>;
+
+    openIndex(): Promise<Index>;
+
+    isEmpty(): boolean;
+
+    getHeadCommit(): Promise<Commit>;
+    getCommit(sha: Oid | string): Promise<Commit>;
+
+    getBlob(id: Oid | string): Promise<Blob>;
+
+    createBlobFromBuffer(buf: Buffer): Oid;
+    createCommit(updateRef: string, author: Signature, committer: Signature, message: string, oid: Oid, parents: ?Array<Commit>): Promise<Oid>;
+
+    getStatusExt(): Promise<Array<StatusFile>>;
+  }
 }
