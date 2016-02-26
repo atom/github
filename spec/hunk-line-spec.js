@@ -5,7 +5,7 @@ import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
-import {waitsForPromise, it} from './async-spec-helpers'
+import {waitsForPromise} from './async-spec-helpers'
 import {copyRepository} from './helpers'
 
 describe('HunkLine', () => {
@@ -63,7 +63,7 @@ describe('HunkLine', () => {
 
   fdescribe('staging', () => {
     let getFirstLine
-    let changeStagedness
+    let changeStagednessAndWait
 
     beforeEach(() => {
       getFirstLine = () => {
@@ -72,11 +72,13 @@ describe('HunkLine', () => {
 
         const hunks = diff.getHunks()
         const hunk = hunks[0]
+        expect(hunk).not.toBeUndefined()
+
         const lines = hunk.getLines()
         return lines[0]
       }
 
-      changeStagedness = (stage) => {
+      changeStagednessAndWait = (stage) => {
         const line = getFirstLine()
         expect(line.isStaged()).toEqual(!stage)
 
@@ -95,9 +97,8 @@ describe('HunkLine', () => {
 
     describe('.stage()', () => {
       it('stages', () => {
-        changeStagedness(true)
+        changeStagednessAndWait(true)
         runs(() => {
-          fileList = new FileList([])
           waitsForPromise(() => fileList.loadFromGitUtils())
           runs(() => {
             const line = getFirstLine()
@@ -109,14 +110,14 @@ describe('HunkLine', () => {
 
     describe('.unstage()', () => {
       it('unstages', () => {
-        changeStagedness(true)
+        // All this crazy nesting *shouldn't* be necessary. But Jasmine is
+        // terrible.
+        changeStagednessAndWait(true)
         runs(() => {
-          fileList = new FileList([], {stageOnChange: true})
           waitsForPromise(() => fileList.loadFromGitUtils())
           runs(() => {
-            changeStagedness(false)
+            changeStagednessAndWait(false)
             runs(() => {
-              fileList = new FileList([])
               waitsForPromise(() => fileList.loadFromGitUtils())
               runs(() => {
                 const line = getFirstLine()
