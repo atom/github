@@ -1,11 +1,8 @@
-# git prototype package
+# git package
 
-Take some of the original git package code, add a model, and use etch.
+To put a git in some atoms.
 
-Goal is to prototype:
-
-* https://github.com/atom/design/issues/35
-* https://github.com/atom/design/issues/36
+## Getting Started
 
 ```
 git clone git@github.com:atom/git.git
@@ -18,7 +15,14 @@ cd ../some-dir-with-a-git-repo
 atom -d
 ```
 
-## TODO
+## Development
+
+* `npm run lint` — Lint the codes.
+* `npm run check` — Type check the codes.
+* `npm run start` — Start Flow in the background. This will let it parse and typecheck incrementally which is much faster for local development.
+* `npm run stop` — Stop Flow.
+
+We're using [Flow](http://flowtype.org) to add T Y P E S.
 
 ## Keyboard shortcuts
 

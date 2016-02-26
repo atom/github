@@ -10,7 +10,9 @@
   },
   "scripts": {
     "lint": "./node_modules/.bin/standard lib/**/*.js spec/**/*.js",
-    "check": "./node_modules/.bin/flow check"
+    "check": "./node_modules/.bin/flow check",
+    "start": "./node_modules/.bin/flow",
+    "stop": "./node_modules/.bin/flow stop"
   },
   "dependencies": {
     "diff": "^2.2.1",
