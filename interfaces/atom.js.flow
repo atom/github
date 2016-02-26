@@ -16,6 +16,12 @@ declare module 'atom' {
 
   declare class GitRepositoryAsync {
     static Git: typeof _nodegit;
+
+    getShortHead(): Promise<string>;
+  }
+
+  declare class GitRepository {
+    async: GitRepositoryAsync;
   }
 
   declare class TextEditorElement extends HTMLElement {
@@ -38,7 +44,7 @@ declare module 'atom' {
   }
 }
 
-import type {Disposable, TextEditor, Panel} from 'atom'
+import type {Disposable, TextEditor, Panel, GitRepository} from 'atom'
 
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
@@ -63,6 +69,9 @@ declare class DeserializerManager {
 
 declare class Project {
   relativizePath(p: string): string;
+  getPaths(): Array<string>;
+
+  getRepositories(): Array<GitRepository>;
 }
 
 declare class ViewRegistry {
