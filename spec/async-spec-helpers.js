@@ -18,6 +18,15 @@ exports.afterEach = function (fn) {
   })
 }
 
+exports.runs = function (fn) {
+  global.runs(function () {
+    var result = fn()
+    if (result instanceof Promise) {
+      waitsForPromise(function () { return result })
+    }
+  })
+}
+
 var matchers = ['it', 'fit', 'ffit', 'fffit'] // inlining this makes things fail wtf.
 matchers.forEach(function (name) {
   exports[name] = function (description, fn) {
