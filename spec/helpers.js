@@ -1,7 +1,8 @@
 /** @babel */
 
-import fs from 'fs'
+import fs from 'fs-plus'
 import path from 'path'
+import temp from 'temp'
 import FileDiff from '../lib/file-diff'
 import {createObjectsFromString} from '../lib/common'
 
@@ -53,9 +54,19 @@ function buildMouseEvent (type, properties) {
   return event
 }
 
+temp.track()
+
+function copyRepository (name = 'test-repo') {
+  const workingDirPath = temp.mkdirSync('git-prototype-fixture')
+  fs.copySync(path.join(__dirname, 'fixtures', name), workingDirPath)
+  fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
+  return fs.realpathSync(workingDirPath)
+}
+
 module.exports = {
   createFileDiffsFromString,
   createFileDiffsFromPath,
   readFileSync,
-  buildMouseEvent
+  buildMouseEvent,
+  copyRepository
 }

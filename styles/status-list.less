@@ -30,22 +30,29 @@
   .stage-status {
     width: 14px;
     height: 14px;
-    border: 1px solid #ccc;
-    margin-right: 8px;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    margin-top: .1em;
+    margin-right: @component-padding;
     padding: 0;
 
     &:after {
       display: block;
-      line-height: 12px;
+      font-family: 'Octicons Regular';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 12px;
+      line-height: 1;
       text-align: center;
+      -webkit-font-smoothing: antialiased;
     }
 
     &.stage-status-partial:after {
-      content: '-';
+      content: '\f0ca'; // dash
     }
 
     &.stage-status-staged:after {
-      content: '✓';
+      content: '\f03a'; // check
     }
   }
 
