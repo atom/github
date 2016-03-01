@@ -1,0 +1,24 @@
+@import "octicon-mixins";
+
+.git-status-bar {
+  display: inline-block;
+  text-decoration: none;
+  padding-left: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:before {
+   .octicon-font();
+    display: inline-block;
+    position: relative;
+    top: -.05em;
+
+    height: 0px;
+    width: 1em;
+    content: " ";
+    padding-right: 0.4em;
+    font-size: .95em;
+  }
+}
