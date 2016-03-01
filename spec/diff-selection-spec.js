@@ -16,7 +16,7 @@ describe('DiffSelection', function () {
   let gitService
 
   beforeEach(function () {
-    gitService = GitService.instance()
+    gitService = new GitService(atom.project.getPaths()[0])
     viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
   })
 

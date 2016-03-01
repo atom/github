@@ -22,9 +22,7 @@ describe('HunkLine', () => {
     filePath = path.join(repoPath, fileName)
     fs.writeFileSync(filePath, "i'm new here\n")
 
-    gitService = GitService.instance()
-
-    gitService.repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     fileList = new FileList([], gitService, {stageOnChange: true})
     waitsForPromise(() => fileList.loadFromGitUtils())

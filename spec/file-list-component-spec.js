@@ -25,7 +25,7 @@ describe('FileListComponent', function () {
   }
 
   beforeEach(function () {
-    gitService = GitService.instance()
+    gitService = new GitService(atom.project.getPaths()[0])
     viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
     component = new FileListComponent({fileListViewModel: viewModel})
     element = component.element

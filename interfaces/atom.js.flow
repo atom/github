@@ -17,6 +17,8 @@ declare module 'atom' {
   declare class GitRepositoryAsync {
     static Git: typeof _nodegit;
 
+    static open(path: string, options?: Object): GitRepositoryAsync;
+
     getShortHead(): Promise<string>;
   }
 

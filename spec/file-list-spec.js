@@ -16,7 +16,7 @@ describe('FileList', function () {
   let gitService
 
   beforeEach(() => {
-    gitService = GitService.instance()
+    gitService = new GitService(atom.project.getPaths()[0])
   })
 
   it('emits a change event when a file is staged', function () {

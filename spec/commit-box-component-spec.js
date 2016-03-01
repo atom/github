@@ -22,10 +22,7 @@ describe('CommitBoxComponent', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = GitService.instance()
-
-    atom.project.setPaths([repoPath])
-    gitService.repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     const newFileName = 'new-file.txt'
     makeAndStageChanges = async () => {

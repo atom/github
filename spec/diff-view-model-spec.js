@@ -29,7 +29,7 @@ describe('DiffViewModel', function () {
   let gitService
 
   beforeEach(() => {
-    gitService = GitService.instance()
+    gitService = new GitService(atom.project.getPaths()[0])
   })
 
   describe('selecting diffs', function () {

@@ -15,10 +15,7 @@ describe('StatusBarViewModel', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = GitService.instance()
-
-    atom.project.setPaths([repoPath])
-    gitService.repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     fs.writeFileSync(path.join(repoPath, 'file1.txt'), '')
     fs.writeFileSync(path.join(repoPath, 'file2.txt'), '')
