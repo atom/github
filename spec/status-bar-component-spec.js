@@ -7,7 +7,7 @@ import StatusBarComponent from '../lib/status-bar-component'
 import {copyRepository} from './helpers'
 import {it, beforeEach} from './async-spec-helpers'
 
-fdescribe('StatusBarComponent', () => {
+describe('StatusBarComponent', () => {
   let component
   let gitService
   let repoPath
