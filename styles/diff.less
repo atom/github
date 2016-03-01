@@ -134,7 +134,7 @@ git-patch-view, .git-file-diff {
     border: 1px solid @patch-border-color;
   }
 
-  @staged-color:@syntax-color-keyword;
+  @staged-color: @syntax-color-renamed;
   @staged-number-color:contrast(@syntax-background-color, fade(@staged-color, 65%), fade(@staged-color, 85%));
 
   @deletion-color:contrast(@syntax-background-color, fade(@syntax-color-removed, 8%), fade(@syntax-color-removed, 15%));
@@ -213,7 +213,7 @@ git-patch-view, .git-file-diff {
           box-shadow:inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
 
           :focus & {
-            background-color:lighten(@staged-number-color, 2%);
+            background-color:lighten(@staged-number-color, 4%);
           }
         }
       }
