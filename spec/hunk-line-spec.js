@@ -11,6 +11,7 @@ import {copyRepository} from './helpers'
 describe('HunkLine', () => {
   let fileList = null
   let repoPath = null
+  let gitService = null
 
   const fileName = 'README.md'
   let filePath = null
@@ -21,10 +22,11 @@ describe('HunkLine', () => {
     filePath = path.join(repoPath, fileName)
     fs.writeFileSync(filePath, "i'm new here\n")
 
-    // TODO: This makes me feel gross inside.
-    GitService.instance().repoPath = repoPath
+    gitService = GitService.instance()
 
-    fileList = new FileList([], {stageOnChange: true})
+    gitService.repoPath = repoPath
+
+    fileList = new FileList([], gitService, {stageOnChange: true})
     waitsForPromise(() => fileList.loadFromGitUtils())
   })
 

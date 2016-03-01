@@ -2,9 +2,10 @@
 
 import FileList from '../lib/file-list'
 import FileListViewModel from '../lib/file-list-view-model'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath} from './helpers'
 
-function createFileList (filePath) {
+function createFileList (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
   let fileList = new FileList(fileDiffs)
   return new FileListViewModel(fileList)
@@ -12,9 +13,11 @@ function createFileList (filePath) {
 
 describe('FileListViewModel', function () {
   let viewModel
+  let gitService
 
   beforeEach(function () {
-    viewModel = createFileList('fixtures/two-file-diff.txt')
+    gitService = GitService.instance()
+    viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
   })
 
   describe('moving the selection', function () {

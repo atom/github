@@ -3,11 +3,12 @@
 import DiffViewModel from '../lib/diff-view-model'
 import DiffSelection from '../lib/diff-selection'
 import FileList from '../lib/file-list'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath} from './helpers'
 
-function createDiffs (filePath) {
+function createDiffs (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, {stageOnChange: true})})
+  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, gitService, {stageOnChange: true})})
   spyOn(viewModel.fileList, 'stageLines')
   return viewModel
 }
@@ -25,9 +26,15 @@ function expectLineToBeSelected (isSelected, viewModel, fileDiffIndex, diffHunkI
 
 describe('DiffViewModel', function () {
   let viewModel
+  let gitService
+
+  beforeEach(() => {
+    gitService = GitService.instance()
+  })
+
   describe('selecting diffs', function () {
     beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt')
+      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
     })
 
     it('initially selects the first hunk', function () {
@@ -480,7 +487,7 @@ describe('DiffViewModel', function () {
 
   describe('staging diffs', function () {
     beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt')
+      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
     })
 
     it('stages and unstages the selected hunk', function () {
@@ -526,7 +533,7 @@ describe('DiffViewModel', function () {
 
   describe('handling events from the fileList', function () {
     beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt')
+      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
     })
 
     it('emits an event when the fileDiff is updated', function () {
@@ -541,7 +548,7 @@ describe('DiffViewModel', function () {
 
   describe('opening the selected file', function () {
     beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt')
+      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
       spyOn(atom.workspace, 'open')
     })
 

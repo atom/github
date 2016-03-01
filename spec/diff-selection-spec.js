@@ -3,17 +3,21 @@
 import DiffSelection from '../lib/diff-selection'
 import DiffViewModel from '../lib/diff-view-model'
 import FileList from '../lib/file-list'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath} from './helpers'
 
-function createDiffs (filePath) {
+function createDiffs (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs)})
+  return new DiffViewModel({fileList: new FileList(fileDiffs, gitService)})
 }
 
 describe('DiffSelection', function () {
   let viewModel
+  let gitService
+
   beforeEach(function () {
-    viewModel = createDiffs('fixtures/two-file-diff.txt')
+    gitService = GitService.instance()
+    viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
   })
 
   it('can be created without options', function () {
