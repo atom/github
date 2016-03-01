@@ -26,6 +26,13 @@
     "standard": "^5.4.1",
     "temp": "^0.8.3"
   },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
   "standard": {
     "ignore": [],
     "parser": "babel-eslint",
