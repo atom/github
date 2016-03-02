@@ -73,7 +73,7 @@ describe('FileDiff', function () {
         })
       })
 
-      fit('stages/unstages all hunks in a renamed file', () => {
+      it('stages/unstages all hunks in a renamed file', () => {
         const newFileName = 'REAMDE.md'
         const newFilePath = path.join(repoPath, newFileName)
         fs.moveSync(filePath, newFilePath)
