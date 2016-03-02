@@ -32,12 +32,7 @@ describe('StatusBarComponent', () => {
   })
 
   it('renders correctly', () => {
-    const children = element.children
     expect(element).toHaveClass('git-status-bar')
-    expect(children).toHaveLength(1)
-
-    const span = children[0]
-    expect(span).toHaveClass('icon')
-    expect(span).toHaveText('0 files')
+    expect(element).toHaveText('0 files')
   })
 })
