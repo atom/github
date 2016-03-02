@@ -79,6 +79,10 @@ declare class ViewRegistry {
   addViewProvider<ObjectType, ViewType>(class: Class<ObjectType>, fn: (object: ObjectType) => ViewType): Disposable;
 }
 
+declare class TooltipManager {
+  add(target: HTMLElement, options: {title: string}): Disposable;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
   commands: CommandRegistry;
@@ -86,6 +90,7 @@ declare class AtomEnvironment {
   deserializers: DeserializerManager;
   views: ViewRegistry;
   project: Project;
+  tooltips: TooltipManager;
 }
 
 declare var atom: AtomEnvironment;

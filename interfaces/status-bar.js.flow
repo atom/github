@@ -1,0 +1,12 @@
+declare module 'status-bar' {
+  declare class Tile<T> {
+    getPriority(): number;
+    getItem(): T;
+    destroy(): void;
+  }
+
+  declare class StatusBar {
+    addRightTile<T>(object: {item: T, priority: number}): Tile<T>;
+    addLeftTile<T>(object: {item: T, priority: number}): Tile<T>;
+  }
+}
