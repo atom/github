@@ -1,13 +1,79 @@
 /** @babel */
 
+import path from 'path'
+import fs from 'fs'
+
 import FileDiff from '../lib/file-diff'
-import {createFileDiffsFromPath} from './helpers'
+import FileList from '../lib/file-list'
+import GitService from '../lib/git-service'
+import {createFileDiffsFromPath, copyRepository} from './helpers'
+import {it, runs} from './async-spec-helpers'
 
 describe('FileDiff', function () {
   it('roundtrips toString and fromString', function () {
     let file = FileStr
     let fileDiff = FileDiff.fromString(file)
     expect(fileDiff.toString()).toEqual(file)
+  })
+
+  fdescribe('staging', () => {
+    const fileName = 'README.md'
+    let repoPath
+    let filePath
+    let fileList
+
+    let getDiff
+
+    beforeEach(() => {
+      repoPath = copyRepository()
+
+      const gitService = new GitService(repoPath)
+
+      fileList = new FileList([], gitService, {stageOnChange: true})
+
+      getDiff = async (fileName) => {
+        await fileList.loadFromGitUtils()
+
+        const diff = fileList.getFileFromPathName(fileName)
+        expect(diff).toBeDefined()
+
+        return diff
+      }
+
+      filePath = path.join(repoPath, fileName)
+    })
+
+    describe('.stage()', () => {
+      it('stages all hunks in a modified file', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'")
+
+        const changeHandler = jasmine.createSpy()
+        fileList.onDidUserChange(changeHandler)
+
+        const diff = await getDiff('README.md')
+        diff.stage()
+
+        waitsFor(() => changeHandler.callCount === 1)
+        runs(async () => {
+          console.log(repoPath)
+
+          const diff = await getDiff('README.md')
+          expect(diff.getStageStatus()).toBe('staged')
+        })
+      })
+
+      it('stages all hunks in a renamed file', () => {
+
+      })
+
+      it('stages all hunks in a deleted file', () => {
+
+      })
+
+      it('stages all hunks in a new file', () => {
+
+      })
+    })
   })
 
   it('stages all hunks with ::stage() and unstages all hunks with ::unstage()', function () {
