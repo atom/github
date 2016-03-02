@@ -8,8 +8,8 @@ import FileDiffViewModel from '../lib/file-diff-view-model'
 import {copyRepository} from './helpers'
 import {waitsForPromise} from './async-spec-helpers'
 
-async function createDiffViewModel (fileName) {
-  const fileList = new FileList([], {stageOnChange: false})
+async function createDiffViewModel (gitService, fileName) {
+  const fileList = new FileList([], gitService, {stageOnChange: false})
   await fileList.loadFromGitUtils()
   const fileDiff = fileList.getFileFromPathName(fileName)
   expect(fileDiff).toBeDefined()
@@ -21,12 +21,13 @@ describe('FileDiffViewModel', function () {
   const fileName = 'README.md'
   let filePath
 
+  let gitService
   let repoPath
 
   beforeEach(() => {
     repoPath = copyRepository()
 
-    GitService.instance().repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     filePath = path.join(repoPath, fileName)
   })
@@ -36,7 +37,7 @@ describe('FileDiffViewModel', function () {
       fs.writeFileSync(filePath, 'how now brown cow')
 
       let viewModel
-      waitsForPromise(() => createDiffViewModel(fileName).then(v => viewModel = v))
+      waitsForPromise(() => createDiffViewModel(gitService, fileName).then(v => viewModel = v))
       runs(() => {
         expect(viewModel.getTitle()).toBe(fileName)
       })
@@ -47,7 +48,7 @@ describe('FileDiffViewModel', function () {
       fs.moveSync(filePath, path.join(repoPath, newFileName))
 
       let viewModel
-      waitsForPromise(() => createDiffViewModel(newFileName).then(v => viewModel = v))
+      waitsForPromise(() => createDiffViewModel(gitService, newFileName).then(v => viewModel = v))
       runs(() => {
         const title = viewModel.getTitle()
         expect(title).toContain(fileName)

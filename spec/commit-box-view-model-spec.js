@@ -15,10 +15,7 @@ describe('CommitBoxViewModel', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = GitService.instance()
-
-    atom.project.setPaths([repoPath])
-    gitService.repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     viewModel = new CommitBoxViewModel(gitService)
     waitsForPromise(() => viewModel.update())

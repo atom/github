@@ -3,15 +3,16 @@
 import DiffViewModel from '../lib/diff-view-model'
 import DiffComponent from '../lib/diff-component'
 import FileList from '../lib/file-list'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath, buildMouseEvent} from './helpers'
 
-function createDiffs (filePath) {
+function createDiffs (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs)})
+  return new DiffViewModel({fileList: new FileList(fileDiffs, gitService)})
 }
 
 describe('DiffComponent', function () {
-  let viewModel, component, element
+  let viewModel, component, element, gitService
 
   function getLineNumberAtPosition (position) {
     let [fileIndex, hunkIndex, lineIndex] = position
@@ -22,7 +23,8 @@ describe('DiffComponent', function () {
   }
 
   beforeEach(function () {
-    viewModel = createDiffs('fixtures/two-file-diff.txt')
+    gitService = new GitService(atom.project.getPaths()[0])
+    viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
     component = new DiffComponent({diffViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
