@@ -1,7 +1,7 @@
 /** @babel */
 
 import path from 'path'
-import fs from 'fs'
+import fs from 'fs-plus'
 
 import FileDiff from '../lib/file-diff'
 import FileList from '../lib/file-list'
@@ -23,6 +23,7 @@ describe('FileDiff', function () {
     let fileList
 
     let getDiff
+    let callAndWaitForEvent
 
     beforeEach(() => {
       repoPath = copyRepository()
@@ -30,6 +31,8 @@ describe('FileDiff', function () {
       const gitService = new GitService(repoPath)
 
       fileList = new FileList([], gitService, {stageOnChange: true})
+
+      filePath = path.join(repoPath, fileName)
 
       getDiff = async (fileName) => {
         await fileList.loadFromGitUtils()
@@ -40,30 +43,43 @@ describe('FileDiff', function () {
         return diff
       }
 
-      filePath = path.join(repoPath, fileName)
+      callAndWaitForEvent = (fn) => {
+        const changeHandler = jasmine.createSpy()
+        runs(async () => {
+          fileList.onDidUserChange(changeHandler)
+          await fn()
+        })
+        waitsFor(() => changeHandler.callCount === 1)
+      }
     })
 
     describe('.stage()', () => {
       it('stages all hunks in a modified file', async () => {
         fs.writeFileSync(filePath, "oh the files, they are a'changin'")
 
-        const changeHandler = jasmine.createSpy()
-        fileList.onDidUserChange(changeHandler)
-
-        const diff = await getDiff('README.md')
-        diff.stage()
-
-        waitsFor(() => changeHandler.callCount === 1)
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          diff.stage()
+        })
         runs(async () => {
-          console.log(repoPath)
-
-          const diff = await getDiff('README.md')
+          const diff = await getDiff(fileName)
           expect(diff.getStageStatus()).toBe('staged')
         })
       })
 
       it('stages all hunks in a renamed file', () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.moveSync(filePath, newFilePath)
 
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          diff.stage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('staged')
+        })
       })
 
       it('stages all hunks in a deleted file', () => {
