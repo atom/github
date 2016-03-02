@@ -53,8 +53,8 @@ describe('FileDiff', function () {
       }
     })
 
-    describe('.stage()', () => {
-      it('stages all hunks in a modified file', async () => {
+    describe('.stage()/.unstage()', () => {
+      it('stages/unstages all hunks in a modified file', async () => {
         fs.writeFileSync(filePath, "oh the files, they are a'changin'")
 
         callAndWaitForEvent(async () => {
@@ -62,13 +62,18 @@ describe('FileDiff', function () {
           expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
-        runs(async () => {
+        callAndWaitForEvent(async () => {
           const diff = await getDiff(fileName)
           expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
         })
       })
 
-      it('stages all hunks in a renamed file', () => {
+      fit('stages/unstages all hunks in a renamed file', () => {
         const newFileName = 'REAMDE.md'
         const newFilePath = path.join(repoPath, newFileName)
         fs.moveSync(filePath, newFilePath)
@@ -78,13 +83,18 @@ describe('FileDiff', function () {
           expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
-        runs(async () => {
+        callAndWaitForEvent(async () => {
           const diff = await getDiff(newFileName)
           expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
         })
       })
 
-      it('stages all hunks in a deleted file', () => {
+      it('stages/unstages all hunks in a deleted file', () => {
         fs.removeSync(filePath)
 
         callAndWaitForEvent(async () => {
@@ -92,13 +102,18 @@ describe('FileDiff', function () {
           expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
-        runs(async () => {
+        callAndWaitForEvent(async () => {
           const diff = await getDiff(fileName)
           expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
         })
       })
 
-      it('stages all hunks in a new file', () => {
+      it('stages/unstages all hunks in a new file', () => {
         const newFileName = 'REAMDE.md'
         const newFilePath = path.join(repoPath, newFileName)
         fs.writeFileSync(newFilePath, 'a whole new world')
@@ -108,9 +123,14 @@ describe('FileDiff', function () {
           expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
-        runs(async () => {
+        callAndWaitForEvent(async () => {
           const diff = await getDiff(newFileName)
           expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
         })
       })
     })
