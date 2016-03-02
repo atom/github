@@ -16,7 +16,7 @@ describe('FileDiff', function () {
     expect(fileDiff.toString()).toEqual(file)
   })
 
-  fdescribe('staging', () => {
+  describe('staging', () => {
     const fileName = 'README.md'
     let repoPath
     let filePath
@@ -84,8 +84,19 @@ describe('FileDiff', function () {
         })
       })
 
-      it('stages all hunks in a deleted file', () => {
+      fit('stages all hunks in a deleted file', () => {
+        fs.removeSync(filePath)
 
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        runs(async () => {
+          console.log(repoPath)
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('staged')
+        })
       })
 
       it('stages all hunks in a new file', () => {
