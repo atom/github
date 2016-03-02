@@ -59,6 +59,7 @@ describe('FileDiff', function () {
 
         callAndWaitForEvent(async () => {
           const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
         runs(async () => {
@@ -74,6 +75,7 @@ describe('FileDiff', function () {
 
         callAndWaitForEvent(async () => {
           const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
           diff.stage()
         })
         runs(async () => {
