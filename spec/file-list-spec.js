@@ -2,19 +2,25 @@
 
 import FileList from '../lib/file-list'
 import FileDiff from '../lib/file-diff'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath} from './helpers'
 import {it, beforeEach} from './async-spec-helpers'
 
-function createFileList (filePath) {
+function createFileList (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  return new FileList(fileDiffs)
+  return new FileList(fileDiffs, gitService)
 }
 
 describe('FileList', function () {
   let fileList
+  let gitService
+
+  beforeEach(() => {
+    gitService = new GitService(atom.project.getPaths()[0])
+  })
 
   it('emits a change event when a file is staged', function () {
-    fileList = createFileList('fixtures/two-file-diff.txt')
+    fileList = createFileList('fixtures/two-file-diff.txt', gitService)
     let changeHandler = jasmine.createSpy()
     fileList.onDidChange(changeHandler)
 
@@ -28,7 +34,7 @@ describe('FileList', function () {
   })
 
   it('emits a change event when a file is staged', function () {
-    fileList = createFileList('fixtures/two-file-diff.txt')
+    fileList = createFileList('fixtures/two-file-diff.txt', gitService)
     let changeHandler = jasmine.createSpy()
     fileList.onDidChange(changeHandler)
 
@@ -68,7 +74,7 @@ describe('FileList', function () {
         oldPathName: 'src/b.js',
         newPathName: 'src/b.js'
       })
-      fileList = new FileList([fileDiffA, fileDiffB])
+      fileList = new FileList([fileDiffA, fileDiffB], gitService)
     })
 
     it('creates and retreives fileDiffs', function () {
