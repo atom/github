@@ -58,19 +58,9 @@ describe('CommitBoxComponent', () => {
 
       getMessageElement = () => {
         const children = element.children
-        return children[0]
+        return children[0].children[0]
       }
     })
-  })
-
-  it('renders correctly', () => {
-    const children = element.children
-    expect(children).toHaveLength(2)
-    expect(children[0].tagName.toLowerCase()).toBe('atom-text-editor')
-
-    const commitButton = children[1]
-    expect(commitButton).toHaveClass('commit-button')
-    expect(commitButton).toHaveText('Commit to master')
   })
 
   describe('::commit', () => {
