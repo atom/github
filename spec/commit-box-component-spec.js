@@ -22,10 +22,7 @@ describe('CommitBoxComponent', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = GitService.instance()
-
-    atom.project.setPaths([repoPath])
-    gitService.repoPath = repoPath
+    gitService = new GitService(repoPath)
 
     const newFileName = 'new-file.txt'
     makeAndStageChanges = async () => {
@@ -50,8 +47,8 @@ describe('CommitBoxComponent', () => {
       component = new CommitBoxComponent({viewModel})
       element = component.element
       jasmine.attachToDOM(component.element)
-      spyOn(etch, 'updateElement').andCallFake(component => {
-        return etch.updateElementSync(component)
+      spyOn(etch, 'update').andCallFake(component => {
+        return etch.updateSync(component)
       })
 
       getCommitButtonElement = () => {

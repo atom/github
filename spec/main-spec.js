@@ -20,7 +20,7 @@ describe('Git Main Module', function () {
     gitPackage = atom.packages.loadPackage('git')
     gitPackageModule = gitPackage.mainModule
 
-    fileList = gitPackageModule.getFileListInstance()
+    fileList = gitPackageModule.getFileListViewModel().getFileList()
     spyOn(fileList, 'loadFromGitUtils').andCallFake(() => {
       fileList.setFiles(fileDiffs)
     })

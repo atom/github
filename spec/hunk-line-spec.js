@@ -5,12 +5,13 @@ import fs from 'fs-plus'
 import FileList from '../lib/file-list'
 import HunkLine from '../lib/hunk-line'
 import GitService from '../lib/git-service'
-import {waitsForPromise} from './async-spec-helpers'
+import {waitsForPromise, runs} from './async-spec-helpers'
 import {copyRepository} from './helpers'
 
-describe('HunkLine', function () {
+describe('HunkLine', () => {
   let fileList = null
   let repoPath = null
+  let gitService = null
 
   const fileName = 'README.md'
   let filePath = null
@@ -21,14 +22,13 @@ describe('HunkLine', function () {
     filePath = path.join(repoPath, fileName)
     fs.writeFileSync(filePath, "i'm new here\n")
 
-    // TODO: This makes me feel gross inside.
-    GitService.instance().repoPath = repoPath
+    gitService = new GitService(repoPath)
 
-    fileList = new FileList()
+    fileList = new FileList([], gitService, {stageOnChange: true})
     waitsForPromise(() => fileList.loadFromGitUtils())
   })
 
-  it('roundtrips toString and HunkLine.fromString', function () {
+  it('roundtrips toString and HunkLine.fromString', () => {
     let line = '  89 --- - # default, the type it should be, etc. A simple example:'
     let hunkLine = HunkLine.fromString(line)
     expect(hunkLine.toString()).toEqual(line)
@@ -50,7 +50,7 @@ describe('HunkLine', function () {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  it('emits and event when HunkLine::fromString() is called', function () {
+  it('emits and event when HunkLine::fromString() is called', () => {
     let changeHandler = jasmine.createSpy()
     let line = '  89 --- - # default, the type it should be, etc. A simple example:'
     let hunkLine = new HunkLine()
@@ -61,24 +61,68 @@ describe('HunkLine', function () {
     expect(hunkLine.toString()).toEqual(line)
   })
 
-  it('can be staged and unstaged with ::stage() and ::unstage()', function () {
-    const diff = fileList.getFileFromPathName(fileName)
-    expect(diff).not.toBeUndefined()
+  describe('staging', () => {
+    let getFirstLine
+    let changeStagednessAndWait
 
-    const hunks = diff.getHunks()
-    expect(hunks.length).toEqual(1)
+    beforeEach(() => {
+      getFirstLine = () => {
+        const diff = fileList.getFileFromPathName(fileName)
+        expect(diff).not.toBeUndefined()
 
-    const hunk = hunks[0]
-    const lines = hunk.getLines()
-    expect(lines.length).toEqual(21)
+        const hunks = diff.getHunks()
+        const hunk = hunks[0]
+        expect(hunk).not.toBeUndefined()
 
-    const line = lines[0]
-    expect(line.isStaged()).toEqual(false)
+        const lines = hunk.getLines()
+        return lines[0]
+      }
 
-    line.stage()
-    expect(line.isStaged()).toEqual(true)
+      changeStagednessAndWait = (stage) => {
+        const changeHandler = jasmine.createSpy()
+        runs(() => {
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(!stage)
 
-    line.unstage()
-    expect(line.isStaged()).toEqual(false)
+          fileList.onDidUserChange(changeHandler)
+
+          if (stage) {
+            line.stage()
+          } else {
+            line.unstage()
+          }
+        })
+        waitsFor(() => changeHandler.callCount === 1)
+      }
+    })
+
+    describe('.stage()', () => {
+      it('stages', () => {
+        changeStagednessAndWait(true)
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(true)
+        })
+      })
+    })
+
+    describe('.unstage()', () => {
+      it('unstages', () => {
+        changeStagednessAndWait(true)
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+        })
+
+        changeStagednessAndWait(false)
+        runs(async () => {
+          await fileList.loadFromGitUtils()
+
+          const line = getFirstLine()
+          expect(line.isStaged()).toEqual(false)
+        })
+      })
+    })
   })
 })

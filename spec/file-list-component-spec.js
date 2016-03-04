@@ -4,16 +4,17 @@ import etch from 'etch'
 import FileList from '../lib/file-list'
 import FileListViewModel from '../lib/file-list-view-model'
 import FileListComponent from '../lib/file-list-component'
+import GitService from '../lib/git-service'
 import {createFileDiffsFromPath, buildMouseEvent} from './helpers'
 
-function createFileList (filePath) {
+function createFileList (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  let fileList = new FileList(fileDiffs)
+  let fileList = new FileList(fileDiffs, gitService)
   return new FileListViewModel(fileList)
 }
 
 describe('FileListComponent', function () {
-  let viewModel, component, element
+  let viewModel, component, element, gitService
 
   function getFileElements () {
     return element.querySelectorAll('.file-summary')
@@ -24,12 +25,13 @@ describe('FileListComponent', function () {
   }
 
   beforeEach(function () {
-    viewModel = createFileList('fixtures/two-file-diff.txt')
+    gitService = new GitService(atom.project.getPaths()[0])
+    viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
     component = new FileListComponent({fileListViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
-    spyOn(etch, 'updateElement').andCallFake((component) => {
-      return etch.updateElementSync(component)
+    spyOn(etch, 'update').andCallFake((component) => {
+      return etch.updateSync(component)
     })
   })
 
