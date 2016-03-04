@@ -54,6 +54,8 @@ declare class Workspace {
 
   getActiveTextEditor(): TextEditor;
 
+  buildTextEditor(params: Object): TextEditor;
+
   addRightPanel<T>(options: {item: T}): Panel<T>;
 }
 
@@ -85,6 +87,14 @@ declare class TooltipManager {
   add(target: HTMLElement, options: {title: string}): Disposable;
 }
 
+declare class Grammar {
+
+}
+
+declare class GrammarRegistry {
+  grammarForScopeName(name: string): ?Grammar;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
   commands: CommandRegistry;
@@ -93,6 +103,7 @@ declare class AtomEnvironment {
   views: ViewRegistry;
   project: Project;
   tooltips: TooltipManager;
+  grammars: GrammarRegistry;
 }
 
 declare var atom: AtomEnvironment;
