@@ -11,10 +11,6 @@
   'right': 'git:view-and-commit-changes'
   # 'tab': 'git:focus-commit-message'
 
-# 'git-changes-view .data atom-text-editor':
-#   'cmd-enter': 'core:confirm'
-#   'escape': 'core:focus-changes-list'
-
 '.git-file-status-list:focus':
   'escape': 'git:close-commit-panel'
   'tab': 'git:focus-commit-message'
@@ -26,11 +22,3 @@
   'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
-
-'git-commit-list-view':
-  'right': 'git:focus-commit-details'
-
-'git-commit-details-view':
-  'left': 'git:focus-commit-list'
-  'down': 'native!'
-  'up': 'native!'
