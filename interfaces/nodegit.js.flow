@@ -90,6 +90,9 @@ declare module 'nodegit' {
 
     isDeleted(): boolean;
     isRenamed(): boolean;
+
+    inWorkingTree(): boolean;
+    inIndex(): boolean;
   }
 
   declare class DiffDelta {

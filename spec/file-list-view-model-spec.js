@@ -7,7 +7,7 @@ import {createFileDiffsFromPath} from './helpers'
 
 function createFileList (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  let fileList = new FileList(fileDiffs, gitService)
+  let fileList = new FileList(fileDiffs, gitService, {stageOnChange: false})
   return new FileListViewModel(fileList)
 }
 

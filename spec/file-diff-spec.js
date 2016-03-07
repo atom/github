@@ -1,7 +1,13 @@
 /** @babel */
 
+import path from 'path'
+import fs from 'fs-plus'
+
 import FileDiff from '../lib/file-diff'
-import {createFileDiffsFromPath} from './helpers'
+import FileList from '../lib/file-list'
+import GitService from '../lib/git-service'
+import {createFileDiffsFromPath, copyRepository} from './helpers'
+import {it, runs} from './async-spec-helpers'
 
 describe('FileDiff', function () {
   it('roundtrips toString and fromString', function () {
@@ -10,55 +16,124 @@ describe('FileDiff', function () {
     expect(fileDiff.toString()).toEqual(file)
   })
 
-  it('stages all hunks with ::stage() and unstages all hunks with ::unstage()', function () {
-    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
-    expect(fileDiff.getStageStatus()).toBe('unstaged')
+  describe('staging', () => {
+    const fileName = 'README.md'
+    let repoPath
+    let filePath
+    let fileList
 
-    let changeHandler = jasmine.createSpy()
-    fileDiff.onDidChange(changeHandler)
+    let getDiff
+    let callAndWaitForEvent
 
-    fileDiff.stage()
+    beforeEach(() => {
+      repoPath = copyRepository()
 
-    expect(changeHandler).toHaveBeenCalled()
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].file).toBe(fileDiff)
-    expect(args[0].events).toHaveLength(3)
-    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[0])
+      const gitService = new GitService(repoPath)
 
-    expect(fileDiff.getStageStatus()).toBe('staged')
-    expect(fileDiff.getHunks()[0].getStageStatus()).toBe('staged')
-    expect(fileDiff.getHunks()[1].getStageStatus()).toBe('staged')
-    expect(fileDiff.getHunks()[2].getStageStatus()).toBe('staged')
+      fileList = new FileList([], gitService, {stageOnChange: true})
 
-    fileDiff.unstage()
-    expect(fileDiff.getStageStatus()).toBe('unstaged')
-    expect(fileDiff.getHunks()[0].getStageStatus()).toBe('unstaged')
-    expect(fileDiff.getHunks()[1].getStageStatus()).toBe('unstaged')
-    expect(fileDiff.getHunks()[2].getStageStatus()).toBe('unstaged')
-  })
+      filePath = path.join(repoPath, fileName)
 
-  it('stages all hunks with ::stage() and unstages all hunks with ::unstage()', function () {
-    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
-    expect(fileDiff.getStageStatus()).toBe('unstaged')
+      getDiff = async (fileName) => {
+        await fileList.loadFromGitUtils()
 
-    let changeHandler = jasmine.createSpy()
-    fileDiff.onDidChange(changeHandler)
+        const diff = fileList.getFileFromPathName(fileName)
+        expect(diff).toBeDefined()
 
-    fileDiff.getHunks()[1].stage()
+        return diff
+      }
 
-    expect(changeHandler).toHaveBeenCalled()
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].file).toBe(fileDiff)
-    expect(args[0].events).toHaveLength(1)
-    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[1])
-    expect(args[0].events[0].events[0].line).toBe(fileDiff.getHunks()[1].getLines()[3])
+      callAndWaitForEvent = (fn) => {
+        const changeHandler = jasmine.createSpy()
+        runs(async () => {
+          fileList.onDidUserChange(changeHandler)
+          await fn()
+        })
+        waitsFor(() => changeHandler.callCount === 1)
+      }
+    })
 
-    fileDiff.getHunks()[1].getLines()[3].unstage()
-    args = changeHandler.mostRecentCall.args
-    expect(args[0].file).toBe(fileDiff)
-    expect(args[0].events).toHaveLength(1)
-    expect(args[0].events[0].hunk).toBe(fileDiff.getHunks()[1])
-    expect(args[0].events[0].events[0].line).toBe(fileDiff.getHunks()[1].getLines()[3])
+    describe('.stage()/.unstage()', () => {
+      it('stages/unstages all hunks in a modified file', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'")
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
+
+      it('stages/unstages all hunks in a renamed file', () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.moveSync(filePath, newFilePath)
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
+
+      it('stages/unstages all hunks in a deleted file', () => {
+        fs.removeSync(filePath)
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
+
+      it('stages/unstages all hunks in a new file', () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world')
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
+    })
   })
 
   it('returns "partial" from getStageStatus() when some of the hunks are staged', function () {
