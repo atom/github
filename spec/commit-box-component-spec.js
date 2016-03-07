@@ -9,7 +9,7 @@ import CommitBoxComponent from '../lib/commit-box-component'
 import {copyRepository, buildMouseEvent} from './helpers'
 import {waitsForPromise, it, beforeEach} from './async-spec-helpers'
 
-describe('CommitBoxComponent', () => {
+xdescribe('CommitBoxComponent', () => {
   let component
   let gitService
   let repoPath
