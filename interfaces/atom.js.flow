@@ -35,6 +35,8 @@ declare module 'atom' {
     setText(text: string): void;
 
     getPath(): ?string;
+
+    onDidChange(fn: Function): Disposable;
   }
 
   declare class Panel<T> {
