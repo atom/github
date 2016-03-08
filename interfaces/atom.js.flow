@@ -30,6 +30,15 @@ declare module 'atom' {
     getModel(): TextEditor;
   }
 
+  declare class Point {
+    row: number;
+    column: number;
+  }
+
+  declare class Cursor {
+
+  }
+
   declare class TextEditor {
     getText(): string;
     setText(text: string): void;
@@ -37,6 +46,7 @@ declare module 'atom' {
     getPath(): ?string;
 
     onDidChange(fn: Function): Disposable;
+    onDidChangeCursorPosition(fn: (event: {oldBufferPosition: Point, oldScreenPosition: Point, newBufferPosition: Point, newScreenPosition: Point, textChanged: boolean, cursor: Cursor}) => void): Disposable;
   }
 
   declare class Panel<T> {
