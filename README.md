@@ -4,6 +4,8 @@ To put a git in some atoms.
 
 ## Getting Started
 
+:warning: **Note:** The git package currently depends on some functionality in Atom core that hasn't been released yet. :warning: So for now, you'll need to [build Atom from source](https://github.com/atom/atom/tree/master/docs/build-instructions) to try the package.
+
 ```
 git clone git@github.com:atom/git.git
 cd git
