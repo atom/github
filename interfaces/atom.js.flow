@@ -21,6 +21,7 @@ declare module 'atom' {
 
     openedPath: string;
 
+    getPath(): Promise<string>;
     getShortHead(): Promise<string>;
 
     onDidChangeStatus(fn: Function): Disposable;
