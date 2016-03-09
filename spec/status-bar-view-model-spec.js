@@ -2,6 +2,7 @@
 
 import path from 'path'
 import fs from 'fs-plus'
+import {GitRepositoryAsync} from 'atom'
 import GitService from '../lib/git-service'
 import StatusBarViewModel from '../lib/status-bar-view-model'
 import {copyRepository} from './helpers'
@@ -15,7 +16,7 @@ describe('StatusBarViewModel', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     fs.writeFileSync(path.join(repoPath, 'file1.txt'), '')
     fs.writeFileSync(path.join(repoPath, 'file2.txt'), '')

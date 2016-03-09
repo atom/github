@@ -1,5 +1,6 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import path from 'path'
 import fs from 'fs-plus'
 import FileList from '../lib/file-list'
@@ -22,7 +23,7 @@ describe('HunkLine', () => {
     filePath = path.join(repoPath, fileName)
     fs.writeFileSync(filePath, "i'm new here\n")
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     fileList = new FileList([], gitService, {stageOnChange: true})
     waitsForPromise(() => fileList.loadFromGitUtils())

@@ -16,7 +16,7 @@ describe('FileListViewModel', function () {
   let gitService
 
   beforeEach(function () {
-    gitService = new GitService(atom.project.getPaths()[0])
+    gitService = new GitService(atom.project.getRepositories()[0])
     viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
   })
 

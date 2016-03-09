@@ -1,5 +1,6 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import path from 'path'
 import fs from 'fs-plus'
 
@@ -28,7 +29,7 @@ describe('FileDiff', function () {
     beforeEach(() => {
       repoPath = copyRepository()
 
-      const gitService = new GitService(repoPath)
+      const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
       fileList = new FileList([], gitService, {stageOnChange: true})
 

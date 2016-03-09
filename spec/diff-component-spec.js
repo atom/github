@@ -23,7 +23,7 @@ describe('DiffComponent', function () {
   }
 
   beforeEach(function () {
-    gitService = new GitService(atom.project.getPaths()[0])
+    gitService = new GitService(atom.project.getRepositories()[0])
     viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
     component = new DiffComponent({diffViewModel: viewModel})
     element = component.element
