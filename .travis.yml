@@ -9,7 +9,7 @@ env:
   - ATOM_CHANNEL=beta
 
 script:
-  - ./script/cibuild
+  - 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
   - npm run check
 
 branches:
