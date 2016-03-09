@@ -1,5 +1,6 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import path from 'path'
 import fs from 'fs-plus'
 import {Point} from 'atom'
@@ -17,7 +18,7 @@ describe('CommitBoxViewModel', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     viewModel = new CommitBoxViewModel(gitService)
     waitsForPromise(() => viewModel.update())

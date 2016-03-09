@@ -3,6 +3,7 @@
 import etch from 'etch'
 import path from 'path'
 import fs from 'fs-plus'
+import {GitRepositoryAsync} from 'atom'
 import GitService from '../lib/git-service'
 import CommitBoxViewModel from '../lib/commit-box-view-model'
 import CommitBoxComponent from '../lib/commit-box-component'
@@ -22,7 +23,7 @@ xdescribe('CommitBoxComponent', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     const newFileName = 'new-file.txt'
     makeAndStageChanges = async () => {

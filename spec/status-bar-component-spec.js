@@ -1,6 +1,7 @@
 /** @babel */
 
 import etch from 'etch'
+import {GitRepositoryAsync} from 'atom'
 import GitService from '../lib/git-service'
 import StatusBarViewModel from '../lib/status-bar-view-model'
 import StatusBarComponent from '../lib/status-bar-component'
@@ -16,7 +17,7 @@ describe('StatusBarComponent', () => {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     const viewModel = new StatusBarViewModel(gitService)
     component = new StatusBarComponent(viewModel, () => { return })

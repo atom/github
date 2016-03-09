@@ -2,6 +2,7 @@
 
 import path from 'path'
 import fs from 'fs-plus'
+import {GitRepositoryAsync} from 'atom'
 import FileList from '../lib/file-list'
 import GitService from '../lib/git-service'
 import FileDiffViewModel from '../lib/file-diff-view-model'
@@ -27,7 +28,7 @@ describe('FileDiffViewModel', function () {
   beforeEach(() => {
     repoPath = copyRepository()
 
-    gitService = new GitService(repoPath)
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
     filePath = path.join(repoPath, fileName)
   })
