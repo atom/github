@@ -19,7 +19,12 @@ declare module 'atom' {
 
     static open(path: string, options?: Object): GitRepositoryAsync;
 
+    openedPath: string;
+
     getShortHead(): Promise<string>;
+
+    onDidChangeStatus(fn: Function): Disposable;
+    onDidChangeStatuses(fn: Function): Disposable;
   }
 
   declare class GitRepository {
