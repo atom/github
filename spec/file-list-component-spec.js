@@ -1,11 +1,12 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import etch from 'etch'
 import FileList from '../lib/file-list'
 import FileListViewModel from '../lib/file-list-view-model'
 import FileListComponent from '../lib/file-list-component'
 import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, buildMouseEvent} from './helpers'
+import {createFileDiffsFromPath, buildMouseEvent, copyRepository} from './helpers'
 
 function createFileList (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
@@ -25,7 +26,8 @@ describe('FileListComponent', function () {
   }
 
   beforeEach(function () {
-    gitService = new GitService(atom.project.getRepositories()[0])
+    const repoPath = copyRepository()
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
     viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
     component = new FileListComponent({fileListViewModel: viewModel})
     element = component.element

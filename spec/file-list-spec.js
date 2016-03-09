@@ -1,9 +1,10 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import FileList from '../lib/file-list'
 import FileDiff from '../lib/file-diff'
 import GitService from '../lib/git-service'
-import {createFileDiffsFromPath} from './helpers'
+import {createFileDiffsFromPath, copyRepository} from './helpers'
 import {it, beforeEach} from './async-spec-helpers'
 
 function createFileList (filePath, gitService) {
@@ -16,7 +17,8 @@ describe('FileList', function () {
   let gitService
 
   beforeEach(() => {
-    gitService = new GitService(atom.project.getRepositories()[0])
+    const repoPath = copyRepository()
+    gitService = new GitService(GitRepositoryAsync.open(repoPath))
   })
 
   it('emits a change event when a file is staged', function () {
