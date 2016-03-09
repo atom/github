@@ -18,7 +18,7 @@
     "diff": "^2.2.1",
     "dom-listener": "0.1.2",
     "etch": "0.3.0",
-    "pathwatcher": "^6.5.0"
+    "pathwatcher": "~6.2"
   },
   "devDependencies": {
     "babel-eslint": "^4.1.8",
