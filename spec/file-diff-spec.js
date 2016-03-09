@@ -134,6 +134,27 @@ describe('FileDiff', function () {
           expect(diff.getStageStatus()).toBe('unstaged')
         })
       })
+
+      it('stages/unstages all hunks in a new file that ends in a newline', () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world\na new fantastic POV\n')
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(newFileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
     })
   })
 
