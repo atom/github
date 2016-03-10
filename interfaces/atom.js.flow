@@ -5,6 +5,7 @@ declare module 'atom' {
 
   declare class CompositeDisposable extends Disposable {
     add(disposable: Disposable): void;
+    remove(disposable: Disposable): void;
   }
 
   declare class Emitter {
@@ -20,6 +21,7 @@ declare module 'atom' {
     static open(path: string, options?: Object): GitRepositoryAsync;
 
     openedPath: string;
+    project: ?Project;
 
     getPath(): Promise<string>;
     getShortHead(): Promise<string>;
@@ -73,9 +75,16 @@ declare module 'atom' {
     destroyItem(item: any): boolean;
     destroy(): void;
   }
+
+  declare class TextBuffer {
+    onDidSave(fn: Function): Disposable;
+    onDidReload(fn: Function): Disposable;
+    onDidChangePath(fn: Function): Disposable;
+    onDidDestroy(fn: Function): Disposable;
+  }
 }
 
-import type {Disposable, TextEditor, Panel, GitRepository, Pane} from 'atom'
+import type {Disposable, TextEditor, Panel, GitRepository, Pane, TextBuffer} from 'atom'
 
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
@@ -105,6 +114,9 @@ declare class DeserializerManager {
 declare class Project {
   relativizePath(p: string): string;
   getPaths(): Array<string>;
+
+  getBuffers(): Array<TextBuffer>;
+  onDidAddBuffer(fn: (buffer: TextBuffer) => void): Disposable;
 
   getRepositories(): Array<GitRepository>;
 }
