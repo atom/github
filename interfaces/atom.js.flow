@@ -3,6 +3,10 @@ declare module 'atom' {
     dispose(): void;
   }
 
+  declare class Model {
+    destroy(): void;
+  }
+
   declare class CompositeDisposable extends Disposable {
     add(disposable: Disposable): void;
     remove(disposable: Disposable): void;
@@ -43,11 +47,11 @@ declare module 'atom' {
     column: number;
   }
 
-  declare class Cursor {
+  declare class Cursor extends Model {
 
   }
 
-  declare class TextEditor {
+  declare class TextEditor extends Model {
     getText(): string;
     setText(text: string): void;
 
@@ -67,13 +71,12 @@ declare module 'atom' {
     show(): void;
   }
 
-  declare class Pane {
+  declare class Pane extends Model {
     itemForURI(uri: string): ?any;
     getItems(): Array<any>;
     getPendingItem(): ?any;
 
     destroyItem(item: any): boolean;
-    destroy(): void;
   }
 
   declare class TextBuffer {
