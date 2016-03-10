@@ -26,3 +26,4 @@
 
 '.git-commit-message-view .commit-button':
   'tab': 'git:focus-file-list'
+  'enter': 'git:commit'
