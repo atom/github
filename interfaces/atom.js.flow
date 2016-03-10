@@ -62,15 +62,26 @@ declare module 'atom' {
     hide(): void;
     show(): void;
   }
+
+  declare class Pane {
+    itemForURI(uri: string): ?any;
+    getItems(): Array<any>;
+    getPendingItem(): ?any;
+
+    destroyItem(item: any): boolean;
+    destroy(): void;
+  }
 }
 
-import type {Disposable, TextEditor, Panel, GitRepository} from 'atom'
+import type {Disposable, TextEditor, Panel, GitRepository, Pane} from 'atom'
 
 declare class Workspace {
   open(uri: string, options?: Object): Promise<void>;
   addOpener<OptionsType, ItemType>(fn: (uri: string, options: OptionsType) => ItemType): Disposable;
 
   getActiveTextEditor(): TextEditor;
+
+  getPanes(): Array<Pane>;
 
   buildTextEditor(params: Object): TextEditor;
 

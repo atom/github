@@ -31,13 +31,13 @@ describe('CommitBoxViewModel', () => {
   })
 
   describe('::commit', () => {
-    it('emits a user change event', async () => {
-      let changeHandler = jasmine.createSpy()
-      viewModel.onDidUserChange(changeHandler)
+    it('emits a commit event', async () => {
+      let commitHandler = jasmine.createSpy()
+      viewModel.onDidCommit(commitHandler)
 
       await viewModel.commit('hey there')
 
-      expect(changeHandler).toHaveBeenCalled()
+      expect(commitHandler).toHaveBeenCalled()
     })
 
     it('commits the staged changes', async () => {
