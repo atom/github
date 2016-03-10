@@ -9,7 +9,7 @@
   'shift-down': 'git:expand-selection-down'
   'escape': 'git:clear-selections'
   'right': 'git:view-and-commit-changes'
-  # 'tab': 'git:focus-commit-message'
+  'tab': 'git:focus-commit-message'
 
 '.git-file-status-list:focus':
   'escape': 'git:close-commit-panel'
@@ -22,3 +22,7 @@
   'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
+  'tab': 'git:focus-commit-button'
+
+'.git-commit-message-view .commit-button':
+  'tab': 'git:focus-file-list'
