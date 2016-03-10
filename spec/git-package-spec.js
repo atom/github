@@ -10,8 +10,7 @@ import {it, beforeEach, afterEach} from './async-spec-helpers'
 function commit (fileListViewModel, msg) {
   const fileList = fileListViewModel.fileList
   const fileDiff = fileList.getFiles()[0]
-  console.log(fileList)
-  console.log(fileList.getFiles())
+
   const changeHandler = jasmine.createSpy()
   const commitHandler = jasmine.createSpy()
   runs(() => {
@@ -48,7 +47,6 @@ describe('GitPackage', function () {
 
   it('closes open diffs of files that were committed', async () => {
     fs.writeFileSync(path.join(repo, 'README.md'), 'hey diddle diddle')
-    console.log(repo)
 
     await gitPackage.update()
     await atom.workspace.open('README.md')

@@ -46,6 +46,10 @@ describe('FileListComponent', function () {
 
   describe('keyboard selection of files', function () {
     it('arrows through the list with core move commands', function () {
+      spyOn(component, 'selectionDidChange').andCallFake(() => {
+        return etch.updateSync(component)
+      })
+
       expect(getFileElement(0)).toHaveClass('selected')
 
       atom.commands.dispatch(element, 'core:move-down')

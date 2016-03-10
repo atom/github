@@ -51,6 +51,8 @@ declare module 'atom' {
 
     getPath(): ?string;
 
+    getElement(): TextEditorElement;
+
     onDidChange(fn: Function): Disposable;
     onDidChangeCursorPosition(fn: (event: {oldBufferPosition: Point, oldScreenPosition: Point, newBufferPosition: Point, newScreenPosition: Point, textChanged: boolean, cursor: Cursor}) => void): Disposable;
   }
