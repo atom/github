@@ -74,6 +74,25 @@ describe('FileDiff', function () {
         })
       })
 
+      it('stages/unstages all hunks in a modified file that ends in a newline', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'\n")
+
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+          diff.stage()
+        })
+        callAndWaitForEvent(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('staged')
+          diff.unstage()
+        })
+        runs(async () => {
+          const diff = await getDiff(fileName)
+          expect(diff.getStageStatus()).toBe('unstaged')
+        })
+      })
+
       it('stages/unstages all hunks in a renamed file', () => {
         const newFileName = 'REAMDE.md'
         const newFilePath = path.join(repoPath, newFileName)
