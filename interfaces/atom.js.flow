@@ -141,6 +141,10 @@ declare class GrammarRegistry {
   grammarForScopeName(name: string): ?Grammar;
 }
 
+declare class Clipboard {
+  write(str: string, metadata?: Object): void;
+}
+
 declare class AtomEnvironment {
   workspace: Workspace;
   commands: CommandRegistry;
@@ -150,6 +154,7 @@ declare class AtomEnvironment {
   project: Project;
   tooltips: TooltipManager;
   grammars: GrammarRegistry;
+  clipboard: Clipboard;
 }
 
 declare var atom: AtomEnvironment;
