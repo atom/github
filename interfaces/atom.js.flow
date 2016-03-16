@@ -79,6 +79,10 @@ declare module 'atom' {
     destroyItem(item: any): boolean;
   }
 
+  declare class Range {
+    intersectsRow(row: number): boolean;
+  }
+
   declare class TextBuffer {
     onDidSave(fn: Function): Disposable;
     onDidReload(fn: Function): Disposable;
