@@ -11,7 +11,7 @@
   'right': 'git:view-and-commit-changes'
   'tab': 'git:focus-commit-message'
 
-'.git-file-status-list:focus':
+'.git-Panel:focus':
   'escape': 'git:close-all'
   'tab': 'git:focus-commit-message'
   'o': 'git:open-file'
