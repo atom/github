@@ -22,9 +22,21 @@
     }
   }
 
+  &-checkbox {
+    margin-top: .1em;
+
+    &.is-partial:after {
+      content: '\f0ca'; // dash
+    }
+    &.is-staged:after {
+      content: '\f03a'; // check
+    }
+  }
+
   &-path {
     flex: 1;
-    .stage-status-unstaged + & {
+
+    .git-FileSummary-checkbox.is-unstaged + & {
       color: @text-color-subtle;
     }
   }
