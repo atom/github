@@ -13,7 +13,7 @@
   background: @pane-item-background-color;
   border-left: 1px solid @pane-item-border-color;
 
-  .column-header {
+  &-header {
     padding:0 12px;
     width:100%;
     line-height:2.7em;
@@ -27,19 +27,11 @@
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
   }
 
-  & > div {
+  &-item {
     flex: 1;
-    -webkit-transform:scale(1);
 
-    &.column-header {
-      flex-grow:0;
-      flex-shrink:0;
-      flex-basis:2.7em;
-
-      & ~ .column-header {
-        flex-basis:2.71em;
-      }
+    &.is-fixed {
+      flex: 0 0 auto; // Uses a fixed-height
     }
-
   }
 }
