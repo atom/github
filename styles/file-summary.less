@@ -1,6 +1,6 @@
 @import "variables";
 
-.file-summary {
+.git-FileSummary {
   -webkit-user-select: none;
   display: flex;
   align-items: flex-start;
@@ -16,28 +16,20 @@
     color:@text-color-highlight;
     box-shadow:@pane-item-background-color 0 -1px 0;
 
-    .meta > div {
-      color:fade(@text-color-highlight, 70%);
-    }
-
     :focus & {
       background: @background-color-selected;
       color:@text-color-selected;
-
-      .meta > div {
-        color:fade(@text-color-selected, 70%);
-      }
     }
   }
 
-  .path {
+  &-path {
     flex: 1;
-  }
-  .stage-status-unstaged + .path {
-    color: @text-color-subtle;
+    .stage-status-unstaged + & {
+      color: @text-color-subtle;
+    }
   }
 
-  .icon {
+  &-icon {
     margin: 2px 0 0 @component-padding;
     &::before {
       margin-right: 0;

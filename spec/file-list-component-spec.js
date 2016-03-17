@@ -18,7 +18,7 @@ describe('FileListComponent', function () {
   let viewModel, component, element, gitService
 
   function getFileElements () {
-    return element.querySelectorAll('.file-summary')
+    return element.querySelectorAll('.git-FileSummary')
   }
 
   function getFileElement (index) {
