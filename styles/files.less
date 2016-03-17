@@ -1,0 +1,17 @@
+@import "variables";
+
+.git-Files {
+  overflow-y:auto;
+  min-height:2.4em;
+  flex-basis:auto;
+  position:relative;
+
+  &:empty:before {
+    content:'No unstaged changes';
+    line-height:2.4em;
+    text-align:center;
+    display:block;
+    opacity:0.4;
+    font-style:italic;
+  }
+}
