@@ -1,10 +1,10 @@
 @import "variables";
 
-.git-commit-message-view {
+.git-Commit {
   padding: @component-padding;
   border-top: 1px solid @base-border-color;
 
-  .editor-component {
+  &-editor {
     height: 100px;
     border: 1px solid @input-border-color;
     border-radius: @component-border-radius;
@@ -17,17 +17,17 @@
     }
   }
 
-  .commit-message-footer {
+  &-bar {
     display: flex;
     align-items: center;
     margin-top: @component-padding;
   }
 
-  .commit-button {
+  &-button {
     flex: 1;
   }
 
-  .message-countdown {
+  &-countdown {
     width: 1.25em;
     text-align: right;
     margin-left: @component-padding;
@@ -38,7 +38,8 @@
   }
 }
 
+
 // TODO: Refactor, once things settle
-.git-commit-message-view.git-commit-message-view {
+.git-Commit.git-Commit {
   flex: 0 0 auto; // Use auto-height
 }
