@@ -18,12 +18,12 @@
   'd': 'git:open-diff'
   'left': 'git:open-diff'
 
-'.git-Commit-editor atom-text-editor:not([mini])':
+'.git-CommitBox-editor atom-text-editor:not([mini])':
   'escape': 'git:view-and-commit-changes'
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
   'tab': 'git:focus-commit-button'
 
-'.git-Commit-button':
+'.git-CommitBox-button':
   'tab': 'git:focus-file-list'
   'enter': 'git:commit'
