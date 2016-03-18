@@ -18,7 +18,7 @@
     "diff": "^2.2.1",
     "dom-listener": "0.1.2",
     "etch": "0.3.0",
-    "nan": "^2.0.0",
+    "nan": "2.x",
     "pathwatcher": "~6.2"
   },
   "devDependencies": {
