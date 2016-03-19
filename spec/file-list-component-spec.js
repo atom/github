@@ -18,7 +18,7 @@ describe('FileListComponent', function () {
   let viewModel, component, element, gitService
 
   function getFileElements () {
-    return element.querySelectorAll('.file-summary')
+    return element.querySelectorAll('.git-FileSummary')
   }
 
   function getFileElement (index) {
@@ -40,8 +40,8 @@ describe('FileListComponent', function () {
   it('renders correctly', function () {
     let fileElements = getFileElements()
     expect(fileElements).toHaveLength(2)
-    expect(fileElements[0]).toHaveClass('selected')
-    expect(fileElements[1]).not.toHaveClass('selected')
+    expect(fileElements[0]).toHaveClass('is-selected')
+    expect(fileElements[1]).not.toHaveClass('is-selected')
   })
 
   describe('keyboard selection of files', function () {
@@ -50,13 +50,13 @@ describe('FileListComponent', function () {
         return etch.updateSync(component)
       })
 
-      expect(getFileElement(0)).toHaveClass('selected')
+      expect(getFileElement(0)).toHaveClass('is-selected')
 
       atom.commands.dispatch(element, 'core:move-down')
-      expect(getFileElement(1)).toHaveClass('selected')
+      expect(getFileElement(1)).toHaveClass('is-selected')
 
       atom.commands.dispatch(element, 'core:move-up')
-      expect(getFileElement(0)).toHaveClass('selected')
+      expect(getFileElement(0)).toHaveClass('is-selected')
     })
   })
 
