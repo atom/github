@@ -12,16 +12,6 @@ describe('DiffHunk', function () {
     expect(diffHunk.toString()).toEqual(HunkStr)
   })
 
-  it('emits an event when created from a string on an empty object', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk = new DiffHunk()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.fromString(HunkStr)
-    expect(changeHandler).toHaveBeenCalled()
-    expect(diffHunk.toString()).toEqual(HunkStr)
-  })
-
   it('stages all lines with ::stage() and unstages all lines with ::unstage()', function () {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
 
@@ -46,42 +36,6 @@ describe('DiffHunk', function () {
 
     diffHunk.getLines()[3].unstage()
     expect(diffHunk.getStageStatus()).toBe('unstaged')
-  })
-
-  it('emits one change event when the hunk is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.stage()
-    expect(changeHandler.callCount).toBe(1)
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].hunk).toBe(diffHunk)
-    expect(args[0].events).toHaveLength(3)
-    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
-  })
-
-  it('emits a change event when a line is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.getLines()[3].stage()
-    expect(changeHandler).toHaveBeenCalled()
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].hunk).toBe(diffHunk)
-    expect(args[0].events).toHaveLength(1)
-    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
-  })
-
-  it('emits events when the header and lines change', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.setHeader('@@ -85,9 +85,6 @@ someline ok yeah')
-    expect(changeHandler).toHaveBeenCalled()
-
-    changeHandler.reset()
-    diffHunk.setLines([])
-    expect(changeHandler).toHaveBeenCalled()
   })
 })
 

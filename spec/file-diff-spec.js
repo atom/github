@@ -4,24 +4,17 @@ import {GitRepositoryAsync} from 'atom'
 import path from 'path'
 import fs from 'fs-plus'
 
-import FileDiff from '../lib/file-diff'
-import FileList from '../lib/file-list'
+import FileListStore from '../lib/file-list-store'
 import GitService from '../lib/git-service'
 import {createFileDiffsFromPath, copyRepository} from './helpers'
 import {it, runs} from './async-spec-helpers'
 
 describe('FileDiff', function () {
-  it('roundtrips toString and fromString', function () {
-    let file = FileStr
-    let fileDiff = FileDiff.fromString(file)
-    expect(fileDiff.toString()).toEqual(file)
-  })
-
-  describe('staging', () => {
+  xdescribe('staging', () => {
     const fileName = 'README.md'
     let repoPath
     let filePath
-    let fileList
+    let fileListStore
 
     let getDiff
     let callAndWaitForEvent
@@ -31,14 +24,14 @@ describe('FileDiff', function () {
 
       const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
-      fileList = new FileList([], gitService)
+      fileListStore = new FileListStore(gitService)
 
       filePath = path.join(repoPath, fileName)
 
       getDiff = async (fileName) => {
-        await fileList.loadFromGitUtils()
+        await fileListStore.loadFromGitUtils()
 
-        const diff = fileList.getFileFromPathName(fileName)
+        const diff = fileListStore.getFileFromPathName(fileName)
         expect(diff).toBeDefined()
 
         return diff
@@ -47,7 +40,7 @@ describe('FileDiff', function () {
       callAndWaitForEvent = (fn) => {
         const changeHandler = jasmine.createSpy()
         runs(async () => {
-          fileList.onDidUserChange(changeHandler)
+          fileListStore.onDidUpdate(changeHandler)
           await fn()
         })
         waitsFor(() => changeHandler.callCount === 1)
@@ -187,45 +180,4 @@ describe('FileDiff', function () {
     fileDiff.getHunks()[1].unstage()
     expect(fileDiff.getStageStatus()).toBe('unstaged')
   })
-
-  it('emits an event when FileDiff::fromString() is called', function () {
-    let changeHandler = jasmine.createSpy()
-    let file = FileStr
-    let fileDiff = new FileDiff()
-    fileDiff.onDidChange(changeHandler)
-
-    fileDiff.fromString(file)
-    expect(changeHandler).toHaveBeenCalled()
-    expect(fileDiff.toString()).toEqual(file)
-  })
-
-  it('emits one change event when the file is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
-    fileDiff.onDidChange(changeHandler)
-
-    fileDiff.stage()
-    expect(changeHandler.callCount).toBe(1)
-  })
-
-  it('emits a change event when a hunk is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
-    fileDiff.onDidChange(changeHandler)
-
-    fileDiff.getHunks()[1].stage()
-    expect(changeHandler).toHaveBeenCalled()
-  })
 })
-
-const FileStr = `FILE src/config.coffee - modified - unstaged
-HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
-  85 85   #
-  86 86   # ## Config Schemas
-  87 87   #
-  88 --- - # We use [json schema](http://json-schema.org) which allows you to define your value's
-  89 --- - # default, the type it should be, etc. A simple example:
-  90 --- - #
-  91 88   # \`\`\`coffee
-  92 89   # # We want to provide an \`enableThing\`, and a \`thingVolume\`
-  93 90   # config:`

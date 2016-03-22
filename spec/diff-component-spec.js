@@ -1,19 +1,11 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
-import DiffViewModel from '../lib/diff-view-model'
 import DiffComponent from '../lib/diff-component'
-import FileList from '../lib/file-list'
-import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, buildMouseEvent, copyRepository} from './helpers'
-
-function createDiffs (filePath, gitService) {
-  let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs, gitService)})
-}
+import {beforeEach} from './async-spec-helpers'
+import {createDiffViewModel, buildMouseEvent} from './helpers'
 
 describe('DiffComponent', function () {
-  let viewModel, component, element, gitService
+  let viewModel, component, element
 
   function getLineNumberAtPosition (position) {
     let [fileIndex, hunkIndex, lineIndex] = position
@@ -23,18 +15,15 @@ describe('DiffComponent', function () {
     return lineElement.querySelector('.old-line-number')
   }
 
-  beforeEach(function () {
-    const repoPath = copyRepository()
-
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
-    viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
+  beforeEach(async () => {
+    viewModel = await createDiffViewModel('src/config.coffee', 'dummy-atom')
     component = new DiffComponent({diffViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
   })
 
   it('renders correctly', function () {
-    expect(element.querySelectorAll('.git-file-diff')).toHaveLength(2)
+    expect(element.querySelectorAll('.git-file-diff')).toHaveLength(1)
     expect(element.querySelector('.git-diff-hunk')).toBeDefined()
     expect(element.querySelector('.git-hunk-line')).toBeDefined()
   })

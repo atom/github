@@ -1,25 +1,14 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
 import DiffSelection from '../lib/diff-selection'
-import DiffViewModel from '../lib/diff-view-model'
-import FileList from '../lib/file-list'
-import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, copyRepository} from './helpers'
-
-function createDiffs (filePath, gitService) {
-  let fileDiffs = createFileDiffsFromPath(filePath)
-  return new DiffViewModel({fileList: new FileList(fileDiffs, gitService)})
-}
+import {beforeEach} from './async-spec-helpers'
+import {createDiffViewModel} from './helpers'
 
 describe('DiffSelection', function () {
   let viewModel
-  let gitService
 
-  beforeEach(function () {
-    const repoPath = copyRepository()
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
-    viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
+  beforeEach(async () => {
+    viewModel = await createDiffViewModel()
   })
 
   it('can be created without options', function () {

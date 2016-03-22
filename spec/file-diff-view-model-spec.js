@@ -3,16 +3,16 @@
 import path from 'path'
 import fs from 'fs-plus'
 import {GitRepositoryAsync} from 'atom'
-import FileList from '../lib/file-list'
+import FileListStore from '../lib/file-list-store'
 import GitService from '../lib/git-service'
 import FileDiffViewModel from '../lib/file-diff-view-model'
 import {copyRepository} from './helpers'
 import {waitsForPromise} from './async-spec-helpers'
 
 async function createDiffViewModel (gitService, fileName) {
-  const fileList = new FileList([], gitService)
-  await fileList.loadFromGitUtils()
-  const fileDiff = fileList.getFileFromPathName(fileName)
+  const fileListStore = new FileListStore(gitService)
+  await fileListStore.loadFromGitUtils()
+  const fileDiff = fileListStore.getFileFromPathName(fileName)
   expect(fileDiff).toBeDefined()
 
   return new FileDiffViewModel(fileDiff)

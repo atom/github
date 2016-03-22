@@ -1,25 +1,13 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
-import FileList from '../lib/file-list'
-import FileListViewModel from '../lib/file-list-view-model'
-import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, copyRepository} from './helpers'
-
-function createFileList (filePath, gitService) {
-  let fileDiffs = createFileDiffsFromPath(filePath)
-  let fileList = new FileList(fileDiffs, gitService)
-  return new FileListViewModel(fileList)
-}
+import {beforeEach} from './async-spec-helpers'
+import {createFileListViewModel} from './helpers'
 
 describe('FileListViewModel', function () {
   let viewModel
-  let gitService
 
-  beforeEach(function () {
-    const repoPath = copyRepository()
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
-    viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
+  beforeEach(async () => {
+    viewModel = await createFileListViewModel()
   })
 
   describe('moving the selection', function () {
@@ -28,6 +16,7 @@ describe('FileListViewModel', function () {
     })
 
     it('moves the selection down on ::moveSelectionDown()', function () {
+      expect(viewModel.getSelectedIndex()).toBe(0)
       viewModel.moveSelectionDown()
       expect(viewModel.getSelectedIndex()).toBe(1)
       viewModel.moveSelectionDown()
@@ -36,6 +25,7 @@ describe('FileListViewModel', function () {
     })
 
     it('moves the selection up on ::moveSelectionUp()', function () {
+      expect(viewModel.getSelectedIndex()).toBe(0)
       viewModel.moveSelectionDown()
       viewModel.moveSelectionDown()
       expect(viewModel.getSelectedIndex()).toBe(1)

@@ -1,21 +1,12 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
 import etch from 'etch'
-import FileList from '../lib/file-list'
-import FileListViewModel from '../lib/file-list-view-model'
 import FileListComponent from '../lib/file-list-component'
-import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, buildMouseEvent, copyRepository} from './helpers'
-
-function createFileList (filePath, gitService) {
-  let fileDiffs = createFileDiffsFromPath(filePath)
-  let fileList = new FileList(fileDiffs, gitService)
-  return new FileListViewModel(fileList)
-}
+import {beforeEach} from './async-spec-helpers'
+import {createFileListViewModel, buildMouseEvent} from './helpers'
 
 describe('FileListComponent', function () {
-  let viewModel, component, element, gitService
+  let viewModel, component, element
 
   function getFileElements () {
     return element.querySelectorAll('.git-FileSummary')
@@ -25,10 +16,8 @@ describe('FileListComponent', function () {
     return getFileElements()[index]
   }
 
-  beforeEach(function () {
-    const repoPath = copyRepository()
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
-    viewModel = createFileList('fixtures/two-file-diff.txt', gitService)
+  beforeEach(async () => {
+    viewModel = await createFileListViewModel()
     component = new FileListComponent({fileListViewModel: viewModel})
     element = component.element
     jasmine.attachToDOM(component.element)
@@ -73,7 +62,7 @@ describe('FileListComponent', function () {
   })
 
   describe('mouse clicks', () => {
-    const expectedURI = 'atom://git/diff/src/config.coffee'
+    const expectedURI = 'atom://git/diff/README.md'
 
     it("displays the file's diff in the pending state on single click", () => {
       spyOn(atom.workspace, 'open')
