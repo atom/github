@@ -6,23 +6,8 @@ import path from 'path'
 import temp from 'temp'
 import GitService from '../lib/git-service'
 import FileListStore from '../lib/file-list-store'
-import FileDiff from '../lib/file-diff'
 import FileListViewModel from '../lib/file-list-view-model'
 import DiffViewModel from '../lib/diff-view-model'
-import {createObjectsFromString} from '../lib/common'
-
-export function readFileSync (filePath) {
-  return fs.readFileSync(path.join(__dirname, filePath), 'utf-8')
-}
-
-export function createFileDiffsFromString (str) {
-  return createObjectsFromString(str, 'FILE', FileDiff)
-}
-
-export function createFileDiffsFromPath (filePath) {
-  let fileStr = readFileSync(filePath)
-  return createFileDiffsFromString(fileStr)
-}
 
 // Lifted from atom/atom
 export function buildMouseEvent (type, properties) {

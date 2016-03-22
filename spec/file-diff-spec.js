@@ -6,7 +6,7 @@ import fs from 'fs-plus'
 
 import FileListStore from '../lib/file-list-store'
 import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, copyRepository} from './helpers'
+import {copyRepository, createDiffViewModel} from './helpers'
 import {it, runs} from './async-spec-helpers'
 
 describe('FileDiff', function () {
@@ -170,8 +170,10 @@ describe('FileDiff', function () {
     })
   })
 
-  it('returns "partial" from getStageStatus() when some of the hunks are staged', function () {
-    let fileDiff = createFileDiffsFromPath('fixtures/two-file-diff.txt')[0]
+  it('returns "partial" from getStageStatus() when some of the hunks are staged', async () => {
+    const viewModel = await createDiffViewModel('src/config.coffee', 'dummy-atom')
+
+    let fileDiff = viewModel.getFileDiffs()[0]
     expect(fileDiff.getStageStatus()).toBe('unstaged')
 
     fileDiff.getHunks()[1].stage()
