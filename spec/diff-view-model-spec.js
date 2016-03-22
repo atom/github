@@ -9,7 +9,7 @@ import {createFileDiffsFromPath, copyRepository} from './helpers'
 
 function createDiffs (filePath, gitService) {
   let fileDiffs = createFileDiffsFromPath(filePath)
-  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, gitService, {stageOnChange: true})})
+  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, gitService)})
   spyOn(viewModel.fileList, 'stageLines')
   return viewModel
 }

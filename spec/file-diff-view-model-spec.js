@@ -10,7 +10,7 @@ import {copyRepository} from './helpers'
 import {waitsForPromise} from './async-spec-helpers'
 
 async function createDiffViewModel (gitService, fileName) {
-  const fileList = new FileList([], gitService, {stageOnChange: false})
+  const fileList = new FileList([], gitService)
   await fileList.loadFromGitUtils()
   const fileDiff = fileList.getFileFromPathName(fileName)
   expect(fileDiff).toBeDefined()

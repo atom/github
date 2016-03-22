@@ -25,7 +25,7 @@ describe('HunkLine', () => {
 
     gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
-    fileList = new FileList([], gitService, {stageOnChange: true})
+    fileList = new FileList([], gitService)
     waitsForPromise(() => fileList.loadFromGitUtils())
   })
 

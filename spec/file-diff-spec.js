@@ -31,7 +31,7 @@ describe('FileDiff', function () {
 
       const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
-      fileList = new FileList([], gitService, {stageOnChange: true})
+      fileList = new FileList([], gitService)
 
       filePath = path.join(repoPath, fileName)
 
