@@ -1,29 +1,20 @@
 /** @babel */
 
-import path from 'path'
 import DiffViewModel from '../lib/diff-view-model'
-import {createFileDiffsFromPath} from './helpers'
+import {copyRepository} from './helpers'
 import {it, beforeEach, afterEach} from './async-spec-helpers'
 
-function createFileDiffs (filePath) {
-  return createFileDiffsFromPath(filePath)
-}
-
 describe('Git Main Module', function () {
-  let gitPackage, gitPackageModule, fileDiffs, fileList
+  let gitPackage, gitPackageModule
 
   beforeEach(async function () {
     jasmine.useRealClock()
 
-    fileDiffs = createFileDiffs('fixtures/two-file-diff.txt')
+    const repoPath = copyRepository('dummy-atom')
+    atom.project.setPaths([repoPath])
 
     gitPackage = atom.packages.loadPackage('git')
     gitPackageModule = gitPackage.mainModule
-
-    fileList = gitPackageModule.getFileListViewModel().getFileList()
-    spyOn(fileList, 'loadFromGitUtils').andCallFake(() => {
-      fileList.setFiles(fileDiffs)
-    })
 
     await atom.packages.activatePackage('git')
   })
@@ -35,12 +26,11 @@ describe('Git Main Module', function () {
   })
 
   it('opens the diff for the open file when "git:open-file-diff" is triggered', async function () {
-    atom.project.setPaths([path.join(__dirname)])
-    await atom.workspace.open('fixtures/two-file-diff.txt')
+    await atom.workspace.open('src/config.coffee')
     await gitPackageModule.openDiffForActiveEditor()
     let paneItem = atom.workspace.getActivePaneItem()
     expect(paneItem instanceof DiffViewModel).toBe(true)
     expect(paneItem.pending).toBe(true)
-    expect(paneItem.uri).toContain('two-file-diff.txt')
+    expect(paneItem.uri).toContain('config.coffee')
   })
 })

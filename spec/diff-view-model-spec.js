@@ -1,17 +1,14 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
-import DiffViewModel from '../lib/diff-view-model'
+import path from 'path'
+import fs from 'fs-plus'
 import DiffSelection from '../lib/diff-selection'
-import FileList from '../lib/file-list'
-import GitService from '../lib/git-service'
-import {createFileDiffsFromPath, copyRepository} from './helpers'
+import DiffViewModel from '../lib/diff-view-model'
+import {it, beforeEach} from './async-spec-helpers'
+import {createDiffViewModel, createFileListViewModel} from './helpers'
 
-function createDiffs (filePath, gitService) {
-  let fileDiffs = createFileDiffsFromPath(filePath)
-  let viewModel = new DiffViewModel({fileList: new FileList(fileDiffs, gitService, {stageOnChange: true})})
-  spyOn(viewModel.fileList, 'stageLines')
-  return viewModel
+function createDiffs () {
+  return createDiffViewModel('src/config.coffee', 'dummy-atom')
 }
 
 function expectHunkToBeSelected (isSelected, viewModel, fileDiffIndex, diffHunkIndex) {
@@ -27,23 +24,16 @@ function expectLineToBeSelected (isSelected, viewModel, fileDiffIndex, diffHunkI
 
 describe('DiffViewModel', function () {
   let viewModel
-  let gitService
-
-  beforeEach(() => {
-    const repoPath = copyRepository()
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
-  })
 
   describe('selecting diffs', function () {
-    beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
+    beforeEach(async () => {
+      viewModel = await createDiffs()
     })
 
     it('initially selects the first hunk', function () {
       expectHunkToBeSelected(true, viewModel, 0, 0)
       expectHunkToBeSelected(false, viewModel, 0, 1)
       expectHunkToBeSelected(false, viewModel, 0, 2)
-      expectHunkToBeSelected(false, viewModel, 1, 0)
     })
 
     describe('selecting hunks', function () {
@@ -53,25 +43,16 @@ describe('DiffViewModel', function () {
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
           expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
-          expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(true, viewModel, 1, 0)
-
-          viewModel.moveSelectionDown()
-          expectHunkToBeSelected(false, viewModel, 0, 0)
-          expectHunkToBeSelected(false, viewModel, 0, 1)
-          expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(true, viewModel, 1, 0)
+          expectHunkToBeSelected(true, viewModel, 0, 2)
         })
       })
 
@@ -80,35 +61,24 @@ describe('DiffViewModel', function () {
           viewModel.moveSelectionDown()
           viewModel.moveSelectionDown()
           viewModel.moveSelectionDown()
-          viewModel.moveSelectionDown()
-          expectHunkToBeSelected(false, viewModel, 0, 0)
-          expectHunkToBeSelected(false, viewModel, 0, 1)
-          expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(true, viewModel, 1, 0)
-
-          viewModel.moveSelectionUp()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
           expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionUp()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionUp()
           expectHunkToBeSelected(true, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionUp()
           expectHunkToBeSelected(true, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
         })
       })
 
@@ -118,55 +88,36 @@ describe('DiffViewModel', function () {
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.expandSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.expandSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(true, viewModel, 1, 0)
-
-          viewModel.expandSelectionDown()
-          expectHunkToBeSelected(false, viewModel, 0, 0)
-          expectHunkToBeSelected(true, viewModel, 0, 1)
-          expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(true, viewModel, 1, 0)
-
-          viewModel.expandSelectionUp()
-          expectHunkToBeSelected(false, viewModel, 0, 0)
-          expectHunkToBeSelected(true, viewModel, 0, 1)
-          expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.expandSelectionUp()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.expandSelectionUp()
           expectHunkToBeSelected(true, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.expandSelectionUp()
           expectHunkToBeSelected(true, viewModel, 0, 0)
           expectHunkToBeSelected(true, viewModel, 0, 1)
           expectHunkToBeSelected(false, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
 
           viewModel.moveSelectionDown()
           expectHunkToBeSelected(false, viewModel, 0, 0)
           expectHunkToBeSelected(false, viewModel, 0, 1)
           expectHunkToBeSelected(true, viewModel, 0, 2)
-          expectHunkToBeSelected(false, viewModel, 1, 0)
         })
       })
     })
@@ -470,8 +421,7 @@ describe('DiffViewModel', function () {
         viewModel.moveSelectionDown()
         expectHunkToBeSelected(false, viewModel, 0, 0)
         expectHunkToBeSelected(false, viewModel, 0, 1)
-        expectHunkToBeSelected(false, viewModel, 0, 2)
-        expectHunkToBeSelected(true, viewModel, 1, 0)
+        expectHunkToBeSelected(true, viewModel, 0, 2)
       })
 
       it('keeps the last selection when ::toggleSelectionMode() is called', function () {
@@ -487,70 +437,9 @@ describe('DiffViewModel', function () {
     })
   })
 
-  describe('staging diffs', function () {
-    beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
-    })
-
-    it('stages and unstages the selected hunk', function () {
-      expectHunkToBeSelected(true, viewModel, 0, 0)
-      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
-
-      viewModel.toggleSelectedLinesStageStatus()
-      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('partial')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('staged')
-
-      viewModel.toggleSelectedLinesStageStatus()
-      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
-    })
-
-    it('stages and unstages the selected line', function () {
-      viewModel.setSelectionMode('line')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
-
-      viewModel.toggleSelectedLinesStageStatus()
-      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('partial')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('partial')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(true)
-
-      viewModel.toggleSelectedLinesStageStatus()
-      expect(viewModel.getFileDiffs()[0].getStageStatus()).toBe('unstaged')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getStageStatus()).toBe('unstaged')
-      expect(viewModel.getFileDiffs()[0].getHunks()[0].getLines()[3].isStaged()).toBe(false)
-    })
-
-    it('emits only one event for all lines staged', function () {
-      let selection = new DiffSelection(viewModel, {
-        mode: 'line',
-        headPosition: [0, 0, 5],
-        tailPosition: [0, 0, 4]
-      })
-
-      viewModel.setSelection(selection)
-      viewModel.toggleSelectedLinesStageStatus()
-      expect(viewModel.fileList.stageLines.callCount).toBe(1)
-    })
-  })
-
-  describe('handling events from the fileList', function () {
-    beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
-    })
-
-    it('emits an event when the fileDiff is updated', function () {
-      let changeHandler = jasmine.createSpy()
-      viewModel.onDidChange(changeHandler)
-      const fileDiff = viewModel.getFileDiffs()[0]
-
-      fileDiff.fromString(FileStr)
-      expect(changeHandler).toHaveBeenCalled()
-    })
-  })
-
   describe('opening the selected file', function () {
-    beforeEach(function () {
-      viewModel = createDiffs('fixtures/two-file-diff.txt', gitService)
+    beforeEach(async () => {
+      viewModel = await createDiffs()
       spyOn(atom.workspace, 'open')
     })
 
@@ -561,7 +450,7 @@ describe('DiffViewModel', function () {
       expect(atom.workspace.open).toHaveBeenCalled()
       const args = atom.workspace.open.mostRecentCall.args
       expect(args[0]).toBe('src/config.coffee')
-      expect(args[1]).toEqual({initialLine: 433})
+      expect(args[1]).toEqual({initialLine: 440})
     })
 
     it('opens the file to the first selected line in line mode when ::openFileAtSelection() is called', function () {
@@ -576,12 +465,130 @@ describe('DiffViewModel', function () {
       expect(atom.workspace.open).toHaveBeenCalled()
       const args = atom.workspace.open.mostRecentCall.args
       expect(args[0]).toBe('src/config.coffee')
-      expect(args[1]).toEqual({initialLine: 515})
+      expect(args[1]).toEqual({initialLine: 554})
+    })
+  })
+
+  describe('staging', () => {
+    let fileListViewModel
+    let gitService
+    let filePath
+    let repoPath
+    let toggleAll
+    let refresh
+    let expectStatus
+
+    beforeEach(async () => {
+      fileListViewModel = await createFileListViewModel('dummy-atom')
+      gitService = fileListViewModel.gitService
+
+      viewModel = new DiffViewModel({pathName: 'src/config.coffee', fileListViewModel, gitService})
+
+      repoPath = viewModel.gitService.repoPath
+      filePath = path.join(repoPath, 'src/config.coffee')
+
+      toggleAll = async () => {
+        let selection = new DiffSelection(viewModel, {
+          mode: 'hunk',
+          headPosition: [0, 0],
+          tailPosition: [0, 0]
+        })
+        viewModel.setSelection(selection)
+        await viewModel.toggleSelectedLinesStageStatus()
+      }
+
+      refresh = async () => {
+        await viewModel.fileListViewModel.getFileListStore().loadFromGit()
+      }
+
+      expectStatus = (expectedStatus) => {
+        expect(viewModel.getFileDiff().getStageStatus()).toBe(expectedStatus)
+      }
+    })
+
+    describe('.stage()/.unstage()', () => {
+      it('stages/unstages the entirety of a modified file', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'")
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a modified file that ends in a newline', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'\n")
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a deleted file', async () => {
+        fs.removeSync(filePath)
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a new file', async () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world')
+
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a new file that ends in a newline', async () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world\na new fantastic POV\n')
+
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
     })
   })
 })
-
-const FileStr = `FILE src/config.coffee - modified - unstaged
-  HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require
-  87 87   #
-  88 --- - # We use [json schema]`

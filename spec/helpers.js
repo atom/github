@@ -1,26 +1,16 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
-import FileDiff from '../lib/file-diff'
-import {createObjectsFromString} from '../lib/common'
-
-function readFileSync (filePath) {
-  return fs.readFileSync(path.join(__dirname, filePath), 'utf-8')
-}
-
-function createFileDiffsFromString (str) {
-  return createObjectsFromString(str, 'FILE', FileDiff)
-}
-
-function createFileDiffsFromPath (filePath) {
-  let fileStr = readFileSync(filePath)
-  return createFileDiffsFromString(fileStr)
-}
+import GitService from '../lib/git-service'
+import FileListStore from '../lib/file-list-store'
+import FileListViewModel from '../lib/file-list-view-model'
+import DiffViewModel from '../lib/diff-view-model'
 
 // Lifted from atom/atom
-function buildMouseEvent (type, properties) {
+export function buildMouseEvent (type, properties) {
   if (properties.detail == null) {
     properties.detail = 1
   }
@@ -56,17 +46,35 @@ function buildMouseEvent (type, properties) {
 
 temp.track()
 
-function copyRepository (name = 'test-repo') {
-  const workingDirPath = temp.mkdirSync('git-prototype-fixture')
+export function copyRepository (name = 'test-repo') {
+  const workingDirPath = temp.mkdirSync('git-fixture-')
   fs.copySync(path.join(__dirname, 'fixtures', name), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   return fs.realpathSync(workingDirPath)
 }
 
-module.exports = {
-  createFileDiffsFromString,
-  createFileDiffsFromPath,
-  readFileSync,
-  buildMouseEvent,
-  copyRepository
+export async function createFileListStore (name) {
+  const repoPath = copyRepository(name)
+  if (!name) {
+    // If we're using the default fixture, put some changes in it.
+    fs.writeFileSync(path.join(repoPath, 'README.md'), 'who can make the sun rise')
+    fs.writeFileSync(path.join(repoPath, 'README2.md'), 'me too')
+  }
+
+  const gitService = new GitService(GitRepositoryAsync.open(repoPath))
+
+  const fileListStore = new FileListStore(gitService)
+  await fileListStore.loadFromGit()
+  return fileListStore
+}
+
+export async function createFileListViewModel (name) {
+  const fileListStore = await createFileListStore(name)
+  return new FileListViewModel(fileListStore, fileListStore.gitService)
+}
+
+export async function createDiffViewModel (pathName, repoName) {
+  const fileListViewModel = await createFileListViewModel(repoName)
+  const gitService = fileListViewModel.gitService
+  return new DiffViewModel({pathName, fileListViewModel, gitService})
 }

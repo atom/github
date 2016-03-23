@@ -10,6 +10,16 @@ import {SummaryPreferredLength} from '../lib/commit-box-view-model'
 import {copyRepository} from './helpers'
 import {waitsForPromise, it} from './async-spec-helpers'
 
+function stageFile (repoPath, filePath) {
+  return GitRepositoryAsync.Git.Repository
+    .open(repoPath)
+    .then(repo => repo.openIndex())
+    .then(index => {
+      index.addByPath(filePath)
+      return index.write()
+    })
+}
+
 describe('CommitBoxViewModel', () => {
   let viewModel
   let gitService
@@ -48,7 +58,7 @@ describe('CommitBoxViewModel', () => {
       let statuses = await gitService.getStatuses()
       expect(statuses[newFileName]).not.toBeUndefined()
 
-      await gitService.stagePath(newFileName)
+      await stageFile(repoPath, newFileName)
       await viewModel.commit('hey there')
 
       statuses = await gitService.getStatuses()

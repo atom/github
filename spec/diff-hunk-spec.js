@@ -1,25 +1,13 @@
 /** @babel */
 
-import DiffHunk from '../lib/diff-hunk'
+import {beforeEach} from './async-spec-helpers'
+import {createDiffViewModel} from './helpers'
 
 describe('DiffHunk', function () {
   let diffHunk
-  beforeEach(function () {
-    diffHunk = DiffHunk.fromString(HunkStr)
-  })
-
-  it('roundtrips toString and fromString', function () {
-    expect(diffHunk.toString()).toEqual(HunkStr)
-  })
-
-  it('emits an event when created from a string on an empty object', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk = new DiffHunk()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.fromString(HunkStr)
-    expect(changeHandler).toHaveBeenCalled()
-    expect(diffHunk.toString()).toEqual(HunkStr)
+  beforeEach(async () => {
+    const viewModel = await createDiffViewModel('src/config.coffee', 'dummy-atom')
+    diffHunk = viewModel.getFileDiff().getHunks()[0]
   })
 
   it('stages all lines with ::stage() and unstages all lines with ::unstage()', function () {
@@ -47,51 +35,4 @@ describe('DiffHunk', function () {
     diffHunk.getLines()[3].unstage()
     expect(diffHunk.getStageStatus()).toBe('unstaged')
   })
-
-  it('emits one change event when the hunk is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.stage()
-    expect(changeHandler.callCount).toBe(1)
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].hunk).toBe(diffHunk)
-    expect(args[0].events).toHaveLength(3)
-    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
-  })
-
-  it('emits a change event when a line is staged', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.getLines()[3].stage()
-    expect(changeHandler).toHaveBeenCalled()
-    let args = changeHandler.mostRecentCall.args
-    expect(args[0].hunk).toBe(diffHunk)
-    expect(args[0].events).toHaveLength(1)
-    expect(args[0].events[0].line).toBe(diffHunk.getLines()[3])
-  })
-
-  it('emits events when the header and lines change', function () {
-    let changeHandler = jasmine.createSpy()
-    diffHunk.onDidChange(changeHandler)
-
-    diffHunk.setHeader('@@ -85,9 +85,6 @@ someline ok yeah')
-    expect(changeHandler).toHaveBeenCalled()
-
-    changeHandler.reset()
-    diffHunk.setLines([])
-    expect(changeHandler).toHaveBeenCalled()
-  })
 })
-
-const HunkStr = `HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
-  85 85   #
-  86 86   # ## Config Schemas
-  87 87   #
-  88 --- - # We use [json schema](http://json-schema.org) which allows you to define your value's
-  89 --- - # default, the type it should be, etc. A simple example:
-  90 --- - #
-  91 88   # \`\`\`coffee
-  92 89   # # We want to provide an \`enableThing\`, and a \`thingVolume\`
-  93 90   # config:`
