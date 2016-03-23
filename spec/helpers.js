@@ -64,7 +64,7 @@ export async function createFileListStore (name) {
   const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
   const fileListStore = new FileListStore(gitService)
-  await fileListStore.loadFromGitUtils()
+  await fileListStore.loadFromGit()
   return fileListStore
 }
 

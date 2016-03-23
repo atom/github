@@ -49,7 +49,7 @@ describe('FileListViewModel', function () {
       filePath = path.join(repoPath, 'README.md')
 
       getDiff = async (name) => {
-        await viewModel.getFileListStore().loadFromGitUtils()
+        await viewModel.getFileListStore().loadFromGit()
         return viewModel.getDiffForPathName(name)
       }
     })

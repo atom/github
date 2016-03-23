@@ -11,7 +11,7 @@ import {waitsForPromise} from './async-spec-helpers'
 
 async function createDiffViewModel (gitService, fileName) {
   const fileListStore = new FileListStore(gitService)
-  await fileListStore.loadFromGitUtils()
+  await fileListStore.loadFromGit()
   const fileDiff = fileListStore.getFileFromPathName(fileName)
   expect(fileDiff).toBeDefined()
 
