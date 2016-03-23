@@ -62,12 +62,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })
@@ -79,12 +77,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })
@@ -98,12 +94,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })
@@ -115,12 +109,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff('README.md')
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })
@@ -134,12 +126,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })
@@ -153,12 +143,10 @@ describe('FileListViewModel', function () {
         expect(fileDiff.getStageStatus()).toBe('unstaged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('staged')
 
         await viewModel.toggleFileStageStatus(fileDiff)
-
         fileDiff = await getDiff(newFileName)
         expect(fileDiff.getStageStatus()).toBe('unstaged')
       })

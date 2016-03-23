@@ -75,5 +75,6 @@ export async function createFileListViewModel (name) {
 
 export async function createDiffViewModel (pathName, repoName) {
   const fileListViewModel = await createFileListViewModel(repoName)
-  return new DiffViewModel({pathName, fileListViewModel})
+  const gitService = fileListViewModel.gitService
+  return new DiffViewModel({pathName, fileListViewModel, gitService})
 }

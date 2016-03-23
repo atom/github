@@ -1,8 +1,11 @@
 /** @babel */
 
+import path from 'path'
+import fs from 'fs-plus'
 import DiffSelection from '../lib/diff-selection'
-import {beforeEach} from './async-spec-helpers'
-import {createDiffViewModel} from './helpers'
+import DiffViewModel from '../lib/diff-view-model'
+import {it, beforeEach} from './async-spec-helpers'
+import {createDiffViewModel, createFileListViewModel} from './helpers'
 
 function createDiffs () {
   return createDiffViewModel('src/config.coffee', 'dummy-atom')
@@ -463,6 +466,129 @@ describe('DiffViewModel', function () {
       const args = atom.workspace.open.mostRecentCall.args
       expect(args[0]).toBe('src/config.coffee')
       expect(args[1]).toEqual({initialLine: 554})
+    })
+  })
+
+  describe('staging', () => {
+    let fileListViewModel
+    let gitService
+    let filePath
+    let repoPath
+    let toggleAll
+    let refresh
+    let expectStatus
+
+    beforeEach(async () => {
+      fileListViewModel = await createFileListViewModel('dummy-atom')
+      gitService = fileListViewModel.gitService
+
+      viewModel = new DiffViewModel({pathName: 'src/config.coffee', fileListViewModel, gitService})
+
+      repoPath = viewModel.gitService.repoPath
+      filePath = path.join(repoPath, 'src/config.coffee')
+
+      toggleAll = async () => {
+        let selection = new DiffSelection(viewModel, {
+          mode: 'hunk',
+          headPosition: [0, 0],
+          tailPosition: [0, 0]
+        })
+        viewModel.setSelection(selection)
+        await viewModel.toggleSelectedLinesStageStatus()
+      }
+
+      refresh = async () => {
+        await viewModel.fileListViewModel.getFileListStore().loadFromGitUtils()
+      }
+
+      expectStatus = (expectedStatus) => {
+        expect(viewModel.getFileDiff().getStageStatus()).toBe(expectedStatus)
+      }
+    })
+
+    describe('.stage()/.unstage()', () => {
+      it('stages/unstages the entirety of a modified file', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'")
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a modified file that ends in a newline', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'\n")
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a deleted file', async () => {
+        fs.removeSync(filePath)
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a new file', async () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world')
+
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
+
+      it('stages/unstages the entirety of a new file that ends in a newline', async () => {
+        const newFileName = 'REAMDE.md'
+        const newFilePath = path.join(repoPath, newFileName)
+        fs.writeFileSync(newFilePath, 'a whole new world\na new fantastic POV\n')
+
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+
+        await refresh()
+        expectStatus('unstaged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('staged')
+
+        await toggleAll()
+        await refresh()
+        expectStatus('unstaged')
+      })
     })
   })
 })
