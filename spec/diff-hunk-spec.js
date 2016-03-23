@@ -1,15 +1,13 @@
 /** @babel */
 
-import DiffHunk from '../lib/diff-hunk'
+import {beforeEach} from './async-spec-helpers'
+import {createDiffViewModel} from './helpers'
 
 describe('DiffHunk', function () {
   let diffHunk
-  beforeEach(function () {
-    diffHunk = DiffHunk.fromString(HunkStr)
-  })
-
-  it('roundtrips toString and fromString', function () {
-    expect(diffHunk.toString()).toEqual(HunkStr)
+  beforeEach(async () => {
+    const viewModel = await createDiffViewModel('src/config.coffee', 'dummy-atom')
+    diffHunk = viewModel.getFileDiff().getHunks()[0]
   })
 
   it('stages all lines with ::stage() and unstages all lines with ::unstage()', function () {
@@ -38,14 +36,3 @@ describe('DiffHunk', function () {
     expect(diffHunk.getStageStatus()).toBe('unstaged')
   })
 })
-
-const HunkStr = `HUNK @@ -85,9 +85,6 @@ ScopeDescriptor = require './scope-descriptor'
-  85 85   #
-  86 86   # ## Config Schemas
-  87 87   #
-  88 --- - # We use [json schema](http://json-schema.org) which allows you to define your value's
-  89 --- - # default, the type it should be, etc. A simple example:
-  90 --- - #
-  91 88   # \`\`\`coffee
-  92 89   # # We want to provide an \`enableThing\`, and a \`thingVolume\`
-  93 90   # config:`
