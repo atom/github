@@ -471,7 +471,7 @@ describe('DiffViewModel', function () {
 
   describe('staging', () => {
     let fileListViewModel
-    let gitService
+    let gitStore
     let filePath
     let repoPath
     let toggleAll
@@ -480,11 +480,11 @@ describe('DiffViewModel', function () {
 
     beforeEach(async () => {
       fileListViewModel = await createFileListViewModel('dummy-atom')
-      gitService = fileListViewModel.gitService
+      gitStore = fileListViewModel.gitStore
 
-      viewModel = new DiffViewModel({pathName: 'src/config.coffee', fileListViewModel, gitService})
+      viewModel = new DiffViewModel({pathName: 'src/config.coffee', fileListViewModel, gitStore})
 
-      repoPath = viewModel.gitService.repoPath
+      repoPath = gitStore.gitService.repoPath
       filePath = path.join(repoPath, 'src/config.coffee')
 
       toggleAll = async () => {
@@ -498,7 +498,7 @@ describe('DiffViewModel', function () {
       }
 
       refresh = async () => {
-        await viewModel.fileListViewModel.getFileListStore().loadFromGit()
+        await viewModel.fileListViewModel.getGitStore().loadFromGit()
       }
 
       expectStatus = (expectedStatus) => {
@@ -557,7 +557,7 @@ describe('DiffViewModel', function () {
         const newFilePath = path.join(repoPath, newFileName)
         fs.writeFileSync(newFilePath, 'a whole new world')
 
-        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitStore})
 
         await refresh()
         expectStatus('unstaged')
@@ -576,7 +576,7 @@ describe('DiffViewModel', function () {
         const newFilePath = path.join(repoPath, newFileName)
         fs.writeFileSync(newFilePath, 'a whole new world\na new fantastic POV\n')
 
-        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitService})
+        viewModel = new DiffViewModel({pathName: newFileName, fileListViewModel, gitStore})
 
         await refresh()
         expectStatus('unstaged')

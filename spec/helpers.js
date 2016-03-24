@@ -5,7 +5,7 @@ import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
 import GitService from '../lib/git-service'
-import FileListStore from '../lib/file-list-store'
+import GitStore from '../lib/git-store'
 import FileListViewModel from '../lib/file-list-view-model'
 import DiffViewModel from '../lib/diff-view-model'
 
@@ -53,7 +53,7 @@ export function copyRepository (name = 'test-repo') {
   return fs.realpathSync(workingDirPath)
 }
 
-export async function createFileListStore (name) {
+export async function createGitStore (name) {
   const repoPath = copyRepository(name)
   if (!name) {
     // If we're using the default fixture, put some changes in it.
@@ -63,18 +63,18 @@ export async function createFileListStore (name) {
 
   const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
-  const fileListStore = new FileListStore(gitService)
-  await fileListStore.loadFromGit()
-  return fileListStore
+  const gitStore = new GitStore(gitService)
+  await gitStore.loadFromGit()
+  return gitStore
 }
 
 export async function createFileListViewModel (name) {
-  const fileListStore = await createFileListStore(name)
-  return new FileListViewModel(fileListStore, fileListStore.gitService)
+  const gitStore = await createGitStore(name)
+  return new FileListViewModel(gitStore)
 }
 
 export async function createDiffViewModel (pathName, repoName) {
   const fileListViewModel = await createFileListViewModel(repoName)
-  const gitService = fileListViewModel.gitService
-  return new DiffViewModel({pathName, fileListViewModel, gitService})
+  const gitStore = fileListViewModel.getGitStore()
+  return new DiffViewModel({pathName, fileListViewModel, gitStore})
 }

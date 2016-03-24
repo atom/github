@@ -3,6 +3,7 @@
 import etch from 'etch'
 import {GitRepositoryAsync} from 'atom'
 import GitService from '../lib/git-service'
+import GitStore from '../lib/git-store'
 import StatusBarViewModel from '../lib/status-bar-view-model'
 import StatusBarComponent from '../lib/status-bar-component'
 import {copyRepository} from './helpers'
@@ -10,16 +11,19 @@ import {it, beforeEach} from './async-spec-helpers'
 
 describe('StatusBarComponent', () => {
   let component
-  let gitService
+  let gitStore
   let repoPath
   let element
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repoPath = copyRepository()
 
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    const gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    gitStore = new GitStore(gitService)
 
-    const viewModel = new StatusBarViewModel(gitService)
+    await gitStore.loadFromGit()
+
+    const viewModel = new StatusBarViewModel(gitStore)
     component = new StatusBarComponent(viewModel, () => { return })
 
     element = component.element
