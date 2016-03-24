@@ -63,14 +63,14 @@ export async function createGitStore (name) {
 
   const gitService = new GitService(GitRepositoryAsync.open(repoPath))
 
-  const fileListStore = new GitStore(gitService)
-  await fileListStore.loadFromGit()
-  return fileListStore
+  const gitStore = new GitStore(gitService)
+  await gitStore.loadFromGit()
+  return gitStore
 }
 
 export async function createFileListViewModel (name) {
-  const fileListStore = await createGitStore(name)
-  return new FileListViewModel(fileListStore, fileListStore.gitService)
+  const gitStore = await createGitStore(name)
+  return new FileListViewModel(gitStore, gitStore.gitService)
 }
 
 export async function createDiffViewModel (pathName, repoName) {

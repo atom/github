@@ -4,15 +4,15 @@ import {createGitStore} from './helpers'
 import {it, beforeEach} from './async-spec-helpers'
 
 describe('GitStore', function () {
-  let fileListStore
+  let gitStore
 
   beforeEach(async () => {
-    fileListStore = await createGitStore()
+    gitStore = await createGitStore()
   })
 
   it('opens a new diff item as pending when openFileDiff is called', () => {
     spyOn(atom.workspace, 'open')
-    fileListStore.openFileDiff(fileListStore.getFiles()[0])
+    gitStore.openFileDiff(gitStore.getFiles()[0])
 
     let args = atom.workspace.open.mostRecentCall.args
     expect(args[0]).toContain('README.md')
@@ -21,7 +21,7 @@ describe('GitStore', function () {
 
   it('opens a file for editing when openFile is called', () => {
     spyOn(atom.workspace, 'open')
-    fileListStore.openFile(fileListStore.getFiles()[0])
+    gitStore.openFile(gitStore.getFiles()[0])
 
     let args = atom.workspace.open.mostRecentCall.args
     expect(args[0]).toEqual('README.md')
