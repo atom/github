@@ -5,10 +5,11 @@ import path from 'path'
 import fs from 'fs-plus'
 import {Point} from 'atom'
 import GitService from '../lib/git-service'
+import GitStore from '../lib/git-store'
 import CommitBoxViewModel from '../lib/commit-box-view-model'
 import {SummaryPreferredLength} from '../lib/commit-box-view-model'
 import {copyRepository} from './helpers'
-import {waitsForPromise, it} from './async-spec-helpers'
+import {beforeEach, it} from './async-spec-helpers'
 
 function stageFile (repoPath, filePath) {
   return GitRepositoryAsync.Git.Repository
@@ -22,16 +23,18 @@ function stageFile (repoPath, filePath) {
 
 describe('CommitBoxViewModel', () => {
   let viewModel
+  let gitStore
   let gitService
   let repoPath
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repoPath = copyRepository()
 
     gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    gitStore = new GitStore(gitService)
+    await gitStore.loadFromGit()
 
-    viewModel = new CommitBoxViewModel(gitService)
-    waitsForPromise(() => viewModel.update())
+    viewModel = new CommitBoxViewModel(gitStore)
   })
 
   describe('::getBranchName', () => {
@@ -41,15 +44,6 @@ describe('CommitBoxViewModel', () => {
   })
 
   describe('::commit', () => {
-    it('emits a commit event', async () => {
-      let commitHandler = jasmine.createSpy()
-      viewModel.onDidCommit(commitHandler)
-
-      await viewModel.commit('hey there')
-
-      expect(commitHandler).toHaveBeenCalled()
-    })
-
     it('commits the staged changes', async () => {
       const newFileName = 'new-file.txt'
       const newFile = path.join(repoPath, newFileName)

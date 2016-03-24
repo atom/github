@@ -4,25 +4,28 @@ import path from 'path'
 import fs from 'fs-plus'
 import {GitRepositoryAsync} from 'atom'
 import GitService from '../lib/git-service'
+import GitStore from '../lib/git-store'
 import StatusBarViewModel from '../lib/status-bar-view-model'
 import {copyRepository} from './helpers'
-import {waitsForPromise, it} from './async-spec-helpers'
+import {beforeEach, it} from './async-spec-helpers'
 
 describe('StatusBarViewModel', () => {
   let viewModel
-  let gitService
+  let gitStore
   let repoPath
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repoPath = copyRepository()
 
-    gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    const gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    gitStore = new GitStore(gitService)
 
     fs.writeFileSync(path.join(repoPath, 'file1.txt'), '')
     fs.writeFileSync(path.join(repoPath, 'file2.txt'), '')
 
-    viewModel = new StatusBarViewModel(gitService)
-    waitsForPromise(() => viewModel.update())
+    await gitStore.loadFromGit()
+
+    viewModel = new StatusBarViewModel(gitStore)
   })
 
   describe('::getChangedFileCount', () => {
