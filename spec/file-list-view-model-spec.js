@@ -45,7 +45,7 @@ describe('FileListViewModel', function () {
     let getDiff
 
     beforeEach(() => {
-      repoPath = viewModel.gitService.repoPath
+      repoPath = viewModel.gitStore.gitService.repoPath
       filePath = path.join(repoPath, 'README.md')
 
       getDiff = async (name) => {
