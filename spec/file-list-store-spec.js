@@ -1,13 +1,13 @@
 /** @babel */
 
-import {createFileListStore} from './helpers'
+import {createGitStore} from './helpers'
 import {it, beforeEach} from './async-spec-helpers'
 
-describe('FileListStore', function () {
+describe('GitStore', function () {
   let fileListStore
 
   beforeEach(async () => {
-    fileListStore = await createFileListStore()
+    fileListStore = await createGitStore()
   })
 
   it('opens a new diff item as pending when openFileDiff is called', () => {

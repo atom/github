@@ -498,7 +498,7 @@ describe('DiffViewModel', function () {
       }
 
       refresh = async () => {
-        await viewModel.fileListViewModel.getFileListStore().loadFromGit()
+        await viewModel.fileListViewModel.getGitStore().loadFromGit()
       }
 
       expectStatus = (expectedStatus) => {
