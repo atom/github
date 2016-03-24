@@ -70,7 +70,7 @@ export async function createGitStore (name) {
 
 export async function createFileListViewModel (name) {
   const gitStore = await createGitStore(name)
-  return new FileListViewModel(gitStore, gitStore.gitService)
+  return new FileListViewModel(gitStore)
 }
 
 export async function createDiffViewModel (pathName, repoName) {
