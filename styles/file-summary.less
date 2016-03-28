@@ -1,6 +1,6 @@
 @import "variables";
 
-.file-summary {
+.git-FileSummary {
   -webkit-user-select: none;
   display: flex;
   align-items: flex-start;
@@ -11,33 +11,37 @@
   box-sizing:border-box;
   overflow:hidden;
 
-  &.selected {
+  &.is-selected {
     background: @background-color-highlight;
     color:@text-color-highlight;
     box-shadow:@pane-item-background-color 0 -1px 0;
 
-    .meta > div {
-      color:fade(@text-color-highlight, 70%);
-    }
-
     :focus & {
       background: @background-color-selected;
       color:@text-color-selected;
-
-      .meta > div {
-        color:fade(@text-color-selected, 70%);
-      }
     }
   }
 
-  .path {
-    flex: 1;
-  }
-  .stage-status-unstaged + .path {
-    color: @text-color-subtle;
+  &-checkbox {
+    margin-top: .1em;
+
+    &.is-partial:after {
+      content: '\f0ca'; // dash
+    }
+    &.is-staged:after {
+      content: '\f03a'; // check
+    }
   }
 
-  .icon {
+  &-path {
+    flex: 1;
+
+    .git-FileSummary-checkbox.is-unstaged + & {
+      color: @text-color-subtle;
+    }
+  }
+
+  &-icon {
     margin: 2px 0 0 @component-padding;
     &::before {
       margin-right: 0;

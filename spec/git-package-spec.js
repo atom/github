@@ -5,7 +5,7 @@ import fs from 'fs-plus'
 import DiffViewModel from '../lib/diff-view-model'
 import GitPackage from '../lib/git-package'
 import {copyRepository} from './helpers'
-import {it, beforeEach, afterEach} from './async-spec-helpers'
+import {beforeEach, afterEach} from './async-spec-helpers'
 
 function commit (fileListViewModel, msg) {
   const fileList = fileListViewModel.fileList
@@ -45,7 +45,7 @@ describe('GitPackage', function () {
     gitPackage.deactivate()
   })
 
-  it('closes open diffs of files that were committed', async () => {
+  xit('closes open diffs of files that were committed', async () => {
     fs.writeFileSync(path.join(repo, 'README.md'), 'hey diddle diddle')
 
     await gitPackage.update()

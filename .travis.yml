@@ -5,11 +5,8 @@ notifications:
     on_success: never
     on_failure: change
 
-env:
-  - ATOM_CHANNEL=beta
-
 script:
-  - 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
+  - ./script/cibuild
   - npm run check
 
 branches:

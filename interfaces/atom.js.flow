@@ -32,6 +32,8 @@ declare module 'atom' {
 
     onDidChangeStatus(fn: Function): Disposable;
     onDidChangeStatuses(fn: Function): Disposable;
+
+    refreshStatus(): Promise<void>;
   }
 
   declare class GitRepository {
