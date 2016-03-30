@@ -83,6 +83,9 @@ declare module 'atom' {
 
   declare class Range {
     intersectsRow(row: number): boolean;
+    start: Point;
+    end: Point;
+    copy(): Range;
   }
 
   declare class TextBuffer {
