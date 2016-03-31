@@ -520,6 +520,7 @@ describe('DiffViewModel', function () {
         })
         viewModel.setSelection(selection)
         await viewModel.toggleSelectedLinesStageStatus()
+
         await refresh()
         expectStatus('partial')
       })
