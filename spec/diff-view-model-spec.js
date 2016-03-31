@@ -507,6 +507,23 @@ describe('DiffViewModel', function () {
     })
 
     describe('.stage()/.unstage()', () => {
+      it('stages a single line', async () => {
+        fs.writeFileSync(filePath, "oh the files, they are a'changin'\nCome writers and critics\nWho prophesize with your code")
+
+        await refresh()
+        expectStatus('unstaged')
+
+        let selection = new DiffSelection(viewModel, {
+          mode: 'line',
+          headPosition: [0, 0, 1],
+          tailPosition: [0, 0, 1]
+        })
+        viewModel.setSelection(selection)
+        await viewModel.toggleSelectedLinesStageStatus()
+        await refresh()
+        expectStatus('partial')
+      })
+
       it('stages the entire file and unstages a single line', async () => {
         fs.writeFileSync(filePath, "oh the files, they are a'changin'\nCome writers and critics\nWho prophesize with your code")
 
