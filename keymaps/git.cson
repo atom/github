@@ -8,12 +8,13 @@
   'shift-up': 'git:expand-selection-up'
   'shift-down': 'git:expand-selection-down'
   'escape': 'git:close-all'
-  'right': 'git:view-and-commit-changes'
+  'right': 'git:focus-file-list'
   'tab': 'git:focus-commit-message'
 
 '.git-Panel:focus':
   'escape': 'git:close-all'
   'tab': 'git:focus-commit-message'
+  'shift-tab': 'git:focus-commit-button'
   'o': 'git:open-file'
   'd': 'git:open-diff'
   'left': 'git:open-diff'
@@ -23,7 +24,9 @@
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
   'tab': 'git:focus-commit-button'
+  'shift-tab': 'git:focus-file-list'
 
 '.git-CommitBox-button':
   'tab': 'git:focus-file-list'
+  'shift-tab': 'git:focus-commit-message'
   'enter': 'git:commit'
