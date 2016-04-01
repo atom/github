@@ -56,6 +56,7 @@ describe('CommitBoxViewModel', () => {
 
     it('commits the staged changes', async () => {
       await stageFile(repoPath, newFileName)
+      await gitStore.loadFromGit()
 
       await viewModel.commit('hey there')
 
@@ -71,6 +72,7 @@ describe('CommitBoxViewModel', () => {
         error = e
       }
 
+      expect(error).not.toBe(null)
       expect(error.name).toBe(CommitBoxViewModel.NoMessageErrorName())
     })
 
@@ -82,6 +84,7 @@ describe('CommitBoxViewModel', () => {
         error = e
       }
 
+      expect(error).not.toBe(null)
       expect(error.name).toBe(CommitBoxViewModel.NoStagedFilesErrorName())
     })
   })
