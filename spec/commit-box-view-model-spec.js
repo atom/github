@@ -44,19 +44,48 @@ describe('CommitBoxViewModel', () => {
   })
 
   describe('::commit', () => {
-    it('commits the staged changes', async () => {
-      const newFileName = 'new-file.txt'
+    const newFileName = 'new-file.txt'
+
+    beforeEach(async () => {
       const newFile = path.join(repoPath, newFileName)
       fs.writeFileSync(newFile, 'my fav file')
 
       let statuses = await gitService.getStatuses()
       expect(statuses[newFileName]).not.toBeUndefined()
+    })
 
+    it('commits the staged changes', async () => {
       await stageFile(repoPath, newFileName)
+      await gitStore.loadFromGit()
+
       await viewModel.commit('hey there')
 
-      statuses = await gitService.getStatuses()
+      const statuses = await gitService.getStatuses()
       expect(statuses[newFileName]).toBeUndefined()
+    })
+
+    it("throws an error if there's no commit message", async () => {
+      let error = null
+      try {
+        await viewModel.commit('')
+      } catch (e) {
+        error = e
+      }
+
+      expect(error).not.toBe(null)
+      expect(error.name).toBe(CommitBoxViewModel.NoMessageErrorName())
+    })
+
+    it('throws an error if there are no staged changes', async () => {
+      let error = null
+      try {
+        await viewModel.commit('hey there')
+      } catch (e) {
+        error = e
+      }
+
+      expect(error).not.toBe(null)
+      expect(error.name).toBe(CommitBoxViewModel.NoStagedFilesErrorName())
     })
   })
 

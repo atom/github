@@ -15,6 +15,10 @@
     atom-text-editor {
       font-size: @font-size;
     }
+
+    &-is-required {
+      background-color: red;
+    }
   }
 
   &-bar {
@@ -37,5 +41,10 @@
 
     &.is-warning { color: @text-color-warning; }
     &.is-error   { color: @text-color-error; }
+  }
+
+  &-error-msg {
+    color: @text-color-warning;
+    margin-bottom: @component-padding;
   }
 }
