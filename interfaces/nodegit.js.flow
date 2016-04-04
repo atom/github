@@ -114,7 +114,8 @@ declare module 'nodegit' {
   }
 
   declare class Remote {
-
+    name(): string;
+    url(): string;
   }
 
   declare class FetchOptions {
@@ -141,6 +142,8 @@ declare module 'nodegit' {
     createCommit(updateRef: string, author: Signature, committer: Signature, message: string, oid: Oid, parents: ?Array<Commit>): Promise<Oid>;
 
     getStatusExt(): Promise<Array<StatusFile>>;
+
+    getRemotes(): Array<Remote>;
 
     fetch(remote: string | Remote, options: Object | FetchOptions): Promise<void>;
   }
