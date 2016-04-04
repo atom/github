@@ -113,6 +113,18 @@ declare module 'nodegit' {
     static default(repo: Repository): Signature;
   }
 
+  declare class Remote {
+
+  }
+
+  declare class FetchOptions {
+
+  }
+
+  declare class Cred {
+    static userpassPlaintextNew(username: string, password: string): Cred;
+  }
+
   declare class Repository {
     static open(path: string): Promise<Repository>;
 
@@ -129,5 +141,7 @@ declare module 'nodegit' {
     createCommit(updateRef: string, author: Signature, committer: Signature, message: string, oid: Oid, parents: ?Array<Commit>): Promise<Oid>;
 
     getStatusExt(): Promise<Array<StatusFile>>;
+
+    fetch(remote: string | Remote, options: Object | FetchOptions): Promise<void>;
   }
 }
