@@ -116,6 +116,14 @@ declare module 'nodegit' {
   declare class Remote {
     name(): string;
     url(): string;
+
+    getPushRefspecs(): Promise<Array<string>>;
+    push(refspecs: ?Array<string>, options: Object): Promise<void>;
+
+    fetch(refspecs: ?Array<string>, options: Object, message: string): Promise<void>;
+
+    disconnect(): Promise<void>;
+    stop(): void;
   }
 
   declare class FetchOptions {
@@ -124,6 +132,19 @@ declare module 'nodegit' {
 
   declare class Cred {
     static userpassPlaintextNew(username: string, password: string): Cred;
+    static sshKeyFromAgent(username: string): Cred;
+    static defaultNew(): Cred;
+  }
+
+  declare class Reference {
+    static upstream(branch: Reference): Promise<?Reference>;
+
+    name(): string;
+    shorthand(): string;
+  }
+
+  declare class Config {
+    getStringBuf(name: string): ?string;
   }
 
   declare class Repository {
@@ -144,7 +165,13 @@ declare module 'nodegit' {
     getStatusExt(): Promise<Array<StatusFile>>;
 
     getRemotes(): Array<string>;
+    getRemote(name: string): Promise<?Remote>;
+
+    getReference(name: string): Promise<?Reference>;
+    getCurrentBranch(): Promise<Reference>;
 
     fetch(remote: string | Remote, options: Object | FetchOptions): Promise<void>;
+
+    configSnapshot(): Promise<Config>;
   }
 }
