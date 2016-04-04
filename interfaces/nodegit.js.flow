@@ -173,5 +173,7 @@ declare module 'nodegit' {
     fetch(remote: string | Remote, options: Object | FetchOptions): Promise<void>;
 
     configSnapshot(): Promise<Config>;
+
+    mergeBranches(to: string | Reference, from: string | Reference, signature?: Signature): Promise<Oid>;
   }
 }
