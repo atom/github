@@ -1,6 +1,8 @@
 /** @babel */
 
 import {GitRepositoryAsync} from 'atom'
+import fs from 'fs'
+import path from 'path'
 import temp from 'temp'
 
 import PushPullViewModel from '../lib/push-pull-view-model'
@@ -8,7 +10,7 @@ import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
 
 import {beforeEach, it} from './async-spec-helpers'
-import {copyRepository} from './helpers'
+import {copyRepository, stagePath} from './helpers'
 
 temp.track()
 
@@ -24,9 +26,10 @@ async function cloneRepository () {
   return {parentRepository: repoPath, clonedRepository: clonedPath}
 }
 
-fdescribe('PushPullViewModel', () => {
+describe('PushPullViewModel', () => {
   let viewModel
   let repoPath
+  let gitStore
 
   beforeEach(async () => {
     const {clonedRepository} = await cloneRepository()
@@ -35,7 +38,7 @@ fdescribe('PushPullViewModel', () => {
     repoPath = clonedRepository
 
     const gitService = new GitService(GitRepositoryAsync.open(repoPath))
-    const gitStore = new GitStore(gitService)
+    gitStore = new GitStore(gitService)
 
     await gitStore.loadFromGit()
 
@@ -50,6 +53,10 @@ fdescribe('PushPullViewModel', () => {
 
   describe('push', () => {
     it('sends commits to the remote', async () => {
+      fs.writeFileSync(path.join(repoPath, 'README.md'), 'this is a change')
+      await stagePath(repoPath, 'README.md')
+      await gitStore.commit('sure')
+
       await viewModel.push()
     })
   })

@@ -68,6 +68,16 @@ export async function createGitStore (name) {
   return gitStore
 }
 
+export function stagePath (repo, path) {
+  return GitRepositoryAsync.Git.Repository
+    .open(repo)
+    .then(repo => repo.openIndex())
+    .then(index => {
+      index.addByPath(path)
+      return index.write()
+    })
+}
+
 export async function createFileListViewModel (name) {
   const gitStore = await createGitStore(name)
   return new FileListViewModel(gitStore)
