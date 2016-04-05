@@ -137,10 +137,12 @@ declare module 'nodegit' {
   }
 
   declare class Reference {
-    static upstream(branch: Reference): Promise<?Reference>;
-
     name(): string;
     shorthand(): string;
+  }
+
+  declare class Branch {
+    static upstream(branch: Reference): Promise<?Reference>;
   }
 
   declare class Config {
