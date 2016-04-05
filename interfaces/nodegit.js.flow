@@ -147,6 +147,7 @@ declare module 'nodegit' {
 
   declare class Config {
     getStringBuf(name: string): ?string;
+    setString(name: string, value: string): Promise<void>;
   }
 
   declare class Repository {
