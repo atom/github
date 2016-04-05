@@ -33,6 +33,11 @@
       "versions": {
         "^1.0.0": "consumeStatusBar"
       }
+    },
+    "github": {
+      "versions": {
+        "^0.0.1": "consumeGitHubToken"
+      }
     }
   },
   "standard": {
