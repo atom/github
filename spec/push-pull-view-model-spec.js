@@ -33,12 +33,13 @@ describe('PushPullViewModel', () => {
   let viewModel
   let repoPath
   let gitStore
+  let parentRepo
 
   beforeEach(async () => {
-    const {clonedRepository} = await cloneRepository()
-    console.log(clonedRepository)
+    const {clonedRepository, parentRepository} = await cloneRepository()
 
     repoPath = clonedRepository
+    parentRepo = parentRepository
 
     const gitService = new GitService(GitRepositoryAsync.open(repoPath))
     gitStore = new GitStore(gitService)
@@ -56,11 +57,21 @@ describe('PushPullViewModel', () => {
 
   describe('push', () => {
     it('sends commits to the remote', async () => {
-      fs.writeFileSync(path.join(repoPath, 'README.md'), 'this is a change')
-      await stagePath(repoPath, 'README.md')
-      await gitStore.commit('sure')
+      const fileName = 'README.md'
+      fs.writeFileSync(path.join(repoPath, fileName), 'this is a change')
+      await stagePath(repoPath, fileName)
+
+      const commitMessage = 'My Special Commit Message'
+      await gitStore.commit(commitMessage)
+
+      const repo = await GitRepositoryAsync.Git.Repository.open(parentRepo)
+      let commit = await repo.getMasterCommit()
+      expect(commit.message()).not.toBe(commitMessage)
 
       await viewModel.push()
+
+      commit = await repo.getMasterCommit()
+      expect(commit.message()).toBe(commitMessage)
     })
   })
 })
