@@ -15,15 +15,18 @@ import {copyRepository, stagePath} from './helpers'
 temp.track()
 
 async function cloneRepository () {
-  const repoPath = copyRepository()
-  const parentRepo = await GitRepositoryAsync.Git.Repository.open(repoPath)
-  const config = await parentRepo.config()
-  await config.setString('core.bare', 'true')
+  const baseRepo = copyRepository()
+  const cloneOptions = new GitRepositoryAsync.Git.CloneOptions()
+  cloneOptions.bare = 1
+  cloneOptions.local = 1
+
+  const parentRepo = temp.mkdirSync('git-parent-fixture-')
+  await GitRepositoryAsync.Git.Clone.clone(baseRepo, parentRepo, cloneOptions)
 
   const clonedPath = temp.mkdirSync('git-cloned-fixture-')
-
-  await GitRepositoryAsync.Git.Clone.clone(`${repoPath}/.git`, clonedPath)
-  return {parentRepository: repoPath, clonedRepository: clonedPath}
+  cloneOptions.bare = 0
+  await GitRepositoryAsync.Git.Clone.clone(parentRepo, clonedPath, cloneOptions)
+  return {parentRepository: parentRepo, clonedRepository: clonedPath}
 }
 
 describe('PushPullViewModel', () => {
