@@ -1,8 +1,8 @@
 /** @babel */
 
 import {GitRepositoryAsync} from 'atom'
-import fs from 'fs'
-import path from 'path'
+// import fs from 'fs'
+// import path from 'path'
 import temp from 'temp'
 
 import PushPullViewModel from '../lib/push-pull-view-model'
@@ -10,7 +10,7 @@ import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
 
 import {beforeEach, it} from './async-spec-helpers'
-import {copyRepository, stagePath} from './helpers'
+import {copyRepository} from './helpers'
 
 temp.track()
 
@@ -53,9 +53,9 @@ describe('PushPullViewModel', () => {
 
   describe('push', () => {
     it('sends commits to the remote', async () => {
-      fs.writeFileSync(path.join(repoPath, 'README.md'), 'this is a change')
-      await stagePath(repoPath, 'README.md')
-      await gitStore.commit('sure')
+      // fs.writeFileSync(path.join(repoPath, 'README.md'), 'this is a change')
+      // await stagePath(repoPath, 'README.md')
+      // await gitStore.commit('sure')
 
       await viewModel.push()
     })
