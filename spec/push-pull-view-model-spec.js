@@ -51,7 +51,17 @@ describe('PushPullViewModel', () => {
 
   describe('pull', () => {
     it('brings in commits from the remote', async () => {
+      const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
+      const commitMessage = 'My Special Commit Message'
+      await parentGitService.commit(commitMessage)
+
+      const repo = await GitRepositoryAsync.Git.Repository.open(repoPath)
+      let masterCommit = await repo.getMasterCommit()
+
       await viewModel.pull()
+
+      masterCommit = await repo.getMasterCommit()
+      expect(masterCommit.message()).toBe(commitMessage)
     })
   })
 
