@@ -150,6 +150,11 @@ declare module 'nodegit' {
     setString(name: string, value: string): Promise<void>;
   }
 
+  declare class TransferProgress {
+    totalObjects(): number;
+    receivedObjects(): number;
+  }
+
   declare class Repository {
     static open(path: string): Promise<Repository>;
 
