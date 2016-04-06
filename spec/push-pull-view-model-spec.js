@@ -63,6 +63,13 @@ describe('PushPullViewModel', () => {
       masterCommit = await repo.getMasterCommit()
       expect(masterCommit.message()).toBe(commitMessage)
     })
+
+    it('emits update events', async () => {
+      const onUpdateSpy = jasmine.createSpy()
+      viewModel.onDidUpdate(onUpdateSpy)
+      await viewModel.pull()
+      expect(onUpdateSpy.callCount).toBe(2)
+    })
   })
 
   describe('push', () => {
@@ -82,6 +89,13 @@ describe('PushPullViewModel', () => {
 
       commit = await repo.getMasterCommit()
       expect(commit.message()).toBe(commitMessage)
+    })
+
+    it('emits update events', async () => {
+      const onUpdateSpy = jasmine.createSpy()
+      viewModel.onDidUpdate(onUpdateSpy)
+      await viewModel.push()
+      expect(onUpdateSpy.callCount).toBe(2)
     })
   })
 })
