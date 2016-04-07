@@ -44,7 +44,7 @@
     "git-push": {
       "description": "A function which can be called to push the current branch.",
       "versions": {
-        "0.0.1": "provideGitPush",
+        "0.0.1": "provideGitPush"
       }
     }
   },
