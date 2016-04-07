@@ -113,6 +113,48 @@ declare module 'nodegit' {
     static default(repo: Repository): Signature;
   }
 
+  declare class Remote {
+    name(): string;
+    url(): string;
+
+    getPushRefspecs(): Promise<Array<string>>;
+    push(refspecs: ?Array<string>, options: Object): Promise<void>;
+
+    fetch(refspecs: ?Array<string>, options: Object, message: string): Promise<void>;
+
+    disconnect(): Promise<void>;
+    stop(): void;
+  }
+
+  declare class FetchOptions {
+
+  }
+
+  declare class Cred {
+    static userpassPlaintextNew(username: string, password: string): Cred;
+    static sshKeyFromAgent(username: string): Cred;
+    static defaultNew(): Cred;
+  }
+
+  declare class Reference {
+    name(): string;
+    shorthand(): string;
+  }
+
+  declare class Branch {
+    static upstream(branch: Reference): Promise<?Reference>;
+  }
+
+  declare class Config {
+    getStringBuf(name: string): ?string;
+    setString(name: string, value: string): Promise<void>;
+  }
+
+  declare class TransferProgress {
+    totalObjects(): number;
+    receivedObjects(): number;
+  }
+
   declare class Repository {
     static open(path: string): Promise<Repository>;
 
@@ -129,5 +171,18 @@ declare module 'nodegit' {
     createCommit(updateRef: string, author: Signature, committer: Signature, message: string, oid: Oid, parents: ?Array<Commit>): Promise<Oid>;
 
     getStatusExt(): Promise<Array<StatusFile>>;
+
+    getRemotes(): Array<string>;
+    getRemote(name: string): Promise<?Remote>;
+
+    getReference(name: string): Promise<?Reference>;
+    getCurrentBranch(): Promise<Reference>;
+
+    fetch(remote: string | Remote, options: Object | FetchOptions): Promise<void>;
+
+    configSnapshot(): Promise<Config>;
+    config(): Promise<Config>;
+
+    mergeBranches(to: string | Reference, from: string | Reference, signature?: Signature): Promise<Oid>;
   }
 }
