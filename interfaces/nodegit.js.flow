@@ -158,7 +158,7 @@ declare module 'nodegit' {
   declare class Repository {
     static open(path: string): Promise<Repository>;
 
-    openIndex(): Promise<Index>;
+    index(): Promise<Index>;
 
     isEmpty(): boolean;
 

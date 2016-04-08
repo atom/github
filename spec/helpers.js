@@ -71,7 +71,7 @@ export async function createGitStore (name) {
 export function stagePath (repo, path) {
   return GitRepositoryAsync.Git.Repository
     .open(repo)
-    .then(repo => repo.openIndex())
+    .then(repo => repo.index())
     .then(index => {
       index.addByPath(path)
       return index.write()

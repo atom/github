@@ -14,7 +14,7 @@ import {beforeEach, it} from './async-spec-helpers'
 function stageFile (repoPath, filePath) {
   return GitRepositoryAsync.Git.Repository
     .open(repoPath)
-    .then(repo => repo.openIndex())
+    .then(repo => repo.index())
     .then(index => {
       index.addByPath(filePath)
       return index.write()
