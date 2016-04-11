@@ -104,6 +104,8 @@ declare class Workspace {
   buildTextEditor(params: Object): TextEditor;
 
   addRightPanel<T>(options: {item: T}): Panel<T>;
+
+  addModalPanel<T>(options: {item: T}): Panel<T>;
 }
 
 declare class CommandRegistry {
