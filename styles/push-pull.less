@@ -1,20 +1,8 @@
 @import "variables";
 
-@git-PushPull-space: @component-padding / 2;
-
 .git-PushPull {
-  display: flex;
-  padding: @git-PushPull-space;
-  align-items: center;
 
-  &-item {
-    margin: @git-PushPull-space;
-    &.is-flexible {
-      flex: 1;
-    }
-  }
-
-  // not needed, .git-PushPull-item takes care of the spacing
+  // margin not needed, .git-PushPull-item takes care of the spacing
   .icon-mark-github::before {
     margin-right: 0;
   }
