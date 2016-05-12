@@ -1,39 +1,32 @@
 @import "variables";
 
-// Reusable components
+// Components --------------------------
 
-// Generic bar that aligns its children
-.git-Bar {
+// Progress
+.git-Progress {
   display: flex;
-  padding: @git-spacing;
-  align-items: center;
-
-  &-item {
-    margin: @git-spacing;
-    &.is-flexible {
-      flex: 1;
-    }
+  padding: @component-padding;
+  border-top: 1px solid @base-border-color;
+  &-bar {
+    flex: 1;
   }
-
-  // TODO: Refactor! Not sure what to call it yet.
-  &.is-addon {
-    border-top: 1px solid @base-border-color;
-  }
-
 }
 
-// Error messages
+// Error message
 .git-Error {
+  display: flex;
+  padding: @component-padding / 2;
   color: @text-color-highlight;
   border-top: 1px solid @base-border-color;
-  border-bottom: 1px solid @base-border-color;
   background-color: @background-color-highlight;
   &-name {
-    align-self: flex-start;
+    margin: @component-padding / 2;
     font-weight: bold;
   }
   &-message {
+    flex: 1;
+    margin: @component-padding / 2;
     border-left: 1px solid @base-border-color;
-    padding-left: @git-spacing * 2;
+    padding-left: @component-padding;
   }
 }
