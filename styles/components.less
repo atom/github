@@ -21,3 +21,19 @@
   }
 
 }
+
+// Error messages
+.git-Error {
+  color: @text-color-highlight;
+  border-top: 1px solid @base-border-color;
+  border-bottom: 1px solid @base-border-color;
+  background-color: @background-color-highlight;
+  &-name {
+    align-self: flex-start;
+    font-weight: bold;
+  }
+  &-message {
+    border-left: 1px solid @base-border-color;
+    padding-left: @git-spacing * 2;
+  }
+}
