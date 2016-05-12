@@ -1,0 +1,24 @@
+@import "variables";
+
+// Reusable components
+
+// Generic bar that aligns its children
+
+.git-Bar {
+  display: flex;
+  padding: @git-spacing;
+  align-items: center;
+
+  &-item {
+    margin: @git-spacing;
+    &.is-flexible {
+      flex: 1;
+    }
+  }
+
+  // TODO: Refactor
+  &.is-addon {
+    border-top: 1px solid @base-border-color;
+  }
+
+}
