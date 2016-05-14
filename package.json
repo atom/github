@@ -36,7 +36,7 @@
     },
     "github": {
       "versions": {
-        "^0.0.1": "consumeGitHub"
+        "^0.0.1": "consumeGitHubToken"
       }
     }
   },
