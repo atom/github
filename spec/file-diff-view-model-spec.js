@@ -38,7 +38,7 @@ describe('FileDiffViewModel', function () {
       fs.writeFileSync(filePath, 'how now brown cow')
 
       let viewModel
-      waitsForPromise(() => createDiffViewModel(gitService, fileName).then(v => viewModel = v))
+      waitsForPromise(() => createDiffViewModel(gitService, fileName).then(v => { viewModel = v }))
       runs(() => {
         expect(viewModel.getTitle()).toBe(fileName)
       })
@@ -49,7 +49,7 @@ describe('FileDiffViewModel', function () {
       fs.moveSync(filePath, path.join(repoPath, newFileName))
 
       let viewModel
-      waitsForPromise(() => createDiffViewModel(gitService, newFileName).then(v => viewModel = v))
+      waitsForPromise(() => createDiffViewModel(gitService, newFileName).then(v => { viewModel = v }))
       runs(() => {
         const title = viewModel.getTitle()
         expect(title).toContain(fileName)

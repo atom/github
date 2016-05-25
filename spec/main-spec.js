@@ -22,7 +22,7 @@ describe('Git Main Module', function () {
   afterEach(function () {
     // TODO/FML: not sure how to properly deal with this, but without this the
     // package will not be loaded next time.
-    localStorage.removeItem(gitPackage.getCanDeferMainModuleRequireStorageKey())
+    window.localStorage.removeItem(gitPackage.getCanDeferMainModuleRequireStorageKey())
   })
 
   it('opens the diff for the open file when "git:open-file-diff" is triggered', async function () {

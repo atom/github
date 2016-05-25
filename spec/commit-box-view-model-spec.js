@@ -1,13 +1,11 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
+import {GitRepositoryAsync, Point} from 'atom'
 import path from 'path'
 import fs from 'fs-plus'
-import {Point} from 'atom'
 import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
-import CommitBoxViewModel from '../lib/commit-box-view-model'
-import {SummaryPreferredLength} from '../lib/commit-box-view-model'
+import CommitBoxViewModel, {SummaryPreferredLength} from '../lib/commit-box-view-model'
 import {copyRepository} from './helpers'
 import {beforeEach, it} from './async-spec-helpers'
 
