@@ -6,7 +6,7 @@
   "repository": "https://github.com/atom/git",
   "license": "MIT",
   "engines": {
-    "atom": ">=0.174.0 <2.0.0"
+    "atom": ">=1.0.0 <2.0.0"
   },
   "scripts": {
     "lint": "eslint spec lib",
@@ -63,31 +63,11 @@
       "versions": {
         "0.0.1": "provideGitPush"
       }
+    },
+    "github": {
+      "versions": {
+        "0.0.1": "provideGitHub"
+      }
     }
-  },
-  "standard": {
-    "ignore": [],
-    "parser": "babel-eslint",
-    "globals": [
-      "atom",
-      "afterEach",
-      "beforeEach",
-      "describe",
-      "fdescribe",
-      "xdescribe",
-      "expect",
-      "it",
-      "fit",
-      "xit",
-      "jasmine",
-      "runs",
-      "spyOn",
-      "waitsFor",
-      "MouseEvent",
-      "localStorage",
-      "HTMLElement",
-      "Event",
-      "EventTarget"
-    ]
   }
 }
