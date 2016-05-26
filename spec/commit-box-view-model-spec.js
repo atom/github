@@ -8,14 +8,11 @@ import GitStore from '../lib/git-store'
 import CommitBoxViewModel, {SummaryPreferredLength} from '../lib/commit-box-view-model'
 import {copyRepository} from './helpers'
 
-function stageFile (repoPath, filePath) {
-  return GitRepositoryAsync.Git.Repository
-    .open(repoPath)
-    .then(repo => repo.index())
-    .then(index => {
-      index.addByPath(filePath)
-      return index.write()
-    })
+async function stageFile (repoPath, filePath) {
+  const repo = await GitRepositoryAsync.Git.Repository.open(repoPath)
+  const index = await repo.index()
+  await index.addByPath(filePath)
+  return index.write()
 }
 
 describe('CommitBoxViewModel', () => {
