@@ -1,7 +1,6 @@
 /** @babel */
 
 import DiffSelection from '../lib/diff-selection'
-import {beforeEach} from './async-spec-helpers'
 import {createDiffViewModel} from './helpers'
 
 describe('DiffSelection', function () {

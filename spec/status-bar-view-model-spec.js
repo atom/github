@@ -7,7 +7,6 @@ import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
 import StatusBarViewModel from '../lib/status-bar-view-model'
 import {copyRepository} from './helpers'
-import {beforeEach, it} from './async-spec-helpers'
 
 describe('StatusBarViewModel', () => {
   let viewModel

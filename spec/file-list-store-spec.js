@@ -1,7 +1,6 @@
 /** @babel */
 
 import {createGitStore} from './helpers'
-import {it, beforeEach} from './async-spec-helpers'
 
 describe('GitStore', function () {
   let gitStore

@@ -1,7 +1,6 @@
 /** @babel */
 
 import BranchesViewModel from '../lib/branches-view-model'
-import {beforeEach, it} from './async-spec-helpers'
 import {createGitStore} from './helpers'
 
 describe('BranchesViewModel', () => {

@@ -2,7 +2,6 @@
 
 import path from 'path'
 import fs from 'fs-plus'
-import {beforeEach, it} from './async-spec-helpers'
 import {createFileListViewModel} from './helpers'
 
 describe('FileListViewModel', function () {

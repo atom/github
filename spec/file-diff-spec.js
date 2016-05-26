@@ -1,7 +1,6 @@
 /** @babel */
 
 import {createDiffViewModel} from './helpers'
-import {it} from './async-spec-helpers'
 
 describe('FileDiff', function () {
   it('returns "partial" from getStageStatus() when some of the hunks are staged', async () => {

@@ -1,6 +1,5 @@
 /** @babel */
 
-import {beforeEach} from './async-spec-helpers'
 import {createDiffViewModel} from './helpers'
 
 describe('DiffHunk', function () {

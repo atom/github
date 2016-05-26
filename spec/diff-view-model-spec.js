@@ -4,7 +4,6 @@ import path from 'path'
 import fs from 'fs-plus'
 import DiffSelection from '../lib/diff-selection'
 import DiffViewModel from '../lib/diff-view-model'
-import {it, beforeEach} from './async-spec-helpers'
 import {createDiffViewModel, createFileListViewModel} from './helpers'
 
 function createDiffs () {

@@ -5,7 +5,6 @@ import fs from 'fs-plus'
 import DiffViewModel from '../lib/diff-view-model'
 import GitPackage from '../lib/git-package'
 import {copyRepository} from './helpers'
-import {beforeEach, afterEach} from './async-spec-helpers'
 
 function commit (fileListViewModel, msg) {
   const fileList = fileListViewModel.fileList

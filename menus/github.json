@@ -1,0 +1,22 @@
+{
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "GitHub",
+          "submenu": [
+            {
+              "label": "Sign in",
+              "command": "github:sign-in"
+            },
+            {
+              "label": "Sign out",
+              "command": "github:sign-out"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

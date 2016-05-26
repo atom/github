@@ -7,7 +7,6 @@ import GitStore from '../lib/git-store'
 import GitService from '../lib/git-service'
 import FileDiffViewModel from '../lib/file-diff-view-model'
 import {copyRepository} from './helpers'
-import {waitsForPromise} from './async-spec-helpers'
 
 async function createDiffViewModel (gitService, fileName) {
   const gitStore = new GitStore(gitService)

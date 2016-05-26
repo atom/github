@@ -9,7 +9,6 @@ import PushPullViewModel from '../lib/push-pull-view-model'
 import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
 
-import {beforeEach, it} from './async-spec-helpers'
 import {copyRepository, stagePath} from './helpers'
 
 temp.track()

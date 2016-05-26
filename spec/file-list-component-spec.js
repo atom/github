@@ -2,7 +2,6 @@
 
 import etch from 'etch'
 import FileListComponent from '../lib/file-list-component'
-import {beforeEach} from './async-spec-helpers'
 import {createFileListViewModel, buildMouseEvent} from './helpers'
 
 describe('FileListComponent', function () {

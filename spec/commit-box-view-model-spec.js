@@ -7,7 +7,6 @@ import GitService from '../lib/git-service'
 import GitStore from '../lib/git-store'
 import CommitBoxViewModel, {SummaryPreferredLength} from '../lib/commit-box-view-model'
 import {copyRepository} from './helpers'
-import {beforeEach, it} from './async-spec-helpers'
 
 function stageFile (repoPath, filePath) {
   return GitRepositoryAsync.Git.Repository

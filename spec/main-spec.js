@@ -2,7 +2,6 @@
 
 import DiffViewModel from '../lib/diff-view-model'
 import {copyRepository} from './helpers'
-import {it, beforeEach, afterEach} from './async-spec-helpers'
 
 describe('Git Main Module', function () {
   let gitPackage, gitPackageModule

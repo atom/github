@@ -1,7 +1,6 @@
 /** @babel */
 
 import DiffComponent from '../lib/diff-component'
-import {beforeEach} from './async-spec-helpers'
 import {createDiffViewModel, buildMouseEvent} from './helpers'
 
 describe('DiffComponent', function () {
