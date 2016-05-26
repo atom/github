@@ -4,7 +4,7 @@ import DiffViewModel from '../lib/diff-view-model'
 import {copyRepository} from './helpers'
 
 describe('Git Main Module', function () {
-  let gitPackage, gitPackageModule
+  let githubPackage, githubPackageModule
 
   beforeEach(async function () {
     jasmine.useRealClock()
@@ -12,21 +12,21 @@ describe('Git Main Module', function () {
     const repoPath = copyRepository('dummy-atom')
     atom.project.setPaths([repoPath])
 
-    gitPackage = atom.packages.loadPackage('git')
-    gitPackageModule = gitPackage.mainModule
+    githubPackage = atom.packages.loadPackage('github')
 
-    await atom.packages.activatePackage('git')
+    await atom.packages.activatePackage('github')
+    githubPackageModule = githubPackage.mainModule.git
   })
 
   afterEach(function () {
     // TODO/FML: not sure how to properly deal with this, but without this the
     // package will not be loaded next time.
-    window.localStorage.removeItem(gitPackage.getCanDeferMainModuleRequireStorageKey())
+    window.localStorage.removeItem(githubPackage.getCanDeferMainModuleRequireStorageKey())
   })
 
   it('opens the diff for the open file when "git:open-file-diff" is triggered', async function () {
     await atom.workspace.open('src/config.coffee')
-    await gitPackageModule.openDiffForActiveEditor()
+    await githubPackageModule.openDiffForActiveEditor()
     let paneItem = atom.workspace.getActivePaneItem()
     expect(paneItem instanceof DiffViewModel).toBe(true)
     expect(paneItem.pending).toBe(true)

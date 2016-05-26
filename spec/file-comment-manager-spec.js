@@ -7,7 +7,7 @@ describe('FileCommentManager', () => {
   beforeEach(async () => {
     pack = await atom.packages.activatePackage('github')
 
-    fileCommentManager = new FileCommentManager('file.txt', pack.mainModule.commentEmitter)
+    fileCommentManager = new FileCommentManager('file.txt', pack.mainModule.github.commentEmitter)
     comments = require('./fixtures/comments.json')
     atom.config.set('github.showUnreadReviewCommentNotifications', true)
   })
