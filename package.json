@@ -1,9 +1,9 @@
 {
-  "name": "git",
+  "name": "github",
   "main": "./lib/main",
   "version": "0.0.0",
   "description": "Git things",
-  "repository": "https://github.com/atom/git",
+  "repository": "https://github.com/atom/github",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
