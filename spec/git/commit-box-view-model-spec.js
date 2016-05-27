@@ -5,7 +5,7 @@ import path from 'path'
 import fs from 'fs-plus'
 import GitService from '../../lib/git/git-service'
 import GitStore from '../../lib/git/git-store'
-import CommitBoxViewModel, {SummaryPreferredLength} from '../../lib/git/commit-box/commit-box-view-model'
+import CommitBoxViewModel from '../../lib/git/commit-box/commit-box-view-model'
 import {copyRepository} from './git-helpers'
 
 async function stageFile (repoPath, filePath) {
@@ -91,7 +91,7 @@ describe('CommitBoxViewModel', () => {
     describe('when the summary is being edited', () => {
       it('counts down from 50', () => {
         const remaining = viewModel.calculateRemainingCharacters(msg, new Point(0, 0))
-        expect(remaining).toBe(SummaryPreferredLength - summary.length)
+        expect(remaining).toBe(viewModel.getSummaryPreferredLength() - summary.length)
       })
     })
 
