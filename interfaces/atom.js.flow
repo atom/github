@@ -59,6 +59,8 @@ declare module 'atom' {
     getText(): string;
     setText(text: string): void;
 
+    setSoftWrapped(value: boolean): void;
+
     getPath(): ?string;
 
     getElement(): TextEditorElement;
