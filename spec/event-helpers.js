@@ -39,4 +39,4 @@ const buildClickEvent = function (target) {
   })
 }
 
-export { buildClickEvent }
+export { buildClickEvent, buildMouseEvent }
