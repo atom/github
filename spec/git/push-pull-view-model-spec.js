@@ -67,7 +67,7 @@ describe('PushPullViewModel', () => {
       const onUpdateSpy = jasmine.createSpy()
       viewModel.onDidUpdate(onUpdateSpy)
       await viewModel.pull()
-      expect(onUpdateSpy.callCount).toBe(2)
+      expect(onUpdateSpy.callCount).toBe(4)
     })
   })
 
