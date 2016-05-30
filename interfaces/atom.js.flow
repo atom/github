@@ -56,8 +56,12 @@ declare module 'atom' {
   }
 
   declare class TextEditor extends Model {
+    getDefaultCharWidth(): number;
+
     getText(): string;
     setText(text: string): void;
+
+    setSoftWrapped(value: boolean): void;
 
     getPath(): ?string;
 
