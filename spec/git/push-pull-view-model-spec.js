@@ -98,6 +98,30 @@ describe('PushPullViewModel', () => {
     })
   })
 
+  describe('fetch', () => {
+    it('performs fetches automatically every `github.fetchIntervalInSeconds` seconds', async () => {
+      jasmine.Clock.useMock()
+
+      const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
+      await parentGitService.commit('Commit 1')
+      await parentGitService.commit('Commit 2')
+
+      atom.config.set('github.fetchIntervalInSeconds', 1)
+      jasmine.Clock.tick(500)
+      expect(viewModel.getBehindCount()).toBe(0)
+      jasmine.Clock.tick(500)
+      await until(() => viewModel.getBehindCount() === 2)
+
+      await parentGitService.commit('Commit 3')
+
+      atom.config.set('github.fetchIntervalInSeconds', 2)
+      jasmine.Clock.tick(1000)
+      expect(viewModel.getBehindCount()).toBe(2)
+      jasmine.Clock.tick(1000)
+      await until(() => viewModel.getBehindCount() === 3)
+    })
+  })
+
   describe('getBehindCount()', () => {
     it('returns the number of commits that can be pulled into the current branch', async () => {
       expect(viewModel.getBehindCount()).toBe(0)

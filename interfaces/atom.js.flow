@@ -119,6 +119,8 @@ declare class CommandRegistry {
 
 declare class Config {
   get(key: string): string;
+
+  observe<T>(key: string, callback: (value: T) => void): Disposable;
 }
 
 declare class DeserializerManager {
