@@ -100,30 +100,30 @@ describe('PushPullViewModel', () => {
 
   describe('getBehindCount()', () => {
     it('returns the number of commits that can be pulled into the current branch', async () => {
-      expect(await viewModel.getBehindCount()).toBe(0)
+      expect(viewModel.getBehindCount()).toBe(0)
 
       const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
       await parentGitService.commit('Commit 1')
       await parentGitService.commit('Commit 2')
 
       await viewModel.fetch()
-      expect(await viewModel.getBehindCount()).toBe(2)
+      expect(viewModel.getBehindCount()).toBe(2)
 
       await viewModel.pull()
-      expect(await viewModel.getBehindCount()).toBe(0)
+      expect(viewModel.getBehindCount()).toBe(0)
     })
   })
 
   describe('getAheadCount()', () => {
     it('returns the number of commits that can be pushed to the remote', async () => {
-      expect(await viewModel.getAheadCount()).toBe(0)
+      expect(viewModel.getAheadCount()).toBe(0)
 
       await gitStore.commit('Commit 1')
       await gitStore.commit('Commit 2')
-      expect(await viewModel.getAheadCount()).toBe(2)
+      await until(() => viewModel.getAheadCount() === 2)
 
       await viewModel.push()
-      expect(await viewModel.getAheadCount()).toBe(0)
+      expect(viewModel.getAheadCount()).toBe(0)
     })
   })
 })
