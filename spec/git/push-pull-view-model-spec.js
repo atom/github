@@ -48,6 +48,7 @@ describe('PushPullViewModel', () => {
     await gitStore.loadFromGit()
 
     viewModel = new PushPullViewModel(gitStore)
+    await viewModel.initialize()
   })
 
   describe('pull', () => {
