@@ -73,9 +73,9 @@
   "configSchema": {
     "fetchIntervalInSeconds": {
       "title": "Fetch Interval (in seconds)",
-      "description": "Specify how frequently this package should fetch the remote. (0 = never)",
+      "description": "Specify how frequently this package should automatically fetch remotes. (0 = never)",
       "type": "integer",
-      "default": 60,
+      "default": 30,
       "minimum": 0,
       "order": 1
     }

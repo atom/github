@@ -35,6 +35,8 @@ describe('PushPullViewModel', () => {
   let parentRepo
 
   beforeEach(async () => {
+    jasmine.Clock.useMock()
+
     const {clonedRepository, parentRepository} = await cloneRepository()
 
     repoPath = clonedRepository
@@ -100,8 +102,6 @@ describe('PushPullViewModel', () => {
 
   describe('fetch', () => {
     it('performs fetches automatically every `github.fetchIntervalInSeconds` seconds', async () => {
-      jasmine.Clock.useMock()
-
       const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
       await parentGitService.commit('Commit 1')
       await parentGitService.commit('Commit 2')
