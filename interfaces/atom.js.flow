@@ -29,6 +29,7 @@ declare module 'atom' {
 
     getPath(): Promise<string>;
     getShortHead(): Promise<string>;
+    getAheadBehindCount(branchName: string, _path?: string): Promise<{ahead: number, behind: number}>;
 
     onDidChangeStatus(fn: Function): Disposable;
     onDidChangeStatuses(fn: Function): Disposable;
