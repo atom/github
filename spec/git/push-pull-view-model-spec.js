@@ -63,11 +63,11 @@ describe('PushPullViewModel', () => {
       expect(masterCommit.message()).toBe(commitMessage)
     })
 
-    it('emits update events', async () => {
-      const onUpdateSpy = jasmine.createSpy()
-      viewModel.onDidUpdate(onUpdateSpy)
+    it('emits update events when making progress', async () => {
+      const progressReports = []
+      viewModel.onDidUpdate(() => progressReports.push(viewModel.getProgressPercentage()))
       await viewModel.pull()
-      expect(onUpdateSpy.callCount).toBe(2)
+      expect(progressReports).toEqual([0, 80, 100])
     })
   })
 
@@ -91,10 +91,10 @@ describe('PushPullViewModel', () => {
     })
 
     it('emits update events', async () => {
-      const onUpdateSpy = jasmine.createSpy()
-      viewModel.onDidUpdate(onUpdateSpy)
+      const progressReports = []
+      viewModel.onDidUpdate(() => progressReports.push(viewModel.getProgressPercentage()))
       await viewModel.push()
-      expect(onUpdateSpy.callCount).toBe(2)
+      expect(progressReports).toEqual([0, 100])
     })
   })
 })
