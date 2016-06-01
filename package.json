@@ -21,13 +21,13 @@
     "dom-listener": "0.1.2",
     "etch": "^0.6.0",
     "etch-stateless": "^1.0.0",
-    "keytar": "3.0.0",
+    "keytar": "3.0.2",
     "marked": "^0.3.4",
     "moment": "2.12.0",
     "nan": "2.x",
     "object-hash": "^1.1.2",
     "parse-link-header": "^0.4.1",
-    "pathwatcher": "~6.2"
+    "pathwatcher": "6.7.0"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.4",
