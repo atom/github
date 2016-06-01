@@ -17,7 +17,7 @@
   "dependencies": {
     "classnames": "^2.2.3",
     "compare-sets": "^1.0.1",
-    "diff": "^2.2.1",
+    "diff": "2.2.1",
     "dom-listener": "0.1.2",
     "etch": "^0.6.0",
     "etch-stateless": "^1.0.0",
