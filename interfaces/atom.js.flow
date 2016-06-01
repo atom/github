@@ -29,6 +29,7 @@ declare module 'atom' {
 
     getPath(): Promise<string>;
     getShortHead(): Promise<string>;
+    getAheadBehindCount(branchName: string, _path?: string): Promise<{ahead: number, behind: number}>;
 
     onDidChangeStatus(fn: Function): Disposable;
     onDidChangeStatuses(fn: Function): Disposable;
@@ -118,6 +119,8 @@ declare class CommandRegistry {
 
 declare class Config {
   get(key: string): string;
+
+  observe<T>(key: string, callback: (value: T) => void): Disposable;
 }
 
 declare class DeserializerManager {
