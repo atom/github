@@ -11,14 +11,13 @@ class ReviewCommentTracker {
     this.invalidComments = new Map
     this.subscriptions = new CompositeDisposable()
 
-    // TODO: change to onDidStopChanging
-    this.editor.onDidSave(() => {
+    this.subscriptions.add(this.editor.onDidStopChanging(() => {
       let invalidComments = this.invalidComments
       this.invalidComments = new Map
       invalidComments.forEach(({fileContents, rowInFileContents}, id) => {
         this.track(id, fileContents, rowInFileContents)
       })
-    })
+    }))
   }
 
   destroy () {
@@ -106,7 +105,7 @@ describe('ReviewCommentTracker', () => {
 
     editor.setSelectedBufferRange([[6, 0], [6, 3]])
     editor.insertText('lmn')
-    editor.saveAs(temp.path())
+    advanceClock(editor.buffer.stoppedChangingDelay)
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -124,7 +123,7 @@ describe('ReviewCommentTracker', () => {
     expect(decorations.length).toBe(0)
 
     editor.undo()
-    editor.saveAs(temp.path())
+    advanceClock(editor.buffer.stoppedChangingDelay)
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -135,13 +134,13 @@ describe('ReviewCommentTracker', () => {
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
-    editor.save()
+    advanceClock(editor.buffer.stoppedChangingDelay)
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
     editor.undo()
-    editor.save()
+    advanceClock(editor.buffer.stoppedChangingDelay)
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
