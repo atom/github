@@ -37,16 +37,13 @@ class ReviewCommentTracker {
           this.invalidComments.set(id, {fileContents, rowInFileContents})
           return
         }
-        // TODO: add specs
-        // currentRow += change.count
+        currentRow += change.count
       } else if (change.removed) {
         let {inside} = index.splice({row: currentRow, column: 0}, {row: change.count, column: 0}, {row: 0, column: 0})
         if (inside.has(id)) {
           this.invalidComments.set(id, {fileContents, rowInFileContents})
           return
         }
-        // TODO: add specs
-        // currentRow = Math.max(0, currentRow - change.count)
       } else {
         currentRow += change.count
       }
@@ -100,20 +97,20 @@ describe('ReviewCommentTracker', () => {
   })
 
   it("doesn't add a decoration when the comment position doesn't exist anymore, and adds it back on save if it becomes valid again", () => {
-    editor.setText('def\nghi\nABC\nDEF\nGHI\nopq\nrst')
+    editor.setText('def\nABC\nDEF\nghi\nGHI\nJKL\nMNO\nopq\nrst')
 
     foo.track(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
-    editor.setSelectedBufferRange([[4, 0], [4, 3]])
+    editor.setSelectedBufferRange([[6, 0], [6, 3]])
     editor.insertText('lmn')
     editor.saveAs(temp.path())
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
-    expect(decorations[0].getMarker().getHeadBufferPosition()).toEqual([4, 0])
+    expect(decorations[0].getMarker().getHeadBufferPosition()).toEqual([6, 0])
   })
 
   it("removes decorations as soon as they become invalid and adds them back on save if they become valid again", () => {
