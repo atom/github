@@ -61,14 +61,6 @@ class EditorReviewComments {
     }
   }
 
-  // TODO: delete this.
-  addComment (id, fileContents, rowInFileContents) {
-    // throw new Error("Don't use this interface. Use add()")
-    let map = new Map()
-    map.set(id, rowInFileContents)
-    this.add(1234, fileContents, map)
-  }
-
   markAsOutdated (commitId, bufferContents, id, row) {
     if (!this.bufferContentsByCommitId.has(commitId)) {
       this.bufferContentsByCommitId.set(commitId, bufferContents)
@@ -101,7 +93,7 @@ describe('EditorReviewComments', () => {
   it("adds a decoration on the same row when the buffers' contents match", () => {
     editor.setText('abc\ndef\nghi')
 
-    editorReviewComments.addComment(1, 'abc\ndef\nghi', 1)
+    editorReviewComments.add('commit_id', 'abc\ndef\nghi', new Map().set(1, 1))
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -111,7 +103,7 @@ describe('EditorReviewComments', () => {
   it("adds a decoration on a translated row in the current buffer corresponding to row in the original buffer", () => {
     editor.setText('def\nghi\nABC\nDEF\nlmn\nopq\nrst')
 
-    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.add('commit_id', 'abc\ndef\nghi\nlmn\nopq\nrst', new Map().set(1, 3))
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -128,7 +120,7 @@ describe('EditorReviewComments', () => {
   it("doesn't add a decoration when the comment is already outdated, but adds it on `refreshOutdated()` if it becomes valid again", () => {
     editor.setText('def\nABC\nDEF\nghi\nGHI\nJKL\nMNO\nopq\nrst')
 
-    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.add('commit_id', 'abc\ndef\nghi\nlmn\nopq\nrst', new Map().set(1, 3))
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
@@ -145,7 +137,7 @@ describe('EditorReviewComments', () => {
   it("removes decorations if they become outdated after a buffer change and adds them back on `refreshOutdated()` if they become valid again", () => {
     editor.setText('def\nghi\nABC\nDEF\nlmn\nopq\nrst')
 
-    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.add('commit_id', 'abc\ndef\nghi\nlmn\nopq\nrst', new Map().set(1, 3))
     editor.setCursorBufferPosition([4, 0])
     editor.deleteLine()
 
