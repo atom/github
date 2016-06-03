@@ -5,27 +5,19 @@ import {diffLines} from 'diff'
 import MarkerIndex from 'marker-index'
 import temp from 'temp'
 
-class ReviewCommentTracker {
+class EditorReviewComments {
   constructor (editor) {
     this.editor = editor
-    this.invalidCommentsByCommitId = new Map()
-    this.contentsByCommitId = new Map()
+    this.outdatedCommentsByCommitId = new Map()
+    this.bufferContentsByCommitId = new Map()
     this.subscriptions = new CompositeDisposable()
-
-    this.subscriptions.add(this.editor.onDidStopChanging(() => {
-      let invalidCommentsByCommitId = this.invalidCommentsByCommitId
-      this.invalidCommentsByCommitId = new Map()
-      for (let [commitId, rowsByCommentId] of invalidCommentsByCommitId) {
-        this.trackCommentsForCommitId(commitId, this.contentsByCommitId.get(commitId), rowsByCommentId)
-      }
-    }))
   }
 
   destroy () {
     this.subscriptions.dispose()
   }
 
-  trackCommentsForCommitId (commitId, bufferContents, rowsByCommentId) {
+  add (commitId, bufferContents, rowsByCommentId) {
     let index = new MarkerIndex()
     for (let [id, row] of rowsByCommentId) {
       index.insert(id, {row: row, column: 0}, {row: row + 1, column: 0})
@@ -37,7 +29,7 @@ class ReviewCommentTracker {
       if (change.added) {
         let {inside} = index.splice({row: currentRow, column: 0}, {row: 0, column: 0}, {row: change.count, column: 0})
         for (let id of inside) {
-          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          this.markAsOutdated(commitId, bufferContents, id, rowsByCommentId.get(id))
           index.delete(id)
         }
 
@@ -45,7 +37,7 @@ class ReviewCommentTracker {
       } else if (change.removed) {
         let {inside} = index.splice({row: currentRow, column: 0}, {row: change.count, column: 0}, {row: 0, column: 0})
         for (let id of inside) {
-          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          this.markAsOutdated(commitId, bufferContents, id, rowsByCommentId.get(id))
           index.delete(id)
         }
       } else {
@@ -60,7 +52,7 @@ class ReviewCommentTracker {
       let marker = this.editor.markBufferRange(range, {reversed: true, invalidate: 'inside'})
       let subscription = marker.onDidChange(({isValid}) => {
         if (!isValid) {
-          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          this.markAsOutdated(commitId, bufferContents, id, rowsByCommentId.get(id))
           marker.destroy()
           subscription.dispose()
         }
@@ -69,38 +61,47 @@ class ReviewCommentTracker {
     }
   }
 
-  track (id, fileContents, rowInFileContents) {
-    // throw new Error("Don't use this interface. Use trackCommentsForCommitId()")
+  // TODO: delete this.
+  addComment (id, fileContents, rowInFileContents) {
+    // throw new Error("Don't use this interface. Use add()")
     let map = new Map()
     map.set(id, rowInFileContents)
-    this.trackCommentsForCommitId(1234, fileContents, map)
+    this.add(1234, fileContents, map)
   }
 
-  invalidate (commitId, bufferContents, id, row) {
-    if (!this.contentsByCommitId.has(commitId)) {
-      this.contentsByCommitId.set(commitId, bufferContents)
+  markAsOutdated (commitId, bufferContents, id, row) {
+    if (!this.bufferContentsByCommitId.has(commitId)) {
+      this.bufferContentsByCommitId.set(commitId, bufferContents)
     }
 
-    if (!this.invalidCommentsByCommitId.has(commitId)) {
-      this.invalidCommentsByCommitId.set(commitId, new Map())
+    if (!this.outdatedCommentsByCommitId.has(commitId)) {
+      this.outdatedCommentsByCommitId.set(commitId, new Map())
     }
 
-    this.invalidCommentsByCommitId.get(commitId).set(id, row)
+    this.outdatedCommentsByCommitId.get(commitId).set(id, row)
+  }
+
+  refreshOutdated () {
+    let outdatedCommentsByCommitId = this.outdatedCommentsByCommitId
+    this.outdatedCommentsByCommitId = new Map()
+    for (let [commitId, rowsByCommentId] of outdatedCommentsByCommitId) {
+      this.add(commitId, this.bufferContentsByCommitId.get(commitId), rowsByCommentId)
+    }
   }
 }
 
-describe('ReviewCommentTracker', () => {
-  let editor, foo
+describe('EditorReviewComments', () => {
+  let editor, editorReviewComments
 
   beforeEach(() => {
     editor = atom.workspace.buildTextEditor()
-    foo = new ReviewCommentTracker(editor)
+    editorReviewComments = new EditorReviewComments(editor)
   })
 
   it("adds a decoration on the same row when the buffers' contents match", () => {
     editor.setText('abc\ndef\nghi')
 
-    foo.track(1, 'abc\ndef\nghi', 1)
+    editorReviewComments.addComment(1, 'abc\ndef\nghi', 1)
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -110,7 +111,7 @@ describe('ReviewCommentTracker', () => {
   it("adds a decoration on a translated row in the current buffer corresponding to row in the original buffer", () => {
     editor.setText('def\nghi\nABC\nDEF\nlmn\nopq\nrst')
 
-    foo.track(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -124,27 +125,27 @@ describe('ReviewCommentTracker', () => {
     expect(decorations[0].getMarker().getHeadBufferPosition()).toEqual([5, 0])
   })
 
-  it("doesn't add a decoration when the comment position doesn't exist anymore, and adds it back on save if it becomes valid again", () => {
+  it("doesn't add a decoration when the comment is already outdated, but adds it on `refreshOutdated()` if it becomes valid again", () => {
     editor.setText('def\nABC\nDEF\nghi\nGHI\nJKL\nMNO\nopq\nrst')
 
-    foo.track(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
 
     let decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
     editor.setSelectedBufferRange([[6, 0], [6, 3]])
     editor.insertText('lmn')
-    advanceClock(editor.buffer.stoppedChangingDelay)
+    editorReviewComments.refreshOutdated()
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
     expect(decorations[0].getMarker().getHeadBufferPosition()).toEqual([6, 0])
   })
 
-  it("removes decorations as soon as they become invalid and adds them back on save if they become valid again", () => {
+  it("removes decorations if they become outdated after a buffer change and adds them back on `refreshOutdated()` if they become valid again", () => {
     editor.setText('def\nghi\nABC\nDEF\nlmn\nopq\nrst')
 
-    foo.track(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
+    editorReviewComments.addComment(1, 'abc\ndef\nghi\nlmn\nopq\nrst', 3)
     editor.setCursorBufferPosition([4, 0])
     editor.deleteLine()
 
@@ -152,7 +153,7 @@ describe('ReviewCommentTracker', () => {
     expect(decorations.length).toBe(0)
 
     editor.undo()
-    advanceClock(editor.buffer.stoppedChangingDelay)
+    editorReviewComments.refreshOutdated()
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
@@ -163,13 +164,13 @@ describe('ReviewCommentTracker', () => {
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
-    advanceClock(editor.buffer.stoppedChangingDelay)
+    editorReviewComments.refreshOutdated()
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(0)
 
     editor.undo()
-    advanceClock(editor.buffer.stoppedChangingDelay)
+    editorReviewComments.refreshOutdated()
 
     decorations = editor.getDecorations({type: 'block'})
     expect(decorations.length).toBe(1)
