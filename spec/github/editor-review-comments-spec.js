@@ -160,10 +160,6 @@ describe('EditorReviewComments', () => {
     expect(decorations[0].getMarker().getHeadBufferPosition()).toEqual([4, 0])
 
     editor.redo()
-
-    decorations = editor.getDecorations({type: 'block'})
-    expect(decorations.length).toBe(0)
-
     editorReviewComments.refreshOutdated()
 
     decorations = editor.getDecorations({type: 'block'})
