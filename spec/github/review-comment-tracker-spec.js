@@ -1,6 +1,6 @@
 'use babel'
 
-import {Point, CompositeDisposable} from 'atom'
+import {Range, CompositeDisposable} from 'atom'
 import {diffLines} from 'diff'
 import MarkerIndex from 'marker-index'
 import temp from 'temp'
@@ -8,15 +8,16 @@ import temp from 'temp'
 class ReviewCommentTracker {
   constructor (editor) {
     this.editor = editor
-    this.invalidComments = new Map
+    this.invalidCommentsByCommitId = new Map()
+    this.contentsByCommitId = new Map()
     this.subscriptions = new CompositeDisposable()
 
     this.subscriptions.add(this.editor.onDidStopChanging(() => {
-      let invalidComments = this.invalidComments
-      this.invalidComments = new Map
-      invalidComments.forEach(({fileContents, rowInFileContents}, id) => {
-        this.track(id, fileContents, rowInFileContents)
-      })
+      let invalidCommentsByCommitId = this.invalidCommentsByCommitId
+      this.invalidCommentsByCommitId = new Map()
+      for (let [commitId, rowsByCommentId] of invalidCommentsByCommitId) {
+        this.trackCommentsForCommitId(commitId, this.contentsByCommitId.get(commitId), rowsByCommentId)
+      }
     }))
   }
 
@@ -24,39 +25,67 @@ class ReviewCommentTracker {
     this.subscriptions.dispose()
   }
 
-  track (id, fileContents, rowInFileContents) {
+  trackCommentsForCommitId (commitId, bufferContents, rowsByCommentId) {
     let index = new MarkerIndex()
-    index.insert(id, {row: rowInFileContents, column: 0}, {row: rowInFileContents + 1, column: 0})
-    index.setExclusive(id, true)
+    for (let [id, row] of rowsByCommentId) {
+      index.insert(id, {row: row, column: 0}, {row: row + 1, column: 0})
+      index.setExclusive(id, true)
+    }
+
     let currentRow = 0
-    for (let change of diffLines(fileContents, this.editor.getText())) {
+    for (let change of diffLines(bufferContents, this.editor.getText())) {
       if (change.added) {
         let {inside} = index.splice({row: currentRow, column: 0}, {row: 0, column: 0}, {row: change.count, column: 0})
-        if (inside.has(id)) {
-          this.invalidComments.set(id, {fileContents, rowInFileContents})
-          return
+        for (let id of inside) {
+          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          index.delete(id)
         }
+
         currentRow += change.count
       } else if (change.removed) {
         let {inside} = index.splice({row: currentRow, column: 0}, {row: change.count, column: 0}, {row: 0, column: 0})
-        if (inside.has(id)) {
-          this.invalidComments.set(id, {fileContents, rowInFileContents})
-          return
+        for (let id of inside) {
+          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          index.delete(id)
         }
       } else {
         currentRow += change.count
       }
     }
 
-    let marker = this.editor.markBufferRange(index.getRange(id), {reversed: true, invalidate: 'inside'})
-    let subscription = marker.onDidChange(({isValid}) => {
-      if (!isValid) {
-        this.invalidComments.set(id, {fileContents, rowInFileContents})
-        marker.destroy()
-        subscription.dispose()
-      }
-    })
-    this.editor.decorateMarker(marker, {type: 'block', position: 'after'})
+    let rangesByCommentId = index.dump()
+    for (let _id of Object.keys(rangesByCommentId)) {
+      let id = parseInt(_id)
+      let range = Range.fromObject(rangesByCommentId[id])
+      let marker = this.editor.markBufferRange(range, {reversed: true, invalidate: 'inside'})
+      let subscription = marker.onDidChange(({isValid}) => {
+        if (!isValid) {
+          this.invalidate(commitId, bufferContents, id, rowsByCommentId.get(id))
+          marker.destroy()
+          subscription.dispose()
+        }
+      })
+      this.editor.decorateMarker(marker, {type: 'block', position: 'after'})
+    }
+  }
+
+  track (id, fileContents, rowInFileContents) {
+    // throw new Error("Don't use this interface. Use trackCommentsForCommitId()")
+    let map = new Map()
+    map.set(id, rowInFileContents)
+    this.trackCommentsForCommitId(1234, fileContents, map)
+  }
+
+  invalidate (commitId, bufferContents, id, row) {
+    if (!this.contentsByCommitId.has(commitId)) {
+      this.contentsByCommitId.set(commitId, bufferContents)
+    }
+
+    if (!this.invalidCommentsByCommitId.has(commitId)) {
+      this.invalidCommentsByCommitId.set(commitId, new Map())
+    }
+
+    this.invalidCommentsByCommitId.get(commitId).set(id, row)
   }
 }
 
