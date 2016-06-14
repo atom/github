@@ -2,7 +2,7 @@
 
 import PrReviewCommentManager from '../../lib/github/review-comment/pr-review-comment-manager'
 import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-review-comment-renderer'
-import BufferReviewCommentPositioner from '../../lib/github/review-comment/buffer-review-comment-positioner'
+import EditorReviewCommentPositioner from '../../lib/github/review-comment/editor-review-comment-positioner'
 
 import path from 'path'
 
@@ -95,7 +95,7 @@ describe('PrReviewCommentManager', () => {
         await until(() => {
           return EditorReviewCommentRenderer.renderCommentsForEditor.callCount
         })
-        const positioner = BufferReviewCommentPositioner.getForBuffer(editor.getBuffer())
+        const positioner = EditorReviewCommentPositioner.getForEditor(editor)
         expect(EditorReviewCommentRenderer.renderCommentsForEditor).toHaveBeenCalledWith(comments, editor, positioner, gitHubModel)
       })
     })

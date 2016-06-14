@@ -6,7 +6,7 @@ import fs from 'fs'
 import {Range} from 'atom'
 
 import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-review-comment-renderer'
-import BufferReviewCommentPositioner from '../../lib/github/review-comment/buffer-review-comment-positioner'
+import EditorReviewCommentPositioner from '../../lib/github/review-comment/editor-review-comment-positioner'
 
 function getBlockDecorations (editor) {
   return editor.getDecorations().filter(dec => dec.properties.type === 'block')
@@ -18,7 +18,7 @@ describe('EditorReviewCommentRenderer', () => {
   const testFilePath = path.resolve(__dirname, '..', 'fixtures', 'file.txt')
   beforeEach(async () => {
     editor = await atom.workspace.open(testFilePath)
-    positioner = BufferReviewCommentPositioner.getForBuffer(editor.getBuffer())
+    positioner = EditorReviewCommentPositioner.getForEditor(editor)
     gitHubModel = {
       async getDiff () {
         return 'a string here'
