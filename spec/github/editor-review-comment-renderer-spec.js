@@ -3,38 +3,46 @@
 import path from 'path'
 import fs from 'fs'
 
+import {Range} from 'atom'
+
 import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-review-comment-renderer'
+import BufferReviewCommentPositioner from '../../lib/github/review-comment/buffer-review-comment-positioner'
 
 function getBlockDecorations (editor) {
   return editor.getDecorations().filter(dec => dec.properties.type === 'block')
 }
 
 describe('EditorReviewCommentRenderer', () => {
-  let [editor, renderer, comments, decorations] = []
+  let [editor, renderer, comments, decorations, positioner, gitHubModel] = []
   const commentsFilePath = path.resolve(__dirname, '..', 'fixtures', 'comments.json')
   const testFilePath = path.resolve(__dirname, '..', 'fixtures', 'file.txt')
   beforeEach(async () => {
     editor = await atom.workspace.open(testFilePath)
-    renderer = new EditorReviewCommentRenderer(editor)
+    positioner = BufferReviewCommentPositioner.getForBuffer(editor.getBuffer())
+    gitHubModel = {
+      async getDiff () {
+        return 'a string here'
+      }
+    }
+    renderer = new EditorReviewCommentRenderer(editor, positioner, gitHubModel)
     comments = JSON.parse(fs.readFileSync(commentsFilePath, 'utf8'))
   })
 
+  const range = new Range([3, 0], [3, 3])
   describe('::addComment(commentId, comment)', () => {
     it('renders comments', () => {
       comments.forEach(comment => {
-        renderer.addComment(comment.id, comment)
+        renderer.addComment(comment.id, comment, range)
       })
       decorations = getBlockDecorations(editor)
       expect(decorations.length).toBe(2)
       expect(decorations[0].properties.item.innerText.includes(comments[0].body)).toBeTruthy()
       expect(decorations[1].properties.item.innerText.includes(comments[1].body)).toBeTruthy()
-      expect(decorations[0].marker.getStartBufferPosition().row).toBe(comments[0].position - 1)
-      expect(decorations[1].marker.getStartBufferPosition().row).toBe(comments[1].position - 1)
     })
 
     it('throws an error if comment already exists', () => {
       const comment = comments[0]
-      renderer.addComment(comment.id, comment)
+      renderer.addComment(comment.id, comment, range)
       expect(() => renderer.addComment(comment.id, comment)).toThrow()
     })
   })
@@ -42,7 +50,7 @@ describe('EditorReviewCommentRenderer', () => {
   describe('modifying comments', () => {
     beforeEach(() => {
       comments.forEach(comment => {
-        renderer.addComment(comment.id, comment)
+        renderer.addComment(comment.id, comment, range)
       })
       decorations = getBlockDecorations(editor)
     })
@@ -69,18 +77,22 @@ describe('EditorReviewCommentRenderer', () => {
   })
 
   describe('::renderComments', () => {
-    it('calls ::addComment for new comments', () => {
-      spyOn(renderer, 'addComment')
+    beforeEach(() => {
+      spyOn(renderer, 'addComments')
       renderer.renderComments(comments)
-      expect(renderer.addComment).toHaveBeenCalledWith(comments[0].id, comments[0])
-      expect(renderer.addComment).toHaveBeenCalledWith(comments[1].id, comments[1])
+    })
+
+    it('calls ::addComments for new comments', () => {
+      renderer.addComments.reset()
+      comments.push({
+        id: 1337,
+        stuff: 'things'
+      })
+      renderer.renderComments(comments)
+      expect(renderer.addComments.argsForCall[0][0]).toEqual(new Set([1337]))
     })
 
     describe('when existing comments are changed', () => {
-      beforeEach(() => {
-        renderer.renderComments(comments)
-      })
-
       it('calls ::updateComment for modified comments', () => {
         spyOn(renderer, 'updateComment')
         const updatedComment = comments[0]
@@ -101,7 +113,7 @@ describe('EditorReviewCommentRenderer', () => {
   describe('::destroy', () => {
     beforeEach(() => {
       comments.forEach(comment => {
-        renderer.addComment(comment.id, comment)
+        renderer.addComment(comment.id, comment, range)
       })
       decorations = getBlockDecorations(editor)
     })

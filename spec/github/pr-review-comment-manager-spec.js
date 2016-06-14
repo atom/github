@@ -2,18 +2,19 @@
 
 import PrReviewCommentManager from '../../lib/github/review-comment/pr-review-comment-manager'
 import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-review-comment-renderer'
+import BufferReviewCommentPositioner from '../../lib/github/review-comment/buffer-review-comment-positioner'
 
 import path from 'path'
 
 describe('PrReviewCommentManager', () => {
-  let [prCommentManager, comments, filePath, absFilePath, wait] = []
+  let [prCommentManager, comments, filePath, absFilePath, wait, gitHubModel] = []
   beforeEach(() => {
     wait = atom.config.get('github.maxCacheAge') || 1000 * 60
 
     comments = require('../fixtures/comments.json')
     filePath = 'file.txt'
     absFilePath = path.resolve(__dirname, '..', 'fixtures', filePath)
-    const gitHubModel = {
+    gitHubModel = {
       async getBufferComments () {
         return comments
       },
@@ -87,14 +88,15 @@ describe('PrReviewCommentManager', () => {
     })
 
     describe('when an editor for filepath IS in the foreground', () => {
-      it('calls EditorReviewCommentRenderer.renderCommentsForEditor(comments, editor) with the comments and editor', async () => {
+      it('calls EditorReviewCommentRenderer.renderCommentsForEditor(comments, editor, positioner, gitHubModel) with the comments and editor', async () => {
         const editor = await openAndActivated(absFilePath)
         spyOn(EditorReviewCommentRenderer, 'renderCommentsForEditor')
         await prCommentManager.fetchComments()
         await until(() => {
           return EditorReviewCommentRenderer.renderCommentsForEditor.callCount
         })
-        expect(EditorReviewCommentRenderer.renderCommentsForEditor).toHaveBeenCalledWith(comments, editor)
+        const positioner = BufferReviewCommentPositioner.getForBuffer(editor.getBuffer())
+        expect(EditorReviewCommentRenderer.renderCommentsForEditor).toHaveBeenCalledWith(comments, editor, positioner, gitHubModel)
       })
     })
   })
