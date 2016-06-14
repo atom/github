@@ -29,7 +29,7 @@ async function cloneRepository () {
 }
 
 describe('PushPullViewModel', () => {
-  let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService, parentRepo
+  let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService
 
   beforeEach(async () => {
     jasmine.Clock.useMock()

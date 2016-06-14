@@ -3,8 +3,6 @@
 import path from 'path'
 import fs from 'fs'
 
-import {Range} from 'atom'
-
 import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-review-comment-renderer'
 import EditorReviewCommentPositioner from '../../lib/github/review-comment/editor-review-comment-positioner'
 
