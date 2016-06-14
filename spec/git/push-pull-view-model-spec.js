@@ -19,30 +19,27 @@ async function cloneRepository () {
   cloneOptions.bare = 1
   cloneOptions.local = 1
 
-  const parentRepo = temp.mkdirSync('git-parent-fixture-')
-  await GitRepositoryAsync.Git.Clone.clone(baseRepo, parentRepo, cloneOptions)
+  const parentRepoPath = temp.mkdirSync('git-parent-fixture-')
+  await GitRepositoryAsync.Git.Clone.clone(baseRepo, parentRepoPath, cloneOptions)
 
   const clonedPath = temp.mkdirSync('git-cloned-fixture-')
   cloneOptions.bare = 0
-  await GitRepositoryAsync.Git.Clone.clone(parentRepo, clonedPath, cloneOptions)
-  return {parentRepository: parentRepo, clonedRepository: clonedPath}
+  await GitRepositoryAsync.Git.Clone.clone(parentRepoPath, clonedPath, cloneOptions)
+  return {parentRepositoryPath: parentRepoPath, clonedRepositoryPath: clonedPath}
 }
 
 describe('PushPullViewModel', () => {
-  let viewModel
-  let repoPath
-  let gitStore
-  let parentRepo
+  let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService, parentRepo
 
   beforeEach(async () => {
     jasmine.Clock.useMock()
 
-    const {clonedRepository, parentRepository} = await cloneRepository()
+    const paths = await cloneRepository()
+    parentRepositoryPath = paths.parentRepositoryPath
+    repositoryPath = paths.clonedRepositoryPath
 
-    repoPath = clonedRepository
-    parentRepo = parentRepository
-
-    const gitService = new GitService(GitRepositoryAsync.open(repoPath))
+    gitRepository = GitRepositoryAsync.open(repositoryPath, {refreshOnWindowFocus: false})
+    gitService = new GitService(gitRepository)
     gitStore = new GitStore(gitService)
 
     await gitStore.loadFromGit()
@@ -51,19 +48,28 @@ describe('PushPullViewModel', () => {
     await viewModel.initialize()
   })
 
+  afterEach(() => {
+    gitService.destroy()
+    gitRepository.destroy()
+  })
+
   describe('pull', () => {
     it('brings in commits from the remote', async () => {
-      const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
+      const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
+      const parentGitService = new GitService(parentRepository)
       const commitMessage = 'My Special Commit Message'
       await parentGitService.commit(commitMessage)
 
-      const repo = await GitRepositoryAsync.Git.Repository.open(repoPath)
+      const repo = await GitRepositoryAsync.Git.Repository.open(repositoryPath)
       let masterCommit = await repo.getMasterCommit()
 
       await viewModel.pull()
 
       masterCommit = await repo.getMasterCommit()
       expect(masterCommit.message()).toBe(commitMessage)
+
+      parentGitService.destroy()
+      parentRepository.destroy()
     })
 
     it('emits update events when making progress', async () => {
@@ -77,13 +83,13 @@ describe('PushPullViewModel', () => {
   describe('push', () => {
     it('sends commits to the remote', async () => {
       const fileName = 'README.md'
-      fs.writeFileSync(path.join(repoPath, fileName), 'this is a change')
-      await stagePath(repoPath, fileName)
+      fs.writeFileSync(path.join(repositoryPath, fileName), 'this is a change')
+      await stagePath(repositoryPath, fileName)
 
       const commitMessage = 'My Special Commit Message'
       await gitStore.commit(commitMessage)
 
-      const repo = await GitRepositoryAsync.Git.Repository.open(parentRepo)
+      const repo = await GitRepositoryAsync.Git.Repository.open(parentRepositoryPath)
       let commit = await repo.getMasterCommit()
       expect(commit.message()).not.toBe(commitMessage)
 
@@ -103,7 +109,8 @@ describe('PushPullViewModel', () => {
 
   describe('fetch', () => {
     it('performs fetches automatically every `github.fetchIntervalInSeconds` seconds', async () => {
-      const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
+      const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
+      const parentGitService = new GitService(parentRepository)
       await parentGitService.commit('Commit 1')
       await parentGitService.commit('Commit 2')
 
@@ -120,6 +127,9 @@ describe('PushPullViewModel', () => {
       expect(viewModel.getBehindCount()).toBe(2)
       jasmine.Clock.tick(1000)
       await until(() => viewModel.getBehindCount() === 3)
+
+      parentGitService.destroy()
+      parentRepository.destroy()
     })
   })
 
@@ -127,7 +137,8 @@ describe('PushPullViewModel', () => {
     it('returns the number of commits that can be pulled into the current branch', async () => {
       expect(viewModel.getBehindCount()).toBe(0)
 
-      const parentGitService = new GitService(GitRepositoryAsync.open(parentRepo))
+      const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
+      const parentGitService = new GitService(parentRepository)
       await parentGitService.commit('Commit 1')
       await parentGitService.commit('Commit 2')
 
@@ -136,6 +147,9 @@ describe('PushPullViewModel', () => {
 
       await viewModel.pull()
       expect(viewModel.getBehindCount()).toBe(0)
+
+      parentGitService.destroy()
+      parentRepository.destroy()
     })
   })
 
