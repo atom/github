@@ -41,7 +41,8 @@ fdescribe('PushPullViewModel', () => {
   let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService
 
   beforeEach(async () => {
-    jasmine.Clock.useMock()
+    spyOn(window, 'setInterval').andCallFake(window.fakeSetInterval)
+    spyOn(window, 'clearInterval').andCallFake(window.fakeClearInterval)
 
     const paths = await cloneRepository()
     parentRepositoryPath = paths.parentRepositoryPath
@@ -125,18 +126,24 @@ fdescribe('PushPullViewModel', () => {
       await createEmptyCommit(parentRepositoryPath, 'Commit 2')
 
       atom.config.set('github.fetchIntervalInSeconds', 1)
-      jasmine.Clock.tick(500)
-      expect(viewModel.getBehindCount()).toBe(0)
-      jasmine.Clock.tick(500)
-      await until(() => viewModel.getBehindCount() === 2)
+      expect(viewModel.hasRequestsInFlight()).toBe(false)
+      window.advanceClock(500)
+      expect(viewModel.hasRequestsInFlight()).toBe(false)
+      window.advanceClock(500)
+      expect(viewModel.hasRequestsInFlight()).toBe(true)
+      await until(() => !viewModel.hasRequestsInFlight())
+      expect(viewModel.getBehindCount()).toBe(2)
 
       await createEmptyCommit(parentRepositoryPath, 'Commit 3')
 
-      atom.config.set('github.fetchIntervalInSeconds', 2)
-      jasmine.Clock.tick(1000)
-      expect(viewModel.getBehindCount()).toBe(2)
-      jasmine.Clock.tick(1000)
-      await until(() => viewModel.getBehindCount() === 3)
+      atom.config.set('github.fetchIntervalInSeconds', 0.5)
+      expect(viewModel.hasRequestsInFlight()).toBe(false)
+      window.advanceClock(250)
+      expect(viewModel.hasRequestsInFlight()).toBe(false)
+      window.advanceClock(250)
+      expect(viewModel.hasRequestsInFlight()).toBe(true)
+      await until(() => !viewModel.hasRequestsInFlight())
+      expect(viewModel.getBehindCount()).toBe(3)
 
       parentGitService.destroy()
       parentRepository.destroy()
