@@ -38,7 +38,7 @@ describe('PushPullViewModel', () => {
     parentRepositoryPath = paths.parentRepositoryPath
     repositoryPath = paths.clonedRepositoryPath
 
-    gitRepository = GitRepositoryAsync.open(repositoryPath, {refreshOnWindowFocus: false})
+    gitRepository = GitRepositoryAsync.open(repositoryPath)
     gitService = new GitService(gitRepository)
     gitStore = new GitStore(gitService)
 
@@ -49,6 +49,7 @@ describe('PushPullViewModel', () => {
   })
 
   afterEach(() => {
+    gitStore.destroy()
     gitService.destroy()
     gitRepository.destroy()
   })
