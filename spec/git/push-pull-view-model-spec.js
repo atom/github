@@ -37,7 +37,7 @@ async function createEmptyCommit (repoPath, message) {
   return repo.createCommit('HEAD', author, author, message, tree, parents)
 }
 
-fdescribe('PushPullViewModel', () => {
+describe('PushPullViewModel', () => {
   let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService
 
   beforeEach(async () => {
