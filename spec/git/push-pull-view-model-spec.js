@@ -59,7 +59,7 @@ describe('PushPullViewModel', () => {
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
       const commitMessage = 'My Special Commit Message'
-      await parentGitService.commit(commitMessage)
+      await parentGitService.commitBare(commitMessage)
 
       const repo = await GitRepositoryAsync.Git.Repository.open(repositoryPath)
       let masterCommit = await repo.getMasterCommit()
@@ -112,8 +112,8 @@ describe('PushPullViewModel', () => {
     it('performs fetches automatically every `github.fetchIntervalInSeconds` seconds', async () => {
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
-      await parentGitService.commit('Commit 1')
-      await parentGitService.commit('Commit 2')
+      await parentGitService.commitBare('Commit 1')
+      await parentGitService.commitBare('Commit 2')
 
       atom.config.set('github.fetchIntervalInSeconds', 1)
       jasmine.Clock.tick(500)
@@ -121,7 +121,7 @@ describe('PushPullViewModel', () => {
       jasmine.Clock.tick(500)
       await until(() => viewModel.getBehindCount() === 2)
 
-      await parentGitService.commit('Commit 3')
+      await parentGitService.commitBare('Commit 3')
 
       atom.config.set('github.fetchIntervalInSeconds', 2)
       jasmine.Clock.tick(1000)
@@ -140,8 +140,8 @@ describe('PushPullViewModel', () => {
 
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
-      await parentGitService.commit('Commit 1')
-      await parentGitService.commit('Commit 2')
+      await parentGitService.commitBare('Commit 1')
+      await parentGitService.commitBare('Commit 2')
 
       await viewModel.fetch()
       expect(viewModel.getBehindCount()).toBe(2)
