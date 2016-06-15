@@ -28,7 +28,16 @@ async function cloneRepository () {
   return {parentRepositoryPath: parentRepoPath, clonedRepositoryPath: clonedPath}
 }
 
-describe('PushPullViewModel', () => {
+async function createEmptyCommit (repoPath, message) {
+  const repo = await GitRepositoryAsync.Git.Repository.open(repoPath)
+  const head = await repo.getHeadCommit()
+  const tree = await head.getTree()
+  const parents = [head]
+  const author = GitRepositoryAsync.Git.Signature.default(repo)
+  return repo.createCommit('HEAD', author, author, message, tree, parents)
+}
+
+fdescribe('PushPullViewModel', () => {
   let viewModel, repositoryPath, parentRepositoryPath, gitStore, gitRepository, gitService
 
   beforeEach(async () => {
@@ -59,7 +68,7 @@ describe('PushPullViewModel', () => {
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
       const commitMessage = 'My Special Commit Message'
-      await parentGitService.commitBare(commitMessage)
+      await createEmptyCommit(parentRepositoryPath, commitMessage)
 
       const repo = await GitRepositoryAsync.Git.Repository.open(repositoryPath)
       let masterCommit = await repo.getMasterCommit()
@@ -112,8 +121,8 @@ describe('PushPullViewModel', () => {
     it('performs fetches automatically every `github.fetchIntervalInSeconds` seconds', async () => {
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
-      await parentGitService.commitBare('Commit 1')
-      await parentGitService.commitBare('Commit 2')
+      await createEmptyCommit(parentRepositoryPath, 'Commit 1')
+      await createEmptyCommit(parentRepositoryPath, 'Commit 2')
 
       atom.config.set('github.fetchIntervalInSeconds', 1)
       jasmine.Clock.tick(500)
@@ -121,7 +130,7 @@ describe('PushPullViewModel', () => {
       jasmine.Clock.tick(500)
       await until(() => viewModel.getBehindCount() === 2)
 
-      await parentGitService.commitBare('Commit 3')
+      await createEmptyCommit(parentRepositoryPath, 'Commit 3')
 
       atom.config.set('github.fetchIntervalInSeconds', 2)
       jasmine.Clock.tick(1000)
@@ -140,8 +149,8 @@ describe('PushPullViewModel', () => {
 
       const parentRepository = GitRepositoryAsync.open(parentRepositoryPath)
       const parentGitService = new GitService(parentRepository)
-      await parentGitService.commitBare('Commit 1')
-      await parentGitService.commitBare('Commit 2')
+      await createEmptyCommit(parentRepositoryPath, 'Commit 1')
+      await createEmptyCommit(parentRepositoryPath, 'Commit 2')
 
       await viewModel.fetch()
       expect(viewModel.getBehindCount()).toBe(2)
