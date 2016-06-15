@@ -27,7 +27,7 @@ describe('EditorReviewCommentsPositioner', () => {
         editor.setText('abc\ndef\nghi')
         reviewCommentPositioner.add('commit_id', 'abc\ndef\nghi', new Map().set(1, {row: 1, diff_hunk: '+abc\n+def'}))
         expect(addCallback.callCount).toBe(1)
-        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[1, 0], [1, 3]])
+        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[1, 0], [2, 0]])
       })
     })
 
@@ -36,7 +36,7 @@ describe('EditorReviewCommentsPositioner', () => {
         editor.setText('def\nghi\nABC\nDEF\nlmn\nopq\nrst')
         reviewCommentPositioner.add('commit_id', 'abc\ndef\nghi\nlmn\nopq\nrst', new Map().set(1, {row: 3, diff_hunk: '+abc\n+def\n+ghi\n+lmn'}))
         expect(addCallback.callCount).toBe(1)
-        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[4, 0], [4, 3]])
+        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[4, 0], [5, 0]])
       })
     })
 
@@ -57,7 +57,7 @@ describe('EditorReviewCommentsPositioner', () => {
         editor.getBuffer().insert([7, 0], 'lmn\n')
         reviewCommentPositioner.refreshOutdated()
         expect(addCallback.callCount).toBe(1)
-        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[7, 0], [7, 3]])
+        expect(addCallback.argsForCall[0][0].marker.getBufferRange()).toEqual([[7, 0], [8, 0]])
       })
     })
   })
@@ -65,16 +65,12 @@ describe('EditorReviewCommentsPositioner', () => {
   describe('when comments are invalidated', () => {
     describe('when comment line is deleted', () => {
       it('calls ::onDidInvalidateComment callback with comment id', () => {
-        const addCallback = jasmine.createSpy()
-        reviewCommentPositioner.onDidAddComment(addCallback)
-        const invalidateCallback = jasmine.createSpy()
-        reviewCommentPositioner.onDidInvalidateComment(invalidateCallback)
-
         editor.setText('abc\ndef\nghi')
         reviewCommentPositioner.add('commit_id', 'abc\ndef\nghi', new Map().set(1, {row: 1, diff_hunk: '+abc\n+def'}))
         expect(addCallback.callCount).toBe(1)
 
         editor.getBuffer().deleteRow(1)
+        reviewCommentPositioner.refreshOutdated()
         expect(invalidateCallback.callCount).toBe(1)
         expect(invalidateCallback.argsForCall[0][0]).toBe(1)
       })
@@ -92,6 +88,7 @@ describe('EditorReviewCommentsPositioner', () => {
         expect(addCallback.callCount).toBe(1)
 
         editor.getBuffer().insert([1, 1], 'a')
+        reviewCommentPositioner.refreshOutdated()
         expect(invalidateCallback.callCount).toBe(1)
         expect(invalidateCallback.argsForCall[0][0]).toBe(1)
       })
@@ -105,6 +102,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.getBuffer().insert([1, 3], '\n')
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
@@ -116,6 +114,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.getBuffer().delete([[1, 3], [2, 0]])
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
@@ -127,6 +126,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.getBuffer().insert([1, 0], '\n')
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
@@ -138,6 +138,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.getBuffer().delete([[1, 0], [2, 0]])
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
@@ -148,8 +149,13 @@ describe('EditorReviewCommentsPositioner', () => {
           reviewCommentPositioner.add('commit_id', 'abc\ndef\nghi', new Map().set(1, {row: 2, diff_hunk: '+abc\n+def'}))
           expect(addCallback.callCount).toBe(1)
 
-          editor.setTextInBufferRange([[1, 0], [1, 3]], 'def')
+          editor.setTextInBufferRange([[2, 1], [2, 2]], 'h')
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
+
+          editor.setTextInBufferRange([[2, 1], [2, 2]], 'X')
+          reviewCommentPositioner.refreshOutdated()
+          expect(invalidateCallback.callCount).toBe(1)
         })
       })
 
@@ -160,6 +166,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.setTextInBufferRange([[1, 0], [1, 3]], '  \n  def')
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
@@ -171,6 +178,7 @@ describe('EditorReviewCommentsPositioner', () => {
           expect(addCallback.callCount).toBe(1)
 
           editor.setTextInBufferRange([[1, 1], [2, 1]], '')
+          reviewCommentPositioner.refreshOutdated()
           expect(invalidateCallback.callCount).toBe(0)
         })
       })
