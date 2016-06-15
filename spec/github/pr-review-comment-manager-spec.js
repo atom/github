@@ -6,13 +6,14 @@ import EditorReviewCommentRenderer from '../../lib/github/review-comment/editor-
 import path from 'path'
 
 describe('PrReviewCommentManager', () => {
-  let [prCommentManager, comments, filePath, absFilePath, wait] = []
+  let [prCommentManager, comments, filePath, absFilePath, wait, rootPath] = []
   beforeEach(() => {
     wait = atom.config.get('github.maxCacheAge') || 1000 * 60
 
     comments = require('../fixtures/comments.json')
-    filePath = 'file.txt'
-    absFilePath = path.resolve(__dirname, '..', 'fixtures', filePath)
+    filePath = 'README.md'
+    rootPath = path.resolve(__dirname, '..', 'fixtures', 'test-repo')
+    absFilePath = path.resolve(rootPath, filePath)
     const gitHubModel = {
       async getBufferComments () {
         return comments
@@ -28,16 +29,24 @@ describe('PrReviewCommentManager', () => {
         }
       }
     }
-    prCommentManager = new PrReviewCommentManager(gitHubModel)
+    prCommentManager = new PrReviewCommentManager(gitHubModel, rootPath)
   })
 
   describe('::fetchComments', () => {
-    it('gets called whenever there is a new active pane item', async () => {
+    it('gets called whenever there is a new valid active pane item', async () => {
+      spyOn(prCommentManager, 'fetchComments')
+      await openAndActivated(absFilePath)
+      expect(prCommentManager.fetchComments.callCount).toBe(1)
+      await openAndActivated(path.resolve(__dirname, '..', 'fixtures', 'test-repo', 'glados.txt'))
+      expect(prCommentManager.fetchComments.callCount).toBe(2)
+    })
+
+    it('does not get called when a new active pane item is not part of the root path', async () => {
       spyOn(prCommentManager, 'fetchComments')
       await openAndActivated(absFilePath)
       expect(prCommentManager.fetchComments.callCount).toBe(1)
       await openAndActivated(path.resolve(__dirname, '..', 'fixtures', 'comments.json'))
-      expect(prCommentManager.fetchComments.callCount).toBe(2)
+      expect(prCommentManager.fetchComments.callCount).toBe(1)
     })
 
     it('is called periodically after a certain wait time', async () => {
@@ -59,7 +68,7 @@ describe('PrReviewCommentManager', () => {
       await until(() => prCommentManager.fetching === false)
 
       advanceClock(wait / 2)
-      await openAndActivated(path.resolve(__dirname, '..', 'fixtures', 'comments.json'))
+      await openAndActivated(path.resolve(__dirname, '..', 'fixtures', 'test-repo', 'glados.txt'))
       expect(prCommentManager.fetchComments.callCount).toBe(2)
 
       advanceClock(wait - 1)
