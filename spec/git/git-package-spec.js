@@ -27,24 +27,35 @@ function commit (fileListViewModel, msg) {
 
 describe('GitPackage', function () {
   let gitPackage
-  let repo
 
   beforeEach(async () => {
-    jasmine.useRealClock()
-
-    repo = copyRepository()
-    atom.project.setPaths([repo])
-
     gitPackage = new GitPackage()
-
-    await atom.packages.activatePackage('git')
+    await atom.packages.activatePackage('github')
   })
 
   afterEach(() => {
     gitPackage.deactivate()
   })
 
+  ffit('updates the view model of the FileListComponent panel item when the active pane item changes to a different project directory', async () => {
+    const repoPath1 = copyRepository('test-repo')
+    const repoPath2 = copyRepository('dummy-atom')
+    atom.project.setPaths([repoPath1, repoPath2])
+
+    await atom.workspace.open(path.join(repoPath1, 'README.md'))
+    await gitPackage.openChangesPanel()
+    expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath1 + '/')
+
+    await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
+    expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
+  })
+
   xit('closes open diffs of files that were committed', async () => {
+    jasmine.useRealClock()
+
+    repo = copyRepository()
+    atom.project.setPaths([repo])
+
     fs.writeFileSync(path.join(repo, 'README.md'), 'hey diddle diddle')
 
     await gitPackage.update()
