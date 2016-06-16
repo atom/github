@@ -109,6 +109,7 @@ declare class Workspace {
 
   getActivePaneItem(): Object;
   onDidChangeActivePaneItem(fn: (item: Object) => any): Disposable;
+  observeActivePaneItem(fn: (item: Object) => any): Disposable;
 
   buildTextEditor(params: Object): TextEditor;
 
@@ -136,6 +137,7 @@ import {Directory} from 'pathwatcher'
 declare class Project {
   relativizePath(p: string): string;
   getPaths(): Array<string>;
+  setPaths(paths: Array<string>): void;
 
   getBuffers(): Array<TextBuffer>;
   onDidAddBuffer(fn: (buffer: TextBuffer) => void): Disposable;
