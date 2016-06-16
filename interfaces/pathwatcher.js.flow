@@ -5,5 +5,9 @@ declare module 'pathwatcher' {
     close (): void;
   }
 
+  declare class Directory {
+    constructor (path: string): this;
+  }
+
   declare function watch (path: string, fn: (event: WatchEvent, path: string) => void): PathWatcher;
 }

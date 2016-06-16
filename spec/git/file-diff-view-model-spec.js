@@ -10,11 +10,12 @@ import {copyRepository} from './git-helpers'
 
 async function createDiffViewModel (gitService, fileName) {
   const gitStore = new GitStore(gitService)
+  const fakeGitHubService = {getToken: () => null}
   await gitStore.loadFromGit()
   const fileDiff = gitStore.getFileFromPathName(fileName)
   expect(fileDiff).toBeDefined()
 
-  return new FileDiffViewModel(fileDiff)
+  return new FileDiffViewModel(fileDiff, fakeGitHubService)
 }
 
 describe('FileDiffViewModel', function () {

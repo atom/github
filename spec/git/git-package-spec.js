@@ -37,16 +37,18 @@ describe('GitPackage', function () {
     gitPackage.deactivate()
   })
 
-  ffit('updates the view model of the FileListComponent panel item when the active pane item changes to a different project directory', async () => {
+  it('updates the view model of the FileListComponent panel item when the active pane item changes to a different project directory', async () => {
     const repoPath1 = copyRepository('test-repo')
     const repoPath2 = copyRepository('dummy-atom')
     atom.project.setPaths([repoPath1, repoPath2])
 
-    await atom.workspace.open(path.join(repoPath1, 'README.md'))
+    const item1 = await atom.workspace.open(path.join(repoPath1, 'README.md'))
+    await gitPackage.didChangeActivePaneItem(item1)
     await gitPackage.openChangesPanel()
     expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath1 + '/')
 
-    await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
+    const item2 = await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
+    await gitPackage.didChangeActivePaneItem(item2)
     expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
   })
 

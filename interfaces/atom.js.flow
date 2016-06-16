@@ -27,6 +27,7 @@ declare module 'atom' {
     openedPath: string;
     project: ?Project;
 
+    getWorkingDirectory(): Promise<string>;
     getPath(): Promise<string>;
     getShortHead(): Promise<string>;
     getAheadBehindCount(branchName: string, _path?: string): Promise<{ahead: number, behind: number}>;
@@ -106,7 +107,8 @@ declare class Workspace {
 
   getPanes(): Array<Pane>;
 
-  onDidChangeActivePaneItem(fn: (item: Object) => void): Disposable;
+  getActivePaneItem(): Object;
+  onDidChangeActivePaneItem(fn: (item: Object) => any): Disposable;
 
   buildTextEditor(params: Object): TextEditor;
 
@@ -129,6 +131,8 @@ declare class DeserializerManager {
   add<StateType, ObjectType>(info: {name: string, deserialize: (state: StateType) => ObjectType}): Disposable;
 }
 
+import {Directory} from 'pathwatcher'
+
 declare class Project {
   relativizePath(p: string): string;
   getPaths(): Array<string>;
@@ -137,6 +141,7 @@ declare class Project {
   onDidAddBuffer(fn: (buffer: TextBuffer) => void): Disposable;
 
   getRepositories(): Array<GitRepository>;
+  repositoryForDirectory(directory: Directory): Promise<GitRepository>;
 }
 
 declare class ViewRegistry {

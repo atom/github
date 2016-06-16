@@ -54,7 +54,8 @@ describe('PushPullViewModel', () => {
 
     await gitStore.loadFromGit()
 
-    viewModel = new PushPullViewModel(gitStore)
+    const fakeGitHubService = {getToken: () => null}
+    viewModel = new PushPullViewModel(gitStore, fakeGitHubService)
     await viewModel.initialize()
   })
 
