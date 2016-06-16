@@ -28,9 +28,9 @@ function commit (fileListViewModel, msg) {
 describe('GitPackage', function () {
   let gitPackage
 
-  beforeEach(async () => {
+  beforeEach(() => {
     gitPackage = new GitPackage()
-    await atom.packages.activatePackage('github')
+    gitPackage.activate()
   })
 
   afterEach(() => {
