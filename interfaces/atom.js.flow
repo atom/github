@@ -106,6 +106,8 @@ declare class Workspace {
 
   getPanes(): Array<Pane>;
 
+  onDidChangeActivePaneItem(fn: (item: Object) => void): Disposable;
+
   buildTextEditor(params: Object): TextEditor;
 
   addRightPanel<T>(options: {item: T}): Panel<T>;
