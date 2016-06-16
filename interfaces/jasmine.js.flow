@@ -1,0 +1,15 @@
+type TestFunction = (description: string, fn: Function) => void;
+
+declare var describe: TestFunction;
+declare var fdescribe: TestFunction;
+declare var ffdescribe: TestFunction;
+declare var fffdescribe: TestFunction;
+
+declare var it: TestFunction;
+declare var fit: TestFunction;
+declare var ffit: TestFunction;
+declare var fffit: TestFunction;
+
+declare var expect: any;
+
+declare var until: (fn: Function, description: ?string) => Promise;
