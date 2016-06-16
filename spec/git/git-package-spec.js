@@ -52,6 +52,21 @@ describe('GitPackage', function () {
     expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
   })
 
+  it('updates the view model of the GitStatusBarComponent when the active pane item changes to a different project directory', async () => {
+    const repoPath1 = copyRepository('test-repo')
+    const repoPath2 = copyRepository('dummy-atom')
+    atom.project.setPaths([repoPath1, repoPath2])
+
+    const item1 = await atom.workspace.open(path.join(repoPath1, 'README.md'))
+    await gitPackage.didChangeActivePaneItem(item1)
+    await gitPackage.openChangesPanel()
+    expect(await gitPackage.statusBarComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath1 + '/')
+
+    const item2 = await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
+    await gitPackage.didChangeActivePaneItem(item2)
+    expect(await gitPackage.statusBarComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
+  })
+
   xit('closes open diffs of files that were committed', async () => {
     jasmine.useRealClock()
 

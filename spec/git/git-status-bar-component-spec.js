@@ -22,8 +22,8 @@ describe('GitStatusBarComponent', () => {
 
     await gitStore.loadFromGit()
 
-    const viewModel = new GitStatusBarViewModel(gitStore)
-    component = new GitStatusBarComponent(viewModel, () => { return })
+    const statusBarViewModel = new GitStatusBarViewModel(gitStore)
+    component = new GitStatusBarComponent({statusBarViewModel}, () => { return })
 
     element = component.element
     jasmine.attachToDOM(component.element)
