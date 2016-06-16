@@ -1,9 +1,0 @@
-declare module 'etch' {
-  declare class ComponentWidget {
-
-  }
-
-  declare function initialize(component: any): void;
-  declare function update(component: any): Promise<void>;
-  declare function destroy(component: any): Promise<void>;
-}

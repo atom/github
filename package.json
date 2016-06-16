@@ -2,7 +2,7 @@
   "name": "github",
   "main": "./lib/main",
   "version": "0.0.0",
-  "description": "Git things",
+  "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
   "engines": {
@@ -15,20 +15,6 @@
     "stop": "./node_modules/.bin/flow stop"
   },
   "dependencies": {
-    "classnames": "^2.2.3",
-    "compare-sets": "^1.0.1",
-    "diff": "2.2.2",
-    "dom-listener": "0.1.2",
-    "etch": "^0.6.0",
-    "etch-stateless": "^1.0.0",
-    "keytar": "3.0.2",
-    "marked": "^0.3.4",
-    "marker-index": "4.0.0",
-    "moment": "2.12.0",
-    "nan": "2.x",
-    "object-hash": "^1.1.2",
-    "parse-link-header": "^0.4.1",
-    "pathwatcher": "6.7.0"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.4",
@@ -40,45 +26,6 @@
     "eslint-plugin-promise": "^1.1.0",
     "eslint-plugin-react": "^5.0.1",
     "eslint-plugin-standard": "^1.3.2",
-    "express": "4.13.4",
-    "flow-bin": "^0.22.0",
-    "fs-plus": "^2.8.1",
-    "github-oauth": "0.2.2",
-    "temp": "^0.8.3"
-  },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        "^1.0.0": "consumeStatusBar"
-      }
-    },
-    "github": {
-      "versions": {
-        "^0.0.1": "consumeGitHub"
-      }
-    }
-  },
-  "providedServices": {
-    "git-push": {
-      "description": "A function which can be called to push the current branch.",
-      "versions": {
-        "0.0.1": "provideGitPush"
-      }
-    },
-    "github": {
-      "versions": {
-        "0.0.1": "provideGitHub"
-      }
-    }
-  },
-  "configSchema": {
-    "fetchIntervalInSeconds": {
-      "title": "Fetch Interval (in seconds)",
-      "description": "Specify how frequently this package should automatically fetch remotes. (0 = never)",
-      "type": "integer",
-      "default": 120,
-      "minimum": 0,
-      "order": 1
-    }
+    "flow-bin": "^0.22.0"
   }
 }
