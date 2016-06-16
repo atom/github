@@ -22,6 +22,7 @@ describe('Git Main Module', function () {
     // TODO/FML: not sure how to properly deal with this, but without this the
     // package will not be loaded next time.
     window.localStorage.removeItem(githubPackage.getCanDeferMainModuleRequireStorageKey())
+    atom.packages.deactivatePackage('github')
   })
 
   it('opens the diff for the open file when "git:open-file-diff" is triggered', async function () {
