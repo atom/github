@@ -2,6 +2,7 @@
 
 import path from 'path'
 import fs from 'fs-plus'
+import {GitRepository} from 'atom'
 import DiffViewModel from '../../lib/git/diff/diff-view-model'
 import GitPackage from '../../lib/git/git-package'
 import {copyRepository} from './git-helpers'
@@ -37,34 +38,113 @@ describe('GitPackage', function () {
     gitPackage.deactivate()
   })
 
-  it('updates the view model of the FileListComponent panel item when the active pane item changes to a different project directory', async () => {
-    const repoPath1 = copyRepository('test-repo')
-    const repoPath2 = copyRepository('dummy-atom')
-    atom.project.setPaths([repoPath1, repoPath2])
+  describe('setActivePaneItem', () => {
+    beforeEach(() => {
+      spyOn(gitPackage, 'setActiveGitRepository').andCallThrough()
+    })
 
-    const item1 = await atom.workspace.open(path.join(repoPath1, 'README.md'))
-    await gitPackage.didChangeActivePaneItem(item1)
-    await gitPackage.openChangesPanel()
-    expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath1 + '/')
+    describe('when the active pane item is set to null', () => {
+      it('assigns the active repository based on the first repository in the project unless an active repository is already assigned', async () => {
+        const repoPath = copyRepository('test-repo')
+        atom.project.setPaths([repoPath])
+        await gitPackage.setActivePaneItem(null)
+        expect(gitPackage.setActiveGitRepository).toHaveBeenCalledWith(atom.project.getRepositories()[0])
 
-    const item2 = await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
-    await gitPackage.didChangeActivePaneItem(item2)
-    expect(await gitPackage.fileListComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
+        gitPackage.setActiveGitRepository.reset()
+        await gitPackage.setActivePaneItem(null)
+        expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+      })
+
+      it('does not assign the active repository if there are no repositories in the project', async () => {
+        atom.project.setPaths([])
+        await gitPackage.setActivePaneItem(null)
+        expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('when the active pane item is set to an item with a getPath method', () => {
+      describe('if a repository corresponding to the path of the item exists in the project', () => {
+        it('assigns the active repository to the repository corresponding to the given path if it differs from the current active repository', async () => {
+          const repoPath1 = copyRepository('test-repo')
+          const repoPath2 = copyRepository('dummy-atom')
+          atom.project.setPaths([repoPath1, repoPath2])
+          await gitPackage.setActivePaneItem({getPath: () => repoPath2 + '/foo.txt'})
+          expect(gitPackage.setActiveGitRepository).toHaveBeenCalledWith(atom.project.getRepositories()[1])
+
+          await gitPackage.setActivePaneItem({getPath: () => repoPath1 + '/foo.txt'})
+          expect(gitPackage.setActiveGitRepository).toHaveBeenCalledWith(atom.project.getRepositories()[0])
+
+          gitPackage.setActiveGitRepository.reset()
+          await gitPackage.setActivePaneItem({getPath: () => repoPath1 + '/foo.txt'})
+          expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+        })
+      })
+
+      describe('if a repository corresponding to the path of the item does not exist in the project', () => {
+        it('assigns the active repository based on the first repository in the project unless an active repository already exists', async () => {
+          const repoPath1 = copyRepository('test-repo')
+          const repoPath2 = copyRepository('dummy-atom')
+          atom.project.setPaths([repoPath1, repoPath2])
+          await gitPackage.setActivePaneItem({getPath: () => '/somewhere/else/on/disk'})
+          expect(gitPackage.setActiveGitRepository).toHaveBeenCalledWith(atom.project.getRepositories()[0])
+
+          gitPackage.setActiveGitRepository.reset()
+          await gitPackage.setActivePaneItem({getPath: () => '/somewhere/else/else/on/disk'})
+          expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+        })
+
+        it('does not assign the active repository if there are no repositories in the project', async () => {
+          atom.project.setPaths([])
+          await gitPackage.setActivePaneItem({getPath: () => '/somewhere/on/disk'})
+          expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+        })
+      })
+    })
+
+    describe('when the active pane item is set to an item with no getPath method', () => {
+      it('assigns the active repository based on the first repository in the project unless an active repository already exists', async () => {
+        const repoPath1 = copyRepository('test-repo')
+        const repoPath2 = copyRepository('dummy-atom')
+        atom.project.setPaths([repoPath1, repoPath2])
+        await gitPackage.setActivePaneItem({})
+        expect(gitPackage.setActiveGitRepository).toHaveBeenCalledWith(atom.project.getRepositories()[0])
+
+        gitPackage.setActiveGitRepository.reset()
+        await gitPackage.setActivePaneItem({})
+        expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+      })
+
+      it('does not assign the active repository if there are no repositories in the project', async () => {
+        atom.project.setPaths([])
+        await gitPackage.setActivePaneItem({})
+        expect(gitPackage.setActiveGitRepository).not.toHaveBeenCalled()
+      })
+    })
   })
 
-  it('updates the view model of the GitStatusBarComponent when the active pane item changes to a different project directory', async () => {
-    const repoPath1 = copyRepository('test-repo')
-    const repoPath2 = copyRepository('dummy-atom')
-    atom.project.setPaths([repoPath1, repoPath2])
+  describe('setActiveGitRepository', () => {
+    ffit('updates the view model of all components to one backed by the given repository', async () => {
+      const repo1 = GitRepository.open(copyRepository('test-repo'))
+      const repo2 = GitRepository.open(copyRepository('dummy-atom'))
 
-    const item1 = await atom.workspace.open(path.join(repoPath1, 'README.md'))
-    await gitPackage.didChangeActivePaneItem(item1)
-    await gitPackage.openChangesPanel()
-    expect(await gitPackage.statusBarComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath1 + '/')
+      await gitPackage.setActiveGitRepository(repo1)
+      const gitStoreForRepo1 = gitPackage.fileListComponent.getViewModel().gitStore
+      expect(await gitPackage.fileListComponent.getViewModel().gitStore.gitService.gitRepo).toBe(repo1.async)
+      expect(await gitPackage.statusBarComponent.getViewModel().gitStore.gitService.gitRepo).toBe(repo1.async)
 
-    const item2 = await atom.workspace.open(path.join(repoPath2, 'src', 'config.coffee'))
-    await gitPackage.didChangeActivePaneItem(item2)
-    expect(await gitPackage.statusBarComponent.getViewModel().getGitStore().getWorkingDirectory()).toBe(repoPath2 + '/')
+      await gitPackage.setActiveGitRepository(repo2)
+      expect(await gitPackage.fileListComponent.getViewModel().gitStore.gitService.gitRepo).toBe(repo2.async)
+      expect(await gitPackage.statusBarComponent.getViewModel().gitStore.gitService.gitRepo).toBe(repo2.async)
+
+      // make sure we maintain a single git store per underlying repository
+      await gitPackage.setActiveGitRepository(repo1)
+      expect(gitPackage.fileListComponent.getViewModel().gitStore).toBe(gitStoreForRepo1)
+      expect(gitPackage.statusBarComponent.getViewModel().gitStore).toBe(gitStoreForRepo1)
+    })
+
+    it('destroys git-dependent components if the active repository is null', () => {
+
+    })
   })
 
   xit('closes open diffs of files that were committed', async () => {
