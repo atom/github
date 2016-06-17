@@ -46,10 +46,6 @@ describe('GithubPackage', () => {
 
       project.removePath(workdirPath2)
       await githubPackage.updateActiveRepository()
-      assert.isNull(githubPackage.getActiveRepository())
-
-      await workspace.open(path.join(workdirPath1, 'a.txt'))
-      await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
 
       project.removePath(workdirPath1)
