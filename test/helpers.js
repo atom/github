@@ -15,8 +15,8 @@ export function copyRepositoryDir (variant = 1) {
 }
 
 export async function buildRepository (workingDirPath) {
-  let atomRepository = GitRepositoryAsync.open(workingDirPath)
-  let rawRepository = await atomRepository.repo.repoPromise
+  const atomRepository = GitRepositoryAsync.open(workingDirPath)
+  const rawRepository = await atomRepository.repo.repoPromise
   return new Repository(rawRepository)
 }
 
