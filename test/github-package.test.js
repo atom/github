@@ -53,4 +53,33 @@ describe('GithubPackage', () => {
       assert.isNull(githubPackage.getActiveRepository())
     })
   })
+
+  describe('destroyRepositoriesForRemovedProjectFolders', () => {
+    it('destroys all the repositories associated with the removed project folders', async () => {
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      const workdirPath3 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2, workdirPath3])
+
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
+      await githubPackage.updateActiveRepository()
+      const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1)
+
+      await workspace.open(path.join(workdirPath2, 'a.txt'))
+      await githubPackage.updateActiveRepository()
+      const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2)
+
+      await workspace.open(path.join(workdirPath3, 'a.txt'))
+      await githubPackage.updateActiveRepository()
+      const repository3 = await githubPackage.repositoryForWorkdirPath(workdirPath3)
+
+      project.removePath(workdirPath1)
+      project.removePath(workdirPath3)
+      githubPackage.destroyRepositoriesForRemovedProjectFolders()
+
+      assert.isUndefined(await githubPackage.repositoryForProjectDirectory(repository1.getWorkingDirectory()))
+      assert.isUndefined(await githubPackage.repositoryForProjectDirectory(repository3.getWorkingDirectory()))
+      assert.equal(await githubPackage.repositoryForProjectDirectory(repository2.getWorkingDirectory()), repository2)
+    })
+  })
 })
