@@ -2,7 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import {copyRepositoryDir, buildRepository} from './helpers'
+import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from './helpers'
 import Repository from '../lib/repository'
 
 describe('StagingArea', () => {
@@ -19,7 +19,8 @@ describe('StagingArea', () => {
       assert.equal(stage.getChangedFiles().length, 0)
 
       await stage.refresh()
-      assert.deepEqual(stage.getChangedFiles(), [
+
+      assertDeepPropertyVals(stage.getChangedFiles(), [
         {
           oldName: 'a.txt',
           newName: 'a.txt',
@@ -70,7 +71,7 @@ describe('StagingArea', () => {
       fs.unlinkSync(path.join(workingDirPath, 'e.txt'))
       fs.unlinkSync(path.join(workingDirPath, 'd.txt'))
       await stage.refresh()
-      assert.deepEqual(stage.getChangedFiles(), [
+      assertDeepPropertyVals(stage.getChangedFiles(), [
         {
           oldName: 'a.txt',
           newName: 'a.txt',

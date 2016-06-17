@@ -19,3 +19,20 @@ export async function buildRepository (workingDirPath) {
   let rawRepository = await atomRepository.repo.repoPromise
   return new Repository(rawRepository)
 }
+
+export function assertDeepPropertyVals (actual, expected) {
+  function extractObjectSubset (actual, expected) {
+    if (actual !== Object(actual)) return actual
+
+    let actualSubset = Array.isArray(actual) ? [] : {}
+    for (let key of Object.keys(expected)) {
+      if (actual.hasOwnProperty(key)) {
+        actualSubset[key] = extractObjectSubset(actual[key], expected[key])
+      }
+    }
+
+    return actualSubset
+  }
+
+  assert.deepEqual(extractObjectSubset(actual, expected), expected)
+}
