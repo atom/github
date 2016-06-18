@@ -7,7 +7,6 @@ notifications:
 
 script:
   - ./script/cibuild
-  - npm run check
 
 branches:
   only:
