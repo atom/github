@@ -18,6 +18,36 @@ describe('GithubPackage', () => {
     atomEnv.destroy()
   })
 
+  describe('the "did-change" event', () => {
+    it('triggers when the project paths change', async () => {
+      let eventCount = 0
+      githubPackage.onDidChange(() => eventCount++)
+
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2])
+
+      await githubPackage.didChangeProjectPaths()
+      assert.equal(eventCount, 1)
+      await githubPackage.didChangeProjectPaths()
+      assert.equal(eventCount, 2)
+    })
+
+    it('triggers when the active pane item changes', async () => {
+      let eventCount = 0
+      githubPackage.onDidChange(() => eventCount++)
+
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2])
+
+      await githubPackage.didChangeActivePaneItem()
+      assert.equal(eventCount, 1)
+      await githubPackage.didChangeActivePaneItem()
+      assert.equal(eventCount, 2)
+    })
+  })
+
   describe('updateActiveRepository', () => {
     it('updates the active repository based on the most recent active item with a path unless its directory has been removed from the project', async () => {
       const workdirPath1 = copyRepositoryDir()
