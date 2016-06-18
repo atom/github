@@ -18,6 +18,18 @@ describe('GithubPackage', () => {
     atomEnv.destroy()
   })
 
+  describe('when the package is activated', () => {
+    it('updates the active repository', async () => {
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2])
+
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
+      await githubPackage.activate()
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+    })
+  })
+
   describe('the "did-change" event', () => {
     it('triggers when the project paths change', async () => {
       let eventCount = 0
