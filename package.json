@@ -12,11 +12,12 @@
     "test": "apm test",
     "lint": "eslint spec lib"
   },
-  "atomTestRunner": "atom-mocha-test-runner",
+  "atomTestRunner": "./test/runner",
   "dependencies": {
     "etch": "0.6.0"
   },
   "devDependencies": {
+    "atom-mocha-test-runner": "github:binarymuse/atom-mocha-test-runner#5d863460edca74e5b63469974a947e1372a97caf",
     "babel-eslint": "^6.0.4",
     "chai": "^3.5.0",
     "eslint": "2.10.2",
