@@ -23,9 +23,9 @@ describe('CommitPanelComponent', () => {
     assert.equal(component.element.textContent, 'In order to use git features, please open a file that belongs to a git repository.')
 
     const repository1 = new FakeRepository
-    repository1.getStagingArea().addChangedFile({status: 'added', newName: 'created-file'})
+    repository1.getStagingArea().addChangedFile({status: 'added', newName: 'added-file'})
     component.update({repository: repository1})
-    assert.equal(component.element.querySelector('.git-ChangedFile.added').textContent, 'created-file')
+    assert.equal(component.element.querySelector('.git-ChangedFile.added').textContent, 'added-file')
 
     const repository2 = new FakeRepository
     repository2.getStagingArea().addChangedFile({status: 'removed', newName: 'removed-file'})
