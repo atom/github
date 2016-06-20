@@ -133,8 +133,8 @@ describe('GithubPackage', () => {
       project.removePath(workdirPath3)
       githubPackage.destroyRepositoriesForRemovedProjectFolders()
 
-      assert.isUndefined(await githubPackage.repositoryForProjectDirectory(repository1.getWorkingDirectory()))
-      assert.isUndefined(await githubPackage.repositoryForProjectDirectory(repository3.getWorkingDirectory()))
+      assert.notEqual(await githubPackage.repositoryForProjectDirectory(repository1.getWorkingDirectory()), repository1)
+      assert.notEqual(await githubPackage.repositoryForProjectDirectory(repository3.getWorkingDirectory()), repository3)
       assert.equal(await githubPackage.repositoryForProjectDirectory(repository2.getWorkingDirectory()), repository2)
     })
   })
