@@ -2,7 +2,6 @@
 
 import etch from 'etch'
 
-import FakeStagingArea from './fake-staging-area'
 import StagingAreaComponent from '../lib/staging-area-component'
 import SynchronousScheduler from './etch-synchronous-scheduler'
 
