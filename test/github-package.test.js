@@ -2,6 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import temp from 'temp'
 import GithubPackage from '../lib/github-package'
 import {copyRepositoryDir} from './helpers'
 
@@ -71,7 +72,9 @@ describe('GithubPackage', () => {
     it('updates the active repository based on the most recent active item with a path unless its directory has been removed from the project', async () => {
       const workdirPath1 = copyRepositoryDir()
       const workdirPath2 = copyRepositoryDir()
-      project.setPaths([workdirPath1, workdirPath2])
+      const nonRepositoryPath = temp.mkdirSync()
+      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'))
+      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath])
 
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await workspace.open(path.join(workdirPath2, 'b.txt'))
@@ -98,6 +101,10 @@ describe('GithubPackage', () => {
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
 
       project.removePath(workdirPath1)
+      await githubPackage.updateActiveRepository()
+      assert.isNull(githubPackage.getActiveRepository())
+
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'))
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
     })
