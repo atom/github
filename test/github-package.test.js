@@ -34,8 +34,8 @@ describe('GithubPackage', () => {
     })
   })
 
-  describe('the "did-change" event', () => {
-    it('triggers when the project paths change', async () => {
+  describe('when project paths change', () => {
+    it('triggers a "did-change" event', async () => {
       let eventCount = 0
       githubPackage.onDidChange(() => eventCount++)
 
@@ -49,6 +49,21 @@ describe('GithubPackage', () => {
       assert.equal(eventCount, 2)
     })
 
+    it('updates the active repository and refreshes its staging area', async () => {
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2])
+      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
+      fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8')
+
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
+      await githubPackage.didChangeProjectPaths()
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+      assert.equal(githubPackage.getActiveRepository().getStagingArea().getChangedFiles().length, 2)
+    })
+  })
+
+  describe('the "did-change" event', () => {
     it('triggers when the active pane item changes', async () => {
       let eventCount = 0
       githubPackage.onDidChange(() => eventCount++)
