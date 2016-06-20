@@ -9,6 +9,7 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "scripts": {
+    "test": "apm test",
     "lint": "eslint spec lib"
   },
   "atomTestRunner": "atom-mocha-test-runner",
