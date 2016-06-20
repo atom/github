@@ -31,24 +31,11 @@ describe('GithubPackage', () => {
       await githubPackage.activate()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.getActiveRepository().getStagingArea().getChangedFiles().length, 2)
+      assert.equal(githubPackage.commitPanelComponent.repository, githubPackage.getActiveRepository())
     })
   })
 
   describe('when project paths change', () => {
-    it('triggers a "did-change" event', async () => {
-      let eventCount = 0
-      githubPackage.onDidChange(() => eventCount++)
-
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
-      project.setPaths([workdirPath1, workdirPath2])
-
-      await githubPackage.didChangeProjectPaths()
-      assert.equal(eventCount, 1)
-      await githubPackage.didChangeProjectPaths()
-      assert.equal(eventCount, 2)
-    })
-
     it('updates the active repository and refreshes its staging area', async () => {
       const workdirPath1 = copyRepositoryDir()
       const workdirPath2 = copyRepositoryDir()
@@ -60,24 +47,11 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.getActiveRepository().getStagingArea().getChangedFiles().length, 2)
+      assert.equal(githubPackage.commitPanelComponent.repository, githubPackage.getActiveRepository())
     })
   })
 
   describe('when the active pane item changes', () => {
-    it('triggers a "did-change" event', async () => {
-      let eventCount = 0
-      githubPackage.onDidChange(() => eventCount++)
-
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
-      project.setPaths([workdirPath1, workdirPath2])
-
-      await githubPackage.didChangeActivePaneItem()
-      assert.equal(eventCount, 1)
-      await githubPackage.didChangeActivePaneItem()
-      assert.equal(eventCount, 2)
-    })
-
     it('updates the active repository and refreshes its staging area', async () => {
       const workdirPath1 = copyRepositoryDir()
       const workdirPath2 = copyRepositoryDir()
@@ -89,6 +63,7 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.getActiveRepository().getStagingArea().getChangedFiles().length, 2)
+      assert.equal(githubPackage.commitPanelComponent.repository, githubPackage.getActiveRepository())
     })
   })
 
