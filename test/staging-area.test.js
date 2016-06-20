@@ -55,11 +55,11 @@ describe('StagingArea', () => {
         {
           oldName: 'b.txt',
           newName: 'b.txt',
-          status: 'deleted',
+          status: 'removed',
           hunks: [
             {
               lines: [
-                {status: 'deleted', text: 'bar', oldLineNumber: 1, newLineNumber: -1},
+                {status: 'removed', text: 'bar', oldLineNumber: 1, newLineNumber: -1},
               ]
             }
           ]
@@ -73,7 +73,7 @@ describe('StagingArea', () => {
         {
           oldName: 'e.txt',
           newName: 'e.txt',
-          status: 'created',
+          status: 'added',
           hunks: [
             {
               lines: [
@@ -106,11 +106,11 @@ describe('StagingArea', () => {
         {
           oldName: 'b.txt',
           newName: 'b.txt',
-          status: 'deleted',
+          status: 'removed',
           hunks: [
             {
               lines: [
-                {status: 'deleted', text: 'bar', oldLineNumber: 1, newLineNumber: -1},
+                {status: 'removed', text: 'bar', oldLineNumber: 1, newLineNumber: -1},
               ]
             }
           ]
@@ -118,11 +118,11 @@ describe('StagingArea', () => {
         {
           oldName: 'c.txt',
           newName: 'c.txt',
-          status: 'deleted',
+          status: 'removed',
           hunks: [
             {
               lines: [
-                {status: 'deleted', text: 'baz', oldLineNumber: 1, newLineNumber: -1},
+                {status: 'removed', text: 'baz', oldLineNumber: 1, newLineNumber: -1},
               ]
             }
           ]
