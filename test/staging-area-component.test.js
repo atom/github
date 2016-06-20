@@ -19,7 +19,7 @@ describe('StagingAreaComponent', () => {
   })
 
   describe('when the staging area is empty', () => {
-    it('renders a message telling that no files have been changed', () => {
+    it('renders a message informing the user that no files have been changed', () => {
       const component = new StagingAreaComponent({stagingArea: new FakeStagingArea()})
       assert.equal(component.element.textContent, 'No files were changed.')
     })
