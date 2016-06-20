@@ -14,8 +14,19 @@ export default class FakeStagingArea {
   }
 
   addChangedFile ({status, oldName, newName}) {
-    this.changedFiles.push(new ChangedFile(oldName, newName, status))
+    const file = new ChangedFile(oldName, newName, status)
+    this.changedFiles.push(file)
     this.emitter.emit('did-change')
+    return file
+  }
+
+  removeChangedFile (file) {
+    const index = this.changedFiles.indexOf(file)
+    if (index === -1) {
+      throw new Error('The file you want to remove does not exist.')
+    } else {
+      this.changedFiles.splice(index, 1)
+    }
   }
 
   getChangedFiles () {

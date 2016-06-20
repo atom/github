@@ -18,27 +18,30 @@ describe('StagingAreaComponent', () => {
     etch.setScheduler(previousScheduler)
   })
 
-  describe('when the staging area is empty', () => {
-    it('renders a message informing the user that no files have been changed', () => {
-      const component = new StagingAreaComponent({stagingArea: new FakeStagingArea()})
-      assert.equal(component.element.textContent, 'No files were changed.')
-    })
-  })
+  it('renders files that have changed unless the staging area is empty', () => {
+    const stagingArea1 = new FakeStagingArea()
+    const stagingArea2 = new FakeStagingArea()
+    const component = new StagingAreaComponent({stagingArea: stagingArea1})
+    assert.equal(component.element.textContent, 'No files were changed.')
 
-  describe('when the staging area is not empty', () => {
-    it('renders the changed file names along with their status', () => {
-      const stagingArea = new FakeStagingArea()
-      const component = new StagingAreaComponent({stagingArea})
+    component.update({stagingArea: stagingArea2})
 
-      stagingArea.addChangedFile({status: 'created', newName: 'file-1'})
-      stagingArea.addChangedFile({status: 'modified', newName: 'file-2'})
-      stagingArea.addChangedFile({status: 'deleted', newName: 'file-3'})
-      stagingArea.addChangedFile({status: 'renamed', oldName: 'file-4', newName: 'file-5'})
+    const file1 = stagingArea2.addChangedFile({status: 'created', newName: 'file-1'})
+    const file2 = stagingArea2.addChangedFile({status: 'modified', newName: 'file-2'})
+    const file3 = stagingArea2.addChangedFile({status: 'deleted', newName: 'file-3'})
+    const file4 = stagingArea2.addChangedFile({status: 'renamed', oldName: 'file-4', newName: 'file-4-renamed'})
 
-      assert.equal(component.element.querySelector('.changed-file.created').textContent, 'file-1')
-      assert.equal(component.element.querySelector('.changed-file.modified').textContent, 'file-2')
-      assert.equal(component.element.querySelector('.changed-file.deleted').textContent, 'file-3')
-      assert.equal(component.element.querySelector('.changed-file.renamed').textContent, 'file-4 -> file-5')
-    })
+    assert.equal(component.element.querySelector('.changed-file.created').textContent, 'file-1')
+    assert.equal(component.element.querySelector('.changed-file.modified').textContent, 'file-2')
+    assert.equal(component.element.querySelector('.changed-file.deleted').textContent, 'file-3')
+    assert.equal(component.element.querySelector('.changed-file.renamed').textContent, 'file-4 -> file-4-renamed')
+
+    stagingArea2.removeChangedFile(file1)
+    const file5 = stagingArea2.addChangedFile({status: 'created', newName: 'file-5'})
+
+    assert.equal(component.element.querySelector('.changed-file.modified').textContent, 'file-2')
+    assert.equal(component.element.querySelector('.changed-file.deleted').textContent, 'file-3')
+    assert.equal(component.element.querySelector('.changed-file.renamed').textContent, 'file-4 -> file-4-renamed')
+    assert.equal(component.element.querySelector('.changed-file.created').textContent, 'file-5')
   })
 })
