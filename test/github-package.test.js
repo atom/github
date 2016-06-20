@@ -1,5 +1,6 @@
 /** @babel */
 
+import fs from 'fs'
 import path from 'path'
 import GithubPackage from '../lib/github-package'
 import {copyRepositoryDir} from './helpers'
@@ -19,14 +20,17 @@ describe('GithubPackage', () => {
   })
 
   describe('when the package is activated', () => {
-    it('updates the active repository', async () => {
+    it('updates the active repository and refreshes its staging area', async () => {
       const workdirPath1 = copyRepositoryDir()
       const workdirPath2 = copyRepositoryDir()
       project.setPaths([workdirPath1, workdirPath2])
+      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
+      fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8')
 
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.activate()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+      assert.equal(githubPackage.getActiveRepository().getStagingArea().getChangedFiles().length, 2)
     })
   })
 
