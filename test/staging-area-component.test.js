@@ -33,14 +33,14 @@ describe('StagingAreaComponent', () => {
     assert.equal(component.element.querySelector('.git-ChangedFile.added').textContent, 'file-1')
     assert.equal(component.element.querySelector('.git-ChangedFile.modified').textContent, 'file-2')
     assert.equal(component.element.querySelector('.git-ChangedFile.removed').textContent, 'file-3')
-    assert.equal(component.element.querySelector('.git-ChangedFile.renamed').textContent, 'file-4 -> file-4-renamed')
+    assert.equal(component.element.querySelector('.git-ChangedFile.renamed').textContent, 'file-4 → file-4-renamed')
 
     stagingArea2.removeChangedFile(file1)
     const file5 = stagingArea2.addChangedFile({status: 'added', newName: 'file-5'})
 
     assert.equal(component.element.querySelector('.git-ChangedFile.modified').textContent, 'file-2')
     assert.equal(component.element.querySelector('.git-ChangedFile.removed').textContent, 'file-3')
-    assert.equal(component.element.querySelector('.git-ChangedFile.renamed').textContent, 'file-4 -> file-4-renamed')
+    assert.equal(component.element.querySelector('.git-ChangedFile.renamed').textContent, 'file-4 → file-4-renamed')
     assert.equal(component.element.querySelector('.git-ChangedFile.added').textContent, 'file-5')
   })
 })
