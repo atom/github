@@ -12,7 +12,9 @@
     "lint": "eslint spec lib"
   },
   "atomTestRunner": "atom-mocha-test-runner",
-  "dependencies": {},
+  "dependencies": {
+    "etch": "0.6.0"
+  },
   "devDependencies": {
     "babel-eslint": "^6.0.4",
     "eslint": "2.10.2",
