@@ -6,6 +6,23 @@ import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from './help
 import Repository from '../lib/repository'
 
 describe('StagingArea', () => {
+  describe('the "did-change" event', () => {
+    it('triggers after calling `refresh`', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+
+      let eventCount = 0
+      const stage = repo.getStagingArea()
+      stage.onDidChange(() => eventCount++)
+
+      await stage.refresh()
+      assert.equal(eventCount, 1)
+
+      await stage.refresh()
+      assert.equal(eventCount, 2)
+    })
+  })
+
   describe('getChangedFiles', () => {
     it('returns an array of ChangedFile objects whose contents in the working copy differ from the repository HEAD', async () => {
       const workingDirPath = copyRepositoryDir(1)
