@@ -20,6 +20,8 @@ describe('Repository', () => {
         {
           oldPath: 'a.txt',
           newPath: 'a.txt',
+          oldMode: 33188,
+          newMode: 33188,
           status: 'modified',
           hunks: [
             {
@@ -34,6 +36,8 @@ describe('Repository', () => {
         {
           oldPath: 'b.txt',
           newPath: 'b.txt',
+          oldMode: 33188,
+          newMode: 0,
           status: 'removed',
           hunks: [
             {
@@ -46,12 +50,16 @@ describe('Repository', () => {
         {
           oldPath: 'c.txt',
           newPath: 'd.txt',
+          oldMode: 33188,
+          newMode: 33188,
           status: 'renamed',
           hunks: []
         },
         {
           oldPath: 'e.txt',
           newPath: 'e.txt',
+          oldMode: 0,
+          newMode: 33188,
           status: 'added',
           hunks: [
             {
@@ -72,11 +80,13 @@ describe('Repository', () => {
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [modifyDiff] = await repo.getUnstagedChanges()
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
 
       await repo.stageFileDiff(modifyDiff)
 
       assertDeepPropertyVals(await repo.getStagedChanges(), [modifyDiff])
-      assert.deepEqual(await repo.getUnstagedChanges(), [])
+      const unstagedChanges = await repo.getUnstagedChanges()
+      assert.equal(unstagedChanges.length, 1)
     })
 
     it('can stage removed files', async () => {
