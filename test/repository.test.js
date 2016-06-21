@@ -65,4 +65,33 @@ describe('Repository', () => {
       ])
     })
   })
+
+  describe('stageFileDiff()', () => {
+    it('can stage file modifications', () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      const [modifyDiff] = await repo.getUnstagedChanges()
+
+      await repo.stageFileDiff(modifyDiff)
+
+      assertDeepPropertyVals(await repo.getStagedChanges(), [
+        {
+          oldName: 'a.txt',
+          newName: 'a.txt',
+          status: 'modified',
+          hunks: [
+            {
+              lines: [
+                {status: 'added', text: 'qux', oldLineNumber: -1, newLineNumber: 1},
+                {status: 'unchanged', text: 'foo', oldLineNumber: 1, newLineNumber: 2},
+                {status: 'added', text: 'bar', oldLineNumber: -1, newLineNumber: 3}
+              ]
+            }
+          ]
+        }
+      ])
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+    })
+  })
 })
