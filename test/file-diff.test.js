@@ -7,7 +7,7 @@ import dedent from 'dedent-js'
 
 describe('FileDiff', () => {
   describe('toString()', () =>{
-    it.only('converts the diff to the standard textual format', async () => {
+    it('converts the diff to the standard textual format', async () => {
       const workdirPath = copyRepositoryDir(2)
       const repository = await buildRepository(workdirPath)
 
