@@ -26,9 +26,9 @@ describe('Repository', () => {
           hunks: [
             {
               lines: [
-                {status: 'added', text: 'qux', oldLineNumber: -1, newLineNumber: 1},
-                {status: 'unchanged', text: 'foo', oldLineNumber: 1, newLineNumber: 2},
-                {status: 'added', text: 'bar', oldLineNumber: -1, newLineNumber: 3}
+                {status: 'added', text: 'qux\n', oldLineNumber: -1, newLineNumber: 1},
+                {status: 'unchanged', text: 'foo\n', oldLineNumber: 1, newLineNumber: 2},
+                {status: 'added', text: 'bar\n', oldLineNumber: -1, newLineNumber: 3}
               ]
             }
           ]
@@ -42,7 +42,7 @@ describe('Repository', () => {
           hunks: [
             {
               lines: [
-                {status: 'removed', text: 'bar', oldLineNumber: 1, newLineNumber: -1}
+                {status: 'removed', text: 'bar\n', oldLineNumber: 1, newLineNumber: -1}
               ]
             }
           ]
@@ -65,7 +65,7 @@ describe('Repository', () => {
             {
               lines: [
                 {status: 'added', text: 'qux', oldLineNumber: -1, newLineNumber: 1},
-                {status: 'unchanged', text: '\n\\ No newline at end of file', oldLineNumber: -1, newLineNumber: 1}
+                {status: undefined, text: '\n\\ No newline at end of file\n', oldLineNumber: -1, newLineNumber: 1}
               ]
             }
           ]
@@ -172,12 +172,22 @@ describe('Repository', () => {
       const [addedDiff] = await repo.getStagedChanges()
 
       await repo.unstageFileDiff(addedDiff)
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
       assert.deepEqual(await repo.getStagedChanges(), [])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
 
     it('can unstage files when repo is empty', async () => {
-      // TODO: implement me! create new empty repository? delete objects for current repo?
+      const workingDirPath = copyRepositoryDir(3)
+
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
+      const [addedDiffToStage] = await repo.getUnstagedChanges()
+      await repo.stageFileDiff(addedDiffToStage)
+      const [addedDiff] = await repo.getStagedChanges()
+
+      await repo.unstageFileDiff(addedDiff)
+      assert.deepEqual(await repo.getStagedChanges(), [])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
   })
 })

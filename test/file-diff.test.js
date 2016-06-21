@@ -7,7 +7,7 @@ import dedent from 'dedent-js'
 
 describe('FileDiff', () => {
   describe('toString()', () =>{
-    it('converts the diff to the standard textual format', async () => {
+    it.only('converts the diff to the standard textual format', async () => {
       const workdirPath = copyRepositoryDir(2)
       const repository = await buildRepository(workdirPath)
 
@@ -19,7 +19,6 @@ describe('FileDiff', () => {
       fs.writeFileSync(path.join(workdirPath, 'sample.js'), lines.join('\n'))
 
       const [diff] = await repository.getUnstagedChanges()
-
       assert.equal(diff.toString(), dedent`
         @@ -1,4 +1,5 @@
         -var quicksort = function () {
@@ -36,6 +35,21 @@ describe('FileDiff', () => {
         -  return sort(Array.apply(this, arguments));
         +this is a modified line
          };
+
+      `)
+    })
+
+    it('correctly formats new files with no newline at the end', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      const [diff] = await repo.getUnstagedChanges()
+
+      assert.equal(diff.toString(), dedent`
+        @@ -0,0 +1,1 @@
+        +qux
+        \ No newline at end of file
+
       `)
     })
   })

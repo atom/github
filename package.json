@@ -14,7 +14,7 @@
   },
   "atomTestRunner": "./test/runner",
   "dependencies": {
-    "diff": "2.2.3",
+    "diff": "2.2.2",
     "etch": "0.6.0"
   },
   "devDependencies": {
