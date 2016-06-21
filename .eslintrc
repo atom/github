@@ -23,6 +23,7 @@
   "globals": {
     "atom": true,
     "advanceClock": true,
+    "assert": true,
     "HTMLElement": true,
     "MouseEvent": true,
     "IDBKeyRange": true,
