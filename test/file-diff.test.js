@@ -48,7 +48,7 @@ describe('FileDiff', () => {
       assert.equal(diff.toString(), dedent`
         @@ -0,0 +1,1 @@
         +qux
-        \ No newline at end of file
+        \\ No newline at end of file
 
       `)
     })
