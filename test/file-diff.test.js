@@ -28,7 +28,7 @@ describe('FileDiff', () => {
            var sort = function(items) {
              if (items.length <= 1) return items;
              var pivot = items.shift(), current, left = [], right = [];
-        @@ -8,6 +9,5 @@ var quicksort = function () {
+        @@ -8,6 +9,5 @@
              }
              return sort(left).concat(pivot).concat(sort(right));
            };
