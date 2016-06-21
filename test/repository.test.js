@@ -74,22 +74,29 @@ describe('Repository', () => {
     })
   })
 
-  describe('stageFileDiff()', () => {
-    it('can stage file modifications', async () => {
+  describe('staging and unstaging file diffs', () => {
+    it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [modifyDiff] = await repo.getUnstagedChanges()
+      const [unstagedDiff1] = await repo.getUnstagedChanges()
+
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
+      await repo.refreshUnstagedChanges()
+      const [unstagedDiff2] = await repo.getUnstagedChanges()
 
-      await repo.stageFileDiff(modifyDiff)
+      await repo.stageFileDiff(unstagedDiff1)
 
-      assertDeepPropertyVals(await repo.getStagedChanges(), [modifyDiff])
+      assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedDiff1])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
+
+      await repo.unstageFileDiff(unstagedDiff1)
+      assert.deepEqual(await repo.getStagedChanges(), [])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedDiff2])
     })
 
-    it('can stage removed files', async () => {
+    it('can stage and unstage removed files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
@@ -99,9 +106,13 @@ describe('Repository', () => {
 
       assertDeepPropertyVals(await repo.getStagedChanges(), [removeDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
+
+      await repo.unstageFileDiff(removeDiff)
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [removeDiff])
+      assert.deepEqual(await repo.getStagedChanges(), [])
     })
 
-    it('can stage renamed files', async () => {
+    it('can stage and unstage renamed files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
@@ -111,9 +122,13 @@ describe('Repository', () => {
 
       assertDeepPropertyVals(await repo.getStagedChanges(), [renameDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
+
+      await repo.unstageFileDiff(renameDiff)
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [renameDiff])
+      assert.deepEqual(await repo.getStagedChanges(), [])
     })
 
-    it('can stage added files', async () => {
+    it('can stage and unstage added files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       const repo = await buildRepository(workingDirPath)
@@ -123,60 +138,13 @@ describe('Repository', () => {
 
       assertDeepPropertyVals(await repo.getStagedChanges(), [addedDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
-    })
-  })
-
-  describe('unstageFileDiff()', () => {
-    it('can unstage modified files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
-      const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [modifyDiff] = await repo.getUnstagedChanges()
-      await repo.stageFileDiff(modifyDiff)
-
-      await repo.unstageFileDiff(modifyDiff)
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [modifyDiff])
-      assert.deepEqual(await repo.getStagedChanges(), [])
-    })
-
-    it('can unstage removed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
-      const repo = await buildRepository(workingDirPath)
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
-      const [removeDiff] = await repo.getUnstagedChanges()
-      await repo.stageFileDiff(removeDiff)
-
-      await repo.unstageFileDiff(removeDiff)
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [removeDiff])
-      assert.deepEqual(await repo.getStagedChanges(), [])
-    })
-
-    it('can unstage renamed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
-      const repo = await buildRepository(workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
-      const [renameDiff] = await repo.getUnstagedChanges()
-      await repo.stageFileDiff(renameDiff)
-
-      await repo.unstageFileDiff(renameDiff)
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [renameDiff])
-      assert.deepEqual(await repo.getStagedChanges(), [])
-    })
-
-    it('can unstage added files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
-      const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
-      const [addedDiffToStage] = await repo.getUnstagedChanges()
-      await repo.stageFileDiff(addedDiffToStage)
-      const [addedDiff] = await repo.getStagedChanges()
 
       await repo.unstageFileDiff(addedDiff)
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
 
-    it('can unstage files when repo is empty', async () => {
+    it('can stage and unstage changes when the repository is empty', async () => {
       const workingDirPath = copyRepositoryDir(3)
 
       const repo = await buildRepository(workingDirPath)
