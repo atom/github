@@ -35,7 +35,7 @@ describe('FileDiffListComponent', () => {
     assert.equal(selectedDiffs[0].textContent, 'd.txt → e.txt')
   })
 
-  describe('when a file diff is single clicked', () => {
+  describe('when a file diff is selected via single clicked', () => {
     it('invokes the supplied function', async () => {
       const fileDiffs = [
         new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified'),
@@ -43,17 +43,17 @@ describe('FileDiffListComponent', () => {
         new FileDiff('c.txt', null, 1234, 1234, 'removed'),
         new FileDiff('d.txt', 'e.txt', 1234, 1234, 'renamed')
       ]
-      const clickedDiffs = []
+      const selectedDiffs = []
       const component = new FileDiffListComponent({
         fileDiffs,
-        didSingleClickFileDiff: (d) => clickedDiffs.push(d)
+        didSelectFileDiff: (d) => selectedDiffs.push(d)
       })
 
       component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
-      assert.deepEqual(clickedDiffs, [fileDiffs[0]])
+      assert.deepEqual(selectedDiffs, [fileDiffs[0]])
 
       component.element.querySelector('.git-FileDiff.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
-      assert.deepEqual(clickedDiffs, [fileDiffs[0], fileDiffs[3]])
+      assert.deepEqual(selectedDiffs, [fileDiffs[0], fileDiffs[3]])
     })
   })
 
@@ -65,17 +65,17 @@ describe('FileDiffListComponent', () => {
         new FileDiff('c.txt', null, 1234, 1234, 'removed'),
         new FileDiff('d.txt', 'e.txt', 1234, 1234, 'renamed')
       ]
-      const doubleClickedDiffs = []
+      const confirmedDiffs = []
       const component = new FileDiffListComponent({
         fileDiffs,
-        didDoubleClickFileDiff: (d) => doubleClickedDiffs.push(d)
+        didConfirmFileDiff: (d) => confirmedDiffs.push(d)
       })
 
       component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
-      assert.deepEqual(doubleClickedDiffs, [fileDiffs[0]])
+      assert.deepEqual(confirmedDiffs, [fileDiffs[0]])
 
       component.element.querySelector('.git-FileDiff.renamed').dispatchEvent(new MouseEvent('click', {detail: 2}))
-      assert.deepEqual(doubleClickedDiffs, [fileDiffs[0], fileDiffs[3]])
+      assert.deepEqual(confirmedDiffs, [fileDiffs[0], fileDiffs[3]])
     })
   })
 })
