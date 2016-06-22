@@ -12,13 +12,13 @@ describe('StagingComponent', () => {
     const repository = await buildRepository(workdirPath)
     const component = new StagingComponent({repository})
 
-    assert.isNull(component.element.querySelector('.git-UnstagedChanges'))
-    assert.isNull(component.element.querySelector('.git-StagedChanges'))
+    assert.isUndefined(component.refs.stagedChangesComponent)
+    assert.isUndefined(component.refs.unstagedChangesComponent)
 
-    await component.refreshModelData()
+    await component.lastModelDataRefreshPromise
 
-    assert.isNotNull(component.element.querySelector('.git-UnstagedChanges'))
-    assert.isNotNull(component.element.querySelector('.git-StagedChanges'))
+    assert(component.refs.stagedChangesComponent)
+    assert(component.refs.unstagedChangesComponent)
   })
 
   it('stages and unstages files, updating the change lists accordingly', async () => {
@@ -27,17 +27,19 @@ describe('StagingComponent', () => {
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath, 'b.txt'))
     const component = new StagingComponent({repository})
-    await component.refreshModelData()
+    await component.lastModelDataRefreshPromise
 
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
     const fileDiffs = unstagedChangesComponent.fileDiffs
 
     await unstagedChangesComponent.onDidDoubleClickFileDiff(fileDiffs[1])
+    await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, [fileDiffs[0]])
     assert.deepEqual(stagedChangesComponent.fileDiffs, [fileDiffs[1]])
 
     await stagedChangesComponent.onDidDoubleClickFileDiff(fileDiffs[1])
+    await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)
     assert.deepEqual(stagedChangesComponent.fileDiffs, [])
