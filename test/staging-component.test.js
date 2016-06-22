@@ -32,13 +32,13 @@ describe('StagingComponent', () => {
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
     const fileDiffs = unstagedChangesComponent.fileDiffs
 
-    await unstagedChangesComponent.onDidDoubleClickFileDiff(fileDiffs[1])
+    await unstagedChangesComponent.didDoubleClickFileDiff(fileDiffs[1])
     await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, [fileDiffs[0]])
     assert.deepEqual(stagedChangesComponent.fileDiffs, [fileDiffs[1]])
 
-    await stagedChangesComponent.onDidDoubleClickFileDiff(fileDiffs[1])
+    await stagedChangesComponent.didDoubleClickFileDiff(fileDiffs[1])
     await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)

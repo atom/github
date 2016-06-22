@@ -35,7 +35,7 @@ describe('FileDiffListComponent', () => {
     assert.equal(selectedDiffs[0].textContent, 'd.txt → e.txt')
   })
 
-  describe('when a file diff is clicked', () => {
+  describe('when a file diff is single clicked', () => {
     it('invokes the supplied function', async () => {
       const fileDiffs = [
         new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified'),
@@ -46,7 +46,7 @@ describe('FileDiffListComponent', () => {
       const clickedDiffs = []
       const component = new FileDiffListComponent({
         fileDiffs,
-        onDidClickFileDiff: (d) => clickedDiffs.push(d)
+        didSingleClickFileDiff: (d) => clickedDiffs.push(d)
       })
 
       component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
@@ -68,7 +68,7 @@ describe('FileDiffListComponent', () => {
       const doubleClickedDiffs = []
       const component = new FileDiffListComponent({
         fileDiffs,
-        onDidDoubleClickFileDiff: (d) => doubleClickedDiffs.push(d)
+        didDoubleClickFileDiff: (d) => doubleClickedDiffs.push(d)
       })
 
       component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
