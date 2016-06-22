@@ -81,10 +81,10 @@ describe('Repository', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [unstagedDiff1] = await repo.getUnstagedChanges()
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refreshUnstagedChanges()
       const [unstagedDiff2] = await repo.getUnstagedChanges()
 
@@ -102,7 +102,7 @@ describe('Repository', () => {
     it('can stage and unstage removed files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
       const [removeDiff] = await repo.getUnstagedChanges()
 
       await repo.stageFileDiff(removeDiff)
@@ -118,7 +118,7 @@ describe('Repository', () => {
     it('can stage and unstage renamed files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
       const [renameDiff] = await repo.getUnstagedChanges()
 
       await repo.stageFileDiff(renameDiff)
@@ -133,7 +133,7 @@ describe('Repository', () => {
 
     it('can stage and unstage added files', async () => {
       const workingDirPath = copyRepositoryDir(1)
-      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
       const repo = await buildRepository(workingDirPath)
       const [addedDiff] = await repo.getUnstagedChanges()
 
