@@ -4,6 +4,9 @@ import fs from 'fs'
 import path from 'path'
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from './helpers'
 
+import {GitRepositoryAsync} from 'atom'
+const Git = GitRepositoryAsync.Git
+
 describe('Repository', () => {
   describe('getUnstagedChanges()', () => {
     it('returns a promise resolving to an array of FileDiff objects', async () => {
@@ -20,8 +23,8 @@ describe('Repository', () => {
         {
           oldPath: 'a.txt',
           newPath: 'a.txt',
-          oldMode: 33188,
-          newMode: 33188,
+          oldMode: Git.TreeEntry.FILEMODE.BLOB,
+          newMode: Git.TreeEntry.FILEMODE.BLOB,
           status: 'modified',
           hunks: [
             {
@@ -36,7 +39,7 @@ describe('Repository', () => {
         {
           oldPath: 'b.txt',
           newPath: 'b.txt',
-          oldMode: 33188,
+          oldMode: Git.TreeEntry.FILEMODE.BLOB,
           newMode: 0,
           status: 'removed',
           hunks: [
@@ -50,8 +53,8 @@ describe('Repository', () => {
         {
           oldPath: 'c.txt',
           newPath: 'd.txt',
-          oldMode: 33188,
-          newMode: 33188,
+          oldMode: Git.TreeEntry.FILEMODE.BLOB,
+          newMode: Git.TreeEntry.FILEMODE.BLOB,
           status: 'renamed',
           hunks: []
         },
@@ -59,7 +62,7 @@ describe('Repository', () => {
           oldPath: 'e.txt',
           newPath: 'e.txt',
           oldMode: 0,
-          newMode: 33188,
+          newMode: Git.TreeEntry.FILEMODE.BLOB,
           status: 'added',
           hunks: [
             {
