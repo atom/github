@@ -14,22 +14,23 @@ describe('HunkComponent', () => {
     ])
     const component = new HunkComponent({hunk: hunk1})
     const element = component.element
+    var [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
 
-    assert.equal(element.querySelector('.header').textContent, hunk1.getHeader())
+    assert.equal(element.querySelector('.git-HunkComponent-header').textContent, hunk1.getHeader())
     assertHunkLineElementEqual(
-      element.querySelector('.git-HunkLine.status-unchanged'),
+      line1,
       {oldLineNumber: '5', newLineNumber: '5', origin: ' ', content: 'line-1'}
     )
     assertHunkLineElementEqual(
-      element.querySelectorAll('.git-HunkLine.status-removed')[0],
+      line2,
       {oldLineNumber: '6', newLineNumber: ' ', origin: '-', content: 'line-2'}
     )
     assertHunkLineElementEqual(
-      element.querySelectorAll('.git-HunkLine.status-removed')[1],
+      line3,
       {oldLineNumber: '7', newLineNumber: ' ', origin: '-', content: 'line-3'}
     )
     assertHunkLineElementEqual(
-      element.querySelector('.git-HunkLine.status-added'),
+      line4,
       {oldLineNumber: ' ', newLineNumber: '6', origin: '+', content: 'line-4'}
     )
 
@@ -37,15 +38,17 @@ describe('HunkComponent', () => {
       new HunkLine('line-1', 'removed', 8, -1),
       new HunkLine('line-2', 'added', -1, 8)
     ])
+    var [line1, line2] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
+
     await component.update({hunk: hunk2})
 
-    assert.equal(element.querySelector('.header').textContent, hunk2.getHeader())
+    assert.equal(element.querySelector('.git-HunkComponent-header').textContent, hunk2.getHeader())
     assertHunkLineElementEqual(
-      element.querySelector('.git-HunkLine.status-removed'),
+      line1,
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1'}
     )
     assertHunkLineElementEqual(
-      element.querySelector('.git-HunkLine.status-added'),
+      line2,
       {oldLineNumber: ' ', newLineNumber: '8', origin: '+', content: 'line-2'}
     )
   })
@@ -62,7 +65,7 @@ describe('HunkComponent', () => {
     let selectedLines = []
     const component = new HunkComponent({hunk, onDidChangeSelectedLines: (lines) => selectedLines = lines})
     const element = component.element
-    const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkLine'))
+    const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
 
     // clicking lines
     line5.dispatchEvent(new MouseEvent('mousedown'))
@@ -97,9 +100,8 @@ describe('HunkComponent', () => {
   })
 
   function assertHunkLineElementEqual (element, {oldLineNumber, newLineNumber, origin, content}) {
-    assert.equal(element.querySelector('.old-line-number').textContent, oldLineNumber)
-    assert.equal(element.querySelector('.new-line-number').textContent, newLineNumber)
-    assert.equal(element.querySelector('.origin').textContent, origin)
-    assert.equal(element.querySelector('.content').textContent, content)
+    assert.equal(element.querySelector('.git-HunkComponent-oldLineNumber').textContent, oldLineNumber)
+    assert.equal(element.querySelector('.git-HunkComponent-newLineNumber').textContent, newLineNumber)
+    assert.equal(element.querySelector('.git-HunkComponent-lineContent').textContent, origin + content)
   }
 })

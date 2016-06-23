@@ -1,0 +1,36 @@
+.git-HunkComponent {
+  &-line {
+    display:flex;
+    align-items:stretch;
+
+    &.is-selected {
+      color: red;
+    }
+  }
+
+  &-oldLineNumber, &-newLineNumber {
+    cursor: default;
+    line-height: 1.5em;
+    -webkit-user-select: none;
+
+    flex: 0 0 42px;
+    width: 42px;
+    text-align: center;
+    vertical-align: top;
+    color: inherit;
+    box-shadow: inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
+  }
+
+  &-lineContent {
+    flex: 1 1 auto;
+    cursor: default;
+    line-height: 1.5em;
+    -webkit-user-select: none;
+
+    padding: 0 8px 0 40px;
+    text-indent: -32px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    position: relative;
+  }
+}
