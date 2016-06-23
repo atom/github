@@ -66,12 +66,21 @@ describe('HunkComponent', () => {
     )
   })
 
+  it('adds the is-selected class based on the isSelected property', async () => {
+    const hunk = new Hunk(5, 5, 2, 1, [])
+    const component = new HunkComponent({hunk, selectedLines: new Set, isSelected: true})
+    assert(component.element.classList.contains('is-selected'))
+
+    await component.update({hunk: hunk, selectedLines: new Set, isSelected: false})
+    assert(!component.element.classList.contains('is-selected'))
+  })
+
   it('updates the button label based on the number of selected lines', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'removed', 6, -1)
     ])
-    const component = new HunkComponent({hunk, selectedLines: new Set([]), stagingButtonLabel: 'Stage'})
+    const component = new HunkComponent({hunk, selectedLines: new Set, stagingButtonLabel: 'Stage'})
     assert.equal(component.refs.stagingButton.textContent, 'Stage Hunk')
 
     await component.update({hunk, selectedLines: new Set([hunk.getLines()[0]])})
@@ -84,7 +93,7 @@ describe('HunkComponent', () => {
   it('calls the didClickStagingButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
     const didClickStagingButton = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set([]), didClickStagingButton})
+    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStagingButton})
     component.refs.stagingButton.dispatchEvent(new MouseEvent('click'))
     assert(didClickStagingButton.calledOnce)
   })
