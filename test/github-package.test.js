@@ -137,7 +137,4 @@ describe('GithubPackage', () => {
       assert.isNull(githubPackage.getActiveRepository())
     })
   })
-
-  describe('destroyRepositoriesForRemovedProjectFolders', () => {
-  })
 })
