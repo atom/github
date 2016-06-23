@@ -52,14 +52,8 @@ describe('StagingComponent', () => {
     const component = new StagingComponent({repository})
 
     await component.lastModelDataRefreshPromise
-    assert.equal(component.focusedList, 'staged')
-    let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
-    assert.equal(selectedLists.length, 1)
-    assert.equal(selectedLists[0].textContent, 'Staged Changes')
-
-    await component.didSelectUnstagedFileDiff()
     assert.equal(component.focusedList, 'unstaged')
-    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
 
@@ -68,6 +62,12 @@ describe('StagingComponent', () => {
     selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+    await component.didSelectUnstagedFileDiff()
+    assert.equal(component.focusedList, 'unstaged')
+    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    assert.equal(selectedLists.length, 1)
+    assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
   })
 
   it('calls didSelectFileDiff when file is selected', async () => {
