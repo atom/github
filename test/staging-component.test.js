@@ -44,4 +44,28 @@ describe('StagingComponent', () => {
     assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)
     assert.deepEqual(stagedChangesComponent.fileDiffs, [])
   })
+
+  it('focuses staged and unstaged lists accordingly', async () => {
+    const workdirPath = await copyRepositoryDir(1)
+    const repository = await buildRepository(workdirPath)
+    const component = new StagingComponent({repository})
+
+    await component.lastModelDataRefreshPromise
+    assert.equal(component.focusedList, 'staged')
+    let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    assert.equal(selectedLists.length, 1)
+    assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+    await component.didSelectUnstagedFileDiff()
+    assert.equal(component.focusedList, 'unstaged')
+    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    assert.equal(selectedLists.length, 1)
+    assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
+
+    await component.didSelectStagedFileDiff()
+    assert.equal(component.focusedList, 'staged')
+    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    assert.equal(selectedLists.length, 1)
+    assert.equal(selectedLists[0].textContent, 'Staged Changes')
+  })
 })
