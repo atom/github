@@ -92,4 +92,102 @@ describe('StagingComponent', () => {
     assert.equal(didSelectFileDiff.callCount, 2)
     assert.deepEqual(didSelectFileDiff.args[1], [fileDiff, 'staged'])
   })
+
+  describe('keyboard navigation for Unstaged Changes list', () => {
+    describe('core:move-up and core:move-down', () => {
+      let component, unstagedFileDiffs
+      beforeEach(async () => {
+        const workdirPath = await copyRepositoryDir(1)
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
+        component = new StagingComponent({repository})
+        await component.lastModelDataRefreshPromise
+
+        const unstagedChangesComponent = component.refs.unstagedChangesComponent
+        unstagedFileDiffs = unstagedChangesComponent.fileDiffs
+        component.didSelectUnstagedFileDiff(unstagedFileDiffs[0])
+
+        assert.equal(unstagedFileDiffs.length, 3)
+        assert.equal(component.focusedList, 'unstaged')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[0])
+      })
+
+      it('selects next/previous fileDiff if there is one', () => {
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[1])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[2])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[1])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[0])
+      })
+
+      it('jumps to beginning/end of list if no next/previous fileDiff', () => {
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[2])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.unstagedSelectedFileDiff, unstagedFileDiffs[0])
+      })
+    })
+  })
+
+  describe('keyboard navigation for Staged Changes list', () => {
+    describe('core:move-up and core:move-down', () => {
+      let component, stagedFileDiffs
+      beforeEach(async () => {
+        const workdirPath = await copyRepositoryDir(1)
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
+        component = new StagingComponent({repository})
+        await component.lastModelDataRefreshPromise
+
+        const unstagedChangesComponent = component.refs.unstagedChangesComponent
+        const unstagedFileDiffs = unstagedChangesComponent.fileDiffs
+        await unstagedChangesComponent.didConfirmFileDiff(unstagedFileDiffs[0])
+        await component.lastModelDataRefreshPromise
+        await unstagedChangesComponent.didConfirmFileDiff(unstagedFileDiffs[1])
+        await component.lastModelDataRefreshPromise
+        await unstagedChangesComponent.didConfirmFileDiff(unstagedFileDiffs[2])
+        await component.lastModelDataRefreshPromise
+
+        const stagedChangesComponent = component.refs.stagedChangesComponent
+        stagedFileDiffs = stagedChangesComponent.fileDiffs
+        component.didSelectStagedFileDiff(stagedFileDiffs[0])
+        assert.equal(stagedFileDiffs.length, 3)
+        assert.equal(component.focusedList, 'staged')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[0])
+      })
+
+      it('selects next/previous fileDiff if there is one', () => {
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[1])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[2])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[1])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[0])
+      })
+
+      it('jumps to beginning/end of list if no next/previous fileDiff', () => {
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[2])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.stagedSelectedFileDiff, stagedFileDiffs[0])
+      })
+    })
+  })
 })
