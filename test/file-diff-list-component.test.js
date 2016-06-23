@@ -13,25 +13,25 @@ describe('FileDiffListComponent', () => {
     ]
 
     const component = new FileDiffListComponent({fileDiffs})
-    assert.equal(component.element.querySelector('.git-FileDiff.modified .git-FileDiff-path').textContent, 'a.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.added .git-FileDiff-path').textContent, 'b.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.removed .git-FileDiff-path').textContent, 'c.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.renamed .git-FileDiff-path').textContent, 'd.txt → e.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.modified .git-FileDiffListItem-path').textContent, 'a.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.added .git-FileDiffListItem-path').textContent, 'b.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.removed .git-FileDiffListItem-path').textContent, 'c.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.renamed .git-FileDiffListItem-path').textContent, 'd.txt → e.txt')
 
     await component.update({fileDiffs})
-    assert.equal(component.element.querySelector('.git-FileDiff.modified .git-FileDiff-path').textContent, 'a.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.added .git-FileDiff-path').textContent, 'b.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.removed .git-FileDiff-path').textContent, 'c.txt')
-    assert.equal(component.element.querySelector('.git-FileDiff.renamed .git-FileDiff-path').textContent, 'd.txt → e.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.modified .git-FileDiffListItem-path').textContent, 'a.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.added .git-FileDiffListItem-path').textContent, 'b.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.removed .git-FileDiffListItem-path').textContent, 'c.txt')
+    assert.equal(component.element.querySelector('.git-FileDiffListItem.renamed .git-FileDiffListItem-path').textContent, 'd.txt → e.txt')
 
     await component.selectFileDiff(fileDiffs[1])
-    let selectedDiffs = component.element.querySelectorAll('.git-FileDiff.is-selected .git-FileDiff-path')
+    let selectedDiffs = component.element.querySelectorAll('.git-FileDiffListItem.is-selected .git-FileDiffListItem-path')
     assert.equal(selectedDiffs.length, 1)
     assert.deepEqual(component.selectedFileDiff, fileDiffs[1])
     assert.equal(selectedDiffs[0].textContent, 'b.txt')
 
     await component.selectFileDiff(fileDiffs[3])
-    selectedDiffs = component.element.querySelectorAll('.git-FileDiff.is-selected .git-FileDiff-path')
+    selectedDiffs = component.element.querySelectorAll('.git-FileDiffListItem.is-selected .git-FileDiffListItem-path')
     assert.equal(selectedDiffs.length, 1)
     assert.deepEqual(component.selectedFileDiff, fileDiffs[3])
     assert.equal(selectedDiffs[0].textContent, 'd.txt → e.txt')
@@ -51,10 +51,10 @@ describe('FileDiffListComponent', () => {
         didSelectFileDiff: (d) => selectedDiffs.push(d)
       })
 
-      component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      component.element.querySelector('.git-FileDiffListItem.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(selectedDiffs, [fileDiffs[0]])
 
-      component.element.querySelector('.git-FileDiff.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      component.element.querySelector('.git-FileDiffListItem.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(selectedDiffs, [fileDiffs[0], fileDiffs[3]])
     })
 
@@ -69,10 +69,10 @@ describe('FileDiffListComponent', () => {
       const component = new FileDiffListComponent({fileDiffs})
       assert.deepEqual(component.selectedFileDiff, fileDiffs[0])
 
-      component.element.querySelector('.git-FileDiff.added').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      component.element.querySelector('.git-FileDiffListItem.added').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(component.selectedFileDiff, fileDiffs[1])
 
-      component.element.querySelector('.git-FileDiff.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      component.element.querySelector('.git-FileDiffListItem.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(component.selectedFileDiff, fileDiffs[3])
     })
   })
@@ -91,10 +91,10 @@ describe('FileDiffListComponent', () => {
         didConfirmFileDiff: (d) => confirmedDiffs.push(d)
       })
 
-      component.element.querySelector('.git-FileDiff.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
+      component.element.querySelector('.git-FileDiffListItem.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
       assert.deepEqual(confirmedDiffs, [fileDiffs[0]])
 
-      component.element.querySelector('.git-FileDiff.renamed').dispatchEvent(new MouseEvent('click', {detail: 2}))
+      component.element.querySelector('.git-FileDiffListItem.renamed').dispatchEvent(new MouseEvent('click', {detail: 2}))
       assert.deepEqual(confirmedDiffs, [fileDiffs[0], fileDiffs[3]])
     })
   })
