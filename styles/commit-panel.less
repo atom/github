@@ -14,19 +14,6 @@
   background: @pane-item-background-color;
   border-left: 1px solid @pane-item-border-color;
 
-  .git-Panel-item.is-focused {
-    .git-FileDiff.is-selected {
-      background: @background-color-highlight;
-      color:@text-color-highlight;
-      box-shadow:@pane-item-background-color 0 -1px 0;
-
-      :focus & {
-        background: @background-color-selected;
-        color:@text-color-selected;
-      }
-    }
-  }
-
   &-item {
     flex: 0 0 auto;
 

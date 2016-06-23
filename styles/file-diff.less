@@ -11,23 +11,8 @@
   box-sizing:border-box;
   overflow:hidden;
 
-  &-checkbox {
-    margin-top: .1em;
-
-    &.is-partial:after {
-      content: '\f0ca'; // dash
-    }
-    &.is-staged:after {
-      content: '\f03a'; // check
-    }
-  }
-
   &-path {
     flex: 1;
-
-    .git-FileDiff-checkbox.is-unstaged + & {
-      color: @text-color-subtle;
-    }
   }
 
   &-icon {
