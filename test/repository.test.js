@@ -147,7 +147,7 @@ describe('Repository', () => {
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
 
-    it('can stage and unstage changes when the repository is empty', async () => {
+    it('can stage and unstage changes when the repository has no HEAD commit', async () => {
       const workingDirPath = copyRepositoryDir(3)
 
       const repo = await buildRepository(workingDirPath)
