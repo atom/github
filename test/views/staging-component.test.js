@@ -93,6 +93,38 @@ describe('StagingComponent', () => {
     assert.deepEqual(didSelectFilePatch.args[1], [filePatch, 'staged'])
   })
 
+  describe('git:focus-unstaged-changes', () => {
+    it('sets the unstaged list to be focused', async () => {
+      const workdirPath = await copyRepositoryDir(1)
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const component = new StagingComponent({repository})
+      await component.lastModelDataRefreshPromise
+      component.didSelectStagedFilePatch()
+      assert.equal(component.focusedList, 'staged')
+
+      atom.commands.dispatch(component.element, 'git:focus-unstaged-changes')
+      assert.equal(component.focusedList, 'unstaged')
+    })
+  })
+
+  describe('git:focus-staged-changes', () => {
+    it('sets the unstaged list to be focused', async () => {
+      const workdirPath = await copyRepositoryDir(1)
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const component = new StagingComponent({repository})
+      await component.lastModelDataRefreshPromise
+      component.didSelectUnstagedFilePatch()
+      assert.equal(component.focusedList, 'unstaged')
+
+      atom.commands.dispatch(component.element, 'git:focus-staged-changes')
+      assert.equal(component.focusedList, 'staged')
+    })
+  })
+
   describe('core:confirm', () => {
     it('stages and unstages files, updating lists accordingly', async () => {
       const workdirPath = await copyRepositoryDir(1)
