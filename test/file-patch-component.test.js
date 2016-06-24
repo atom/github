@@ -2,12 +2,12 @@
 
 import etch from 'etch'
 
-import FileDiff from '../lib/file-diff'
+import FilePatch from '../lib/file-patch'
 import Hunk from '../lib/hunk'
 import HunkLine from '../lib/hunk-line'
-import FileDiffComponent from '../lib/file-diff-component'
+import FilePatchComponent from '../lib/file-patch-component'
 
-describe('FileDiffComponent', () => {
+describe('FilePatchComponent', () => {
   it('allows lines of a hunk to be selected, clearing the selection on the other hunks', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
@@ -20,8 +20,8 @@ describe('FileDiffComponent', () => {
       new HunkLine('line-6', 'added', -1, 8)
     ])
     const hunkComponentsByHunk = new Map()
-    const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
-    const component = new FileDiffComponent({fileDiff, registerHunkComponent: (hunk, component) => hunkComponentsByHunk.set(hunk, component)})
+    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+    const component = new FilePatchComponent({filePatch, registerHunkComponent: (hunk, component) => hunkComponentsByHunk.set(hunk, component)})
     const element = component.element
 
     var linesToSelect = hunk1.getLines().slice(1, 3)

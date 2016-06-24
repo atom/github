@@ -5,14 +5,14 @@ import path from 'path'
 import fs from 'fs'
 import dedent from 'dedent-js'
 
-import FileDiff from '../lib/file-diff'
+import FilePatch from '../lib/file-patch'
 import Hunk from '../lib/hunk'
 import HunkLine from '../lib/hunk-line'
 
-describe('FileDiff', () => {
+describe('FilePatch', () => {
   describe('getStagePatchForLines()', () => {
-    it('returns a new FileDiff that applies only the specified lines', () => {
-      const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [
+    it('returns a new FilePatch that applies only the specified lines', () => {
+      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1\n', 'added', -1, 1),
           new HunkLine('line-2\n', 'added', -1, 2),
@@ -34,8 +34,8 @@ describe('FileDiff', () => {
           new HunkLine('line-14\n', 'unchanged', 21, 20)
         ])
       ])
-      const lines = new Set(fileDiff.getHunks()[1].getLines().slice(1, 4))
-      assert.deepEqual(fileDiff.getStagePatchForLines(lines), new FileDiff(
+      const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 4))
+      assert.deepEqual(filePatch.getStagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 1234, 1234, 'modified', [
           new Hunk(1, 1, 1, 1, [
             new HunkLine('line-3\n', 'unchanged', 1, 1)
@@ -58,8 +58,8 @@ describe('FileDiff', () => {
   })
 
   describe('getUnstagePatchForLines()', () => {
-    it('returns a new FileDiff that applies only the specified lines', () => {
-      const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [
+    it('returns a new FilePatch that applies only the specified lines', () => {
+      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1\n', 'added', -1, 1),
           new HunkLine('line-2\n', 'added', -1, 2),
@@ -81,8 +81,8 @@ describe('FileDiff', () => {
           new HunkLine('line-14\n', 'unchanged', 21, 20)
         ])
       ])
-      const lines = new Set(fileDiff.getHunks()[1].getLines().slice(1, 5))
-      assert.deepEqual(fileDiff.getUnstagePatchForLines(lines), new FileDiff(
+      const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5))
+      assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 1234, 1234, 'modified', [
           new Hunk(1, 1, 3, 3, [
             new HunkLine('line-1\n', 'unchanged', 1, 1),
@@ -107,7 +107,7 @@ describe('FileDiff', () => {
   })
 
   describe('toString()', () => {
-    it('converts the diff to the standard textual format', async () => {
+    it('converts the patch to the standard textual format', async () => {
       const workdirPath = copyRepositoryDir(2)
       const repository = await buildRepository(workdirPath)
 
@@ -118,8 +118,8 @@ describe('FileDiff', () => {
       lines.splice(12, 1)
       fs.writeFileSync(path.join(workdirPath, 'sample.js'), lines.join('\n'))
 
-      const [diff] = await repository.getUnstagedChanges()
-      assert.equal(diff.toString(), dedent`
+      const [patch] = await repository.getUnstagedChanges()
+      assert.equal(patch.toString(), dedent`
         @@ -1,4 +1,5 @@
         -var quicksort = function () {
         +this is a modified line
@@ -143,9 +143,9 @@ describe('FileDiff', () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
-      const [diff] = await repo.getUnstagedChanges()
+      const [patch] = await repo.getUnstagedChanges()
 
-      assert.equal(diff.toString(), dedent`
+      assert.equal(patch.toString(), dedent`
         @@ -0,0 +1,1 @@
         +qux
         \\ No newline at end of file

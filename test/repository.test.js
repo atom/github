@@ -9,7 +9,7 @@ const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
   describe('getUnstagedChanges()', () => {
-    it('returns a promise resolving to an array of FileDiff objects', async () => {
+    it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir(1)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))

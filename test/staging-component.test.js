@@ -33,13 +33,13 @@ describe('StagingComponent', () => {
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
     const fileDiffs = unstagedChangesComponent.fileDiffs
 
-    await unstagedChangesComponent.didConfirmFileDiff(fileDiffs[1])
+    await unstagedChangesComponent.didConfirmFilePatch(fileDiffs[1])
     await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, [fileDiffs[0]])
     assert.deepEqual(stagedChangesComponent.fileDiffs, [fileDiffs[1]])
 
-    await stagedChangesComponent.didConfirmFileDiff(fileDiffs[1])
+    await stagedChangesComponent.didConfirmFilePatch(fileDiffs[1])
     await component.lastModelDataRefreshPromise
 
     assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)
@@ -57,39 +57,39 @@ describe('StagingComponent', () => {
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Staged Changes')
 
-    await component.didSelectUnstagedFileDiff()
+    await component.didSelectUnstagedFilePatch()
     assert.equal(component.focusedList, 'unstaged')
     selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
 
-    await component.didSelectStagedFileDiff()
+    await component.didSelectStagedFilePatch()
     assert.equal(component.focusedList, 'staged')
     selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Staged Changes')
   })
 
-  it('calls didSelectFileDiff when file is selected', async () => {
-    const didSelectFileDiff = sinon.spy()
+  it('calls didSelectFilePatch when file is selected', async () => {
+    const didSelectFilePatch = sinon.spy()
 
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-    const component = new StagingComponent({repository, didSelectFileDiff})
+    const component = new StagingComponent({repository, didSelectFilePatch})
     await component.lastModelDataRefreshPromise
 
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
-    const fileDiff = unstagedChangesComponent.fileDiffs[0]
+    const filePatch = unstagedChangesComponent.fileDiffs[0]
 
-    assert(fileDiff)
+    assert(filePatch)
 
-    unstagedChangesComponent.didSelectFileDiff(fileDiff)
-    assert.equal(didSelectFileDiff.callCount, 1)
-    assert.deepEqual(didSelectFileDiff.args[0], [fileDiff, 'unstaged'])
+    unstagedChangesComponent.didSelectFilePatch(filePatch)
+    assert.equal(didSelectFilePatch.callCount, 1)
+    assert.deepEqual(didSelectFilePatch.args[0], [filePatch, 'unstaged'])
 
-    stagedChangesComponent.didSelectFileDiff(fileDiff)
-    assert.equal(didSelectFileDiff.callCount, 2)
-    assert.deepEqual(didSelectFileDiff.args[1], [fileDiff, 'staged'])
+    stagedChangesComponent.didSelectFilePatch(filePatch)
+    assert.equal(didSelectFilePatch.callCount, 2)
+    assert.deepEqual(didSelectFilePatch.args[1], [filePatch, 'staged'])
   })
 })
