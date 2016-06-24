@@ -5,7 +5,7 @@ import path from 'path'
 import temp from 'temp'
 import {GitRepositoryAsync} from 'atom'
 
-import Repository from '../lib/repository'
+import Repository from '../lib/models/repository'
 
 export function copyRepositoryDir (variant = 1) {
   const workingDirPath = temp.mkdirSync('git-fixture-')
