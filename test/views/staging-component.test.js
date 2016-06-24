@@ -52,14 +52,8 @@ describe('StagingComponent', () => {
     const component = new StagingComponent({repository})
 
     await component.lastModelDataRefreshPromise
-    assert.equal(component.focusedList, 'unstaged')
-    let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
-    assert.equal(selectedLists.length, 1)
-    assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
-
-    await component.didSelectStagedFilePatch()
     assert.equal(component.focusedList, 'staged')
-    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Staged Changes')
 
@@ -68,6 +62,12 @@ describe('StagingComponent', () => {
     selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
     assert.equal(selectedLists.length, 1)
     assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
+
+    await component.didSelectStagedFilePatch()
+    assert.equal(component.focusedList, 'staged')
+    selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+    assert.equal(selectedLists.length, 1)
+    assert.equal(selectedLists[0].textContent, 'Staged Changes')
   })
 
   it('calls didSelectFilePatch when file is selected', async () => {
