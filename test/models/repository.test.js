@@ -2,7 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from './helpers'
+import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from '../helpers'
 
 import {GitRepositoryAsync} from 'atom'
 const Git = GitRepositoryAsync.Git

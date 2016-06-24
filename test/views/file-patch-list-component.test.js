@@ -1,7 +1,7 @@
 /** @babel */
 
-import FilePatch from '../lib/file-patch'
-import FilePatchListComponent from '../lib/file-patch-list-component'
+import FilePatch from '../../lib/models/file-patch'
+import FilePatchListComponent from '../../lib/views/file-patch-list-component'
 
 describe('FilePatchListComponent', () => {
   it('renders file diffs, allowing one of them to be selected', async () => {

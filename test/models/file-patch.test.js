@@ -1,13 +1,13 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from './helpers'
+import {copyRepositoryDir, buildRepository} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import dedent from 'dedent-js'
 
-import FilePatch from '../lib/file-patch'
-import Hunk from '../lib/hunk'
-import HunkLine from '../lib/hunk-line'
+import FilePatch from '../../lib/models/file-patch'
+import Hunk from '../../lib/models/hunk'
+import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatch', () => {
   describe('getStagePatchForLines()', () => {

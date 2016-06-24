@@ -1,11 +1,11 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from './helpers'
+import {copyRepositoryDir, buildRepository} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'
 
-import StagingComponent from '../lib/staging-component'
+import StagingComponent from '../../lib/views/staging-component'
 
 describe('StagingComponent', () => {
   it('only renders the change lists when their data is loaded', async () => {

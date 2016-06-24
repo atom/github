@@ -3,9 +3,9 @@
 import sinon from 'sinon'
 import etch from 'etch'
 
-import Hunk from '../lib/hunk'
-import HunkLine from '../lib/hunk-line'
-import HunkComponent from '../lib/hunk-component'
+import Hunk from '../../lib/models/hunk'
+import HunkLine from '../../lib/models/hunk-line'
+import HunkComponent from '../../lib/views/hunk-component'
 
 describe('HunkComponent', () => {
   it('renders the hunk header and its lines', async () => {

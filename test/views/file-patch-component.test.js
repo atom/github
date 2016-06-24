@@ -2,10 +2,10 @@
 
 import etch from 'etch'
 
-import FilePatch from '../lib/file-patch'
-import Hunk from '../lib/hunk'
-import HunkLine from '../lib/hunk-line'
-import FilePatchComponent from '../lib/file-patch-component'
+import FilePatch from '../../lib/models/file-patch'
+import Hunk from '../../lib/models/hunk'
+import HunkLine from '../../lib/models/hunk-line'
+import FilePatchComponent from '../../lib/views/file-patch-component'
 
 describe('FilePatchComponent', () => {
   it('allows lines of a hunk to be selected, clearing the selection on the other hunks', async () => {
