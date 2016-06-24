@@ -93,6 +93,36 @@ describe('StagingComponent', () => {
     assert.deepEqual(didSelectFileDiff.args[1], [fileDiff, 'staged'])
   })
 
+  describe('core:confirm', () => {
+    it('stages and unstages files, updating lists accordingly', async () => {
+      const workdirPath = await copyRepositoryDir(1)
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const component = new StagingComponent({repository})
+      await component.lastModelDataRefreshPromise
+
+      const {stagedChangesComponent, unstagedChangesComponent} = component.refs
+      const fileDiffs = unstagedChangesComponent.fileDiffs
+
+      unstagedChangesComponent.didSelectFileDiff(fileDiffs[1])
+      atom.commands.dispatch(component.element, 'core:confirm')
+      await component.lastRepositoryStagePromise
+      await component.lastModelDataRefreshPromise
+
+      assert.deepEqual(unstagedChangesComponent.fileDiffs, [fileDiffs[0]])
+      assert.deepEqual(stagedChangesComponent.fileDiffs, [fileDiffs[1]])
+
+      stagedChangesComponent.didSelectFileDiff(fileDiffs[1])
+      atom.commands.dispatch(component.element, 'core:confirm')
+      await component.lastRepositoryStagePromise
+      await component.lastModelDataRefreshPromise
+
+      assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)
+      assert.deepEqual(stagedChangesComponent.fileDiffs, [])
+    })
+  })
+
   describe('keyboard navigation for Unstaged Changes list', () => {
     describe('core:move-up and core:move-down', () => {
       let component, unstagedFileDiffs
