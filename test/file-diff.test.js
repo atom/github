@@ -5,8 +5,59 @@ import path from 'path'
 import fs from 'fs'
 import dedent from 'dedent-js'
 
+import FileDiff from '../lib/file-diff'
+import Hunk from '../lib/hunk'
+import HunkLine from '../lib/hunk-line'
+
 describe('FileDiff', () => {
-  describe('toString()', () =>{
+  describe('buildDiffWithLines()', () => {
+    it('returns a new FileDiff that applies only the specified lines', () => {
+      const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1\n', 'added', -1, 1),
+          new HunkLine('line-2\n', 'added', -1, 2),
+          new HunkLine('line-3\n', 'unchanged', 1, 3)
+        ]),
+        new Hunk(5, 7, 5, 4, [
+          new HunkLine('line-4\n', 'unchanged', 5, 7),
+          new HunkLine('line-5\n', 'removed', 6, -1),
+          new HunkLine('line-6\n', 'removed', 7, -1),
+          new HunkLine('line-7\n', 'added', -1, 8),
+          new HunkLine('line-8\n', 'added', -1, 9),
+          new HunkLine('line-9\n', 'added', -1, 10),
+          new HunkLine('line-10\n', 'removed', 8, -1),
+          new HunkLine('line-11\n', 'removed', 9, -1)
+        ]),
+        new Hunk(20, 19, 2, 2, [
+          new HunkLine('line-12\n', 'removed', 20, -1),
+          new HunkLine('line-13\n', 'added', -1, 19),
+          new HunkLine('line-14\n', 'unchanged', 21, 20)
+        ])
+      ])
+      const lines = new Set(fileDiff.getHunks()[1].getLines().slice(1, 4))
+      assert.deepEqual(fileDiff.buildDiffWithLines(lines), new FileDiff(
+        'a.txt', 'a.txt', 1234, 1234, 'modified', [
+          new Hunk(1, 1, 1, 1, [
+            new HunkLine('line-3\n', 'unchanged', 1, 1)
+          ]),
+          new Hunk(5, 5, 5, 4, [
+            new HunkLine('line-4\n', 'unchanged', 5, 5),
+            new HunkLine('line-5\n', 'removed', 6, -1),
+            new HunkLine('line-6\n', 'removed', 7, -1),
+            new HunkLine('line-7\n', 'added', -1, 6),
+            new HunkLine('line-10\n', 'unchanged', 8, 7),
+            new HunkLine('line-11\n', 'unchanged', 9, 8)
+          ]),
+          new Hunk(20, 17, 2, 2, [
+            new HunkLine('line-12\n', 'unchanged', 20, 17),
+            new HunkLine('line-14\n', 'unchanged', 21, 18)
+          ])
+        ]
+      ))
+    })
+  })
+
+  describe('toString()', () => {
     it('converts the diff to the standard textual format', async () => {
       const workdirPath = copyRepositoryDir(2)
       const repository = await buildRepository(workdirPath)
