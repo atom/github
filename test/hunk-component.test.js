@@ -93,7 +93,7 @@ describe('HunkComponent', () => {
   it('calls the didClickStagingButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
     const didClickStagingButton = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStagingButton})
+    const component = new HunkComponent({hunk, selectedLines: new Set, onDidClickStagingButton: didClickStagingButton})
     component.refs.stagingButton.dispatchEvent(new MouseEvent('click'))
     assert(didClickStagingButton.calledOnce)
   })
@@ -109,7 +109,7 @@ describe('HunkComponent', () => {
     ])
 
     const didSelectLines = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, didSelectLines})
+    const component = new HunkComponent({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines})
     const element = component.element
     const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
 
