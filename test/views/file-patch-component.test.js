@@ -40,4 +40,14 @@ describe('FilePatchComponent', () => {
     assert(!hunkComponentsByHunk.get(hunk1).isSelected)
     assert(hunkComponentsByHunk.get(hunk2).isSelected)
   })
+
+  it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', () => {
+    let hunkComponent
+    function registerHunkComponent (hunk, component) { hunkComponent = component }
+    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [new Hunk(5, 5, 2, 1, [])])
+    const component = new FilePatchComponent({filePatch, stagingStatus: 'unstaged', registerHunkComponent})
+    assert(hunkComponent.stageButtonLabelPrefix, 'Stage')
+    component.update({filePatch, stagingStatus: 'staged'})
+    assert(hunkComponent.stageButtonLabelPrefix, 'Unstage')
+  })
 })
