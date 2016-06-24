@@ -146,27 +146,30 @@ describe('GithubPackage', () => {
 
       assert.isNull(githubPackage.filePatchComponent)
 
-      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch1)
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch1, 'unstaged')
       assert(githubPackage.filePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch1)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
 
       const existingFilePatchComponent = githubPackage.filePatchComponent
       workspace.getActivePane().splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
-      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2)
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
       assert.equal(githubPackage.filePatchComponent, existingFilePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
 
       workspace.getActivePaneItem().destroy()
       assert.isUndefined(workspace.getActivePaneItem())
       assert.isNull(githubPackage.filePatchComponent)
 
-      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2)
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
       assert.notEqual(githubPackage.filePatchComponent, existingFilePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
     })
   })
