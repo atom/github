@@ -80,7 +80,7 @@ describe('HunkComponent', () => {
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'removed', 6, -1)
     ])
-    const component = new HunkComponent({hunk, selectedLines: new Set, stagingMode: 'stage'})
+    const component = new HunkComponent({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
     assert.equal(component.refs.stageButton.textContent, 'Stage Hunk')
 
     await component.update({hunk, selectedLines: new Set([hunk.getLines()[0]])})
