@@ -10,7 +10,7 @@ import Hunk from '../lib/hunk'
 import HunkLine from '../lib/hunk-line'
 
 describe('FileDiff', () => {
-  describe('getDiffToStage()', () => {
+  describe('getStagePatchForLines()', () => {
     it('returns a new FileDiff that applies only the specified lines', () => {
       const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [
         new Hunk(1, 1, 1, 3, [
@@ -35,7 +35,7 @@ describe('FileDiff', () => {
         ])
       ])
       const lines = new Set(fileDiff.getHunks()[1].getLines().slice(1, 4))
-      assert.deepEqual(fileDiff.getDiffToStage(lines), new FileDiff(
+      assert.deepEqual(fileDiff.getStagePatchForLines(lines), new FileDiff(
         'a.txt', 'a.txt', 1234, 1234, 'modified', [
           new Hunk(1, 1, 1, 1, [
             new HunkLine('line-3\n', 'unchanged', 1, 1)
@@ -57,7 +57,7 @@ describe('FileDiff', () => {
     })
   })
 
-  describe('getDiffToUnstage()', () => {
+  describe('getUnstagePatchForLines()', () => {
     it('returns a new FileDiff that applies only the specified lines', () => {
       const fileDiff = new FileDiff('a.txt', 'a.txt', 1234, 1234, 'modified', [
         new Hunk(1, 1, 1, 3, [
@@ -82,7 +82,7 @@ describe('FileDiff', () => {
         ])
       ])
       const lines = new Set(fileDiff.getHunks()[1].getLines().slice(1, 5))
-      assert.deepEqual(fileDiff.getDiffToUnstage(lines), new FileDiff(
+      assert.deepEqual(fileDiff.getUnstagePatchForLines(lines), new FileDiff(
         'a.txt', 'a.txt', 1234, 1234, 'modified', [
           new Hunk(1, 1, 3, 3, [
             new HunkLine('line-1\n', 'unchanged', 1, 1),

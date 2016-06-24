@@ -88,13 +88,12 @@ describe('Repository', () => {
       await repo.refreshUnstagedChanges()
       const [unstagedDiff2] = await repo.getUnstagedChanges()
 
-      await repo.stageFileDiff(unstagedDiff1)
-
+      await repo.applyPatchToIndex(unstagedDiff1)
       assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedDiff1])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
-      await repo.unstageFileDiff(unstagedDiff1)
+      await repo.applyPatchToIndex(unstagedDiff1.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedDiff2])
     })
@@ -105,12 +104,11 @@ describe('Repository', () => {
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
       const [removeDiff] = await repo.getUnstagedChanges()
 
-      await repo.stageFileDiff(removeDiff)
-
+      await repo.applyPatchToIndex(removeDiff)
       assertDeepPropertyVals(await repo.getStagedChanges(), [removeDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.unstageFileDiff(removeDiff)
+      await repo.applyPatchToIndex(removeDiff.getUnstagePatch())
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [removeDiff])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -121,12 +119,11 @@ describe('Repository', () => {
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
       const [renameDiff] = await repo.getUnstagedChanges()
 
-      await repo.stageFileDiff(renameDiff)
-
+      await repo.applyPatchToIndex(renameDiff)
       assertDeepPropertyVals(await repo.getStagedChanges(), [renameDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.unstageFileDiff(renameDiff)
+      await repo.applyPatchToIndex(renameDiff.getUnstagePatch())
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [renameDiff])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -137,12 +134,11 @@ describe('Repository', () => {
       const repo = await buildRepository(workingDirPath)
       const [addedDiff] = await repo.getUnstagedChanges()
 
-      await repo.stageFileDiff(addedDiff)
-
+      await repo.applyPatchToIndex(addedDiff)
       assertDeepPropertyVals(await repo.getStagedChanges(), [addedDiff])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.unstageFileDiff(addedDiff)
+      await repo.applyPatchToIndex(addedDiff.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
@@ -153,10 +149,10 @@ describe('Repository', () => {
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
       const [addedDiffToStage] = await repo.getUnstagedChanges()
-      await repo.stageFileDiff(addedDiffToStage)
+      await repo.applyPatchToIndex(addedDiffToStage)
       const [addedDiff] = await repo.getStagedChanges()
 
-      await repo.unstageFileDiff(addedDiff)
+      await repo.applyPatchToIndex(addedDiff.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
     })
