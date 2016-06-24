@@ -91,10 +91,10 @@ describe('FileDiff', () => {
           ]),
           new Hunk(7, 7, 4, 4, [
             new HunkLine('line-4\n', 'unchanged', 7, 7),
-            new HunkLine('line-5\n', 'added', -1, 8),
-            new HunkLine('line-6\n', 'added', -1, 9),
             new HunkLine('line-7\n', 'removed', 8, -1),
             new HunkLine('line-8\n', 'removed', 9, -1),
+            new HunkLine('line-5\n', 'added', -1, 8),
+            new HunkLine('line-6\n', 'added', -1, 9),
             new HunkLine('line-9\n', 'unchanged', 10, 10)
           ]),
           new Hunk(19, 21, 2, 2, [
