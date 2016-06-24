@@ -155,28 +155,63 @@ describe('StagingComponent', () => {
     })
   })
 
-  describe('keyboard navigation for Unstaged Changes list', () => {
-    describe('core:move-up and core:move-down', () => {
-      let component, unstagedFilePatches
-      beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
-        const repository = await buildRepository(workdirPath)
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
-        component = new StagingComponent({repository})
-        await component.lastModelDataRefreshPromise
+  describe('core:move-up and core:move-down', () => {
+    let component, unstagedFilePatches, stagedFilePatches
+    beforeEach(async () => {
+      const workdirPath = await copyRepositoryDir(1)
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
+      fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new file 1\n')
+      fs.writeFileSync(path.join(workdirPath, 'e.txt'), 'new file 2\n')
+      fs.writeFileSync(path.join(workdirPath, 'f.txt'), 'new file 3\n')
+      component = new StagingComponent({repository})
+      await component.lastModelDataRefreshPromise
 
-        const unstagedChangesComponent = component.refs.unstagedChangesComponent
-        unstagedFilePatches = unstagedChangesComponent.filePatches
+      const {stagedChangesComponent, unstagedChangesComponent} = component.refs
+      const initialUnstagedFilePatches = unstagedChangesComponent.filePatches
+
+      // Create three staged files, leaving three unstaged
+      await unstagedChangesComponent.didConfirmFilePatch(initialUnstagedFilePatches[0])
+      await component.lastModelDataRefreshPromise
+      await unstagedChangesComponent.didConfirmFilePatch(initialUnstagedFilePatches[1])
+      await component.lastModelDataRefreshPromise
+      await unstagedChangesComponent.didConfirmFilePatch(initialUnstagedFilePatches[2])
+      await component.lastModelDataRefreshPromise
+
+      stagedFilePatches = stagedChangesComponent.filePatches
+      unstagedFilePatches = unstagedChangesComponent.filePatches
+
+      assert.equal(stagedFilePatches.length, 3)
+      assert.equal(unstagedFilePatches.length, 3)
+    })
+
+    describe('keyboard navigation within Staged Changes list', () => {
+      it('selects next/previous staged filePatch if there is one', () => {
+        component.didSelectStagedFilePatch(stagedFilePatches[0])
+        assert.equal(component.focusedList, 'staged')
+        assert.equal(component.stagedSelectedFilePatch, stagedFilePatches[0])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[2])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[0])
+      })
+    })
+    describe('keyboard navigation within Unstaged Changes list', () => {
+      it('selects next/previous unstaged filePatch if there is one', () => {
         component.didSelectUnstagedFilePatch(unstagedFilePatches[0])
-
-        assert.equal(unstagedFilePatches.length, 3)
         assert.equal(component.focusedList, 'unstaged')
-        assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
-      })
+        assert.equal(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
 
-      it('selects next/previous filePatch if there is one', () => {
         atom.commands.dispatch(component.element, 'core:move-down')
         assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[1])
 
@@ -187,68 +222,42 @@ describe('StagingComponent', () => {
         assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[1])
 
         atom.commands.dispatch(component.element, 'core:move-up')
-        assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
-      })
-
-      it('jumps to beginning/end of list if no next/previous filePatch', () => {
-        atom.commands.dispatch(component.element, 'core:move-up')
-        assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[2])
-
-        atom.commands.dispatch(component.element, 'core:move-down')
         assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
       })
     })
-  })
+    describe('keyboard navigation across Staged and Unstaged Changes lists', () => {
+      it('jumps between the end of Staged Changes list and beginning of Unstaged Changes list', () => {
+        const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
+        const firstUnstagedFilePatch = unstagedFilePatches[0]
 
-  describe('keyboard navigation for Staged Changes list', () => {
-    describe('core:move-up and core:move-down', () => {
-      let component, stagedFilePatches
-      beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
-        const repository = await buildRepository(workdirPath)
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
-        component = new StagingComponent({repository})
-        await component.lastModelDataRefreshPromise
-
-        const unstagedChangesComponent = component.refs.unstagedChangesComponent
-        const unstagedFilePatches = unstagedChangesComponent.filePatches
-        await unstagedChangesComponent.didConfirmFilePatch(unstagedFilePatches[0])
-        await component.lastModelDataRefreshPromise
-        await unstagedChangesComponent.didConfirmFilePatch(unstagedFilePatches[1])
-        await component.lastModelDataRefreshPromise
-        await unstagedChangesComponent.didConfirmFilePatch(unstagedFilePatches[2])
-        await component.lastModelDataRefreshPromise
-
-        const stagedChangesComponent = component.refs.stagedChangesComponent
-        stagedFilePatches = stagedChangesComponent.filePatches
-        component.didSelectStagedFilePatch(stagedFilePatches[0])
-        assert.equal(stagedFilePatches.length, 3)
+        component.didSelectStagedFilePatch(lastStagedFilePatch)
         assert.equal(component.focusedList, 'staged')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[0])
+        assert.equal(component.stagedSelectedFilePatch, lastStagedFilePatch)
+
+        atom.commands.dispatch(component.element, 'core:move-down')
+        assert.deepEqual(component.focusedList, 'unstaged')
+        assert.deepEqual(component.unstagedSelectedFilePatch, firstUnstagedFilePatch)
+
+        atom.commands.dispatch(component.element, 'core:move-up')
+        assert.deepEqual(component.focusedList, 'staged')
+        assert.deepEqual(component.stagedSelectedFilePatch, lastStagedFilePatch)
       })
 
-      it('selects next/previous filePatch if there is one', () => {
-        atom.commands.dispatch(component.element, 'core:move-down')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
+      it('jumps between the end of Unstaged Changes list and beginning of Staged Changes list', () => {
+        const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
+        const firstStagedFilePatch = stagedFilePatches[0]
+
+        component.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
+        assert.equal(component.focusedList, 'unstaged')
+        assert.equal(component.unstagedSelectedFilePatch, lastUnstagedFilePatch)
 
         atom.commands.dispatch(component.element, 'core:move-down')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[2])
+        assert.deepEqual(component.focusedList, 'staged')
+        assert.deepEqual(component.stagedSelectedFilePatch, firstStagedFilePatch)
 
         atom.commands.dispatch(component.element, 'core:move-up')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
-
-        atom.commands.dispatch(component.element, 'core:move-up')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[0])
-      })
-
-      it('jumps to beginning/end of list if no next/previous filePatch', () => {
-        atom.commands.dispatch(component.element, 'core:move-up')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[2])
-
-        atom.commands.dispatch(component.element, 'core:move-down')
-        assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[0])
+        assert.deepEqual(component.focusedList, 'unstaged')
+        assert.deepEqual(component.unstagedSelectedFilePatch, lastUnstagedFilePatch)
       })
     })
   })
