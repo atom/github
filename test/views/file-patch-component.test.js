@@ -1,6 +1,7 @@
 /** @babel */
 
 import etch from 'etch'
+import sinon from 'sinon'
 
 import FilePatch from '../../lib/models/file-patch'
 import Hunk from '../../lib/models/hunk'
@@ -52,8 +53,21 @@ describe('FilePatchComponent', () => {
   })
 
   it('bases its tab title on the staging status', () => {
-    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [new Hunk(5, 5, 2, 1, [])])
-    const component = new FilePatchComponent({filePatch, stagingStatus: 'unstaged'})
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
+    const component = new FilePatchComponent({filePatch: filePatch1, stagingStatus: 'unstaged'})
     assert.equal(component.getTitle(), 'Unstaged Changes: a.txt')
+
+    const changeHandler = sinon.spy()
+    component.onDidChangeTitle(changeHandler)
+
+    component.update({filePatch: filePatch1, stagingStatus: 'staged'})
+    assert.equal(component.getTitle(), 'Staged Changes: a.txt')
+    assert.deepEqual(changeHandler.args, [[component.getTitle()]])
+
+    changeHandler.reset()
+    const filePatch2 = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed', [])
+    component.update({filePatch: filePatch2, stagingStatus: 'staged'})
+    assert.equal(component.getTitle(), 'Staged Changes: a.txt → b.txt')
+    assert.deepEqual(changeHandler.args, [[component.getTitle()]])
   })
 })
