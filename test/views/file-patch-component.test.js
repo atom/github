@@ -50,4 +50,10 @@ describe('FilePatchComponent', () => {
     component.update({filePatch, stagingStatus: 'staged'})
     assert(hunkComponent.stageButtonLabelPrefix, 'Unstage')
   })
+
+  it('bases its tab title on the staging status', () => {
+    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [new Hunk(5, 5, 2, 1, [])])
+    const component = new FilePatchComponent({filePatch, stagingStatus: 'unstaged'})
+    assert.equal(component.getTitle(), 'Unstaged Changes: a.txt')
+  })
 })
