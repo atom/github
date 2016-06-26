@@ -63,7 +63,7 @@ describe('StagingComponent', () => {
           await unstagedChangesComponent.didConfirmFilePatch(filePatches[0])
           await component.lastModelDataRefreshPromise
 
-          assert.deepEqual(component.unstagedSelectedFilePatch, filePatches[1])
+          assert.deepEqual(component.selectedUnstagedFilePatch, filePatches[1])
         })
       })
 
@@ -82,13 +82,13 @@ describe('StagingComponent', () => {
           await unstagedChangesComponent.didConfirmFilePatch(filePatches[1])
           await component.lastModelDataRefreshPromise
 
-          assert.deepEqual(component.unstagedSelectedFilePatch, filePatches[0])
+          assert.deepEqual(component.selectedUnstagedFilePatch, filePatches[0])
         })
       })
 
       describe('when the confirmed file is the last in the list', () => {
         describe('when the selected list is staged', () => {
-          it('selects the first file in the Unstaged Changes list and sets stagedSelectedFilePatch to null', async () => {
+          it('selects the first file in the Unstaged Changes list and sets selectedStagedFilePatch to null', async () => {
             const workdirPath = await copyRepositoryDir(1)
             const repository = await buildRepository(workdirPath)
             fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
@@ -109,13 +109,13 @@ describe('StagingComponent', () => {
 
             const firstUnstagedFilePatch = unstagedChangesComponent.filePatches[0]
             assert.equal(stagedChangesComponent.filePatches.length, 0)
-            assert.equal(component.stagedSelectedFilePatch, null)
-            assert.deepEqual(component.unstagedSelectedFilePatch, firstUnstagedFilePatch)
+            assert.equal(component.selectedStagedFilePatch, null)
+            assert.deepEqual(component.selectedUnstagedFilePatch, firstUnstagedFilePatch)
           })
         })
 
         describe('when the selected list is unstaged', () => {
-          it('selects the last file in the Staged Changes list and selects stagedSelectedFilePatch to null', async () => {
+          it('selects the last file in the Staged Changes list and selects selectedStagedFilePatch to null', async () => {
             const workdirPath = await copyRepositoryDir(1)
             const repository = await buildRepository(workdirPath)
             fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
@@ -139,8 +139,8 @@ describe('StagingComponent', () => {
             const stagedFilePatches = stagedChangesComponent.filePatches
             const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
             assert.equal(unstagedChangesComponent.filePatches.length, 0)
-            assert.equal(component.unstagedSelectedFilePatch, null)
-            assert.deepEqual(component.stagedSelectedFilePatch, lastStagedFilePatch)
+            assert.equal(component.selectedUnstagedFilePatch, null)
+            assert.deepEqual(component.selectedStagedFilePatch, lastStagedFilePatch)
           })
         })
       })
@@ -272,19 +272,19 @@ describe('StagingComponent', () => {
         it('selects next/previous staged filePatch if there is one', () => {
           component.didSelectStagedFilePatch(stagedFilePatches[0])
           assert.equal(component.focusedList, 'staged')
-          assert.equal(component.stagedSelectedFilePatch, stagedFilePatches[0])
+          assert.equal(component.selectedStagedFilePatch, stagedFilePatches[0])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
+          assert.deepEqual(component.selectedStagedFilePatch, stagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[2])
+          assert.deepEqual(component.selectedStagedFilePatch, stagedFilePatches[2])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[1])
+          assert.deepEqual(component.selectedStagedFilePatch, stagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.stagedSelectedFilePatch, stagedFilePatches[0])
+          assert.deepEqual(component.selectedStagedFilePatch, stagedFilePatches[0])
         })
       })
 
@@ -292,19 +292,19 @@ describe('StagingComponent', () => {
         it('selects next/previous unstaged filePatch if there is one', () => {
           component.didSelectUnstagedFilePatch(unstagedFilePatches[0])
           assert.equal(component.focusedList, 'unstaged')
-          assert.equal(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
+          assert.equal(component.selectedUnstagedFilePatch, unstagedFilePatches[0])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[1])
+          assert.deepEqual(component.selectedUnstagedFilePatch, unstagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[2])
+          assert.deepEqual(component.selectedUnstagedFilePatch, unstagedFilePatches[2])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[1])
+          assert.deepEqual(component.selectedUnstagedFilePatch, unstagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.unstagedSelectedFilePatch, unstagedFilePatches[0])
+          assert.deepEqual(component.selectedUnstagedFilePatch, unstagedFilePatches[0])
         })
       })
 
@@ -315,15 +315,15 @@ describe('StagingComponent', () => {
 
           component.didSelectStagedFilePatch(lastStagedFilePatch)
           assert.equal(component.focusedList, 'staged')
-          assert.equal(component.stagedSelectedFilePatch, lastStagedFilePatch)
+          assert.equal(component.selectedStagedFilePatch, lastStagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-down')
           assert.deepEqual(component.focusedList, 'unstaged')
-          assert.deepEqual(component.unstagedSelectedFilePatch, firstUnstagedFilePatch)
+          assert.deepEqual(component.selectedUnstagedFilePatch, firstUnstagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-up')
           assert.deepEqual(component.focusedList, 'staged')
-          assert.deepEqual(component.stagedSelectedFilePatch, lastStagedFilePatch)
+          assert.deepEqual(component.selectedStagedFilePatch, lastStagedFilePatch)
         })
 
         it('jumps between the end of Unstaged Changes list and beginning of Staged Changes list', () => {
@@ -332,15 +332,15 @@ describe('StagingComponent', () => {
 
           component.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
           assert.equal(component.focusedList, 'unstaged')
-          assert.equal(component.unstagedSelectedFilePatch, lastUnstagedFilePatch)
+          assert.equal(component.selectedUnstagedFilePatch, lastUnstagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-down')
           assert.deepEqual(component.focusedList, 'staged')
-          assert.deepEqual(component.stagedSelectedFilePatch, firstStagedFilePatch)
+          assert.deepEqual(component.selectedStagedFilePatch, firstStagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-up')
           assert.deepEqual(component.focusedList, 'unstaged')
-          assert.deepEqual(component.unstagedSelectedFilePatch, lastUnstagedFilePatch)
+          assert.deepEqual(component.selectedUnstagedFilePatch, lastUnstagedFilePatch)
         })
       })
     })
