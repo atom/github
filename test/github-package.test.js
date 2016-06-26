@@ -3,8 +3,9 @@
 import fs from 'fs'
 import path from 'path'
 import temp from 'temp'
-import GithubPackage from '../lib/github-package'
 import {copyRepositoryDir} from './helpers'
+import FilePatch from '../lib/models/file-patch'
+import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
   let atomEnv, workspace, project, githubPackage
@@ -135,6 +136,41 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'))
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
+    })
+  })
+
+  describe('when a FilePatch is selected in the staging panel', () => {
+    it('shows a FilePatchComponent for the selected patch as a pane item', () => {
+      const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
+      const filePatch2 = new FilePatch('b.txt', 'b.txt', 1234, 1234, 'modified', [])
+
+      assert.isNull(githubPackage.filePatchComponent)
+
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch1, 'unstaged')
+      assert(githubPackage.filePatchComponent)
+      assert.equal(githubPackage.filePatchComponent.filePatch, filePatch1)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'unstaged')
+      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
+
+      const existingFilePatchComponent = githubPackage.filePatchComponent
+      workspace.getActivePane().splitRight() // activate a different pane
+      assert.isUndefined(workspace.getActivePaneItem())
+
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
+      assert.equal(githubPackage.filePatchComponent, existingFilePatchComponent)
+      assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
+      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
+
+      workspace.getActivePaneItem().destroy()
+      assert.isUndefined(workspace.getActivePaneItem())
+      assert.isNull(githubPackage.filePatchComponent)
+
+      githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
+      assert.notEqual(githubPackage.filePatchComponent, existingFilePatchComponent)
+      assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
+      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
     })
   })
 })

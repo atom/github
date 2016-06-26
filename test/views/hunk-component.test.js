@@ -80,21 +80,21 @@ describe('HunkComponent', () => {
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'removed', 6, -1)
     ])
-    const component = new HunkComponent({hunk, selectedLines: new Set, stagingButtonLabel: 'Stage'})
-    assert.equal(component.refs.stagingButton.textContent, 'Stage Hunk')
+    const component = new HunkComponent({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
+    assert.equal(component.refs.stageButton.textContent, 'Stage Hunk')
 
     await component.update({hunk, selectedLines: new Set([hunk.getLines()[0]])})
-    assert.equal(component.refs.stagingButton.textContent, 'Stage Line')
+    assert.equal(component.refs.stageButton.textContent, 'Stage Line')
 
     await component.update({hunk, selectedLines: new Set(hunk.getLines())})
-    assert.equal(component.refs.stagingButton.textContent, 'Stage Lines')
+    assert.equal(component.refs.stageButton.textContent, 'Stage Lines')
   })
 
   it('calls the didClickStagingButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
     const didClickStagingButton = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, onDidClickStagingButton: didClickStagingButton})
-    component.refs.stagingButton.dispatchEvent(new MouseEvent('click'))
+    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStageButton: didClickStagingButton})
+    component.refs.stageButton.dispatchEvent(new MouseEvent('click'))
     assert(didClickStagingButton.calledOnce)
   })
 
