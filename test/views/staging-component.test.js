@@ -261,4 +261,103 @@ describe('StagingComponent', () => {
       })
     })
   })
+
+  describe('file selection after a file is removed from its current list', () => {
+    describe('when the confirmed file has a file below it', () => {
+      it('selects the next file', async () => {
+        const workdirPath = await copyRepositoryDir(1)
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+        const component = new StagingComponent({repository})
+        await component.lastModelDataRefreshPromise
+        let {unstagedChangesComponent} = component.refs
+        const filePatches = unstagedChangesComponent.filePatches
+
+        assert.equal(filePatches.length, 2)
+        await unstagedChangesComponent.didConfirmFilePatch(filePatches[0])
+        await component.lastModelDataRefreshPromise
+
+        assert.deepEqual(component.unstagedSelectedFilePatch, filePatches[1])
+      })
+    })
+
+    describe('when the confirmed file has no file below, but does a file above', () => {
+      it('selects the previous file', async () => {
+        const workdirPath = await copyRepositoryDir(1)
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+        const component = new StagingComponent({repository})
+        await component.lastModelDataRefreshPromise
+        const {unstagedChangesComponent} = component.refs
+        const filePatches = unstagedChangesComponent.filePatches
+
+        assert.equal(filePatches.length, 2)
+        await unstagedChangesComponent.didConfirmFilePatch(filePatches[1])
+        await component.lastModelDataRefreshPromise
+
+        assert.deepEqual(component.unstagedSelectedFilePatch, filePatches[0])
+      })
+    })
+
+    describe('when the confirmed file is the last in the list', () => {
+      describe('when the selected list is staged', () => {
+        it('selects the first file in the Unstaged Changes list and sets stagedSelectedFilePatch to null', async () => {
+          const workdirPath = await copyRepositoryDir(1)
+          const repository = await buildRepository(workdirPath)
+          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+          fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+          fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'new file\n')
+          const component = new StagingComponent({repository})
+          await component.lastModelDataRefreshPromise
+          const {unstagedChangesComponent, stagedChangesComponent} = component.refs
+          const filePatches = unstagedChangesComponent.filePatches
+
+          await unstagedChangesComponent.didConfirmFilePatch(filePatches[0])
+          await component.lastModelDataRefreshPromise
+
+          assert.equal(stagedChangesComponent.filePatches.length, 1)
+
+          await stagedChangesComponent.didConfirmFilePatch(filePatches[0])
+          await component.lastModelDataRefreshPromise
+
+          const firstUnstagedFilePatch = unstagedChangesComponent.filePatches[0]
+          assert.equal(stagedChangesComponent.filePatches.length, 0)
+          assert.equal(component.stagedSelectedFilePatch, null)
+          assert.deepEqual(component.unstagedSelectedFilePatch, firstUnstagedFilePatch)
+        })
+      })
+
+      describe('when the selected list is unstaged', () => {
+        it('selects the last file in the Staged Changes list and selects stagedSelectedFilePatch to null', async () => {
+          const workdirPath = await copyRepositoryDir(1)
+          const repository = await buildRepository(workdirPath)
+          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+          fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+          fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'new file\n')
+          const component = new StagingComponent({repository})
+          await component.lastModelDataRefreshPromise
+          const {unstagedChangesComponent, stagedChangesComponent} = component.refs
+          const filePatches = unstagedChangesComponent.filePatches
+
+          await unstagedChangesComponent.didConfirmFilePatch(filePatches[1])
+          await component.lastModelDataRefreshPromise
+          await unstagedChangesComponent.didConfirmFilePatch(filePatches[2])
+          await component.lastModelDataRefreshPromise
+
+          assert.equal(unstagedChangesComponent.filePatches.length, 1)
+
+          await unstagedChangesComponent.didConfirmFilePatch(filePatches[0])
+          await component.lastModelDataRefreshPromise
+
+          const stagedFilePatches = stagedChangesComponent.filePatches
+          const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
+          assert.equal(unstagedChangesComponent.filePatches.length, 0)
+          assert.equal(component.unstagedSelectedFilePatch, null)
+          assert.deepEqual(component.stagedSelectedFilePatch, lastStagedFilePatch)
+        })
+      })
+    })
+  })
 })
