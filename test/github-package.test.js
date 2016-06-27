@@ -141,6 +141,8 @@ describe('GithubPackage', () => {
 
   describe('when a FilePatch is selected in the staging panel', () => {
     it('shows a FilePatchComponent for the selected patch as a pane item', () => {
+      let dummyActiveRepository = {}
+      githubPackage.getActiveRepository = function () { return dummyActiveRepository }
       const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
       const filePatch2 = new FilePatch('b.txt', 'b.txt', 1234, 1234, 'modified', [])
 
@@ -149,6 +151,7 @@ describe('GithubPackage', () => {
       githubPackage.commitPanelComponent.didSelectFilePatch(filePatch1, 'unstaged')
       assert(githubPackage.filePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch1)
+      assert.equal(githubPackage.filePatchComponent.repository, dummyActiveRepository)
       assert.equal(githubPackage.filePatchComponent.stagingStatus, 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
 
@@ -156,9 +159,11 @@ describe('GithubPackage', () => {
       workspace.getActivePane().splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
+      dummyActiveRepository = {}
       githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
       assert.equal(githubPackage.filePatchComponent, existingFilePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.repository, dummyActiveRepository)
       assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
 
@@ -169,6 +174,7 @@ describe('GithubPackage', () => {
       githubPackage.commitPanelComponent.didSelectFilePatch(filePatch2, 'staged')
       assert.notEqual(githubPackage.filePatchComponent, existingFilePatchComponent)
       assert.equal(githubPackage.filePatchComponent.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchComponent.repository, dummyActiveRepository)
       assert.equal(githubPackage.filePatchComponent.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchComponent)
     })
