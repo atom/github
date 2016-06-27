@@ -103,7 +103,7 @@ describe('HunkComponent', () => {
     assert(didClickStageButton2.calledOnce)
   })
 
-  it('calls the onDidSelectLines handler when lines are selected with the mouse', async () => {
+  it('calls the didSelectLines handler when lines are selected with the mouse', async () => {
     const hunk = new Hunk(1234, 1234, 1234, 1234, [
       new HunkLine('line-1', 'added', 1234, 1234),
       new HunkLine('line-2', 'added', 1234, 1234),
@@ -114,7 +114,7 @@ describe('HunkComponent', () => {
     ])
 
     const didSelectLines1 = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines1})
+    const component = new HunkComponent({hunk, selectedLines: new Set, didSelectLines: didSelectLines1})
     const element = component.element
     const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
 
@@ -128,9 +128,9 @@ describe('HunkComponent', () => {
     line1.dispatchEvent(new MouseEvent('mouseup'))
     assert.deepEqual(Array.from(didSelectLines1.args[0][0]), hunk.getLines().slice(0, 1))
 
-    // ensure updating the component with a different onDidSelectLines handler works
+    // ensure updating the component with a different didSelectLines handler works
     const didSelectLines2 = sinon.spy()
-    await component.update({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines2})
+    await component.update({hunk, selectedLines: new Set, didSelectLines: didSelectLines2})
 
     // start dragging
     line2.dispatchEvent(new MouseEvent('mousedown'))
