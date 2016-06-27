@@ -70,4 +70,13 @@ describe('FilePatchComponent', () => {
     assert.equal(component.getTitle(), 'Staged Changes: a.txt → b.txt')
     assert.deepEqual(changeHandler.args, [[component.getTitle()]])
   })
+
+  it('gets destroyed if the associated FilePatch is destroyed', () => {
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
+    const component = new FilePatchComponent({filePatch: filePatch1})
+    const destroyHandler = sinon.spy()
+    component.onDidDestroy(destroyHandler)
+    filePatch1.destroy()
+    assert(destroyHandler.called)
+  })
 })
