@@ -10,6 +10,43 @@ import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatch', () => {
+  describe('getId()', () => {
+    it('returns an identifier that is the same for instances that logically represent the same FilePatch', () => {
+      assert.equal(
+        new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed').getId(),
+        new FilePatch('a.txt', 'b.txt', 4321, 4321, 'renamed').getId()
+      )
+      assert.equal(
+        new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified').getId(),
+        new FilePatch('a.txt', 'a.txt', 4321, 4321, 'modified').getId()
+      )
+      assert.equal(
+        new FilePatch(null, 'a.txt', 0, 1234, 'added').getId(),
+        new FilePatch(null, 'a.txt', 0, 1234, 'added').getId()
+      )
+      assert.equal(
+        new FilePatch('a.txt', null, 1234, 0, 'removed').getId(),
+        new FilePatch('a.txt', null, 1234, 0, 'removed').getId()
+      )
+      assert.notEqual(
+        new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed').getId(),
+        new FilePatch('a.txt', 'd.txt', 1234, 1234, 'renamed').getId()
+      )
+      assert.notEqual(
+        new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified').getId(),
+        new FilePatch('b.txt', 'b.txt', 1234, 1234, 'modified').getId()
+      )
+      assert.notEqual(
+        new FilePatch(null, 'a.txt', 1234, 1234, 'added').getId(),
+        new FilePatch(null, 'c.txt', 1234, 1234, 'added').getId()
+      )
+      assert.notEqual(
+        new FilePatch('a.txt', null, 1234, 0, 'removed').getId(),
+        new FilePatch('x.txt', null, 1234, 0, 'removed').getId()
+      )
+    })
+  })
+
   describe('getStagePatchForLines()', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
