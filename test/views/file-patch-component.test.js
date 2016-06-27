@@ -71,6 +71,23 @@ describe('FilePatchComponent', () => {
     assert.deepEqual(changeHandler.args, [[component.getTitle()]])
   })
 
+  it('updates when the associated FilePatch updates', async () => {
+    const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
+    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+    const hunkComponentsByHunk = new Map()
+    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+    const component = new FilePatchComponent({filePatch, registerHunkComponent: (hunk, component) => hunkComponentsByHunk.set(hunk, component)})
+    const element = component.element
+
+    hunkComponentsByHunk.clear()
+    const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'modified', 10, 10)])
+    filePatch.update(1234, 1234, [hunk1, hunk3])
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(hunkComponentsByHunk.get(hunk1) != null)
+    assert(hunkComponentsByHunk.get(hunk2) == null)
+    assert(hunkComponentsByHunk.get(hunk3) != null)
+  })
+
   it('gets destroyed if the associated FilePatch is destroyed', () => {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
     const component = new FilePatchComponent({filePatch: filePatch1})
