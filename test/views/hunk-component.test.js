@@ -90,15 +90,20 @@ describe('HunkComponent', () => {
     assert.equal(component.refs.stageButton.textContent, 'Stage Lines')
   })
 
-  it('calls the didClickStagingButton handler when the staging button is clicked', async () => {
+  it('calls the didClickStageButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
-    const didClickStagingButton = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStageButton: didClickStagingButton})
+    const didClickStageButton1 = sinon.spy()
+    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStageButton: didClickStageButton1})
     component.refs.stageButton.dispatchEvent(new MouseEvent('click'))
-    assert(didClickStagingButton.calledOnce)
+    assert(didClickStageButton1.calledOnce)
+
+    const didClickStageButton2 = sinon.spy()
+    await component.update({didClickStageButton: didClickStageButton2, hunk, selectedLines: new Set})
+    component.refs.stageButton.dispatchEvent(new MouseEvent('click'))
+    assert(didClickStageButton2.calledOnce)
   })
 
-  it('calls the didSelectLines handler when lines are selected with the mouse', async () => {
+  it('calls the onDidSelectLines handler when lines are selected with the mouse', async () => {
     const hunk = new Hunk(1234, 1234, 1234, 1234, [
       new HunkLine('line-1', 'added', 1234, 1234),
       new HunkLine('line-2', 'added', 1234, 1234),
@@ -108,45 +113,48 @@ describe('HunkComponent', () => {
       new HunkLine('line-6', 'removed', 1234, 1234)
     ])
 
-    const didSelectLines = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines})
+    const didSelectLines1 = sinon.spy()
+    const component = new HunkComponent({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines1})
     const element = component.element
     const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
 
     // clicking lines
     line5.dispatchEvent(new MouseEvent('mousedown'))
     line5.dispatchEvent(new MouseEvent('mouseup'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(4, 5))
+    assert.deepEqual(Array.from(didSelectLines1.args[0][0]), hunk.getLines().slice(4, 5))
 
-    didSelectLines.reset()
+    didSelectLines1.reset()
     line1.dispatchEvent(new MouseEvent('mousedown'))
     line1.dispatchEvent(new MouseEvent('mouseup'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(0, 1))
+    assert.deepEqual(Array.from(didSelectLines1.args[0][0]), hunk.getLines().slice(0, 1))
 
     // moving the mouse without dragging is a no-op
-    didSelectLines.reset()
+    didSelectLines1.reset()
     line2.dispatchEvent(new MouseEvent('mousemove'))
-    assert(!didSelectLines.called)
+    assert(!didSelectLines1.called)
+
+    // ensure updating the component with a different onDidSelectLines handler works
+    const didSelectLines2 = sinon.spy()
+    await component.update({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines2})
 
     // start dragging
-    didSelectLines.reset()
     line2.dispatchEvent(new MouseEvent('mousedown'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(1, 2))
+    assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(1, 2))
     // dragging the mouse within the same line is idempotent
-    didSelectLines.reset()
+    didSelectLines2.reset()
     line2.dispatchEvent(new MouseEvent('mousemove'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(1, 2))
+    assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(1, 2))
     // dragging the mouse to the next adjacent lines selects them
-    didSelectLines.reset()
+    didSelectLines2.reset()
     line3.dispatchEvent(new MouseEvent('mousemove'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(1, 3))
-    didSelectLines.reset()
+    assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(1, 3))
+    didSelectLines2.reset()
     line6.dispatchEvent(new MouseEvent('mousemove'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(1, 6))
+    assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(1, 6))
     // dragging the mouse to a line before the first selected one selects the adjacent lines in the middle
-    didSelectLines.reset()
+    didSelectLines2.reset()
     line1.dispatchEvent(new MouseEvent('mousemove'))
-    assert.deepEqual(Array.from(didSelectLines.args[0][0]), hunk.getLines().slice(0, 2))
+    assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(0, 2))
   })
 
   function assertHunkLineElementEqual (lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
