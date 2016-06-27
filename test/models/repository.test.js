@@ -17,9 +17,9 @@ describe('Repository', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
 
       const repo = await buildRepository(workingDirPath)
-      const fileDiffs = await repo.getUnstagedChanges()
+      const filePatches = await repo.getUnstagedChanges()
 
-      assertDeepPropertyVals(fileDiffs, [
+      assertDeepPropertyVals(filePatches, [
         {
           oldPath: 'a.txt',
           newPath: 'a.txt',

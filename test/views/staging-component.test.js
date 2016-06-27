@@ -31,19 +31,19 @@ describe('StagingComponent', () => {
     await component.lastModelDataRefreshPromise
 
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
-    const fileDiffs = unstagedChangesComponent.fileDiffs
+    const filePatches = unstagedChangesComponent.filePatches
 
-    await unstagedChangesComponent.didConfirmFilePatch(fileDiffs[1])
+    await unstagedChangesComponent.didConfirmFilePatch(filePatches[1])
     await component.lastModelDataRefreshPromise
 
-    assert.deepEqual(unstagedChangesComponent.fileDiffs, [fileDiffs[0]])
-    assert.deepEqual(stagedChangesComponent.fileDiffs, [fileDiffs[1]])
+    assert.deepEqual(unstagedChangesComponent.filePatches, [filePatches[0]])
+    assert.deepEqual(stagedChangesComponent.filePatches, [filePatches[1]])
 
-    await stagedChangesComponent.didConfirmFilePatch(fileDiffs[1])
+    await stagedChangesComponent.didConfirmFilePatch(filePatches[1])
     await component.lastModelDataRefreshPromise
 
-    assert.deepEqual(unstagedChangesComponent.fileDiffs, fileDiffs)
-    assert.deepEqual(stagedChangesComponent.fileDiffs, [])
+    assert.deepEqual(unstagedChangesComponent.filePatches, filePatches)
+    assert.deepEqual(stagedChangesComponent.filePatches, [])
   })
 
   it('focuses staged and unstaged lists accordingly', async () => {
@@ -80,7 +80,7 @@ describe('StagingComponent', () => {
     await component.lastModelDataRefreshPromise
 
     const {stagedChangesComponent, unstagedChangesComponent} = component.refs
-    const filePatch = unstagedChangesComponent.fileDiffs[0]
+    const filePatch = unstagedChangesComponent.filePatches[0]
 
     assert(filePatch)
 
