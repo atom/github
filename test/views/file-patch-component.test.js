@@ -1,12 +1,15 @@
 /** @babel */
 
 import etch from 'etch'
+import fs from 'fs'
+import path from 'path'
 import sinon from 'sinon'
 
+import {copyRepositoryDir, buildRepository} from '../helpers'
 import FilePatch from '../../lib/models/file-patch'
+import FilePatchComponent from '../../lib/views/file-patch-component'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
-import FilePatchComponent from '../../lib/views/file-patch-component'
 
 describe('FilePatchComponent', () => {
   it('allows lines of a hunk to be selected, clearing the selection on the other hunks', async () => {
@@ -95,5 +98,34 @@ describe('FilePatchComponent', () => {
     component.onDidDestroy(destroyHandler)
     filePatch1.destroy()
     assert(destroyHandler.called)
+  })
+
+  it('stages hunks when the stage button is clicked on hunk components with no individual lines selected', async () => {
+    const workdirPath = await copyRepositoryDir(2)
+    const repository = await buildRepository(workdirPath)
+    const filePath = path.join(workdirPath, 'sample.js')
+    const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
+    const unstagedLines = originalLines.slice()
+    unstagedLines.splice(1, 1,
+      'this is a modified line',
+      'this is a new line',
+      'this is another new line'
+    )
+    unstagedLines.splice(11, 2, 'this is a modified line')
+    fs.writeFileSync(filePath, unstagedLines.join('\n'))
+    const [unstagedFilePatch] = await repository.getUnstagedChanges()
+    const hunkComponentsByHunk = new Map()
+    function registerHunkComponent (hunk, component) { hunkComponentsByHunk.set(hunk, component) }
+    const component = new FilePatchComponent({filePatch: unstagedFilePatch, repository, registerHunkComponent})
+
+    await hunkComponentsByHunk.get(unstagedFilePatch.getHunks()[0]).didClickStageButton()
+
+    const expectedStagedLines = originalLines.slice()
+    expectedStagedLines.splice(1, 1,
+      'this is a modified line',
+      'this is a new line',
+      'this is another new line'
+    )
+    assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
   })
 })
