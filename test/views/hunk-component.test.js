@@ -128,11 +128,6 @@ describe('HunkComponent', () => {
     line1.dispatchEvent(new MouseEvent('mouseup'))
     assert.deepEqual(Array.from(didSelectLines1.args[0][0]), hunk.getLines().slice(0, 1))
 
-    // moving the mouse without dragging is a no-op
-    didSelectLines1.reset()
-    line2.dispatchEvent(new MouseEvent('mousemove'))
-    assert(!didSelectLines1.called)
-
     // ensure updating the component with a different onDidSelectLines handler works
     const didSelectLines2 = sinon.spy()
     await component.update({hunk, selectedLines: new Set, onDidSelectLines: didSelectLines2})
@@ -155,6 +150,11 @@ describe('HunkComponent', () => {
     didSelectLines2.reset()
     line1.dispatchEvent(new MouseEvent('mousemove'))
     assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(0, 2))
+    // stop dragging (outside the component)
+    didSelectLines2.reset()
+    window.dispatchEvent(new MouseEvent('mouseup'))
+    line2.dispatchEvent(new MouseEvent('mousemove'))
+    assert(!didSelectLines2.called)
   })
 
   function assertHunkLineElementEqual (lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
