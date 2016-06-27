@@ -100,7 +100,7 @@ describe('FilePatchComponent', () => {
     assert(destroyHandler.called)
   })
 
-  it('stages hunks when the stage button is clicked on hunk components with no individual lines selected', async () => {
+  it('stages and unstages hunks when the stage button is clicked on hunk components with no individual lines selected', async () => {
     const workdirPath = await copyRepositoryDir(2)
     const repository = await buildRepository(workdirPath)
     const filePath = path.join(workdirPath, 'sample.js')
@@ -116,10 +116,9 @@ describe('FilePatchComponent', () => {
     const [unstagedFilePatch] = await repository.getUnstagedChanges()
     const hunkComponentsByHunk = new Map()
     function registerHunkComponent (hunk, component) { hunkComponentsByHunk.set(hunk, component) }
-    const component = new FilePatchComponent({filePatch: unstagedFilePatch, repository, registerHunkComponent})
 
+    const component = new FilePatchComponent({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkComponent})
     await hunkComponentsByHunk.get(unstagedFilePatch.getHunks()[0]).didClickStageButton()
-
     const expectedStagedLines = originalLines.slice()
     expectedStagedLines.splice(1, 1,
       'this is a modified line',
@@ -127,5 +126,10 @@ describe('FilePatchComponent', () => {
       'this is another new line'
     )
     assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
+
+    const [stagedFilePatch] = await repository.getStagedChanges()
+    await component.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkComponent})
+    await hunkComponentsByHunk.get(stagedFilePatch.getHunks()[0]).didClickStageButton()
+    assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
 })
