@@ -148,6 +148,27 @@ describe('StagingComponent', () => {
         })
       })
     })
+
+    describe('when list is empty', () => {
+      it('doesn\'t select list', async () => {
+        const workdirPath = await copyRepositoryDir(1)
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        const component = new StagingComponent({repository})
+        await component.lastModelDataRefreshPromise
+
+        const {stagedChangesComponent, unstagedChangesComponent} = component.refs
+        assert.equal(unstagedChangesComponent.filePatches.length, 1)
+        assert.equal(stagedChangesComponent.filePatches.length, 0)
+
+        await component.selectList(ListTypes.UNSTAGED)
+        assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+
+        await component.selectList(ListTypes.STAGED)
+        assert.notEqual(component.getSelectedList(), ListTypes.STAGED)
+        assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+      })
+    })
   })
 
   describe('selecting files', () => {
