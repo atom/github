@@ -10,6 +10,15 @@ import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatch', () => {
+  describe('getId()', () => {
+    it('returns a logical identifier for the FilePatch', () => {
+      assert.equal(new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed').getId(), 'a/a.txt b/b.txt')
+      assert.equal(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified').getId(), 'a/a.txt b/a.txt')
+      assert.equal(new FilePatch(null, 'a.txt', 0, 1234, 'added').getId(), 'a/null b/a.txt')
+      assert.equal(new FilePatch('a.txt', null, 1234, 0, 'removed').getId(), 'a/a.txt b/null')
+    })
+  })
+
   describe('getStagePatchForLines()', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [

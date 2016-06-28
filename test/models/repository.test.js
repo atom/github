@@ -8,7 +8,7 @@ import {GitRepositoryAsync} from 'atom'
 const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
-  describe('getUnstagedChanges()', () => {
+  describe('refreshing', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir(1)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
@@ -17,7 +17,7 @@ describe('Repository', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
 
       const repo = await buildRepository(workingDirPath)
-      const filePatches = await repo.getUnstagedChanges()
+      const filePatches = await repo.refreshUnstagedChanges()
 
       assertDeepPropertyVals(filePatches, [
         {
@@ -75,41 +75,80 @@ describe('Repository', () => {
         }
       ])
     })
+
+    it('reuses the same FilePatch objects if they are equivalent', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      const unstagedFilePatches1 = await repo.refreshUnstagedChanges()
+
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'baz\nfoo\nqux\n', 'utf8')
+      fs.renameSync(path.join(workingDirPath, 'd.txt'), path.join(workingDirPath, 'z.txt'))
+      fs.unlinkSync(path.join(workingDirPath, 'e.txt'))
+      const unstagedFilePatches2 = await repo.refreshUnstagedChanges()
+
+      assert.equal(unstagedFilePatches1.length, 4)
+      assert.equal(unstagedFilePatches2.length, 3)
+      assert.equal(unstagedFilePatches1[0], unstagedFilePatches2[0])
+      assert.equal(unstagedFilePatches1[1], unstagedFilePatches2[1])
+      assert.notEqual(unstagedFilePatches1[2], unstagedFilePatches2[2])
+      assert(unstagedFilePatches1[3].isDestroyed())
+
+      await repo.applyPatchToIndex(unstagedFilePatches2[0])
+      await repo.applyPatchToIndex(unstagedFilePatches2[1])
+      await repo.applyPatchToIndex(unstagedFilePatches2[2])
+      const stagedFilePatches1 = await repo.refreshStagedChanges()
+
+      await repo.applyPatchToIndex(stagedFilePatches1[2].getUnstagePatch())
+      const stagedFilePatches2 = await repo.refreshStagedChanges()
+      const unstagedFilePatches3 = await repo.refreshUnstagedChanges()
+
+      assert.equal(stagedFilePatches1.length, 3)
+      assert.equal(stagedFilePatches2.length, 2)
+      assert.equal(unstagedFilePatches3.length, 1)
+      assert.equal(stagedFilePatches1[0], stagedFilePatches2[0])
+      assert.equal(stagedFilePatches1[1], stagedFilePatches2[1])
+      assert.notEqual(stagedFilePatches1[2], unstagedFilePatches3[0])
+      assert(stagedFilePatches1[2].isDestroyed())
+    })
   })
 
-  describe('staging and unstaging file diffs', () => {
+  describe('staging and unstaging file patches', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedDiff1] = await repo.getUnstagedChanges()
+      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refreshUnstagedChanges()
-      const [unstagedDiff2] = await repo.getUnstagedChanges()
+      const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
 
-      await repo.applyPatchToIndex(unstagedDiff1)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedDiff1])
+      await repo.applyPatchToIndex(unstagedPatch1)
+      assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedPatch1])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
-      await repo.applyPatchToIndex(unstagedDiff1.getUnstagePatch())
+      await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedDiff2])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedPatch2])
     })
 
     it('can stage and unstage removed files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
-      const [removeDiff] = await repo.getUnstagedChanges()
+      const [removePatch] = await repo.getUnstagedChanges()
 
-      await repo.applyPatchToIndex(removeDiff)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [removeDiff])
+      await repo.applyPatchToIndex(removePatch)
+      assertDeepPropertyVals(await repo.getStagedChanges(), [removePatch])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.applyPatchToIndex(removeDiff.getUnstagePatch())
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [removeDiff])
+      await repo.applyPatchToIndex(removePatch.getUnstagePatch())
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [removePatch])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
 
@@ -117,14 +156,14 @@ describe('Repository', () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
-      const [renameDiff] = await repo.getUnstagedChanges()
+      const [renamePatch] = await repo.getUnstagedChanges()
 
-      await repo.applyPatchToIndex(renameDiff)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [renameDiff])
+      await repo.applyPatchToIndex(renamePatch)
+      assertDeepPropertyVals(await repo.getStagedChanges(), [renamePatch])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.applyPatchToIndex(renameDiff.getUnstagePatch())
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [renameDiff])
+      await repo.applyPatchToIndex(renamePatch.getUnstagePatch())
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [renamePatch])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
 
@@ -132,15 +171,15 @@ describe('Repository', () => {
       const workingDirPath = copyRepositoryDir(1)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
       const repo = await buildRepository(workingDirPath)
-      const [addedDiff] = await repo.getUnstagedChanges()
+      const [addedPatch] = await repo.getUnstagedChanges()
 
-      await repo.applyPatchToIndex(addedDiff)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [addedDiff])
+      await repo.applyPatchToIndex(addedPatch)
+      assertDeepPropertyVals(await repo.getStagedChanges(), [addedPatch])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.applyPatchToIndex(addedDiff.getUnstagePatch())
+      await repo.applyPatchToIndex(addedPatch.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
     })
 
     it('can stage and unstage changes when the repository has no HEAD commit', async () => {
@@ -148,13 +187,13 @@ describe('Repository', () => {
 
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
-      const [addedDiffToStage] = await repo.getUnstagedChanges()
-      await repo.applyPatchToIndex(addedDiffToStage)
-      const [addedDiff] = await repo.getStagedChanges()
+      const [addedPatchToStage] = await repo.getUnstagedChanges()
+      await repo.applyPatchToIndex(addedPatchToStage)
+      const [addedPatch] = await repo.getStagedChanges()
 
-      await repo.applyPatchToIndex(addedDiff.getUnstagePatch())
+      await repo.applyPatchToIndex(addedPatch.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedDiff])
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
     })
   })
 })
