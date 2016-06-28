@@ -2,7 +2,7 @@
 
 import MultiList from '../lib/multi-list'
 
-describe('MultiList', () => {
+describe.only('MultiList', () => {
   describe('constructing a MultiList instance', () => {
     let ml
     beforeEach(() => {
@@ -318,6 +318,88 @@ describe('MultiList', () => {
 
       ml.selectListAtIndex(1)
       ml.getSelectedItem('e')
+    })
+
+    describe('when list item is no longer in the list upon update', () => {
+      describe('when there is a new item in its place', () => {
+        it('keeps the same selected item index and shows the new item as selected', () => {
+          const ml = new MultiList([
+            ['a', 'b', 'c']
+          ])
+
+          ml.selectItemAtLocation([0, 0])
+          assert.equal(ml.getSelectedItem(), 'a')
+
+          ml.updateLists([
+            ['b', 'c']
+          ])
+          assert.equal(ml.getSelectedItem(), 'b')
+
+          ml.updateLists([
+            ['b', 'c']
+          ])
+          assert.equal(ml.getSelectedItem(), 'b')
+        })
+      })
+
+      describe('when there is no item in its place, but there is still an item in the list', () => {
+        it('selects the last item in the list', () => {
+          const ml = new MultiList([
+            ['a', 'b', 'c']
+          ])
+
+          ml.selectItemAtLocation([0, 2])
+          assert.equal(ml.getSelectedItem(), 'c')
+
+          ml.updateLists([
+            ['a', 'b']
+          ])
+          assert.equal(ml.getSelectedItem(), 'b')
+
+          ml.updateLists([
+            ['a']
+          ])
+          assert.equal(ml.getSelectedItem(), 'a')
+        })
+      })
+
+      describe('when there are no more items in the list', () => {
+        describe('when there is a non-empty list following the selected list', () => {
+          it('selects the first item in the following list', () => {
+            const ml = new MultiList([
+              ['a'],
+              ['b', 'c']
+            ])
+
+            ml.selectItemAtLocation([0, 0])
+            assert.equal(ml.getSelectedItem(), 'a')
+
+            ml.updateLists([
+              [],
+              ['b', 'c']
+            ])
+            assert.equal(ml.getSelectedItem(), 'b')
+          })
+        })
+
+        describe('when the following list is empty, but the preceeding list is non-empty', () => {
+          it('selects the last item in the preceeding list', () => {
+            const ml = new MultiList([
+              ['a', 'b'],
+              ['c']
+            ])
+
+            ml.selectItemAtLocation([1, 0])
+            assert.equal(ml.getSelectedItem(), 'c')
+
+            ml.updateLists([
+              ['a', 'b'],
+              []
+            ])
+            assert.equal(ml.getSelectedItem(), 'b')
+          })
+        })
+      })
     })
 
     it('uses provided equality predicate to determine if items match', () => {
