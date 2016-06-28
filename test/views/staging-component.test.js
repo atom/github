@@ -7,6 +7,14 @@ import sinon from 'sinon'
 
 import StagingComponent, {ListTypes} from '../../lib/views/staging-component'
 
+const getSelectedItemForStagedList = (component) => {
+  return component.multiList.getSelectedItemForList(1)
+}
+
+const getSelectedItemForUnstagedList = (component) => {
+  return component.multiList.getSelectedItemForList(0)
+}
+
 describe('StagingComponent', () => {
   it('only renders the change lists when their data is loaded', async () => {
     const workdirPath = await copyRepositoryDir(1)
@@ -85,6 +93,7 @@ describe('StagingComponent', () => {
       const component = new StagingComponent({repository})
 
       await component.lastModelDataRefreshPromise
+      await component.selectList(ListTypes.STAGED)
       assert.equal(component.getSelectedList(), ListTypes.STAGED)
       let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
       assert.equal(selectedLists.length, 1)
@@ -172,20 +181,21 @@ describe('StagingComponent', () => {
       describe('keyboard navigation within Staged Changes list', () => {
         it('selects next/previous staged filePatch if there is one', () => {
           component.didSelectStagedFilePatch(stagedFilePatches[0])
+
           assert.equal(component.getSelectedList(), ListTypes.STAGED)
-          assert.equal(component.multiList.getSelectedItemForList(0), stagedFilePatches[0])
+          assert.equal(getSelectedItemForStagedList(component), stagedFilePatches[0])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), stagedFilePatches[1])
+          assert.deepEqual(getSelectedItemForStagedList(component), stagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), stagedFilePatches[2])
+          assert.deepEqual(getSelectedItemForStagedList(component), stagedFilePatches[2])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), stagedFilePatches[1])
+          assert.deepEqual(getSelectedItemForStagedList(component), stagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), stagedFilePatches[0])
+          assert.deepEqual(getSelectedItemForStagedList(component), stagedFilePatches[0])
         })
       })
 
@@ -193,19 +203,19 @@ describe('StagingComponent', () => {
         it('selects next/previous unstaged filePatch if there is one', () => {
           component.didSelectUnstagedFilePatch(unstagedFilePatches[0])
           assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-          assert.equal(component.multiList.getSelectedItemForList(1), unstagedFilePatches[0])
+          assert.equal(getSelectedItemForUnstagedList(component), unstagedFilePatches[0])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), unstagedFilePatches[1])
+          assert.deepEqual(getSelectedItemForUnstagedList(component), unstagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-down')
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), unstagedFilePatches[2])
+          assert.deepEqual(getSelectedItemForUnstagedList(component), unstagedFilePatches[2])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), unstagedFilePatches[1])
+          assert.deepEqual(getSelectedItemForUnstagedList(component), unstagedFilePatches[1])
 
           atom.commands.dispatch(component.element, 'core:move-up')
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), unstagedFilePatches[0])
+          assert.deepEqual(getSelectedItemForUnstagedList(component), unstagedFilePatches[0])
         })
       })
 
@@ -216,15 +226,15 @@ describe('StagingComponent', () => {
 
           component.didSelectStagedFilePatch(lastStagedFilePatch)
           assert.equal(component.getSelectedList(), ListTypes.STAGED)
-          assert.equal(component.multiList.getSelectedItemForList(0), lastStagedFilePatch)
+          assert.equal(getSelectedItemForStagedList(component), lastStagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-down')
           assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), firstUnstagedFilePatch)
+          assert.deepEqual(getSelectedItemForUnstagedList(component), firstUnstagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-up')
           assert.equal(component.getSelectedList(), ListTypes.STAGED)
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), lastStagedFilePatch)
+          assert.deepEqual(getSelectedItemForStagedList(component), lastStagedFilePatch)
         })
 
         it('jumps between the end of Unstaged Changes list and beginning of Staged Changes list', () => {
@@ -233,15 +243,15 @@ describe('StagingComponent', () => {
 
           component.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
           assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-          assert.equal(component.multiList.getSelectedItemForList(1), lastUnstagedFilePatch)
+          assert.equal(getSelectedItemForUnstagedList(component), lastUnstagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-down')
           assert.equal(component.getSelectedList(), ListTypes.STAGED)
-          assert.deepEqual(component.multiList.getSelectedItemForList(0), firstStagedFilePatch)
+          assert.deepEqual(getSelectedItemForStagedList(component), firstStagedFilePatch)
 
           atom.commands.dispatch(component.element, 'core:move-up')
           assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-          assert.deepEqual(component.multiList.getSelectedItemForList(1), lastUnstagedFilePatch)
+          assert.deepEqual(getSelectedItemForUnstagedList(component), lastUnstagedFilePatch)
         })
       })
     })
