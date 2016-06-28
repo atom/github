@@ -47,7 +47,7 @@ describe('StagingComponent', () => {
       assert.deepEqual(stagedChangesComponent.filePatches, [])
     })
 
-    describe('core:confirm', () => {
+    describe('didConfirmSelectedFilePatch()', () => {
       it('stages and unstages files, updating lists accordingly', async () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
@@ -60,8 +60,7 @@ describe('StagingComponent', () => {
         const filePatches = unstagedChangesComponent.filePatches
 
         unstagedChangesComponent.didSelectFilePatch(filePatches[1])
-        atom.commands.dispatch(component.element, 'core:confirm')
-        await component.lastRepositoryStagePromise
+        await component.didConfirmSelectedFilePatch()
         await component.lastModelDataRefreshPromise
 
         assert.deepEqual(unstagedChangesComponent.filePatches, [filePatches[0]])
@@ -70,8 +69,7 @@ describe('StagingComponent', () => {
         // QUESITON: why do these not have reference equality
         // console.log(filePatches[1], stagedChangesComponent.filePatches[0], filePatches[1] === stagedChangesComponent.filePatches[0])
         stagedChangesComponent.didSelectFilePatch(stagedChangesComponent.filePatches[0])
-        atom.commands.dispatch(component.element, 'core:confirm')
-        await component.lastRepositoryStagePromise
+        await component.didConfirmSelectedFilePatch()
         await component.lastModelDataRefreshPromise
 
         assert.deepEqual(unstagedChangesComponent.filePatches, filePatches)
