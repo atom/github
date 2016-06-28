@@ -84,7 +84,7 @@ describe('FilePatchComponent', () => {
 
     hunkComponentsByHunk.clear()
     const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'modified', 10, 10)])
-    filePatch.update(1234, 1234, [hunk1, hunk3])
+    filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk3]))
     await etch.getScheduler().getNextUpdatePromise()
     assert(hunkComponentsByHunk.get(hunk1) != null)
     assert(hunkComponentsByHunk.get(hunk2) == null)
