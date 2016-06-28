@@ -2,7 +2,7 @@
 
 import MultiList from '../lib/multi-list'
 
-describe.only('MultiList', () => {
+describe('MultiList', () => {
   describe('constructing a MultiList instance', () => {
     let ml
     beforeEach(() => {
