@@ -87,60 +87,65 @@ describe('StagingComponent', () => {
   })
 
   describe('focusing lists', () => {
-    it('focuses staged and unstaged lists accordingly', async () => {
-      const workdirPath = await copyRepositoryDir(1)
-      const repository = await buildRepository(workdirPath)
-      const component = new StagingComponent({repository})
-
-      await component.lastModelDataRefreshPromise
-      await component.selectList(ListTypes.STAGED)
-      assert.equal(component.getSelectedList(), ListTypes.STAGED)
-      let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
-      assert.equal(selectedLists.length, 1)
-      assert.equal(selectedLists[0].textContent, 'Staged Changes')
-
-      await component.selectList(ListTypes.UNSTAGED)
-      assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-      selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
-      assert.equal(selectedLists.length, 1)
-      assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
-
-      await component.selectList(ListTypes.STAGED)
-      assert.equal(component.getSelectedList(), ListTypes.STAGED)
-      selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
-      assert.equal(selectedLists.length, 1)
-      assert.equal(selectedLists[0].textContent, 'Staged Changes')
-    })
-
-    describe('git:focus-unstaged-changes', () => {
-      it('sets the unstaged list to be focused', async () => {
+    describe('when lists are not empty', () => {
+      let component
+      beforeEach(async () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        const component = new StagingComponent({repository})
+        component = new StagingComponent({repository})
         await component.lastModelDataRefreshPromise
-        component.selectList(ListTypes.STAGED)
-        assert.equal(component.getSelectedList(), ListTypes.STAGED)
 
-        atom.commands.dispatch(component.element, 'git:focus-unstaged-changes')
-        assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+        const {stagedChangesComponent, unstagedChangesComponent} = component.refs
+        const initialUnstagedFilePatches = unstagedChangesComponent.filePatches
+
+        // Create three staged files, leaving three unstaged
+        await unstagedChangesComponent.didConfirmFilePatch(initialUnstagedFilePatches[0])
+        await component.lastModelDataRefreshPromise
+
+        assert.equal(stagedChangesComponent.filePatches.length, 1)
+        assert.equal(unstagedChangesComponent.filePatches.length, 1)
       })
-    })
 
-    describe('git:focus-staged-changes', () => {
-      it('sets the unstaged list to be focused', async () => {
-        const workdirPath = await copyRepositoryDir(1)
-        const repository = await buildRepository(workdirPath)
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        const component = new StagingComponent({repository})
-        await component.lastModelDataRefreshPromise
-        component.selectList(ListTypes.UNSTAGED)
-        assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
-
-        atom.commands.dispatch(component.element, 'git:focus-staged-changes')
+      it('focuses staged and unstaged lists accordingly', async () => {
+        await component.selectList(ListTypes.STAGED)
         assert.equal(component.getSelectedList(), ListTypes.STAGED)
+        let selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        assert.equal(selectedLists.length, 1)
+        assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+        await component.selectList(ListTypes.UNSTAGED)
+        assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+        selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        assert.equal(selectedLists.length, 1)
+        assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
+
+        await component.selectList(ListTypes.STAGED)
+        assert.equal(component.getSelectedList(), ListTypes.STAGED)
+        selectedLists = component.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        assert.equal(selectedLists.length, 1)
+        assert.equal(selectedLists[0].textContent, 'Staged Changes')
+      })
+
+      describe('git:focus-unstaged-changes', () => {
+        it('sets the unstaged list to be focused', () => {
+          component.selectList(ListTypes.STAGED)
+          assert.equal(component.getSelectedList(), ListTypes.STAGED)
+
+          atom.commands.dispatch(component.element, 'git:focus-unstaged-changes')
+          assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+        })
+      })
+
+      describe('git:focus-staged-changes', () => {
+        it('sets the unstaged list to be focused', () => {
+          component.selectList(ListTypes.UNSTAGED)
+          assert.equal(component.getSelectedList(), ListTypes.UNSTAGED)
+
+          atom.commands.dispatch(component.element, 'git:focus-staged-changes')
+          assert.equal(component.getSelectedList(), ListTypes.STAGED)
+        })
       })
     })
   })
