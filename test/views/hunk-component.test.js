@@ -83,10 +83,10 @@ describe('HunkComponent', () => {
     const component = new HunkComponent({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
     assert.equal(component.refs.stageButton.textContent, 'Stage Hunk')
 
-    await component.update({hunk, selectedLines: new Set([hunk.getLines()[0]])})
+    await component.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
     assert.equal(component.refs.stageButton.textContent, 'Stage Line')
 
-    await component.update({hunk, selectedLines: new Set(hunk.getLines())})
+    await component.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set(hunk.getLines())})
     assert.equal(component.refs.stageButton.textContent, 'Stage Lines')
   })
 
