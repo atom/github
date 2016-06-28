@@ -19,7 +19,7 @@
     "multi-list-selection": "^0.1.1"
   },
   "devDependencies": {
-    "atom-mocha-test-runner": "github:binarymuse/atom-mocha-test-runner#4fd1ad051a8e6720389457974802c48d185f6b67",
+    "atom-mocha-test-runner": "0.2.1",
     "babel-eslint": "^6.0.4",
     "chai": "^3.5.0",
     "dedent-js": "^1.0.1",

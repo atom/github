@@ -19,6 +19,74 @@ describe('FilePatch', () => {
     })
   })
 
+  describe('update(filePatch)', () => {
+    it('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
+      const hunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1\n', 'added', -1, 1),
+          new HunkLine('line-2\n', 'added', -1, 2),
+          new HunkLine('line-3\n', 'unchanged', 1, 3)
+        ]),
+        new Hunk(5, 7, 5, 4, [
+          new HunkLine('line-4\n', 'unchanged', 5, 7),
+          new HunkLine('line-5\n', 'removed', 6, -1),
+          new HunkLine('line-6\n', 'removed', 7, -1),
+          new HunkLine('line-7\n', 'added', -1, 8),
+          new HunkLine('line-8\n', 'added', -1, 9),
+          new HunkLine('line-9\n', 'added', -1, 10),
+          new HunkLine('line-10\n', 'removed', 8, -1),
+          new HunkLine('line-11\n', 'removed', 9, -1)
+        ]),
+        new Hunk(20, 19, 2, 2, [
+          new HunkLine('line-12\n', 'removed', 20, -1),
+          new HunkLine('line-13\n', 'added', -1, 19),
+          new HunkLine('line-14\n', 'unchanged', 21, 20)
+        ])
+      ]
+      const patch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed', hunks)
+      const newPatch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed', [
+        new Hunk(9, 9, 2, 1, [
+          new HunkLine('line-9\n', 'added', -1, 9),
+          new HunkLine('line-10\n', 'removed', 8, -1),
+          new HunkLine('line-11\n', 'removed', 9, -1)
+        ]),
+        new Hunk(15, 14, 1, 1, [
+          new HunkLine('line-15\n', 'removed', 15, -1),
+          new HunkLine('line-16\n', 'added', -1, 14)
+        ]),
+        new Hunk(21, 19, 2, 3, [
+          new HunkLine('line-13\n', 'added', -1, 19),
+          new HunkLine('line-14\n', 'unchanged', 21, 20),
+          new HunkLine('line-17\n', 'unchanged', 22, 21)
+        ])
+      ])
+
+      const originalHunks = hunks.slice()
+      const originalLines = originalHunks.map(h => h.getLines().slice())
+      patch.update(newPatch)
+      const newHunks = patch.getHunks()
+
+      assert.deepEqual(patch, newPatch)
+
+      assert.equal(newHunks.length, 3)
+      assert.equal(newHunks.indexOf(originalHunks[0]), -1)
+      assert.equal(newHunks.indexOf(originalHunks[1]), 0)
+      assert.equal(newHunks.indexOf(originalHunks[2]), 2)
+
+      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][0]), -1)
+      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][5]), 0)
+      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][7]), 2)
+      assert.equal(newHunks[2].getLines().indexOf(originalLines[1][0]), -1)
+      assert.equal(newHunks[2].getLines().indexOf(originalLines[2][1]), 0)
+      assert.equal(newHunks[2].getLines().indexOf(originalLines[2][2]), 1)
+    })
+
+    it('throws an error when the supplied filePatch has a different id', () => {
+      const patch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed')
+      assert.throws(() => patch.update(new FilePatch('c.txt', 'd.txt', 1234, 1234, 'renamed')))
+    })
+  })
+
   describe('getStagePatchForLines()', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
