@@ -15,7 +15,8 @@
   "atomTestRunner": "./test/runner",
   "dependencies": {
     "diff": "2.2.2",
-    "etch": "0.6.0"
+    "etch": "0.6.0",
+    "multi-list-selection": "^0.1.1"
   },
   "devDependencies": {
     "atom-mocha-test-runner": "github:binarymuse/atom-mocha-test-runner#4fd1ad051a8e6720389457974802c48d185f6b67",
