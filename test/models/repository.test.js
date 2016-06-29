@@ -228,4 +228,46 @@ describe('Repository', () => {
       assert(unstagedListener.callCount, 2)
     })
   })
+
+  describe('commit', () => {
+    it('creates a commit that contains the staged changes', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      assert.equal(await repo.getLastCommitMessage(), 'Initial commit\n')
+
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
+      await repo.refreshUnstagedChanges()
+      const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
+      await repo.applyPatchToIndex(unstagedPatch1)
+      await repo.commit('Commit 1')
+      assert.equal(await repo.getLastCommitMessage(), 'Commit 1')
+      assertDeepPropertyVals(await repo.getStagedChanges(), [])
+      const unstagedChanges = await repo.getUnstagedChanges()
+      assert.equal(unstagedChanges.length, 1)
+
+      await repo.applyPatchToIndex(unstagedChanges[0])
+      await repo.commit('Commit 2')
+      assert.equal(await repo.getLastCommitMessage(), 'Commit 2')
+      assert.deepEqual(await repo.getStagedChanges(), [])
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+    })
+
+    it('wraps the commit message at 72 characters', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      await repo.commit([
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+      ].join('\n'))
+      assert.deepEqual((await repo.getLastCommitMessage()).split('\n'), [
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod ',
+        'tempor',
+        '',
+        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
+        'ut aliquip ex ea commodo consequat.'
+      ])
+    })
+  })
 })
