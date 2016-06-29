@@ -7,3 +7,6 @@ notifications:
 
 script:
   - ./script/cibuild
+
+env:
+  - ATOM_CHANNEL=beta
