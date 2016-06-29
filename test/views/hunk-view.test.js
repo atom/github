@@ -5,9 +5,9 @@ import etch from 'etch'
 
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
-import HunkComponent from '../../lib/views/hunk-component'
+import HunkView from '../../lib/views/hunk-view'
 
-describe('HunkComponent', () => {
+describe('HunkView', () => {
   it('renders the hunk header and its lines', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
@@ -15,11 +15,11 @@ describe('HunkComponent', () => {
       new HunkLine('line-3', 'removed', 7, -1),
       new HunkLine('line-4', 'added', -1, 6)
     ])
-    const component = new HunkComponent({hunk: hunk1, selectedLines: new Set})
-    const element = component.element
-    var [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
+    const view = new HunkView({hunk: hunk1, selectedLines: new Set})
+    const element = view.element
+    var [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.git-HunkView-line'))
 
-    assert.equal(component.refs.header.textContent, hunk1.getHeader())
+    assert.equal(view.refs.header.textContent, hunk1.getHeader())
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '5', newLineNumber: '5', origin: ' ', content: 'line-1', isSelected: false}
@@ -41,11 +41,11 @@ describe('HunkComponent', () => {
       new HunkLine('line-1', 'removed', 8, -1),
       new HunkLine('line-2', 'added', -1, 8)
     ])
-    var [line1, line2] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
+    var [line1, line2] = Array.from(element.querySelectorAll('.git-HunkView-line'))
 
-    await component.update({hunk: hunk2, selectedLines: new Set})
+    await view.update({hunk: hunk2, selectedLines: new Set})
 
-    assert.equal(component.refs.header.textContent, hunk2.getHeader())
+    assert.equal(view.refs.header.textContent, hunk2.getHeader())
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1', isSelected: false}
@@ -55,7 +55,7 @@ describe('HunkComponent', () => {
       {oldLineNumber: ' ', newLineNumber: '8', origin: '+', content: 'line-2', isSelected: false}
     )
 
-    await component.update({hunk: hunk2, selectedLines: new Set([hunk2.getLines()[1]])})
+    await view.update({hunk: hunk2, selectedLines: new Set([hunk2.getLines()[1]])})
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1', isSelected: false}
@@ -68,11 +68,11 @@ describe('HunkComponent', () => {
 
   it('adds the is-selected class based on the isSelected property', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [])
-    const component = new HunkComponent({hunk, selectedLines: new Set, isSelected: true})
-    assert(component.element.classList.contains('is-selected'))
+    const view = new HunkView({hunk, selectedLines: new Set, isSelected: true})
+    assert(view.element.classList.contains('is-selected'))
 
-    await component.update({hunk: hunk, selectedLines: new Set, isSelected: false})
-    assert(!component.element.classList.contains('is-selected'))
+    await view.update({hunk: hunk, selectedLines: new Set, isSelected: false})
+    assert(!view.element.classList.contains('is-selected'))
   })
 
   it('updates the button label based on the number of selected lines', async () => {
@@ -80,26 +80,26 @@ describe('HunkComponent', () => {
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'removed', 6, -1)
     ])
-    const component = new HunkComponent({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
-    assert.equal(component.refs.stageButton.textContent, 'Stage Hunk')
+    const view = new HunkView({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
+    assert.equal(view.refs.stageButton.textContent, 'Stage Hunk')
 
-    await component.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
-    assert.equal(component.refs.stageButton.textContent, 'Stage Line')
+    await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
+    assert.equal(view.refs.stageButton.textContent, 'Stage Line')
 
-    await component.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set(hunk.getLines())})
-    assert.equal(component.refs.stageButton.textContent, 'Stage Lines')
+    await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set(hunk.getLines())})
+    assert.equal(view.refs.stageButton.textContent, 'Stage Lines')
   })
 
   it('calls the didClickStageButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
     const didClickStageButton1 = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, didClickStageButton: didClickStageButton1})
-    component.refs.stageButton.dispatchEvent(new MouseEvent('click'))
+    const view = new HunkView({hunk, selectedLines: new Set, didClickStageButton: didClickStageButton1})
+    view.refs.stageButton.dispatchEvent(new MouseEvent('click'))
     assert(didClickStageButton1.calledOnce)
 
     const didClickStageButton2 = sinon.spy()
-    await component.update({didClickStageButton: didClickStageButton2, hunk, selectedLines: new Set})
-    component.refs.stageButton.dispatchEvent(new MouseEvent('click'))
+    await view.update({didClickStageButton: didClickStageButton2, hunk, selectedLines: new Set})
+    view.refs.stageButton.dispatchEvent(new MouseEvent('click'))
     assert(didClickStageButton2.calledOnce)
   })
 
@@ -114,9 +114,9 @@ describe('HunkComponent', () => {
     ])
 
     const didSelectLines1 = sinon.spy()
-    const component = new HunkComponent({hunk, selectedLines: new Set, didSelectLines: didSelectLines1})
-    const element = component.element
-    const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkComponent-line'))
+    const view = new HunkView({hunk, selectedLines: new Set, didSelectLines: didSelectLines1})
+    const element = view.element
+    const [line1, line2, line3, line4, line5, line6] = Array.from(element.querySelectorAll('.git-HunkView-line'))
 
     // clicking lines
     line5.dispatchEvent(new MouseEvent('mousedown'))
@@ -128,9 +128,9 @@ describe('HunkComponent', () => {
     line1.dispatchEvent(new MouseEvent('mouseup'))
     assert.deepEqual(Array.from(didSelectLines1.args[0][0]), hunk.getLines().slice(0, 1))
 
-    // ensure updating the component with a different didSelectLines handler works
+    // ensure updating the view with a different didSelectLines handler works
     const didSelectLines2 = sinon.spy()
-    await component.update({hunk, selectedLines: new Set, didSelectLines: didSelectLines2})
+    await view.update({hunk, selectedLines: new Set, didSelectLines: didSelectLines2})
 
     // start dragging
     line2.dispatchEvent(new MouseEvent('mousedown'))
@@ -150,7 +150,7 @@ describe('HunkComponent', () => {
     didSelectLines2.reset()
     line1.dispatchEvent(new MouseEvent('mousemove'))
     assert.deepEqual(Array.from(didSelectLines2.args[0][0]), hunk.getLines().slice(0, 2))
-    // stop dragging (outside the component)
+    // stop dragging (outside the view)
     didSelectLines2.reset()
     window.dispatchEvent(new MouseEvent('mouseup'))
     line2.dispatchEvent(new MouseEvent('mousemove'))
@@ -158,9 +158,9 @@ describe('HunkComponent', () => {
   })
 
   function assertHunkLineElementEqual (lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
-    assert.equal(lineElement.querySelector('.git-HunkComponent-oldLineNumber').textContent, oldLineNumber)
-    assert.equal(lineElement.querySelector('.git-HunkComponent-newLineNumber').textContent, newLineNumber)
-    assert.equal(lineElement.querySelector('.git-HunkComponent-lineContent').textContent, origin + content)
+    assert.equal(lineElement.querySelector('.git-HunkView-oldLineNumber').textContent, oldLineNumber)
+    assert.equal(lineElement.querySelector('.git-HunkView-newLineNumber').textContent, newLineNumber)
+    assert.equal(lineElement.querySelector('.git-HunkView-lineContent').textContent, origin + content)
     assert.equal(lineElement.classList.contains('is-selected'), isSelected)
   }
 })
