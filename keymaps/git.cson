@@ -1,0 +1,5 @@
+'.git-StagingComponent.staged-changes-focused':
+  'tab': 'git:focus-unstaged-changes'
+
+'.git-StagingComponent.unstaged-changes-focused':
+  'tab': 'git:focus-staged-changes'

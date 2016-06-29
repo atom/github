@@ -7,7 +7,3 @@ notifications:
 
 script:
   - ./script/cibuild
-
-branches:
-  only:
-    - master
