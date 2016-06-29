@@ -1,8 +1,11 @@
 @import "ui-variables";
 
 .git-HunkComponent {
+  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   border-bottom: 1px solid @pane-item-border-color;
   background-color: @pane-item-background-color;
+  -webkit-user-select: none;
+  cursor: default;
 
   &-header {
     display: flex;
@@ -19,50 +22,46 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    -webkit-font-smoothing: antialiased;
   }
 
   &-stageButton {
     height: @component-line-height;
-    cursor: default;
+    font-family: @font-family;
     border: none;
     border-left: 1px solid @panel-heading-border-color;
     background-color: @button-background-color;
+    cursor: default;
     &:hover  { background-color: @button-background-color-hover; }
     &:active { background-color: @panel-heading-border-color; }
   }
 
   &-line {
     display:flex;
-    align-items:stretch;
+    line-height: 1.5em;
 
     &.is-selected {
-      color: red;
+      background-color: @background-color-selected;
     }
   }
 
-  &-oldLineNumber, &-newLineNumber {
-    cursor: default;
-    line-height: 1.5em;
-    -webkit-user-select: none;
-
-    flex: 0 0 42px;
-    width: 42px;
-    text-align: center;
-    vertical-align: top;
-    color: inherit;
-    box-shadow: inset contrast(@syntax-background-color, rgba(0,0,0,0.1), rgba(0,0,0,0.35)) -1px 0 0;
+  &-oldLineNumber,
+  &-newLineNumber {
+    flex: 0 0 3em; // TODO: Make width dynamic, currently capped at 3 chars
+    overflow: hidden;
+    padding: 0 .5em;
+    text-align: right;
+    color: @text-color-subtle;
+    border-right: 1px solid @base-border-color;
+    -webkit-font-smoothing: antialiased;
   }
 
   &-lineContent {
-    flex: 1 1 auto;
-    cursor: default;
-    line-height: 1.5em;
-    -webkit-user-select: none;
-
-    padding: 0 8px 0 40px;
-    text-indent: -32px;
+    flex: 1;
+    padding: 0 .5em;
+    padding: 0 .5em 0 3em; // indent 2 levels
+    text-indent: -2.5em; // but only when soft-wrapped
     white-space: pre-wrap;
     word-wrap: break-word;
-    position: relative;
   }
 }
