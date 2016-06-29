@@ -1,10 +1,12 @@
 /** @babel */
 
+import {GitRepositoryAsync} from 'atom'
 import fs from 'fs'
 import path from 'path'
+import sinon from 'sinon'
+
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from '../helpers'
 
-import {GitRepositoryAsync} from 'atom'
 const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
@@ -116,7 +118,7 @@ describe('Repository', () => {
     })
   })
 
-  describe('staging and unstaging file patches', () => {
+  describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir(1)
       const repo = await buildRepository(workingDirPath)
@@ -194,6 +196,37 @@ describe('Repository', () => {
       await repo.applyPatchToIndex(addedPatch.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
+    })
+
+    it('emits update events on file patches that change as a result of staging', async () => {
+      const workdirPath = await copyRepositoryDir(2)
+      const repository = await buildRepository(workdirPath)
+      const filePath = path.join(workdirPath, 'sample.js')
+      const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
+      const unstagedLines = originalLines.slice()
+      unstagedLines.splice(1, 1,
+        'this is a modified line',
+        'this is a new line',
+        'this is another new line'
+      )
+      unstagedLines.splice(11, 2, 'this is a modified line')
+      fs.writeFileSync(filePath, unstagedLines.join('\n'))
+      const [unstagedFilePatch] = await repository.getUnstagedChanges()
+      const unstagedListener = sinon.spy()
+      unstagedFilePatch.onDidUpdate(unstagedListener)
+
+      await repository.applyPatchToIndex(unstagedFilePatch.getStagePatchForHunk(unstagedFilePatch.getHunks()[1]))
+      assert(unstagedListener.callCount, 1)
+
+      const [stagedFilePatch] = await repository.getStagedChanges()
+      const stagedListener = sinon.spy()
+      stagedFilePatch.onDidUpdate(stagedListener)
+
+      console.log(stagedFilePatch);
+      const unstagePatch = stagedFilePatch.getUnstagePatchForLines(new Set(stagedFilePatch.getHunks()[0].getLines().slice(4, 5)))
+      await repository.applyPatchToIndex(unstagePatch)
+      assert(stagedListener.callCount, 1)
+      assert(unstagedListener.callCount, 2)
     })
   })
 })
