@@ -138,6 +138,8 @@ describe('FilePatchComponent', () => {
     const repository = await buildRepository(workdirPath)
     const filePath = path.join(workdirPath, 'sample.js')
     const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
+
+    // write some unstaged changes
     const unstagedLines = originalLines.slice()
     unstagedLines.splice(1, 1,
       'this is a modified line',
@@ -150,28 +152,43 @@ describe('FilePatchComponent', () => {
     const hunkComponentsByHunk = new Map()
     function registerHunkComponent (hunk, component) { hunkComponentsByHunk.set(hunk, component) }
 
+    // stage a subset of lines from first hunk
     const component = new FilePatchComponent({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkComponent})
     let hunk = unstagedFilePatch.getHunks()[0]
     hunkComponentsByHunk.get(hunk).didSelectLines(new Set(hunk.getLines().slice(1, 4)))
     await hunkComponentsByHunk.get(hunk).didClickStageButton()
-    const expectedStagedLines = originalLines.slice()
-    expectedStagedLines.splice(1, 1,
+    let expectedLines = originalLines.slice()
+    expectedLines.splice(1, 1,
       'this is a modified line',
       'this is a new line'
     )
-    assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
+    assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
-    // TODO: Ensure we only stage lines when clicking the stage button on the hunk containing the selected lines
+    // stage remaining lines in hunk
+    await hunkComponentsByHunk.get(hunk).didClickStageButton()
+    expectedLines = originalLines.slice()
+    expectedLines.splice(1, 1,
+      'this is a modified line',
+      'this is a new line',
+      'this is another new line'
+    )
+    assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
+    // unstage a subset of lines from the first hunk
     const [stagedFilePatch] = await repository.getStagedChanges()
     await component.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkComponent})
     hunk = stagedFilePatch.getHunks()[0]
     hunkComponentsByHunk.get(hunk).didSelectLines(new Set(hunk.getLines().slice(1, 3)))
     await hunkComponentsByHunk.get(hunk).didClickStageButton()
-    const expectedStagedLinesAfterUnstaging = originalLines.slice()
-    expectedStagedLinesAfterUnstaging.splice(2, 0, 'this is a new line')
-    assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLinesAfterUnstaging.join('\n'))
+    expectedLines = originalLines.slice()
+    expectedLines.splice(2, 0,
+      'this is a new line',
+      'this is another new line'
+    )
+    assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
-    // TODO: Ensure we only unstage lines when clicking the unstage button on the hunk containing the selected lines
+    // unstage the rest of the hunk
+    await hunkComponentsByHunk.get(hunk).didClickStageButton()
+    assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
 })
