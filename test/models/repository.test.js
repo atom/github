@@ -222,7 +222,6 @@ describe('Repository', () => {
       const stagedListener = sinon.spy()
       stagedFilePatch.onDidUpdate(stagedListener)
 
-      console.log(stagedFilePatch);
       const unstagePatch = stagedFilePatch.getUnstagePatchForLines(new Set(stagedFilePatch.getHunks()[0].getLines().slice(4, 5)))
       await repository.applyPatchToIndex(unstagePatch)
       assert(stagedListener.callCount, 1)
