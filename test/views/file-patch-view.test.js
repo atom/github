@@ -191,4 +191,29 @@ describe('FilePatchView', () => {
     await hunkViewsByHunk.get(hunk).didClickStageButton()
     assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
+
+  describe('togglePatchSelectionMode()', () => {
+    it('toggles between hunk and hunk-line selection modes', async () => {
+      const hunk = new Hunk(5, 5, 2, 1, [
+        new HunkLine('line-1', 'unchanged', 5, 5),
+        new HunkLine('line-2', 'removed', 6, -1),
+        new HunkLine('line-3', 'removed', 7, -1),
+        new HunkLine('line-4', 'added', -1, 6)
+      ])
+      const hunkViewsByHunk = new Map()
+      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk])
+      const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+      const element = view.element
+
+      assert.equal(view.selectionMode, 'hunk')
+
+      await view.togglePatchSelectionMode()
+      assert.equal(view.selectionMode, 'hunkLine')
+      assert.equal(element.querySelectorAll('.git-HunkView-line.is-selected').length, 1)
+
+      await view.togglePatchSelectionMode()
+      assert.equal(view.selectionMode, 'hunk')
+      assert.equal(element.querySelectorAll('.git-HunkView-line.is-selected').length, hunk.getLines().length)
+    })
+  })
 })
