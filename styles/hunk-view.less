@@ -40,7 +40,27 @@
     line-height: 1.5em;
 
     &.is-selected {
-      background-color: @background-color-selected;
+      background-color: tint(@background-color-selected, 10%);
+    }
+
+    .hunk-line-mixin(@bg; @fg) {
+      .git-HunkView-oldLineNumber, .git-HunkView-newLineNumber {
+        background-color: fadeout(shade(@bg, 30%), 80%);
+        color: tint(@fg, 50%);
+      }
+
+      .git-HunkView-lineContent {
+        background-color: fadeout(shade(@bg, 30%), 20%);
+        color: tint(@fg, 50%);
+      }
+    }
+
+    &.added {
+      .hunk-line-mixin(@background-color-success, @text-color-success);
+    }
+
+    &.removed {
+      .hunk-line-mixin(@background-color-error, @text-color-error);
     }
   }
 
