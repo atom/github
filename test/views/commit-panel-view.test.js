@@ -7,11 +7,12 @@ import fs from 'fs'
 import CommitPanelView from '../../lib/views/commit-panel-view'
 
 describe('CommitPanelView', () => {
-  let atomEnv, workspace
+  let atomEnv, workspace, commandRegistry
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
+    commandRegistry = atomEnv.commands
   })
 
   afterEach(() => {
@@ -19,7 +20,7 @@ describe('CommitPanelView', () => {
   })
 
   it('renders the staging and the commit views when there is a repository and its data is loaded upon initialization or after it updates', async () => {
-    const view = new CommitPanelView({workspace, repository: null})
+    const view = new CommitPanelView({workspace, commandRegistry, repository: null})
     assert.isUndefined(view.refs.stagingView)
     assert.isUndefined(view.refs.commitView)
 

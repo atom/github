@@ -3,3 +3,7 @@
 
 '.git-StagingView.unstaged-changes-focused':
   'tab': 'git:focus-staged-changes'
+
+'.git-CommitView-editor atom-text-editor:not([mini])':
+  'cmd-enter': 'git:commit'
+  'ctrl-enter': 'git:commit'

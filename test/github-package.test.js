@@ -14,7 +14,7 @@ describe('GithubPackage', () => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     project = atomEnv.project
-    githubPackage = new GithubPackage(workspace, project)
+    githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
   })
 
   afterEach(() => {
