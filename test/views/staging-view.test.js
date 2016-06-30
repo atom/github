@@ -16,72 +16,48 @@ const getSelectedItemForUnstagedList = (view) => {
 }
 
 describe('StagingView', () => {
-  it('only renders the change lists when their data is loaded', async () => {
-    const workdirPath = await copyRepositoryDir(1)
-    const repository = await buildRepository(workdirPath)
-    const view = new StagingView({repository})
-
-    assert.isUndefined(view.refs.stagedChangesView)
-    assert.isUndefined(view.refs.unstagedChangesView)
-
-    await view.lastModelDataRefreshPromise
-
-    assert(view.refs.stagedChangesView)
-    assert(view.refs.unstagedChangesView)
-  })
-
   describe('staging and unstaging files', () => {
-    it('stages and unstages files', async () => {
+    it('renders staged and unstaged files', async () => {
       const workdirPath = await copyRepositoryDir(1)
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-      const view = new StagingView({repository})
-      await view.lastModelDataRefreshPromise
-
+      const filePatches = await repository.getUnstagedChanges()
+      const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches})
       const {stagedChangesView, unstagedChangesView} = view.refs
-      const filePatches = unstagedChangesView.filePatches
-
-      await unstagedChangesView.didConfirmFilePatch(filePatches[1])
-      await view.lastModelDataRefreshPromise
-
-      assert.deepEqual(unstagedChangesView.filePatches, [filePatches[0]])
-      assert.deepEqual(stagedChangesView.filePatches, [filePatches[1]])
-
-      await stagedChangesView.didConfirmFilePatch(filePatches[1])
-      await view.lastModelDataRefreshPromise
-
-      assert.deepEqual(unstagedChangesView.filePatches, filePatches)
       assert.deepEqual(stagedChangesView.filePatches, [])
+      assert.deepEqual(unstagedChangesView.filePatches, filePatches)
+
+      await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]]})
+      assert.deepEqual(stagedChangesView.filePatches, [filePatches[1]])
+      assert.deepEqual(unstagedChangesView.filePatches, [filePatches[0]])
+
+      await view.update({repository, stagedChanges: [], unstagedChanges: filePatches})
+      assert.deepEqual(stagedChangesView.filePatches, [])
+      assert.deepEqual(unstagedChangesView.filePatches, filePatches)
     })
 
     describe('didConfirmSelectedFilePatch()', () => {
-      it('stages and unstages files, updating lists accordingly', async () => {
+      it('stages and unstages files', async () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        const view = new StagingView({repository})
-        await view.lastModelDataRefreshPromise
-
+        const filePatches = await repository.getUnstagedChanges()
+        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches})
         const {stagedChangesView, unstagedChangesView} = view.refs
-        const filePatches = unstagedChangesView.filePatches
 
         unstagedChangesView.didSelectFilePatch(filePatches[1])
         await view.didConfirmSelectedFilePatch()
-        await view.lastModelDataRefreshPromise
+        await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]]})
+        assert.deepEqual(await repository.getStagedChanges(), [filePatches[1]])
+        assert.deepEqual(await repository.getUnstagedChanges(), [filePatches[0]])
 
-        assert.deepEqual(unstagedChangesView.filePatches, [filePatches[0]])
-        assert.deepEqual(stagedChangesView.filePatches, [filePatches[1]])
-
-        // QUESITON: why do these not have reference equality
-        // console.log(filePatches[1], stagedChangesView.filePatches[0], filePatches[1] === stagedChangesView.filePatches[0])
-        stagedChangesView.didSelectFilePatch(stagedChangesView.filePatches[0])
+        stagedChangesView.didSelectFilePatch(filePatches[1])
         await view.didConfirmSelectedFilePatch()
-        await view.lastModelDataRefreshPromise
-
-        assert.deepEqual(unstagedChangesView.filePatches, filePatches)
-        assert.deepEqual(stagedChangesView.filePatches, [])
+        await view.update({repository, stagedChanges: [], unstagedChanges: filePatches})
+        assert.deepEqual(await repository.getStagedChanges(), [])
+        assert.deepEqual(await repository.getUnstagedChanges(), filePatches)
       })
     })
   })
@@ -94,18 +70,8 @@ describe('StagingView', () => {
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-        view = new StagingView({repository})
-        await view.lastModelDataRefreshPromise
-
-        const {stagedChangesView, unstagedChangesView} = view.refs
-        const initialUnstagedFilePatches = unstagedChangesView.filePatches
-
-        // Create three staged files, leaving three unstaged
-        await unstagedChangesView.didConfirmFilePatch(initialUnstagedFilePatches[0])
-        await view.lastModelDataRefreshPromise
-
-        assert.equal(stagedChangesView.filePatches.length, 1)
-        assert.equal(unstagedChangesView.filePatches.length, 1)
+        const filePatches = await repository.getUnstagedChanges()
+        view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
       })
 
       it('focuses staged and unstaged lists accordingly', async () => {
@@ -154,12 +120,9 @@ describe('StagingView', () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-        const view = new StagingView({repository})
-        await view.lastModelDataRefreshPromise
-
+        const filePatches = await repository.getUnstagedChanges()
+        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches})
         const {stagedChangesView, unstagedChangesView} = view.refs
-        assert.equal(unstagedChangesView.filePatches.length, 1)
-        assert.equal(stagedChangesView.filePatches.length, 0)
 
         await view.selectList(ListTypes.UNSTAGED)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
@@ -183,25 +146,13 @@ describe('StagingView', () => {
         fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new file 1\n')
         fs.writeFileSync(path.join(workdirPath, 'e.txt'), 'new file 2\n')
         fs.writeFileSync(path.join(workdirPath, 'f.txt'), 'new file 3\n')
-        view = new StagingView({repository})
-        await view.lastModelDataRefreshPromise
-
-        const {stagedChangesView, unstagedChangesView} = view.refs
-        const initialUnstagedFilePatches = unstagedChangesView.filePatches
-
-        // Create three staged files, leaving three unstaged
-        await unstagedChangesView.didConfirmFilePatch(initialUnstagedFilePatches[0])
-        await view.lastModelDataRefreshPromise
-        await unstagedChangesView.didConfirmFilePatch(initialUnstagedFilePatches[1])
-        await view.lastModelDataRefreshPromise
-        await unstagedChangesView.didConfirmFilePatch(initialUnstagedFilePatches[2])
-        await view.lastModelDataRefreshPromise
-
-        stagedFilePatches = stagedChangesView.filePatches
-        unstagedFilePatches = unstagedChangesView.filePatches
-
-        assert.equal(stagedFilePatches.length, 3)
-        assert.equal(unstagedFilePatches.length, 3)
+        const filePatches = await repository.getUnstagedChanges()
+        await repository.applyPatchToIndex(filePatches[0])
+        await repository.applyPatchToIndex(filePatches[1])
+        await repository.applyPatchToIndex(filePatches[2])
+        stagedFilePatches = await repository.getStagedChanges()
+        unstagedFilePatches = await repository.getUnstagedChanges()
+        view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
       })
 
       describe('keyboard navigation within Staged Changes list', () => {
@@ -288,13 +239,9 @@ describe('StagingView', () => {
       const workdirPath = await copyRepositoryDir(1)
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-      const view = new StagingView({repository, didSelectFilePatch})
-      await view.lastModelDataRefreshPromise
-
+      const [filePatch] = await repository.getUnstagedChanges()
+      const view = new StagingView({repository, stagedChanges: [], unstagedChanges: [filePatch], didSelectFilePatch})
       const {stagedChangesView, unstagedChangesView} = view.refs
-      const filePatch = unstagedChangesView.filePatches[0]
-
-      assert(filePatch)
 
       unstagedChangesView.didSelectFilePatch(filePatch)
       assert.equal(didSelectFilePatch.callCount, 1)

@@ -6,6 +6,7 @@ import fs from 'fs'
 import etch from 'etch'
 
 import CommitView from '../../lib/views/commit-view'
+import FilePatch from '../../lib/models/file-patch'
 
 describe('CommitView', () => {
   let atomEnv, workspace
@@ -19,25 +20,10 @@ describe('CommitView', () => {
     atomEnv.destroy()
   })
 
-  it('renders the commit box only when the repository data is loaded', async () => {
-    const view = new CommitView({workspace})
-    assert.isUndefined(view.refs.commitBox)
-
-    const workdirPath = await copyRepositoryDir(1)
-    const repository = await buildRepository(workdirPath)
-    await view.update({repository})
-    assert.isUndefined(view.refs.commitBox)
-
-    await view.lastModelDataRefreshPromise
-    assert.isDefined(view.refs.commitBox)
-  })
-
   it('displays the remaining characters limit based on which line is being edited', async () => {
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({repository, workspace, maximumCharacterLimit: 72})
-    await view.lastModelDataRefreshPromise
-
+    const view = new CommitView({workspace, stagedChanges: [], maximumCharacterLimit: 72})
     const {editor} = view.refs
     assert.equal(view.refs.remainingCharacters.textContent, '72')
 
@@ -65,8 +51,7 @@ describe('CommitView', () => {
     assert(!view.refs.remainingCharacters.classList.contains('is-error'))
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'))
 
-    await view.update({maximumCharacterLimit: 50})
-    await etch.getScheduler().getNextUpdatePromise()
+    await view.update({stagedChanges: [], maximumCharacterLimit: 50})
     assert.equal(view.refs.remainingCharacters.textContent, '39')
     assert(!view.refs.remainingCharacters.classList.contains('is-error'))
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'))
@@ -87,9 +72,7 @@ describe('CommitView', () => {
   it('disables the commit button when no changes are staged or the commit message is empty', async () => {
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository})
-    await view.lastModelDataRefreshPromise
-
+    const view = new CommitView({workspace, stagedChanges: []})
     const {editor, commitButton} = view.refs
     assert(commitButton.disabled)
 
@@ -97,10 +80,7 @@ describe('CommitView', () => {
     await etch.getScheduler().getNextUpdatePromise()
     assert(commitButton.disabled)
 
-    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-    const [patchToStage] = await repository.getUnstagedChanges()
-    await repository.applyPatchToIndex(patchToStage)
-    await view.lastModelDataRefreshPromise
+    await view.update({stagedChanges: [new FilePatch()]})
     assert(!commitButton.disabled)
 
     editor.setText('')
@@ -111,15 +91,13 @@ describe('CommitView', () => {
   it('creates a commit when the commit button is clicked', async () => {
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository})
-    await view.lastModelDataRefreshPromise
-
+    const view = new CommitView({workspace, repository, stagedChanges: []})
     const {editor, commitButton} = view.refs
     editor.setText('Commit 1')
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
     const [patchToStage] = await repository.getUnstagedChanges()
     await repository.applyPatchToIndex(patchToStage)
-    await view.lastModelDataRefreshPromise
+    await view.update({repository, stagedChanges: await repository.getStagedChanges()})
 
     commitButton.dispatchEvent(new MouseEvent('click'))
     await view.lastCommitPromise
