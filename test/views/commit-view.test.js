@@ -91,17 +91,28 @@ describe('CommitView', () => {
   it('creates a commit when the commit button is clicked', async () => {
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository, stagedChanges: []})
+
+    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+    const [patchToStage1] = await repository.refreshUnstagedChanges()
+    await repository.applyPatchToIndex(patchToStage1)
+    const view = new CommitView({workspace, repository, stagedChanges: [patchToStage1]})
     const {editor, commitButton} = view.refs
     editor.setText('Commit 1')
-    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-    const [patchToStage] = await repository.getUnstagedChanges()
-    await repository.applyPatchToIndex(patchToStage)
-    await view.update({repository, stagedChanges: await repository.getStagedChanges()})
-
+    await etch.getScheduler().getNextUpdatePromise()
     commitButton.dispatchEvent(new MouseEvent('click'))
     await view.lastCommitPromise
     assert.equal(await repository.getLastCommitMessage(), 'Commit 1')
+    assert.equal(editor.getText(), '')
+
+    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'another change\n')
+    const [patchToStage2] = await repository.refreshUnstagedChanges()
+    await repository.applyPatchToIndex(patchToStage2)
+    await view.update({repository, stagedChanges: [patchToStage2]})
+    editor.setText('Commit 2')
+    await etch.getScheduler().getNextUpdatePromise()
+    commitButton.dispatchEvent(new MouseEvent('click'))
+    await view.lastCommitPromise
+    assert.equal(await repository.getLastCommitMessage(), 'Commit 2')
     assert.equal(editor.getText(), '')
   })
 })
