@@ -216,4 +216,27 @@ describe('FilePatchView', () => {
       assert.equal(element.querySelectorAll('.git-HunkView-line.is-selected').length, hunk.getLines().length)
     })
   })
+
+  describe('focusNextHunk()', () => {
+    it('focuses next hunk and wraps at the end', async () => {
+      const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
+      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+      const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'modified', 10, 10)])
+      const hunkViewsByHunk = new Map()
+      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2, hunk3])
+      const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+      const element = view.element
+
+      assert.deepEqual(view.selectedHunk, hunk1)
+
+      await view.focusNextHunk()
+      assert.deepEqual(view.selectedHunk, hunk2)
+
+      await view.focusNextHunk()
+      assert.deepEqual(view.selectedHunk, hunk3)
+
+      await view.focusNextHunk()
+      assert.deepEqual(view.selectedHunk, hunk1)
+    })
+  })
 })
