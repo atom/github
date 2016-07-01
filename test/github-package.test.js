@@ -137,6 +137,46 @@ describe('GithubPackage', () => {
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
     })
+
+    it('subscribes to the file system changes, refreshing only the currently active repository', async function () {
+      this.timeout(5000) // increase the timeout because we're interacting with file system events.
+
+      const workdirPath1 = copyRepositoryDir()
+      const workdirPath2 = copyRepositoryDir()
+      project.setPaths([workdirPath1, workdirPath2])
+      const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1)
+      const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2)
+
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
+      await githubPackage.updateActiveRepository()
+      await workspace.open(path.join(workdirPath2, 'b.txt'))
+      await githubPackage.updateActiveRepository()
+      assert.equal((await repository1.refreshUnstagedChanges()).length, 0)
+      assert.equal((await repository2.refreshUnstagedChanges()).length, 0)
+
+      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
+      fs.writeFileSync(path.join(workdirPath2, 'a.txt'), 'a change\n')
+      await githubPackage.lastFileChangePromise
+      assert.equal((await repository1.getUnstagedChanges()).length, 0)
+      assert.equal((await repository2.getUnstagedChanges()).length, 1)
+
+      fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'a change\n')
+      fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'a change\n')
+      await githubPackage.lastFileChangePromise
+      assert.equal((await repository1.getUnstagedChanges()).length, 0)
+      assert.equal((await repository2.getUnstagedChanges()).length, 2)
+
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
+      await githubPackage.updateActiveRepository()
+      assert.equal((await repository1.refreshUnstagedChanges()).length, 2)
+      assert.equal((await repository2.refreshUnstagedChanges()).length, 2)
+
+      fs.writeFileSync(path.join(workdirPath1, 'c.txt'), 'a change\n')
+      fs.writeFileSync(path.join(workdirPath2, 'c.txt'), 'a change\n')
+      await githubPackage.lastFileChangePromise
+      assert.equal((await repository1.getUnstagedChanges()).length, 3)
+      assert.equal((await repository2.getUnstagedChanges()).length, 2)
+    })
   })
 
   describe('when a FilePatch is selected in the staging panel', () => {
