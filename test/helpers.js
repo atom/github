@@ -5,6 +5,8 @@ import path from 'path'
 import temp from 'temp'
 import {GitRepositoryAsync} from 'atom'
 
+const Git = GitRepositoryAsync.Git
+
 import Repository from '../lib/models/repository'
 
 export function copyRepositoryDir (variant = 1) {
@@ -35,4 +37,29 @@ export function assertDeepPropertyVals (actual, expected) {
   }
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
+}
+
+export async function cloneRepository () {
+  const baseRepo = copyRepositoryDir()
+  const cloneOptions = new Git.CloneOptions()
+  cloneOptions.bare = 1
+  cloneOptions.local = 1
+
+  const remoteRepoPath = temp.mkdirSync('git-remote-fixture-')
+  await Git.Clone.clone(baseRepo, remoteRepoPath, cloneOptions)
+
+  const localRepoPath = temp.mkdirSync('git-cloned-fixture-')
+  cloneOptions.bare = 0
+  await Git.Clone.clone(remoteRepoPath, localRepoPath, cloneOptions)
+  return {remoteRepoPath, localRepoPath}
+}
+
+export async function createEmptyCommit (repoPath, message) {
+  const repo = await Git.Repository.open(repoPath)
+  const head = await repo.getHeadCommit()
+  const tree = await head.getTree()
+  const parents = [head]
+  const author = Git.Signature.default(repo)
+
+  return repo.createCommit('HEAD', author, author, message, tree, parents)
 }
