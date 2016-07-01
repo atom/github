@@ -319,4 +319,45 @@ describe('FilePatchView', () => {
       assert.deepEqual(view.selectedHunk, hunk1)
     })
   })
+
+  describe('confirmHunk()', () => {
+    it('stages and unstages selected hunk', async () => {
+      const workdirPath = await copyRepositoryDir(2)
+      const repository = await buildRepository(workdirPath)
+      const filePath = path.join(workdirPath, 'sample.js')
+      const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
+      const unstagedLines = originalLines.slice()
+      unstagedLines.splice(1, 1,
+        'this is a modified line',
+        'this is a new line',
+        'this is another new line'
+      )
+      unstagedLines.splice(11, 2, 'this is a modified line')
+      fs.writeFileSync(filePath, unstagedLines.join('\n'))
+      const [unstagedFilePatch] = await repository.getUnstagedChanges()
+      const hunkViewsByHunk = new Map()
+      function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
+
+      const view = new FilePatchView({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView, selectionMode: 'hunk'})
+      const hunkToStage = unstagedFilePatch.getHunks()[0]
+      await view.focusHunk(hunkToStage)
+      assert.equal(view.selectedHunk, hunkToStage)
+      await view.confirmHunk()
+      const expectedStagedLines = originalLines.slice()
+      expectedStagedLines.splice(1, 1,
+        'this is a modified line',
+        'this is a new line',
+        'this is another new line'
+      )
+      assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
+
+      const [stagedFilePatch] = await repository.getStagedChanges()
+      await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView, selectionMode: 'hunk'})
+      const hunkToUnstage = stagedFilePatch.getHunks()[0]
+      await view.focusHunk(hunkToUnstage)
+      assert.equal(view.selectedHunk, hunkToUnstage)
+      await view.confirmHunk()
+      assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
+    })
+  })
 })
