@@ -1,9 +1,11 @@
 @import "ui-variables";
 
+@hunk-bg-color: @pane-item-background-color;
+
 .git-HunkView {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   border-bottom: 1px solid @pane-item-border-color;
-  background-color: @pane-item-background-color;
+  background-color: @hunk-bg-color;
 
   &-header {
     display: flex;
@@ -38,10 +40,7 @@
   &-line {
     display:flex;
     line-height: 1.5em;
-
-    &.is-selected {
-      background-color: @background-color-selected;
-    }
+    color: @text-color-subtle;
   }
 
   &-oldLineNumber,
@@ -50,7 +49,7 @@
     overflow: hidden;
     padding: 0 .5em;
     text-align: right;
-    color: @text-color-subtle;
+    color: fade(@text-color, 33%);
     border-right: 1px solid @base-border-color;
     -webkit-font-smoothing: antialiased;
   }
@@ -63,4 +62,42 @@
     white-space: pre-wrap;
     word-wrap: break-word;
   }
+}
+
+//
+// States
+// -------------------------------
+
+.git-HunkView-line {
+
+  &.is-selected  {
+    .git-HunkView-oldLineNumber,
+    .git-HunkView-newLineNumber {
+      color: fade(@text-color-selected, 50%);
+      background-color: @background-color-selected;
+    }
+  }
+
+  &.is-removed {
+    .git-HunkView-lineContent {
+      color: mix(@text-color-error, @text-color-highlight, 75%);
+      background-color: mix(@background-color-error, @hunk-bg-color, 8%);
+    }
+    &.is-selected .git-HunkView-lineContent {
+      color: mix(@text-color-error, @text-color-highlight, 50%);
+      background-color: mix(@background-color-error, @hunk-bg-color, 20%);
+    }
+  }
+
+  &.is-added {
+    .git-HunkView-lineContent {
+      color: mix(@text-color-success, @text-color-highlight, 75%);
+      background-color: mix(@background-color-success, @hunk-bg-color, 8%);
+    }
+    &.is-selected .git-HunkView-lineContent {
+      color: mix(@text-color-success, @text-color-highlight, 50%);
+      background-color: mix(@background-color-success, @hunk-bg-color, 20%);
+    }
+  }
+
 }
