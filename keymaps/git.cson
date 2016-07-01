@@ -7,3 +7,7 @@
 '.git-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'git:commit'
   'ctrl-enter': 'git:commit'
+
+'.git-FilePatchView':
+  '/': 'git:toggle-patch-selection-mode'
+  'tab': 'git:focus-next-hunk'
