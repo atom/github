@@ -75,6 +75,18 @@ describe('HunkView', () => {
     assert(!view.element.classList.contains('is-selected'))
   })
 
+  it('adds the status classes to lines', async () => {
+    const hunk = new Hunk(5, 5, 2, 1, [
+      new HunkLine('line-1', 'unchanged', 5, 5),
+      new HunkLine('line-2', 'removed', 6, -1),
+      new HunkLine('line-3', 'added', -1, 6)
+    ])
+    const view = new HunkView({hunk, selectedLines: new Set})
+    assert(view.element.querySelector('.is-unchanged'))
+    assert(view.element.querySelector('.is-removed'))
+    assert(view.element.querySelector('.is-added'))
+  })
+
   it('updates the button label based on the number of selected lines', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
