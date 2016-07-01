@@ -205,6 +205,49 @@ describe('FilePatchView', () => {
     assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
 
+  describe('hunk focus when hunk disappears', () => {
+    describe('when there is another hunk at it\'s index', () => {
+      it('selects the new hunk in it\'s place', async () => {
+        const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
+        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+
+        const hunkViewsByHunk = new Map()
+        const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+        const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+        const element = view.element
+
+        assert(hunkViewsByHunk.get(hunk1).isSelected)
+
+        hunkViewsByHunk.clear()
+        await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk2]))
+        await etch.getScheduler().getNextUpdatePromise()
+        assert(!hunkViewsByHunk.get(hunk1))
+        assert(hunkViewsByHunk.get(hunk2).isSelected)
+      })
+    })
+
+    describe('when there is no hunk at it\'s index', () => {
+      it('selects the last hunk', async () => {
+        const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
+        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+
+        const hunkViewsByHunk = new Map()
+        const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+        const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+        const element = view.element
+
+        await view.focusNextHunk()
+        assert(hunkViewsByHunk.get(hunk2).isSelected)
+
+        hunkViewsByHunk.clear()
+        await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1]))
+        await etch.getScheduler().getNextUpdatePromise()
+        assert(!hunkViewsByHunk.get(hunk2))
+        assert(hunkViewsByHunk.get(hunk1).isSelected)
+      })
+    })
+  })
+
   describe('togglePatchSelectionMode()', () => {
     it('toggles between hunk and hunk-line selection modes', async () => {
       const hunk = new Hunk(5, 5, 2, 1, [
