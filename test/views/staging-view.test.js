@@ -155,81 +155,81 @@ describe('StagingView', () => {
         view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
       })
 
-      describe('keyboard navigation within Staged Changes list', () => {
-        it('selects next/previous staged filePatch if there is one', () => {
-          view.didSelectStagedFilePatch(stagedFilePatches[0])
+      it('selects next/previous Staged filePatch if there is one', () => {
+        view.didSelectStagedFilePatch(stagedFilePatches[0])
 
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-          assert.equal(getSelectedItemForStagedList(view), stagedFilePatches[0])
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.equal(getSelectedItemForStagedList(view), stagedFilePatches[0])
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
-        })
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
       })
 
-      describe('keyboard navigation within Unstaged Changes list', () => {
-        it('selects next/previous unstaged filePatch if there is one', () => {
-          view.didSelectUnstagedFilePatch(unstagedFilePatches[0])
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-          assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
+      it('selects next/previous Unstaged filePatch if there is one', () => {
+        view.didSelectUnstagedFilePatch(unstagedFilePatches[0])
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
-        })
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
       })
 
-      describe('keyboard navigation across Staged and Unstaged Changes lists', () => {
-        it('jumps between the end of Staged Changes list and beginning of Unstaged Changes list', () => {
-          const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
-          const firstUnstagedFilePatch = unstagedFilePatches[0]
+      it('stops at Staged list boundaries and keeps current selection', () => {
+        const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
+        view.didSelectStagedFilePatch(lastStagedFilePatch)
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
 
-          view.didSelectStagedFilePatch(lastStagedFilePatch)
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-          assert.equal(getSelectedItemForStagedList(view), lastStagedFilePatch)
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-          assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
+        const firstStagedFilePatch = stagedFilePatches[0]
+        view.didSelectStagedFilePatch(firstStagedFilePatch)
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-          assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
-        })
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
+      })
 
-        it('jumps between the end of Unstaged Changes list and beginning of Staged Changes list', () => {
-          const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
-          const firstStagedFilePatch = stagedFilePatches[0]
+      it('stops at Unstaged list boundaries and keeps current selection', () => {
+        const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
+        view.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
 
-          view.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-          assert.equal(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
+        atom.commands.dispatch(view.element, 'core:move-down')
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
 
-          atom.commands.dispatch(view.element, 'core:move-down')
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-          assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
+        const firstUnstagedFilePatch = unstagedFilePatches[0]
+        view.didSelectStagedFilePatch(firstUnstagedFilePatch)
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
 
-          atom.commands.dispatch(view.element, 'core:move-up')
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-          assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
-        })
+        atom.commands.dispatch(view.element, 'core:move-up')
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
       })
     })
 
