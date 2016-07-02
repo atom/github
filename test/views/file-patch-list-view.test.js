@@ -17,11 +17,11 @@ describe('FilePatchListView', () => {
     //  so the selectedFilePatch object may be different if model is updated
 
     const view = new FilePatchListView({filePatches, selectedFilePatchIndex: 1})
-    assert.equal(view.element.querySelector('.git-FilePatchListItem.modified .git-FilePatchListItem-path').textContent, 'a.txt')
-    assert.equal(view.element.querySelector('.git-FilePatchListItem.added .git-FilePatchListItem-path').textContent, 'b.txt')
-    assert.equal(view.element.querySelector('.git-FilePatchListItem.removed .git-FilePatchListItem-path').textContent, 'c.txt')
-    assert.equal(view.element.querySelector('.git-FilePatchListItem.renamed .git-FilePatchListItem-path').textContent, 'd.txt → e.txt')
-    assert.equal(view.element.querySelector('.is-selected .git-FilePatchListItem-path').textContent, 'b.txt')
+    assert.equal(view.element.querySelector('.git-FilePatchListView-item.modified .git-FilePatchListView-path').textContent, 'a.txt')
+    assert.equal(view.element.querySelector('.git-FilePatchListView-item.added .git-FilePatchListView-path').textContent, 'b.txt')
+    assert.equal(view.element.querySelector('.git-FilePatchListView-item.removed .git-FilePatchListView-path').textContent, 'c.txt')
+    assert.equal(view.element.querySelector('.git-FilePatchListView-item.renamed .git-FilePatchListView-path').textContent, 'd.txt → e.txt')
+    assert.equal(view.element.querySelector('.is-selected .git-FilePatchListView-path').textContent, 'b.txt')
   })
 
   describe('when a file patch is selected via single clicked', () => {
@@ -38,10 +38,10 @@ describe('FilePatchListView', () => {
         didSelectFilePatch: (d) => selectedPatches.push(d)
       })
 
-      view.element.querySelector('.git-FilePatchListItem.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      view.element.querySelector('.git-FilePatchListView-item.modified').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(selectedPatches, [filePatches[0]])
 
-      view.element.querySelector('.git-FilePatchListItem.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
+      view.element.querySelector('.git-FilePatchListView-item.renamed').dispatchEvent(new MouseEvent('click', {detail: 1}))
       assert.deepEqual(selectedPatches, [filePatches[0], filePatches[3]])
     })
   })
@@ -60,10 +60,10 @@ describe('FilePatchListView', () => {
         didConfirmFilePatch: (d) => confirmedPatches.push(d)
       })
 
-      view.element.querySelector('.git-FilePatchListItem.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
+      view.element.querySelector('.git-FilePatchListView-item.modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
       assert.deepEqual(confirmedPatches, [filePatches[0]])
 
-      view.element.querySelector('.git-FilePatchListItem.renamed').dispatchEvent(new MouseEvent('click', {detail: 2}))
+      view.element.querySelector('.git-FilePatchListView-item.renamed').dispatchEvent(new MouseEvent('click', {detail: 2}))
       assert.deepEqual(confirmedPatches, [filePatches[0], filePatches[3]])
     })
   })
