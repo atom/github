@@ -158,8 +158,8 @@ describe('HunkView', () => {
   })
 
   function assertHunkLineElementEqual (lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
-    assert.equal(lineElement.querySelector('.git-HunkView-oldLineNumber').textContent, oldLineNumber)
-    assert.equal(lineElement.querySelector('.git-HunkView-newLineNumber').textContent, newLineNumber)
+    assert.equal(lineElement.querySelector('.git-HunkView-lineNumber.is-old').textContent, oldLineNumber)
+    assert.equal(lineElement.querySelector('.git-HunkView-lineNumber.is-new').textContent, newLineNumber)
     assert.equal(lineElement.querySelector('.git-HunkView-lineContent').textContent, origin + content)
     assert.equal(lineElement.classList.contains('is-selected'), isSelected)
   }

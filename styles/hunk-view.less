@@ -43,8 +43,7 @@
     color: @text-color-subtle;
   }
 
-  &-oldLineNumber,
-  &-newLineNumber {
+  &-lineNumber {
     flex: 0 0 3em; // TODO: Make width dynamic, currently capped at 3 chars
     overflow: hidden;
     padding: 0 .5em;
@@ -71,12 +70,9 @@
 
 .git-HunkView-line {
 
-  &.is-selected  {
-    .git-HunkView-oldLineNumber,
-    .git-HunkView-newLineNumber {
-      color: fade(@text-color-selected, 50%);
-      background-color: @background-color-selected;
-    }
+  &.is-selected .git-HunkView-lineNumber {
+    color: fade(@text-color-selected, 50%);
+    background-color: @background-color-selected;
   }
 
   // mixin
