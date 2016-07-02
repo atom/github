@@ -1,9 +1,11 @@
 @import "ui-variables";
 
+@hunk-bg-color: @pane-item-background-color;
+
 .git-HunkView {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   border-bottom: 1px solid @pane-item-border-color;
-  background-color: @pane-item-background-color;
+  background-color: @hunk-bg-color;
 
   &-header {
     display: flex;
@@ -38,30 +40,7 @@
   &-line {
     display:flex;
     line-height: 1.5em;
-
-    &.is-selected.added, &.is-selected.removed {
-      background-color: tint(@background-color-selected, 10%);
-    }
-
-    .hunk-line-mixin(@bg; @fg) {
-      .git-HunkView-oldLineNumber, .git-HunkView-newLineNumber {
-        background-color: fadeout(shade(@bg, 30%), 80%);
-        color: tint(@fg, 50%);
-      }
-
-      .git-HunkView-lineContent {
-        background-color: fadeout(shade(@bg, 30%), 20%);
-        color: tint(@fg, 50%);
-      }
-    }
-
-    &.added {
-      .hunk-line-mixin(@background-color-success, @text-color-success);
-    }
-
-    &.removed {
-      .hunk-line-mixin(@background-color-error, @text-color-error);
-    }
+    color: @text-color-subtle;
   }
 
   &-oldLineNumber,
@@ -83,4 +62,44 @@
     white-space: pre-wrap;
     word-wrap: break-word;
   }
+}
+
+
+//
+// States
+// -------------------------------
+
+.git-HunkView-line {
+
+  &.is-selected  {
+    .git-HunkView-oldLineNumber,
+    .git-HunkView-newLineNumber {
+      color: fade(@text-color-selected, 50%);
+      background-color: @background-color-selected;
+    }
+  }
+
+  // mixin
+  .hunk-line-mixin(@fg; @bg) {
+    &:hover {
+      background-color: @background-color-highlight;
+    }
+    .git-HunkView-lineContent {
+      color: mix(@fg, @text-color-highlight, 75%);
+      background-color: mix(@bg, @hunk-bg-color, 8%);
+    }
+    &.is-selected .git-HunkView-lineContent {
+      color: mix(@fg, @text-color-highlight, 50%);
+      background-color: mix(@bg, @hunk-bg-color, 20%);
+    }
+  }
+
+  &.is-removed {
+    .hunk-line-mixin(@text-color-error, @background-color-error);
+  }
+
+  &.is-added {
+    .hunk-line-mixin(@text-color-success, @background-color-success);
+  }
+
 }
