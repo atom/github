@@ -81,6 +81,9 @@
 
   // mixin
   .hunk-line-mixin(@fg; @bg) {
+    &:hover {
+      background-color: @background-color-highlight;
+    }
     .git-HunkView-lineContent {
       color: mix(@fg, @text-color-highlight, 75%);
       background-color: mix(@bg, @hunk-bg-color, 8%);
