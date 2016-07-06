@@ -325,7 +325,7 @@ describe('Repository', () => {
       assert.equal(behind, 0)
       assert.equal(ahead, 1)
 
-      await localRepo.fetch('origin')
+      await localRepo.fetch('master')
       counts = await localRepo.getAheadBehindCount('master')
       ahead = counts.ahead
       behind = counts.behind
