@@ -309,7 +309,6 @@ describe('Repository', () => {
       const {localRepoPath, remoteRepoPath} = await cloneRepository()
       const localRepo = await buildRepository(localRepoPath)
       const remoteRepo = await Git.Repository.open(remoteRepoPath)
-      console.log(remoteRepoPath);
 
       await createEmptyCommit(remoteRepoPath, 'new remote commit')
       assert.equal((await remoteRepo.getMasterCommit()).message(), 'new remote commit')
@@ -326,7 +325,7 @@ describe('Repository', () => {
       assert.equal(ahead, 1)
 
       await localRepo.fetch('master')
-      counts = await localRepo.getAheadBehindCount('master')
+      const counts = await localRepo.getAheadBehindCount('master')
       ahead = counts.ahead
       behind = counts.behind
       assert.equal(behind, 1)
