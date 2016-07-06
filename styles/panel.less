@@ -1,0 +1,29 @@
+@import "variables";
+
+.git-Panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 400px;
+  min-width: 0;
+
+  font-family: @font-family;
+  font-size: @font-size;
+  color: @text-color;
+
+  background: @pane-item-background-color;
+  border-left: 1px solid @pane-item-border-color;
+  -webkit-user-select: none;
+  cursor: default;
+
+  &.is-loading,
+  &.no-repository {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: @component-padding * 3;
+    text-align: center;
+    color: @text-color-subtle;
+    font-style: italic;
+  }
+}

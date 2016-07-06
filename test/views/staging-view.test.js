@@ -77,19 +77,19 @@ describe('StagingView', () => {
       it('focuses staged and unstaged lists accordingly', async () => {
         await view.selectList(ListTypes.STAGED)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        let selectedLists = view.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
 
         await view.selectList(ListTypes.UNSTAGED)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        selectedLists = view.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
 
         await view.selectList(ListTypes.STAGED)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        selectedLists = view.element.querySelectorAll('.git-Panel-item.is-focused .is-header')
+        selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
       })
