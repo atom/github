@@ -1,6 +1,6 @@
 @import "variables";
 
-.git-Panel {
+.git-CommitPanel {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -16,14 +16,13 @@
   -webkit-user-select: none;
   cursor: default;
 
-  &.is-loading,
-  &.no-repository {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+  &-item {
+    &.is-loading,
+    &.no-repository {
     padding: @component-padding * 3;
     text-align: center;
     color: @text-color-subtle;
     font-style: italic;
+    }
   }
 }
