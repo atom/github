@@ -10,4 +10,3 @@
 
 '.git-FilePatchView':
   '/': 'git:toggle-patch-selection-mode'
-  'tab': 'git:focus-next-hunk'
