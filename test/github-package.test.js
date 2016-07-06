@@ -10,11 +10,12 @@ import GithubPackage from '../lib/github-package'
 describe('GithubPackage', () => {
   let atomEnv, workspace, project, githubPackage
 
-  beforeEach(() => {
+  beforeEach(async () => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     project = atomEnv.project
     githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
+    await githubPackage.activate()
   })
 
   afterEach(() => {
@@ -107,8 +108,6 @@ describe('GithubPackage', () => {
 
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await workspace.open(path.join(workdirPath2, 'b.txt'))
-
-      assert.isNull(githubPackage.getActiveRepository())
 
       await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
