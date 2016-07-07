@@ -4,9 +4,9 @@ import {copyRepositoryDir, buildRepository, cloneRepository, createEmptyCommit} 
 import path from 'path'
 import fs from 'fs'
 
-import CommitPanelView from '../../lib/views/commit-panel-view'
+import GitPanelView from '../../lib/views/git-panel-view'
 
-describe('CommitPanelView', () => {
+describe('GitPanelView', () => {
   let atomEnv, workspace, commandRegistry
 
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('CommitPanelView', () => {
   })
 
   it('renders the staging and the commit views when there is a repository and its data is loaded upon initialization or after it updates', async () => {
-    const view = new CommitPanelView({workspace, commandRegistry, repository: null})
+    const view = new GitPanelView({workspace, commandRegistry, repository: null})
     assert.isUndefined(view.refs.stagingView)
     assert.isUndefined(view.refs.commitView)
 
@@ -49,7 +49,7 @@ describe('CommitPanelView', () => {
     const workdirPath = await copyRepositoryDir(1)
     const repoWithoutRemote = await buildRepository(workdirPath)
 
-    const view = new CommitPanelView({workspace, commandRegistry, repository: repoWithoutRemote})
+    const view = new GitPanelView({workspace, commandRegistry, repository: repoWithoutRemote})
     assert.isUndefined(view.refs.pushPullView)
 
     const {localRepoPath, remoteRepoPath} = await cloneRepository()
