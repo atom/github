@@ -15,7 +15,6 @@ describe('GithubPackage', () => {
     workspace = atomEnv.workspace
     project = atomEnv.project
     githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
-    await githubPackage.activate()
   })
 
   afterEach(() => {
