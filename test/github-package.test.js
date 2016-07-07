@@ -3,7 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 import temp from 'temp'
-import {copyRepositoryDir} from './helpers'
+import {copyRepositoryDir, buildRepository} from './helpers'
 import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
 
@@ -139,9 +139,11 @@ describe('GithubPackage', () => {
   })
 
   describe('when a FilePatch is selected in the staging panel', () => {
-    it('shows a FilePatchView for the selected patch as a pane item', () => {
-      let dummyActiveRepository = {}
-      githubPackage.getActiveRepository = function () { return dummyActiveRepository }
+    it('shows a FilePatchView for the selected patch as a pane item', async () => {
+      const workdirPath = copyRepositoryDir()
+      const repository = await buildRepository(workdirPath)
+
+      githubPackage.getActiveRepository = function () { return repository }
       const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
       const filePatch2 = new FilePatch('b.txt', 'b.txt', 1234, 1234, 'modified', [])
 
@@ -150,7 +152,7 @@ describe('GithubPackage', () => {
       githubPackage.commitPanelView.didSelectFilePatch(filePatch1, 'unstaged')
       assert(githubPackage.filePatchView)
       assert.equal(githubPackage.filePatchView.filePatch, filePatch1)
-      assert.equal(githubPackage.filePatchView.repository, dummyActiveRepository)
+      assert.equal(githubPackage.filePatchView.repository, repository)
       assert.equal(githubPackage.filePatchView.stagingStatus, 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
 
@@ -158,11 +160,10 @@ describe('GithubPackage', () => {
       workspace.getActivePane().splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
-      dummyActiveRepository = {}
       githubPackage.commitPanelView.didSelectFilePatch(filePatch2, 'staged')
       assert.equal(githubPackage.filePatchView, existingFilePatchView)
       assert.equal(githubPackage.filePatchView.filePatch, filePatch2)
-      assert.equal(githubPackage.filePatchView.repository, dummyActiveRepository)
+      assert.equal(githubPackage.filePatchView.repository, repository)
       assert.equal(githubPackage.filePatchView.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
 
@@ -173,7 +174,7 @@ describe('GithubPackage', () => {
       githubPackage.commitPanelView.didSelectFilePatch(filePatch2, 'staged')
       assert.notEqual(githubPackage.filePatchView, existingFilePatchView)
       assert.equal(githubPackage.filePatchView.filePatch, filePatch2)
-      assert.equal(githubPackage.filePatchView.repository, dummyActiveRepository)
+      assert.equal(githubPackage.filePatchView.repository, repository)
       assert.equal(githubPackage.filePatchView.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
     })
