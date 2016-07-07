@@ -1,6 +1,6 @@
 @import "variables";
 
-.git-FileList {
+.git-FilePatchListView {
   &:empty:before {
     content:'No changes';
     display: block;
@@ -9,11 +9,32 @@
     color: @text-color-subtle;
     font-style: italic;
   }
+
+  &-item {
+    -webkit-user-select: none;
+    display: flex;
+    align-items: flex-start;
+    padding: @component-padding/2 @component-padding;
+    box-shadow:inset @separator-border-color 0 -1px 0;
+    cursor:default;
+    position:relative;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+
+  &-path {
+    flex: 1;
+  }
 }
+
+
+//
+// States
+// -----------------------------------------
 
 .git-StagedChanges, .git-UnstagedChanges {
   &.is-focused {
-    .git-FilePatchListItem.is-selected {
+    .git-FilePatchListView-item.is-selected {
       background: @background-color-highlight;
       color: @text-color-highlight;
       box-shadow: @pane-item-background-color 0 -1px 0;
