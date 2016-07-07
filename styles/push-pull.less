@@ -21,9 +21,13 @@
   // since they're more important than Fetch
   .btn-group {
     display: flex;
-    .btn-wrapper, .btn {
-      display: flex;
+    .btn {
       flex: 1;
     }
+  }
+
+  // Removes flickering of the toolip if there is an icon inside
+  .btn-tooltip-wrapper .icon {
+    pointer-events: none;
   }
 }
