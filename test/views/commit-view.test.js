@@ -22,8 +22,6 @@ describe('CommitView', () => {
   })
 
   it('displays the remaining characters limit based on which line is being edited', async () => {
-    const workdirPath = await copyRepositoryDir(1)
-    const repository = await buildRepository(workdirPath)
     const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72})
     const {editor} = view.refs
     assert.equal(view.refs.remainingCharacters.textContent, '72')
@@ -71,8 +69,6 @@ describe('CommitView', () => {
   })
 
   it('disables the commit button when no changes are staged or the commit message is empty', async () => {
-    const workdirPath = await copyRepositoryDir(1)
-    const repository = await buildRepository(workdirPath)
     const view = new CommitView({workspace, commandRegistry, stagedChanges: []})
     const {editor, commitButton} = view.refs
     assert(commitButton.disabled)

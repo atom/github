@@ -1,6 +1,6 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {copyRepositoryDir, buildRepository, cloneRepository, createEmptyCommit} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 
@@ -43,5 +43,32 @@ describe('CommitPanelView', () => {
     assert.deepEqual(view.refs.stagingView.stagedChanges, [stagedPatch1])
     assert.deepEqual(view.refs.stagingView.unstagedChanges, [unstagedPatch2])
     assert.deepEqual(view.refs.commitView.stagedChanges, [stagedPatch1])
+  })
+
+  it('renders the push-pull view if there is a remote and updates the ahead/behind count upon fetch', async () => {
+    const workdirPath = await copyRepositoryDir(1)
+    const repoWithoutRemote = await buildRepository(workdirPath)
+
+    const view = new CommitPanelView({workspace, commandRegistry, repository: repoWithoutRemote})
+    assert.isUndefined(view.refs.pushPullView)
+
+    const {localRepoPath, remoteRepoPath} = await cloneRepository()
+    const localRepo = await buildRepository(localRepoPath)
+
+    view.update({repository: localRepo})
+    await view.lastModelDataRefreshPromise
+    assert.isDefined(view.refs.pushPullView)
+
+    assert.equal(view.aheadCount, 0)
+    assert.equal(view.behindCount, 0)
+
+    await createEmptyCommit(remoteRepoPath, 'new remote commit')
+    await createEmptyCommit(localRepoPath, 'new local commit')
+    await createEmptyCommit(localRepoPath, 'another local commit')
+
+    await view.fetch()
+
+    assert.equal(view.aheadCount, 2)
+    assert.equal(view.behindCount, 1)
   })
 })

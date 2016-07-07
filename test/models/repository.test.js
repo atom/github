@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository, assertDeepPropertyVals} from '../helpers'
+import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
 const Git = GitRepositoryAsync.Git
 
@@ -268,6 +268,68 @@ describe('Repository', () => {
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
         'ut aliquip ex ea commodo consequat.'
       ])
+    })
+  })
+
+  describe('pull()', () => {
+    it('brings commits from the remote', async () => {
+      const {localRepoPath, remoteRepoPath} = await cloneRepository()
+      const localRepo = await buildRepository(localRepoPath)
+      const remoteRepo = await Git.Repository.open(remoteRepoPath)
+
+      await createEmptyCommit(remoteRepoPath, 'new remote commit')
+
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+
+      await localRepo.pull('master')
+      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+    })
+  })
+
+  describe('push()', () => {
+    it('sends commits to the remote and updates ', async () => {
+      const {localRepoPath, remoteRepoPath} = await cloneRepository()
+      const localRepo = await buildRepository(localRepoPath)
+      const remoteRepo = await Git.Repository.open(remoteRepoPath)
+
+      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
+      await localRepo.applyPatchToIndex(unstagedFilePatch)
+      await localRepo.commit('new local commit')
+
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+
+      await localRepo.push('master')
+      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+    })
+  })
+
+  describe('getAheadBehindCount(branchName)', () => {
+    it('returns the number of commits ahead and behind the remote', async () => {
+      const {localRepoPath, remoteRepoPath} = await cloneRepository()
+      const localRepo = await buildRepository(localRepoPath)
+      const remoteRepo = await Git.Repository.open(remoteRepoPath)
+
+      await createEmptyCommit(remoteRepoPath, 'new remote commit')
+      assert.equal((await remoteRepo.getMasterCommit()).message(), 'new remote commit')
+
+      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
+      await localRepo.applyPatchToIndex(unstagedFilePatch)
+      await localRepo.commit('new local commit')
+
+      assert.equal(await localRepo.getLastCommitMessage(), 'new local commit')
+
+      let {ahead, behind} = await localRepo.getAheadBehindCount('master')
+      assert.equal(behind, 0)
+      assert.equal(ahead, 1)
+
+      await localRepo.fetch('master')
+      const counts = await localRepo.getAheadBehindCount('master')
+      ahead = counts.ahead
+      behind = counts.behind
+      assert.equal(behind, 1)
+      assert.equal(ahead, 1)
     })
   })
 })
