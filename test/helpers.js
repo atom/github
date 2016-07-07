@@ -16,22 +16,10 @@ export function copyRepositoryDir (variant = 1) {
   return fs.realpathSync(workingDirPath)
 }
 
-let createdRepositories = []
 export async function buildRepository (workingDirPath) {
-  const atomRepository = GitRepositoryAsync.open(workingDirPath)
-  createdRepositories.push(atomRepository)
-  const rawRepository = await atomRepository.repo.repoPromise
+  const rawRepository = await Git.Repository.open(workingDirPath)
   return new Repository(rawRepository)
 }
-
-export function cleanRepositories () {
-  createdRepositories.forEach(repo => repo.destroy())
-  createdRepositories = []
-}
-
-afterEach(() => {
-  cleanRepositories()
-})
 
 export function assertDeepPropertyVals (actual, expected) {
   function extractObjectSubset (actual, expected) {
