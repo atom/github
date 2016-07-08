@@ -32,6 +32,14 @@ describe('StatusBarView', () => {
     await view.lastModelDataRefreshPromise
     assert.equal(changedFiles.textContent, '2 files changed.')
     assert.equal(changedFiles.style.display, '')
+
+    const [unstagedFilePatch] = await repository.getUnstagedChanges()
+    await repository.applyPatchToIndex(unstagedFilePatch)
+    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'another change\n')
+    await repository.refresh()
+    await view.lastModelDataRefreshPromise
+    assert.equal(changedFiles.textContent, '2 files changed.')
+    assert.equal(changedFiles.style.display, '')
   })
 
   it('invokes the supplied handler when the changed files label is clicked', async () => {
