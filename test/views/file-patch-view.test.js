@@ -29,7 +29,7 @@ describe('FilePatchView', () => {
     const element = view.element
 
     let linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).didSelectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk1).selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), hunk1.getLines().filter(l => l.isChanged()))
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), [])
@@ -38,7 +38,7 @@ describe('FilePatchView', () => {
 
     await view.togglePatchSelectionMode()
     linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).didSelectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk1).selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), linesToSelect)
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), [])
@@ -46,7 +46,7 @@ describe('FilePatchView', () => {
     assert(!hunkViewsByHunk.get(hunk2).isSelected)
 
     linesToSelect = hunk2.getLines().slice(0, 1)
-    hunkViewsByHunk.get(hunk2).didSelectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk2).selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), [])
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), linesToSelect)
@@ -167,7 +167,7 @@ describe('FilePatchView', () => {
     // stage a subset of lines from first hunk
     const view = new FilePatchView({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView, selectionMode: 'hunkLine'})
     let hunk = unstagedFilePatch.getHunks()[0]
-    hunkViewsByHunk.get(hunk).didSelectLines(new Set(hunk.getLines().slice(1, 4)))
+    hunkViewsByHunk.get(hunk).selectLines(new Set(hunk.getLines().slice(1, 4)))
     await hunkViewsByHunk.get(hunk).didClickStageButton()
     let expectedLines = originalLines.slice()
     expectedLines.splice(1, 1,
@@ -190,7 +190,7 @@ describe('FilePatchView', () => {
     const [stagedFilePatch] = await repository.getStagedChanges()
     await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView, selectionMode: 'hunkLine'})
     hunk = stagedFilePatch.getHunks()[0]
-    hunkViewsByHunk.get(hunk).didSelectLines(new Set(hunk.getLines().slice(1, 3)))
+    hunkViewsByHunk.get(hunk).selectLines(new Set(hunk.getLines().slice(1, 3)))
     await hunkViewsByHunk.get(hunk).didClickStageButton()
     expectedLines = originalLines.slice()
     expectedLines.splice(2, 0,

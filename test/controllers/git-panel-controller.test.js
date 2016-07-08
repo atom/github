@@ -65,13 +65,13 @@ describe('GitPanelController', () => {
 
       assert.equal(stagingView.unstagedChanges.length, 2)
       assert.equal(stagingView.stagedChanges.length, 0)
-      await stagingView.didConfirmUnstagedFilePatch(stagingView.unstagedChanges[0])
+      await stagingView.stageFilePatch(stagingView.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
-      await stagingView.didConfirmUnstagedFilePatch(stagingView.unstagedChanges[0])
+      await stagingView.stageFilePatch(stagingView.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
       assert.equal(stagingView.unstagedChanges.length, 0)
       assert.equal(stagingView.stagedChanges.length, 2)
-      await stagingView.didConfirmStagedFilePatch(stagingView.stagedChanges[1])
+      await stagingView.unstageFilePatch(stagingView.stagedChanges[1])
       await controller.lastModelDataRefreshPromise
       assert.equal(stagingView.unstagedChanges.length, 1)
       assert.equal(stagingView.stagedChanges.length, 1)

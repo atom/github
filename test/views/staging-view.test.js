@@ -37,7 +37,7 @@ describe('StagingView', () => {
       assert.deepEqual(unstagedChangesView.filePatches, filePatches)
     })
 
-    describe('didConfirmSelectedFilePatch()', () => {
+    describe('toggleSelectedFilePatchStagingState()', () => {
       it('stages and unstages files', async () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
@@ -48,13 +48,13 @@ describe('StagingView', () => {
         const {stagedChangesView, unstagedChangesView} = view.refs
 
         unstagedChangesView.didSelectFilePatch(filePatches[1])
-        await view.didConfirmSelectedFilePatch()
+        await view.toggleSelectedFilePatchStagingState()
         await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]]})
         assert.deepEqual(await repository.getStagedChanges(), [filePatches[1]])
         assert.deepEqual(await repository.getUnstagedChanges(), [filePatches[0]])
 
         stagedChangesView.didSelectFilePatch(filePatches[1])
-        await view.didConfirmSelectedFilePatch()
+        await view.toggleSelectedFilePatchStagingState()
         await view.update({repository, stagedChanges: [], unstagedChanges: filePatches})
         assert.deepEqual(await repository.getStagedChanges(), [])
         assert.deepEqual(await repository.getUnstagedChanges(), filePatches)
@@ -156,7 +156,7 @@ describe('StagingView', () => {
       })
 
       it('selects next/previous Staged filePatch if there is one', () => {
-        view.didSelectStagedFilePatch(stagedFilePatches[0])
+        view.selectStagedFilePatch(stagedFilePatches[0])
 
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
         assert.equal(getSelectedItemForStagedList(view), stagedFilePatches[0])
@@ -175,7 +175,7 @@ describe('StagingView', () => {
       })
 
       it('selects next/previous Unstaged filePatch if there is one', () => {
-        view.didSelectUnstagedFilePatch(unstagedFilePatches[0])
+        view.selectUnstagedFilePatch(unstagedFilePatches[0])
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
 
@@ -194,7 +194,7 @@ describe('StagingView', () => {
 
       it('stops at Staged list boundaries and keeps current selection', () => {
         const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
-        view.didSelectStagedFilePatch(lastStagedFilePatch)
+        view.selectStagedFilePatch(lastStagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
         assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
 
@@ -203,7 +203,7 @@ describe('StagingView', () => {
         assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
 
         const firstStagedFilePatch = stagedFilePatches[0]
-        view.didSelectStagedFilePatch(firstStagedFilePatch)
+        view.selectStagedFilePatch(firstStagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
         assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
 
@@ -214,7 +214,7 @@ describe('StagingView', () => {
 
       it('stops at Unstaged list boundaries and keeps current selection', () => {
         const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
-        view.didSelectUnstagedFilePatch(lastUnstagedFilePatch)
+        view.selectUnstagedFilePatch(lastUnstagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
 
@@ -223,7 +223,7 @@ describe('StagingView', () => {
         assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
 
         const firstUnstagedFilePatch = unstagedFilePatches[0]
-        view.didSelectStagedFilePatch(firstUnstagedFilePatch)
+        view.selectStagedFilePatch(firstUnstagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
 
