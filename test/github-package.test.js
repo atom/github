@@ -231,7 +231,8 @@ describe('GithubPackage', () => {
       const workdirPath = copyRepositoryDir()
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
-      await githubPackage.activate()
+
+      githubPackage.statusBarView.didClickChangedFiles()
       assert.equal(workspace.getRightPanels().length, 1)
 
       githubPackage.statusBarView.didClickChangedFiles()
@@ -249,6 +250,8 @@ describe('GithubPackage', () => {
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.activate()
+
+      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
       assert.equal(workspace.getRightPanels().length, 1)
 
       commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
