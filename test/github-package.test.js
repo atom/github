@@ -189,7 +189,7 @@ describe('GithubPackage', () => {
 
       assert.isNull(githubPackage.filePatchView)
 
-      githubPackage.gitPanelController.didSelectFilePatch(filePatch1, 'unstaged')
+      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch1, 'unstaged')
       assert(githubPackage.filePatchView)
       assert.equal(githubPackage.filePatchView.props.filePatch, filePatch1)
       assert.equal(githubPackage.filePatchView.props.repository, repository)
@@ -200,7 +200,7 @@ describe('GithubPackage', () => {
       workspace.getActivePane().splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
-      githubPackage.gitPanelController.didSelectFilePatch(filePatch2, 'staged')
+      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch2, 'staged')
       assert.equal(githubPackage.filePatchView, existingFilePatchView)
       assert.equal(githubPackage.filePatchView.props.filePatch, filePatch2)
       assert.equal(githubPackage.filePatchView.props.repository, repository)
@@ -211,7 +211,7 @@ describe('GithubPackage', () => {
       assert.isUndefined(workspace.getActivePaneItem())
       assert.isNull(githubPackage.filePatchView)
 
-      githubPackage.gitPanelController.didSelectFilePatch(filePatch2, 'staged')
+      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch2, 'staged')
       assert.notEqual(githubPackage.filePatchView, existingFilePatchView)
       assert.equal(githubPackage.filePatchView.props.filePatch, filePatch2)
       assert.equal(githubPackage.filePatchView.props.repository, repository)
