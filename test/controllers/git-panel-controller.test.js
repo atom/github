@@ -51,4 +51,36 @@ describe('GitPanelController', () => {
     await controller.lastModelDataRefreshPromise
     assert.equal(controller.refs.gitPanel.unstagedChanges, await repository2.getUnstagedChanges())
   })
+
+  describe('integration tests', () => {
+    it('can stage and unstage files and commit', async () => {
+      const workdirPath = await copyRepositoryDir(1)
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const controller = new GitPanelController({workspace, commandRegistry, repository: repository})
+      await controller.lastModelDataRefreshPromise
+      const stagingView = controller.refs.gitPanel.refs.stagingView
+      const commitView = controller.refs.gitPanel.refs.commitView
+
+      assert.equal(stagingView.unstagedChanges.length, 2)
+      assert.equal(stagingView.stagedChanges.length, 0)
+      await stagingView.didConfirmUnstagedFilePatch(stagingView.unstagedChanges[0])
+      await controller.lastModelDataRefreshPromise
+      await stagingView.didConfirmUnstagedFilePatch(stagingView.unstagedChanges[0])
+      await controller.lastModelDataRefreshPromise
+      assert.equal(stagingView.unstagedChanges.length, 0)
+      assert.equal(stagingView.stagedChanges.length, 2)
+      await stagingView.didConfirmStagedFilePatch(stagingView.stagedChanges[1])
+      await controller.lastModelDataRefreshPromise
+      assert.equal(stagingView.unstagedChanges.length, 1)
+      assert.equal(stagingView.stagedChanges.length, 1)
+
+      commitView.refs.editor.setText('Make it so')
+      await commitView.commit()
+      await controller.lastModelDataRefreshPromise
+
+      assert.equal(await repository.getLastCommitMessage(), 'Make it so')
+    })
+  })
 })
