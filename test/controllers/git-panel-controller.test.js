@@ -19,7 +19,7 @@ describe('GitPanelController', () => {
     atomEnvironment.destroy()
   })
 
-  it.only('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
+  it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
     const workdirPath1 = await copyRepositoryDir(1)
     const repository1 = await buildRepository(workdirPath1)
     const workdirPath2 = await copyRepositoryDir(1)
