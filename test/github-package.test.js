@@ -223,4 +223,20 @@ describe('GithubPackage', () => {
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
     })
   })
+
+  describe('when the changed files label in the status bar is clicked', () => {
+    it('shows/hides the CommitPanel', async () => {
+      const workdirPath = copyRepositoryDir()
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+      assert.equal(workspace.getRightPanels().length, 1)
+
+      githubPackage.statusBarView.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      githubPackage.statusBarView.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 1)
+    })
+  })
 })
