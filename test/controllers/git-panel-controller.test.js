@@ -26,16 +26,13 @@ describe('GitPanelController', () => {
     const repository2 = await buildRepository(workdirPath2)
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'))
-    console.log('x');
     const controller = new GitPanelController({workspace, commandRegistry, repository: repository1})
 
     // Does not render a GitPanelView until initial data is fetched
     assert.isUndefined(controller.refs.gitPanel)
     assert.isUndefined(controller.repository)
-    console.log('b');
     await controller.lastModelDataRefreshPromise
-    // assert.isDefined(controller.repository)
-    console.log('B');
+    assert.isDefined(controller.repository)
     assert.equal(controller.refs.gitPanel.unstagedChanges, await repository1.getUnstagedChanges())
 
     // Fetches data when a new repository is assigned
