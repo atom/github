@@ -63,18 +63,18 @@ describe('GitPanelController', () => {
       const stagingView = controller.refs.gitPanel.refs.stagingView
       const commitView = controller.refs.gitPanel.refs.commitView
 
-      assert.equal(stagingView.unstagedChanges.length, 2)
-      assert.equal(stagingView.stagedChanges.length, 0)
-      await stagingView.stageFilePatch(stagingView.unstagedChanges[0])
+      assert.equal(stagingView.props.unstagedChanges.length, 2)
+      assert.equal(stagingView.props.stagedChanges.length, 0)
+      await stagingView.props.stageFilePatch(stagingView.props.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
-      await stagingView.stageFilePatch(stagingView.unstagedChanges[0])
+      await stagingView.props.stageFilePatch(stagingView.props.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
-      assert.equal(stagingView.unstagedChanges.length, 0)
-      assert.equal(stagingView.stagedChanges.length, 2)
-      await stagingView.unstageFilePatch(stagingView.stagedChanges[1])
+      assert.equal(stagingView.props.unstagedChanges.length, 0)
+      assert.equal(stagingView.props.stagedChanges.length, 2)
+      await stagingView.props.unstageFilePatch(stagingView.props.stagedChanges[1])
       await controller.lastModelDataRefreshPromise
-      assert.equal(stagingView.unstagedChanges.length, 1)
-      assert.equal(stagingView.stagedChanges.length, 1)
+      assert.equal(stagingView.props.unstagedChanges.length, 1)
+      assert.equal(stagingView.props.stagedChanges.length, 1)
 
       commitView.refs.editor.setText('Make it so')
       await commitView.commit()
