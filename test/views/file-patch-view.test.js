@@ -28,29 +28,29 @@ describe('FilePatchView', () => {
     const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
     let linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).selectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk1).props.selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), hunk1.getLines().filter(l => l.isChanged()))
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), [])
-    assert(hunkViewsByHunk.get(hunk1).isSelected)
-    assert(!hunkViewsByHunk.get(hunk2).isSelected)
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), hunk1.getLines().filter(l => l.isChanged()))
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
+    assert(hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert(!hunkViewsByHunk.get(hunk2).props.isSelected)
 
     await view.togglePatchSelectionMode()
     linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).selectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk1).props.selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), linesToSelect)
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), [])
-    assert(hunkViewsByHunk.get(hunk1).isSelected)
-    assert(!hunkViewsByHunk.get(hunk2).isSelected)
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), linesToSelect)
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
+    assert(hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert(!hunkViewsByHunk.get(hunk2).props.isSelected)
 
     linesToSelect = hunk2.getLines().slice(0, 1)
-    hunkViewsByHunk.get(hunk2).selectLines(new Set(linesToSelect))
+    hunkViewsByHunk.get(hunk2).props.selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).selectedLines), [])
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).selectedLines), linesToSelect)
-    assert(!hunkViewsByHunk.get(hunk1).isSelected)
-    assert(hunkViewsByHunk.get(hunk2).isSelected)
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), [])
+    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), linesToSelect)
+    assert(!hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert(hunkViewsByHunk.get(hunk2).props.isSelected)
   })
 
   it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', () => {
@@ -58,9 +58,9 @@ describe('FilePatchView', () => {
     function registerHunkView (hunk, view) { hunkView = view }
     const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)])])
     const view = new FilePatchView({filePatch, stagingStatus: 'unstaged', registerHunkView})
-    assert(hunkView.stageButtonLabelPrefix, 'Stage')
+    assert(hunkView.props.stageButtonLabelPrefix, 'Stage')
     view.update({filePatch, stagingStatus: 'staged'})
-    assert(hunkView.stageButtonLabelPrefix, 'Unstage')
+    assert(hunkView.props.stageButtonLabelPrefix, 'Unstage')
   })
 
   it('bases its tab title on the staging status', () => {
@@ -129,7 +129,7 @@ describe('FilePatchView', () => {
     await view.focusNextHunk()
     const hunkToStage = hunkViewsByHunk.get(unstagedFilePatch.getHunks()[0])
     assert.notDeepEqual(view.selectedHunk, unstagedFilePatch.getHunks()[0])
-    await hunkToStage.didClickStageButton()
+    await hunkToStage.props.didClickStageButton()
     const expectedStagedLines = originalLines.slice()
     expectedStagedLines.splice(1, 1,
       'this is a modified line',
@@ -140,7 +140,7 @@ describe('FilePatchView', () => {
 
     const [stagedFilePatch] = await repository.getStagedChanges()
     await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
-    await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).didClickStageButton()
+    await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).props.didClickStageButton()
     assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
 
@@ -166,8 +166,8 @@ describe('FilePatchView', () => {
     // stage a subset of lines from first hunk
     const view = new FilePatchView({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView, selectionMode: 'hunkLine'})
     let hunk = unstagedFilePatch.getHunks()[0]
-    hunkViewsByHunk.get(hunk).selectLines(new Set(hunk.getLines().slice(1, 4)))
-    await hunkViewsByHunk.get(hunk).didClickStageButton()
+    hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 4)))
+    await hunkViewsByHunk.get(hunk).props.didClickStageButton()
     let expectedLines = originalLines.slice()
     expectedLines.splice(1, 1,
       'this is a modified line',
@@ -176,7 +176,7 @@ describe('FilePatchView', () => {
     assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
     // stage remaining lines in hunk
-    await hunkViewsByHunk.get(hunk).didClickStageButton()
+    await hunkViewsByHunk.get(hunk).props.didClickStageButton()
     expectedLines = originalLines.slice()
     expectedLines.splice(1, 1,
       'this is a modified line',
@@ -189,8 +189,8 @@ describe('FilePatchView', () => {
     const [stagedFilePatch] = await repository.getStagedChanges()
     await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView, selectionMode: 'hunkLine'})
     hunk = stagedFilePatch.getHunks()[0]
-    hunkViewsByHunk.get(hunk).selectLines(new Set(hunk.getLines().slice(1, 3)))
-    await hunkViewsByHunk.get(hunk).didClickStageButton()
+    hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 3)))
+    await hunkViewsByHunk.get(hunk).props.didClickStageButton()
     expectedLines = originalLines.slice()
     expectedLines.splice(2, 0,
       'this is a new line',
@@ -200,7 +200,7 @@ describe('FilePatchView', () => {
 
     // unstage the rest of the hunk
     await view.togglePatchSelectionMode()
-    await hunkViewsByHunk.get(hunk).didClickStageButton()
+    await hunkViewsByHunk.get(hunk).props.didClickStageButton()
     assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
   })
 
@@ -215,13 +215,13 @@ describe('FilePatchView', () => {
         const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
         const element = view.element
 
-        assert(hunkViewsByHunk.get(hunk1).isSelected)
+        assert(hunkViewsByHunk.get(hunk1).props.isSelected)
 
         hunkViewsByHunk.clear()
         await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk2]))
         await etch.getScheduler().getNextUpdatePromise()
         assert(!hunkViewsByHunk.get(hunk1))
-        assert(hunkViewsByHunk.get(hunk2).isSelected)
+        assert(hunkViewsByHunk.get(hunk2).props.isSelected)
       })
     })
 
@@ -236,13 +236,13 @@ describe('FilePatchView', () => {
         const element = view.element
 
         await view.focusNextHunk()
-        assert(hunkViewsByHunk.get(hunk2).isSelected)
+        assert(hunkViewsByHunk.get(hunk2).props.isSelected)
 
         hunkViewsByHunk.clear()
         await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1]))
         await etch.getScheduler().getNextUpdatePromise()
         assert(!hunkViewsByHunk.get(hunk2))
-        assert(hunkViewsByHunk.get(hunk1).isSelected)
+        assert(hunkViewsByHunk.get(hunk1).props.isSelected)
       })
     })
   })

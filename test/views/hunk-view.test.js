@@ -80,7 +80,7 @@ describe('HunkView', () => {
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'removed', 6, -1)
     ])
-    const view = new HunkView({hunk, selectedLines: new Set, stageButtonLabelPrefix: 'Stage'})
+    const view = new HunkView({hunk, selectedLines: new Set(), stageButtonLabelPrefix: 'Stage'})
     assert.equal(view.refs.stageButton.textContent, 'Stage Hunk')
 
     await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
