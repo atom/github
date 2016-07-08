@@ -45,17 +45,12 @@ describe('StatusBarView', () => {
   it('invokes the supplied handler when the changed files label is clicked', async () => {
     const workdirPath = await copyRepositoryDir(1)
     const repository = await buildRepository(workdirPath)
-    const didClickChangedFiles1 = sinon.spy()
-    const view = new StatusBarView({repository, didClickChangedFiles: didClickChangedFiles1})
+    const didClickChangedFiles = sinon.spy()
+    const view = new StatusBarView({repository, didClickChangedFiles})
     const {changedFiles} = view.refs
-
     await view.lastModelDataRefreshPromise
-    changedFiles.dispatchEvent(new MouseEvent('click'))
-    assert(didClickChangedFiles1.called)
 
-    const didClickChangedFiles2 = sinon.spy()
-    await view.update({repository, didClickChangedFiles: didClickChangedFiles2})
     changedFiles.dispatchEvent(new MouseEvent('click'))
-    assert(didClickChangedFiles2.called)
+    assert(didClickChangedFiles.called)
   })
 })
