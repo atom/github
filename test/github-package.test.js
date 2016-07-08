@@ -33,6 +33,7 @@ describe('GithubPackage', () => {
       await githubPackage.activate()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.commitPanelView.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarView.repository, githubPackage.getActiveRepository())
     })
   })
 
@@ -47,11 +48,13 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.commitPanelView.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarView.repository, githubPackage.getActiveRepository())
 
       project.setPaths([workdirPath2])
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
       assert.equal(githubPackage.commitPanelView.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarView.repository, githubPackage.getActiveRepository())
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
@@ -89,11 +92,13 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.commitPanelView.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarView.repository, githubPackage.getActiveRepository())
 
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
       assert.equal(githubPackage.commitPanelView.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarView.repository, githubPackage.getActiveRepository())
     })
   })
 
