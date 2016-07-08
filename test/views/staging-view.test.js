@@ -38,26 +38,25 @@ describe('StagingView', () => {
     })
 
     describe('toggleSelectedFilePatchStagingState()', () => {
-      it('stages and unstages files', async () => {
+      it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
         const workdirPath = await copyRepositoryDir(1)
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
         const filePatches = await repository.getUnstagedChanges()
-        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches})
+        const stageFilePatch = sinon.spy()
+        const unstageFilePatch = sinon.spy()
+        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches, stageFilePatch, unstageFilePatch})
         const {stagedChangesView, unstagedChangesView} = view.refs
 
         unstagedChangesView.didSelectFilePatch(filePatches[1])
-        await view.toggleSelectedFilePatchStagingState()
-        await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]]})
-        assert.deepEqual(await repository.getStagedChanges(), [filePatches[1]])
-        assert.deepEqual(await repository.getUnstagedChanges(), [filePatches[0]])
+        view.toggleSelectedFilePatchStagingState()
+        assert.deepEqual(stageFilePatch.args[0], [filePatches[1]])
 
+        await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFilePatch, unstageFilePatch})
         stagedChangesView.didSelectFilePatch(filePatches[1])
-        await view.toggleSelectedFilePatchStagingState()
-        await view.update({repository, stagedChanges: [], unstagedChanges: filePatches})
-        assert.deepEqual(await repository.getStagedChanges(), [])
-        assert.deepEqual(await repository.getUnstagedChanges(), filePatches)
+        view.toggleSelectedFilePatchStagingState()
+        assert.deepEqual(unstageFilePatch.args[0], [filePatches[1]])
       })
     })
   })
