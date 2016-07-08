@@ -243,7 +243,7 @@ describe('GithubPackage', () => {
     })
   })
 
-  describe('when the git:show-hide-commit-panel command is dispatched', () => {
+  describe('when the git:toggle-commit-panel command is dispatched', () => {
     it('shows/hides the CommitPanel', async () => {
       const workspaceElement = viewRegistry.getView(workspace)
       const workdirPath = copyRepositoryDir()
@@ -251,13 +251,13 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.activate()
 
-      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-commit-panel')
       assert.equal(workspace.getRightPanels().length, 1)
 
-      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-commit-panel')
       assert.equal(workspace.getRightPanels().length, 0)
 
-      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-commit-panel')
       assert.equal(workspace.getRightPanels().length, 1)
     })
   })
