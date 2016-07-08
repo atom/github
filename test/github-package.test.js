@@ -191,9 +191,9 @@ describe('GithubPackage', () => {
 
       githubPackage.gitPanelController.didSelectFilePatch(filePatch1, 'unstaged')
       assert(githubPackage.filePatchView)
-      assert.equal(githubPackage.filePatchView.filePatch, filePatch1)
-      assert.equal(githubPackage.filePatchView.repository, repository)
-      assert.equal(githubPackage.filePatchView.stagingStatus, 'unstaged')
+      assert.equal(githubPackage.filePatchView.props.filePatch, filePatch1)
+      assert.equal(githubPackage.filePatchView.props.repository, repository)
+      assert.equal(githubPackage.filePatchView.props.stagingStatus, 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
 
       const existingFilePatchView = githubPackage.filePatchView
@@ -202,9 +202,9 @@ describe('GithubPackage', () => {
 
       githubPackage.gitPanelController.didSelectFilePatch(filePatch2, 'staged')
       assert.equal(githubPackage.filePatchView, existingFilePatchView)
-      assert.equal(githubPackage.filePatchView.filePatch, filePatch2)
-      assert.equal(githubPackage.filePatchView.repository, repository)
-      assert.equal(githubPackage.filePatchView.stagingStatus, 'staged')
+      assert.equal(githubPackage.filePatchView.props.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchView.props.repository, repository)
+      assert.equal(githubPackage.filePatchView.props.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
 
       workspace.getActivePaneItem().destroy()
@@ -213,9 +213,9 @@ describe('GithubPackage', () => {
 
       githubPackage.gitPanelController.didSelectFilePatch(filePatch2, 'staged')
       assert.notEqual(githubPackage.filePatchView, existingFilePatchView)
-      assert.equal(githubPackage.filePatchView.filePatch, filePatch2)
-      assert.equal(githubPackage.filePatchView.repository, repository)
-      assert.equal(githubPackage.filePatchView.stagingStatus, 'staged')
+      assert.equal(githubPackage.filePatchView.props.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchView.props.repository, repository)
+      assert.equal(githubPackage.filePatchView.props.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchView)
     })
   })

@@ -26,7 +26,6 @@ describe('FilePatchView', () => {
     const hunkViewsByHunk = new Map()
     const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
     const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
-    const element = view.element
 
     let linesToSelect = hunk1.getLines().slice(1, 3)
     hunkViewsByHunk.get(hunk1).selectLines(new Set(linesToSelect))
