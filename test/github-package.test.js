@@ -8,12 +8,14 @@ import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
-  let atomEnv, workspace, project, githubPackage
+  let atomEnv, workspace, project, commandRegistry, viewRegistry, githubPackage
 
   beforeEach(async () => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     project = atomEnv.project
+    commandRegistry = atomEnv.commands
+    viewRegistry = atomEnv.views
     githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
   })
 
@@ -236,6 +238,23 @@ describe('GithubPackage', () => {
       assert.equal(workspace.getRightPanels().length, 0)
 
       githubPackage.statusBarView.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 1)
+    })
+  })
+
+  describe('when the git:show-hide-commit-panel command is dispatched', () => {
+    it('shows/hides the CommitPanel', async () => {
+      const workspaceElement = viewRegistry.getView(workspace)
+      const workdirPath = copyRepositoryDir()
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+      assert.equal(workspace.getRightPanels().length, 1)
+
+      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      commandRegistry.dispatch(workspaceElement, 'git:show-hide-commit-panel')
       assert.equal(workspace.getRightPanels().length, 1)
     })
   })

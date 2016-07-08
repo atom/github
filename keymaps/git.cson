@@ -1,3 +1,6 @@
+'atom-workspace':
+  'cmd-shift-c': 'git:show-hide-commit-panel'
+
 '.git-StagingView.staged-changes-focused':
   'tab': 'git:focus-unstaged-changes'
 
