@@ -164,7 +164,9 @@ describe('FilePatchView', () => {
     function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
 
     // stage a subset of lines from first hunk
-    const view = new FilePatchView({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView, selectionMode: 'hunkLine'})
+    const view = new FilePatchView({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView})
+    view.togglePatchSelectionMode()
+    assert.equal(view.getPatchSelectionMode(), 'hunkLine')
     let hunk = unstagedFilePatch.getHunks()[0]
     hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 4)))
     await hunkViewsByHunk.get(hunk).props.didClickStageButton()
@@ -187,7 +189,7 @@ describe('FilePatchView', () => {
 
     // unstage a subset of lines from the first hunk
     const [stagedFilePatch] = await repository.getStagedChanges()
-    await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView, selectionMode: 'hunkLine'})
+    await view.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
     hunk = stagedFilePatch.getHunks()[0]
     hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 3)))
     await hunkViewsByHunk.get(hunk).props.didClickStageButton()
@@ -260,14 +262,14 @@ describe('FilePatchView', () => {
       const view = new FilePatchView({filePatch, registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
       const element = view.element
 
-      assert.equal(view.selectionMode, 'hunk')
+      assert.equal(view.getPatchSelectionMode(), 'hunk')
 
       await view.togglePatchSelectionMode()
-      assert.equal(view.selectionMode, 'hunkLine')
+      assert.equal(view.getPatchSelectionMode(), 'hunkLine')
       assert.equal(element.querySelectorAll('.git-HunkView-line.is-selected').length, 1)
 
       await view.togglePatchSelectionMode()
-      assert.equal(view.selectionMode, 'hunk')
+      assert.equal(view.getPatchSelectionMode(), 'hunk')
       assert.equal(element.querySelectorAll('.git-HunkView-line.is-selected').length, hunk.getLines().filter(l => l.isChanged()).length)
     })
   })
