@@ -1,5 +1,5 @@
 'atom-workspace':
-  'cmd-shift-c': 'git:toggle-commit-panel'
+  'cmd-shift-c': 'git:toggle-git-panel'
 
 '.git-StagingView.staged-changes-focused':
   'tab': 'git:focus-unstaged-changes'
