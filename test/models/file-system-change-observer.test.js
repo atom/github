@@ -9,7 +9,7 @@ import {copyRepositoryDir, buildRepository} from '../helpers'
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer'
 
-describe.only('FileSystemChangeObserver', async () => {
+describe('FileSystemChangeObserver', async () => {
   it('emits an event when the currently active directory changes', async function () {
     this.timeout(5000) // increase the timeout because we're interacting with file system events.
 
