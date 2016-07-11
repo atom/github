@@ -10,6 +10,43 @@ import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneReposit
 const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
+  describe('transact', () => {
+    it('serializes critical sections', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+
+      const repo = await buildRepository(workingDirPath)
+
+      const transactionPromises = []
+      const actualEvents = []
+      const expectedEvents = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        transactionPromises.push(repo.transact(async function () {
+          await repo.refresh()
+          await new Promise(function (resolve) { window.setTimeout(resolve, Math.random() * 10)})
+          await repo.refresh()
+          actualEvents.push(i)
+        }))
+      }
+
+      await Promise.all(transactionPromises)
+
+      assert.deepEqual(actualEvents, expectedEvents)
+    })
+
+    it('does not allow transactions to nest', async function () {
+      const workingDirPath = copyRepositoryDir(1)
+      const repo = await buildRepository(workingDirPath)
+      await repo.transact(function () {
+        assert.throws(() => repo.transact(), /Nested transaction/)
+      })
+    })
+  })
+
   describe('refreshing', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir(1)
