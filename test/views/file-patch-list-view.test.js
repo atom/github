@@ -57,7 +57,7 @@ describe('FilePatchListView', () => {
       const confirmedPatches = []
       const view = new FilePatchListView({
         filePatches,
-        didConfirmFilePatch: (d) => confirmedPatches.push(d)
+        toggleFilePatchStagingState: (d) => confirmedPatches.push(d)
       })
 
       view.element.querySelector('.git-FilePatchListView-item.is-modified').dispatchEvent(new MouseEvent('click', {detail: 2}))
