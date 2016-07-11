@@ -35,5 +35,12 @@
     "fs-extra": "^0.30.0",
     "sinon": "^1.17.4",
     "temp": "^0.8.3"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "1.0.0": "consumeStatusBar"
+      }
+    }
   }
 }

@@ -8,14 +8,15 @@ import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
-  let atomEnv, workspace, project, commandRegistry, githubPackage
+  let atomEnv, workspace, project, commandRegistry, viewRegistry, githubPackage
 
   beforeEach(async () => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     project = atomEnv.project
     commandRegistry = atomEnv.commands
-    githubPackage = new GithubPackage(workspace, project, commandRegistry)
+    viewRegistry = atomEnv.views
+    githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
   })
 
   afterEach(() => {
@@ -34,6 +35,7 @@ describe('GithubPackage', () => {
       await githubPackage.activate()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarController.repository, githubPackage.getActiveRepository())
     })
   })
 
@@ -48,11 +50,13 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarController.repository, githubPackage.getActiveRepository())
 
       project.setPaths([workdirPath2])
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
       assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarController.repository, githubPackage.getActiveRepository())
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
@@ -90,11 +94,13 @@ describe('GithubPackage', () => {
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarController.repository, githubPackage.getActiveRepository())
 
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
       assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarController.repository, githubPackage.getActiveRepository())
     })
   })
 
@@ -177,6 +183,42 @@ describe('GithubPackage', () => {
       assert.equal(githubPackage.filePatchController.props.repository, repository)
       assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+    })
+  })
+
+  describe('when the changed files label in the status bar is clicked', () => {
+    it('shows/hides the git panel', async () => {
+      const workdirPath = copyRepositoryDir()
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+
+      githubPackage.statusBarController.props.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 1)
+
+      githubPackage.statusBarController.props.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      githubPackage.statusBarController.props.didClickChangedFiles()
+      assert.equal(workspace.getRightPanels().length, 1)
+    })
+  })
+
+  describe('when the git:toggle-git-panel command is dispatched', () => {
+    it('shows/hides the git panel', async () => {
+      const workspaceElement = viewRegistry.getView(workspace)
+      const workdirPath = copyRepositoryDir()
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
+      assert.equal(workspace.getRightPanels().length, 1)
+
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
+      assert.equal(workspace.getRightPanels().length, 1)
     })
   })
 })
