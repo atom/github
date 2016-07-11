@@ -3,7 +3,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
-import {GitRepositoryAsync} from 'atom'
+import {GitRepositoryAsync, Directory} from 'atom'
 
 const Git = GitRepositoryAsync.Git
 
@@ -18,7 +18,7 @@ export function copyRepositoryDir (variant = 1) {
 
 export async function buildRepository (workingDirPath) {
   const rawRepository = await Git.Repository.open(workingDirPath)
-  return new Repository(rawRepository)
+  return new Repository(rawRepository, new Directory(workingDirPath))
 }
 
 export function assertDeepPropertyVals (actual, expected) {
