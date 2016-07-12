@@ -364,6 +364,7 @@ describe('Repository', () => {
 
         let stagedFilePatches = await repo.refreshStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), [])
+
         await repo.stageResolvedFile('number.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['number.txt'])
