@@ -369,4 +369,18 @@ describe('Repository', () => {
       assert.equal(ahead, 1)
     })
   })
+
+  describe('getBranchRemoteName(branchName)', () => {
+    it('returns the remote name associated to the supplied branch name', async () => {
+      const {localRepoPath} = await cloneRepository()
+      const repository = await buildRepository(localRepoPath)
+      assert.equal(await repository.getBranchRemoteName('master'), 'origin')
+    })
+
+    it('returns null if there is no remote associated with the supplied branch name', async () => {
+      const workingDirPath = copyRepositoryDir(1)
+      const repository = await buildRepository(workingDirPath)
+      assert.isNull(await repository.getBranchRemoteName('master'))
+    })
+  })
 })
