@@ -351,5 +351,29 @@ describe('Repository', () => {
         assert.deepEqual(mergeConflictPaths, ['color.txt', 'number.txt'])
       })
     })
+
+    describe('stageResolvedFile()', (filePath) => {
+      it('stages the file at the specified path once merge conflicts have been resolved', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+        const filePath1 = path.join(workingDirPath, 'number.txt')
+        const filePath2 = path.join(workingDirPath, 'color.txt')
+
+        fs.writeFileSync(filePath1, 'dos', 'utf8')
+        fs.writeFileSync(filePath2, 'azul', 'utf8')
+
+        let stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), [])
+        await repo.stageResolvedFile('number.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['number.txt'])
+        assert.deepEqual(await repo.getMergeConflictPaths(), ['color.txt'])
+
+        await repo.stageResolvedFile('color.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['number.txt', 'color.txt'])
+        assert.deepEqual(await repo.getMergeConflictPaths(), [])
+      })
+    })
   })
 })
