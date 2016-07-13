@@ -334,14 +334,6 @@ describe('Repository', () => {
   })
 
   describe('Merge conflicts', () => {
-    describe('hasMergeConflict()', () => {
-      it('returns a boolean value indicating if the repo has a merge conflict', async () => {
-        const workingDirPath = copyRepositoryDir('merge-conflict')
-        const repo = await buildRepository(workingDirPath)
-        assert.equal(await repo.hasMergeConflict(), true)
-      })
-    })
-
     describe('getMergeConflictPaths()', () => {
       it('returns an array of paths to files with merge conflicts in alphabetical order', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
@@ -349,6 +341,14 @@ describe('Repository', () => {
 
         const mergeConflictPaths = await repo.getMergeConflictPaths()
         assert.deepEqual(mergeConflictPaths, ['color.txt', 'number.txt'])
+      })
+
+      it('returns an empty arry if the repo has no merge conflicts', async () => {
+        const workingDirPath = copyRepositoryDir(1)
+        const repo = await buildRepository(workingDirPath)
+
+        const mergeConflictPaths = await repo.getMergeConflictPaths()
+        assert.deepEqual(mergeConflictPaths, [])
       })
     })
 
