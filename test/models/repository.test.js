@@ -270,7 +270,7 @@ describe('Repository', () => {
     it('creates a commit that contains the staged changes', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
-      assert.equal(await repo.getLastCommitMessage(), 'Initial commit\n')
+      assert.equal((await repo.getLastCommit()).message(), 'Initial commit\n')
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
@@ -279,14 +279,14 @@ describe('Repository', () => {
       const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
       await repo.applyPatchToIndex(unstagedPatch1)
       await repo.commit('Commit 1')
-      assert.equal(await repo.getLastCommitMessage(), 'Commit 1')
+      assert.equal((await repo.getLastCommit()).message(), 'Commit 1')
       assertDeepPropertyVals(await repo.getStagedChanges(), [])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
       await repo.applyPatchToIndex(unstagedChanges[0])
       await repo.commit('Commit 2')
-      assert.equal(await repo.getLastCommitMessage(), 'Commit 2')
+      assert.equal((await repo.getLastCommit()).message(), 'Commit 2')
       assert.deepEqual(await repo.getStagedChanges(), [])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
@@ -298,7 +298,7 @@ describe('Repository', () => {
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
       ].join('\n'))
-      assert.deepEqual((await repo.getLastCommitMessage()).split('\n'), [
+      assert.deepEqual((await repo.getLastCommit()).message().split('\n'), [
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod ',
         'tempor',
         '',
@@ -316,10 +316,10 @@ describe('Repository', () => {
 
       await createEmptyCommit(remoteRepoPath, 'new remote commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
 
       await localRepo.pull('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
     })
   })
 
@@ -334,10 +334,10 @@ describe('Repository', () => {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
 
       await localRepo.push('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
     })
   })
 
@@ -355,7 +355,7 @@ describe('Repository', () => {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.equal(await localRepo.getLastCommitMessage(), 'new local commit')
+      assert.equal((await localRepo.getLastCommit()).message(), 'new local commit')
 
       let {ahead, behind} = await localRepo.getAheadBehindCount('master')
       assert.equal(behind, 0)
