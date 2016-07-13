@@ -8,7 +8,7 @@ import sinon from 'sinon'
 
 import CommitView from '../../lib/views/commit-view'
 import FilePatch from '../../lib/models/file-patch'
-import {AbortMergeError} from '../../lib/models/repository'
+import {AbortMergeError, CommitError} from '../../lib/models/repository'
 
 describe('CommitView', () => {
   let atomEnv, workspace, commandRegistry, notificationManager
@@ -103,6 +103,7 @@ describe('CommitView', () => {
     editor.setText('Commit 1')
     await etch.getScheduler().getNextUpdatePromise()
     commitButton.dispatchEvent(new MouseEvent('click'))
+    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(commit.args[0][0], 'Commit 1')
     assert.equal(editor.getText(), '')
 
@@ -115,6 +116,7 @@ describe('CommitView', () => {
     editor.setText('Commit 2')
     await etch.getScheduler().getNextUpdatePromise()
     commandRegistry.dispatch(editor.element, 'git:commit')
+    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(commit.args[0][0], 'Commit 2')
     assert.equal(editor.getText(), '')
 
@@ -124,6 +126,7 @@ describe('CommitView', () => {
     editor.setText('Commit 4')
     await etch.getScheduler().getNextUpdatePromise()
     commandRegistry.dispatch(editor.element, 'git:commit')
+    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(commit.callCount, 0)
     assert.equal(editor.getText(), 'Commit 4')
 
@@ -136,7 +139,25 @@ describe('CommitView', () => {
     await repository.applyPatchToIndex(patchToStage3)
     await view.update({repository, stagedChanges: [patchToStage3]})
     commandRegistry.dispatch(editor.element, 'git:commit')
+    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(commit.callCount, 0)
+  })
+
+  it('shows an error notification when props.commit() throws an ECONFLICT exception', async () => {
+    const commit = sinon.spy(async () => {
+      await Promise.resolve()
+      throw new CommitError('ECONFLICT')
+    })
+    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [new FilePatch()], commit})
+    const {editor, commitButton} = view.refs
+    editor.setText('A message.')
+    await etch.getScheduler().getNextUpdatePromise()
+    assert.equal(notificationManager.getNotifications().length, 0)
+    commitButton.dispatchEvent(new MouseEvent('click'))
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(commit.calledOnce)
+    assert.equal(editor.getText(), 'A message.')
+    assert.equal(notificationManager.getNotifications().length, 1)
   })
 
   it('replaces the contents of the commit message when it is empty and it is supplied from the outside', async () => {
@@ -176,7 +197,7 @@ describe('CommitView', () => {
     assert.equal(editor.getText(), '')
   })
 
-  it('shows an error notification when props.abortMerge() throws an exception', async () => {
+  it('shows an error notification when props.abortMerge() throws an EDIRTYSTAGED exception', async () => {
     const abortMerge = sinon.spy(async () => {
       await Promise.resolve()
       throw new AbortMergeError('EDIRTYSTAGED', 'a.txt')
