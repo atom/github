@@ -352,28 +352,79 @@ describe('Repository', () => {
       })
     })
 
-    describe('stageResolvedPath()', (filePath) => {
+    describe('stageResolvedPath()', () => {
       it('stages the file at the specified path once merge conflicts have been resolved', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
-        const filePath1 = path.join(workingDirPath, 'number.txt')
-        const filePath2 = path.join(workingDirPath, 'color.txt')
 
-        fs.writeFileSync(filePath1, 'dos', 'utf8')
-        fs.writeFileSync(filePath2, 'azul', 'utf8')
+        fs.writeFileSync(path.join(workingDirPath, 'number.txt'), 'dos', 'utf8')
+        fs.writeFileSync(path.join(workingDirPath, 'color.txt'), 'azul', 'utf8')
 
         let stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), [])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt'])
 
         await repo.stageResolvedPath('number.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['number.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt'])
         assert.deepEqual(await repo.getMergeConflictPaths(), ['color.txt'])
 
         await repo.stageResolvedPath('color.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['number.txt', 'color.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt', 'color.txt'])
         assert.deepEqual(await repo.getMergeConflictPaths(), [])
+      })
+    })
+
+    describe('abortMerge()', () => {
+      describe('when the working directory is clean', () => {
+        it('resets the index and the working directory to match HEAD', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const repo = await buildRepository(workingDirPath)
+          assert.equal(await repo.hasMergeConflict(), true)
+
+          await repo.abortMerge()
+          assert.equal(await repo.hasMergeConflict(), false)
+          assert.deepEqual(await repo.refreshStagedChanges(), [])
+          assert.deepEqual(await repo.refreshUnstagedChanges(), [])
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'color.txt'), 'utf8'), 'blue\n')
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'number.txt'), 'utf8'), 'two\n')
+        })
+      })
+
+      describe('when a dirty file in the working directory is NOT in the staging area', () => {
+        it('throws an error indicating that the abort could not be completed', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const repo = await buildRepository(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
+          assert.equal(await repo.hasMergeConflict(), true)
+
+          await repo.abortMerge()
+          assert.equal(await repo.hasMergeConflict(), false)
+          assert.equal((await repo.refreshStagedChanges()).length, 0)
+          assert.equal((await repo.refreshUnstagedChanges()).length, 1)
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'fruit.txt')), 'a change\n')
+        })
+      })
+
+      describe('when a dirty file in the working directory is in the staging area', () => {
+        it('throws an error indicating that the abort could not be completed', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const repo = await buildRepository(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'animal.txt'), 'a change\n')
+          const stagedChanges = await repo.refreshStagedChanges()
+          const unstagedChanges = await repo.refreshUnstagedChanges()
+
+          assert.equal(await repo.hasMergeConflict(), true)
+          try {
+            await repo.abortMerge()
+            assert(false)
+          } catch (e) {
+            assert.match(e.message, /animal.txt/)
+          }
+          assert.equal(await repo.hasMergeConflict(), true)
+          assert.deepEqual(await repo.refreshStagedChanges(), stagedChanges)
+          assert.deepEqual(await repo.refreshUnstagedChanges(), unstagedChanges)
+        })
       })
     })
   })
