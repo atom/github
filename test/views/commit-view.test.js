@@ -137,10 +137,16 @@ describe('CommitView', () => {
     assert.equal(commit.callCount, 0)
   })
 
-  it('displays an initial commit message if passed', () => {
-    const initialMessage = 'This is an initial message'
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, initialMessage})
+  it('replaces the contents of the editor when a message is supplied', async () => {
+    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, message: 'message 1'})
     const {editor} = view.refs
-    assert.equal(editor.getText(), initialMessage)
+    assert.equal(editor.getText(), 'message 1')
+
+    editor.setText('message 2')
+    await view.update({message: null})
+    assert.equal(editor.getText(), 'message 2')
+
+    await view.update({message: 'message 3'})
+    assert.equal(editor.getText(), 'message 3')
   })
 })
