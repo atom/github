@@ -8,6 +8,7 @@ import sinon from 'sinon'
 
 import CommitView from '../../lib/views/commit-view'
 import FilePatch from '../../lib/models/file-patch'
+import {AbortMergeError} from '../../lib/models/repository'
 
 describe('CommitView', () => {
   let atomEnv, workspace, commandRegistry, notificationManager
@@ -178,9 +179,7 @@ describe('CommitView', () => {
   it('shows an error notification when props.abortMerge() throws an exception', async () => {
     const abortMerge = sinon.spy(async () => {
       await Promise.resolve()
-      const error = new Error('Cannot abort because a.txt is both dirty and staged.')
-      error.code = 'EDIRTYSTAGED'
-      throw error
+      throw new AbortMergeError('EDIRTYSTAGED', 'a.txt')
     })
     const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [], isMerging: true, abortMerge})
     const {editor, abortMergeButton} = view.refs
