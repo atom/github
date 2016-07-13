@@ -40,7 +40,7 @@ describe('Repository', () => {
         },
         {
           oldPath: 'b.txt',
-          newPath: 'b.txt',
+          newPath: null,
           oldMode: Git.TreeEntry.FILEMODE.BLOB,
           newMode: 0,
           status: 'removed',
@@ -61,7 +61,7 @@ describe('Repository', () => {
           hunks: []
         },
         {
-          oldPath: 'e.txt',
+          oldPath: null,
           newPath: 'e.txt',
           oldMode: 0,
           newMode: Git.TreeEntry.FILEMODE.BLOB,
