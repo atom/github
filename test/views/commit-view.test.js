@@ -138,7 +138,7 @@ describe('CommitView', () => {
     assert.equal(commit.callCount, 0)
   })
 
-  it('replaces the contents of the editor when a message is supplied and the editor is empty', async () => {
+  it('replaces the contents of the commit message when it is empty and it is supplied from the outside', async () => {
     const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, message: 'message 1'})
     const {editor} = view.refs
     assert.equal(editor.getText(), 'message 1')
