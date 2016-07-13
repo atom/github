@@ -38,12 +38,23 @@ describe('Repository', () => {
       assert.deepEqual(actualEvents, expectedEvents)
     })
 
-    it('does not allow transactions to nest', async function () {
+    it('does not allow transactions to nest', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       await repo.transact(function () {
         assert.throws(() => repo.transact(), /Nested transaction/)
       })
+    })
+
+    it('allows to create a new transaction if the previous one throws an error', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repo = await buildRepository(workingDirPath)
+      let executed = false
+      try {
+        await repo.transact(async () => { throw new Error('An error!') })
+      } catch (e) { }
+      await repo.transact(async () => { executed = true })
+      assert(executed)
     })
   })
 
