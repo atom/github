@@ -291,6 +291,22 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
 
+    it('creates a merge commit when a merge is in progress', async () => {
+      const workingDirPath = copyRepositoryDir('in-progress-merge')
+      const repository = await buildRepository(workingDirPath)
+      const mergeBase = await repository.getLastCommit()
+      const mergeHead = await repository.getMergeHead()
+      repository.commit('Merge Commit')
+      const commit = await repository.getLastCommit()
+      assert.equal(commit.message(), 'Merge Commit')
+      assert.equal(commit.parents()[0].toString(), mergeBase.toString())
+      assert.equal(commit.parents()[1].toString(), mergeHead.toString())
+      assert.equal(await repository.isMerging(), false)
+      assert.isNull(await repository.getMergeMessage())
+      assert.deepEqual(await repository.getStagedChanges(), [])
+      assert.deepEqual(await repository.getUnstagedChanges(), [])
+    })
+
     it('wraps the commit message at 72 characters', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
