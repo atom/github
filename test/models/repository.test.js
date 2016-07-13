@@ -424,6 +424,7 @@ describe('Repository', () => {
             await repo.abortMerge()
             assert(false)
           } catch (e) {
+            assert.equal(e.code, 'EDIRTYSTAGED')
             assert.match(e.message, /animal.txt/)
           }
           assert.equal(repo.isMerging(), true)

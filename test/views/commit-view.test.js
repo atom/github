@@ -10,12 +10,13 @@ import CommitView from '../../lib/views/commit-view'
 import FilePatch from '../../lib/models/file-patch'
 
 describe('CommitView', () => {
-  let atomEnv, workspace, commandRegistry
+  let atomEnv, workspace, commandRegistry, notificationManager
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     commandRegistry = atomEnv.commands
+    notificationManager = atomEnv.notifications
   })
 
   afterEach(() => {
@@ -137,7 +138,7 @@ describe('CommitView', () => {
     assert.equal(commit.callCount, 0)
   })
 
-  it.only('replaces the contents of the editor when a message is supplied and the editor is empty', async () => {
+  it('replaces the contents of the editor when a message is supplied and the editor is empty', async () => {
     const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, message: 'message 1'})
     const {editor} = view.refs
     assert.equal(editor.getText(), 'message 1')
@@ -150,8 +151,8 @@ describe('CommitView', () => {
     assert.equal(editor.getText(), 'message 3')
   })
 
-  it('shows the abort button when props.isMerging is true', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, isMerging: false})
+  it('shows the "Abort Merge" button when props.isMerging is true', async () => {
+    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], isMerging: false})
     const {abortMergeButton} = view.refs
     assert.equal(abortMergeButton.style.display, 'none')
 
@@ -160,5 +161,36 @@ describe('CommitView', () => {
 
     await view.update({isMerging: false})
     assert.equal(abortMergeButton.style.display, 'none')
+  })
+
+  it('calls props.abortMerge() when the "Abort Merge" button is clicked and then clears the commit message', async () => {
+    const abortMerge = sinon.spy(() => Promise.resolve())
+    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], isMerging: true, abortMerge})
+    const {editor, abortMergeButton} = view.refs
+    editor.setText('A message.')
+    await etch.getScheduler().getNextUpdatePromise()
+    abortMergeButton.dispatchEvent(new MouseEvent('click'))
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(abortMerge.calledOnce)
+    assert.equal(editor.getText(), '')
+  })
+
+  it('shows an error notification when props.abortMerge() throws an exception', async () => {
+    const abortMerge = sinon.spy(async () => {
+      await Promise.resolve()
+      const error = new Error('Cannot abort because a.txt is both dirty and staged.')
+      error.code = 'EDIRTYSTAGED'
+      throw error
+    })
+    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [], isMerging: true, abortMerge})
+    const {editor, abortMergeButton} = view.refs
+    editor.setText('A message.')
+    await etch.getScheduler().getNextUpdatePromise()
+    assert.equal(notificationManager.getNotifications().length, 0)
+    abortMergeButton.dispatchEvent(new MouseEvent('click'))
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(abortMerge.calledOnce)
+    assert.equal(editor.getText(), 'A message.')
+    assert.equal(notificationManager.getNotifications().length, 1)
   })
 })

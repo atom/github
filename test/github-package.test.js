@@ -16,7 +16,7 @@ describe('GithubPackage', () => {
     project = atomEnv.project
     commandRegistry = atomEnv.commands
     viewRegistry = atomEnv.views
-    githubPackage = new GithubPackage(workspace, project, atomEnv.commands)
+    githubPackage = new GithubPackage(workspace, project, commandRegistry, atomEnv.notifications)
   })
 
   afterEach(() => {
