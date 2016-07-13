@@ -8,7 +8,7 @@ import sinon from 'sinon'
 import StagingView, {ListTypes} from '../../lib/views/staging-view'
 
 const getSelectedItemForStagedList = (view) => {
-  return view.multiList.getSelectedItemForList(1)
+  return view.multiList.getSelectedItemForList(2)
 }
 
 const getSelectedItemForUnstagedList = (view) => {
