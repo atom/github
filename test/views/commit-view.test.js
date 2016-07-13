@@ -136,4 +136,11 @@ describe('CommitView', () => {
     commandRegistry.dispatch(editor.element, 'git:commit')
     assert.equal(commit.callCount, 0)
   })
+
+  it('displays an initial commit message if passed', () => {
+    const initialMessage = 'This is an initial message'
+    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, initialMessage})
+    const {editor} = view.refs
+    assert.equal(editor.getText(), initialMessage)
+  })
 })
