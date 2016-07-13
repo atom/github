@@ -333,7 +333,7 @@ describe('Repository', () => {
     })
   })
 
-  describe('Merge conflicts', () => {
+  describe('merge conflicts', () => {
     describe('getMergeConflictPaths()', () => {
       it('returns an array of paths to files with merge conflicts in alphabetical order', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
@@ -380,9 +380,11 @@ describe('Repository', () => {
         it('resets the index and the working directory to match HEAD', async () => {
           const workingDirPath = copyRepositoryDir('merge-conflict')
           const repo = await buildRepository(workingDirPath)
+          assert.equal(repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
 
           await repo.abortMerge()
+          assert.equal(repo.isMerging(), false)
           assert.equal(await repo.hasMergeConflict(), false)
           assert.deepEqual(await repo.refreshStagedChanges(), [])
           assert.deepEqual(await repo.refreshUnstagedChanges(), [])
@@ -396,9 +398,11 @@ describe('Repository', () => {
           const workingDirPath = copyRepositoryDir('merge-conflict')
           const repo = await buildRepository(workingDirPath)
           fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
+          assert.equal(repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
 
           await repo.abortMerge()
+          assert.equal(repo.isMerging(), false)
           assert.equal(await repo.hasMergeConflict(), false)
           assert.equal((await repo.refreshStagedChanges()).length, 0)
           assert.equal((await repo.refreshUnstagedChanges()).length, 1)
@@ -414,6 +418,7 @@ describe('Repository', () => {
           const stagedChanges = await repo.refreshStagedChanges()
           const unstagedChanges = await repo.refreshUnstagedChanges()
 
+          assert.equal(repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
           try {
             await repo.abortMerge()
@@ -421,6 +426,7 @@ describe('Repository', () => {
           } catch (e) {
             assert.match(e.message, /animal.txt/)
           }
+          assert.equal(repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
           assert.deepEqual(await repo.refreshStagedChanges(), stagedChanges)
           assert.deepEqual(await repo.refreshUnstagedChanges(), unstagedChanges)

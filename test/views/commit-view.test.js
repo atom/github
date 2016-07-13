@@ -149,4 +149,16 @@ describe('CommitView', () => {
     await view.update({message: 'message 3'})
     assert.equal(editor.getText(), 'message 3')
   })
+
+  it('shows the abort button when props.isMerging is true', async () => {
+    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, isMerging: false})
+    const {abortMergeButton} = view.refs
+    assert.equal(abortMergeButton.style.display, 'none')
+
+    await view.update({isMerging: true})
+    assert.equal(abortMergeButton.style.display, '')
+
+    await view.update({isMerging: false})
+    assert.equal(abortMergeButton.style.display, 'none')
+  })
 })
