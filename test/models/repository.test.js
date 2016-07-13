@@ -296,7 +296,7 @@ describe('Repository', () => {
       const repository = await buildRepository(workingDirPath)
       const mergeBase = await repository.getLastCommit()
       const mergeHead = await repository.getMergeHead()
-      repository.commit('Merge Commit')
+      await repository.commit('Merge Commit')
       const commit = await repository.getLastCommit()
       assert.equal(commit.message(), 'Merge Commit')
       assert.equal(commit.parents()[0].toString(), mergeBase.toString())
@@ -305,6 +305,22 @@ describe('Repository', () => {
       assert.isNull(await repository.getMergeMessage())
       assert.deepEqual(await repository.getStagedChanges(), [])
       assert.deepEqual(await repository.getUnstagedChanges(), [])
+    })
+
+    it('throws an error when committing a merge that has conflicts', async () => {
+      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const repository = await buildRepository(workingDirPath)
+      const mergeBase = await repository.getLastCommit()
+      try {
+        await repository.commit('Merge Commit')
+        assert(false, 'Repository.commit should have thrown an exception!')
+      } catch (e) {
+        assert.equal(e.code, 'ECONFLICT')
+      }
+      assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
+      assert.equal(await repository.isMerging(), true)
+      assert.equal((await repository.getStagedChanges()).length, 1)
+      assert.equal((await repository.getUnstagedChanges()).length, 0)
     })
 
     it('wraps the commit message at 72 characters', async () => {
