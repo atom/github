@@ -12,7 +12,7 @@ const Git = GitRepositoryAsync.Git
 describe('Repository', () => {
   describe('refreshing', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
@@ -79,7 +79,7 @@ describe('Repository', () => {
     })
 
     it('reuses the same FilePatch objects if they are equivalent', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
@@ -120,7 +120,7 @@ describe('Repository', () => {
 
   describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
@@ -140,7 +140,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage removed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
       const [removePatch] = await repo.getUnstagedChanges()
@@ -155,7 +155,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage renamed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
       const [renamePatch] = await repo.getUnstagedChanges()
@@ -170,7 +170,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage added files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
       const repo = await buildRepository(workingDirPath)
       const [addedPatch] = await repo.getUnstagedChanges()
@@ -185,7 +185,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage changes when the repository has no HEAD commit', async () => {
-      const workingDirPath = copyRepositoryDir(3)
+      const workingDirPath = copyRepositoryDir('no-head-commit')
 
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
@@ -199,7 +199,7 @@ describe('Repository', () => {
     })
 
     it('emits update events on file patches that change as a result of staging', async () => {
-      const workdirPath = await copyRepositoryDir(2)
+      const workdirPath = await copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
@@ -231,7 +231,7 @@ describe('Repository', () => {
 
   describe('commit', () => {
     it('creates a commit that contains the staged changes', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       assert.equal(await repo.getLastCommitMessage(), 'Initial commit\n')
 
@@ -255,7 +255,7 @@ describe('Repository', () => {
     })
 
     it('wraps the commit message at 72 characters', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       await repo.commit([
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
@@ -344,7 +344,7 @@ describe('Repository', () => {
       })
 
       it('returns an empty arry if the repo has no merge conflicts', async () => {
-        const workingDirPath = copyRepositoryDir(1)
+        const workingDirPath = copyRepositoryDir('three-files')
         const repo = await buildRepository(workingDirPath)
 
         const mergeConflictPaths = await repo.getMergeConflictPaths()

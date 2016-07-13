@@ -20,9 +20,9 @@ describe('GitPanelController', () => {
   })
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
-    const workdirPath1 = await copyRepositoryDir(1)
+    const workdirPath1 = await copyRepositoryDir('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = await copyRepositoryDir(1)
+    const workdirPath2 = await copyRepositoryDir('three-files')
     const repository2 = await buildRepository(workdirPath2)
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'))
@@ -54,7 +54,7 @@ describe('GitPanelController', () => {
 
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
-      const workdirPath = await copyRepositoryDir(1)
+      const workdirPath = await copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))

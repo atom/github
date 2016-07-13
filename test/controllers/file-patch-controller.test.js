@@ -58,7 +58,7 @@ describe('FilePatchController', () => {
 
   describe('integration tests', () => {
     it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async () => {
-      const workdirPath = await copyRepositoryDir(2)
+      const workdirPath = await copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
@@ -95,7 +95,7 @@ describe('FilePatchController', () => {
     })
 
     it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
-      const workdirPath = await copyRepositoryDir(2)
+      const workdirPath = await copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')

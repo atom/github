@@ -18,7 +18,7 @@ const getSelectedItemForUnstagedList = (view) => {
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
-      const workdirPath = await copyRepositoryDir(1)
+      const workdirPath = await copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -39,7 +39,7 @@ describe('StagingView', () => {
 
     describe('toggleSelectedFilePatchStagingState()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -65,7 +65,7 @@ describe('StagingView', () => {
     describe('when lists are not empty', () => {
       let view
       beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -116,7 +116,7 @@ describe('StagingView', () => {
 
     describe('when list is empty', () => {
       it('doesn\'t select list', async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         const filePatches = await repository.getUnstagedChanges()
@@ -137,7 +137,7 @@ describe('StagingView', () => {
     describe('core:move-up and core:move-down', () => {
       let view, unstagedFilePatches, stagedFilePatches
       beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -235,7 +235,7 @@ describe('StagingView', () => {
     it('calls didSelectFilePatch when file is selected', async () => {
       const didSelectFilePatch = sinon.spy()
 
-      const workdirPath = await copyRepositoryDir(1)
+      const workdirPath = await copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       const [filePatch] = await repository.getUnstagedChanges()

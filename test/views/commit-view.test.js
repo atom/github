@@ -87,7 +87,7 @@ describe('CommitView', () => {
   })
 
   it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
-    const workdirPath = await copyRepositoryDir(1)
+    const workdirPath = await copyRepositoryDir('three-files')
     const repository = await buildRepository(workdirPath)
     const commit = sinon.spy()
     const view = new CommitView({workspace, commandRegistry, stagedChanges: [], commit})

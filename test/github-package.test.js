@@ -25,8 +25,8 @@ describe('GithubPackage', () => {
 
   describe('activate', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
+      const workdirPath1 = copyRepositoryDir('three-files')
+      const workdirPath2 = copyRepositoryDir('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
       fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8')
@@ -41,8 +41,8 @@ describe('GithubPackage', () => {
 
   describe('didChangeProjectPaths', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
+      const workdirPath1 = copyRepositoryDir('three-files')
+      const workdirPath2 = copyRepositoryDir('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
 
@@ -60,9 +60,9 @@ describe('GithubPackage', () => {
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
-      const workdirPath3 = copyRepositoryDir()
+      const workdirPath1 = copyRepositoryDir('three-files')
+      const workdirPath2 = copyRepositoryDir('three-files')
+      const workdirPath3 = copyRepositoryDir('three-files')
       project.setPaths([workdirPath1, workdirPath2, workdirPath3])
 
       const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1)
@@ -84,8 +84,8 @@ describe('GithubPackage', () => {
 
   describe('didChangeActivePaneItem', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
+      const workdirPath1 = copyRepositoryDir('three-files')
+      const workdirPath2 = copyRepositoryDir('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'change 2', 'utf8')
@@ -106,8 +106,8 @@ describe('GithubPackage', () => {
 
   describe('updateActiveRepository', () => {
     it('updates the active repository based on the most recent active item with a path unless its directory has been removed from the project', async () => {
-      const workdirPath1 = copyRepositoryDir()
-      const workdirPath2 = copyRepositoryDir()
+      const workdirPath1 = copyRepositoryDir('three-files')
+      const workdirPath2 = copyRepositoryDir('three-files')
       const nonRepositoryPath = temp.mkdirSync()
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'))
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath])
@@ -146,7 +146,7 @@ describe('GithubPackage', () => {
 
   describe('when a FilePatch is selected in the staging panel', () => {
     it('shows a FilePatchView for the selected patch as a pane item', async () => {
-      const workdirPath = copyRepositoryDir()
+      const workdirPath = copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
 
       githubPackage.getActiveRepository = function () { return repository }
@@ -188,7 +188,7 @@ describe('GithubPackage', () => {
 
   describe('when the changed files label in the status bar is clicked', () => {
     it('shows/hides the git panel', async () => {
-      const workdirPath = copyRepositoryDir()
+      const workdirPath = copyRepositoryDir('three-files')
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
 
@@ -206,7 +206,7 @@ describe('GithubPackage', () => {
   describe('when the git:toggle-git-panel command is dispatched', () => {
     it('shows/hides the git panel', async () => {
       const workspaceElement = viewRegistry.getView(workspace)
-      const workdirPath = copyRepositoryDir()
+      const workdirPath = copyRepositoryDir('three-files')
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.activate()
