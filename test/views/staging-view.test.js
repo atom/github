@@ -61,6 +61,19 @@ describe('StagingView', () => {
     })
   })
 
+  describe('merge conflicts list', () => {
+    it('is visible only when conflicted paths are passed', async () => {
+      const workdirPath = await copyRepositoryDir('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new StagingView({repository, stagedChanges: [], unstagedChanges: []})
+
+      assert.isUndefined(view.refs.mergeConflictListView)
+
+      await view.update({repository, mergeConflicts: ['conflicted-path'], stagedChanges: [], unstagedChanges: []})
+      assert.isDefined(view.refs.mergeConflictListView)
+    })
+  })
+
   describe('focusing lists', () => {
     describe('when lists are not empty', () => {
       let view
