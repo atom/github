@@ -5,12 +5,12 @@ import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'
 
-import StatusBarController from '../../lib/controllers/status-bar-controller'
+import ChangedFilesCountController from '../../lib/controllers/changed-files-count-controller'
 
-describe('StatusBarController', () => {
+describe('ChangedFilesCountController', () => {
   it('shows the changed files count view when the repository data is loaded', async () => {
-    const didClickChangedFiles = sinon.spy()
-    const view = new StatusBarController({repository: null, didClickChangedFiles})
+    const didClick = sinon.spy()
+    const view = new ChangedFilesCountController({repository: null, didClick})
     assert.isUndefined(view.refs.changedFilesCount)
 
     const workdirPath = await copyRepositoryDir('three-files')
@@ -29,6 +29,6 @@ describe('StatusBarController', () => {
     assert.deepEqual(view.refs.changedFilesCount.props.unstagedChanges, await repository.refreshUnstagedChanges())
 
     view.refs.changedFilesCount.props.didClick()
-    assert(didClickChangedFiles.calledOnce)
+    assert(didClick.calledOnce)
   })
 })

@@ -10,6 +10,43 @@ import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneReposit
 const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
+  describe('transact', () => {
+    it('serializes critical sections', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+
+      const repo = await buildRepository(workingDirPath)
+
+      const transactionPromises = []
+      const actualEvents = []
+      const expectedEvents = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        transactionPromises.push(repo.transact(async function () {
+          await repo.refresh()
+          await new Promise(function (resolve) { window.setTimeout(resolve, Math.random() * 10)})
+          await repo.refresh()
+          actualEvents.push(i)
+        }))
+      }
+
+      await Promise.all(transactionPromises)
+
+      assert.deepEqual(actualEvents, expectedEvents)
+    })
+
+    it('does not allow transactions to nest', async function () {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repo = await buildRepository(workingDirPath)
+      await repo.transact(function () {
+        assert.throws(() => repo.transact(), /Nested transaction/)
+      })
+    })
+  })
+
   describe('refreshing', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
@@ -333,6 +370,20 @@ describe('Repository', () => {
     })
   })
 
+  describe('getBranchRemoteName(branchName)', () => {
+    it('returns the remote name associated to the supplied branch name', async () => {
+      const {localRepoPath} = await cloneRepository()
+      const repository = await buildRepository(localRepoPath)
+      assert.equal(await repository.getBranchRemoteName('master'), 'origin')
+    })
+
+    it('returns null if there is no remote associated with the supplied branch name', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repository = await buildRepository(workingDirPath)
+      assert.isNull(await repository.getBranchRemoteName('master'))
+    })
+  })
+
   describe('merge conflicts', () => {
     describe('getMergeConflictPaths()', () => {
       it('returns an array of paths to files with merge conflicts in alphabetical order', async () => {
@@ -380,11 +431,11 @@ describe('Repository', () => {
         it('resets the index and the working directory to match HEAD', async () => {
           const workingDirPath = copyRepositoryDir('merge-conflict')
           const repo = await buildRepository(workingDirPath)
-          assert.equal(repo.isMerging(), true)
+          assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
 
           await repo.abortMerge()
-          assert.equal(repo.isMerging(), false)
+          assert.equal(await repo.isMerging(), false)
           assert.equal(await repo.hasMergeConflict(), false)
           assert.deepEqual(await repo.refreshStagedChanges(), [])
           assert.deepEqual(await repo.refreshUnstagedChanges(), [])
@@ -398,11 +449,11 @@ describe('Repository', () => {
           const workingDirPath = copyRepositoryDir('merge-conflict')
           const repo = await buildRepository(workingDirPath)
           fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
-          assert.equal(repo.isMerging(), true)
+          assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
 
           await repo.abortMerge()
-          assert.equal(repo.isMerging(), false)
+          assert.equal(await repo.isMerging(), false)
           assert.equal(await repo.hasMergeConflict(), false)
           assert.equal((await repo.refreshStagedChanges()).length, 0)
           assert.equal((await repo.refreshUnstagedChanges()).length, 1)
@@ -418,7 +469,7 @@ describe('Repository', () => {
           const stagedChanges = await repo.refreshStagedChanges()
           const unstagedChanges = await repo.refreshUnstagedChanges()
 
-          assert.equal(repo.isMerging(), true)
+          assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
           try {
             await repo.abortMerge()
@@ -427,7 +478,7 @@ describe('Repository', () => {
             assert.equal(e.code, 'EDIRTYSTAGED')
             assert.equal(e.path, 'animal.txt')
           }
-          assert.equal(repo.isMerging(), true)
+          assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
           assert.deepEqual(await repo.refreshStagedChanges(), stagedChanges)
           assert.deepEqual(await repo.refreshUnstagedChanges(), unstagedChanges)
