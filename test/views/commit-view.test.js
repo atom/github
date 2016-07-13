@@ -190,7 +190,6 @@ describe('CommitView', () => {
     const view = new CommitView({workspace, commandRegistry, stagedChanges: [], isMerging: true, abortMerge})
     const {editor, abortMergeButton} = view.refs
     editor.setText('A message.')
-    await etch.getScheduler().getNextUpdatePromise()
     abortMergeButton.dispatchEvent(new MouseEvent('click'))
     await etch.getScheduler().getNextUpdatePromise()
     assert(abortMerge.calledOnce)
@@ -205,7 +204,6 @@ describe('CommitView', () => {
     const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [], isMerging: true, abortMerge})
     const {editor, abortMergeButton} = view.refs
     editor.setText('A message.')
-    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(notificationManager.getNotifications().length, 0)
     abortMergeButton.dispatchEvent(new MouseEvent('click'))
     await etch.getScheduler().getNextUpdatePromise()
