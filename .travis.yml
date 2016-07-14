@@ -1,5 +1,8 @@
 language: objective-c
 
+env:
+  - ATOM_CHANNEL=beta
+
 notifications:
   email:
     on_success: never
