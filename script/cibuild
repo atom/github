@@ -23,7 +23,6 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       export ATOM_SCRIPT_PATH="./atom-${ATOM_CHANNEL}"
       ln -s "./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh" "${ATOM_SCRIPT_PATH}"
     fi
-    export PATH="$PWD/atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/bin:$PATH"
     export ATOM_PATH="./atom"
     export APM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/apm"
 else
@@ -43,7 +42,6 @@ else
     export ATOM_SCRIPT_PATH="$HOME/atom/usr/bin/$ATOM_SCRIPT_NAME"
     export APM_SCRIPT_PATH="$HOME/atom/usr/bin/$APM_SCRIPT_NAME"
 fi
-
 
 echo "Using Atom version:"
 "$ATOM_SCRIPT_PATH" --version
