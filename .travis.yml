@@ -1,4 +1,9 @@
-language: objective-c
+os: osx
+
+language: node_js
+
+node_js:
+  - '4.4.7'
 
 env:
   - ATOM_CHANNEL=beta
@@ -9,10 +14,6 @@ notifications:
     on_failure: change
 
 install:
-  - git clone https://github.com/creationix/nvm.git /tmp/.nvm
-  - source /tmp/.nvm/nvm.sh
-  - nvm install 4.4.7
-  - nvm use --delete-prefix 4.4.7
   - npm install -g npm
 
 script:
