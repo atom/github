@@ -17,7 +17,7 @@
     "diff": "2.2.2",
     "etch": "0.6.0",
     "multi-list-selection": "^0.1.1",
-    "nodegit": "0.13.2",
+    "nodegit": "0.14.1",
     "nsfw": "1.0.12"
   },
   "devDependencies": {
