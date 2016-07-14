@@ -428,12 +428,12 @@ describe('Repository', () => {
   })
 
   describe('merge conflicts', () => {
-    describe('getMergeConflictPaths()', () => {
+    describe('getMergeConflicts()', () => {
       it('returns an array of paths to files with merge conflicts in alphabetical order', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
 
-        const mergeConflictPaths = await repo.getMergeConflictPaths()
+        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
         assert.deepEqual(mergeConflictPaths, ['color.txt', 'number.txt'])
       })
 
@@ -441,12 +441,12 @@ describe('Repository', () => {
         const workingDirPath = copyRepositoryDir('three-files')
         const repo = await buildRepository(workingDirPath)
 
-        const mergeConflictPaths = await repo.getMergeConflictPaths()
+        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
         assert.deepEqual(mergeConflictPaths, [])
       })
     })
 
-    describe('stageResolvedPath()', () => {
+    describe('addPathToIndex()', () => {
       it('stages the file at the specified path once merge conflicts have been resolved', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
@@ -457,15 +457,15 @@ describe('Repository', () => {
         let stagedFilePatches = await repo.refreshStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt'])
 
-        await repo.stageResolvedPath('number.txt')
+        await repo.addPathToIndex('number.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt'])
-        assert.deepEqual(await repo.getMergeConflictPaths(), ['color.txt'])
+        assert.deepEqual((await repo.getMergeConflicts()).map(c => c.getPath()), ['color.txt'])
 
-        await repo.stageResolvedPath('color.txt')
+        await repo.addPathToIndex('color.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt', 'color.txt'])
-        assert.deepEqual(await repo.getMergeConflictPaths(), [])
+        assert.deepEqual((await repo.getMergeConflicts()).map(c => c.getPath()), [])
       })
     })
 
