@@ -10,6 +10,7 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install 4.4.7
   - nvm use --delete-prefix 4.4.7
+  - npm install -g npm
 
 script:
   - ./script/cibuild
