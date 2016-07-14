@@ -49,6 +49,8 @@ echo "Using Atom version:"
 "$ATOM_SCRIPT_PATH" --version
 echo "Using apm version:"
 "$APM_SCRIPT_PATH" --version
+echo "Using node version:"
+node --version
 echo "Using npm version:"
 npm --version
 
