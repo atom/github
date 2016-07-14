@@ -3,9 +3,8 @@
 import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
-import {GitRepositoryAsync, Directory} from 'atom'
-
-const Git = GitRepositoryAsync.Git
+import {Directory} from 'atom'
+import Git from 'nodegit'
 
 import Repository from '../lib/models/repository'
 
@@ -16,9 +15,8 @@ export function copyRepositoryDir (variant = 1) {
   return fs.realpathSync(workingDirPath)
 }
 
-export async function buildRepository (workingDirPath) {
-  const rawRepository = await Git.Repository.open(workingDirPath)
-  return new Repository(rawRepository, new Directory(workingDirPath))
+export function buildRepository (workingDirPath) {
+  return Repository.open(new Directory(workingDirPath))
 }
 
 export function assertDeepPropertyVals (actual, expected) {

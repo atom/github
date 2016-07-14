@@ -1,13 +1,11 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
 import fs from 'fs'
 import path from 'path'
 import sinon from 'sinon'
+import Git from 'nodegit'
 
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
-
-const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
   describe('transact', () => {
