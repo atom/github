@@ -17,9 +17,8 @@ export function copyRepositoryDir (variant = 1) {
 }
 
 export async function buildRepository (workingDirPath) {
-  const atomRepository = new GitRepositoryAsync(workingDirPath, {project: null, refreshOnWindowFocus: false, subscribeToBuffers: false})
-  const rawRepositoryPool = atomRepository.repo.repoPool
-  return new Repository(rawRepositoryPool, new Directory(workingDirPath))
+  const rawRepository = await Git.Repository.open(workingDirPath)
+  return new Repository(rawRepository, new Directory(workingDirPath))
 }
 
 export function assertDeepPropertyVals (actual, expected) {
