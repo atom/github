@@ -23,7 +23,6 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       export ATOM_SCRIPT_PATH="./atom-${ATOM_CHANNEL}"
       ln -s "./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh" "${ATOM_SCRIPT_PATH}"
     fi
-    export PATH="$PWD/atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/bin:$PATH"
     export ATOM_PATH="./atom"
     export APM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/apm"
 else
@@ -44,39 +43,17 @@ else
     export APM_SCRIPT_PATH="$HOME/atom/usr/bin/$APM_SCRIPT_NAME"
 fi
 
-
 echo "Using Atom version:"
-"$ATOM_SCRIPT_PATH" -v
-echo "Using APM version:"
-"$APM_SCRIPT_PATH" -v
+"$ATOM_SCRIPT_PATH" --version
+echo "Using apm version:"
+"$APM_SCRIPT_PATH" --version
+echo "Using node version:"
+node --version
+echo "Using npm version:"
+npm --version
 
 echo "Downloading package dependencies..."
-"$APM_SCRIPT_PATH" rebuild-module-cache
-"$APM_SCRIPT_PATH" clean
-"$APM_SCRIPT_PATH" install
-"$APM_SCRIPT_PATH" install
-
-TEST_PACKAGES="${APM_TEST_PACKAGES:=none}"
-
-if [ "$TEST_PACKAGES" != "none" ]; then
-  echo "Installing atom package dependencies..."
-  for pack in $TEST_PACKAGES ; do
-    "$APM_SCRIPT_PATH" install $pack
-  done
-fi
-
-# if [ -f ./node_modules/.bin/eslint ]; then
-#   if [ -d ./lib ]; then
-#     echo "Linting package..."
-#     ./node_modules/.bin/eslint lib
-#     rc=$?; if [ $rc -ne 0 ]; then exit $rc; fi
-#   fi
-#   if [ -d ./spec ]; then
-#     echo "Linting package specs..."
-#     ./node_modules/.bin/eslint spec
-#     rc=$?; if [ $rc -ne 0 ]; then exit $rc; fi
-#   fi
-# fi
+npm install
 
 echo "Running specs..."
 "$ATOM_SCRIPT_PATH" --test test

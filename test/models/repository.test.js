@@ -1,13 +1,11 @@
 /** @babel */
 
-import {GitRepositoryAsync} from 'atom'
 import fs from 'fs'
 import path from 'path'
 import sinon from 'sinon'
+import Git from 'nodegit'
 
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
-
-const Git = GitRepositoryAsync.Git
 
 describe('Repository', () => {
   describe('transact', () => {
@@ -36,14 +34,6 @@ describe('Repository', () => {
       await Promise.all(transactionPromises)
 
       assert.deepEqual(actualEvents, expectedEvents)
-    })
-
-    it('does not allow transactions to nest', async () => {
-      const workingDirPath = copyRepositoryDir(1)
-      const repo = await buildRepository(workingDirPath)
-      await repo.transact(function () {
-        assert.throws(() => repo.transact(), /Nested transaction/)
-      })
     })
 
     it('allows to create a new transaction if the previous one throws an error', async () => {

@@ -1,9 +1,20 @@
-language: objective-c
+os: osx
+
+language: node_js
+
+node_js:
+  - '4.4.7'
+
+env:
+  - ATOM_CHANNEL=beta
 
 notifications:
   email:
     on_success: never
     on_failure: change
+
+install:
+  - npm install -g npm
 
 script:
   - ./script/cibuild
