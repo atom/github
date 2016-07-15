@@ -320,7 +320,7 @@ describe('Repository', () => {
       }
       assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
       assert.equal(await repository.isMerging(), true)
-      assert.equal((await repository.getStagedChanges()).length, 1)
+      assert.equal((await repository.getStagedChanges()).length, 0)
       assert.equal((await repository.getUnstagedChanges()).length, 0)
     })
 
@@ -419,12 +419,12 @@ describe('Repository', () => {
 
   describe('merge conflicts', () => {
     describe('getMergeConflicts()', () => {
-      it('returns an array of paths to files with merge conflicts in alphabetical order', async () => {
+      it('returns an array of paths to files with merge conflicts', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
 
         const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
-        assert.deepEqual(mergeConflictPaths, ['color.txt', 'number.txt'])
+        assert.deepEqual(mergeConflictPaths, ['added-to-both.txt', 'modified-on-both-ours.txt', 'modified-on-both-theirs.txt', 'removed-on-branch.txt', 'removed-on-master.txt'])
       })
 
       it('returns an empty arry if the repo has no merge conflicts', async () => {
@@ -436,33 +436,53 @@ describe('Repository', () => {
       })
     })
 
-    describe('addPathToIndex()', () => {
-      it('stages the file at the specified path once merge conflicts have been resolved', async () => {
+    describe('addPathToIndex(path)', () => {
+      it('updates the staged changes accordingly', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
 
-        fs.writeFileSync(path.join(workingDirPath, 'number.txt'), 'dos', 'utf8')
-        fs.writeFileSync(path.join(workingDirPath, 'color.txt'), 'azul', 'utf8')
+        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
+        assert.deepEqual(mergeConflictPaths, ['added-to-both.txt', 'modified-on-both-ours.txt', 'modified-on-both-theirs.txt', 'removed-on-branch.txt', 'removed-on-master.txt'])
 
         let stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), [])
 
-        await repo.addPathToIndex('number.txt')
+        await repo.addPathToIndex('added-to-both.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt'])
-        assert.deepEqual((await repo.getMergeConflicts()).map(c => c.getPath()), ['color.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
 
-        await repo.addPathToIndex('color.txt')
+        // choose version of the file on head
+        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8')
+        await repo.addPathToIndex('modified-on-both-ours.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getNewPath()), ['animal.txt', 'number.txt', 'color.txt'])
-        assert.deepEqual((await repo.getMergeConflicts()).map(c => c.getPath()), [])
+        // nothing additional to stage
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
+
+        // choose version of the file on branch
+        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8')
+        await repo.addPathToIndex('modified-on-both-ours.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt'])
+
+        // remove file that was deleted on branch
+        fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
+        await repo.addPathToIndex('removed-on-branch.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+
+        // remove file that was deleted on master
+        fs.unlinkSync(path.join(workingDirPath, 'removed-on-master.txt'))
+        await repo.addPathToIndex('removed-on-master.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        // nothing additional to stage
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
       })
     })
 
     describe('abortMerge()', () => {
       describe('when the working directory is clean', () => {
         it('resets the index and the working directory to match HEAD', async () => {
-          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)
@@ -479,7 +499,7 @@ describe('Repository', () => {
 
       describe('when a dirty file in the working directory is NOT in the staging area', () => {
         it('throws an error indicating that the abort could not be completed', async () => {
-          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
           assert.equal(await repo.isMerging(), true)
@@ -496,7 +516,7 @@ describe('Repository', () => {
 
       describe('when a dirty file in the working directory is in the staging area', () => {
         it('throws an error indicating that the abort could not be completed', async () => {
-          const workingDirPath = copyRepositoryDir('merge-conflict')
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           fs.writeFileSync(path.join(workingDirPath, 'animal.txt'), 'a change\n')
           const stagedChanges = await repo.refreshStagedChanges()
