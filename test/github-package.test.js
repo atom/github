@@ -144,6 +144,25 @@ describe('GithubPackage', () => {
     })
   })
 
+  describe('didSelectMergeConflictFile(filePath)', () => {
+    it('opens the file as a pane item if it exsits', async () => {
+      const workdirPath = copyRepositoryDir('merge-conflict')
+      const repository = await buildRepository(workdirPath)
+      githubPackage.getActiveRepository = function () { return repository }
+      await githubPackage.gitPanelController.props.didSelectMergeConflictFile('added-to-both.txt')
+      assert.equal(workspace.getActivePaneItem().getPath(), path.join(workdirPath, 'added-to-both.txt'))
+    })
+
+    it('does not open the file if it doesn\'t exist', async () => {
+      const workdirPath = copyRepositoryDir('merge-conflict')
+      const repository = await buildRepository(workdirPath)
+      githubPackage.getActiveRepository = function () { return repository }
+      fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'))
+      await githubPackage.gitPanelController.props.didSelectMergeConflictFile('added-to-both.txt')
+      assert.isUndefined(workspace.getActivePaneItem())
+    })
+  })
+
   describe('when a FilePatch is selected in the staging panel', () => {
     it('shows a FilePatchView for the selected patch as a pane item', async () => {
       const workdirPath = copyRepositoryDir('three-files')
