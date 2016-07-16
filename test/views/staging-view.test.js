@@ -70,7 +70,10 @@ describe('StagingView', () => {
       assert.isUndefined(view.refs.mergeConflictListView)
 
       const mergeConflict = {
-        getPath: () => 'conflicted-path'
+        getPath: () => 'conflicted-path',
+        getFileStatus: () => 'modified',
+        getOursStatus: () => 'removed',
+        getTheirsStatus: () => 'modified'
       }
       await view.update({repository, mergeConflicts: [mergeConflict], stagedChanges: [], unstagedChanges: []})
       assert.isDefined(view.refs.mergeConflictListView)
