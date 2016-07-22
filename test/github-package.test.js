@@ -8,7 +8,7 @@ import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
-  let atomEnv, workspace, project, commandRegistry, viewRegistry, githubPackage
+  let atomEnv, workspace, project, commandRegistry, viewRegistry, notificationManager, githubPackage
 
   beforeEach(async () => {
     atomEnv = global.buildAtomEnvironment()
@@ -16,7 +16,8 @@ describe('GithubPackage', () => {
     project = atomEnv.project
     commandRegistry = atomEnv.commands
     viewRegistry = atomEnv.views
-    githubPackage = new GithubPackage(workspace, project, commandRegistry, atomEnv.notifications)
+    notificationManager = atomEnv.notifications
+    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager)
   })
 
   afterEach(() => {
@@ -153,13 +154,18 @@ describe('GithubPackage', () => {
       assert.equal(workspace.getActivePaneItem().getPath(), path.join(workdirPath, 'added-to-both.txt'))
     })
 
-    it('does not open the file if it doesn\'t exist', async () => {
-      const workdirPath = copyRepositoryDir('merge-conflict')
-      const repository = await buildRepository(workdirPath)
-      githubPackage.getActiveRepository = function () { return repository }
-      fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'))
-      await githubPackage.gitPanelController.props.didSelectMergeConflictFile('added-to-both.txt')
-      assert.isUndefined(workspace.getActivePaneItem())
+    describe('when the file doesn\'t exist', () => {
+      it('shows an info notification and does not open the file', async () => {
+        const workdirPath = copyRepositoryDir('merge-conflict')
+        const repository = await buildRepository(workdirPath)
+        githubPackage.getActiveRepository = function () { return repository }
+        fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'))
+
+        assert.equal(notificationManager.getNotifications().length, 0)
+        await githubPackage.gitPanelController.props.didSelectMergeConflictFile('added-to-both.txt')
+        assert.isUndefined(workspace.getActivePaneItem())
+        assert.equal(notificationManager.getNotifications().length, 1)
+      })
     })
   })
 
