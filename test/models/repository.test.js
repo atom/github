@@ -48,7 +48,7 @@ describe('Repository', () => {
     })
   })
 
-  describe('refreshing', () => {
+  describe('refreshing staged and unstaged changes', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
@@ -418,21 +418,71 @@ describe('Repository', () => {
   })
 
   describe('merge conflicts', () => {
-    describe('getMergeConflicts()', () => {
-      it('returns an array of paths to files with merge conflicts', async () => {
+    describe('refreshMergeConflicts()', () => {
+      it('returns a promise resolving to an array of MergeConflict objects', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
+        const mergeConflicts = await repo.refreshMergeConflicts()
 
-        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
-        assert.deepEqual(mergeConflictPaths, ['added-to-both.txt', 'modified-on-both-ours.txt', 'modified-on-both-theirs.txt', 'removed-on-branch.txt', 'removed-on-master.txt'])
+        const expected = [
+          {
+            path: 'added-to-both.txt',
+            //fileStatus: 'modified',
+            oursStatus: '+',
+            theirsStatus: '+'
+          },
+          {
+            path: 'modified-on-both-ours.txt',
+            //fileStatus: 'modified',
+            oursStatus: '*',
+            theirsStatus: '*'
+          },
+          {
+            path: 'modified-on-both-theirs.txt',
+            //fileStatus: 'modified',
+            oursStatus: '*',
+            theirsStatus: '*'
+          },
+          {
+            path: 'removed-on-branch.txt',
+            //fileStatus: 'equivalent',
+            oursStatus: '*',
+            theirsStatus: '-'
+          },
+          {
+            path: 'removed-on-master.txt',
+            //fileStatus: 'added',
+            oursStatus: '-',
+            theirsStatus: '*'
+          }
+        ]
+
+        assertDeepPropertyVals(mergeConflicts, expected)
+      })
+
+      it('reuses the same MergeConflict objects if they are equivalent', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+        const mergeConflicts1 = await repo.refreshMergeConflicts()
+
+        await repo.addPathToIndex('removed-on-master.txt')
+        const mergeConflicts2 = await repo.refreshMergeConflicts()
+
+        assert.equal(mergeConflicts1.length, 5)
+        assert.equal(mergeConflicts2.length, 4)
+        assert.equal(mergeConflicts1[0], mergeConflicts2[0])
+        assert.equal(mergeConflicts1[1], mergeConflicts2[1])
+        assert.equal(mergeConflicts1[2], mergeConflicts2[2])
+        assert.equal(mergeConflicts1[3], mergeConflicts2[3])
+        assert(mergeConflicts1[4].isDestroyed())
       })
 
       it('returns an empty arry if the repo has no merge conflicts', async () => {
         const workingDirPath = copyRepositoryDir('three-files')
         const repo = await buildRepository(workingDirPath)
 
-        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
-        assert.deepEqual(mergeConflictPaths, [])
+        const mergeConflicts = await repo.getMergeConflicts()
+        assert.deepEqual(mergeConflicts, [])
       })
     })
 
