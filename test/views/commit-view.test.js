@@ -18,10 +18,12 @@ describe('CommitView', () => {
     workspace = atomEnv.workspace
     commandRegistry = atomEnv.commands
     notificationManager = atomEnv.notifications
+    sinon.stub(atom, 'confirm', () => 0)
   })
 
   afterEach(() => {
     atomEnv.destroy()
+    atom.confirm.restore()
   })
 
   it('displays the remaining characters limit based on which line is being edited', async () => {
