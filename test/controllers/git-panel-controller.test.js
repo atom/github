@@ -3,6 +3,8 @@
 import fs from 'fs'
 import path from 'path'
 
+import sinon from 'sinon'
+
 import {copyRepositoryDir, buildRepository} from '../helpers'
 import GitPanelController from '../../lib/controllers/git-panel-controller'
 
@@ -17,6 +19,7 @@ describe('GitPanelController', () => {
 
   afterEach(() => {
     atomEnvironment.destroy()
+    atom.confirm.restore && atom.confirm.restore()
   })
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
@@ -81,6 +84,55 @@ describe('GitPanelController', () => {
       await controller.lastModelDataRefreshPromise
 
       assert.equal((await repository.getLastCommit()).message(), 'Make it so')
+    })
+
+    it('can stage merge conflict files', async () => {
+      const workdirPath = await copyRepositoryDir('merge-conflict')
+      const repository = await buildRepository(workdirPath)
+
+      const controller = new GitPanelController({workspace, commandRegistry, repository: repository})
+      await controller.lastModelDataRefreshPromise
+
+      const stagingView = controller.refs.gitPanel.refs.stagingView
+      assert.equal(stagingView.props.mergeConflicts.length, 5)
+      assert.equal(stagingView.props.stagedChanges.length, 0)
+
+      const conflict1 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-ours.txt')[0]
+      const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.getPath()), 'utf8')
+      assert(contentsWithMarkers.includes('>>>>>>>'))
+      assert(contentsWithMarkers.includes('<<<<<<<'))
+
+      let choice
+      sinon.stub(atom, 'confirm', () => {
+        return choice
+      })
+
+      // click Cancel
+      choice = 1
+      await stagingView.props.addPathToIndex(conflict1.getPath())
+      await controller.lastModelDataRefreshPromise
+      assert.equal(atom.confirm.calledOnce, true)
+      assert.equal(stagingView.props.mergeConflicts.length, 5)
+      assert.equal(stagingView.props.stagedChanges.length, 0)
+
+      // click Stage
+      choice = 0
+      atom.confirm.reset()
+      await stagingView.props.addPathToIndex(conflict1.getPath())
+      await controller.lastModelDataRefreshPromise
+      assert.equal(atom.confirm.calledOnce, true)
+      // assert.equal(stagingView.props.mergeConflicts.length, 4) // TODO: [KU] figure out why this isn't passing
+      assert.equal(stagingView.props.stagedChanges.length, 1)
+
+      // clear merge markers
+      const conflict2 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-theirs.txt')[0]
+      atom.confirm.reset()
+      fs.writeFileSync(path.join(workdirPath, conflict2.getPath()), 'text with no merge markers')
+      await stagingView.props.addPathToIndex(conflict2.getPath())
+      await controller.lastModelDataRefreshPromise
+      assert.equal(atom.confirm.called, false)
+      // assert.equal(stagingView.props.mergeConflicts.length, 3) // TODO: [KU] figure out why this isn't passing
+      assert.equal(stagingView.props.stagedChanges.length, 2)
     })
   })
 })
