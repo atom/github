@@ -5,6 +5,8 @@ import path from 'path'
 import sinon from 'sinon'
 import Git from 'nodegit'
 
+import Repository from '../../lib/models/repository'
+
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
 describe('Repository', () => {
@@ -324,20 +326,21 @@ describe('Repository', () => {
       assert.equal((await repository.getUnstagedChanges()).length, 0)
     })
 
-    it('wraps the commit message at 72 characters', async () => {
+    it('strips out comments', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       await repo.commit([
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+        "Merge branch 'branch'",
+        "",
+        "# Conflicts:",
+        "#	added-to-both.txt",
+        "#	modified-on-both-ours.txt",
+        "#	modified-on-both-theirs.txt",
+        "#	removed-on-branch.txt",
+        "#	removed-on-master.txt"
       ].join('\n'))
-      assert.deepEqual((await repo.getLastCommit()).message().split('\n'), [
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod ',
-        'tempor',
-        '',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
-        'ut aliquip ex ea commodo consequat.'
-      ])
+
+      assert.deepEqual((await repo.getLastCommit()).message(), "Merge branch 'branch'")
     })
   })
 
