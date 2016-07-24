@@ -80,19 +80,16 @@ describe('StagingView', () => {
     })
   })
 
-  describe('focusing lists', () => {
+  describe('selectList()', () => {
     describe('when lists are not empty', () => {
-      let view
-      beforeEach(async () => {
+      it('focuses lists accordingly', async () => {
         const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
         const filePatches = await repository.getUnstagedChanges()
-        view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
-      })
+        const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
 
-      it('focuses staged and unstaged lists accordingly', async () => {
         await view.selectList(ListTypes.STAGED)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
         let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
@@ -110,26 +107,6 @@ describe('StagingView', () => {
         selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
-      })
-
-      describe('git:focus-unstaged-changes', () => {
-        it('sets the unstaged list to be focused', () => {
-          view.selectList(ListTypes.STAGED)
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-
-          atom.commands.dispatch(view.element, 'git:focus-unstaged-changes')
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        })
-      })
-
-      describe('git:focus-staged-changes', () => {
-        it('sets the unstaged list to be focused', () => {
-          view.selectList(ListTypes.UNSTAGED)
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-
-          atom.commands.dispatch(view.element, 'git:focus-staged-changes')
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        })
       })
     })
 
@@ -149,6 +126,43 @@ describe('StagingView', () => {
         assert.notEqual(view.getSelectedList(), ListTypes.STAGED)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
       })
+    })
+  })
+
+  describe('focusNextList()', () => {
+    it('focuses lists accordingly', async () => {
+      const workdirPath = await copyRepositoryDir('three-files')
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const filePatches = await repository.getUnstagedChanges()
+      const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+      // skips empty lists
+      await view.update({repository, stagedChanges: [filePatches[0]], unstagedChanges: []})
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
     })
   })
 
