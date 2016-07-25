@@ -13,9 +13,9 @@ describe('FileSystemChangeObserver', async () => {
   it('emits an event when the currently active directory changes', async function () {
     this.timeout(5000) // increase the timeout because we're interacting with file system events.
 
-    const workdirPath1 = copyRepositoryDir()
+    const workdirPath1 = copyRepositoryDir('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = copyRepositoryDir()
+    const workdirPath2 = copyRepositoryDir('three-files')
     const repository2 = await buildRepository(workdirPath2)
     const changeSpy = sinon.spy()
     const changeObserver = new FileSystemChangeObserver()

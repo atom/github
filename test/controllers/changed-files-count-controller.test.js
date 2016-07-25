@@ -13,7 +13,7 @@ describe('ChangedFilesCountController', () => {
     const view = new ChangedFilesCountController({repository: null, didClick})
     assert.isUndefined(view.refs.changedFilesCount)
 
-    const workdirPath = await copyRepositoryDir(1)
+    const workdirPath = await copyRepositoryDir('three-files')
     const repository = await buildRepository(workdirPath)
     view.update({repository})
     await view.lastModelDataRefreshPromise

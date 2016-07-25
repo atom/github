@@ -1,11 +1,8 @@
 'atom-workspace':
   'cmd-shift-c': 'git:toggle-git-panel'
 
-'.git-StagingView.staged-changes-focused':
-  'tab': 'git:focus-unstaged-changes'
-
-'.git-StagingView.unstaged-changes-focused':
-  'tab': 'git:focus-staged-changes'
+'.git-StagingView':
+  'tab': 'git:focus-next-list'
 
 '.git-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'git:commit'

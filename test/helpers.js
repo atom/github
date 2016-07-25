@@ -8,9 +8,9 @@ import Git from 'nodegit'
 
 import Repository from '../lib/models/repository'
 
-export function copyRepositoryDir (variant = 1) {
+export function copyRepositoryDir (repoName = 1) {
   const workingDirPath = temp.mkdirSync('git-fixture-')
-  fs.copySync(path.join(__dirname, 'fixtures', 'repository-' + variant), workingDirPath)
+  fs.copySync(path.join(__dirname, 'fixtures', `repo-${repoName}`), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'))
   return fs.realpathSync(workingDirPath)
 }
@@ -37,7 +37,7 @@ export function assertDeepPropertyVals (actual, expected) {
 }
 
 export async function cloneRepository () {
-  const baseRepo = copyRepositoryDir()
+  const baseRepo = copyRepositoryDir('three-files')
   const cloneOptions = new Git.CloneOptions()
   cloneOptions.bare = 1
   cloneOptions.local = 1

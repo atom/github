@@ -185,7 +185,7 @@ describe('FilePatch', () => {
 
   describe('toString()', () => {
     it('converts the patch to the standard textual format', async () => {
-      const workdirPath = copyRepositoryDir(2)
+      const workdirPath = copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
 
       const lines = fs.readFileSync(path.join(workdirPath, 'sample.js'), 'utf8').split('\n')
@@ -217,7 +217,7 @@ describe('FilePatch', () => {
     })
 
     it('correctly formats new files with no newline at the end', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       const [patch] = await repo.getUnstagedChanges()

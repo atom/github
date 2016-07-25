@@ -2,15 +2,18 @@
 
 import fs from 'fs'
 import path from 'path'
+import dedent from 'dedent-js'
 import sinon from 'sinon'
 import Git from 'nodegit'
+
+import Repository from '../../lib/models/repository'
 
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
 describe('Repository', () => {
   describe('transact', () => {
     it('serializes critical sections', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
@@ -37,7 +40,7 @@ describe('Repository', () => {
     })
 
     it('allows to create a new transaction if the previous one throws an error', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       let executed = false
       try {
@@ -48,9 +51,9 @@ describe('Repository', () => {
     })
   })
 
-  describe('refreshing', () => {
+  describe('refreshing staged and unstaged changes', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
@@ -78,7 +81,7 @@ describe('Repository', () => {
         },
         {
           oldPath: 'b.txt',
-          newPath: 'b.txt',
+          newPath: null,
           oldMode: Git.TreeEntry.FILEMODE.BLOB,
           newMode: 0,
           status: 'removed',
@@ -99,7 +102,7 @@ describe('Repository', () => {
           hunks: []
         },
         {
-          oldPath: 'e.txt',
+          oldPath: null,
           newPath: 'e.txt',
           oldMode: 0,
           newMode: Git.TreeEntry.FILEMODE.BLOB,
@@ -117,7 +120,7 @@ describe('Repository', () => {
     })
 
     it('reuses the same FilePatch objects if they are equivalent', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
@@ -158,7 +161,7 @@ describe('Repository', () => {
 
   describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
@@ -178,7 +181,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage removed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
       const [removePatch] = await repo.getUnstagedChanges()
@@ -193,7 +196,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage renamed files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
       const [renamePatch] = await repo.getUnstagedChanges()
@@ -208,7 +211,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage added files', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
       const repo = await buildRepository(workingDirPath)
       const [addedPatch] = await repo.getUnstagedChanges()
@@ -223,7 +226,7 @@ describe('Repository', () => {
     })
 
     it('can stage and unstage changes when the repository has no HEAD commit', async () => {
-      const workingDirPath = copyRepositoryDir(3)
+      const workingDirPath = copyRepositoryDir('no-head-commit')
 
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
@@ -237,7 +240,7 @@ describe('Repository', () => {
     })
 
     it('emits update events on file patches that change as a result of staging', async () => {
-      const workdirPath = await copyRepositoryDir(2)
+      const workdirPath = await copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
@@ -269,9 +272,9 @@ describe('Repository', () => {
 
   describe('commit', () => {
     it('creates a commit that contains the staged changes', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
-      assert.equal(await repo.getLastCommitMessage(), 'Initial commit\n')
+      assert.equal((await repo.getLastCommit()).message(), 'Initial commit\n')
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
@@ -280,32 +283,65 @@ describe('Repository', () => {
       const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
       await repo.applyPatchToIndex(unstagedPatch1)
       await repo.commit('Commit 1')
-      assert.equal(await repo.getLastCommitMessage(), 'Commit 1')
+      assert.equal((await repo.getLastCommit()).message(), 'Commit 1')
       assertDeepPropertyVals(await repo.getStagedChanges(), [])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
       await repo.applyPatchToIndex(unstagedChanges[0])
       await repo.commit('Commit 2')
-      assert.equal(await repo.getLastCommitMessage(), 'Commit 2')
+      assert.equal((await repo.getLastCommit()).message(), 'Commit 2')
       assert.deepEqual(await repo.getStagedChanges(), [])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
 
-    it('wraps the commit message at 72 characters', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+    it('creates a merge commit when a merge is in progress', async () => {
+      const workingDirPath = copyRepositoryDir('in-progress-merge')
+      const repository = await buildRepository(workingDirPath)
+      const mergeBase = await repository.getLastCommit()
+      const mergeHead = await repository.getMergeHead()
+      await repository.commit('Merge Commit')
+      const commit = await repository.getLastCommit()
+      assert.equal(commit.message(), 'Merge Commit')
+      assert.equal(commit.parents()[0].toString(), mergeBase.toString())
+      assert.equal(commit.parents()[1].toString(), mergeHead.toString())
+      assert.equal(await repository.isMerging(), false)
+      assert.isNull(await repository.getMergeMessage())
+      assert.deepEqual(await repository.getStagedChanges(), [])
+      assert.deepEqual(await repository.getUnstagedChanges(), [])
+    })
+
+    it('throws an error when committing a merge that has conflicts', async () => {
+      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const repository = await buildRepository(workingDirPath)
+      const mergeBase = await repository.getLastCommit()
+      try {
+        await repository.commit('Merge Commit')
+        assert(false, 'Repository.commit should have thrown an exception!')
+      } catch (e) {
+        assert.equal(e.code, 'ECONFLICT')
+      }
+      assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
+      assert.equal(await repository.isMerging(), true)
+      assert.equal((await repository.getStagedChanges()).length, 0)
+      assert.equal((await repository.getUnstagedChanges()).length, 0)
+    })
+
+    it('strips out comments', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       await repo.commit([
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+        "Merge branch 'branch'",
+        "",
+        "# Conflicts:",
+        "#	added-to-both.txt",
+        "#	modified-on-both-ours.txt",
+        "#	modified-on-both-theirs.txt",
+        "#	removed-on-branch.txt",
+        "#	removed-on-master.txt"
       ].join('\n'))
-      assert.deepEqual((await repo.getLastCommitMessage()).split('\n'), [
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod ',
-        'tempor',
-        '',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
-        'ut aliquip ex ea commodo consequat.'
-      ])
+
+      assert.deepEqual((await repo.getLastCommit()).message(), "Merge branch 'branch'")
     })
   })
 
@@ -317,10 +353,10 @@ describe('Repository', () => {
 
       await createEmptyCommit(remoteRepoPath, 'new remote commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
 
       await localRepo.pull('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
     })
   })
 
@@ -335,10 +371,10 @@ describe('Repository', () => {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
 
       await localRepo.push('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), await localRepo.getLastCommitMessage())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
     })
   })
 
@@ -356,7 +392,7 @@ describe('Repository', () => {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.equal(await localRepo.getLastCommitMessage(), 'new local commit')
+      assert.equal((await localRepo.getLastCommit()).message(), 'new local commit')
 
       let {ahead, behind} = await localRepo.getAheadBehindCount('master')
       assert.equal(behind, 0)
@@ -379,9 +415,217 @@ describe('Repository', () => {
     })
 
     it('returns null if there is no remote associated with the supplied branch name', async () => {
-      const workingDirPath = copyRepositoryDir(1)
+      const workingDirPath = copyRepositoryDir('three-files')
       const repository = await buildRepository(workingDirPath)
       assert.isNull(await repository.getBranchRemoteName('master'))
+    })
+  })
+
+  describe('merge conflicts', () => {
+    describe('refreshMergeConflicts()', () => {
+      it('returns a promise resolving to an array of MergeConflict objects', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+        const mergeConflicts = await repo.refreshMergeConflicts()
+
+        const expected = [
+          {
+            path: 'added-to-both.txt',
+            //fileStatus: 'modified',
+            oursStatus: '+',
+            theirsStatus: '+'
+          },
+          {
+            path: 'modified-on-both-ours.txt',
+            //fileStatus: 'modified',
+            oursStatus: '*',
+            theirsStatus: '*'
+          },
+          {
+            path: 'modified-on-both-theirs.txt',
+            //fileStatus: 'modified',
+            oursStatus: '*',
+            theirsStatus: '*'
+          },
+          {
+            path: 'removed-on-branch.txt',
+            //fileStatus: 'equivalent',
+            oursStatus: '*',
+            theirsStatus: '-'
+          },
+          {
+            path: 'removed-on-master.txt',
+            //fileStatus: 'added',
+            oursStatus: '-',
+            theirsStatus: '*'
+          }
+        ]
+
+        assertDeepPropertyVals(mergeConflicts, expected)
+      })
+
+      it('reuses the same MergeConflict objects if they are equivalent', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+        const mergeConflicts1 = await repo.refreshMergeConflicts()
+
+        await repo.addPathToIndex('removed-on-master.txt')
+        const mergeConflicts2 = await repo.refreshMergeConflicts()
+
+        assert.equal(mergeConflicts1.length, 5)
+        assert.equal(mergeConflicts2.length, 4)
+        assert.equal(mergeConflicts1[0], mergeConflicts2[0])
+        assert.equal(mergeConflicts1[1], mergeConflicts2[1])
+        assert.equal(mergeConflicts1[2], mergeConflicts2[2])
+        assert.equal(mergeConflicts1[3], mergeConflicts2[3])
+        assert(mergeConflicts1[4].isDestroyed())
+      })
+
+      it('returns an empty arry if the repo has no merge conflicts', async () => {
+        const workingDirPath = copyRepositoryDir('three-files')
+        const repo = await buildRepository(workingDirPath)
+
+        const mergeConflicts = await repo.getMergeConflicts()
+        assert.deepEqual(mergeConflicts, [])
+      })
+    })
+
+    describe('addPathToIndex(path)', () => {
+      it('updates the staged changes accordingly', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+
+        const mergeConflictPaths = (await repo.getMergeConflicts()).map(c => c.getPath())
+        assert.deepEqual(mergeConflictPaths, ['added-to-both.txt', 'modified-on-both-ours.txt', 'modified-on-both-theirs.txt', 'removed-on-branch.txt', 'removed-on-master.txt'])
+
+        let stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), [])
+
+        await repo.addPathToIndex('added-to-both.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
+
+        // choose version of the file on head
+        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8')
+        await repo.addPathToIndex('modified-on-both-ours.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        // nothing additional to stage
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
+
+        // choose version of the file on branch
+        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8')
+        await repo.addPathToIndex('modified-on-both-ours.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt'])
+
+        // remove file that was deleted on branch
+        fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
+        await repo.addPathToIndex('removed-on-branch.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+
+        // remove file that was deleted on master
+        fs.unlinkSync(path.join(workingDirPath, 'removed-on-master.txt'))
+        await repo.addPathToIndex('removed-on-master.txt')
+        stagedFilePatches = await repo.refreshStagedChanges()
+        // nothing additional to stage
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+      })
+    })
+
+    describe('pathHasMergeMarkers()', () => {
+      it('returns true if and only if the file has merge markers', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+
+        assert.isTrue(await repo.pathHasMergeMarkers('added-to-both.txt'))
+        assert.isFalse(await repo.pathHasMergeMarkers('removed-on-master.txt'))
+
+        fs.writeFileSync(path.join(workingDirPath, 'file-with-chevrons.txt'), dedent`
+          no branch name:
+          >>>>>>>
+          <<<<<<<
+
+          not enough chevrons:
+          >>> HEAD
+          <<< branch
+
+          too many chevrons:
+          >>>>>>>>> HEAD
+          <<<<<<<<< branch
+
+          too many words after chevrons:
+          >>>>>>> blah blah blah
+          <<<<<<< blah blah blah
+
+          not at line beginning:
+          foo >>>>>>> bar
+          baz <<<<<<< qux
+        `)
+        assert.isFalse(await repo.pathHasMergeMarkers('file-with-chevrons.txt'))
+
+        assert.isFalse(await repo.pathHasMergeMarkers('nonexistent-file.txt'))
+      })
+    })
+
+    describe('abortMerge()', () => {
+      describe('when the working directory is clean', () => {
+        it('resets the index and the working directory to match HEAD', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
+          const repo = await buildRepository(workingDirPath)
+          assert.equal(await repo.isMerging(), true)
+          assert.equal(await repo.hasMergeConflict(), true)
+
+          await repo.abortMerge()
+          assert.equal(await repo.isMerging(), false)
+          assert.equal(await repo.hasMergeConflict(), false)
+          assert.deepEqual(await repo.refreshStagedChanges(), [])
+          assert.deepEqual(await repo.refreshUnstagedChanges(), [])
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'color.txt'), 'utf8'), 'blue\n')
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'number.txt'), 'utf8'), 'two\n')
+        })
+      })
+
+      describe('when a dirty file in the working directory is NOT in the staging area', () => {
+        it('throws an error indicating that the abort could not be completed', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
+          const repo = await buildRepository(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
+          assert.equal(await repo.isMerging(), true)
+          assert.equal(await repo.hasMergeConflict(), true)
+
+          await repo.abortMerge()
+          assert.equal(await repo.isMerging(), false)
+          assert.equal(await repo.hasMergeConflict(), false)
+          assert.equal((await repo.refreshStagedChanges()).length, 0)
+          assert.equal((await repo.refreshUnstagedChanges()).length, 1)
+          assert.equal(fs.readFileSync(path.join(workingDirPath, 'fruit.txt')), 'a change\n')
+        })
+      })
+
+      describe('when a dirty file in the working directory is in the staging area', () => {
+        it('throws an error indicating that the abort could not be completed', async () => {
+          const workingDirPath = copyRepositoryDir('merge-conflict-abort')
+          const repo = await buildRepository(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'animal.txt'), 'a change\n')
+          const stagedChanges = await repo.refreshStagedChanges()
+          const unstagedChanges = await repo.refreshUnstagedChanges()
+
+          assert.equal(await repo.isMerging(), true)
+          assert.equal(await repo.hasMergeConflict(), true)
+          try {
+            await repo.abortMerge()
+            assert(false)
+          } catch (e) {
+            assert.equal(e.code, 'EDIRTYSTAGED')
+            assert.equal(e.path, 'animal.txt')
+          }
+          assert.equal(await repo.isMerging(), true)
+          assert.equal(await repo.hasMergeConflict(), true)
+          assert.deepEqual(await repo.refreshStagedChanges(), stagedChanges)
+          assert.deepEqual(await repo.refreshUnstagedChanges(), unstagedChanges)
+        })
+      })
     })
   })
 })

@@ -8,7 +8,7 @@ import sinon from 'sinon'
 import StagingView, {ListTypes} from '../../lib/views/staging-view'
 
 const getSelectedItemForStagedList = (view) => {
-  return view.multiList.getSelectedItemForList(1)
+  return view.multiList.getSelectedItemForList(2)
 }
 
 const getSelectedItemForUnstagedList = (view) => {
@@ -18,7 +18,7 @@ const getSelectedItemForUnstagedList = (view) => {
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
-      const workdirPath = await copyRepositoryDir(1)
+      const workdirPath = await copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -39,7 +39,7 @@ describe('StagingView', () => {
 
     describe('toggleSelectedFilePatchStagingState()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -61,19 +61,35 @@ describe('StagingView', () => {
     })
   })
 
-  describe('focusing lists', () => {
+  describe('merge conflicts list', () => {
+    it('is visible only when conflicted paths are passed', async () => {
+      const workdirPath = await copyRepositoryDir('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new StagingView({repository, stagedChanges: [], unstagedChanges: []})
+
+      assert.isUndefined(view.refs.mergeConflictListView)
+
+      const mergeConflict = {
+        getPath: () => 'conflicted-path',
+        getFileStatus: () => 'modified',
+        getOursStatus: () => 'removed',
+        getTheirsStatus: () => 'modified'
+      }
+      await view.update({repository, mergeConflicts: [mergeConflict], stagedChanges: [], unstagedChanges: []})
+      assert.isDefined(view.refs.mergeConflictListView)
+    })
+  })
+
+  describe('selectList()', () => {
     describe('when lists are not empty', () => {
-      let view
-      beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
+      it('focuses lists accordingly', async () => {
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
         const filePatches = await repository.getUnstagedChanges()
-        view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
-      })
+        const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
 
-      it('focuses staged and unstaged lists accordingly', async () => {
         await view.selectList(ListTypes.STAGED)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
         let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
@@ -92,31 +108,11 @@ describe('StagingView', () => {
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
       })
-
-      describe('git:focus-unstaged-changes', () => {
-        it('sets the unstaged list to be focused', () => {
-          view.selectList(ListTypes.STAGED)
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-
-          atom.commands.dispatch(view.element, 'git:focus-unstaged-changes')
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        })
-      })
-
-      describe('git:focus-staged-changes', () => {
-        it('sets the unstaged list to be focused', () => {
-          view.selectList(ListTypes.UNSTAGED)
-          assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-
-          atom.commands.dispatch(view.element, 'git:focus-staged-changes')
-          assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        })
-      })
     })
 
     describe('when list is empty', () => {
       it('doesn\'t select list', async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         const filePatches = await repository.getUnstagedChanges()
@@ -133,11 +129,48 @@ describe('StagingView', () => {
     })
   })
 
+  describe('focusNextList()', () => {
+    it('focuses lists accordingly', async () => {
+      const workdirPath = await copyRepositoryDir('three-files')
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      const filePatches = await repository.getUnstagedChanges()
+      const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
+
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
+
+      // skips empty lists
+      await view.update({repository, stagedChanges: [filePatches[0]], unstagedChanges: []})
+      await view.focusNextList()
+      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
+      assert.equal(selectedLists.length, 1)
+      assert.equal(selectedLists[0].textContent, 'Staged Changes')
+    })
+  })
+
   describe('selecting files', () => {
     describe('core:move-up and core:move-down', () => {
       let view, unstagedFilePatches, stagedFilePatches
       beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir(1)
+        const workdirPath = await copyRepositoryDir('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -235,7 +268,7 @@ describe('StagingView', () => {
     it('calls didSelectFilePatch when file is selected', async () => {
       const didSelectFilePatch = sinon.spy()
 
-      const workdirPath = await copyRepositoryDir(1)
+      const workdirPath = await copyRepositoryDir('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       const [filePatch] = await repository.getUnstagedChanges()

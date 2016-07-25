@@ -27,12 +27,15 @@
   }
 }
 
+.git-MergeConflictPaths .git-FilePatchListView-icon:last-child {
+  margin-left: @component-padding / 2;
+}
 
 //
 // States
 // -----------------------------------------
 
-.git-StagedChanges, .git-UnstagedChanges {
+.git-StagedChanges, .git-UnstagedChanges, .git-MergeConflictPaths {
   &.is-focused {
     .git-FilePatchListView-item.is-selected {
       background: @background-color-highlight;
