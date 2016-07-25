@@ -121,7 +121,7 @@ describe('GitPanelController', () => {
       await stagingView.props.addPathToIndex(conflict1.getPath())
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.calledOnce, true)
-      // assert.equal(stagingView.props.mergeConflicts.length, 4) // TODO: [KU] figure out why this isn't passing
+      assert.equal(stagingView.props.mergeConflicts.length, 4)
       assert.equal(stagingView.props.stagedChanges.length, 1)
 
       // clear merge markers
@@ -131,7 +131,7 @@ describe('GitPanelController', () => {
       await stagingView.props.addPathToIndex(conflict2.getPath())
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.called, false)
-      // assert.equal(stagingView.props.mergeConflicts.length, 3) // TODO: [KU] figure out why this isn't passing
+      assert.equal(stagingView.props.mergeConflicts.length, 3)
       assert.equal(stagingView.props.stagedChanges.length, 2)
     })
   })
