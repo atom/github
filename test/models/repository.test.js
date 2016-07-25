@@ -2,6 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import dedent from 'dedent-js'
 import sinon from 'sinon'
 import Git from 'nodegit'
 
@@ -529,6 +530,41 @@ describe('Repository', () => {
         stagedFilePatches = await repo.refreshStagedChanges()
         // nothing additional to stage
         assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+      })
+    })
+
+    describe('pathHasMergeMarkers()', () => {
+      it('returns true if and only if the file has merge markers', async () => {
+        const workingDirPath = copyRepositoryDir('merge-conflict')
+        const repo = await buildRepository(workingDirPath)
+
+        assert.isTrue(await repo.pathHasMergeMarkers('added-to-both.txt'))
+        assert.isFalse(await repo.pathHasMergeMarkers('removed-on-master.txt'))
+
+        fs.writeFileSync(path.join(workingDirPath, 'file-with-chevrons.txt'), dedent`
+          no branch name:
+          >>>>>>>
+          <<<<<<<
+
+          not enough chevrons:
+          >>> HEAD
+          <<< branch
+
+          too many chevrons:
+          >>>>>>>>> HEAD
+          <<<<<<<<< branch
+
+          too many words after chevrons:
+          >>>>>>> blah blah blah
+          <<<<<<< blah blah blah
+
+          not at line beginning:
+          foo >>>>>>> bar
+          baz <<<<<<< qux
+        `)
+        assert.isFalse(await repo.pathHasMergeMarkers('file-with-chevrons.txt'))
+
+        assert.isFalse(await repo.pathHasMergeMarkers('nonexistent-file.txt'))
       })
     })
 
