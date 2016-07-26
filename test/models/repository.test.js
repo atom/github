@@ -426,41 +426,47 @@ describe('Repository', () => {
       it('returns a promise resolving to an array of MergeConflict objects', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
-        const mergeConflicts = await repo.refreshMergeConflicts()
+        let mergeConflicts = await repo.refreshMergeConflicts()
 
         const expected = [
           {
             path: 'added-to-both.txt',
-            //fileStatus: 'modified',
+            fileStatus: 'M',
             oursStatus: '+',
             theirsStatus: '+'
           },
           {
             path: 'modified-on-both-ours.txt',
-            //fileStatus: 'modified',
+            fileStatus: 'M',
             oursStatus: '*',
             theirsStatus: '*'
           },
           {
             path: 'modified-on-both-theirs.txt',
-            //fileStatus: 'modified',
+            fileStatus: 'M',
             oursStatus: '*',
             theirsStatus: '*'
           },
           {
             path: 'removed-on-branch.txt',
-            //fileStatus: 'equivalent',
+            fileStatus: 'E',
             oursStatus: '*',
             theirsStatus: '-'
           },
           {
             path: 'removed-on-master.txt',
-            //fileStatus: 'added',
+            fileStatus: 'A',
             oursStatus: '-',
             theirsStatus: '*'
           }
         ]
 
+        assertDeepPropertyVals(mergeConflicts, expected)
+
+        fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
+        mergeConflicts = await repo.refreshMergeConflicts()
+
+        expected[3].fileStatus = 'D'
         assertDeepPropertyVals(mergeConflicts, expected)
       })
 
