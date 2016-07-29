@@ -49,12 +49,12 @@ describe('StagingView', () => {
         const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches, stageFilePatch, unstageFilePatch})
         const {stagedChangesView, unstagedChangesView} = view.refs
 
-        unstagedChangesView.didSelectFilePatch(filePatches[1])
+        unstagedChangesView.props.didSelectFilePatch(filePatches[1])
         view.toggleSelectedFilePatchStagingState()
         assert.deepEqual(stageFilePatch.args[0], [filePatches[1]])
 
         await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFilePatch, unstageFilePatch})
-        stagedChangesView.didSelectFilePatch(filePatches[1])
+        stagedChangesView.props.didSelectFilePatch(filePatches[1])
         view.toggleSelectedFilePatchStagingState()
         assert.deepEqual(unstageFilePatch.args[0], [filePatches[1]])
       })
@@ -275,11 +275,11 @@ describe('StagingView', () => {
       const view = new StagingView({repository, stagedChanges: [], unstagedChanges: [filePatch], didSelectFilePatch})
       const {stagedChangesView, unstagedChangesView} = view.refs
 
-      unstagedChangesView.didSelectFilePatch(filePatch)
+      unstagedChangesView.props.didSelectFilePatch(filePatch)
       assert.equal(didSelectFilePatch.callCount, 1)
       assert.deepEqual(didSelectFilePatch.args[0], [filePatch, 'unstaged'])
 
-      stagedChangesView.didSelectFilePatch(filePatch)
+      stagedChangesView.props.didSelectFilePatch(filePatch)
       assert.equal(didSelectFilePatch.callCount, 2)
       assert.deepEqual(didSelectFilePatch.args[1], [filePatch, 'staged'])
     })
