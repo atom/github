@@ -1,8 +1,11 @@
 /** @babel */
 
+import fs from 'fs'
+import path from 'path'
+
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
-import {copyRepositoryDir} from './helpers'
+import {copyRepositoryDir, assertDeepPropertyVals} from './helpers'
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -13,15 +16,141 @@ import {copyRepositoryDir} from './helpers'
 describe('Git commands', () => {
   describe('diffFileStatus', () => {
     it('returns an object with working directory file diff status between relative to HEAD', async () => {
-      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const workingDirPath = copyRepositoryDir('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
       assert.deepEqual(diffOutput, {
-        'added-to-both.txt': 'M',
-        'modified-on-both-ours.txt': 'M',
-        'modified-on-both-theirs.txt': 'M',
-        'removed-on-master.txt': 'A'
+        'a.txt': 'modified',
+        'b.txt': 'removed',
+        'c.txt': 'removed',
+        'd.txt': 'added',
+        'e.txt': 'added'
       })
+    })
+  })
+
+  describe('getUntrackedFiles', () => {
+    it('returns an array of untracked file paths', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8')
+      assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt'])
+    })
+  })
+
+  describe('diff', () => {
+    it('returns an array of objects for each file patch', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'cat', 'utf8')
+
+      await git.stageFile('f.txt')
+      const stagedDiffOutput = await git.diff({staged: true})
+      assertDeepPropertyVals(stagedDiffOutput, [{
+        'oldPath': null,
+        'newPath': 'f.txt',
+        'hunks': [
+          {
+            'oldStartLine': 0,
+            'oldLineCount': 0,
+            'newStartLine': 1,
+            'newLineCount': 1,
+            'lines': [ '+cat', '\\ No newline at end of file' ]
+          }
+        ],
+        'status': 'added'
+      }])
+
+      const diffOutput = await git.diff()
+      assertDeepPropertyVals(diffOutput, [
+        {
+          'oldPath': 'a.txt',
+          'newPath': 'a.txt',
+          'hunks': [
+            {
+              'oldStartLine': 1,
+              'oldLineCount': 1,
+              'newStartLine': 1,
+              'newLineCount': 3,
+              'lines': [
+                '+qux',
+                ' foo',
+                '+bar'
+              ]
+            }
+          ],
+          'status': 'modified'
+        },
+        {
+          'oldPath': 'b.txt',
+          'newPath': null,
+          'hunks': [
+            {
+              'oldStartLine': 1,
+              'oldLineCount': 1,
+              'newStartLine': 0,
+              'newLineCount': 0,
+              'lines': [
+                '-bar'
+              ]
+            }
+          ],
+          'status': 'removed'
+        },
+        {
+          'oldPath': 'c.txt',
+          'newPath': null,
+          'hunks': [
+            {
+              'oldStartLine': 1,
+              'oldLineCount': 1,
+              'newStartLine': 0,
+              'newLineCount': 0,
+              'lines': [ '-baz' ]
+            }
+          ],
+          'status': 'removed'
+        },
+        {
+          'oldPath': null,
+          'newPath': 'd.txt',
+          'hunks': [
+            {
+              'oldStartLine': 0,
+              'oldLineCount': 0,
+              'newStartLine': 1,
+              'newLineCount': 1,
+              'lines': [ '+baz' ]
+            }
+          ],
+          'status': 'added'
+        },
+        {
+          'oldPath': null,
+          'newPath': 'e.txt',
+          'hunks': [
+            {
+              'oldStartLine': 0,
+              'oldLineCount': 0,
+              'newStartLine': 1,
+              'newLineCount': 1,
+              'lines': [ '+qux', '\\ No newline at end of file' ]
+            }
+          ],
+          'status': 'added'
+        }
+      ])
     })
   })
 })

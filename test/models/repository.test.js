@@ -432,31 +432,31 @@ describe('Repository', () => {
         const expected = [
           {
             path: 'added-to-both.txt',
-            fileStatus: 'M',
+            fileStatus: 'modified',
             oursStatus: '+',
             theirsStatus: '+'
           },
           {
             path: 'modified-on-both-ours.txt',
-            fileStatus: 'M',
+            fileStatus: 'modified',
             oursStatus: '*',
             theirsStatus: '*'
           },
           {
             path: 'modified-on-both-theirs.txt',
-            fileStatus: 'M',
+            fileStatus: 'modified',
             oursStatus: '*',
             theirsStatus: '*'
           },
           {
             path: 'removed-on-branch.txt',
-            fileStatus: 'E',
+            fileStatus: 'equivalent',
             oursStatus: '*',
             theirsStatus: '-'
           },
           {
             path: 'removed-on-master.txt',
-            fileStatus: 'A',
+            fileStatus: 'added',
             oursStatus: '-',
             theirsStatus: '*'
           }
@@ -467,7 +467,7 @@ describe('Repository', () => {
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
         mergeConflicts = await repo.refreshMergeConflicts()
 
-        expected[3].fileStatus = 'D'
+        expected[3].fileStatus = 'removed'
         assertDeepPropertyVals(mergeConflicts, expected)
       })
 
