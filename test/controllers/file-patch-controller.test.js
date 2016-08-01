@@ -23,12 +23,6 @@ describe('FilePatchController', () => {
     controller.update({filePatch: filePatch1, stagingStatus: 'staged'})
     assert.equal(controller.getTitle(), 'Staged Changes: a.txt')
     assert.deepEqual(changeHandler.args, [[controller.getTitle()]])
-
-    changeHandler.reset()
-    const filePatch2 = new FilePatch('a.txt', 'b.txt', 'renamed', [])
-    controller.update({filePatch: filePatch2, stagingStatus: 'staged'})
-    assert.equal(controller.getTitle(), 'Staged Changes: a.txt → b.txt')
-    assert.deepEqual(changeHandler.args, [[controller.getTitle()]])
   })
 
   it('updates when the associated FilePatch updates', async () => {
