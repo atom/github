@@ -12,10 +12,10 @@ import HunkLine from '../../lib/models/hunk-line'
 describe('FilePatch', () => {
   describe('getId()', () => {
     it('returns a logical identifier for the FilePatch', () => {
-      assert.equal(new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed').getId(), 'a/a.txt b/b.txt')
-      assert.equal(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified').getId(), 'a/a.txt b/a.txt')
-      assert.equal(new FilePatch(null, 'a.txt', 0, 1234, 'added').getId(), 'a/null b/a.txt')
-      assert.equal(new FilePatch('a.txt', null, 1234, 0, 'removed').getId(), 'a/a.txt b/null')
+      assert.equal(new FilePatch('a.txt', 'b.txt', 'renamed').getId(), 'a/a.txt b/b.txt')
+      assert.equal(new FilePatch('a.txt', 'a.txt', 'modified').getId(), 'a/a.txt b/a.txt')
+      assert.equal(new FilePatch(null, 'a.txt', 'added').getId(), 'a/null b/a.txt')
+      assert.equal(new FilePatch('a.txt', null, 'removed').getId(), 'a/a.txt b/null')
     })
   })
 
@@ -43,8 +43,8 @@ describe('FilePatch', () => {
           new HunkLine('line-14\n', 'unchanged', 21, 20)
         ])
       ]
-      const patch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed', hunks)
-      const newPatch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed', [
+      const patch = new FilePatch('a.txt', 'b.txt', 'renamed', hunks)
+      const newPatch = new FilePatch('a.txt', 'b.txt', 'renamed', [
         new Hunk(9, 9, 2, 1, [
           new HunkLine('line-9\n', 'added', -1, 9),
           new HunkLine('line-10\n', 'removed', 8, -1),
@@ -82,14 +82,14 @@ describe('FilePatch', () => {
     })
 
     it('throws an error when the supplied filePatch has a different id', () => {
-      const patch = new FilePatch('a.txt', 'b.txt', 1234, 1234, 'renamed')
-      assert.throws(() => patch.update(new FilePatch('c.txt', 'd.txt', 1234, 1234, 'renamed')))
+      const patch = new FilePatch('a.txt', 'b.txt', 'renamed')
+      assert.throws(() => patch.update(new FilePatch('c.txt', 'd.txt', 'renamed')))
     })
   })
 
   describe('getStagePatchForLines()', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
-      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1\n', 'added', -1, 1),
           new HunkLine('line-2\n', 'added', -1, 2),
@@ -113,7 +113,7 @@ describe('FilePatch', () => {
       ])
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 4))
       assert.deepEqual(filePatch.getStagePatchForLines(lines), new FilePatch(
-        'a.txt', 'a.txt', 1234, 1234, 'modified', [
+        'a.txt', 'a.txt', 'modified', [
           new Hunk(5, 5, 5, 4, [
             new HunkLine('line-4\n', 'unchanged', 5, 5),
             new HunkLine('line-5\n', 'removed', 6, -1),
@@ -129,7 +129,7 @@ describe('FilePatch', () => {
 
   describe('getUnstagePatchForLines()', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
-      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1\n', 'added', -1, 1),
           new HunkLine('line-2\n', 'added', -1, 2),
@@ -153,7 +153,7 @@ describe('FilePatch', () => {
       ])
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5))
       assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
-        'a.txt', 'a.txt', 1234, 1234, 'modified', [
+        'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, [
             new HunkLine('line-4\n', 'unchanged', 7, 7),
             new HunkLine('line-7\n', 'removed', 8, -1),

@@ -6,8 +6,6 @@ import dedent from 'dedent-js'
 import sinon from 'sinon'
 import Git from 'nodegit'
 
-import Repository from '../../lib/models/repository'
-
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
 describe('Repository', () => {
@@ -66,15 +64,13 @@ describe('Repository', () => {
         {
           oldPath: 'a.txt',
           newPath: 'a.txt',
-          oldMode: Git.TreeEntry.FILEMODE.BLOB,
-          newMode: Git.TreeEntry.FILEMODE.BLOB,
           status: 'modified',
           hunks: [
             {
               lines: [
-                {status: 'added', text: 'qux\n', oldLineNumber: -1, newLineNumber: 1},
-                {status: 'unchanged', text: 'foo\n', oldLineNumber: 1, newLineNumber: 2},
-                {status: 'added', text: 'bar\n', oldLineNumber: -1, newLineNumber: 3}
+                {status: 'added', text: 'qux', oldLineNumber: -1, newLineNumber: 1},
+                {status: 'unchanged', text: 'foo', oldLineNumber: 1, newLineNumber: 2},
+                {status: 'added', text: 'bar', oldLineNumber: -1, newLineNumber: 3}
               ]
             }
           ]
@@ -82,36 +78,48 @@ describe('Repository', () => {
         {
           oldPath: 'b.txt',
           newPath: null,
-          oldMode: Git.TreeEntry.FILEMODE.BLOB,
-          newMode: 0,
           status: 'removed',
           hunks: [
             {
               lines: [
-                {status: 'removed', text: 'bar\n', oldLineNumber: 1, newLineNumber: -1}
+                {status: 'removed', text: 'bar', oldLineNumber: 1, newLineNumber: -1}
               ]
             }
           ]
         },
         {
           oldPath: 'c.txt',
+          newPath: null,
+          status: 'removed',
+          hunks: [
+            {
+              lines: [
+                {status: 'removed', text: 'baz', oldLineNumber: 1, newLineNumber: -1}
+              ]
+            }
+          ]
+        },
+        {
+          oldPath: null,
           newPath: 'd.txt',
-          oldMode: Git.TreeEntry.FILEMODE.BLOB,
-          newMode: Git.TreeEntry.FILEMODE.BLOB,
-          status: 'renamed',
-          hunks: []
+          status: 'added',
+          hunks: [
+            {
+              lines: [
+                {status: 'added', text: 'baz', oldLineNumber: -1, newLineNumber: 1}
+              ]
+            }
+          ]
         },
         {
           oldPath: null,
           newPath: 'e.txt',
-          oldMode: 0,
-          newMode: Git.TreeEntry.FILEMODE.BLOB,
           status: 'added',
           hunks: [
             {
               lines: [
                 {status: 'added', text: 'qux', oldLineNumber: -1, newLineNumber: 1},
-                {status: undefined, text: '\n\\ No newline at end of file\n', oldLineNumber: -1, newLineNumber: 1}
+                {status: undefined, text: '\\ No newline at end of file', oldLineNumber: -1, newLineNumber: 1}
               ]
             }
           ]
@@ -120,16 +128,16 @@ describe('Repository', () => {
     })
 
     // TODO: [KU] fix after renames are removed
-    xit('reuses the same FilePatch objects if they are equivalent', async () => {
+    it('reuses the same FilePatch objects if they are equivalent', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       const unstagedFilePatches1 = await repo.refreshUnstagedChanges()
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'baz\nfoo\nqux\n', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'baz\nfoo\nqux', 'utf8')
       fs.renameSync(path.join(workingDirPath, 'd.txt'), path.join(workingDirPath, 'z.txt'))
       fs.unlinkSync(path.join(workingDirPath, 'e.txt'))
       const unstagedFilePatches2 = await repo.refreshUnstagedChanges()
@@ -281,7 +289,6 @@ describe('Repository', () => {
       const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refreshUnstagedChanges()
-      const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
       await repo.applyPatchToIndex(unstagedPatch1)
       await repo.commit('Commit 1')
       assert.equal((await repo.getLastCommit()).message(), 'Commit 1')
@@ -333,13 +340,13 @@ describe('Repository', () => {
       const repo = await buildRepository(workingDirPath)
       await repo.commit([
         "Merge branch 'branch'",
-        "",
-        "# Conflicts:",
-        "#	added-to-both.txt",
-        "#	modified-on-both-ours.txt",
-        "#	modified-on-both-theirs.txt",
-        "#	removed-on-branch.txt",
-        "#	removed-on-master.txt"
+        '',
+        '# Conflicts:',
+        '#	added-to-both.txt',
+        '#	modified-on-both-ours.txt',
+        '#	modified-on-both-theirs.txt',
+        '#	removed-on-branch.txt',
+        '#	removed-on-master.txt'
       ].join('\n'))
 
       assert.deepEqual((await repo.getLastCommit()).message(), "Merge branch 'branch'")

@@ -20,7 +20,7 @@ describe('FilePatchView', () => {
       new HunkLine('line-6', 'added', -1, 8)
     ])
     const hunkViewsByHunk = new Map()
-    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2])
     const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
     let linesToSelect = hunk1.getLines().slice(1, 3)
@@ -52,7 +52,7 @@ describe('FilePatchView', () => {
   it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', () => {
     let hunkView
     function registerHunkView (hunk, view) { hunkView = view }
-    const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)])])
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)])])
     const view = new FilePatchView({hunks: filePatch.getHunks(), stagingStatus: 'unstaged', registerHunkView})
     assert(hunkView.props.stageButtonLabelPrefix, 'Stage')
     view.update({hunks: filePatch.getHunks(), stagingStatus: 'staged'})
@@ -66,12 +66,12 @@ describe('FilePatchView', () => {
         const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
 
         const hunkViewsByHunk = new Map()
-        const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+        const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2])
         const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
         assert(hunkViewsByHunk.get(hunk1).props.isSelected)
         hunkViewsByHunk.clear()
-        await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk2]))
+        await filePatch.update(new FilePatch('a.txt', 'a.txt', 'modified', [hunk2]))
         await view.didUpdateFilePatch()
         assert(!hunkViewsByHunk.get(hunk1))
         assert(hunkViewsByHunk.get(hunk2).props.isSelected)
@@ -84,14 +84,14 @@ describe('FilePatchView', () => {
         const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
 
         const hunkViewsByHunk = new Map()
-        const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2])
+        const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2])
         const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
         await view.focusNextHunk()
         assert(hunkViewsByHunk.get(hunk2).props.isSelected)
 
         hunkViewsByHunk.clear()
-        await filePatch.update(new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1]))
+        await filePatch.update(new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]))
         await view.didUpdateFilePatch()
         assert(!hunkViewsByHunk.get(hunk2))
         assert(hunkViewsByHunk.get(hunk1).props.isSelected)
@@ -108,7 +108,7 @@ describe('FilePatchView', () => {
         new HunkLine('line-4', 'added', -1, 6)
       ])
       const hunkViewsByHunk = new Map()
-      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk])
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
       const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
       const element = view.element
 
@@ -130,7 +130,7 @@ describe('FilePatchView', () => {
       const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
       const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'added', -1, 10)])
       const hunkViewsByHunk = new Map()
-      const filePatch = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [hunk1, hunk2, hunk3])
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2, hunk3])
       const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
       const element = view.element
 
