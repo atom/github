@@ -31,6 +31,13 @@ describe('Git commands', () => {
         'e.txt': 'added'
       })
     })
+
+    it('returns an empty object if there are no added, modified, or removed files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
+      assert.deepEqual(diffOutput, {})
+    })
   })
 
   describe('getUntrackedFiles', () => {
