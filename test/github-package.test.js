@@ -175,8 +175,8 @@ describe('GithubPackage', () => {
       const repository = await buildRepository(workdirPath)
 
       githubPackage.getActiveRepository = function () { return repository }
-      const filePatch1 = new FilePatch('a.txt', 'a.txt', 1234, 1234, 'modified', [])
-      const filePatch2 = new FilePatch('b.txt', 'b.txt', 1234, 1234, 'modified', [])
+      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [])
+      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [])
 
       assert.isNull(githubPackage.filePatchController)
 
