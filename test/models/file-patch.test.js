@@ -20,7 +20,8 @@ describe('FilePatch', () => {
   })
 
   describe('update(filePatch)', () => {
-    it('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
+    // TODO: remove once we get rid of referential identity
+    xit('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1\n', 'added', -1, 1),
