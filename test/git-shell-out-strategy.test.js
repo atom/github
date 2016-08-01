@@ -52,6 +52,14 @@ describe('Git commands', () => {
   })
 
   describe('diff', () => {
+    it('returns an empty array if there are no modified, added, or deleted files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+
+      const diffOutput = await git.diff()
+      assert.deepEqual(diffOutput, [])
+    })
+
     it('returns an array of objects for each file patch', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
@@ -79,8 +87,8 @@ describe('Git commands', () => {
         'status': 'added'
       }])
 
-      const diffOutput = await git.diff()
-      assertDeepPropertyVals(diffOutput, [
+      const unstagedDiffOutput = await git.diff()
+      assertDeepPropertyVals(unstagedDiffOutput, [
         {
           'oldPath': 'a.txt',
           'newPath': 'a.txt',
