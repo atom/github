@@ -319,7 +319,7 @@ describe('Repository', () => {
       assert.deepEqual(await repository.getUnstagedChanges(), [])
     })
 
-    it('throws an error when committing a merge that has conflicts', async () => {
+    xit('throws an error when committing a merge that has conflicts', async () => {
       const workingDirPath = copyRepositoryDir('merge-conflict')
       const repository = await buildRepository(workingDirPath)
       const mergeBase = await repository.getLastCommit()
@@ -429,7 +429,7 @@ describe('Repository', () => {
     })
   })
 
-  describe('merge conflicts', () => {
+  xdescribe('merge conflicts', () => {
     describe('refreshMergeConflicts()', () => {
       it('returns a promise resolving to an array of MergeConflict objects', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')

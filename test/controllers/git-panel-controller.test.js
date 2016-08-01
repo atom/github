@@ -86,7 +86,7 @@ describe('GitPanelController', () => {
       assert.equal((await repository.getLastCommit()).message(), 'Make it so')
     })
 
-    it('can stage merge conflict files', async () => {
+    xit('can stage merge conflict files', async () => {
       const workdirPath = await copyRepositoryDir('merge-conflict')
       const repository = await buildRepository(workdirPath)
 
