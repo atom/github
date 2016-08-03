@@ -71,6 +71,8 @@ describe('Git commands', () => {
       fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'cat', 'utf8')
 
       await git.stageFile('f.txt')
+      fs.unlinkSync(path.join(workingDirPath, 'f.txt'))
+
       const stagedDiffOutput = await git.diff({staged: true})
       assertDeepPropertyVals(stagedDiffOutput, [{
         'oldPath': null,
@@ -164,6 +166,20 @@ describe('Git commands', () => {
             }
           ],
           'status': 'added'
+        },
+        {
+          'oldPath': 'f.txt',
+          'newPath': null,
+          'hunks': [
+            {
+              'oldStartLine': 1,
+              'oldLineCount': 1,
+              'newStartLine': 0,
+              'newLineCount': 0,
+              'lines': [ '-cat', '\\ No newline at end of file' ]
+            }
+          ],
+          'status': 'removed'
         }
       ])
     })
