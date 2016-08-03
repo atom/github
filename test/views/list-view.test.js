@@ -11,8 +11,8 @@ describe('ListView', () => {
   it('renders a list of items', () => {
     const items = [ 'one', 'two', 'three' ]
 
-    const renderItem = (item, selected) => {
-      return <div className={selected ? 'selected' : ''}>{item}</div>
+    const renderItem = (item, selected, handleClick) => {
+      return <div className={selected ? 'selected' : ''} onclick={handleClick}>{item}</div>
     }
 
     const didSelectItem = sinon.spy()
