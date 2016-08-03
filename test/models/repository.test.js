@@ -26,7 +26,7 @@ describe('Repository', () => {
         expectedEvents.push(i)
         transactionPromises.push(repo.transact(async function () {
           await repo.refresh()
-          await new Promise(function (resolve) { window.setTimeout(resolve, Math.random() * 10)})
+          await new Promise(function (resolve) { window.setTimeout(resolve, Math.random() * 10) })
           await repo.refresh()
           actualEvents.push(i)
         }))

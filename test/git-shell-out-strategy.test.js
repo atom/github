@@ -183,5 +183,12 @@ describe('Git commands', () => {
         }
       ])
     })
+
+    it('ignores merge conflict files', async () => {
+      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      const diffOutput = await git.diff()
+      assert.deepEqual(diffOutput, [])
+    })
   })
 })
