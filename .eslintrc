@@ -4,7 +4,8 @@
     "babel",
     "react",
     "flowtype",
-    "flow-vars"
+    "flow-vars",
+    "import"
   ],
   "parserOptions": {
     "ecmaFeatures": {
@@ -17,9 +18,12 @@
     },
     "flowtype": {
       "onlyFilesWithAnnotation": true
-    }
+    },
+    "import/core-modules": [
+      "atom"
+    ]
   },
-  "extends": ["standard", "plugin:react/recommended"],
+  "extends": ["standard", "plugin:react/recommended", "plugin:import/errors", "plugin:import/warnings"],
   "globals": {
     "atom": true,
     "advanceClock": true,
