@@ -8,9 +8,11 @@ import Git from 'nodegit'
 
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
-describe('Repository', () => {
-  describe('transact', () => {
-    it('serializes critical sections', async () => {
+describe('Repository', function () {
+  describe('transact', function () {
+    it.only('serializes critical sections', async function () {
+      // TODO: think about profiling methods in Repository and GitShellOutStrategy
+      this.timeout(3000)
       const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
