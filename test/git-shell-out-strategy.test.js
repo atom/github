@@ -191,4 +191,40 @@ describe('Git commands', () => {
       assert.deepEqual(diffOutput, [])
     })
   })
+
+  describe('getMergeConflictFileStatus', () => {
+    it('returns an object with ours/theirs/file status by path', async () => {
+      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+
+      const statusesByPath = await git.getMergeConflictFileStatus()
+      assert.deepEqual(statusesByPath, {
+        'added-to-both.txt': {
+          ours: 'added',
+          theirs: 'added',
+          file: 'modified'
+        },
+        'modified-on-both-ours.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'modified-on-both-theirs.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'removed-on-branch.txt': {
+          ours: 'modified',
+          theirs: 'removed',
+          file: 'equivalent'
+        },
+        'removed-on-master.txt': {
+          ours: 'removed',
+          theirs: 'modified',
+          file: 'added'
+        }
+      })
+    })
+  })
 })

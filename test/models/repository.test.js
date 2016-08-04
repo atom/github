@@ -10,9 +10,9 @@ import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneReposit
 
 describe('Repository', function () {
   describe('transact', function () {
-    it.only('serializes critical sections', async function () {
+    it('serializes critical sections', async function () {
       // TODO: think about profiling methods in Repository and GitShellOutStrategy
-      this.timeout(3000)
+      this.timeout(7000)
       const workingDirPath = copyRepositoryDir('three-files')
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
@@ -431,7 +431,7 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('merge conflicts', () => {
+  describe('merge conflicts', () => {
     describe('refreshMergeConflicts()', () => {
       it('returns a promise resolving to an array of MergeConflict objects', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
@@ -442,32 +442,32 @@ describe('Repository', function () {
           {
             path: 'added-to-both.txt',
             fileStatus: 'modified',
-            oursStatus: '+',
-            theirsStatus: '+'
+            oursStatus: 'added',
+            theirsStatus: 'added'
           },
           {
             path: 'modified-on-both-ours.txt',
             fileStatus: 'modified',
-            oursStatus: '*',
-            theirsStatus: '*'
+            oursStatus: 'modified',
+            theirsStatus: 'modified'
           },
           {
             path: 'modified-on-both-theirs.txt',
             fileStatus: 'modified',
-            oursStatus: '*',
-            theirsStatus: '*'
+            oursStatus: 'modified',
+            theirsStatus: 'modified'
           },
           {
             path: 'removed-on-branch.txt',
             fileStatus: 'equivalent',
-            oursStatus: '*',
-            theirsStatus: '-'
+            oursStatus: 'modified',
+            theirsStatus: 'removed'
           },
           {
             path: 'removed-on-master.txt',
             fileStatus: 'added',
-            oursStatus: '-',
-            theirsStatus: '*'
+            oursStatus: 'removed',
+            theirsStatus: 'modified'
           }
         ]
 
@@ -480,7 +480,8 @@ describe('Repository', function () {
         assertDeepPropertyVals(mergeConflicts, expected)
       })
 
-      it('reuses the same MergeConflict objects if they are equivalent', async () => {
+      // TODO: ignore as we are pulling selection state logic into components
+      xit('reuses the same MergeConflict objects if they are equivalent', async () => {
         const workingDirPath = copyRepositoryDir('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         const mergeConflicts1 = await repo.refreshMergeConflicts()
