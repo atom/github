@@ -83,7 +83,7 @@ describe('GitPanelController', () => {
       await commitView.commit()
       await controller.lastModelDataRefreshPromise
 
-      assert.equal((await repository.getLastCommit()).message(), 'Make it so')
+      assert.equal((await repository.getLastCommit()).message, 'Make it so')
     })
 
     xit('can stage merge conflict files', async () => {

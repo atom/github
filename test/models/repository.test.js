@@ -285,73 +285,59 @@ describe('Repository', function () {
     it('creates a commit that contains the staged changes', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
-      assert.equal((await repo.getLastCommit()).message(), 'Initial commit\n')
+      assert.equal((await repo.getLastCommit()).message, 'Initial commit')
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
+      const [unstagedPatch1] = await repo.getUnstagedChanges()
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
-      await repo.refreshUnstagedChanges()
+      await repo.refresh()
       await repo.applyPatchToIndex(unstagedPatch1)
       await repo.commit('Commit 1')
-      assert.equal((await repo.getLastCommit()).message(), 'Commit 1')
-      assertDeepPropertyVals(await repo.getStagedChanges(), [])
+      assert.equal((await repo.getLastCommit()).message, 'Commit 1')
+      await repo.refresh()
+      assert.deepEqual(await repo.getStagedChanges(), [])
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
       await repo.applyPatchToIndex(unstagedChanges[0])
       await repo.commit('Commit 2')
-      assert.equal((await repo.getLastCommit()).message(), 'Commit 2')
+      assert.equal((await repo.getLastCommit()).message, 'Commit 2')
+      await repo.refresh()
       assert.deepEqual(await repo.getStagedChanges(), [])
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
 
-    it('creates a merge commit when a merge is in progress', async () => {
-      const workingDirPath = copyRepositoryDir('in-progress-merge')
-      const repository = await buildRepository(workingDirPath)
-      const mergeBase = await repository.getLastCommit()
-      const mergeHead = await repository.getMergeHead()
-      await repository.commit('Merge Commit')
-      const commit = await repository.getLastCommit()
-      assert.equal(commit.message(), 'Merge Commit')
-      assert.equal(commit.parents()[0].toString(), mergeBase.toString())
-      assert.equal(commit.parents()[1].toString(), mergeHead.toString())
-      assert.equal(await repository.isMerging(), false)
-      assert.isNull(await repository.getMergeMessage())
-      assert.deepEqual(await repository.getStagedChanges(), [])
-      assert.deepEqual(await repository.getUnstagedChanges(), [])
-    })
-
-    xit('throws an error when committing a merge that has conflicts', async () => {
+    it('throws an error when there are unmerged files', async () => {
       const workingDirPath = copyRepositoryDir('merge-conflict')
       const repository = await buildRepository(workingDirPath)
+      assert.equal(await repository.isMerging(), true)
       const mergeBase = await repository.getLastCommit()
       try {
         await repository.commit('Merge Commit')
         assert(false, 'Repository.commit should have thrown an exception!')
       } catch (e) {
-        assert.equal(e.code, 'ECONFLICT')
+        assert.isAbove(e.code, 0)
+        assert.match(e.command, /^git commit/)
       }
-      assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
       assert.equal(await repository.isMerging(), true)
-      assert.equal((await repository.getStagedChanges()).length, 0)
-      assert.equal((await repository.getUnstagedChanges()).length, 0)
+      assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
     })
 
     it('strips out comments', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
+
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      await repo.stageFile(path.join('subdir-1', 'a.txt'))
       await repo.commit([
-        "Merge branch 'branch'",
+        'Make a commit',
         '',
-        '# Conflicts:',
-        '#	added-to-both.txt',
-        '#	modified-on-both-ours.txt',
-        '#	modified-on-both-theirs.txt',
-        '#	removed-on-branch.txt',
-        '#	removed-on-master.txt'
+        '# Comments:',
+        '#	blah blah blah',
+        '#	other stuff'
       ].join('\n'))
 
-      assert.deepEqual((await repo.getLastCommit()).message(), "Merge branch 'branch'")
+      assert.deepEqual((await repo.getLastCommit()).message, 'Make a commit')
     })
   })
 
@@ -363,10 +349,10 @@ describe('Repository', function () {
 
       await createEmptyCommit(remoteRepoPath, 'new remote commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
 
       await localRepo.pull('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
     })
   })
 
@@ -381,10 +367,10 @@ describe('Repository', function () {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
+      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
 
       await localRepo.push('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message())
+      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message + '\n')
     })
   })
 
@@ -402,7 +388,7 @@ describe('Repository', function () {
       await localRepo.applyPatchToIndex(unstagedFilePatch)
       await localRepo.commit('new local commit')
 
-      assert.equal((await localRepo.getLastCommit()).message(), 'new local commit')
+      assert.equal((await localRepo.getLastCommit()).message, 'new local commit')
 
       let {ahead, behind} = await localRepo.getAheadBehindCount('master')
       assert.equal(behind, 0)
