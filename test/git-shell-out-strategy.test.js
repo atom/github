@@ -234,7 +234,6 @@ describe('Git commands', () => {
       const git = new GitShellOutStrategy(workingDirPath)
       try {
         await git.exec(['merge', 'origin/branch'])
-        assert.fail('expect merge to fail')
       } catch (e) {
         // expected
       }

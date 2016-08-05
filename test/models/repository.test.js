@@ -281,7 +281,6 @@ describe('Repository', function () {
       const repository = await buildRepository(workingDirPath)
       try {
         await repository.git.exec(['merge', 'origin/branch'])
-        assert.fail('expect merge to fail')
       } catch (e) {
         // expected
       }
@@ -291,7 +290,6 @@ describe('Repository', function () {
 
       try {
         await repository.commit('Merge Commit')
-        assert.fail('expect merge commit to fail')
       } catch (e) {
         assert.isAbove(e.code, 0)
         assert.match(e.command, /^git commit/)
@@ -402,7 +400,6 @@ describe('Repository', function () {
         const repo = await buildRepository(workingDirPath)
         try {
           await repo.git.exec(['merge', 'origin/branch'])
-          assert.fail('expect merge to fail')
         } catch (e) {
           // expected
         }
@@ -483,7 +480,6 @@ describe('Repository', function () {
         const repo = await buildRepository(workingDirPath)
         try {
           await repo.git.exec(['merge', 'origin/branch'])
-          assert.fail('expect merge to fail')
         } catch (e) {
           // expected
         }
@@ -532,7 +528,6 @@ describe('Repository', function () {
         const repo = await buildRepository(workingDirPath)
         try {
           await repo.git.exec(['merge', 'origin/branch'])
-          assert.fail('expect merge to fail')
         } catch (e) {
           // expected
         }
@@ -574,7 +569,6 @@ describe('Repository', function () {
           const repo = await buildRepository(workingDirPath)
           try {
             await repo.git.exec(['merge', 'origin/spanish'])
-            assert.fail('expected merge to fail')
           } catch (e) {
             // expected
           }
@@ -586,13 +580,12 @@ describe('Repository', function () {
         })
       })
 
-      describe('when a dirty file in the working directory is NOT in the staging area', () => {
-        it('throws an error indicating that the abort could not be completed', async () => {
+      describe('when a dirty file in the working directory is NOT under conflict', () => {
+        it('successfully aborts the merge and does not affect the dirty file', async () => {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
             await repo.git.exec(['merge', 'origin/spanish'])
-            assert.fail('expect merge to fail')
           } catch (e) {
             // expected
           }
@@ -610,13 +603,12 @@ describe('Repository', function () {
         })
       })
 
-      describe('when a dirty file in the working directory is in the staging area', () => {
+      describe('when a dirty file in the working directory is under conflict', () => {
         it('throws an error indicating that the abort could not be completed', async () => {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
             await repo.git.exec(['merge', 'origin/spanish'])
-            assert.fail('expect merge to fail')
           } catch (e) {
             // expected
           }
@@ -631,8 +623,7 @@ describe('Repository', function () {
             await repo.abortMerge()
             assert(false)
           } catch (e) {
-            assert.equal(e.code, 'EDIRTYSTAGED')
-            assert.equal(e.path, 'animal.txt')
+            assert.match(e.command, /^git merge --abort/)
           }
           assert.equal(await repo.isMerging(), true)
           assert.equal(await repo.hasMergeConflict(), true)

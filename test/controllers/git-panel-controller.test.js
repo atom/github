@@ -92,7 +92,6 @@ describe('GitPanelController', () => {
 
       try {
         await repository.git.exec(['merge', 'origin/branch'])
-        assert.fail('expect merge to fail')
       } catch (e) {
         // expected
       }
