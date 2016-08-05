@@ -146,7 +146,7 @@ describe('GithubPackage', () => {
   })
 
   describe('didSelectMergeConflictFile(filePath)', () => {
-    xit('opens the file as a pane item if it exsits', async () => {
+    it('opens the file as a pane item if it exsits', async () => {
       const workdirPath = copyRepositoryDir('merge-conflict')
       const repository = await buildRepository(workdirPath)
       githubPackage.getActiveRepository = function () { return repository }
@@ -155,7 +155,7 @@ describe('GithubPackage', () => {
     })
 
     describe('when the file doesn\'t exist', () => {
-      xit('shows an info notification and does not open the file', async () => {
+      it('shows an info notification and does not open the file', async () => {
         const workdirPath = copyRepositoryDir('merge-conflict')
         const repository = await buildRepository(workdirPath)
         githubPackage.getActiveRepository = function () { return repository }

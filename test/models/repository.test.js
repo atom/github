@@ -129,7 +129,7 @@ describe('Repository', function () {
       ])
     })
 
-    // TODO: [KU] fix after renames are removed
+    // TODO: remove after extracting selection state logic to components
     xit('reuses the same FilePatch objects if they are equivalent', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)

@@ -20,7 +20,7 @@ describe('FilePatch', () => {
   })
 
   describe('update(filePatch)', () => {
-    // TODO: remove once we get rid of referential identity
+    // TODO: remove once we extract selection state logic to components
     xit('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
