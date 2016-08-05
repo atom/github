@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import FilePatch from '../../lib/models/file-patch'
 import FilePatchController from '../../lib/controllers/file-patch-controller'
 import Hunk from '../../lib/models/hunk'
@@ -52,7 +52,7 @@ describe('FilePatchController', () => {
 
   describe('integration tests', () => {
     it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async () => {
-      const workdirPath = await copyRepositoryDir('multi-line-file')
+      const workdirPath = await cloneRepository('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')
@@ -90,7 +90,7 @@ describe('FilePatchController', () => {
 
     // TODO: fix after extracting selection state logic to components
     xit('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
-      const workdirPath = await copyRepositoryDir('multi-line-file')
+      const workdirPath = await cloneRepository('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
       const originalLines = fs.readFileSync(filePath, 'utf8').split('\n')

@@ -5,7 +5,7 @@ import path from 'path'
 import temp from 'temp'
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer'
 
@@ -13,9 +13,9 @@ describe('FileSystemChangeObserver', async () => {
   it('emits an event when the currently active directory changes', async function () {
     this.timeout(5000) // increase the timeout because we're interacting with file system events.
 
-    const workdirPath1 = copyRepositoryDir('three-files')
+    const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = copyRepositoryDir('three-files')
+    const workdirPath2 = await cloneRepository('three-files')
     const repository2 = await buildRepository(workdirPath2)
     const changeSpy = sinon.spy()
     const changeObserver = new FileSystemChangeObserver()

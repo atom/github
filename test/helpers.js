@@ -5,14 +5,25 @@ import path from 'path'
 import temp from 'temp'
 import {Directory} from 'atom'
 import Git from 'nodegit'
+import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
 
-export function copyRepositoryDir (repoName = 1) {
+export async function cloneRepository (repoName = 'three-files') {
   const workingDirPath = temp.mkdirSync('git-fixture-')
-  fs.copySync(path.join(__dirname, 'fixtures', `repo-${repoName}`), workingDirPath)
-  fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'))
+  const git = new GitShellOutStrategy(workingDirPath)
+  await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
   return fs.realpathSync(workingDirPath)
+}
+
+export async function createLocalAndRemoteRepositories (repoName = 'three-files') {
+  const remoteRepoPath = temp.mkdirSync('git-remote-fixture-')
+  const remoteGit = new GitShellOutStrategy(remoteRepoPath)
+  await remoteGit.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {bare: true})
+  const localRepoPath = temp.mkdirSync('git-local-fixture-')
+  const localGit = new GitShellOutStrategy(localRepoPath)
+  await localGit.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+  return {remoteRepoPath, localRepoPath}
 }
 
 export function buildRepository (workingDirPath) {
@@ -34,21 +45,6 @@ export function assertDeepPropertyVals (actual, expected) {
   }
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
-}
-
-export async function cloneRepository () {
-  const baseRepo = copyRepositoryDir('three-files')
-  const cloneOptions = new Git.CloneOptions()
-  cloneOptions.bare = 1
-  cloneOptions.local = 1
-
-  const remoteRepoPath = temp.mkdirSync('git-remote-fixture-')
-  await Git.Clone.clone(baseRepo, remoteRepoPath, cloneOptions)
-
-  const localRepoPath = temp.mkdirSync('git-cloned-fixture-')
-  cloneOptions.bare = 0
-  await Git.Clone.clone(remoteRepoPath, localRepoPath, cloneOptions)
-  return {remoteRepoPath, localRepoPath}
 }
 
 export async function createEmptyCommit (repoPath, message) {

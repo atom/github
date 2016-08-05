@@ -1,6 +1,6 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository, cloneRepository, createEmptyCommit} from '../helpers'
+import {cloneRepository, buildRepository, createLocalAndRemoteRepositories, createEmptyCommit} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'

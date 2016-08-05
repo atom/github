@@ -3,7 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 import temp from 'temp'
-import {copyRepositoryDir, buildRepository} from './helpers'
+import {cloneRepository, buildRepository} from './helpers'
 import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
 
@@ -26,8 +26,8 @@ describe('GithubPackage', () => {
 
   describe('activate', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir('three-files')
-      const workdirPath2 = copyRepositoryDir('three-files')
+      const workdirPath1 = await cloneRepository('three-files')
+      const workdirPath2 = await cloneRepository('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
       fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8')
@@ -42,8 +42,8 @@ describe('GithubPackage', () => {
 
   describe('didChangeProjectPaths', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir('three-files')
-      const workdirPath2 = copyRepositoryDir('three-files')
+      const workdirPath1 = await cloneRepository('three-files')
+      const workdirPath2 = await cloneRepository('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
 
@@ -61,9 +61,9 @@ describe('GithubPackage', () => {
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
-      const workdirPath1 = copyRepositoryDir('three-files')
-      const workdirPath2 = copyRepositoryDir('three-files')
-      const workdirPath3 = copyRepositoryDir('three-files')
+      const workdirPath1 = await cloneRepository('three-files')
+      const workdirPath2 = await cloneRepository('three-files')
+      const workdirPath3 = await cloneRepository('three-files')
       project.setPaths([workdirPath1, workdirPath2, workdirPath3])
 
       const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1)
@@ -85,8 +85,8 @@ describe('GithubPackage', () => {
 
   describe('didChangeActivePaneItem', () => {
     it('updates the active repository', async () => {
-      const workdirPath1 = copyRepositoryDir('three-files')
-      const workdirPath2 = copyRepositoryDir('three-files')
+      const workdirPath1 = await cloneRepository('three-files')
+      const workdirPath2 = await cloneRepository('three-files')
       project.setPaths([workdirPath1, workdirPath2])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'change 2', 'utf8')
@@ -107,8 +107,8 @@ describe('GithubPackage', () => {
 
   describe('updateActiveRepository', () => {
     it('updates the active repository based on the most recent active item with a path unless its directory has been removed from the project', async () => {
-      const workdirPath1 = copyRepositoryDir('three-files')
-      const workdirPath2 = copyRepositoryDir('three-files')
+      const workdirPath1 = await cloneRepository('three-files')
+      const workdirPath2 = await cloneRepository('three-files')
       const nonRepositoryPath = temp.mkdirSync()
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'))
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath])
@@ -147,7 +147,7 @@ describe('GithubPackage', () => {
 
   describe('didSelectMergeConflictFile(filePath)', () => {
     it('opens the file as a pane item if it exsits', async () => {
-      const workdirPath = copyRepositoryDir('merge-conflict')
+      const workdirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workdirPath)
       githubPackage.getActiveRepository = function () { return repository }
       await githubPackage.gitPanelController.props.didSelectMergeConflictFile('added-to-both.txt')
@@ -156,7 +156,7 @@ describe('GithubPackage', () => {
 
     describe('when the file doesn\'t exist', () => {
       it('shows an info notification and does not open the file', async () => {
-        const workdirPath = copyRepositoryDir('merge-conflict')
+        const workdirPath = await cloneRepository('merge-conflict')
         const repository = await buildRepository(workdirPath)
         githubPackage.getActiveRepository = function () { return repository }
         fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'))
@@ -171,7 +171,7 @@ describe('GithubPackage', () => {
 
   describe('when a FilePatch is selected in the staging panel', () => {
     it('shows a FilePatchView for the selected patch as a pane item', async () => {
-      const workdirPath = copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
 
       githubPackage.getActiveRepository = function () { return repository }
@@ -213,7 +213,7 @@ describe('GithubPackage', () => {
 
   describe('when the changed files label in the status bar is clicked', () => {
     it('shows/hides the git panel', async () => {
-      const workdirPath = copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
 
@@ -231,7 +231,7 @@ describe('GithubPackage', () => {
   describe('when the git:toggle-git-panel command is dispatched', () => {
     it('shows/hides the git panel', async () => {
       const workspaceElement = viewRegistry.getView(workspace)
-      const workdirPath = copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.activate()

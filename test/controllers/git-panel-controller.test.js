@@ -5,7 +5,7 @@ import path from 'path'
 
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import GitPanelController from '../../lib/controllers/git-panel-controller'
 
 describe('GitPanelController', () => {
@@ -23,9 +23,9 @@ describe('GitPanelController', () => {
   })
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
-    const workdirPath1 = await copyRepositoryDir('three-files')
+    const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = await copyRepositoryDir('three-files')
+    const workdirPath2 = await cloneRepository('three-files')
     const repository2 = await buildRepository(workdirPath2)
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'))
@@ -57,7 +57,7 @@ describe('GitPanelController', () => {
 
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -87,8 +87,15 @@ describe('GitPanelController', () => {
     })
 
     it('can stage merge conflict files', async () => {
-      const workdirPath = await copyRepositoryDir('merge-conflict')
+      const workdirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workdirPath)
+
+      try {
+        await repository.git.exec(['merge', 'origin/branch'])
+        assert.fail('expect merge to fail')
+      } catch (e) {
+        // expected
+      }
 
       const controller = new GitPanelController({workspace, commandRegistry, repository: repository})
       await controller.lastModelDataRefreshPromise

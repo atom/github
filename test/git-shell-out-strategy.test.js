@@ -5,7 +5,7 @@ import path from 'path'
 
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
-import {copyRepositoryDir, assertDeepPropertyVals} from './helpers'
+import {cloneRepository, assertDeepPropertyVals} from './helpers'
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -16,7 +16,7 @@ import {copyRepositoryDir, assertDeepPropertyVals} from './helpers'
 describe('Git commands', () => {
   describe('exec', () => {
     it('serializes operations', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       let expectedEvents = []
       let actualEvents = []
@@ -31,7 +31,7 @@ describe('Git commands', () => {
     })
 
     it('runs operations after one fails', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       let expectedEvents = []
       let actualEvents = []
@@ -52,7 +52,7 @@ describe('Git commands', () => {
 
   describe('diffFileStatus', () => {
     it('returns an object with working directory file diff status between relative to HEAD', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
@@ -69,7 +69,7 @@ describe('Git commands', () => {
     })
 
     it('returns an empty object if there are no added, modified, or removed files', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
       assert.deepEqual(diffOutput, {})
@@ -78,7 +78,7 @@ describe('Git commands', () => {
 
   describe('getUntrackedFiles', () => {
     it('returns an array of untracked file paths', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8')
@@ -89,7 +89,7 @@ describe('Git commands', () => {
 
   describe('diff', () => {
     it('returns an empty array if there are no modified, added, or deleted files', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
 
       const diffOutput = await git.diff()
@@ -97,7 +97,7 @@ describe('Git commands', () => {
     })
 
     it('returns an array of objects for each file patch', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
+      const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
 
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
@@ -221,7 +221,7 @@ describe('Git commands', () => {
     })
 
     it('ignores merge conflict files', async () => {
-      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
       const diffOutput = await git.diff()
       assert.deepEqual(diffOutput, [])
@@ -230,8 +230,14 @@ describe('Git commands', () => {
 
   describe('getMergeConflictFileStatus', () => {
     it('returns an object with ours/theirs/file status by path', async () => {
-      const workingDirPath = copyRepositoryDir('merge-conflict')
+      const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
+      try {
+        await git.exec(['merge', 'origin/branch'])
+        assert.fail('expect merge to fail')
+      } catch (e) {
+        // expected
+      }
 
       const statusesByPath = await git.getMergeConflictFileStatus()
       assert.deepEqual(statusesByPath, {

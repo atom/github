@@ -5,7 +5,7 @@ import path from 'path'
 import temp from 'temp'
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer'
 
@@ -33,7 +33,7 @@ describe('WorkspaceChangeObserver', () => {
     window.dispatchEvent(new FocusEvent('focus'))
     assert.isFalse(changeSpy.called)
 
-    const workdirPath = copyRepositoryDir('three-files')
+    const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
     await changeObserver.setActiveRepository(repository)
     window.dispatchEvent(new FocusEvent('focus'))
@@ -45,9 +45,9 @@ describe('WorkspaceChangeObserver', () => {
     const changeObserver = new WorkspaceChangeObserver(window, workspace)
     changeObserver.onDidChange(changeSpy)
     await changeObserver.start()
-    const workdirPath1 = copyRepositoryDir('three-files')
+    const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = copyRepositoryDir('three-files')
+    const workdirPath2 = await cloneRepository('three-files')
     const repository2 = await buildRepository(workdirPath2)
 
     const editor1 = await workspace.open(path.join(workdirPath1, 'a.txt'))

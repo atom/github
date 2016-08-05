@@ -1,6 +1,6 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'
@@ -18,7 +18,7 @@ const getSelectedItemForUnstagedList = (view) => {
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -40,7 +40,7 @@ describe('StagingView', () => {
     // TODO: [KU] fix after shell out refactor, after getting rid of renames
     xdescribe('confirmSelectedItem()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
-        const workdirPath = await copyRepositoryDir('three-files')
+        const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -64,7 +64,7 @@ describe('StagingView', () => {
 
   describe('merge conflicts list', () => {
     it('is visible only when conflicted paths are passed', async () => {
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       const view = new StagingView({repository, stagedChanges: [], unstagedChanges: []})
 
@@ -84,7 +84,7 @@ describe('StagingView', () => {
   describe('selectList()', () => {
     describe('when lists are not empty', () => {
       it('focuses lists accordingly', async () => {
-        const workdirPath = await copyRepositoryDir('three-files')
+        const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -113,7 +113,7 @@ describe('StagingView', () => {
 
     describe('when list is empty', () => {
       it('doesn\'t select list', async () => {
-        const workdirPath = await copyRepositoryDir('three-files')
+        const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         const filePatches = await repository.getUnstagedChanges()
@@ -132,7 +132,7 @@ describe('StagingView', () => {
 
   describe('focusNextList()', () => {
     it('focuses lists accordingly', async () => {
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -171,7 +171,7 @@ describe('StagingView', () => {
     describe('core:move-up and core:move-down', () => {
       let view, unstagedFilePatches, stagedFilePatches
       beforeEach(async () => {
-        const workdirPath = await copyRepositoryDir('three-files')
+        const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -269,7 +269,7 @@ describe('StagingView', () => {
     it('calls didSelectFilePatch when file is selected', async () => {
       const didSelectFilePatch = sinon.spy()
 
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       const [filePatch] = await repository.getUnstagedChanges()

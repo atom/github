@@ -1,6 +1,6 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import etch from 'etch'
@@ -96,7 +96,7 @@ describe('CommitView', () => {
   })
 
   it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
-    const workdirPath = await copyRepositoryDir('three-files')
+    const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
     const commit = sinon.spy()
     const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, commit})
