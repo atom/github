@@ -170,7 +170,7 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('applyPatchToIndex', () => {
+  describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
@@ -210,14 +210,17 @@ describe('Repository', function () {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
-      const [renamePatch] = await repo.getUnstagedChanges()
+      const unstagedChanges = await repo.getUnstagedChanges()
 
-      await repo.applyPatchToIndex(renamePatch)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [renamePatch])
+      await repo.applyPatchToIndex(unstagedChanges[0])
+      await repo.applyPatchToIndex(unstagedChanges[1])
+      const stagedChanges = await repo.refreshStagedChanges()
+      assertDeepPropertyVals(stagedChanges, unstagedChanges)
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.applyPatchToIndex(renamePatch.getUnstagePatch())
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [renamePatch])
+      await repo.applyPatchToIndex(unstagedChanges[0].getUnstagePatch())
+      await repo.applyPatchToIndex(unstagedChanges[1].getUnstagePatch())
+      assertDeepPropertyVals(await repo.getUnstagedChanges(), unstagedChanges)
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
 
@@ -250,7 +253,8 @@ describe('Repository', function () {
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
     })
 
-    it('emits update events on file patches that change as a result of staging', async () => {
+    // TODO: remove after selection state logic has moved to components
+    xit('emits update events on file patches that change as a result of staging', async () => {
       const workdirPath = await copyRepositoryDir('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
@@ -268,7 +272,7 @@ describe('Repository', function () {
       unstagedFilePatch.onDidUpdate(unstagedListener)
 
       await repository.applyPatchToIndex(unstagedFilePatch.getStagePatchForHunk(unstagedFilePatch.getHunks()[1]))
-      assert(unstagedListener.callCount, 1)
+      assert.equal(unstagedListener.callCount, 1)
 
       const [stagedFilePatch] = await repository.getStagedChanges()
       const stagedListener = sinon.spy()
