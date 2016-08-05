@@ -151,12 +151,12 @@ describe('Repository', function () {
       assert.notEqual(unstagedFilePatches1[2], unstagedFilePatches2[2])
       assert(unstagedFilePatches1[3].isDestroyed())
 
-      await repo.stageFile(unstagedFilePatches2[0].getDescriptionPath())
-      await repo.stageFile(unstagedFilePatches2[1].getDescriptionPath())
-      await repo.stageFile(unstagedFilePatches2[2].getDescriptionPath())
+      await repo.stageFile(unstagedFilePatches2[0].getPath())
+      await repo.stageFile(unstagedFilePatches2[1].getPath())
+      await repo.stageFile(unstagedFilePatches2[2].getPath())
       const stagedFilePatches1 = await repo.refreshStagedChanges()
 
-      await repo.stageFile(stagedFilePatches1[2].getUnstagePatch().getDescriptionPath())
+      await repo.stageFile(stagedFilePatches1[2].getUnstagePatch().getPath())
       const stagedFilePatches2 = await repo.refreshStagedChanges()
       const unstagedFilePatches3 = await repo.refreshUnstagedChanges()
 
@@ -170,16 +170,85 @@ describe('Repository', function () {
     })
   })
 
+  describe('staging and unstaging files', () => {
+    it('can stage and unstage modified files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      const [patch] = await repo.getUnstagedChanges()
+      const filePath = patch.getPath()
+
+      await repo.stageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+      assert.deepEqual(await repo.getStagedChanges(), [patch])
+
+      await repo.unstageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [patch])
+      assert.deepEqual(await repo.getStagedChanges(), [])
+    })
+
+    it('can stage and unstage removed files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repo = await buildRepository(workingDirPath)
+      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
+      const [patch] = await repo.getUnstagedChanges()
+      const filePath = patch.getPath()
+
+      await repo.stageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+      assert.deepEqual(await repo.getStagedChanges(), [patch])
+
+      await repo.unstageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [patch])
+      assert.deepEqual(await repo.getStagedChanges(), [])
+    })
+
+    it('can stage and unstage renamed files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const repo = await buildRepository(workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
+      const patches = await repo.getUnstagedChanges()
+      const filePath1 = patches[0].getPath()
+      const filePath2 = patches[1].getPath()
+
+      await repo.stageFile(filePath1)
+      await repo.stageFile(filePath2)
+      assert.deepEqual(await repo.refreshStagedChanges(), patches)
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+
+      await repo.unstageFile(filePath1)
+      await repo.unstageFile(filePath2)
+      assert.deepEqual(await repo.getUnstagedChanges(), patches)
+      assert.deepEqual(await repo.getStagedChanges(), [])
+    })
+
+    it('can stage and unstage added files', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
+      const repo = await buildRepository(workingDirPath)
+      const [patch] = await repo.getUnstagedChanges()
+      const filePath = patch.getPath()
+
+      await repo.stageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [])
+      assert.deepEqual(await repo.getStagedChanges(), [patch])
+
+      await repo.unstageFile(filePath)
+      assert.deepEqual(await repo.getUnstagedChanges(), [patch])
+      assert.deepEqual(await repo.getStagedChanges(), [])
+    })
+  })
+
   describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
+      const [unstagedPatch1] = await repo.getUnstagedChanges()
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refreshUnstagedChanges()
-      const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
+      const [unstagedPatch2] = await repo.getUnstagedChanges()
 
       await repo.applyPatchToIndex(unstagedPatch1)
       assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedPatch1])
@@ -189,68 +258,6 @@ describe('Repository', function () {
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch())
       assert.deepEqual(await repo.getStagedChanges(), [])
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedPatch2])
-    })
-
-    it('can stage and unstage removed files', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
-      const repo = await buildRepository(workingDirPath)
-      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'))
-      const [removePatch] = await repo.getUnstagedChanges()
-
-      await repo.applyPatchToIndex(removePatch)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [removePatch])
-      assert.deepEqual(await repo.getUnstagedChanges(), [])
-
-      await repo.applyPatchToIndex(removePatch.getUnstagePatch())
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [removePatch])
-      assert.deepEqual(await repo.getStagedChanges(), [])
-    })
-
-    it('can stage and unstage renamed files', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
-      const repo = await buildRepository(workingDirPath)
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'))
-      const unstagedChanges = await repo.getUnstagedChanges()
-
-      await repo.applyPatchToIndex(unstagedChanges[0])
-      await repo.applyPatchToIndex(unstagedChanges[1])
-      const stagedChanges = await repo.refreshStagedChanges()
-      assertDeepPropertyVals(stagedChanges, unstagedChanges)
-      assert.deepEqual(await repo.getUnstagedChanges(), [])
-
-      await repo.applyPatchToIndex(unstagedChanges[0].getUnstagePatch())
-      await repo.applyPatchToIndex(unstagedChanges[1].getUnstagePatch())
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), unstagedChanges)
-      assert.deepEqual(await repo.getStagedChanges(), [])
-    })
-
-    it('can stage and unstage added files', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8')
-      const repo = await buildRepository(workingDirPath)
-      const [addedPatch] = await repo.getUnstagedChanges()
-
-      await repo.applyPatchToIndex(addedPatch)
-      assertDeepPropertyVals(await repo.getStagedChanges(), [addedPatch])
-      assert.deepEqual(await repo.getUnstagedChanges(), [])
-
-      await repo.applyPatchToIndex(addedPatch.getUnstagePatch())
-      assert.deepEqual(await repo.getStagedChanges(), [])
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
-    })
-
-    it('can stage and unstage changes when the repository has no HEAD commit', async () => {
-      const workingDirPath = copyRepositoryDir('no-head-commit')
-
-      const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\n', 'utf8')
-      const [addedPatchToStage] = await repo.getUnstagedChanges()
-      await repo.applyPatchToIndex(addedPatchToStage)
-      const [addedPatch] = await repo.getStagedChanges()
-
-      await repo.applyPatchToIndex(addedPatch.getUnstagePatch())
-      assert.deepEqual(await repo.getStagedChanges(), [])
-      assertDeepPropertyVals(await repo.getUnstagedChanges(), [addedPatch])
     })
 
     // TODO: remove after selection state logic has moved to components
@@ -506,37 +513,37 @@ describe('Repository', function () {
         assert.deepEqual(mergeConflictPaths, ['added-to-both.txt', 'modified-on-both-ours.txt', 'modified-on-both-theirs.txt', 'removed-on-branch.txt', 'removed-on-master.txt'])
 
         let stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), [])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), [])
 
         await repo.stageFile('added-to-both.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), ['added-to-both.txt'])
 
         // choose version of the file on head
         fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8')
         await repo.stageFile('modified-on-both-ours.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
         // nothing additional to stage
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), ['added-to-both.txt'])
 
         // choose version of the file on branch
         fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8')
         await repo.stageFile('modified-on-both-ours.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), ['added-to-both.txt', 'modified-on-both-ours.txt'])
 
         // remove file that was deleted on branch
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
         await repo.stageFile('removed-on-branch.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
 
         // remove file that was deleted on master
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-master.txt'))
         await repo.stageFile('removed-on-master.txt')
         stagedFilePatches = await repo.refreshStagedChanges()
         // nothing additional to stage
-        assert.deepEqual(stagedFilePatches.map(patch => patch.getDescriptionPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
+        assert.deepEqual(stagedFilePatches.map(patch => patch.getPath()), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
       })
     })
 

@@ -12,7 +12,6 @@ import HunkLine from '../../lib/models/hunk-line'
 describe('FilePatch', () => {
   describe('getId()', () => {
     it('returns a logical identifier for the FilePatch', () => {
-      assert.equal(new FilePatch('a.txt', 'b.txt', 'renamed').getId(), 'a/a.txt b/b.txt')
       assert.equal(new FilePatch('a.txt', 'a.txt', 'modified').getId(), 'a/a.txt b/a.txt')
       assert.equal(new FilePatch(null, 'a.txt', 'added').getId(), 'a/null b/a.txt')
       assert.equal(new FilePatch('a.txt', null, 'removed').getId(), 'a/a.txt b/null')
