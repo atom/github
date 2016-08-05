@@ -14,6 +14,42 @@ import {copyRepositoryDir, assertDeepPropertyVals} from './helpers'
  */
 
 describe('Git commands', () => {
+  describe('exec', () => {
+    it('serializes operations', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      let expectedEvents = []
+      let actualEvents = []
+      let promises = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        promises.push(git.diff().then(() => actualEvents.push(i)))
+      }
+
+      await Promise.all(promises)
+      assert.deepEqual(expectedEvents, actualEvents)
+    })
+
+    it('runs operations after one fails', async () => {
+      const workingDirPath = copyRepositoryDir('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      let expectedEvents = []
+      let actualEvents = []
+      let promises = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        if (i === 5) {
+          promises.push(git.exec(['fake', 'command']).catch(() => actualEvents.push(i)))
+        } else {
+          promises.push(git.exec(['status']).then(() => actualEvents.push(i)))
+        }
+      }
+
+      await Promise.all(promises)
+      assert.deepEqual(expectedEvents, actualEvents)
+    })
+  })
+
   describe('diffFileStatus', () => {
     it('returns an object with working directory file diff status between relative to HEAD', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
