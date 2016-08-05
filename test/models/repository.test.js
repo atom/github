@@ -9,48 +9,6 @@ import Git from 'nodegit'
 import {copyRepositoryDir, buildRepository, assertDeepPropertyVals, cloneRepository, createEmptyCommit} from '../helpers'
 
 describe('Repository', function () {
-  describe('transact', function () {
-    it('serializes critical sections', async function () {
-      // TODO: think about profiling methods in Repository and GitShellOutStrategy
-      this.timeout(7000)
-      const workingDirPath = copyRepositoryDir('three-files')
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
-      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
-
-      const repo = await buildRepository(workingDirPath)
-
-      const transactionPromises = []
-      const actualEvents = []
-      const expectedEvents = []
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i)
-        transactionPromises.push(repo.transact(async function () {
-          await repo.refresh()
-          await new Promise(function (resolve) { window.setTimeout(resolve, Math.random() * 10) })
-          await repo.refresh()
-          actualEvents.push(i)
-        }))
-      }
-
-      await Promise.all(transactionPromises)
-
-      assert.deepEqual(actualEvents, expectedEvents)
-    })
-
-    it('allows to create a new transaction if the previous one throws an error', async () => {
-      const workingDirPath = copyRepositoryDir('three-files')
-      const repo = await buildRepository(workingDirPath)
-      let executed = false
-      try {
-        await repo.transact(async () => { throw new Error('An error!') })
-      } catch (e) { }
-      await repo.transact(async () => { executed = true })
-      assert(executed)
-    })
-  })
-
   describe('refreshing staged and unstaged changes', () => {
     it('returns a promise resolving to an array of FilePatch objects', async () => {
       const workingDirPath = copyRepositoryDir('three-files')
