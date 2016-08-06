@@ -268,4 +268,25 @@ describe('Git commands', () => {
       })
     })
   })
+
+  describe('isMerging', () => {
+    it('returns true if `.git/MERGE_HEAD` exists', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      let isMerging = await git.isMerging()
+      assert.isFalse(isMerging)
+
+      try {
+        await git.exec(['merge', 'origin/branch'])
+      } catch (e) {
+        // expect merge to have conflicts
+      }
+      isMerging = await git.isMerging()
+      assert.isTrue(isMerging)
+
+      fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'))
+      isMerging = await git.isMerging()
+      assert.isFalse(isMerging)
+    })
+  })
 })

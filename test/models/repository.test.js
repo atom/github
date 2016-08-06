@@ -573,10 +573,8 @@ describe('Repository', function () {
             // expected
           }
           assert.equal(await repo.isMerging(), true)
-          assert.equal(await repo.hasMergeConflict(), true)
           await repo.abortMerge()
           assert.equal(await repo.isMerging(), false)
-          assert.equal(await repo.hasMergeConflict(), false)
         })
       })
 
@@ -592,11 +590,9 @@ describe('Repository', function () {
 
           fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n')
           assert.equal(await repo.isMerging(), true)
-          assert.equal(await repo.hasMergeConflict(), true)
 
           await repo.abortMerge()
           assert.equal(await repo.isMerging(), false)
-          assert.equal(await repo.hasMergeConflict(), false)
           assert.equal((await repo.refreshStagedChanges()).length, 0)
           assert.equal((await repo.refreshUnstagedChanges()).length, 1)
           assert.equal(fs.readFileSync(path.join(workingDirPath, 'fruit.txt')), 'a change\n')
@@ -618,7 +614,6 @@ describe('Repository', function () {
           const unstagedChanges = await repo.refreshUnstagedChanges()
 
           assert.equal(await repo.isMerging(), true)
-          assert.equal(await repo.hasMergeConflict(), true)
           try {
             await repo.abortMerge()
             assert(false)
@@ -626,7 +621,6 @@ describe('Repository', function () {
             assert.match(e.command, /^git merge --abort/)
           }
           assert.equal(await repo.isMerging(), true)
-          assert.equal(await repo.hasMergeConflict(), true)
           assert.deepEqual(await repo.refreshStagedChanges(), stagedChanges)
           assert.deepEqual(await repo.refreshUnstagedChanges(), unstagedChanges)
         })
