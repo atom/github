@@ -37,27 +37,26 @@ describe('StagingView', () => {
       assert.deepEqual(unstagedChangesView.props.items, filePatches)
     })
 
-    // TODO: [KU] fix after shell out refactor, after getting rid of renames
-    xdescribe('confirmSelectedItem()', () => {
+    describe('confirmSelectedItem()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
         const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
         fs.unlinkSync(path.join(workdirPath, 'b.txt'))
         const filePatches = await repository.getUnstagedChanges()
-        const stageFilePatch = sinon.spy()
-        const unstageFilePatch = sinon.spy()
-        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches, stageFilePatch, unstageFilePatch})
+        const stageFile = sinon.spy()
+        const unstageFile = sinon.spy()
+        const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches, stageFile, unstageFile})
         const {stagedChangesView, unstagedChangesView} = view.refs
 
         unstagedChangesView.props.didSelectItem(filePatches[1])
         view.confirmSelectedItem()
-        assert.deepEqual(stageFilePatch.args[0], [filePatches[1]])
+        assert.isTrue(stageFile.calledWith('b.txt'))
 
-        await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFilePatch, unstageFilePatch})
+        await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFile, unstageFile})
         stagedChangesView.props.didSelectItem(filePatches[1])
         view.confirmSelectedItem()
-        assert.deepEqual(unstageFilePatch.args[0], [filePatches[1]])
+        assert.isTrue(unstageFile.calledWith('b.txt'))
       })
     })
   })
