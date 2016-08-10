@@ -3,6 +3,7 @@
 
 '.git-StagingView':
   'tab': 'git:focus-next-list'
+  'shift-tab': 'git:focus-previous-list'
 
 '.git-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'git:commit'
