@@ -167,9 +167,8 @@ describe('StagingView', () => {
   })
 
   describe('selecting files', () => {
-    describe('core:move-up and core:move-down', () => {
-      let view, unstagedFilePatches, stagedFilePatches
-      beforeEach(async () => {
+    describe('selectNextFilePatch() and selectPreviousFilePatch()', () => {
+      it('selects next/previous staged filePatch if there is one, crossing the boundary between the unstaged and staged files if necessary', async () => {
         const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
@@ -179,113 +178,99 @@ describe('StagingView', () => {
         fs.writeFileSync(path.join(workdirPath, 'e.txt'), 'new file 2\n')
         fs.writeFileSync(path.join(workdirPath, 'f.txt'), 'new file 3\n')
         const filePatches = await repository.getUnstagedChanges()
-        await repository.stageFile(filePatches[0].getPath())
-        await repository.stageFile(filePatches[1].getPath())
-        await repository.stageFile(filePatches[2].getPath())
-        stagedFilePatches = await repository.getStagedChanges()
-        unstagedFilePatches = await repository.getUnstagedChanges()
-        view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
-      })
+        await repository.applyPatchToIndex(filePatches[0])
+        await repository.applyPatchToIndex(filePatches[1])
+        await repository.applyPatchToIndex(filePatches[2])
+        const stagedFilePatches = await repository.getStagedChanges()
+        const unstagedFilePatches = await repository.getUnstagedChanges()
+        const view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
 
-      it('selects next/previous Staged filePatch if there is one', () => {
-        view.selectStagedFilePatch(stagedFilePatches[0])
-
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.equal(getSelectedItemForStagedList(view), stagedFilePatches[0])
-
-        atom.commands.dispatch(view.element, 'core:move-down')
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
-
-        atom.commands.dispatch(view.element, 'core:move-down')
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
-
-        atom.commands.dispatch(view.element, 'core:move-up')
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
-
-        atom.commands.dispatch(view.element, 'core:move-up')
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
-      })
-
-      it('selects next/previous Unstaged filePatch if there is one', () => {
-        view.selectUnstagedFilePatch(unstagedFilePatches[0])
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
 
-        atom.commands.dispatch(view.element, 'core:move-down')
+        view.selectPreviousFilePatch()
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
+
+        view.selectNextFilePatch()
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
 
-        atom.commands.dispatch(view.element, 'core:move-down')
+        view.selectNextFilePatch()
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
 
-        atom.commands.dispatch(view.element, 'core:move-up')
-        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
-
-        atom.commands.dispatch(view.element, 'core:move-up')
-        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
-      })
-
-      it('selects the last unstaged file when moving upward beyond the first staged file patch', () => {
-        const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
-        const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
-        view.selectStagedFilePatch(lastStagedFilePatch)
+        view.selectNextFilePatch()
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
 
-        atom.commands.dispatch(view.element, 'core:move-down')
+        view.selectNextFilePatch()
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), lastStagedFilePatch)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
 
-        const firstStagedFilePatch = stagedFilePatches[0]
-        view.selectStagedFilePatch(firstStagedFilePatch)
+        view.selectNextFilePatch()
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
 
-        atom.commands.dispatch(view.element, 'core:move-up')
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
-      })
-
-      it('selects the first staged file patch when moving downward from the last unstaged file patch', () => {
-        const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
-        const firstStagedFilePatch = stagedFilePatches[0]
-        view.selectUnstagedFilePatch(lastUnstagedFilePatch)
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
-
-        atom.commands.dispatch(view.element, 'core:move-down')
+        view.selectNextFilePatch()
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
-        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
 
-        const firstUnstagedFilePatch = unstagedFilePatches[0]
-        view.selectStagedFilePatch(firstUnstagedFilePatch)
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
+        view.selectPreviousFilePatch()
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
 
-        atom.commands.dispatch(view.element, 'core:move-up')
+        view.selectPreviousFilePatch()
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
+
+        view.selectPreviousFilePatch()
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), firstUnstagedFilePatch)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
       })
     })
 
-    it('calls didSelectFilePatch when file is selected', async () => {
+    it('calls didSelectFilePatch when a file patch is selected via the mouse or keyboard', async () => {
       const didSelectFilePatch = sinon.spy()
 
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
-      const [filePatch] = await repository.getUnstagedChanges()
-      const view = new StagingView({repository, stagedChanges: [], unstagedChanges: [filePatch], didSelectFilePatch})
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+      fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
+      const filePatches = await repository.getUnstagedChanges()
+      await repository.applyPatchToIndex(filePatches[0])
+      await repository.applyPatchToIndex(filePatches[1])
+      const stagedChanges = await repository.getStagedChanges()
+      const unstagedChanges = await repository.getUnstagedChanges()
+
+      const view = new StagingView({repository, stagedChanges, unstagedChanges, didSelectFilePatch})
       const {stagedChangesView, unstagedChangesView} = view.refs
 
-      unstagedChangesView.props.didSelectItem(filePatch)
+      // selection via mouse in unstaged changes
+      unstagedChangesView.props.didSelectItem(unstagedChangesView.props.items[0])
       assert.equal(didSelectFilePatch.callCount, 1)
-      assert.deepEqual(didSelectFilePatch.args[0], [filePatch, 'unstaged'])
+      assert.deepEqual(didSelectFilePatch.args[0], [unstagedChangesView.props.items[0], 'unstaged'])
 
-      stagedChangesView.props.didSelectItem(filePatch)
+      // selection via mouse in staged changes
+      stagedChangesView.props.didSelectItem(stagedChangesView.props.items[0])
       assert.equal(didSelectFilePatch.callCount, 2)
-      assert.deepEqual(didSelectFilePatch.args[1], [filePatch, 'staged'])
+      assert.deepEqual(didSelectFilePatch.args[1], [stagedChangesView.props.items[0], 'staged'])
+
+      // select next via keyboard
+      await view.selectNextFilePatch()
+      assert.equal(didSelectFilePatch.callCount, 3)
+      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged'])
+
+      // select previous via keyboard
+      await view.selectPreviousFilePatch()
+      assert.equal(didSelectFilePatch.callCount, 4)
+      assert.deepEqual(didSelectFilePatch.args[3], [stagedChangesView.props.items[0], 'staged'])
+
+      // select previous via keyboard, cross boundary
+      await view.selectPreviousFilePatch()
+      assert.equal(didSelectFilePatch.callCount, 5)
+      assert.deepEqual(didSelectFilePatch.args[4], [unstagedChangesView.props.items[0], 'unstaged'])
     })
   })
 })
