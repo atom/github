@@ -126,7 +126,7 @@ describe('MultiList', () => {
       assert.equal(ml.getSelectedListIndex(), 0)
     })
 
-    it('stops at the beginning and end lists', () => {
+    it('stops at the beginning and end lists if the wrap option is falsey', () => {
       const ml = new MultiList([
         ['a', 'b', 'c'],
         ['d', 'e'],
@@ -142,6 +142,37 @@ describe('MultiList', () => {
 
       ml.selectNextList()
       assert.equal(ml.getSelectedListIndex(), 2)
+    })
+
+    it('wraps across beginning and end lists if the wrap option is set to true', () => {
+      const ml = new MultiList([
+        ['a', 'b', 'c'],
+        ['d', 'e'],
+        ['f', 'g', 'h']
+      ])
+      assert.equal(ml.getSelectedListIndex(), 0)
+
+      ml.selectPreviousList({wrap: true})
+      assert.equal(ml.getSelectedListIndex(), 2)
+
+      ml.selectNextList({wrap: true})
+      assert.equal(ml.getSelectedListIndex(), 0)
+    })
+
+    it('selects first/last item in list if selectFirst/selectLast options are set to true', () => {
+      const ml = new MultiList([
+        ['a', 'b', 'c'],
+        ['d', 'e'],
+        ['f', 'g', 'h']
+      ])
+      ml.selectListAtIndex(1)
+
+      ml.selectPreviousList({selectLast: true})
+      assert.equal(ml.getSelectedItem(), 'c')
+
+      ml.selectItemAtLocation([1, 1])
+      ml.selectNextList({selectFirst: true})
+      assert.equal(ml.getSelectedItem(), 'f')
     })
   })
 
@@ -165,7 +196,7 @@ describe('MultiList', () => {
       assert.equal(ml.getSelectedItem(), 'a')
     })
 
-    it('changes selects the next/previous list if one exists when selecting past the last/first item of a list', function () {
+    it('selects the next/previous list if one exists when selecting past the last/first item of a list', function () {
       const ml = new MultiList([
         ['a', 'b'],
         ['c']
