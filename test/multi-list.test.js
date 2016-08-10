@@ -104,32 +104,8 @@ describe('MultiList', () => {
     })
   })
 
-  describe('moveListSelection(step) (move forward with step = 1 and backward with step = -1)', () => {
-    it('only takes step values of -1 and 1', () => {
-      const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
-      ])
-
-      assert.doesNotThrow(() => {
-        ml.moveListSelection(1)
-      })
-
-      assert.doesNotThrow(() => {
-        ml.moveListSelection(-1)
-      })
-
-      assert.throws(() => {
-        ml.moveListSelection(2)
-      })
-
-      assert.throws(() => {
-        ml.moveListSelection(-2)
-      })
-    })
-
-    it('selects the appropriate list', () => {
+  describe('selectNextList() and selectPreviousList()', () => {
+    it('selects the next/previous list', () => {
       const ml = new MultiList([
         ['a', 'b', 'c'],
         ['d', 'e'],
@@ -137,16 +113,16 @@ describe('MultiList', () => {
       ])
       assert.equal(ml.getSelectedListIndex(), 0)
 
-      ml.moveListSelection(1)
+      ml.selectNextList()
       assert.equal(ml.getSelectedListIndex(), 1)
 
-      ml.moveListSelection(1)
+      ml.selectNextList()
       assert.equal(ml.getSelectedListIndex(), 2)
 
-      ml.moveListSelection(-1)
+      ml.selectPreviousList()
       assert.equal(ml.getSelectedListIndex(), 1)
 
-      ml.moveListSelection(-1)
+      ml.selectPreviousList()
       assert.equal(ml.getSelectedListIndex(), 0)
     })
 
@@ -158,58 +134,34 @@ describe('MultiList', () => {
       ])
       assert.equal(ml.getSelectedListIndex(), 0)
 
-      ml.moveListSelection(-1)
+      ml.selectPreviousList()
       assert.equal(ml.getSelectedListIndex(), 0)
 
       ml.selectListAtIndex(2)
       assert.equal(ml.getSelectedListIndex(), 2)
 
-      ml.moveListSelection(1)
+      ml.selectNextList()
       assert.equal(ml.getSelectedListIndex(), 2)
     })
   })
 
-  describe('moveItemSelection(step) - (move forward with step = 1 and backward with step = -1)', () => {
-    it('only takes step values of -1 and 1', () => {
-      const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
-      ])
-
-      assert.doesNotThrow(() => {
-        ml.moveItemSelection(1)
-      })
-
-      assert.doesNotThrow(() => {
-        ml.moveItemSelection(-1)
-      })
-
-      assert.throws(() => {
-        ml.moveItemSelection(2)
-      })
-
-      assert.throws(() => {
-        ml.moveItemSelection(-2)
-      })
-    })
-
-    it('selects the appropriate item within the list', () => {
+  describe('selectNextItem() and selectPreviousItem()', () => {
+    it('selects the next/previous item in the currently selected list', () => {
       const ml = new MultiList([
         ['a', 'b', 'c']
       ])
       assert.equal(ml.getSelectedItem(), 'a')
 
-      ml.moveItemSelection(1)
+      ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'b')
 
-      ml.moveItemSelection(1)
+      ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
 
-      ml.moveItemSelection(-1)
+      ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'b')
 
-      ml.moveItemSelection(-1)
+      ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
     })
 
@@ -220,13 +172,13 @@ describe('MultiList', () => {
 
       assert.equal(ml.getSelectedItem(), 'a')
 
-      ml.moveItemSelection(-1)
+      ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
 
       ml.selectItemAtLocation([0, 2])
       assert.equal(ml.getSelectedItem(), 'c')
 
-      ml.moveItemSelection(1)
+      ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
     })
   })
