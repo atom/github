@@ -165,21 +165,32 @@ describe('MultiList', () => {
       assert.equal(ml.getSelectedItem(), 'a')
     })
 
-    it('stops at the beginning and end of a given list', () => {
+    it('changes selects the next/previous list if one exists when selecting past the last/first item of a list', function () {
       const ml = new MultiList([
-        ['a', 'b', 'c']
+        ['a', 'b'],
+        ['c']
       ])
 
       assert.equal(ml.getSelectedItem(), 'a')
-
-      ml.selectPreviousItem()
-      assert.equal(ml.getSelectedItem(), 'a')
-
-      ml.selectItemAtLocation([0, 2])
-      assert.equal(ml.getSelectedItem(), 'c')
-
+      assert.equal(ml.getSelectedListIndex(), 0)
+      ml.selectNextItem()
+      assert.equal(ml.getSelectedItem(), 'b')
+      assert.equal(ml.getSelectedListIndex(), 0)
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
+      assert.equal(ml.getSelectedListIndex(), 1)
+      ml.selectNextItem()
+      assert.equal(ml.getSelectedItem(), 'c')
+      assert.equal(ml.getSelectedListIndex(), 1)
+      ml.selectPreviousItem()
+      assert.equal(ml.getSelectedItem(), 'b')
+      assert.equal(ml.getSelectedListIndex(), 0)
+      ml.selectPreviousItem()
+      assert.equal(ml.getSelectedItem(), 'a')
+      assert.equal(ml.getSelectedListIndex(), 0)
+      ml.selectPreviousItem()
+      assert.equal(ml.getSelectedItem(), 'a')
+      assert.equal(ml.getSelectedListIndex(), 0)
     })
   })
 

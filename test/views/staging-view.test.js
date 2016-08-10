@@ -224,7 +224,8 @@ describe('StagingView', () => {
         assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
       })
 
-      it('stops at Staged list boundaries and keeps current selection', () => {
+      it('selects the last unstaged file when moving upward beyond the first staged file patch', () => {
+        const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
         const lastStagedFilePatch = stagedFilePatches[stagedFilePatches.length - 1]
         view.selectStagedFilePatch(lastStagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.STAGED)
@@ -240,19 +241,22 @@ describe('StagingView', () => {
         assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
 
         atom.commands.dispatch(view.element, 'core:move-up')
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
+        assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
       })
 
-      it('stops at Unstaged list boundaries and keeps current selection', () => {
+      it('selects the first staged file patch when moving downward from the last unstaged file patch', () => {
         const lastUnstagedFilePatch = unstagedFilePatches[unstagedFilePatches.length - 1]
+        const firstStagedFilePatch = stagedFilePatches[0]
         view.selectUnstagedFilePatch(lastUnstagedFilePatch)
         assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
 
         atom.commands.dispatch(view.element, 'core:move-down')
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.equal(view.getSelectedList(), ListTypes.STAGED)
         assert.deepEqual(getSelectedItemForUnstagedList(view), lastUnstagedFilePatch)
+        assert.deepEqual(getSelectedItemForStagedList(view), firstStagedFilePatch)
 
         const firstUnstagedFilePatch = unstagedFilePatches[0]
         view.selectStagedFilePatch(firstUnstagedFilePatch)
