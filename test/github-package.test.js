@@ -215,6 +215,7 @@ describe('GithubPackage', () => {
     it('shows/hides the git panel', async () => {
       const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
+      await githubPackage.updateActiveRepository()
       await workspace.open(path.join(workdirPath, 'a.txt'))
 
       githubPackage.changedFilesCountController.props.didClick()
@@ -229,21 +230,29 @@ describe('GithubPackage', () => {
   })
 
   describe('when the git:toggle-git-panel command is dispatched', () => {
-    it('shows/hides the git panel', async () => {
+    it('shows-and-focuses or hides the git panel', async () => {
       const workspaceElement = viewRegistry.getView(workspace)
+      document.body.appendChild(workspaceElement)
       const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.activate()
 
+      assert.equal(workspace.getRightPanels().length, 0)
       commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
       assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
 
       commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
       assert.equal(workspace.getRightPanels().length, 0)
 
       commandRegistry.dispatch(workspaceElement, 'git:toggle-git-panel')
       assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
+
+      workspaceElement.remove()
     })
   })
 })
