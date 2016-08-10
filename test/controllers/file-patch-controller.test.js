@@ -88,8 +88,7 @@ describe('FilePatchController', () => {
       assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
     })
 
-    // TODO: fix after extracting selection state logic to components
-    xit('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
+    it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
       const workdirPath = await cloneRepository('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')

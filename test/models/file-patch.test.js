@@ -10,54 +10,46 @@ import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatch', () => {
-  describe('getId()', () => {
-    it('returns a logical identifier for the FilePatch', () => {
-      assert.equal(new FilePatch('a.txt', 'a.txt', 'modified').getId(), 'a/a.txt b/a.txt')
-      assert.equal(new FilePatch(null, 'a.txt', 'added').getId(), 'a/null b/a.txt')
-      assert.equal(new FilePatch('a.txt', null, 'removed').getId(), 'a/a.txt b/null')
-    })
-  })
-
   describe('update(filePatch)', () => {
     // TODO: remove once we extract selection state logic to components
-    xit('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
+    it('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
-          new HunkLine('line-1\n', 'added', -1, 1),
-          new HunkLine('line-2\n', 'added', -1, 2),
-          new HunkLine('line-3\n', 'unchanged', 1, 3)
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3)
         ]),
         new Hunk(5, 7, 5, 4, [
-          new HunkLine('line-4\n', 'unchanged', 5, 7),
-          new HunkLine('line-5\n', 'removed', 6, -1),
-          new HunkLine('line-6\n', 'removed', 7, -1),
-          new HunkLine('line-7\n', 'added', -1, 8),
-          new HunkLine('line-8\n', 'added', -1, 9),
-          new HunkLine('line-9\n', 'added', -1, 10),
-          new HunkLine('line-10\n', 'removed', 8, -1),
-          new HunkLine('line-11\n', 'removed', 9, -1)
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'removed', 6, -1),
+          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
+          new HunkLine('line-9', 'added', -1, 10),
+          new HunkLine('line-10', 'removed', 8, -1),
+          new HunkLine('line-11', 'removed', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12\n', 'removed', 20, -1),
-          new HunkLine('line-13\n', 'added', -1, 19),
-          new HunkLine('line-14\n', 'unchanged', 21, 20)
+          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-13', 'added', -1, 19),
+          new HunkLine('line-14', 'unchanged', 21, 20)
         ])
       ]
-      const patch = new FilePatch('a.txt', 'b.txt', 'renamed', hunks)
-      const newPatch = new FilePatch('a.txt', 'b.txt', 'renamed', [
+      const patch = new FilePatch('a.txt', 'a.txt', 'modified', hunks)
+      const newPatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(9, 9, 2, 1, [
-          new HunkLine('line-9\n', 'added', -1, 9),
-          new HunkLine('line-10\n', 'removed', 8, -1),
-          new HunkLine('line-11\n', 'removed', 9, -1)
+          new HunkLine('line-9', 'added', -1, 9),
+          new HunkLine('line-10', 'removed', 8, -1),
+          new HunkLine('line-11', 'removed', 9, -1)
         ]),
         new Hunk(15, 14, 1, 1, [
-          new HunkLine('line-15\n', 'removed', 15, -1),
-          new HunkLine('line-16\n', 'added', -1, 14)
+          new HunkLine('line-15', 'removed', 15, -1),
+          new HunkLine('line-16', 'added', -1, 14)
         ]),
         new Hunk(21, 19, 2, 3, [
-          new HunkLine('line-13\n', 'added', -1, 19),
-          new HunkLine('line-14\n', 'unchanged', 21, 20),
-          new HunkLine('line-17\n', 'unchanged', 22, 21)
+          new HunkLine('line-13', 'added', -1, 19),
+          new HunkLine('line-14', 'unchanged', 21, 20),
+          new HunkLine('line-17', 'unchanged', 22, 21)
         ])
       ])
 
@@ -91,36 +83,36 @@ describe('FilePatch', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
-          new HunkLine('line-1\n', 'added', -1, 1),
-          new HunkLine('line-2\n', 'added', -1, 2),
-          new HunkLine('line-3\n', 'unchanged', 1, 3)
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3)
         ]),
         new Hunk(5, 7, 5, 4, [
-          new HunkLine('line-4\n', 'unchanged', 5, 7),
-          new HunkLine('line-5\n', 'removed', 6, -1),
-          new HunkLine('line-6\n', 'removed', 7, -1),
-          new HunkLine('line-7\n', 'added', -1, 8),
-          new HunkLine('line-8\n', 'added', -1, 9),
-          new HunkLine('line-9\n', 'added', -1, 10),
-          new HunkLine('line-10\n', 'removed', 8, -1),
-          new HunkLine('line-11\n', 'removed', 9, -1)
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'removed', 6, -1),
+          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
+          new HunkLine('line-9', 'added', -1, 10),
+          new HunkLine('line-10', 'removed', 8, -1),
+          new HunkLine('line-11', 'removed', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12\n', 'removed', 20, -1),
-          new HunkLine('line-13\n', 'added', -1, 19),
-          new HunkLine('line-14\n', 'unchanged', 21, 20)
+          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-13', 'added', -1, 19),
+          new HunkLine('line-14', 'unchanged', 21, 20)
         ])
       ])
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 4))
       assert.deepEqual(filePatch.getStagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(5, 5, 5, 4, [
-            new HunkLine('line-4\n', 'unchanged', 5, 5),
-            new HunkLine('line-5\n', 'removed', 6, -1),
-            new HunkLine('line-6\n', 'removed', 7, -1),
-            new HunkLine('line-7\n', 'added', -1, 6),
-            new HunkLine('line-10\n', 'unchanged', 8, 7),
-            new HunkLine('line-11\n', 'unchanged', 9, 8)
+            new HunkLine('line-4', 'unchanged', 5, 5),
+            new HunkLine('line-5', 'removed', 6, -1),
+            new HunkLine('line-6', 'removed', 7, -1),
+            new HunkLine('line-7', 'added', -1, 6),
+            new HunkLine('line-10', 'unchanged', 8, 7),
+            new HunkLine('line-11', 'unchanged', 9, 8)
           ])
         ]
       ))
@@ -131,36 +123,36 @@ describe('FilePatch', () => {
     it('returns a new FilePatch that applies only the specified lines', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
-          new HunkLine('line-1\n', 'added', -1, 1),
-          new HunkLine('line-2\n', 'added', -1, 2),
-          new HunkLine('line-3\n', 'unchanged', 1, 3)
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3)
         ]),
         new Hunk(5, 7, 5, 4, [
-          new HunkLine('line-4\n', 'unchanged', 5, 7),
-          new HunkLine('line-5\n', 'removed', 6, -1),
-          new HunkLine('line-6\n', 'removed', 7, -1),
-          new HunkLine('line-7\n', 'added', -1, 8),
-          new HunkLine('line-8\n', 'added', -1, 9),
-          new HunkLine('line-9\n', 'added', -1, 10),
-          new HunkLine('line-10\n', 'removed', 8, -1),
-          new HunkLine('line-11\n', 'removed', 9, -1)
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'removed', 6, -1),
+          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
+          new HunkLine('line-9', 'added', -1, 10),
+          new HunkLine('line-10', 'removed', 8, -1),
+          new HunkLine('line-11', 'removed', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12\n', 'removed', 20, -1),
-          new HunkLine('line-13\n', 'added', -1, 19),
-          new HunkLine('line-14\n', 'unchanged', 21, 20)
+          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-13', 'added', -1, 19),
+          new HunkLine('line-14', 'unchanged', 21, 20)
         ])
       ])
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5))
       assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, [
-            new HunkLine('line-4\n', 'unchanged', 7, 7),
-            new HunkLine('line-7\n', 'removed', 8, -1),
-            new HunkLine('line-8\n', 'removed', 9, -1),
-            new HunkLine('line-5\n', 'added', -1, 8),
-            new HunkLine('line-6\n', 'added', -1, 9),
-            new HunkLine('line-9\n', 'unchanged', 10, 10)
+            new HunkLine('line-4', 'unchanged', 7, 7),
+            new HunkLine('line-7', 'removed', 8, -1),
+            new HunkLine('line-8', 'removed', 9, -1),
+            new HunkLine('line-5', 'added', -1, 8),
+            new HunkLine('line-6', 'added', -1, 9),
+            new HunkLine('line-9', 'unchanged', 10, 10)
           ])
         ]
       ))

@@ -87,26 +87,25 @@ describe('Repository', function () {
       ])
     })
 
-    // TODO: remove after extracting selection state logic to components
-    xit('reuses the same FilePatch objects if they are equivalent', async () => {
+    it('reuses the same FilePatch objects if they are equivalent', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
-      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'bar\nbaz')
+      fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'qux', 'utf8')
       const unstagedFilePatches1 = await repo.refreshUnstagedChanges()
 
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'baz\nfoo\nqux', 'utf8')
-      fs.renameSync(path.join(workingDirPath, 'd.txt'), path.join(workingDirPath, 'z.txt'))
-      fs.unlinkSync(path.join(workingDirPath, 'e.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'baz')
+      fs.unlinkSync(path.join(workingDirPath, 'd.txt'))
       const unstagedFilePatches2 = await repo.refreshUnstagedChanges()
 
       assert.equal(unstagedFilePatches1.length, 4)
       assert.equal(unstagedFilePatches2.length, 3)
       assert.equal(unstagedFilePatches1[0], unstagedFilePatches2[0])
       assert.equal(unstagedFilePatches1[1], unstagedFilePatches2[1])
-      assert.notEqual(unstagedFilePatches1[2], unstagedFilePatches2[2])
+      assert.equal(unstagedFilePatches1[2], unstagedFilePatches2[2])
       assert(unstagedFilePatches1[3].isDestroyed())
 
       await repo.stageFile(unstagedFilePatches2[0].getPath())
@@ -114,7 +113,7 @@ describe('Repository', function () {
       await repo.stageFile(unstagedFilePatches2[2].getPath())
       const stagedFilePatches1 = await repo.refreshStagedChanges()
 
-      await repo.stageFile(stagedFilePatches1[2].getUnstagePatch().getPath())
+      await repo.unstageFile(stagedFilePatches1[2].getPath())
       const stagedFilePatches2 = await repo.refreshStagedChanges()
       const unstagedFilePatches3 = await repo.refreshUnstagedChanges()
 
@@ -202,11 +201,11 @@ describe('Repository', function () {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedPatch1] = await repo.getUnstagedChanges()
+      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refreshUnstagedChanges()
-      const [unstagedPatch2] = await repo.getUnstagedChanges()
+      const [unstagedPatch2] = (await repo.getUnstagedChanges()).map(p => p.copy())
 
       await repo.applyPatchToIndex(unstagedPatch1)
       assertDeepPropertyVals(await repo.getStagedChanges(), [unstagedPatch1])
@@ -218,8 +217,7 @@ describe('Repository', function () {
       assertDeepPropertyVals(await repo.getUnstagedChanges(), [unstagedPatch2])
     })
 
-    // TODO: remove after selection state logic has moved to components
-    xit('emits update events on file patches that change as a result of staging', async () => {
+    it('emits update events on file patches that change as a result of staging', async () => {
       const workdirPath = await cloneRepository('multi-line-file')
       const repository = await buildRepository(workdirPath)
       const filePath = path.join(workdirPath, 'sample.js')
@@ -257,7 +255,7 @@ describe('Repository', function () {
       assert.equal((await repo.getLastCommit()).message, 'Initial commit')
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedPatch1] = await repo.getUnstagedChanges()
+      const [unstagedPatch1] = (await repo.getUnstagedChanges()).map(p => p.copy())
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refresh()
       await repo.applyPatchToIndex(unstagedPatch1)
@@ -447,10 +445,15 @@ describe('Repository', function () {
         assertDeepPropertyVals(mergeConflicts, expected)
       })
 
-      // TODO: ignore as we are pulling selection state logic into components
-      xit('reuses the same MergeConflict objects if they are equivalent', async () => {
+      it('reuses the same MergeConflict objects if they are equivalent', async () => {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
+        try {
+          await repo.git.exec(['merge', 'origin/branch'])
+        } catch (e) {
+          // expected
+        }
+
         const mergeConflicts1 = await repo.refreshMergeConflicts()
 
         await repo.stageFile('removed-on-master.txt')
