@@ -132,16 +132,16 @@ describe('FilePatchView', () => {
       const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2, hunk3])
       const view = new FilePatchView({hunks: filePatch.getHunks(), registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
-      assert.deepEqual(view.selectedHunk, hunk1)
+      assert.deepEqual(view.hunkList.getSelectedItem(), hunk1)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.selectedHunk, hunk2)
+      assert.deepEqual(view.hunkList.getSelectedItem(), hunk2)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.selectedHunk, hunk3)
+      assert.deepEqual(view.hunkList.getSelectedItem(), hunk3)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.selectedHunk, hunk1)
+      assert.deepEqual(view.hunkList.getSelectedItem(), hunk1)
     })
   })
 })
