@@ -5,6 +5,7 @@ import path from 'path'
 import temp from 'temp'
 import {cloneRepository, buildRepository} from './helpers'
 import FilePatch from '../lib/models/file-patch'
+import Hunk from '../lib/models/hunk'
 import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
@@ -175,8 +176,9 @@ describe('GithubPackage', () => {
       const repository = await buildRepository(workdirPath)
 
       githubPackage.getActiveRepository = function () { return repository }
-      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [])
-      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [])
+      const hunk = new Hunk(1, 1, 1, 3, [])
+      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
+      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [hunk])
 
       assert.isNull(githubPackage.filePatchController)
 
