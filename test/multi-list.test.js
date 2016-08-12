@@ -126,7 +126,7 @@ describe('MultiList', () => {
     })
   })
 
-  describe('selectNextList() and selectPreviousList()', () => {
+  describe('selectNextList({wrap, selectFirst}) and selectPreviousList({wrap, selectLast})', () => {
     it('selects the next/previous list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
@@ -210,7 +210,7 @@ describe('MultiList', () => {
     })
   })
 
-  describe('selectNextItem() and selectPreviousItem()', () => {
+  describe('selectNextItem({wrap}) and selectPreviousItem({wrap})', () => {
     it('selects the next/previous item in the currently selected list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
@@ -268,6 +268,21 @@ describe('MultiList', () => {
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
       assert.equal(ml.getSelectedListIndex(), 0)
+    })
+
+    it('wraps across beginning and end lists if the wrap option is set to true', () => {
+      const ml = new MultiList([
+        ['a', 'b', 'c'],
+        ['d', 'e'],
+        ['f', 'g', 'h']
+      ])
+      assert.equal(ml.getSelectedItem(), 'a')
+
+      ml.selectPreviousItem({wrap: true})
+      assert.equal(ml.getSelectedItem(), 'h')
+
+      ml.selectNextItem({wrap: true})
+      assert.equal(ml.getSelectedItem(), 'a')
     })
   })
 
