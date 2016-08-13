@@ -233,7 +233,7 @@ describe('Git commands', () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
       try {
-        await git.exec(['merge', 'origin/branch'])
+        await git.merge('origin/branch')
       } catch (e) {
         // expected
       }
@@ -277,7 +277,7 @@ describe('Git commands', () => {
       assert.isFalse(isMerging)
 
       try {
-        await git.exec(['merge', 'origin/branch'])
+        await git.merge('origin/branch')
       } catch (e) {
         // expect merge to have conflicts
       }

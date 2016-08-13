@@ -278,7 +278,7 @@ describe('Repository', function () {
       const workingDirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workingDirPath)
       try {
-        await repository.git.exec(['merge', 'origin/branch'])
+        await repository.git.merge('origin/branch')
       } catch (e) {
         // expected
       }
@@ -397,7 +397,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -449,7 +449,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -482,7 +482,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -530,7 +530,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -571,7 +571,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }
@@ -586,7 +586,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }
@@ -607,7 +607,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }
