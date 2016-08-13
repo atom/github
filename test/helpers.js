@@ -33,6 +33,13 @@ export async function createLocalAndRemoteRepositories (repoName = 'multiple-com
   return {baseRepoPath, remoteRepoPath, localRepoPath}
 }
 
+export async function getHeadCommitOnRemote (remotePath) {
+  const workingDirPath = temp.mkdirSync('git-fixture-')
+  const git = new GitShellOutStrategy(workingDirPath)
+  await git.clone(remotePath)
+  return git.getHeadCommit()
+}
+
 export function buildRepository (workingDirPath) {
   return Repository.open(new Directory(workingDirPath))
 }

@@ -6,7 +6,7 @@ import dedent from 'dedent-js'
 import sinon from 'sinon'
 import Git from 'nodegit'
 
-import {cloneRepository, buildRepository, assertDeepPropertyVals, createEmptyCommit, createLocalAndRemoteRepositories} from '../helpers'
+import {cloneRepository, buildRepository, assertDeepPropertyVals, createLocalAndRemoteRepositories, getHeadCommitOnRemote} from '../helpers'
 
 describe('Repository', function () {
   describe('refreshing staged and unstaged changes', () => {
@@ -351,21 +351,33 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('push()', () => {
+  describe('push()', () => {
     it('sends commits to the remote and updates ', async () => {
       const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
       const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
+      await localRepo.pull('master')
 
-      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
-      await localRepo.applyPatchToIndex(unstagedFilePatch)
-      await localRepo.commit('new local commit')
+      let localHead, localRemoteHead, remoteHead
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      assert.deepEqual(localHead, localRemoteHead)
 
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
+      await localRepo.commit('fourth commit', {allowEmpty: true})
+      await localRepo.commit('fifth commit', {allowEmpty: true})
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      remoteHead = await getHeadCommitOnRemote(remoteRepoPath)
+      assert.notDeepEqual(localHead, remoteHead)
+      assert.equal(remoteHead.message, 'third commit')
+      assert.deepEqual(remoteHead, localRemoteHead)
 
       await localRepo.push('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message + '\n')
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      remoteHead = await getHeadCommitOnRemote(remoteRepoPath)
+      assert.deepEqual(localHead, remoteHead)
+      assert.equal(remoteHead.message, 'fifth commit')
+      assert.deepEqual(remoteHead, localRemoteHead)
     })
   })
 
