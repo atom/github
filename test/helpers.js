@@ -4,7 +4,6 @@ import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
 import {Directory} from 'atom'
-import Git from 'nodegit'
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
@@ -53,14 +52,4 @@ export function assertDeepPropertyVals (actual, expected) {
   }
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
-}
-
-export async function createEmptyCommit (repoPath, message) {
-  const repo = await Git.Repository.open(repoPath)
-  const head = await repo.getHeadCommit()
-  const tree = await head.getTree()
-  const parents = [head]
-  const author = Git.Signature.default(repo)
-
-  return repo.createCommit('HEAD', author, author, message, tree, parents)
 }
