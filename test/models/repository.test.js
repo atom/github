@@ -315,6 +315,24 @@ describe('Repository', function () {
     })
   })
 
+  describe('fetch(branchName)', () => {
+    it('brings commits from the remote and updates remote branch, and does not update branch', async () => {
+      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const localRepo = await buildRepository(localRepoPath)
+      let remoteHead, localHead
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'second commit')
+      assert.equal(localHead.message, 'second commit')
+
+      await localRepo.fetch('master')
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'third commit')
+      assert.equal(localHead.message, 'second commit')
+    })
+  })
+
   xdescribe('pull()', () => {
     it('brings commits from the remote', async () => {
       const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
