@@ -26,8 +26,8 @@ describe('FilePatchView', () => {
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), hunk1.getLines().filter(l => l.isChanged()))
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
-    assert(hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert(!hunkViewsByHunk.get(hunk2).props.isSelected)
+    assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert.isTrue(!hunkViewsByHunk.get(hunk2).props.isSelected)
 
     await view.togglePatchSelectionMode()
     linesToSelect = hunk1.getLines().slice(1, 3)
@@ -35,26 +35,26 @@ describe('FilePatchView', () => {
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), linesToSelect)
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
-    assert(hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert(!hunkViewsByHunk.get(hunk2).props.isSelected)
+    assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert.isTrue(!hunkViewsByHunk.get(hunk2).props.isSelected)
 
     linesToSelect = hunk2.getLines().slice(0, 1)
     hunkViewsByHunk.get(hunk2).props.selectLines(new Set(linesToSelect))
     await etch.getScheduler().getNextUpdatePromise()
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), [])
     assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), linesToSelect)
-    assert(!hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert(hunkViewsByHunk.get(hunk2).props.isSelected)
+    assert.isTrue(!hunkViewsByHunk.get(hunk1).props.isSelected)
+    assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
   })
 
-  it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', () => {
+  it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', async () => {
     const hunk = new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)])
     let hunkView
     function registerHunkView (hunk, view) { hunkView = view }
     const view = new FilePatchView({hunks: [hunk], stagingStatus: 'unstaged', registerHunkView})
-    assert(hunkView.props.stageButtonLabelPrefix, 'Stage')
-    view.update({hunks: [hunk], stagingStatus: 'staged'})
-    assert(hunkView.props.stageButtonLabelPrefix, 'Unstage')
+    assert.equal(hunkView.props.stageButtonLabelPrefix, 'Stage')
+    await view.update({hunks: [hunk], stagingStatus: 'staged', registerHunkView})
+    assert.equal(hunkView.props.stageButtonLabelPrefix, 'Unstage')
   })
 
   describe('hunk focus when hunk disappears', () => {
@@ -66,11 +66,11 @@ describe('FilePatchView', () => {
         const hunkViewsByHunk = new Map()
         const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
-        assert(hunkViewsByHunk.get(hunk1).props.isSelected)
+        assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
         hunkViewsByHunk.clear()
         await view.update({hunks: [hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
-        assert(!hunkViewsByHunk.get(hunk1))
-        assert(hunkViewsByHunk.get(hunk2).props.isSelected)
+        assert.isTrue(!hunkViewsByHunk.get(hunk1))
+        assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
       })
     })
 
@@ -83,12 +83,12 @@ describe('FilePatchView', () => {
         const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
         await view.focusNextHunk()
-        assert(hunkViewsByHunk.get(hunk2).props.isSelected)
+        assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
 
         hunkViewsByHunk.clear()
         await view.update({hunks: [hunk1], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
-        assert(!hunkViewsByHunk.get(hunk2))
-        assert(hunkViewsByHunk.get(hunk1).props.isSelected)
+        assert.isTrue(!hunkViewsByHunk.get(hunk2))
+        assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
       })
     })
   })
