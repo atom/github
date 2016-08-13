@@ -117,30 +117,83 @@ describe('FilePatchView', () => {
     })
   })
 
-  describe('focusNextHunk() and focusPreviousHunk()', () => {
-    it('focuses next/previous hunk and wraps at the end/beginning', async () => {
+  describe('focusNextHunk({wrap}) and focusPreviousHunk({wrap})', () => {
+    it('focuses next/previous hunk, and wraps at the end/beginning if wrap is true', async () => {
       const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
       const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
       const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'added', -1, 10)])
       const hunkViewsByHunk = new Map()
       const view = new FilePatchView({hunks: [hunk1, hunk2, hunk3], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
 
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk1)
+      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk2)
+      assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk3)
+      assert.isTrue(hunkViewsByHunk.get(hunk3).props.isSelected)
 
       await view.focusNextHunk()
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk1)
+      assert.isTrue(hunkViewsByHunk.get(hunk3).props.isSelected)
+
+      await view.focusNextHunk({wrap: true})
+      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
 
       await view.focusPreviousHunk()
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk3)
+      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+
+      await view.focusPreviousHunk({wrap: true})
+      assert.isTrue(hunkViewsByHunk.get(hunk3).props.isSelected)
 
       await view.focusPreviousHunk()
-      assert.deepEqual(view.multiList.getSelectedListKey(), hunk2)
+      assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
+
+      await view.focusPreviousHunk()
+      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+    })
+  })
+
+  describe('focusNextHunkLine() and focusPreviousHunkLine()', () => {
+    it('focuses next/previous non-context hunk line, crossing hunk boundaries but not wrapping', async () => {
+      const line1 = new HunkLine('line-1', 'unchanged', 5, 5) // context lines won't be selected
+      const line2 = new HunkLine('line-2', 'removed', 6, -1)
+      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+
+      const line4 = new HunkLine('line-4', 'unchanged', 8, 8) // context lines won't be selected
+      const line5 = new HunkLine('line-5', 'added', -1, 9)
+      const line6 = new HunkLine('line-6', 'unchanged', 9, 10) // context lines won't be selected
+
+      const hunk1 = new Hunk(5, 5, 2, 0, [line1, line2, line3])
+      const hunk2 = new Hunk(8, 8, 1, 2, [line4, line5, line6])
+      const hunkViewsByHunk = new Map()
+      const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+
+      view.togglePatchSelectionMode()
+
+      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+      assertSelectedLines(view, [line2])
+
+      await view.focusNextHunkLine()
+      assertSelectedLines(view, [line3])
+
+      await view.focusNextHunkLine()
+      assertSelectedLines(view, [line5])
+
+      await view.focusNextHunkLine()
+      assertSelectedLines(view, [line5])
+
+      await view.focusPreviousHunkLine()
+      assertSelectedLines(view, [line3])
+
+      await view.focusPreviousHunkLine()
+      assertSelectedLines(view, [line2])
+
+      await view.focusPreviousHunkLine()
+      assertSelectedLines(view, [line2])
     })
   })
 })
+
+function assertSelectedLines (view, lines) {
+  assert.deepEqual([...view.getSelectedLines()], lines)
+}
