@@ -5,7 +5,7 @@ import path from 'path'
 
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
-import {cloneRepository, assertDeepPropertyVals} from './helpers'
+import {cloneRepository, assertDeepPropertyVals, createLocalAndRemoteRepositories} from './helpers'
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -287,6 +287,22 @@ describe('Git commands', () => {
       fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'))
       isMerging = await git.isMerging()
       assert.isFalse(isMerging)
+    })
+  })
+
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
+    it('returns the number of different commits on the branch vs the remote', async () => {
+      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const git = new GitShellOutStrategy(localRepoPath)
+      assert.equal(await git.getBehindCount('master'), 0)
+      assert.equal(await git.getAheadCount('master'), 0)
+      await git.fetch('master')
+      assert.equal(await git.getBehindCount('master'), 1)
+      assert.equal(await git.getAheadCount('master'), 0)
+      await git.commit('new commit', {allowEmpty: true})
+      await git.commit('another commit', {allowEmpty: true})
+      assert.equal(await git.getBehindCount('master'), 1)
+      assert.equal(await git.getAheadCount('master'), 2)
     })
   })
 })

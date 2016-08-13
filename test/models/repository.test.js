@@ -381,32 +381,20 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('getAheadBehindCount(branchName)', () => {
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
     it('returns the number of commits ahead and behind the remote', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath} = await createLocalAndRemoteRepositories()
       const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
 
-      await createEmptyCommit(remoteRepoPath, 'new remote commit')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), 'new remote commit')
-
-      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
-      await localRepo.applyPatchToIndex(unstagedFilePatch)
-      await localRepo.commit('new local commit')
-
-      assert.equal((await localRepo.getLastCommit()).message, 'new local commit')
-
-      let {ahead, behind} = await localRepo.getAheadBehindCount('master')
-      assert.equal(behind, 0)
-      assert.equal(ahead, 1)
-
+      assert.equal(await localRepo.getBehindCount('master'), 0)
+      assert.equal(await localRepo.getAheadCount('master'), 0)
       await localRepo.fetch('master')
-      const counts = await localRepo.getAheadBehindCount('master')
-      ahead = counts.ahead
-      behind = counts.behind
-      assert.equal(behind, 1)
-      assert.equal(ahead, 1)
+      assert.equal(await localRepo.getBehindCount('master'), 1)
+      assert.equal(await localRepo.getAheadCount('master'), 0)
+      await localRepo.commit('new commit', {allowEmpty: true})
+      await localRepo.commit('another commit', {allowEmpty: true})
+      assert.equal(await localRepo.getBehindCount('master'), 1)
+      assert.equal(await localRepo.getAheadCount('master'), 2)
     })
   })
 
