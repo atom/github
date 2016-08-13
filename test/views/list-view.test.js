@@ -23,6 +23,7 @@ describe('ListView', () => {
       didSelectItem: didSelectItem,
       didConfirmItem: didConfirmItem,
       items: items,
+      selectedItem: 'one',
       renderItem: renderItem
     })
 

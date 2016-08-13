@@ -3,7 +3,7 @@
 import sinon from 'sinon'
 import MultiList from '../lib/multi-list'
 
-describe.only('MultiList', () => {
+describe('MultiList', () => {
   describe('constructing a MultiList instance', () => {
     it('selects the first item from each list, and marks the first list as selected', () => {
       const ml = new MultiList([
