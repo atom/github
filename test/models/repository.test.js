@@ -333,18 +333,21 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('pull()', () => {
-    it('brings commits from the remote', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
+  describe('pull()', () => {
+    it('updates the remote branch and merges into local branch', async () => {
+      const {localRepoPath} = await createLocalAndRemoteRepositories()
       const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
-
-      await createEmptyCommit(remoteRepoPath, 'new remote commit')
-
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
+      let remoteHead, localHead
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'second commit')
+      assert.equal(localHead.message, 'second commit')
 
       await localRepo.pull('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'third commit')
+      assert.equal(localHead.message, 'third commit')
     })
   })
 
