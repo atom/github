@@ -6,7 +6,7 @@ import dedent from 'dedent-js'
 import sinon from 'sinon'
 import Git from 'nodegit'
 
-import {cloneRepository, buildRepository, assertDeepPropertyVals, createLocalAndRemoteRepositories, getHeadCommitOnRemote} from '../helpers'
+import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote} from '../helpers'
 
 describe('Repository', function () {
   describe('refreshing staged and unstaged changes', () => {
@@ -317,7 +317,7 @@ describe('Repository', function () {
 
   describe('fetch(branchName)', () => {
     it('brings commits from the remote and updates remote branch, and does not update branch', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const localRepo = await buildRepository(localRepoPath)
       let remoteHead, localHead
       remoteHead = await localRepo.git.getCommit('origin/master')
@@ -335,7 +335,7 @@ describe('Repository', function () {
 
   describe('pull()', () => {
     it('updates the remote branch and merges into local branch', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const localRepo = await buildRepository(localRepoPath)
       let remoteHead, localHead
       remoteHead = await localRepo.git.getCommit('origin/master')
@@ -353,9 +353,8 @@ describe('Repository', function () {
 
   describe('push()', () => {
     it('sends commits to the remote and updates ', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories()
       const localRepo = await buildRepository(localRepoPath)
-      await localRepo.pull('master')
 
       let localHead, localRemoteHead, remoteHead
       localHead = await localRepo.git.getCommit('master')
@@ -383,7 +382,7 @@ describe('Repository', function () {
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
     it('returns the number of commits ahead and behind the remote', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const localRepo = await buildRepository(localRepoPath)
 
       assert.equal(await localRepo.getBehindCount('master'), 0)
@@ -400,7 +399,7 @@ describe('Repository', function () {
 
   xdescribe('getBranchRemoteName(branchName)', () => {
     it('returns the remote name associated to the supplied branch name', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories('three-files')
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories()
       const repository = await buildRepository(localRepoPath)
       assert.equal(await repository.getBranchRemoteName('master'), 'origin')
     })

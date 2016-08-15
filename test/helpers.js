@@ -15,7 +15,11 @@ export async function cloneRepository (repoName = 'three-files') {
   return fs.realpathSync(workingDirPath)
 }
 
-export async function createLocalAndRemoteRepositories (repoName = 'multiple-commits') {
+export async function setUpLocalAndRemoteRepositories (repoName = 'multiple-commits', options = {}) {
+  if (typeof repoName === 'object') {
+    options = repoName
+    repoName = 'multiple-commits'
+  }
   const baseRepoPath = await cloneRepository(repoName)
   const baseGit = new GitShellOutStrategy(baseRepoPath)
 
@@ -25,7 +29,7 @@ export async function createLocalAndRemoteRepositories (repoName = 'multiple-com
   await remoteGit.clone(baseRepoPath, {bare: true})
 
   // create local repo with one fewer commit
-  await baseGit.exec(['reset', 'head~'])
+  if (options.remoteAhead) await baseGit.exec(['reset', 'head~'])
   const localRepoPath = temp.mkdirSync('git-local-fixture-')
   const localGit = new GitShellOutStrategy(localRepoPath)
   await localGit.clone(baseRepoPath)

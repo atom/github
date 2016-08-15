@@ -5,7 +5,7 @@ import path from 'path'
 
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
-import {cloneRepository, assertDeepPropertyVals, createLocalAndRemoteRepositories} from './helpers'
+import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers'
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -292,7 +292,7 @@ describe('Git commands', () => {
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
     it('returns the number of different commits on the branch vs the remote', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories()
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const git = new GitShellOutStrategy(localRepoPath)
       assert.equal(await git.getBehindCount('master'), 0)
       assert.equal(await git.getAheadCount('master'), 0)
