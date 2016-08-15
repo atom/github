@@ -305,4 +305,20 @@ describe('Git commands', () => {
       assert.equal(await git.getAheadCount('master'), 2)
     })
   })
+
+  describe('getBranchName() and checkout(branchName)', () => {
+    it('returns the current branch name', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.equal(await git.getBranchName(), 'master')
+      await git.checkout('branch')
+      assert.equal(await git.getBranchName(), 'branch')
+
+      // newBranch does not yet exist
+      await assert.isRejected(git.checkout('newBranch'))
+      assert.equal(await git.getBranchName(), 'branch')
+      await git.checkout('newBranch', {createNew: true})
+      assert.equal(await git.getBranchName(), 'newBranch')
+    })
+  })
 })
