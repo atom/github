@@ -321,4 +321,16 @@ describe('Git commands', () => {
       assert.equal(await git.getBranchName(), 'newBranch')
     })
   })
+
+  describe('getRemote(branchName)', () => {
+    it('returns the name of the remote associated with the branch, and null if none exists', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.equal(await git.getRemote('master'), 'origin')
+      await git.exec(['remote', 'rename', 'origin', 'foo'])
+      assert.equal(await git.getRemote('master'), 'foo')
+      await git.exec(['remote', 'rm', 'foo'])
+      assert.isNull(await git.getRemote('master'))
+    })
+  })
 })

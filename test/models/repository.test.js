@@ -4,7 +4,6 @@ import fs from 'fs'
 import path from 'path'
 import dedent from 'dedent-js'
 import sinon from 'sinon'
-import Git from 'nodegit'
 
 import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote} from '../helpers'
 
@@ -397,17 +396,17 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('getBranchRemoteName(branchName)', () => {
-    it('returns the remote name associated to the supplied branch name', async () => {
-      const {localRepoPath} = await setUpLocalAndRemoteRepositories()
-      const repository = await buildRepository(localRepoPath)
-      assert.equal(await repository.getBranchRemoteName('master'), 'origin')
-    })
+  describe('getRemote(branchName)', () => {
+    it('returns the remote name associated to the supplied branch name, null if none exists', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
+      const localRepo = await buildRepository(localRepoPath)
 
-    it('returns null if there is no remote associated with the supplied branch name', async () => {
-      const workingDirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workingDirPath)
-      assert.isNull(await repository.getBranchRemoteName('master'))
+      assert.equal(await localRepo.getRemote('master'), 'origin')
+      await localRepo.git.exec(['remote', 'rename', 'origin', 'foo'])
+      assert.equal(await localRepo.getRemote('master'), 'foo')
+
+      await localRepo.git.exec(['remote', 'rm', 'foo'])
+      assert.isNull(await localRepo.getRemote('master'))
     })
   })
 
