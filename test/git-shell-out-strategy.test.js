@@ -344,4 +344,16 @@ describe('Git commands', () => {
       assert.isNull(await git.getRemote('master'))
     })
   })
+
+  describe('getBranches()', () => {
+    it('returns an array of all branches', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.deepEqual(await git.getBranches(), ['master'])
+      await git.checkout('new-branch', {createNew: true})
+      assert.deepEqual(await git.getBranches(), ['master', 'new-branch'])
+      await git.checkout('another-branch', {createNew: true})
+      assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch'])
+    })
+  })
 })
