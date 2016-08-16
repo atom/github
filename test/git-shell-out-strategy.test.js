@@ -1,6 +1,6 @@
 /** @babel */
 
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
@@ -47,6 +47,17 @@ describe('Git commands', () => {
 
       await Promise.all(promises)
       assert.deepEqual(expectedEvents, actualEvents)
+    })
+  })
+
+  describe('isGitRepository(directoryPath)', () => {
+    it('returns true if the path passed is a valid repository, and false if not', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.isTrue(await git.isGitRepository(workingDirPath))
+
+      fs.removeSync(path.join(workingDirPath, '.git'))
+      assert.isFalse(await git.isGitRepository(workingDirPath))
     })
   })
 
