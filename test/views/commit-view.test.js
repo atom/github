@@ -1,13 +1,10 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
-import path from 'path'
-import fs from 'fs'
+import {cloneRepository, buildRepository} from '../helpers'
 import etch from 'etch'
 import sinon from 'sinon'
 
 import CommitView from '../../lib/views/commit-view'
-import FilePatch from '../../lib/models/file-patch'
 import {AbortMergeError, CommitError} from '../../lib/models/repository'
 
 describe('CommitView', () => {
@@ -73,35 +70,38 @@ describe('CommitView', () => {
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'))
   })
 
-  it('disables the commit button when no changes are staged or the commit message is empty', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: []})
+  it('disables the commit button when no changes are staged, there are merge conflict files, or the commit message is empty', async () => {
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
     const {editor, commitButton} = view.refs
-    assert(commitButton.disabled)
+    assert.isTrue(commitButton.disabled)
 
     editor.setText('something')
     await etch.getScheduler().getNextUpdatePromise()
-    assert(commitButton.disabled)
+    assert.isTrue(commitButton.disabled)
 
-    await view.update({stagedChanges: [new FilePatch()]})
-    assert(!commitButton.disabled)
+    await view.update({stagedChangesExist: true})
+    assert.isFalse(commitButton.disabled)
+
+    await view.update({mergeConflictsExist: true})
+    assert.isTrue(commitButton.disabled)
+
+    await view.update({mergeConflictsExist: false})
+    assert.isFalse(commitButton.disabled)
 
     editor.setText('')
     await etch.getScheduler().getNextUpdatePromise()
-    assert(commitButton.disabled)
+    assert.isTrue(commitButton.disabled)
   })
 
   it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
-    const workdirPath = await copyRepositoryDir('three-files')
+    const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
     const commit = sinon.spy()
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], commit})
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, commit})
     const {editor, commitButton} = view.refs
 
     // commit by clicking the commit button
-    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change 1\n')
-    const [patchToStage1] = await repository.refreshUnstagedChanges()
-    await repository.applyPatchToIndex(patchToStage1)
-    await view.update({repository, stagedChanges: [patchToStage1]})
+    await view.update({repository, stagedChangesExist: true})
     editor.setText('Commit 1')
     await etch.getScheduler().getNextUpdatePromise()
     commitButton.dispatchEvent(new MouseEvent('click'))
@@ -111,10 +111,7 @@ describe('CommitView', () => {
 
     // commit via the git:commit command
     commit.reset()
-    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change 2\n')
-    const [patchToStage2] = await repository.refreshUnstagedChanges()
-    await repository.applyPatchToIndex(patchToStage2)
-    await view.update({repository, stagedChanges: [patchToStage2]})
+    await view.update({repository, stagedChangesExist: true})
     editor.setText('Commit 2')
     await etch.getScheduler().getNextUpdatePromise()
     commandRegistry.dispatch(editor.element, 'git:commit')
@@ -124,7 +121,7 @@ describe('CommitView', () => {
 
     // disable git:commit when there are no staged changes...
     commit.reset()
-    await view.update({repository, stagedChanges: []})
+    await view.update({repository, stagedChangesExist: false})
     editor.setText('Commit 4')
     await etch.getScheduler().getNextUpdatePromise()
     commandRegistry.dispatch(editor.element, 'git:commit')
@@ -136,10 +133,7 @@ describe('CommitView', () => {
     commit.reset()
     editor.setText('')
     await etch.getScheduler().getNextUpdatePromise()
-    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change 3\n')
-    const [patchToStage3] = await repository.refreshUnstagedChanges()
-    await repository.applyPatchToIndex(patchToStage3)
-    await view.update({repository, stagedChanges: [patchToStage3]})
+    await view.update({repository, stagedChangesExist: true})
     commandRegistry.dispatch(editor.element, 'git:commit')
     await etch.getScheduler().getNextUpdatePromise()
     assert.equal(commit.callCount, 0)
@@ -150,7 +144,7 @@ describe('CommitView', () => {
       await Promise.resolve()
       throw new CommitError('ECONFLICT')
     })
-    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [new FilePatch()], commit})
+    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChangesExist: true, commit})
     const {editor, commitButton} = view.refs
     editor.setText('A message.')
     await etch.getScheduler().getNextUpdatePromise()

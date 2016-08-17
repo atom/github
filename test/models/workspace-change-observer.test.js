@@ -5,7 +5,7 @@ import path from 'path'
 import temp from 'temp'
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer'
 
@@ -27,17 +27,17 @@ describe('WorkspaceChangeObserver', () => {
     changeObserver.onDidChange(changeSpy)
 
     window.dispatchEvent(new FocusEvent('focus'))
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
 
     await changeObserver.start()
     window.dispatchEvent(new FocusEvent('focus'))
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
 
-    const workdirPath = copyRepositoryDir('three-files')
+    const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
     await changeObserver.setActiveRepository(repository)
     window.dispatchEvent(new FocusEvent('focus'))
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.calledOnce)
   })
 
   it('emits a change event when a buffer belonging to the active directory changes', async () => {
@@ -45,9 +45,9 @@ describe('WorkspaceChangeObserver', () => {
     const changeObserver = new WorkspaceChangeObserver(window, workspace)
     changeObserver.onDidChange(changeSpy)
     await changeObserver.start()
-    const workdirPath1 = copyRepositoryDir('three-files')
+    const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = copyRepositoryDir('three-files')
+    const workdirPath2 = await cloneRepository('three-files')
     const repository2 = await buildRepository(workdirPath2)
 
     const editor1 = await workspace.open(path.join(workdirPath1, 'a.txt'))
@@ -55,45 +55,45 @@ describe('WorkspaceChangeObserver', () => {
     await changeObserver.setActiveRepository(repository2)
     editor1.setText('change')
     editor1.save()
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
     editor2.setText('change')
     editor2.save()
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.calledOnce)
 
     changeSpy.reset()
     await changeObserver.setActiveRepository(repository1)
     editor2.setText('change 1')
     editor2.save()
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
     editor1.setText('change 1')
     editor1.save()
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.calledOnce)
 
     changeSpy.reset()
     const [unstagedChange] = await repository1.refreshUnstagedChanges()
     await repository1.applyPatchToIndex(unstagedChange)
     await changeObserver.lastIndexChangePromise
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
 
     changeSpy.reset()
     editor1.getBuffer().reload()
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.calledOnce)
 
     changeSpy.reset()
     editor1.destroy()
-    assert(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.calledOnce)
 
     changeSpy.reset()
     await changeObserver.setActiveRepository(null)
     editor2.setText('change 2')
     editor2.save()
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
 
     changeSpy.reset()
     await changeObserver.setActiveRepository(repository2)
     await changeObserver.stop()
     editor2.setText('change 2')
     editor2.save()
-    assert(!changeSpy.called)
+    assert.isFalse(changeSpy.called)
   })
 })

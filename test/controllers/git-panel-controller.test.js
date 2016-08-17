@@ -5,7 +5,7 @@ import path from 'path'
 
 import sinon from 'sinon'
 
-import {copyRepositoryDir, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import GitPanelController from '../../lib/controllers/git-panel-controller'
 
 describe('GitPanelController', () => {
@@ -23,9 +23,9 @@ describe('GitPanelController', () => {
   })
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
-    const workdirPath1 = await copyRepositoryDir('three-files')
+    const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
-    const workdirPath2 = await copyRepositoryDir('three-files')
+    const workdirPath2 = await cloneRepository('three-files')
     const repository2 = await buildRepository(workdirPath2)
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'))
@@ -57,7 +57,7 @@ describe('GitPanelController', () => {
 
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
-      const workdirPath = await copyRepositoryDir('three-files')
+      const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
@@ -68,13 +68,13 @@ describe('GitPanelController', () => {
 
       assert.equal(stagingView.props.unstagedChanges.length, 2)
       assert.equal(stagingView.props.stagedChanges.length, 0)
-      await stagingView.props.stageFilePatch(stagingView.props.unstagedChanges[0])
+      await stagingView.stageFilePatch(stagingView.props.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
-      await stagingView.props.stageFilePatch(stagingView.props.unstagedChanges[0])
+      await stagingView.stageFilePatch(stagingView.props.unstagedChanges[0])
       await controller.lastModelDataRefreshPromise
       assert.equal(stagingView.props.unstagedChanges.length, 0)
       assert.equal(stagingView.props.stagedChanges.length, 2)
-      await stagingView.props.unstageFilePatch(stagingView.props.stagedChanges[1])
+      await stagingView.unstageFilePatch(stagingView.props.stagedChanges[1])
       await controller.lastModelDataRefreshPromise
       assert.equal(stagingView.props.unstagedChanges.length, 1)
       assert.equal(stagingView.props.stagedChanges.length, 1)
@@ -83,12 +83,18 @@ describe('GitPanelController', () => {
       await commitView.commit()
       await controller.lastModelDataRefreshPromise
 
-      assert.equal((await repository.getLastCommit()).message(), 'Make it so')
+      assert.equal((await repository.getLastCommit()).message, 'Make it so')
     })
 
     it('can stage merge conflict files', async () => {
-      const workdirPath = await copyRepositoryDir('merge-conflict')
+      const workdirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workdirPath)
+
+      try {
+        await repository.git.merge('origin/branch')
+      } catch (e) {
+        // expected
+      }
 
       const controller = new GitPanelController({workspace, commandRegistry, repository: repository})
       await controller.lastModelDataRefreshPromise
@@ -109,7 +115,7 @@ describe('GitPanelController', () => {
 
       // click Cancel
       choice = 1
-      await stagingView.props.addPathToIndex(conflict1.getPath())
+      await stagingView.props.stageFile(conflict1.getPath())
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.calledOnce, true)
       assert.equal(stagingView.props.mergeConflicts.length, 5)
@@ -118,7 +124,7 @@ describe('GitPanelController', () => {
       // click Stage
       choice = 0
       atom.confirm.reset()
-      await stagingView.props.addPathToIndex(conflict1.getPath())
+      await stagingView.props.stageFile(conflict1.getPath())
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.calledOnce, true)
       assert.equal(stagingView.props.mergeConflicts.length, 4)
@@ -128,7 +134,7 @@ describe('GitPanelController', () => {
       const conflict2 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-theirs.txt')[0]
       atom.confirm.reset()
       fs.writeFileSync(path.join(workdirPath, conflict2.getPath()), 'text with no merge markers')
-      await stagingView.props.addPathToIndex(conflict2.getPath())
+      await stagingView.props.stageFile(conflict2.getPath())
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.called, false)
       assert.equal(stagingView.props.mergeConflicts.length, 3)

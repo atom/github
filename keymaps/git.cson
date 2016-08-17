@@ -3,6 +3,7 @@
 
 '.git-StagingView':
   'tab': 'git:focus-next-list'
+  'shift-tab': 'git:focus-previous-list'
 
 '.git-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'git:commit'
@@ -11,3 +12,4 @@
 '.git-FilePatchView':
   '/': 'git:toggle-patch-selection-mode'
   'tab': 'git:focus-next-hunk'
+  'shift-tab': 'git:focus-previous-hunk'

@@ -4,15 +4,44 @@ import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
 import {Directory} from 'atom'
-import Git from 'nodegit'
+import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
 
-export function copyRepositoryDir (repoName = 1) {
+export async function cloneRepository (repoName = 'three-files') {
   const workingDirPath = temp.mkdirSync('git-fixture-')
-  fs.copySync(path.join(__dirname, 'fixtures', `repo-${repoName}`), workingDirPath)
-  fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'))
+  const git = new GitShellOutStrategy(workingDirPath)
+  await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
   return fs.realpathSync(workingDirPath)
+}
+
+export async function setUpLocalAndRemoteRepositories (repoName = 'multiple-commits', options = {}) {
+  if (typeof repoName === 'object') {
+    options = repoName
+    repoName = 'multiple-commits'
+  }
+  const baseRepoPath = await cloneRepository(repoName)
+  const baseGit = new GitShellOutStrategy(baseRepoPath)
+
+  // create remote bare repo with all commits
+  const remoteRepoPath = temp.mkdirSync('git-remote-fixture-')
+  const remoteGit = new GitShellOutStrategy(remoteRepoPath)
+  await remoteGit.clone(baseRepoPath, {bare: true})
+
+  // create local repo with one fewer commit
+  if (options.remoteAhead) await baseGit.exec(['reset', 'head~'])
+  const localRepoPath = temp.mkdirSync('git-local-fixture-')
+  const localGit = new GitShellOutStrategy(localRepoPath)
+  await localGit.clone(baseRepoPath)
+  await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath])
+  return {baseRepoPath, remoteRepoPath, localRepoPath}
+}
+
+export async function getHeadCommitOnRemote (remotePath) {
+  const workingDirPath = temp.mkdirSync('git-fixture-')
+  const git = new GitShellOutStrategy(workingDirPath)
+  await git.clone(remotePath)
+  return git.getHeadCommit()
 }
 
 export function buildRepository (workingDirPath) {
@@ -34,29 +63,4 @@ export function assertDeepPropertyVals (actual, expected) {
   }
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
-}
-
-export async function cloneRepository () {
-  const baseRepo = copyRepositoryDir('three-files')
-  const cloneOptions = new Git.CloneOptions()
-  cloneOptions.bare = 1
-  cloneOptions.local = 1
-
-  const remoteRepoPath = temp.mkdirSync('git-remote-fixture-')
-  await Git.Clone.clone(baseRepo, remoteRepoPath, cloneOptions)
-
-  const localRepoPath = temp.mkdirSync('git-cloned-fixture-')
-  cloneOptions.bare = 0
-  await Git.Clone.clone(remoteRepoPath, localRepoPath, cloneOptions)
-  return {remoteRepoPath, localRepoPath}
-}
-
-export async function createEmptyCommit (repoPath, message) {
-  const repo = await Git.Repository.open(repoPath)
-  const head = await repo.getHeadCommit()
-  const tree = await head.getTree()
-  const parents = [head]
-  const author = Git.Signature.default(repo)
-
-  return repo.createCommit('HEAD', author, author, message, tree, parents)
 }

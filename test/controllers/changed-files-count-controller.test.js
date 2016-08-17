@@ -1,6 +1,6 @@
 /** @babel */
 
-import {copyRepositoryDir, buildRepository, cloneRepository, createEmptyCommit} from '../helpers'
+import {cloneRepository, buildRepository} from '../helpers'
 import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'
@@ -13,7 +13,7 @@ describe('ChangedFilesCountController', () => {
     const view = new ChangedFilesCountController({repository: null, didClick})
     assert.isUndefined(view.refs.changedFilesCount)
 
-    const workdirPath = await copyRepositoryDir('three-files')
+    const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
     view.update({repository})
     await view.lastModelDataRefreshPromise
