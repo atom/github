@@ -273,6 +273,18 @@ describe('Repository', function () {
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
 
+    it('amends the last commit when the amend option is set to true', async () => {
+      const workingDirPath = await cloneRepository('multiple-commits')
+      const repo = await buildRepository(workingDirPath)
+      const lastCommit = await repo.git.getHeadCommit()
+      const lastCommitParent = await repo.git.getCommit('HEAD~')
+      await repo.commit('amend last commit', {amend: true, allowEmpty: true})
+      const amendedCommit = await repo.git.getHeadCommit()
+      const amendedCommitParent = await repo.git.getCommit('HEAD~')
+      assert.notDeepEqual(lastCommit, amendedCommit)
+      assert.deepEqual(lastCommitParent, amendedCommitParent)
+    })
+
     it('throws an error when there are unmerged files', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workingDirPath)

@@ -356,4 +356,18 @@ describe('Git commands', () => {
       assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch'])
     })
   })
+
+  describe('commit(message, options) where amend option is true', () => {
+    it('amends the last commit', async () => {
+      const workingDirPath = await cloneRepository('multiple-commits')
+      const git = new GitShellOutStrategy(workingDirPath)
+      const lastCommit = await git.getHeadCommit()
+      const lastCommitParent = await git.getCommit('HEAD~')
+      await git.commit('amend last commit', {amend: true, allowEmpty: true})
+      const amendedCommit = await git.getHeadCommit()
+      const amendedCommitParent = await git.getCommit('HEAD~')
+      assert.notDeepEqual(lastCommit, amendedCommit)
+      assert.deepEqual(lastCommitParent, amendedCommitParent)
+    })
+  })
 })
