@@ -4,7 +4,7 @@ import {execFile} from 'child_process'
 
 import CredentialHelper from '../lib/credential-helper'
 
-describe('CredentialHelper', () => {
+xdescribe('CredentialHelper', () => {
   it('prompts for user input and writes the response to stdout', async () => {
     const helper = new CredentialHelper()
     const launchPath = await helper.start((question) => {

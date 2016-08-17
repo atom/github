@@ -1,11 +1,11 @@
 /** @babel */
 
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
-import {cloneRepository, assertDeepPropertyVals} from './helpers'
+import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers'
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -14,6 +14,53 @@ import {cloneRepository, assertDeepPropertyVals} from './helpers'
  */
 
 describe('Git commands', () => {
+  describe('exec', () => {
+    it('serializes operations', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      let expectedEvents = []
+      let actualEvents = []
+      let promises = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        promises.push(git.diff().then(() => actualEvents.push(i)))
+      }
+
+      await Promise.all(promises)
+      assert.deepEqual(expectedEvents, actualEvents)
+    })
+
+    it('runs operations after one fails', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      let expectedEvents = []
+      let actualEvents = []
+      let promises = []
+      for (let i = 0; i < 10; i++) {
+        expectedEvents.push(i)
+        if (i === 5) {
+          promises.push(git.exec(['fake', 'command']).catch(() => actualEvents.push(i)))
+        } else {
+          promises.push(git.exec(['status']).then(() => actualEvents.push(i)))
+        }
+      }
+
+      await Promise.all(promises)
+      assert.deepEqual(expectedEvents, actualEvents)
+    })
+  })
+
+  describe('isGitRepository(directoryPath)', () => {
+    it('returns true if the path passed is a valid repository, and false if not', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.isTrue(await git.isGitRepository(workingDirPath))
+
+      fs.removeSync(path.join(workingDirPath, '.git'))
+      assert.isFalse(await git.isGitRepository(workingDirPath))
+    })
+  })
+
   describe('diffFileStatus', () => {
     it('returns an object with working directory file diff status between relative to HEAD', async () => {
       const workingDirPath = await cloneRepository('three-files')
@@ -197,7 +244,7 @@ describe('Git commands', () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
       try {
-        await git.exec(['merge', 'origin/branch'])
+        await git.merge('origin/branch')
       } catch (e) {
         // expected
       }
@@ -241,7 +288,7 @@ describe('Git commands', () => {
       assert.isFalse(isMerging)
 
       try {
-        await git.exec(['merge', 'origin/branch'])
+        await git.merge('origin/branch')
       } catch (e) {
         // expect merge to have conflicts
       }
@@ -251,6 +298,76 @@ describe('Git commands', () => {
       fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'))
       isMerging = await git.isMerging()
       assert.isFalse(isMerging)
+    })
+  })
+
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
+    it('returns the number of different commits on the branch vs the remote', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
+      const git = new GitShellOutStrategy(localRepoPath)
+      assert.equal(await git.getBehindCount('master'), 0)
+      assert.equal(await git.getAheadCount('master'), 0)
+      await git.fetch('master')
+      assert.equal(await git.getBehindCount('master'), 1)
+      assert.equal(await git.getAheadCount('master'), 0)
+      await git.commit('new commit', {allowEmpty: true})
+      await git.commit('another commit', {allowEmpty: true})
+      assert.equal(await git.getBehindCount('master'), 1)
+      assert.equal(await git.getAheadCount('master'), 2)
+    })
+  })
+
+  describe('getBranchName() and checkout(branchName)', () => {
+    it('returns the current branch name', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.equal(await git.getBranchName(), 'master')
+      await git.checkout('branch')
+      assert.equal(await git.getBranchName(), 'branch')
+
+      // newBranch does not yet exist
+      await assert.isRejected(git.checkout('newBranch'))
+      assert.equal(await git.getBranchName(), 'branch')
+      await git.checkout('newBranch', {createNew: true})
+      assert.equal(await git.getBranchName(), 'newBranch')
+    })
+  })
+
+  describe('getRemote(branchName)', () => {
+    it('returns the name of the remote associated with the branch, and null if none exists', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.equal(await git.getRemote('master'), 'origin')
+      await git.exec(['remote', 'rename', 'origin', 'foo'])
+      assert.equal(await git.getRemote('master'), 'foo')
+      await git.exec(['remote', 'rm', 'foo'])
+      assert.isNull(await git.getRemote('master'))
+    })
+  })
+
+  describe('getBranches()', () => {
+    it('returns an array of all branches', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.deepEqual(await git.getBranches(), ['master'])
+      await git.checkout('new-branch', {createNew: true})
+      assert.deepEqual(await git.getBranches(), ['master', 'new-branch'])
+      await git.checkout('another-branch', {createNew: true})
+      assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch'])
+    })
+  })
+
+  describe('commit(message, options) where amend option is true', () => {
+    it('amends the last commit', async () => {
+      const workingDirPath = await cloneRepository('multiple-commits')
+      const git = new GitShellOutStrategy(workingDirPath)
+      const lastCommit = await git.getHeadCommit()
+      const lastCommitParent = await git.getCommit('HEAD~')
+      await git.commit('amend last commit', {amend: true, allowEmpty: true})
+      const amendedCommit = await git.getHeadCommit()
+      const amendedCommitParent = await git.getCommit('HEAD~')
+      assert.notDeepEqual(lastCommit, amendedCommit)
+      assert.deepEqual(lastCommitParent, amendedCommitParent)
     })
   })
 })

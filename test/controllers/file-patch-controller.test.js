@@ -13,7 +13,7 @@ import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatchController', () => {
   it('bases its tab title on the staging status', () => {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [])
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
     const controller = new FilePatchController({filePatch: filePatch1, stagingStatus: 'unstaged'})
     assert.equal(controller.getTitle(), 'Unstaged Changes: a.txt')
 
@@ -42,7 +42,7 @@ describe('FilePatchController', () => {
   })
 
   it('gets destroyed if the associated FilePatch is destroyed', () => {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [])
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
     const controller = new FilePatchController({filePatch: filePatch1})
     const destroyHandler = sinon.spy()
     controller.onDidDestroy(destroyHandler)

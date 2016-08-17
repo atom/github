@@ -5,315 +5,337 @@ import MultiList from '../lib/multi-list'
 
 describe('MultiList', () => {
   describe('constructing a MultiList instance', () => {
-    let ml
-    beforeEach(() => {
-      ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+    it('selects the first item from each list, and marks the first list as selected', () => {
+      const ml = new MultiList([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ])
-    })
 
-    it('marks first list as selected, as well as its first item', () => {
-      assert.equal(ml.getSelectedListIndex(), 0)
-      assert.equal(ml.getSelectedItemIndexForList(0), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
       assert.equal(ml.getSelectedItem(), 'a')
-    })
-
-    it('selects the first item from each list', () => {
-      assert.equal(ml.getSelectedItemIndexForList(0), 0)
-      assert.equal(ml.getSelectedItemIndexForList(1), 0)
-      assert.equal(ml.getSelectedItemIndexForList(2), 0)
+      assert.equal(ml.getSelectedItemForKey('list2'), 'd')
+      assert.equal(ml.getSelectedItemForKey('list3'), 'f')
     })
   })
 
-  describe('selectListAtIndex(index)', () => {
-    it('selects the list at the given index', () => {
+  describe('selectListForKey(key)', () => {
+    it('selects the list at the given index and calls the provided changed-selection callback', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ], didChangeSelection)
-      assert.equal(ml.getSelectedListIndex(), 0)
-      assert.equal(ml.getSelectedItem(), 'a')
 
-      ml.selectListAtIndex(1)
-      assert.equal(ml.getSelectedListIndex(), 1)
+      ml.selectListForKey('list2')
+      assert.equal(ml.getSelectedListKey(), 'list2')
       assert.equal(ml.getSelectedItem(), 'd')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['d', 1])
+      assert.deepEqual(didChangeSelection.args[0], ['d', 'list2'])
 
       didChangeSelection.reset()
-      ml.selectListAtIndex(2)
-      assert.equal(ml.getSelectedListIndex(), 2)
+      ml.selectListForKey('list3')
+      assert.equal(ml.getSelectedListKey(), 'list3')
       assert.equal(ml.getSelectedItem(), 'f')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['f', 2])
+      assert.deepEqual(didChangeSelection.args[0], ['f', 'list3'])
     })
   })
 
-  describe('selectItemAtLocation([listIndex, itemIndex])', () => {
-    it('selects the item at the given location', () => {
+  describe('selectItemAtIndexForKey(key, itemIndex)', () => {
+    it('selects the item, calls the provided changed-selection callback, and remembers which item is selected for each list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ], didChangeSelection)
 
-      ml.selectItemAtLocation([0, 1])
-      assert.equal(ml.getSelectedItem(), 'b')
+      ml.selectItemAtIndexForKey('list1', 2)
+      assert.equal(ml.getSelectedItem(), 'c')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+      assert.deepEqual(didChangeSelection.args[0], ['c', 'list1'])
 
       didChangeSelection.reset()
-      ml.selectItemAtLocation([1, 0])
-      assert.equal(ml.getSelectedItem(), 'd')
+      ml.selectItemAtIndexForKey('list2', 1)
+      assert.equal(ml.getSelectedItem(), 'e')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['d', 1])
+      assert.deepEqual(didChangeSelection.args[0], ['e', 'list2'])
 
-      didChangeSelection.reset()
-      ml.selectItemAtLocation([2, 2])
-      assert.equal(ml.getSelectedItem(), 'h')
-      assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['h', 2])
-    })
-
-    it('remembers which item is selected for each list', () => {
-      const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
-      ])
-
-      ml.selectItemAtLocation([0, 1])
-      assert.equal(ml.getSelectedItem(), 'b')
-      ml.selectItemAtLocation([1, 0])
-      assert.equal(ml.getSelectedItem(), 'd')
-      ml.selectItemAtLocation([2, 2])
+      ml.selectItemAtIndexForKey('list3', 2)
       assert.equal(ml.getSelectedItem(), 'h')
 
-      ml.selectListAtIndex(0)
-      assert.equal(ml.getSelectedItem(), 'b')
+      ml.selectListForKey('list1')
+      assert.equal(ml.getSelectedItem(), 'c')
 
-      ml.selectListAtIndex(1)
-      assert.equal(ml.getSelectedItem(), 'd')
+      ml.selectListForKey('list2')
+      assert.equal(ml.getSelectedItem(), 'e')
 
-      ml.selectListAtIndex(2)
+      ml.selectListForKey('list3')
       assert.equal(ml.getSelectedItem(), 'h')
     })
   })
 
   describe('selectItem(item)', () => {
-    it('selects the provided item', () => {
+    it('selects the provided item and calls the provided changed-selection callback', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ], didChangeSelection)
 
       ml.selectItem('b')
       assert.equal(ml.getSelectedItem(), 'b')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+      assert.deepEqual(didChangeSelection.args[0], ['b', 'list1'])
 
       didChangeSelection.reset()
       ml.selectItem('e')
       assert.equal(ml.getSelectedItem(), 'e')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['e', 1])
+      assert.deepEqual(didChangeSelection.args[0], ['e', 'list2'])
     })
   })
 
-  describe('selectNextList() and selectPreviousList()', () => {
+  describe('selectNextList({wrap, selectFirst}) and selectPreviousList({wrap, selectLast})', () => {
     it('selects the next/previous list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ], didChangeSelection)
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
 
       ml.selectNextList()
-      assert.equal(ml.getSelectedListIndex(), 1)
+      assert.equal(ml.getSelectedListKey(), 'list2')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['d', 1])
+      assert.deepEqual(didChangeSelection.args[0], ['d', 'list2'])
 
       didChangeSelection.reset()
       ml.selectNextList()
-      assert.equal(ml.getSelectedListIndex(), 2)
+      assert.equal(ml.getSelectedListKey(), 'list3')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['f', 2])
+      assert.deepEqual(didChangeSelection.args[0], ['f', 'list3'])
 
-      didChangeSelection.reset()
       ml.selectPreviousList()
-      assert.equal(ml.getSelectedListIndex(), 1)
-      assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['d', 1])
+      assert.equal(ml.getSelectedListKey(), 'list2')
 
-      didChangeSelection.reset()
       ml.selectPreviousList()
-      assert.equal(ml.getSelectedListIndex(), 0)
-      assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['a', 0])
+      assert.equal(ml.getSelectedListKey(), 'list1')
     })
 
-    it('stops at the beginning and end lists if the wrap option is falsey', () => {
+    it('wraps across beginning and end lists for wrap option is truthy, otherwise stops at beginning/end lists', () => {
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ])
-      assert.equal(ml.getSelectedListIndex(), 0)
-
-      ml.selectPreviousList()
-      assert.equal(ml.getSelectedListIndex(), 0)
-
-      ml.selectListAtIndex(2)
-      assert.equal(ml.getSelectedListIndex(), 2)
-
-      ml.selectNextList()
-      assert.equal(ml.getSelectedListIndex(), 2)
-    })
-
-    it('wraps across beginning and end lists if the wrap option is set to true', () => {
-      const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
-      ])
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
 
       ml.selectPreviousList({wrap: true})
-      assert.equal(ml.getSelectedListIndex(), 2)
+      assert.equal(ml.getSelectedListKey(), 'list3')
 
       ml.selectNextList({wrap: true})
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
+
+      ml.selectPreviousList()
+      assert.equal(ml.getSelectedListKey(), 'list1')
+
+      ml.selectListForKey('list3')
+      assert.equal(ml.getSelectedListKey(), 'list3')
+
+      ml.selectNextList()
+      assert.equal(ml.getSelectedListKey(), 'list3')
     })
 
     it('selects first/last item in list if selectFirst/selectLast options are set to true', () => {
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e'],
-        ['f', 'g', 'h']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
       ])
-      ml.selectListAtIndex(1)
+      ml.selectListForKey('list2')
 
       ml.selectPreviousList({selectLast: true})
       assert.equal(ml.getSelectedItem(), 'c')
 
-      ml.selectItemAtLocation([1, 1])
+      ml.selectItemAtIndexForKey('list2', 1)
+      assert.equal(ml.getSelectedItem(), 'e')
       ml.selectNextList({selectFirst: true})
       assert.equal(ml.getSelectedItem(), 'f')
     })
   })
 
-  describe('selectNextItem() and selectPreviousItem()', () => {
+  describe('selectNextItem({wrap}) and selectPreviousItem({wrap})', () => {
     it('selects the next/previous item in the currently selected list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
-        ['a', 'b', 'c']
+        { key: 'list1', items: ['a', 'b', 'c'] }
       ], didChangeSelection)
       assert.equal(ml.getSelectedItem(), 'a')
 
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'b')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+      assert.deepEqual(didChangeSelection.args[0], ['b', 'list1'])
 
       didChangeSelection.reset()
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
       assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['c', 0])
+      assert.deepEqual(didChangeSelection.args[0], ['c', 'list1'])
 
-      didChangeSelection.reset()
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'b')
-      assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['b', 0])
 
-      didChangeSelection.reset()
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
-      assert.equal(didChangeSelection.callCount, 1)
-      assert.deepEqual(didChangeSelection.args[0], ['a', 0])
     })
 
     it('selects the next/previous list if one exists when selecting past the last/first item of a list', function () {
       const ml = new MultiList([
-        ['a', 'b'],
-        ['c']
+        { key: 'list1', items: ['a', 'b'] },
+        { key: 'list2', items: ['c'] }
       ])
 
       assert.equal(ml.getSelectedItem(), 'a')
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'b')
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
-      assert.equal(ml.getSelectedListIndex(), 1)
+      assert.equal(ml.getSelectedListKey(), 'list2')
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
-      assert.equal(ml.getSelectedListIndex(), 1)
+      assert.equal(ml.getSelectedListKey(), 'list2')
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'b')
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
       ml.selectPreviousItem()
       assert.equal(ml.getSelectedItem(), 'a')
-      assert.equal(ml.getSelectedListIndex(), 0)
+      assert.equal(ml.getSelectedListKey(), 'list1')
+    })
+
+    it('wraps across beginning and end lists if the wrap option is set to true', () => {
+      const ml = new MultiList([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
+      ])
+      assert.equal(ml.getSelectedItem(), 'a')
+
+      ml.selectPreviousItem({wrap: true})
+      assert.equal(ml.getSelectedItem(), 'h')
+
+      ml.selectNextItem({wrap: true})
+      assert.equal(ml.getSelectedItem(), 'a')
     })
   })
 
   describe('updateLists(lists)', () => {
-    it('throws an error if too many or too few lists are passed', () => {
+    it('adds and removes lists based on list keys and updates order accordingly, remembering the selected list', () => {
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] }
       ])
+      assert.deepEqual(ml.getListKeys(), ['list1', 'list2'])
+      assert.equal(ml.getSelectedListKey(), 'list1')
 
-      assert.throws(function () {
-        ml.updateLists([
-          ['a', 'b', 'c']
-        ])
+      ml.updateLists([
+        { key: 'list3', items: ['f', 'g', 'h'] },
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] }
+      ])
+      assert.deepEqual(ml.getListKeys(), ['list3', 'list1', 'list2'])
+      assert.equal(ml.getSelectedListKey(), 'list1')
+
+      ml.updateLists([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
+      ])
+      assert.deepEqual(ml.getListKeys(), ['list1', 'list3'])
+      assert.equal(ml.getSelectedListKey(), 'list1')
+
+      ml.updateLists([
+        { key: 'list3', items: ['f', 'g', 'h'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list1', items: ['a', 'b', 'c'] }
+      ])
+      assert.deepEqual(ml.getListKeys(), ['list3', 'list2', 'list1'])
+      assert.equal(ml.getSelectedListKey(), 'list1')
+    })
+
+    describe('when selected list is removed', () => {
+      describe('when there is a new list in its place', () => {
+        it('selects the new list in its place', () => {
+          const didChangeSelection = sinon.spy()
+          const ml = new MultiList([
+            { key: 'list1', items: ['a', 'b', 'c'] },
+            { key: 'list2', items: ['d', 'e'] }
+          ], didChangeSelection)
+
+          assert.equal(ml.getSelectedListKey(), 'list1')
+
+          ml.updateLists([
+            { key: 'list2', items: ['d', 'e'] }
+          ])
+          assert.equal(ml.getSelectedListKey(), 'list2')
+          assert.equal(didChangeSelection.callCount, 1)
+          assert.deepEqual(didChangeSelection.args[0], ['d', 'list2'])
+        })
       })
 
-      assert.throws(function () {
-        ml.updateLists([
-          ['a', 'b', 'c'],
-          ['d', 'e'],
-          ['f', 'g']
-        ])
+      describe('when there is no list in its place', () => {
+        it('selects the last list', () => {
+          const didChangeSelection = sinon.spy()
+          const ml = new MultiList([
+            { key: 'list1', items: ['a', 'b', 'c'] },
+            { key: 'list2', items: ['d', 'e'] }
+          ], didChangeSelection)
+
+          ml.selectListForKey('list2')
+
+          didChangeSelection.reset()
+          ml.updateLists([
+            { key: 'list1', items: ['a', 'b', 'c'] }
+          ])
+          assert.equal(ml.getSelectedListKey(), 'list1')
+          assert.equal(didChangeSelection.callCount, 1)
+          assert.deepEqual(didChangeSelection.args[0], ['a', 'list1'])
+        })
       })
     })
 
     it('maintains the selected items for each list, even if location has changed in list', () => {
       const ml = new MultiList([
-        ['a', 'b', 'c'],
-        ['d', 'e']
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] }
       ])
 
-      ml.selectItemAtLocation([0, 1])
+      ml.selectItemAtIndexForKey('list1', 1)
       assert.equal(ml.getSelectedItem(), 'b')
-      ml.selectItemAtLocation([1, 1])
+      ml.selectItemAtIndexForKey('list2', 1)
       assert.equal(ml.getSelectedItem(), 'e')
 
       ml.updateLists([
-        ['b', 'c'],
-        ['a', 'd', 'e']
+        { key: 'list1', items: ['b', 'c'] },
+        { key: 'list2', items: ['a', 'd', 'e'] }
       ])
 
-      ml.selectListAtIndex(0)
-      ml.getSelectedItem('b')
+      assert.equal(ml.getSelectedListKey(), 'list2')
 
-      ml.selectListAtIndex(1)
-      ml.getSelectedItem('e')
+      ml.selectListForKey('list1')
+      assert.equal(ml.getSelectedItem(), 'b')
+
+      ml.selectListForKey('list2')
+      assert.equal(ml.getSelectedItem(), 'e')
     })
 
     describe('when list item is no longer in the list upon update', () => {
@@ -321,23 +343,23 @@ describe('MultiList', () => {
         it('keeps the same selected item index and shows the new item as selected', () => {
           const didChangeSelection = sinon.spy()
           const ml = new MultiList([
-            ['a', 'b', 'c']
+            { key: 'list1', items: ['a', 'b', 'c'] }
           ], didChangeSelection)
 
-          ml.selectItemAtLocation([0, 0])
+          ml.selectItemAtIndexForKey('list1', 0)
           assert.equal(ml.getSelectedItem(), 'a')
 
           didChangeSelection.reset()
           ml.updateLists([
-            ['b', 'c']
+            { key: 'list1', items: ['b', 'c'] }
           ])
           assert.equal(ml.getSelectedItem(), 'b')
           assert.equal(didChangeSelection.callCount, 1)
-          assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+          assert.deepEqual(didChangeSelection.args[0], ['b', 'list1'])
 
           didChangeSelection.reset()
           ml.updateLists([
-            ['b', 'c']
+            { key: 'list1', items: ['b', 'c'] }
           ])
           assert.equal(ml.getSelectedItem(), 'b')
           assert.equal(didChangeSelection.callCount, 0)
@@ -348,27 +370,27 @@ describe('MultiList', () => {
         it('selects the last item in the list', () => {
           const didChangeSelection = sinon.spy()
           const ml = new MultiList([
-            ['a', 'b', 'c']
+            { key: 'list1', items: ['a', 'b', 'c'] }
           ], didChangeSelection)
 
-          ml.selectItemAtLocation([0, 2])
+          ml.selectItemAtIndexForKey('list1', 2)
           assert.equal(ml.getSelectedItem(), 'c')
 
           didChangeSelection.reset()
           ml.updateLists([
-            ['a', 'b']
+            { key: 'list1', items: ['a', 'b'] }
           ])
           assert.equal(ml.getSelectedItem(), 'b')
           assert.equal(didChangeSelection.callCount, 1)
-          assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+          assert.deepEqual(didChangeSelection.args[0], ['b', 'list1'])
 
           didChangeSelection.reset()
           ml.updateLists([
-            ['a']
+            { key: 'list1', items: ['a'] }
           ])
           assert.equal(ml.getSelectedItem(), 'a')
           assert.equal(didChangeSelection.callCount, 1)
-          assert.deepEqual(didChangeSelection.args[0], ['a', 0])
+          assert.deepEqual(didChangeSelection.args[0], ['a', 'list1'])
         })
       })
 
@@ -377,21 +399,21 @@ describe('MultiList', () => {
           it('selects the first item in the following list', () => {
             const didChangeSelection = sinon.spy()
             const ml = new MultiList([
-              ['a'],
-              ['b', 'c']
+              { key: 'list1', items: ['a'] },
+              { key: 'list2', items: ['b', 'c'] }
             ], didChangeSelection)
 
-            ml.selectItemAtLocation([0, 0])
+            ml.selectItemAtIndexForKey('list1', 0)
             assert.equal(ml.getSelectedItem(), 'a')
 
             didChangeSelection.reset()
             ml.updateLists([
-              [],
-              ['b', 'c']
+              { key: 'list1', items: [] },
+              { key: 'list2', items: ['b', 'c'] }
             ])
             assert.equal(ml.getSelectedItem(), 'b')
             assert.equal(didChangeSelection.callCount, 1)
-            assert.deepEqual(didChangeSelection.args[0], ['b', 1])
+            assert.deepEqual(didChangeSelection.args[0], ['b', 'list2'])
           })
         })
 
@@ -399,22 +421,22 @@ describe('MultiList', () => {
           it('selects the last item in the preceeding list', () => {
             const didChangeSelection = sinon.spy()
             const ml = new MultiList([
-              ['a', 'b'],
-              ['c']
+              { key: 'list1', items: ['a', 'b'] },
+              { key: 'list2', items: ['c'] }
             ], didChangeSelection)
 
-            ml.selectItemAtLocation([1, 0])
+            ml.selectItemAtIndexForKey('list2', 0)
             assert.equal(ml.getSelectedItem(), 'c')
 
             didChangeSelection.reset()
             ml.updateLists([
-              ['a', 'b'],
-              []
+              { key: 'list1', items: ['a', 'b'] },
+              { key: 'list2', items: [] }
             ])
             assert.equal(ml.getSelectedItem(), 'b')
             assert.equal(ml.getSelectedItem(), 'b')
             assert.equal(didChangeSelection.callCount, 1)
-            assert.deepEqual(didChangeSelection.args[0], ['b', 0])
+            assert.deepEqual(didChangeSelection.args[0], ['b', 'list1'])
           })
         })
       })

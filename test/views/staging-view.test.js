@@ -7,12 +7,8 @@ import sinon from 'sinon'
 
 import StagingView, {ListTypes} from '../../lib/views/staging-view'
 
-const getSelectedItemForStagedList = (view) => {
-  return view.multiList.getSelectedItemForList(2)
-}
-
-const getSelectedItemForUnstagedList = (view) => {
-  return view.multiList.getSelectedItemForList(0)
+const getSelectedItemForListType = (view, listKey) => {
+  return view.multiList.getSelectedItemForKey(listKey)
 }
 
 describe('StagingView', () => {
@@ -91,19 +87,19 @@ describe('StagingView', () => {
         const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
 
         await view.selectList(ListTypes.STAGED)
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
         let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
 
         await view.selectList(ListTypes.UNSTAGED)
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
         selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
 
         await view.selectList(ListTypes.STAGED)
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
         selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
         assert.equal(selectedLists.length, 1)
         assert.equal(selectedLists[0].textContent, 'Staged Changes')
@@ -120,11 +116,11 @@ describe('StagingView', () => {
         const {stagedChangesView, unstagedChangesView} = view.refs
 
         await view.selectList(ListTypes.UNSTAGED)
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
 
         await view.selectList(ListTypes.STAGED)
-        assert.notEqual(view.getSelectedList(), ListTypes.STAGED)
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+        assert.notEqual(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
       })
     })
   })
@@ -139,19 +135,19 @@ describe('StagingView', () => {
       const view = new StagingView({repository, stagedChanges: [filePatches[0]], unstagedChanges: [filePatches[1]]})
 
       await view.focusNextList()
-      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
       let selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
       assert.equal(selectedLists.length, 1)
       assert.equal(selectedLists[0].textContent, 'Staged Changes')
 
       await view.focusNextList()
-      assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
+      assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
       selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
       assert.equal(selectedLists.length, 1)
       assert.equal(selectedLists[0].textContent, 'Unstaged Changes')
 
       await view.focusNextList()
-      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
       selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
       assert.equal(selectedLists.length, 1)
       assert.equal(selectedLists[0].textContent, 'Staged Changes')
@@ -159,7 +155,7 @@ describe('StagingView', () => {
       // skips empty lists
       await view.update({repository, stagedChanges: [filePatches[0]], unstagedChanges: []})
       await view.focusNextList()
-      assert.equal(view.getSelectedList(), ListTypes.STAGED)
+      assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
       selectedLists = view.element.querySelectorAll('.git-StagingView-group.is-focused .git-StagingView-header')
       assert.equal(selectedLists.length, 1)
       assert.equal(selectedLists[0].textContent, 'Staged Changes')
@@ -185,48 +181,48 @@ describe('StagingView', () => {
         const unstagedFilePatches = await repository.getUnstagedChanges()
         const view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
 
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.equal(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[0])
 
         view.selectPreviousFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.equal(getSelectedItemForUnstagedList(view), unstagedFilePatches[0])
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.equal(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[0])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[1])
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[1])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[2])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[0])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[1])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[2])
 
         view.selectNextFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[2])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[2])
 
         view.selectPreviousFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[1])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[1])
 
         view.selectPreviousFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForStagedList(view), stagedFilePatches[0])
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[0])
 
         view.selectPreviousFilePatch()
-        assert.equal(view.getSelectedList(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForUnstagedList(view), unstagedFilePatches[2])
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[2])
       })
     })
 

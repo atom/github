@@ -91,7 +91,7 @@ describe('GitPanelController', () => {
       const repository = await buildRepository(workdirPath)
 
       try {
-        await repository.git.exec(['merge', 'origin/branch'])
+        await repository.git.merge('origin/branch')
       } catch (e) {
         // expected
       }

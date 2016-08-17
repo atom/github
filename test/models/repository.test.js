@@ -4,9 +4,8 @@ import fs from 'fs'
 import path from 'path'
 import dedent from 'dedent-js'
 import sinon from 'sinon'
-import Git from 'nodegit'
 
-import {cloneRepository, buildRepository, assertDeepPropertyVals, createEmptyCommit, createLocalAndRemoteRepositories} from '../helpers'
+import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote} from '../helpers'
 
 describe('Repository', function () {
   describe('refreshing staged and unstaged changes', () => {
@@ -274,11 +273,23 @@ describe('Repository', function () {
       assert.deepEqual(await repo.getUnstagedChanges(), [])
     })
 
+    it('amends the last commit when the amend option is set to true', async () => {
+      const workingDirPath = await cloneRepository('multiple-commits')
+      const repo = await buildRepository(workingDirPath)
+      const lastCommit = await repo.git.getHeadCommit()
+      const lastCommitParent = await repo.git.getCommit('HEAD~')
+      await repo.commit('amend last commit', {amend: true, allowEmpty: true})
+      const amendedCommit = await repo.git.getHeadCommit()
+      const amendedCommitParent = await repo.git.getCommit('HEAD~')
+      assert.notDeepEqual(lastCommit, amendedCommit)
+      assert.deepEqual(lastCommitParent, amendedCommitParent)
+    })
+
     it('throws an error when there are unmerged files', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workingDirPath)
       try {
-        await repository.git.exec(['merge', 'origin/branch'])
+        await repository.git.merge('origin/branch')
       } catch (e) {
         // expected
       }
@@ -315,79 +326,99 @@ describe('Repository', function () {
     })
   })
 
-  xdescribe('pull()', () => {
-    it('brings commits from the remote', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
+  describe('fetch(branchName)', () => {
+    it('brings commits from the remote and updates remote branch, and does not update branch', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
-
-      await createEmptyCommit(remoteRepoPath, 'new remote commit')
-
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
-
-      await localRepo.pull('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
-    })
-  })
-
-  xdescribe('push()', () => {
-    it('sends commits to the remote and updates ', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
-      const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
-
-      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
-      await localRepo.applyPatchToIndex(unstagedFilePatch)
-      await localRepo.commit('new local commit')
-
-      assert.notEqual((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message)
-
-      await localRepo.push('master')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), (await localRepo.getLastCommit()).message + '\n')
-    })
-  })
-
-  xdescribe('getAheadBehindCount(branchName)', () => {
-    it('returns the number of commits ahead and behind the remote', async () => {
-      const {localRepoPath, remoteRepoPath} = await createLocalAndRemoteRepositories()
-      const localRepo = await buildRepository(localRepoPath)
-      const remoteRepo = await Git.Repository.open(remoteRepoPath)
-
-      await createEmptyCommit(remoteRepoPath, 'new remote commit')
-      assert.equal((await remoteRepo.getMasterCommit()).message(), 'new remote commit')
-
-      fs.writeFileSync(path.join(localRepoPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const [unstagedFilePatch] = await localRepo.getUnstagedChanges()
-      await localRepo.applyPatchToIndex(unstagedFilePatch)
-      await localRepo.commit('new local commit')
-
-      assert.equal((await localRepo.getLastCommit()).message, 'new local commit')
-
-      let {ahead, behind} = await localRepo.getAheadBehindCount('master')
-      assert.equal(behind, 0)
-      assert.equal(ahead, 1)
+      let remoteHead, localHead
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'second commit')
+      assert.equal(localHead.message, 'second commit')
 
       await localRepo.fetch('master')
-      const counts = await localRepo.getAheadBehindCount('master')
-      ahead = counts.ahead
-      behind = counts.behind
-      assert.equal(behind, 1)
-      assert.equal(ahead, 1)
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'third commit')
+      assert.equal(localHead.message, 'second commit')
     })
   })
 
-  xdescribe('getBranchRemoteName(branchName)', () => {
-    it('returns the remote name associated to the supplied branch name', async () => {
-      const {localRepoPath} = await createLocalAndRemoteRepositories('three-files')
-      const repository = await buildRepository(localRepoPath)
-      assert.equal(await repository.getBranchRemoteName('master'), 'origin')
-    })
+  describe('pull()', () => {
+    it('updates the remote branch and merges into local branch', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
+      const localRepo = await buildRepository(localRepoPath)
+      let remoteHead, localHead
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'second commit')
+      assert.equal(localHead.message, 'second commit')
 
-    it('returns null if there is no remote associated with the supplied branch name', async () => {
-      const workingDirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workingDirPath)
-      assert.isNull(await repository.getBranchRemoteName('master'))
+      await localRepo.pull('master')
+      remoteHead = await localRepo.git.getCommit('origin/master')
+      localHead = await localRepo.git.getCommit('master')
+      assert.equal(remoteHead.message, 'third commit')
+      assert.equal(localHead.message, 'third commit')
+    })
+  })
+
+  describe('push()', () => {
+    it('sends commits to the remote and updates ', async () => {
+      const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories()
+      const localRepo = await buildRepository(localRepoPath)
+
+      let localHead, localRemoteHead, remoteHead
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      assert.deepEqual(localHead, localRemoteHead)
+
+      await localRepo.commit('fourth commit', {allowEmpty: true})
+      await localRepo.commit('fifth commit', {allowEmpty: true})
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      remoteHead = await getHeadCommitOnRemote(remoteRepoPath)
+      assert.notDeepEqual(localHead, remoteHead)
+      assert.equal(remoteHead.message, 'third commit')
+      assert.deepEqual(remoteHead, localRemoteHead)
+
+      await localRepo.push('master')
+      localHead = await localRepo.git.getCommit('master')
+      localRemoteHead = await localRepo.git.getCommit('origin/master')
+      remoteHead = await getHeadCommitOnRemote(remoteRepoPath)
+      assert.deepEqual(localHead, remoteHead)
+      assert.equal(remoteHead.message, 'fifth commit')
+      assert.deepEqual(remoteHead, localRemoteHead)
+    })
+  })
+
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
+    it('returns the number of commits ahead and behind the remote', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
+      const localRepo = await buildRepository(localRepoPath)
+
+      assert.equal(await localRepo.getBehindCount('master'), 0)
+      assert.equal(await localRepo.getAheadCount('master'), 0)
+      await localRepo.fetch('master')
+      assert.equal(await localRepo.getBehindCount('master'), 1)
+      assert.equal(await localRepo.getAheadCount('master'), 0)
+      await localRepo.commit('new commit', {allowEmpty: true})
+      await localRepo.commit('another commit', {allowEmpty: true})
+      assert.equal(await localRepo.getBehindCount('master'), 1)
+      assert.equal(await localRepo.getAheadCount('master'), 2)
+    })
+  })
+
+  describe('getRemote(branchName)', () => {
+    it('returns the remote name associated to the supplied branch name, null if none exists', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
+      const localRepo = await buildRepository(localRepoPath)
+
+      assert.equal(await localRepo.getRemote('master'), 'origin')
+      await localRepo.git.exec(['remote', 'rename', 'origin', 'foo'])
+      assert.equal(await localRepo.getRemote('master'), 'foo')
+
+      await localRepo.git.exec(['remote', 'rm', 'foo'])
+      assert.isNull(await localRepo.getRemote('master'))
     })
   })
 
@@ -397,7 +428,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -449,7 +480,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -482,7 +513,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -530,7 +561,7 @@ describe('Repository', function () {
         const workingDirPath = await cloneRepository('merge-conflict')
         const repo = await buildRepository(workingDirPath)
         try {
-          await repo.git.exec(['merge', 'origin/branch'])
+          await repo.git.merge('origin/branch')
         } catch (e) {
           // expected
         }
@@ -571,7 +602,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }
@@ -586,7 +617,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }
@@ -607,7 +638,7 @@ describe('Repository', function () {
           const workingDirPath = await cloneRepository('merge-conflict-abort')
           const repo = await buildRepository(workingDirPath)
           try {
-            await repo.git.exec(['merge', 'origin/spanish'])
+            await repo.git.merge('origin/spanish')
           } catch (e) {
             // expected
           }

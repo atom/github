@@ -1,8 +1,6 @@
 /** @babel */
 
 import {cloneRepository, buildRepository} from '../helpers'
-import path from 'path'
-import fs from 'fs'
 import etch from 'etch'
 import sinon from 'sinon'
 
