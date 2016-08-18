@@ -7,44 +7,46 @@ import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatchView', () => {
-  it('allows lines of a hunk to be selected, clearing the selection on the other hunks', async () => {
-    const hunk1 = new Hunk(5, 5, 2, 1, [
-      new HunkLine('line-1', 'unchanged', 5, 5),
-      new HunkLine('line-2', 'removed', 6, -1),
-      new HunkLine('line-3', 'removed', 7, -1),
-      new HunkLine('line-4', 'added', -1, 6)
-    ])
-    const hunk2 = new Hunk(8, 8, 1, 1, [
-      new HunkLine('line-5', 'removed', 8, -1),
-      new HunkLine('line-6', 'added', -1, 8)
-    ])
-    const hunkViewsByHunk = new Map()
-    const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+  describe('selectLineForHunk(hunk, selectedLine) when selection is enabled', () => {
+    it('sets the lines between selectedLine and first line selected', async () => {
+      const line1 = new HunkLine('line-1', 'removed', 5, -1)
+      const line2 = new HunkLine('line-2', 'removed', 6, -1)
+      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+      const line4 = new HunkLine('line-4', 'added', -1, 6)
+      const line5 = new HunkLine('line-5', 'removed', 8, -1)
+      const line6 = new HunkLine('line-6', 'added', -1, 8)
+      const hunk1 = new Hunk(5, 5, 3, 1, [line1, line2, line3, line4])
+      const hunk2 = new Hunk(8, 8, 1, 1, [line5, line6])
+      const hunkViewsByHunk = new Map()
+      const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+      view.togglePatchSelectionMode()
+      assertSelectedLines(view, [line1])
+      view.enableSelections()
+      // line2 is first line selected. it is the end reference for all future selections
+      await view.selectLineForHunk(hunk1, line2)
+      assertSelectedLines(view, [line2])
+      await view.selectLineForHunk(hunk1, line4)
+      assertSelectedLines(view, [line2, line3, line4])
+      assertSelectedHunks(view, [hunk1])
+      // can select across hunk boundaries
+      await view.selectLineForHunk(hunk2, line6)
+      assertSelectedLines(view, [line2, line3, line4, line5, line6])
+      assertSelectedHunks(view, [hunk1, hunk2])
+      view.disableSelections()
 
-    let linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).props.selectLines(new Set(linesToSelect))
-    await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), hunk1.getLines().filter(l => l.isChanged()))
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
-    assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert.isTrue(!hunkViewsByHunk.get(hunk2).props.isSelected)
-
-    await view.togglePatchSelectionMode()
-    linesToSelect = hunk1.getLines().slice(1, 3)
-    hunkViewsByHunk.get(hunk1).props.selectLines(new Set(linesToSelect))
-    await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), linesToSelect)
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), [])
-    assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert.isTrue(!hunkViewsByHunk.get(hunk2).props.isSelected)
-
-    linesToSelect = hunk2.getLines().slice(0, 1)
-    hunkViewsByHunk.get(hunk2).props.selectLines(new Set(linesToSelect))
-    await etch.getScheduler().getNextUpdatePromise()
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk1).props.selectedLines), [])
-    assert.deepEqual(Array.from(hunkViewsByHunk.get(hunk2).props.selectedLines), linesToSelect)
-    assert.isTrue(!hunkViewsByHunk.get(hunk1).props.isSelected)
-    assert.isTrue(hunkViewsByHunk.get(hunk2).props.isSelected)
+      // can select in any direction, with subseqent selection above initial
+      view.enableSelections()
+      await view.selectLineForHunk(hunk2, line6)
+      assertSelectedLines(view, [line6])
+      await view.selectLineForHunk(hunk2, line5)
+      assertSelectedLines(view, [line5, line6])
+      assertSelectedHunks(view, [hunk2])
+      // can select across hunk boundaries
+      await view.selectLineForHunk(hunk1, line2)
+      assertSelectedLines(view, [line2, line3, line4, line5, line6])
+      assertSelectedHunks(view, [hunk1, hunk2])
+      view.disableSelections()
+    })
   })
 
   it('assigns the appropriate stage button label prefix on hunks based on the stagingStatus', async () => {
@@ -165,24 +167,25 @@ describe('FilePatchView', () => {
 
       const hunk1 = new Hunk(5, 5, 2, 0, [line1, line2, line3])
       const hunk2 = new Hunk(8, 8, 1, 2, [line4, line5, line6])
-      const hunkViewsByHunk = new Map()
-      const view = new FilePatchView({hunks: [hunk1, hunk2], registerHunkView: (hunk, view) => hunkViewsByHunk.set(hunk, view)})
+      const view = new FilePatchView({hunks: [hunk1, hunk2]})
 
       view.togglePatchSelectionMode()
 
-      assert.isTrue(hunkViewsByHunk.get(hunk1).props.isSelected)
+      assertSelectedHunks(view, [hunk1])
       assertSelectedLines(view, [line2])
 
       await view.focusNextHunkLine()
       assertSelectedLines(view, [line3])
 
       await view.focusNextHunkLine()
+      assertSelectedHunks(view, [hunk2])
       assertSelectedLines(view, [line5])
 
       await view.focusNextHunkLine()
       assertSelectedLines(view, [line5])
 
       await view.focusPreviousHunkLine()
+      assertSelectedHunks(view, [hunk1])
       assertSelectedLines(view, [line3])
 
       await view.focusPreviousHunkLine()
@@ -193,6 +196,10 @@ describe('FilePatchView', () => {
     })
   })
 })
+
+function assertSelectedHunks (view, hunks) {
+  assert.deepEqual([...view.getSelectedHunks()], hunks)
+}
 
 function assertSelectedLines (view, lines) {
   assert.deepEqual([...view.getSelectedLines()], lines)
