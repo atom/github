@@ -442,4 +442,59 @@ describe('MultiList', () => {
       })
     })
   })
+
+  describe('getItemsAndKeysInRange(endPoint1, endPoint2)', () => {
+    it('takes endpoints ({key, item}) and returns an array of items between those points', () => {
+      const ml = new MultiList([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
+      ])
+
+      let results = ml.getItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list1', item: 'c'})
+      assert.deepEqual(results.items, ['b', 'c'])
+      assert.deepEqual(results.keys, ['list1'])
+
+      // endpoints can be specified in any order
+      results = ml.getItemsAndKeysInRange({key: 'list1', item: 'c'}, {key: 'list1', item: 'b'})
+      assert.deepEqual(results.items, ['b', 'c'])
+      assert.deepEqual(results.keys, ['list1'])
+
+      // endpoints can be in different lists
+      results = ml.getItemsAndKeysInRange({key: 'list1', item: 'c'}, {key: 'list3', item: 'g'})
+      assert.deepEqual(results.items, ['c', 'd', 'e', 'f', 'g'])
+      assert.deepEqual(results.keys, ['list1', 'list2', 'list3'])
+
+      results = ml.getItemsAndKeysInRange({key: 'list3', item: 'g'}, {key: 'list1', item: 'c'})
+      assert.deepEqual(results.items, ['c', 'd', 'e', 'f', 'g'])
+      assert.deepEqual(results.keys, ['list1', 'list2', 'list3'])
+
+      // endpoints can be the same
+      results = ml.getItemsAndKeysInRange({key: 'list1', item: 'c'}, {key: 'list1', item: 'c'})
+      assert.deepEqual(results.items, ['c'])
+      assert.deepEqual(results.keys, ['list1'])
+    })
+
+    it('throws error when keys or items aren\t found', () => {
+      const ml = new MultiList([
+        { key: 'list1', items: ['a', 'b', 'c'] }
+      ])
+
+      assert.throws(() => {
+        ml.getItemsAndKeysInRange({key: 'non-existent-key', item: 'b'}, {key: 'list1', item: 'c'})
+      }, 'key "non-existent-key" not found')
+
+      assert.throws(() => {
+        ml.getItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'non-existent-key', item: 'c'})
+      }, 'key "non-existent-key" not found')
+
+      assert.throws(() => {
+        ml.getItemsAndKeysInRange({key: 'list1', item: 'x'}, {key: 'list1', item: 'c'})
+      }, 'item "x" not found')
+
+      assert.throws(() => {
+        ml.getItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list1', item: 'x'})
+      }, 'item "x" not found')
+    })
+  })
 })
