@@ -4,6 +4,10 @@ import FilePatchView from '../../lib/views/file-patch-view'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
+
+// Add test for selecting hunk when clicked in 'hunk' mode
+// add test for staging/unstaging hunk lines
+
 describe('FilePatchView', () => {
   it('displays selected hunks and lines as selected', async () => {
     const line1 = new HunkLine('line-1', 'removed', 5, -1)
