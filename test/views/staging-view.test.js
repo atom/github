@@ -45,12 +45,14 @@ describe('StagingView', () => {
         const view = new StagingView({repository, stagedChanges: [], unstagedChanges: filePatches, stageFile, unstageFile})
         const {stagedChangesView, unstagedChangesView} = view.refs
 
-        unstagedChangesView.props.didSelectItem(filePatches[1])
+        view.selectList(ListTypes.UNSTAGED)
+        view.selectItem(filePatches[1])
         view.confirmSelectedItems()
         assert.isTrue(stageFile.calledWith('b.txt'))
 
         await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFile, unstageFile})
-        stagedChangesView.props.didSelectItem(filePatches[1])
+        await view.selectList(ListTypes.STAGED)
+        view.selectItem(filePatches[1])
         view.confirmSelectedItems()
         assert.isTrue(unstageFile.calledWith('b.txt'))
       })
@@ -163,8 +165,8 @@ describe('StagingView', () => {
   })
 
   describe('selecting files', () => {
-    describe('selectNextFilePatch() and selectPreviousFilePatch()', () => {
-      it('selects next/previous staged filePatch if there is one, crossing the boundary between the unstaged and staged files if necessary', async () => {
+    describe('selectNextFilePatch({addToExisting, stopAtBounds}) and selectPreviousFilePatch({addToExisting, stopAtBounds})', () => {
+      it('selects next/previous staged filePatch if there is one, crossing the boundary between the unstaged and staged files unless stopAtBounds is true', async () => {
         const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
@@ -196,6 +198,10 @@ describe('StagingView', () => {
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[2]])
 
+        view.selectNextFilePatch({stopAtBounds: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[2]])
+
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
         assert.deepEqual(getSelectedItems(view), [stagedFilePatches[0]])
@@ -217,12 +223,85 @@ describe('StagingView', () => {
         assert.deepEqual(getSelectedItems(view), [stagedFilePatches[1]])
 
         view.selectPreviousFilePatch()
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[0]])
+
+        view.selectPreviousFilePatch({stopAtBounds: true})
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
         assert.deepEqual(getSelectedItems(view), [stagedFilePatches[0]])
 
         view.selectPreviousFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
         assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[2]])
+      })
+
+      it('retains currently selected filePatches when addToExisting is true', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+        fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'another change\n')
+        fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new file 1\n')
+        fs.writeFileSync(path.join(workdirPath, 'e.txt'), 'new file 2\n')
+        fs.writeFileSync(path.join(workdirPath, 'f.txt'), 'new file 3\n')
+        const filePatches = await repository.getUnstagedChanges()
+        await repository.applyPatchToIndex(filePatches[0])
+        await repository.applyPatchToIndex(filePatches[1])
+        await repository.applyPatchToIndex(filePatches[2])
+        const stagedFilePatches = await repository.getStagedChanges()
+        const unstagedFilePatches = await repository.getUnstagedChanges()
+        const view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
+
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view).length, 1)
+
+        view.selectPreviousFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view).length, 1)
+
+        view.selectNextFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view).length, 2)
+
+        view.selectNextFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
+
+        view.selectNextFilePatch({addToExisting: true, stopAtBounds: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
+
+        view.selectNextFilePatch()
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 1)
+
+        view.selectNextFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 2)
+
+        view.selectNextFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
+
+        view.selectNextFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
+
+        view.selectNextFilePatch()
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 1)
+
+        view.selectPreviousFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 2)
+
+        view.selectPreviousFilePatch({addToExisting: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
+
+        view.selectPreviousFilePatch({addToExisting: true, stopAtBounds: true})
+        assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
+        assert.deepEqual(getSelectedItems(view).length, 3)
       })
     })
 
@@ -244,14 +323,23 @@ describe('StagingView', () => {
       const {stagedChangesView, unstagedChangesView} = view.refs
 
       // selection via mouse in unstaged changes
-      unstagedChangesView.props.didSelectItem(unstagedChangesView.props.items[0])
+      view.enableSelections()
+      view.selectItem(unstagedChangesView.props.items[0])
       assert.equal(didSelectFilePatch.callCount, 1)
       assert.deepEqual(didSelectFilePatch.args[0], [unstagedChangesView.props.items[0], 'unstaged'])
 
-      // selection via mouse in staged changes
-      stagedChangesView.props.didSelectItem(stagedChangesView.props.items[0])
+      // focus staged changes list and first item gets selected
+      view.selectList(ListTypes.STAGED)
       assert.equal(didSelectFilePatch.callCount, 2)
       assert.deepEqual(didSelectFilePatch.args[1], [stagedChangesView.props.items[0], 'staged'])
+      view.disableSelections()
+
+      // select another item in staged changes list via mouse
+      view.enableSelections()
+      view.selectItem(stagedChangesView.props.items[1])
+      assert.equal(didSelectFilePatch.callCount, 3)
+      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged'])
+      view.disableSelections()
 
       // select next via keyboard
       await view.selectNextFilePatch()
