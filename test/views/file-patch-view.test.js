@@ -123,7 +123,7 @@ describe('FilePatchView', () => {
     })
   })
 
-  describe('focusNextHunk({wrap}) and focusPreviousHunk({wrap})', () => {
+  describe('focusNextHunk({wrap, addToExisting}) and focusPreviousHunk({wrap, addToExisting})', () => {
     it('focuses next/previous hunk, and wraps at the end/beginning if wrap is true', async () => {
       const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
       const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
@@ -156,9 +156,33 @@ describe('FilePatchView', () => {
       await view.focusPreviousHunk()
       assertSelectedHunks(view, [hunk1])
     })
+
+    it('retains currently selected hunks when addToExisting is true', async () => {
+      const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
+      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+      const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'added', -1, 10)])
+      const view = new FilePatchView({hunks: [hunk1, hunk2, hunk3]})
+
+      assertSelectedHunks(view, [hunk1])
+
+      await view.focusNextHunk({addToExisting: true})
+      assertSelectedHunks(view, [hunk1, hunk2])
+
+      await view.focusNextHunk({addToExisting: true})
+      assertSelectedHunks(view, [hunk1, hunk2, hunk3])
+
+      await view.focusNextHunk({wrap: true})
+      assertSelectedHunks(view, [hunk1])
+
+      await view.focusPreviousHunk({wrap: true, addToExisting: true})
+      assertSelectedHunks(view, [hunk1, hunk3])
+
+      await view.focusPreviousHunk({addToExisting: true})
+      assertSelectedHunks(view, [hunk1, hunk3, hunk2])
+    })
   })
 
-  describe('focusNextHunkLine() and focusPreviousHunkLine()', () => {
+  describe('focusNextHunkLine({addToExisting}) and focusPreviousHunkLine({addToExisting})', () => {
     it('focuses next/previous non-context hunk line, crossing hunk boundaries but not wrapping', async () => {
       const line1 = new HunkLine('line-1', 'unchanged', 5, 5) // context lines won't be selected
       const line2 = new HunkLine('line-2', 'removed', 6, -1)
@@ -196,6 +220,43 @@ describe('FilePatchView', () => {
 
       await view.focusPreviousHunkLine()
       assertSelectedLines(view, [line2])
+    })
+
+    it('retains currently selected lines when addToExisting is true', async () => {
+      const line1 = new HunkLine('line-1', 'unchanged', 5, 5) // context lines won't be selected
+      const line2 = new HunkLine('line-2', 'removed', 6, -1)
+      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+
+      const line4 = new HunkLine('line-4', 'unchanged', 8, 8) // context lines won't be selected
+      const line5 = new HunkLine('line-5', 'added', -1, 9)
+      const line6 = new HunkLine('line-6', 'unchanged', 9, 10) // context lines won't be selected
+
+      const hunk1 = new Hunk(5, 5, 2, 0, [line1, line2, line3])
+      const hunk2 = new Hunk(8, 8, 1, 2, [line4, line5, line6])
+      const view = new FilePatchView({hunks: [hunk1, hunk2]})
+
+      view.togglePatchSelectionMode()
+
+      assertSelectedHunks(view, [hunk1])
+      assertSelectedLines(view, [line2])
+
+      await view.focusNextHunkLine({addToExisting: true})
+      assertSelectedLines(view, [line2, line3])
+
+      await view.focusNextHunkLine({addToExisting: true})
+      assertSelectedHunks(view, [hunk1, hunk2])
+      assertSelectedLines(view, [line2, line3, line5])
+
+      await view.focusNextHunkLine()
+      assertSelectedHunks(view, [hunk2])
+      assertSelectedLines(view, [line5])
+
+      await view.focusPreviousHunkLine({addToExisting: true})
+      assertSelectedHunks(view, [hunk2, hunk1])
+      assertSelectedLines(view, [line5, line3])
+
+      await view.focusPreviousHunkLine({addToExisting: true})
+      assertSelectedLines(view, [line5, line3, line2])
     })
   })
 })
