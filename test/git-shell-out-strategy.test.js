@@ -107,7 +107,7 @@ describe('Git commands', () => {
       assert.deepEqual(diffOutput, [])
     })
 
-    it('returns an array of objects for each file patch', async () => {
+    it.only('returns an array of objects for each file patch', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
 
@@ -117,7 +117,7 @@ describe('Git commands', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'cat', 'utf8')
 
-      await git.stageFiles([['f.txt']])
+      await git.stageFiles(['f.txt'])
       fs.unlinkSync(path.join(workingDirPath, 'f.txt'))
 
       const stagedDiffOutput = await git.diff({staged: true})
