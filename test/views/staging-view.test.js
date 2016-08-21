@@ -7,8 +7,8 @@ import sinon from 'sinon'
 
 import StagingView, {ListTypes} from '../../lib/views/staging-view'
 
-const getSelectedItemForListType = (view, listKey) => {
-  return view.multiList.getSelectedItemForKey(listKey)
+const getSelectedItems = (view) => {
+  return Array.from(view.multiList.getSelectedItems())
 }
 
 describe('StagingView', () => {
@@ -33,7 +33,7 @@ describe('StagingView', () => {
       assert.deepEqual(unstagedChangesView.props.items, filePatches)
     })
 
-    describe('confirmSelectedItem()', () => {
+    describe('confirmSelectedItems()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
         const workdirPath = await cloneRepository('three-files')
         const repository = await buildRepository(workdirPath)
@@ -46,12 +46,12 @@ describe('StagingView', () => {
         const {stagedChangesView, unstagedChangesView} = view.refs
 
         unstagedChangesView.props.didSelectItem(filePatches[1])
-        view.confirmSelectedItem()
+        view.confirmSelectedItems()
         assert.isTrue(stageFile.calledWith('b.txt'))
 
         await view.update({repository, stagedChanges: [filePatches[1]], unstagedChanges: [filePatches[0]], stageFile, unstageFile})
         stagedChangesView.props.didSelectItem(filePatches[1])
-        view.confirmSelectedItem()
+        view.confirmSelectedItems()
         assert.isTrue(unstageFile.calledWith('b.txt'))
       })
     })
@@ -182,47 +182,47 @@ describe('StagingView', () => {
         const view = new StagingView({repository, stagedChanges: stagedFilePatches, unstagedChanges: unstagedFilePatches})
 
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
-        assert.equal(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[0])
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[0]])
 
         view.selectPreviousFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
-        assert.equal(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[0])
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[0]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[1])
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[1]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[2])
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[2]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[0])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[0]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[1])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[1]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[2])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[2]])
 
         view.selectNextFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[2])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[2]])
 
         view.selectPreviousFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[1])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[1]])
 
         view.selectPreviousFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.STAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.STAGED), stagedFilePatches[0])
+        assert.deepEqual(getSelectedItems(view), [stagedFilePatches[0]])
 
         view.selectPreviousFilePatch()
         assert.equal(view.getSelectedListKey(), ListTypes.UNSTAGED)
-        assert.deepEqual(getSelectedItemForListType(view, ListTypes.UNSTAGED), unstagedFilePatches[2])
+        assert.deepEqual(getSelectedItems(view), [unstagedFilePatches[2]])
       })
     })
 
