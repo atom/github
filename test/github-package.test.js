@@ -258,4 +258,31 @@ describe('GithubPackage', () => {
       workspaceElement.remove()
     })
   })
+
+  describe('focusGitPanel()', () => {
+    it('shows-and-focuses the git panel', async () => {
+      const workspaceElement = viewRegistry.getView(workspace)
+      document.body.appendChild(workspaceElement)
+      const workdirPath = await cloneRepository('three-files')
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+
+      assert.equal(workspace.getRightPanels().length, 0)
+      githubPackage.focusGitPanel()
+      assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
+
+      githubPackage.toggleGitPanel()
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      githubPackage.focusGitPanel()
+      assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
+
+      workspaceElement.remove()
+    })
+  })
 })

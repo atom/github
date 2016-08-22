@@ -1,5 +1,6 @@
 'atom-workspace':
   'cmd-shift-c': 'git:toggle-git-panel'
+  'right': 'git:focus-git-panel'
 
 '.git-StagingView':
   'tab': 'git:focus-next-list'
