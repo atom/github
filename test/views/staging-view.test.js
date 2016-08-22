@@ -332,35 +332,35 @@ describe('StagingView', () => {
       view.enableSelections()
       view.selectItem(unstagedChangesView.props.items[0])
       assert.equal(didSelectFilePatch.callCount, 1)
-      assert.deepEqual(didSelectFilePatch.args[0], [unstagedChangesView.props.items[0], 'unstaged'])
+      assert.deepEqual(didSelectFilePatch.args[0], [unstagedChangesView.props.items[0], 'unstaged', {focus: undefined}])
 
       // focus staged changes list and first item gets selected
       view.selectList(ListTypes.STAGED)
       assert.equal(didSelectFilePatch.callCount, 2)
-      assert.deepEqual(didSelectFilePatch.args[1], [stagedChangesView.props.items[0], 'staged'])
+      assert.deepEqual(didSelectFilePatch.args[1], [stagedChangesView.props.items[0], 'staged', {focus: undefined}])
       view.disableSelections()
 
       // select another item in staged changes list via mouse
       view.enableSelections()
       view.selectItem(stagedChangesView.props.items[1])
       assert.equal(didSelectFilePatch.callCount, 3)
-      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged'])
+      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged', {focus: undefined}])
       view.disableSelections()
 
       // select next via keyboard
       await view.selectNextFilePatch()
       assert.equal(didSelectFilePatch.callCount, 3)
-      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged'])
+      assert.deepEqual(didSelectFilePatch.args[2], [stagedChangesView.props.items[1], 'staged', {focus: undefined}])
 
       // select previous via keyboard
       await view.selectPreviousFilePatch()
       assert.equal(didSelectFilePatch.callCount, 4)
-      assert.deepEqual(didSelectFilePatch.args[3], [stagedChangesView.props.items[0], 'staged'])
+      assert.deepEqual(didSelectFilePatch.args[3], [stagedChangesView.props.items[0], 'staged', {focus: undefined}])
 
       // select previous via keyboard, cross boundary
       await view.selectPreviousFilePatch()
       assert.equal(didSelectFilePatch.callCount, 5)
-      assert.deepEqual(didSelectFilePatch.args[4], [unstagedChangesView.props.items[0], 'unstaged'])
+      assert.deepEqual(didSelectFilePatch.args[4], [unstagedChangesView.props.items[0], 'unstaged', {focus: undefined}])
     })
   })
 })
