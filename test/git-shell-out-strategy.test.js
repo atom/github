@@ -107,7 +107,7 @@ describe('Git commands', () => {
       assert.deepEqual(diffOutput, [])
     })
 
-    it.only('returns an array of objects for each file patch', async () => {
+    it('returns an array of objects for each file patch', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
 
