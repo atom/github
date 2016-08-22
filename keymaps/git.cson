@@ -1,9 +1,11 @@
 'atom-workspace':
   'cmd-shift-c': 'git:toggle-git-panel'
+  'right': 'git:focus-git-panel'
 
 '.git-StagingView':
   'tab': 'git:focus-next-list'
   'shift-tab': 'git:focus-previous-list'
+  'left': 'git:focus-diff-view'
 
 '.git-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'git:commit'

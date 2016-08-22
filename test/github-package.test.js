@@ -171,7 +171,7 @@ describe('GithubPackage', () => {
   })
 
   describe('when a FilePatch is selected in the staging panel', () => {
-    it('shows a FilePatchView for the selected patch as a pane item', async () => {
+    it('shows a FilePatchView for the selected patch as a pane item, always updating the existing pane item', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
 
@@ -190,7 +190,8 @@ describe('GithubPackage', () => {
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
       const existingFilePatchView = githubPackage.filePatchController
-      workspace.getActivePane().splitRight() // activate a different pane
+      const originalPane = workspace.getActivePane()
+      originalPane.splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
       githubPackage.gitPanelController.props.didSelectFilePatch(filePatch2, 'staged')
@@ -198,9 +199,9 @@ describe('GithubPackage', () => {
       assert.equal(githubPackage.filePatchController.props.filePatch, filePatch2)
       assert.equal(githubPackage.filePatchController.props.repository, repository)
       assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
-      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+      assert.equal(originalPane.getActiveItem(), githubPackage.filePatchController)
 
-      workspace.getActivePaneItem().destroy()
+      originalPane.getActiveItem().destroy()
       assert.isUndefined(workspace.getActivePaneItem())
       assert.isNull(githubPackage.filePatchController)
 
@@ -250,6 +251,33 @@ describe('GithubPackage', () => {
       assert.equal(workspace.getRightPanels().length, 0)
 
       githubPackage.toggleGitPanel()
+      assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
+
+      workspaceElement.remove()
+    })
+  })
+
+  describe('focusGitPanel()', () => {
+    it('shows-and-focuses the git panel', async () => {
+      const workspaceElement = viewRegistry.getView(workspace)
+      document.body.appendChild(workspaceElement)
+      const workdirPath = await cloneRepository('three-files')
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+
+      assert.equal(workspace.getRightPanels().length, 0)
+      githubPackage.focusGitPanel()
+      assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+      assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())
+
+      githubPackage.toggleGitPanel()
+      assert.equal(workspace.getRightPanels().length, 0)
+
+      githubPackage.focusGitPanel()
       assert.equal(workspace.getRightPanels().length, 1)
       assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
       assert(githubPackage.gitPanelController.refs.gitPanel.refs.stagingView.isFocused())

@@ -117,7 +117,7 @@ describe('Git commands', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'cat', 'utf8')
 
-      await git.stageFile('f.txt')
+      await git.stageFiles(['f.txt'])
       fs.unlinkSync(path.join(workingDirPath, 'f.txt'))
 
       const stagedDiffOutput = await git.diff({staged: true})
