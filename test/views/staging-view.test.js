@@ -300,7 +300,7 @@ describe('StagingView', () => {
       })
     })
 
-    it('calls didSelectFilePatch when a file patch is selected via the mouse or keyboard', async () => {
+    it('calls didSelectFilePatch when a file patch is selected via the mouse or keyboard if StagingView has focus', async () => {
       const didSelectFilePatch = sinon.spy()
 
       const workdirPath = await cloneRepository('three-files')
@@ -316,6 +316,17 @@ describe('StagingView', () => {
 
       const view = new StagingView({repository, stagedChanges, unstagedChanges, didSelectFilePatch})
       const {stagedChangesView, unstagedChangesView} = view.refs
+
+      // doesn't get called if StagingView is not focused
+      assert.isFalse(view.isFocused())
+      view.enableSelections()
+      view.selectItem(unstagedChangesView.props.items[0])
+      assert.equal(didSelectFilePatch.callCount, 0)
+
+      sinon.stub(view, 'isFocused', () => {
+        return true
+      })
+      assert.isTrue(view.isFocused())
 
       // selection via mouse in unstaged changes
       view.enableSelections()
