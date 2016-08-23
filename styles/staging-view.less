@@ -2,12 +2,13 @@
 
 .git-StagingView {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
 
   &-group {
     flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   &-header {
@@ -21,5 +22,10 @@
     font-size: @font-size;
     font-weight:bold;
     box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+  }
+
+  &-list {
+    flex: 1 1 0;
+    overflow-x: auto;
   }
 }
