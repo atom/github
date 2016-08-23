@@ -317,7 +317,7 @@ describe('Git commands', () => {
     })
   })
 
-  describe('getCurrentBranch() and checkout(branchName)', () => {
+  describe('getCurrentBranch() and checkout(branchName, {createNew})', () => {
     it('returns the current branch name', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
