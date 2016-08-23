@@ -115,7 +115,7 @@ describe('GitPanelController', () => {
 
       // click Cancel
       choice = 1
-      await stagingView.props.stageFile(conflict1.getPath())
+      await stagingView.stageFilePatch(conflict1)
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.calledOnce, true)
       assert.equal(stagingView.props.mergeConflicts.length, 5)
@@ -124,7 +124,7 @@ describe('GitPanelController', () => {
       // click Stage
       choice = 0
       atom.confirm.reset()
-      await stagingView.props.stageFile(conflict1.getPath())
+      await stagingView.stageFilePatch(conflict1)
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.calledOnce, true)
       assert.equal(stagingView.props.mergeConflicts.length, 4)
@@ -134,7 +134,7 @@ describe('GitPanelController', () => {
       const conflict2 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-theirs.txt')[0]
       atom.confirm.reset()
       fs.writeFileSync(path.join(workdirPath, conflict2.getPath()), 'text with no merge markers')
-      await stagingView.props.stageFile(conflict2.getPath())
+      await stagingView.stageFilePatch(conflict2)
       await controller.lastModelDataRefreshPromise
       assert.equal(atom.confirm.called, false)
       assert.equal(stagingView.props.mergeConflicts.length, 3)

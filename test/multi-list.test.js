@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import sinon from 'sinon'
 import MultiList from '../lib/multi-list'
@@ -169,7 +169,7 @@ describe('MultiList', () => {
     })
   })
 
-  describe('selectNextItem({wrap}) and selectPreviousItem({wrap})', () => {
+  describe('selectNextItem({wrap, stopAtBounds}) and selectPreviousItem({wrap, stopAtBounds})', () => {
     it('selects the next/previous item in the currently selected list', () => {
       const didChangeSelection = sinon.spy()
       const ml = new MultiList([
@@ -195,7 +195,7 @@ describe('MultiList', () => {
       assert.equal(ml.getSelectedItem(), 'a')
     })
 
-    it('selects the next/previous list if one exists when selecting past the last/first item of a list', function () {
+    it('selects the next/previous list if one exists when selecting past the last/first item of a list, unless stopAtBounds is true', function () {
       const ml = new MultiList([
         { key: 'list1', items: ['a', 'b'] },
         { key: 'list2', items: ['c'] }
@@ -206,10 +206,16 @@ describe('MultiList', () => {
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'b')
       assert.equal(ml.getSelectedListKey(), 'list1')
+      ml.selectNextItem({stopAtBounds: true})
+      assert.equal(ml.getSelectedItem(), 'b')
+      assert.equal(ml.getSelectedListKey(), 'list1')
       ml.selectNextItem()
       assert.equal(ml.getSelectedItem(), 'c')
       assert.equal(ml.getSelectedListKey(), 'list2')
       ml.selectNextItem()
+      assert.equal(ml.getSelectedItem(), 'c')
+      assert.equal(ml.getSelectedListKey(), 'list2')
+      ml.selectNextItem({stopAtBounds: true})
       assert.equal(ml.getSelectedItem(), 'c')
       assert.equal(ml.getSelectedListKey(), 'list2')
       ml.selectPreviousItem()

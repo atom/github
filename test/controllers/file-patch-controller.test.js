@@ -113,8 +113,12 @@ describe('FilePatchController', () => {
       view.togglePatchSelectionMode()
       assert.equal(view.getPatchSelectionMode(), 'hunkLine')
       let hunk = unstagedFilePatch.getHunks()[0]
-      hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 4)))
-      await hunkViewsByHunk.get(hunk).props.didClickStageButton()
+      let lines = hunk.getLines()
+      let hunkView = hunkViewsByHunk.get(hunk)
+      hunkView.props.selectLine(lines[1])
+      hunkView.props.selectLine(lines[2])
+      hunkView.props.selectLine(lines[3])
+      await hunkView.props.didClickStageButton()
       let expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -123,7 +127,7 @@ describe('FilePatchController', () => {
       assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // stage remaining lines in hunk
-      await hunkViewsByHunk.get(hunk).props.didClickStageButton()
+      await hunkView.props.didClickStageButton()
       expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -136,8 +140,11 @@ describe('FilePatchController', () => {
       const [stagedFilePatch] = await repository.getStagedChanges()
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       hunk = stagedFilePatch.getHunks()[0]
-      hunkViewsByHunk.get(hunk).props.selectLines(new Set(hunk.getLines().slice(1, 3)))
-      await hunkViewsByHunk.get(hunk).props.didClickStageButton()
+      lines = hunk.getLines()
+      hunkView = hunkViewsByHunk.get(hunk)
+      hunkView.props.selectLine(lines[1])
+      hunkView.props.selectLine(lines[2])
+      await hunkView.props.didClickStageButton()
       expectedLines = originalLines.slice()
       expectedLines.splice(2, 0,
         'this is a new line',
@@ -147,7 +154,7 @@ describe('FilePatchController', () => {
 
       // unstage the rest of the hunk
       await view.togglePatchSelectionMode()
-      await hunkViewsByHunk.get(hunk).props.didClickStageButton()
+      await hunkView.props.didClickStageButton()
       assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
     })
   })
