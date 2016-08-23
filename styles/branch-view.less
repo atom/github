@@ -1,0 +1,24 @@
+@import "variables";
+
+.git-BranchView {
+  display: flex;
+  padding: @component-padding / 2;
+  align-items: center;
+  border-top: 1px solid @base-border-color;
+
+  &-item {
+    margin: @component-padding / 2;
+  }
+
+  &-input {
+    flex: 1;
+
+    atom-text-editor,
+    atom-text-editor::shadow .cursor-line {
+      background-color: inherit;
+    }
+    atom-text-editor {
+      font-size: inherit;
+    }
+  }
+}
