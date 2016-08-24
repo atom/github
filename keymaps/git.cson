@@ -1,6 +1,5 @@
 'atom-workspace':
   'cmd-shift-c': 'git:toggle-git-panel'
-  'right': 'git:focus-git-panel'
 
 '.git-StagingView':
   'tab': 'git:focus-next-list'
@@ -15,3 +14,4 @@
   '/': 'git:toggle-patch-selection-mode'
   'tab': 'git:focus-next-hunk'
   'shift-tab': 'git:focus-previous-hunk'
+  'right': 'git:focus-git-panel'
