@@ -207,4 +207,17 @@ describe('CommitView', () => {
     assert.equal(editor.getText(), 'A message.')
     assert.equal(notificationManager.getNotifications().length, 1)
   })
+
+  it('clears the amend checkbox after committing', async () => {
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
+    const {amend} = view.refs
+    await view.update({repository, stagedChangesExist: true})
+    assert.isFalse(amend.checked)
+    amend.click()
+    assert.isTrue(amend.checked)
+    await view.commit()
+    assert.isFalse(amend.checked)
+  })
 })
