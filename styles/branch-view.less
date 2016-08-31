@@ -1,10 +1,13 @@
 @import "variables";
 
 .git-BranchView {
-  display: flex;
   padding: @component-padding / 2;
-  align-items: center;
   border-top: 1px solid @base-border-color;
+
+  &-selector {
+    display: flex;
+    align-items: center;
+  }
 
   &-item {
     margin: @component-padding / 2;
