@@ -8,14 +8,15 @@ import CommitView from '../../lib/views/commit-view'
 import {AbortMergeError, CommitError} from '../../lib/models/repository'
 
 describe('CommitView', () => {
-  let atomEnv, workspace, commandRegistry, notificationManager
+  let atomEnv, workspace, commandRegistry, notificationManager, confirmChoice
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment()
     workspace = atomEnv.workspace
     commandRegistry = atomEnv.commands
     notificationManager = atomEnv.notifications
-    sinon.stub(atom, 'confirm', () => 0)
+    confirmChoice = 0
+    sinon.stub(atom, 'confirm', () => confirmChoice)
   })
 
   afterEach(() => {
@@ -208,16 +209,58 @@ describe('CommitView', () => {
     assert.equal(notificationManager.getNotifications().length, 1)
   })
 
-  it('clears the amend checkbox after committing', async () => {
-    const workdirPath = await cloneRepository('three-files')
-    const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
-    const {amend} = view.refs
-    await view.update({repository, stagedChangesExist: true})
-    assert.isFalse(amend.checked)
-    amend.click()
-    assert.isTrue(amend.checked)
-    await view.commit()
-    assert.isFalse(amend.checked)
+  describe('amending', () => {
+    it.only('displays the appropriate commit message depending on whether the amend box is checked and if the user wants to keep the current message', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
+      const {editor, amend} = view.refs
+
+      // choose to keep current commit message when prompted
+      confirmChoice = 1
+      editor.setText('some commit message')
+
+      await view.update({repository, stagedChangesExist: true})
+      assert.isFalse(amend.checked)
+      amend.click()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), 'some commit message')
+
+      editor.setText('some commit message')
+
+      amend.click()
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), 'some commit message')
+
+      // choose to discard current commit message when prompted
+      confirmChoice = 0
+      editor.setText('some commit message')
+
+      await view.update({repository, stagedChangesExist: true})
+      assert.isFalse(amend.checked)
+      amend.click()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), 'previous commit\'s message')
+
+      editor.setText('some commit message')
+
+      amend.click()
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), '')
+    })
+
+    it('clears the amend checkbox after committing', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
+      const {amend} = view.refs
+      await view.update({repository, stagedChangesExist: true})
+      assert.isFalse(amend.checked)
+      amend.click()
+      assert.isTrue(amend.checked)
+      await view.commit()
+      assert.isFalse(amend.checked)
+    })
   })
+
 })
