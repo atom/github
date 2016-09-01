@@ -3,6 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 
+import etch from 'etch'
 import sinon from 'sinon'
 
 import {cloneRepository, buildRepository} from '../helpers'
@@ -139,6 +140,132 @@ describe('GitPanelController', () => {
       assert.equal(atom.confirm.called, false)
       assert.equal(stagingView.props.mergeConflicts.length, 3)
       assert.equal(stagingView.props.stagedChanges.length, 2)
+    })
+
+    describe('checking out an existing branch', () => {
+      it('can check out existing branches with no conflicts', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
+
+        await repository.git.exec(['branch', 'branch'])
+
+        const controller = new GitPanelController({workspace, commandRegistry, repository})
+        await controller.lastModelDataRefreshPromise
+
+        const branchView = controller.refs.gitPanel.refs.branchView
+        const {list} = branchView.refs
+
+        const branches = Array.from(list.options).map(option => option.value)
+        assert.deepEqual(branches, ['branch', 'master'])
+        assert.equal(await repository.getCurrentBranch(), 'master')
+        assert.equal(list.selectedOptions[0].value, 'master')
+
+        list.selectedIndex = branches.indexOf('branch')
+        list.onchange()
+        assert.equal(await repository.getCurrentBranch(), 'branch')
+        assert.equal(list.selectedOptions[0].value, 'branch')
+
+        list.selectedIndex = branches.indexOf('master')
+        list.onchange()
+        assert.equal(await repository.getCurrentBranch(), 'master')
+        assert.equal(list.selectedOptions[0].value, 'master')
+      })
+
+      it('displays an error message if checkout fails', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
+        await repository.git.exec(['branch', 'branch'])
+
+        // create a conflict
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change')
+        await repository.git.exec(['commit', '-a', '-m', 'change on master'])
+        await repository.checkout('branch')
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change that conflicts')
+
+        const controller = new GitPanelController({workspace, commandRegistry, repository})
+        await controller.lastModelDataRefreshPromise
+
+        const branchView = controller.refs.gitPanel.refs.branchView
+        const {list, message} = branchView.refs
+
+        const branches = Array.from(list.options).map(option => option.value)
+        assert.equal(await repository.getCurrentBranch(), 'branch')
+        assert.equal(list.selectedOptions[0].value, 'branch')
+
+        list.selectedIndex = branches.indexOf('master')
+        list.onchange()
+        await etch.getScheduler().getNextUpdatePromise()
+        await controller.refreshModelData()
+        assert.equal(await repository.getCurrentBranch(), 'branch')
+        assert.equal(list.selectedOptions[0].value, 'branch')
+        assert.match(message.innerHTML, /local changes.*would be overwritten/)
+      })
+    })
+
+    describe('checking out newly created branches', () => {
+      it('can check out newly created branches', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
+
+        const controller = new GitPanelController({workspace, commandRegistry, repository})
+        await controller.lastModelDataRefreshPromise
+
+        let branchView = controller.refs.gitPanel.refs.branchView
+        const {list, newBranchButton} = branchView.refs
+
+        const branches = Array.from(list.options).map(option => option.value)
+        assert.deepEqual(branches, ['master'])
+        assert.equal(await repository.getCurrentBranch(), 'master')
+        assert.equal(list.selectedOptions[0].value, 'master')
+
+        assert.isDefined(branchView.refs.list)
+        assert.isUndefined(branchView.refs.editor)
+        newBranchButton.click()
+        await etch.getScheduler().getNextUpdatePromise()
+        assert.isUndefined(branchView.refs.list)
+        assert.isDefined(branchView.refs.editor)
+
+        branchView.refs.editor.setText('new-branch')
+        newBranchButton.click()
+        await etch.getScheduler().getNextUpdatePromise()
+        await controller.refreshModelData(repository)
+        // TODO: investigate possible etch bug. when the component unmounts the ref isn't removed
+        // assert.isUndefined(branchView.refs.editor)
+        assert.isDefined(branchView.refs.list)
+
+        assert.equal(await repository.getCurrentBranch(), 'new-branch')
+        assert.equal(controller.refs.gitPanel.refs.branchView.refs.list.selectedOptions[0].value, 'new-branch')
+      })
+
+      it('displays an error message if branch already exists', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
+
+        await repository.git.exec(['checkout', '-b', 'branch'])
+
+        const controller = new GitPanelController({workspace, commandRegistry, repository})
+        await controller.lastModelDataRefreshPromise
+
+        const branchView = controller.refs.gitPanel.refs.branchView
+        const {list, newBranchButton, message} = branchView.refs
+
+        const branches = Array.from(branchView.refs.list.options).map(option => option.value)
+        assert.deepEqual(branches, ['branch', 'master'])
+        assert.equal(await repository.getCurrentBranch(), 'branch')
+        assert.equal(list.selectedOptions[0].value, 'branch')
+
+        newBranchButton.click()
+        await etch.getScheduler().getNextUpdatePromise()
+
+        branchView.refs.editor.setText('master')
+        newBranchButton.click()
+        await etch.getScheduler().getNextUpdatePromise()
+        await controller.refreshModelData()
+        assert.match(message.innerHTML, /branch.*already exists/)
+
+        assert.equal(await repository.getCurrentBranch(), 'branch')
+        assert.equal(branchView.refs.list.selectedOptions[0].value, 'branch')
+      })
     })
   })
 })
