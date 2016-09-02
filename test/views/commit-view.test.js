@@ -210,7 +210,7 @@ describe('CommitView', () => {
   })
 
   describe('amending', () => {
-    it.only('displays the appropriate commit message depending on whether the amend box is checked and if the user wants to keep the current message', async () => {
+    it('displays the appropriate commit message depending on whether the amend box is checked and if the user wants to keep the current message', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})

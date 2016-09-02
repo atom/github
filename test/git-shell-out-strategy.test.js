@@ -317,19 +317,19 @@ describe('Git commands', () => {
     })
   })
 
-  describe('getBranchName() and checkout(branchName)', () => {
+  describe('getCurrentBranch() and checkout(branchName, {createNew})', () => {
     it('returns the current branch name', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
-      assert.equal(await git.getBranchName(), 'master')
+      assert.equal(await git.getCurrentBranch(), 'master')
       await git.checkout('branch')
-      assert.equal(await git.getBranchName(), 'branch')
+      assert.equal(await git.getCurrentBranch(), 'branch')
 
       // newBranch does not yet exist
       await assert.isRejected(git.checkout('newBranch'))
-      assert.equal(await git.getBranchName(), 'branch')
+      assert.equal(await git.getCurrentBranch(), 'branch')
       await git.checkout('newBranch', {createNew: true})
-      assert.equal(await git.getBranchName(), 'newBranch')
+      assert.equal(await git.getCurrentBranch(), 'newBranch')
     })
   })
 
