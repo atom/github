@@ -227,7 +227,6 @@ describe('GitPanelController', () => {
 
         branchView.refs.editor.setText('new-branch')
         newBranchButton.click()
-        await etch.getScheduler().getNextUpdatePromise()
         await controller.refreshModelData(repository)
         // TODO: investigate possible etch bug. when the component unmounts the ref isn't removed
         // assert.isUndefined(branchView.refs.editor)
