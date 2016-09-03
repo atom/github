@@ -41,16 +41,12 @@
 // States
 // -----------------------------------------
 
-.git-StagedChanges, .git-UnstagedChanges, .git-MergeConflictPaths {
-  &.is-focused {
-    .git-FilePatchListView-item.is-selected {
-      background: @background-color-highlight;
-      color: @text-color-highlight;
-      box-shadow: @pane-item-background-color 0 -1px 0;
-      :focus & {
-        background: @background-color-selected;
-        color: @text-color-selected;
-      }
-    }
+.git-StagingView-group.is-focused .git-FilePatchListView-item.is-selected {
+  background: @background-color-highlight;
+  color: @text-color-highlight;
+  box-shadow: 0 -1px 0 @base-border-color;
+  .git-StagingView:focus & {
+    background: @background-color-selected;
+    color: @text-color-selected;
   }
 }
