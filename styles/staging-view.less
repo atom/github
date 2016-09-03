@@ -12,16 +12,21 @@
   }
 
   &-header {
-    padding:0 12px;
-    line-height:2.7em;
-    height:2.7em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
-    font-size: @font-size;
-    font-weight:bold;
-    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+    padding: @component-padding;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-top: 1px solid @panel-heading-border-color;
+    border-bottom: 1px solid @panel-heading-border-color;
+    background-color: @panel-heading-background-color;
+
+    .icon {
+      text-align: center;
+      &:before {
+        margin-right: @component-padding / 1.2;
+      }
+    }
   }
 
   &-list {
