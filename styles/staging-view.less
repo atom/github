@@ -12,13 +12,15 @@
   }
 
   &-header {
+    display: flex;
     padding: @component-padding;
-    font-weight: bold;
+    padding-bottom: 0;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     border-top: 1px solid @panel-heading-border-color;
-    border-bottom: 1px solid @panel-heading-border-color;
+
 
     .icon {
       text-align: center;
@@ -29,7 +31,14 @@
     }
   }
 
+  &-title {
+    flex: 1;
+    padding-bottom: .5em;
+    border-bottom: 1px solid @panel-heading-border-color;
+  }
+
   &-list {
+    padding: .3em 0;
     flex: 1 1 0;
     overflow-x: auto;
   }
