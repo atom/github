@@ -6,13 +6,13 @@
   height: 100%;
   width: 400px;
   min-width: 0;
-
   font-family: @font-family;
   font-size: @font-size;
   color: @text-color;
 
-  background: @pane-item-background-color;
-  border-left: 1px solid @pane-item-border-color;
+  // ok, yeah, magic number.. err color
+  background-color: mix(@base-background-color, @tool-panel-background-color);
+
   -webkit-user-select: none;
   cursor: default;
 
