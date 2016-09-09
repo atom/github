@@ -65,7 +65,7 @@ describe('StagingView', () => {
       const mergeConflict = {
         getPath: () => 'conflicted-path',
         getFileStatus: () => 'modified',
-        getOursStatus: () => 'removed',
+        getOursStatus: () => 'deleted',
         getTheirsStatus: () => 'modified'
       }
       await view.update({repository, mergeConflicts: [mergeConflict], stagedChanges: [], unstagedChanges: []})

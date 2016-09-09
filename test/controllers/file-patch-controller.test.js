@@ -27,7 +27,7 @@ describe('FilePatchController', () => {
 
   it('updates when the associated FilePatch updates', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
     const hunkViewsByHunk = new Map()
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2])
     new FilePatchController({filePatch, registerHunkView: (hunk, controller) => hunkViewsByHunk.set(hunk, controller)}) // eslint-disable-line no-new

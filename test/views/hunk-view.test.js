@@ -10,8 +10,8 @@ describe('HunkView', () => {
   it('renders the hunk header and its lines', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
-      new HunkLine('line-2', 'removed', 6, -1),
-      new HunkLine('line-3', 'removed', 7, -1),
+      new HunkLine('line-2', 'deleted', 6, -1),
+      new HunkLine('line-3', 'deleted', 7, -1),
       new HunkLine('line-4', 'added', -1, 6)
     ])
     const view = new HunkView({hunk: hunk1, selectedLines: new Set()})
@@ -37,7 +37,7 @@ describe('HunkView', () => {
     )
 
     const hunk2 = new Hunk(8, 8, 1, 1, [
-      new HunkLine('line-1', 'removed', 8, -1),
+      new HunkLine('line-1', 'deleted', 8, -1),
       new HunkLine('line-2', 'added', -1, 8)
     ])
     const lines = Array.from(element.querySelectorAll('.git-HunkView-line'))
@@ -79,7 +79,7 @@ describe('HunkView', () => {
   it('updates the button label based on the number of selected lines', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
-      new HunkLine('line-2', 'removed', 6, -1)
+      new HunkLine('line-2', 'deleted', 6, -1)
     ])
     const view = new HunkView({hunk, selectedLines: new Set(), stageButtonLabelPrefix: 'Stage'})
     assert.equal(view.refs.stageButton.textContent, 'Stage Hunk')
@@ -111,7 +111,7 @@ describe('HunkView', () => {
         new HunkLine('line-2', 'added', 1234, 1234),
         new HunkLine('line-3', 'added', 1234, 1234),
         new HunkLine('line-4', 'unchanged', 1234, 1234),
-        new HunkLine('line-5', 'removed', 1234, 1234)
+        new HunkLine('line-5', 'deleted', 1234, 1234)
       ])
 
       const selectLine = sinon.spy()

@@ -37,11 +37,11 @@ describe('Repository', function () {
         {
           oldPath: 'b.txt',
           newPath: null,
-          status: 'removed',
+          status: 'deleted',
           hunks: [
             {
               lines: [
-                {status: 'removed', text: 'bar', oldLineNumber: 1, newLineNumber: -1}
+                {status: 'deleted', text: 'bar', oldLineNumber: 1, newLineNumber: -1}
               ]
             }
           ]
@@ -49,11 +49,11 @@ describe('Repository', function () {
         {
           oldPath: 'c.txt',
           newPath: null,
-          status: 'removed',
+          status: 'deleted',
           hunks: [
             {
               lines: [
-                {status: 'removed', text: 'baz', oldLineNumber: 1, newLineNumber: -1}
+                {status: 'deleted', text: 'baz', oldLineNumber: 1, newLineNumber: -1}
               ]
             }
           ]
@@ -457,12 +457,12 @@ describe('Repository', function () {
             path: 'removed-on-branch.txt',
             fileStatus: 'equivalent',
             oursStatus: 'modified',
-            theirsStatus: 'removed'
+            theirsStatus: 'deleted'
           },
           {
             path: 'removed-on-master.txt',
             fileStatus: 'added',
-            oursStatus: 'removed',
+            oursStatus: 'deleted',
             theirsStatus: 'modified'
           }
         ]
@@ -472,7 +472,7 @@ describe('Repository', function () {
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
         mergeConflicts = await repo.refreshMergeConflicts()
 
-        expected[3].fileStatus = 'removed'
+        expected[3].fileStatus = 'deleted'
         assertDeepPropertyVals(mergeConflicts, expected)
       })
 

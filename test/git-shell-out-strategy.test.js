@@ -72,8 +72,8 @@ describe('Git commands', () => {
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
       assert.deepEqual(diffOutput, {
         'a.txt': 'modified',
-        'b.txt': 'removed',
-        'c.txt': 'removed',
+        'b.txt': 'deleted',
+        'c.txt': 'deleted',
         'd.txt': 'added',
         'e.txt': 'added'
       })
@@ -170,7 +170,7 @@ describe('Git commands', () => {
               ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         },
         {
           'oldPath': 'c.txt',
@@ -184,7 +184,7 @@ describe('Git commands', () => {
               'lines': [ '-baz' ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         },
         {
           'oldPath': null,
@@ -226,7 +226,7 @@ describe('Git commands', () => {
               'lines': [ '-cat', '\\ No newline at end of file' ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         }
       ])
     })
@@ -268,11 +268,11 @@ describe('Git commands', () => {
         },
         'removed-on-branch.txt': {
           ours: 'modified',
-          theirs: 'removed',
+          theirs: 'deleted',
           file: 'equivalent'
         },
         'removed-on-master.txt': {
-          ours: 'removed',
+          ours: 'deleted',
           theirs: 'modified',
           file: 'added'
         }
