@@ -124,6 +124,8 @@ describe('Git commands', () => {
       assertDeepPropertyVals(stagedDiffOutput, [{
         'oldPath': null,
         'newPath': 'f.txt',
+        'oldMode': null,
+        'newMode': '100644',
         'hunks': [
           {
             'oldStartLine': 0,
@@ -141,6 +143,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'a.txt',
           'newPath': 'a.txt',
+          'oldMode': '100644',
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 1,
@@ -159,6 +163,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'b.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,
@@ -175,6 +181,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'c.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,
@@ -189,6 +197,8 @@ describe('Git commands', () => {
         {
           'oldPath': null,
           'newPath': 'd.txt',
+          'oldMode': null,
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 0,
@@ -203,6 +213,8 @@ describe('Git commands', () => {
         {
           'oldPath': null,
           'newPath': 'e.txt',
+          'oldMode': null,
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 0,
@@ -217,6 +229,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'f.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,

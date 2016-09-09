@@ -65,6 +65,7 @@ describe('FilePatchController', () => {
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
       const [unstagedFilePatch] = await repository.getUnstagedChanges()
+
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
 
