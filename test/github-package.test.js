@@ -257,6 +257,31 @@ describe('GithubPackage', () => {
 
       workspaceElement.remove()
     })
+
+    it('closes file patch preview when hiding git panel', async () => {
+      const workspaceElement = viewRegistry.getView(workspace)
+      document.body.appendChild(workspaceElement)
+      const workdirPath = await cloneRepository('three-files')
+      project.setPaths([workdirPath])
+      await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.activate()
+
+      githubPackage.toggleGitPanel()
+      assert.equal(workspace.getRightPanels().length, 1)
+      assert.equal(workspace.getRightPanels()[0].item, githubPackage.gitPanelController)
+
+      const hunk = new Hunk(1, 1, 1, 3, [])
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
+
+      assert.isNull(githubPackage.filePatchController)
+      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'unstaged')
+      assert(githubPackage.filePatchController)
+      assert.equal(githubPackage.filePatchController.props.filePatch, filePatch)
+
+      githubPackage.toggleGitPanel()
+      assert.equal(workspace.getRightPanels().length, 0)
+      assert.isNull(githubPackage.filePatchController)
+    })
   })
 
   describe('focusGitPanel()', () => {
