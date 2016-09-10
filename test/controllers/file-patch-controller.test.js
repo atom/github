@@ -25,6 +25,17 @@ describe('FilePatchController', () => {
     assert.deepEqual(changeHandler.args, [[controller.getTitle()]])
   })
 
+  it('renders FilePatchView only if FilePatch has hunks', async () => {
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [])
+    const view = new FilePatchController({filePatch}) // eslint-disable-line no-new
+    assert.isUndefined(view.refs.filePatchView)
+
+    const hunk1 = new Hunk(0, 0, 1, 1, [new HunkLine('line-1', 'added', 1, 1)])
+    filePatch.update(new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]))
+    await etch.getScheduler().getNextUpdatePromise()
+    assert.isDefined(view.refs.filePatchView)
+  })
+
   it('updates when the associated FilePatch updates', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
     const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
