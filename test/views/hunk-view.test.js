@@ -85,10 +85,10 @@ describe('HunkView', () => {
     assert.equal(view.refs.stageButton.textContent, 'Stage Hunk')
 
     await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
-    assert.equal(view.refs.stageButton.textContent, 'Stage Line')
+    assert.equal(view.refs.stageButton.textContent, 'Stage Selection')
 
     await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set(hunk.getLines())})
-    assert.equal(view.refs.stageButton.textContent, 'Stage Lines')
+    assert.equal(view.refs.stageButton.textContent, 'Stage Selection')
   })
 
   it('calls the didClickStageButton handler when the staging button is clicked', async () => {
