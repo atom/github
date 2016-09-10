@@ -3,6 +3,8 @@
 import fs from 'fs-extra'
 import path from 'path'
 
+import mkdirp from 'mkdirp'
+
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers'
@@ -95,6 +97,27 @@ describe('Git commands', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8')
       assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt'])
+    })
+
+    it('handles untracked files in nested folders', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8')
+      const folderPath = path.join(workingDirPath, 'folder', 'subfolder')
+      mkdirp.sync(folderPath)
+      fs.writeFileSync(path.join(folderPath, 'e.txt'), 'bar', 'utf8')
+      fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8')
+      assert.deepEqual(await git.getUntrackedFiles(), [
+        'd.txt',
+        path.join('folder', 'subfolder', 'e.txt'),
+        path.join('folder', 'subfolder', 'f.txt')
+      ])
+    })
+
+    it('returns an empty array if there are no untracked files', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.deepEqual(await git.getUntrackedFiles(), [])
     })
   })
 
