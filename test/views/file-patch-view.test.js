@@ -6,11 +6,11 @@ import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatchView', () => {
   xit('displays selected hunks and lines as selected', async () => {
-    const line1 = new HunkLine('line-1', 'removed', 5, -1)
-    const line2 = new HunkLine('line-2', 'removed', 6, -1)
-    const line3 = new HunkLine('line-3', 'removed', 7, -1)
+    const line1 = new HunkLine('line-1', 'deleted', 5, -1)
+    const line2 = new HunkLine('line-2', 'deleted', 6, -1)
+    const line3 = new HunkLine('line-3', 'deleted', 7, -1)
     const line4 = new HunkLine('line-4', 'added', -1, 6)
-    const line5 = new HunkLine('line-5', 'removed', 8, -1)
+    const line5 = new HunkLine('line-5', 'deleted', 8, -1)
     const line6 = new HunkLine('line-6', 'added', -1, 8)
     const hunk1 = new Hunk(5, 5, 3, 1, [line1, line2, line3, line4])
     const hunk2 = new Hunk(8, 8, 1, 1, [line5, line6])
@@ -23,11 +23,11 @@ describe('FilePatchView', () => {
 
   describe('selectLineForHunk(hunk, selectedLine) when selection is enabled', () => {
     it('sets the lines between selectedLine and first line selected', async () => {
-      const line1 = new HunkLine('line-1', 'removed', 5, -1)
-      const line2 = new HunkLine('line-2', 'removed', 6, -1)
-      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+      const line1 = new HunkLine('line-1', 'deleted', 5, -1)
+      const line2 = new HunkLine('line-2', 'deleted', 6, -1)
+      const line3 = new HunkLine('line-3', 'deleted', 7, -1)
       const line4 = new HunkLine('line-4', 'added', -1, 6)
-      const line5 = new HunkLine('line-5', 'removed', 8, -1)
+      const line5 = new HunkLine('line-5', 'deleted', 8, -1)
       const line6 = new HunkLine('line-6', 'added', -1, 8)
       const hunk1 = new Hunk(5, 5, 3, 1, [line1, line2, line3, line4])
       const hunk2 = new Hunk(8, 8, 1, 1, [line5, line6])
@@ -76,7 +76,7 @@ describe('FilePatchView', () => {
     describe('when there is another hunk at it\'s index', () => {
       it('selects the new hunk in it\'s place', async () => {
         const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
         const view = new FilePatchView({hunks: [hunk1, hunk2]})
         assertSelectedHunks(view, [hunk1])
         await view.update({hunks: [hunk2]})
@@ -87,7 +87,7 @@ describe('FilePatchView', () => {
     describe('when there is no hunk at it\'s index', () => {
       it('selects the last hunk', async () => {
         const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+        const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
         const view = new FilePatchView({hunks: [hunk1, hunk2]})
         await view.focusNextHunk()
         assertSelectedHunks(view, [hunk2])
@@ -101,8 +101,8 @@ describe('FilePatchView', () => {
     it('toggles between hunk and hunk-line selection modes', async () => {
       const hunk = new Hunk(5, 5, 2, 1, [
         new HunkLine('line-1', 'unchanged', 5, 5),
-        new HunkLine('line-2', 'removed', 6, -1),
-        new HunkLine('line-3', 'removed', 7, -1),
+        new HunkLine('line-2', 'deleted', 6, -1),
+        new HunkLine('line-3', 'deleted', 7, -1),
         new HunkLine('line-4', 'added', -1, 6)
       ])
       const view = new FilePatchView({hunks: [hunk]})
@@ -122,7 +122,7 @@ describe('FilePatchView', () => {
   describe('focusNextHunk({wrap, addToExisting}) and focusPreviousHunk({wrap, addToExisting})', () => {
     it('focuses next/previous hunk, and wraps at the end/beginning if wrap is true', async () => {
       const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
       const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'added', -1, 10)])
       const view = new FilePatchView({hunks: [hunk1, hunk2, hunk3]})
 
@@ -155,7 +155,7 @@ describe('FilePatchView', () => {
 
     it('retains currently selected hunks when addToExisting is true', async () => {
       const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+      const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
       const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'added', -1, 10)])
       const view = new FilePatchView({hunks: [hunk1, hunk2, hunk3]})
 
@@ -181,8 +181,8 @@ describe('FilePatchView', () => {
   describe('focusNextHunkLine({addToExisting}) and focusPreviousHunkLine({addToExisting})', () => {
     it('focuses next/previous non-context hunk line, crossing hunk boundaries but not wrapping', async () => {
       const line1 = new HunkLine('line-1', 'unchanged', 5, 5) // context lines won't be selected
-      const line2 = new HunkLine('line-2', 'removed', 6, -1)
-      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+      const line2 = new HunkLine('line-2', 'deleted', 6, -1)
+      const line3 = new HunkLine('line-3', 'deleted', 7, -1)
 
       const line4 = new HunkLine('line-4', 'unchanged', 8, 8) // context lines won't be selected
       const line5 = new HunkLine('line-5', 'added', -1, 9)
@@ -220,8 +220,8 @@ describe('FilePatchView', () => {
 
     it('retains currently selected lines when addToExisting is true', async () => {
       const line1 = new HunkLine('line-1', 'unchanged', 5, 5) // context lines won't be selected
-      const line2 = new HunkLine('line-2', 'removed', 6, -1)
-      const line3 = new HunkLine('line-3', 'removed', 7, -1)
+      const line2 = new HunkLine('line-2', 'deleted', 6, -1)
+      const line3 = new HunkLine('line-3', 'deleted', 7, -1)
 
       const line4 = new HunkLine('line-4', 'unchanged', 8, 8) // context lines won't be selected
       const line5 = new HunkLine('line-5', 'added', -1, 9)

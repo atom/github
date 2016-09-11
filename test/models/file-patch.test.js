@@ -21,16 +21,16 @@ describe('FilePatch', () => {
         ]),
         new Hunk(5, 7, 5, 4, [
           new HunkLine('line-4', 'unchanged', 5, 7),
-          new HunkLine('line-5', 'removed', 6, -1),
-          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'deleted', 7, -1),
           new HunkLine('line-7', 'added', -1, 8),
           new HunkLine('line-8', 'added', -1, 9),
           new HunkLine('line-9', 'added', -1, 10),
-          new HunkLine('line-10', 'removed', 8, -1),
-          new HunkLine('line-11', 'removed', 9, -1)
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20)
         ])
@@ -39,11 +39,11 @@ describe('FilePatch', () => {
       const newPatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(9, 9, 2, 1, [
           new HunkLine('line-9', 'added', -1, 9),
-          new HunkLine('line-10', 'removed', 8, -1),
-          new HunkLine('line-11', 'removed', 9, -1)
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1)
         ]),
         new Hunk(15, 14, 1, 1, [
-          new HunkLine('line-15', 'removed', 15, -1),
+          new HunkLine('line-15', 'deleted', 15, -1),
           new HunkLine('line-16', 'added', -1, 14)
         ]),
         new Hunk(21, 19, 2, 3, [
@@ -89,16 +89,16 @@ describe('FilePatch', () => {
         ]),
         new Hunk(5, 7, 5, 4, [
           new HunkLine('line-4', 'unchanged', 5, 7),
-          new HunkLine('line-5', 'removed', 6, -1),
-          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'deleted', 7, -1),
           new HunkLine('line-7', 'added', -1, 8),
           new HunkLine('line-8', 'added', -1, 9),
           new HunkLine('line-9', 'added', -1, 10),
-          new HunkLine('line-10', 'removed', 8, -1),
-          new HunkLine('line-11', 'removed', 9, -1)
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20)
         ])
@@ -108,8 +108,8 @@ describe('FilePatch', () => {
         'a.txt', 'a.txt', 'modified', [
           new Hunk(5, 5, 5, 4, [
             new HunkLine('line-4', 'unchanged', 5, 5),
-            new HunkLine('line-5', 'removed', 6, -1),
-            new HunkLine('line-6', 'removed', 7, -1),
+            new HunkLine('line-5', 'deleted', 6, -1),
+            new HunkLine('line-6', 'deleted', 7, -1),
             new HunkLine('line-7', 'added', -1, 6),
             new HunkLine('line-10', 'unchanged', 8, 7),
             new HunkLine('line-11', 'unchanged', 9, 8)
@@ -129,8 +129,8 @@ describe('FilePatch', () => {
           ]),
           new Hunk(5, 6, 5, 4, [
             new HunkLine('line-4', 'unchanged', 5, 6),
-            new HunkLine('line-5', 'removed', 6, -1),
-            new HunkLine('line-6', 'removed', 7, -1),
+            new HunkLine('line-5', 'deleted', 6, -1),
+            new HunkLine('line-6', 'deleted', 7, -1),
             new HunkLine('line-7', 'added', -1, 7),
             new HunkLine('line-10', 'unchanged', 8, 8),
             new HunkLine('line-11', 'unchanged', 9, 9)
@@ -155,16 +155,16 @@ describe('FilePatch', () => {
         ]),
         new Hunk(5, 7, 5, 4, [
           new HunkLine('line-4', 'unchanged', 5, 7),
-          new HunkLine('line-5', 'removed', 6, -1),
-          new HunkLine('line-6', 'removed', 7, -1),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'deleted', 7, -1),
           new HunkLine('line-7', 'added', -1, 8),
           new HunkLine('line-8', 'added', -1, 9),
           new HunkLine('line-9', 'added', -1, 10),
-          new HunkLine('line-10', 'removed', 8, -1),
-          new HunkLine('line-11', 'removed', 9, -1)
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1)
         ]),
         new Hunk(20, 19, 2, 2, [
-          new HunkLine('line-12', 'removed', 20, -1),
+          new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20)
         ])
@@ -174,8 +174,8 @@ describe('FilePatch', () => {
         'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, [
             new HunkLine('line-4', 'unchanged', 7, 7),
-            new HunkLine('line-7', 'removed', 8, -1),
-            new HunkLine('line-8', 'removed', 9, -1),
+            new HunkLine('line-7', 'deleted', 8, -1),
+            new HunkLine('line-8', 'deleted', 9, -1),
             new HunkLine('line-5', 'added', -1, 8),
             new HunkLine('line-6', 'added', -1, 9),
             new HunkLine('line-9', 'unchanged', 10, 10)

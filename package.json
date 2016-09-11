@@ -19,7 +19,8 @@
     "etch-stateless": "^1.0.0",
     "multi-list-selection": "^0.1.1",
     "nsfw": "1.0.12",
-    "recursive-readdir": "^2.0.0"
+    "recursive-readdir": "^2.0.0",
+    "what-the-diff": "^0.1.1"
   },
   "devDependencies": {
     "atom-mocha-test-runner": "0.2.2",
@@ -37,6 +38,7 @@
     "eslint-plugin-react": "^5.0.1",
     "eslint-plugin-standard": "^1.3.2",
     "fs-extra": "^0.30.0",
+    "mkdirp": "^0.5.1",
     "simulant": "^0.2.2",
     "sinon": "^1.17.4",
     "temp": "^0.8.3"

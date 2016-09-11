@@ -10,7 +10,7 @@ describe('ChangedFilesCountView', () => {
     const patch1 = new FilePatch('a.txt', 'a.txt', 'modified')
     const patch2 = new FilePatch('b.txt', 'b.txt', 'modified')
     const patch3 = new FilePatch(null, 'c.txt', 'added')
-    const patch4 = new FilePatch('a.txt', null, 'removed')
+    const patch4 = new FilePatch('a.txt', null, 'deleted')
     const view = new ChangedFilesCountView({stagedChanges: [], unstagedChanges: []})
     assert.isUndefined(view.refs.changedFiles)
 
