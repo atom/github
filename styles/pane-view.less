@@ -1,5 +1,15 @@
 @import "variables";
+@import "ui-variables";
 
 .git-PaneView {
   overflow-y: auto;
+
+  &.is-blank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.2em;
+    padding: @component-padding;
+  }
 }
