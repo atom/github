@@ -35,6 +35,18 @@ describe('MultiListCollection', () => {
       assert.deepEqual([...mlc.getSelectedKeys()], ['list1'])
     })
 
+    it('selects first key and first item when multiple are selected', () => {
+      const mlc = new MultiListCollection([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] },
+        { key: 'list3', items: ['f', 'g', 'h'] }
+      ])
+
+      mlc.selectItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list3', item: 'g'})
+      assert.deepEqual(mlc.getLastSelectedListKey(), 'list1')
+      assert.deepEqual(mlc.getLastSelectedItem(), 'b')
+    })
+
     it('throws error when keys or items aren\'t found', () => {
       const mlc = new MultiListCollection([
         { key: 'list1', items: ['a', 'b', 'c'] }
