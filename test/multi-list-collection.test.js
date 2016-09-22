@@ -78,4 +78,52 @@ describe('MultiListCollection', () => {
       }, 'item "x" not found')
     })
   })
+
+  describe('updateLists', () => {
+    it('updates selection based on previously selected keys and items', () => {
+      const mlc = new MultiListCollection([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] }
+      ])
+
+      mlc.selectItems(['b'])
+      assert.deepEqual([...mlc.getSelectedItems()], ['b'])
+
+      mlc.updateLists([
+        { key: 'list3', items: ['a', 'c'] },
+        { key: 'list4', items: ['d', 'e'] }
+      ])
+      assert.deepEqual([...mlc.getSelectedItems()], ['c'])
+      assert.deepEqual([...mlc.getSelectedKeys()], ['list3'])
+
+      mlc.updateLists([
+        { key: 'list5', items: ['a'] },
+        { key: 'list6', items: ['d', 'e'] }
+      ])
+      assert.deepEqual([...mlc.getSelectedItems()], ['d'])
+      assert.deepEqual([...mlc.getSelectedKeys()], ['list6'])
+    })
+
+    it('updates selection based on previously selected keys and items', () => {
+      const mlc = new MultiListCollection([
+        { key: 'list1', items: ['a', 'b', 'c'] },
+        { key: 'list2', items: ['d', 'e'] }
+      ])
+
+      mlc.selectItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list2', item: 'd'})
+      mlc.updateLists([
+        { key: 'list3', items: ['a', 'e'] },
+        { key: 'list4', items: ['f', 'g', 'h'] }
+      ])
+      assert.deepEqual([...mlc.getSelectedItems()], ['e'])
+      assert.deepEqual([...mlc.getSelectedKeys()], ['list3'])
+
+      mlc.selectItemsAndKeysInRange({key: 'list4', item: 'f'}, {key: 'list4', item: 'h'})
+      mlc.updateLists([
+        { key: 'list5', items: ['a', 'e'] }
+      ])
+      assert.deepEqual([...mlc.getSelectedItems()], ['e'])
+      assert.deepEqual([...mlc.getSelectedKeys()], ['list5'])
+    })
+  })
 })

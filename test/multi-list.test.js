@@ -245,168 +245,171 @@ describe('MultiList', () => {
     })
   })
 
-  describe('updateLists(lists)', () => {
-    it('adds and removes lists based on list keys and updates order accordingly, remembering the active list', () => {
-      const ml = new MultiList([
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list2', items: ['d', 'e'] }
-      ])
-      assert.deepEqual(ml.getListKeys(), ['list1', 'list2'])
-      assert.equal(ml.getActiveListKey(), 'list1')
+  describe('updateLists(lists, {suppressCallback, oldActiveListIndex, oldActiveListItemIndex})', () => {
+    describe('when referential identity is NOT maintained', () => {
+      it('updates selected item based on options passed in', () => {
+        function getRandomKey () {
+          return performance.now() + Math.random() * 100000
+        }
 
-      ml.updateLists([
-        { key: 'list3', items: ['f', 'g', 'h'] },
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list2', items: ['d', 'e'] }
-      ])
-      assert.deepEqual(ml.getListKeys(), ['list3', 'list1', 'list2'])
-      assert.equal(ml.getActiveListKey(), 'list1')
+        let options
 
-      ml.updateLists([
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list3', items: ['f', 'g', 'h'] }
-      ])
-      assert.deepEqual(ml.getListKeys(), ['list1', 'list3'])
-      assert.equal(ml.getActiveListKey(), 'list1')
+        const ml = new MultiList([
+          { key: getRandomKey(), items: ['a', 'b', 'c'] },
+          { key: getRandomKey(), items: ['d', 'e'] },
+          { key: getRandomKey(), items: ['f', 'g', 'h'] }
+        ])
 
-      ml.updateLists([
-        { key: 'list3', items: ['f', 'g', 'h'] },
-        { key: 'list2', items: ['d', 'e'] },
-        { key: 'list1', items: ['a', 'b', 'c'] }
-      ])
-      assert.deepEqual(ml.getListKeys(), ['list3', 'list2', 'list1'])
-      assert.equal(ml.getActiveListKey(), 'list1')
-    })
+        ml.activateItem('b')
+        options = { oldActiveListIndex: 0, oldActiveListItemIndex: 1 }
 
-    describe('when active list is removed', () => {
-      describe('when there is a new list in its place', () => {
-        it('activates the new list in its place', () => {
-          const didChangeActiveItem = sinon.spy()
-          const ml = new MultiList([
-            { key: 'list1', items: ['a', 'b', 'c'] },
-            { key: 'list2', items: ['d', 'e'] }
-          ], didChangeActiveItem)
+        ml.updateLists([
+          { key: getRandomKey(), items: ['a', 'c'] },
+          { key: getRandomKey(), items: ['d', 'e'] },
+          { key: getRandomKey(), items: ['f', 'g', 'h'] }
+        ], options)
 
-          assert.equal(ml.getActiveListKey(), 'list1')
+        assert.equal(ml.getActiveItem(), 'c')
+        options = { oldActiveListIndex: 0, oldActiveListItemIndex: 1 }
 
-          ml.updateLists([
-            { key: 'list2', items: ['d', 'e'] }
-          ])
-          assert.equal(ml.getActiveListKey(), 'list2')
-          assert.equal(didChangeActiveItem.callCount, 1)
-          assert.deepEqual(didChangeActiveItem.args[0], ['d', 'list2'])
-        })
-      })
+        ml.updateLists([
+          { key: getRandomKey(), items: ['a'] },
+          { key: getRandomKey(), items: ['d', 'e'] },
+          { key: getRandomKey(), items: ['f', 'g', 'h'] }
+        ], options)
 
-      describe('when there is no list in its place', () => {
-        it('activates the last list', () => {
-          const didChangeActiveItem = sinon.spy()
-          const ml = new MultiList([
-            { key: 'list1', items: ['a', 'b', 'c'] },
-            { key: 'list2', items: ['d', 'e'] }
-          ], didChangeActiveItem)
+        assert.equal(ml.getActiveItem(), 'd')
+        options = { oldActiveListIndex: 1, oldActiveListItemIndex: 0 }
 
-          ml.activateListForKey('list2')
+        ml.updateLists([
+          { key: getRandomKey(), items: ['a'] },
+          { key: getRandomKey(), items: ['f', 'g', 'h'] }
+        ], options)
 
-          didChangeActiveItem.reset()
-          ml.updateLists([
-            { key: 'list1', items: ['a', 'b', 'c'] }
-          ])
-          assert.equal(ml.getActiveListKey(), 'list1')
-          assert.equal(didChangeActiveItem.callCount, 1)
-          assert.deepEqual(didChangeActiveItem.args[0], ['a', 'list1'])
-        })
+        assert.equal(ml.getActiveItem(), 'f')
+        options = { oldActiveListIndex: 1, oldActiveListItemIndex: 1 }
+
+        ml.updateLists([
+          { key: getRandomKey(), items: ['a'] }
+        ], options)
+
+        assert.equal(ml.getActiveItem(), 'a')
+        options = { oldActiveListIndex: 0, oldActiveListItemIndex: 0 }
+
+        ml.updateLists([
+          { key: getRandomKey(), items: [] },
+          { key: getRandomKey(), items: ['j'] }
+        ], options)
+
+        assert.equal(ml.getActiveItem(), 'j')
       })
     })
 
-    it('maintains the active items for each list, even if location has changed in list', () => {
-      const ml = new MultiList([
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list2', items: ['d', 'e'] }
-      ])
+    describe('when referential identity is maintained', () => {
+      it('adds and removes lists based on list keys and updates order accordingly, remembering the active list', () => {
+        const ml = new MultiList([
+          { key: 'list1', items: ['a', 'b', 'c'] },
+          { key: 'list2', items: ['d', 'e'] }
+        ])
+        assert.deepEqual(ml.getListKeys(), ['list1', 'list2'])
+        assert.equal(ml.getActiveListKey(), 'list1')
 
-      ml.activateItemAtIndexForKey('list1', 1)
-      assert.equal(ml.getActiveItem(), 'b')
-      ml.activateItemAtIndexForKey('list2', 1)
-      assert.equal(ml.getActiveItem(), 'e')
+        ml.updateLists([
+          { key: 'list3', items: ['f', 'g', 'h'] },
+          { key: 'list1', items: ['a', 'b', 'c'] },
+          { key: 'list2', items: ['d', 'e'] }
+        ])
+        assert.deepEqual(ml.getListKeys(), ['list3', 'list1', 'list2'])
+        assert.equal(ml.getActiveListKey(), 'list1')
 
-      ml.updateLists([
-        { key: 'list1', items: ['b', 'c'] },
-        { key: 'list2', items: ['a', 'd', 'e'] }
-      ])
+        ml.updateLists([
+          { key: 'list1', items: ['a', 'b', 'c'] },
+          { key: 'list3', items: ['f', 'g', 'h'] }
+        ])
+        assert.deepEqual(ml.getListKeys(), ['list1', 'list3'])
+        assert.equal(ml.getActiveListKey(), 'list1')
 
-      assert.equal(ml.getActiveListKey(), 'list2')
-
-      ml.activateListForKey('list1')
-      assert.equal(ml.getActiveItem(), 'b')
-
-      ml.activateListForKey('list2')
-      assert.equal(ml.getActiveItem(), 'e')
-    })
-
-    describe('when list item is no longer in the list upon update', () => {
-      describe('when there is a new item in its place', () => {
-        it('keeps the same active item index and shows the new item as active', () => {
-          const didChangeActiveItem = sinon.spy()
-          const ml = new MultiList([
-            { key: 'list1', items: ['a', 'b', 'c'] }
-          ], didChangeActiveItem)
-
-          ml.activateItemAtIndexForKey('list1', 0)
-          assert.equal(ml.getActiveItem(), 'a')
-
-          didChangeActiveItem.reset()
-          ml.updateLists([
-            { key: 'list1', items: ['b', 'c'] }
-          ])
-          assert.equal(ml.getActiveItem(), 'b')
-          assert.equal(didChangeActiveItem.callCount, 1)
-          assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1'])
-
-          didChangeActiveItem.reset()
-          ml.updateLists([
-            { key: 'list1', items: ['b', 'c'] }
-          ])
-          assert.equal(ml.getActiveItem(), 'b')
-          assert.equal(didChangeActiveItem.callCount, 0)
-        })
+        ml.updateLists([
+          { key: 'list3', items: ['f', 'g', 'h'] },
+          { key: 'list2', items: ['d', 'e'] },
+          { key: 'list1', items: ['a', 'b', 'c'] }
+        ])
+        assert.deepEqual(ml.getListKeys(), ['list3', 'list2', 'list1'])
+        assert.equal(ml.getActiveListKey(), 'list1')
       })
 
-      describe('when there is no item in its place, but there is still an item in the list', () => {
-        it('activates the last item in the list', () => {
-          const didChangeActiveItem = sinon.spy()
-          const ml = new MultiList([
-            { key: 'list1', items: ['a', 'b', 'c'] }
-          ], didChangeActiveItem)
-
-          ml.activateItemAtIndexForKey('list1', 2)
-          assert.equal(ml.getActiveItem(), 'c')
-
-          didChangeActiveItem.reset()
-          ml.updateLists([
-            { key: 'list1', items: ['a', 'b'] }
-          ])
-          assert.equal(ml.getActiveItem(), 'b')
-          assert.equal(didChangeActiveItem.callCount, 1)
-          assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1'])
-
-          didChangeActiveItem.reset()
-          ml.updateLists([
-            { key: 'list1', items: ['a'] }
-          ])
-          assert.equal(ml.getActiveItem(), 'a')
-          assert.equal(didChangeActiveItem.callCount, 1)
-          assert.deepEqual(didChangeActiveItem.args[0], ['a', 'list1'])
-        })
-      })
-
-      describe('when there are no more items in the list', () => {
-        describe('when there is a non-empty list following the active list', () => {
-          it('activates the first item in the following list', () => {
+      describe('when active list is removed', () => {
+        describe('when there is a new list in its place', () => {
+          it('activates the new list in its place', () => {
             const didChangeActiveItem = sinon.spy()
             const ml = new MultiList([
-              { key: 'list1', items: ['a'] },
-              { key: 'list2', items: ['b', 'c'] }
+              { key: 'list1', items: ['a', 'b', 'c'] },
+              { key: 'list2', items: ['d', 'e'] }
+            ], didChangeActiveItem)
+
+            assert.equal(ml.getActiveListKey(), 'list1')
+
+            ml.updateLists([
+              { key: 'list2', items: ['d', 'e'] }
+            ])
+            assert.equal(ml.getActiveListKey(), 'list2')
+            assert.equal(didChangeActiveItem.callCount, 1)
+            assert.deepEqual(didChangeActiveItem.args[0], ['d', 'list2'])
+          })
+        })
+
+        describe('when there is no list in its place', () => {
+          it('activates the last item in the last list', () => {
+            const didChangeActiveItem = sinon.spy()
+            const ml = new MultiList([
+              { key: 'list1', items: ['a', 'b', 'c'] },
+              { key: 'list2', items: ['d', 'e'] }
+            ], didChangeActiveItem)
+
+            ml.activateListForKey('list2')
+
+            didChangeActiveItem.reset()
+            ml.updateLists([
+              { key: 'list1', items: ['a', 'b', 'c'] }
+            ])
+            assert.equal(ml.getActiveListKey(), 'list1')
+            assert.equal(didChangeActiveItem.callCount, 1)
+            assert.deepEqual(didChangeActiveItem.args[0], ['c', 'list1'])
+          })
+        })
+      })
+
+      it('maintains the active items for each list, even if location has changed in list', () => {
+        const ml = new MultiList([
+          { key: 'list1', items: ['a', 'b', 'c'] },
+          { key: 'list2', items: ['d', 'e'] }
+        ])
+
+        ml.activateItemAtIndexForKey('list1', 1)
+        assert.equal(ml.getActiveItem(), 'b')
+        ml.activateItemAtIndexForKey('list2', 1)
+        assert.equal(ml.getActiveItem(), 'e')
+
+        ml.updateLists([
+          { key: 'list1', items: ['b', 'c'] },
+          { key: 'list2', items: ['a', 'd', 'e'] }
+        ])
+
+        assert.equal(ml.getActiveListKey(), 'list2')
+
+        ml.activateListForKey('list1')
+        assert.equal(ml.getActiveItem(), 'b')
+
+        ml.activateListForKey('list2')
+        assert.equal(ml.getActiveItem(), 'e')
+      })
+
+      describe('when list item is no longer in the list upon update', () => {
+        describe('when there is a new item in its place', () => {
+          it('keeps the same active item index and shows the new item as active', () => {
+            const didChangeActiveItem = sinon.spy()
+            const ml = new MultiList([
+              { key: 'list1', items: ['a', 'b', 'c'] }
             ], didChangeActiveItem)
 
             ml.activateItemAtIndexForKey('list1', 0)
@@ -414,35 +417,93 @@ describe('MultiList', () => {
 
             didChangeActiveItem.reset()
             ml.updateLists([
-              { key: 'list1', items: [] },
-              { key: 'list2', items: ['b', 'c'] }
+              { key: 'list1', items: ['b', 'c'] }
             ])
             assert.equal(ml.getActiveItem(), 'b')
             assert.equal(didChangeActiveItem.callCount, 1)
-            assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list2'])
+            assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1'])
+
+            didChangeActiveItem.reset()
+            ml.updateLists([
+              { key: 'list1', items: ['b', 'c'] }
+            ])
+            assert.equal(ml.getActiveItem(), 'b')
+            assert.equal(didChangeActiveItem.callCount, 0)
           })
         })
 
-        describe('when the following list is empty, but the preceeding list is non-empty', () => {
-          it('activates the last item in the preceeding list', () => {
+        describe('when there is no item in its place, but there is still an item in the list', () => {
+          it('activates the last item in the list', () => {
             const didChangeActiveItem = sinon.spy()
             const ml = new MultiList([
-              { key: 'list1', items: ['a', 'b'] },
-              { key: 'list2', items: ['c'] }
+              { key: 'list1', items: ['a', 'b', 'c'] }
             ], didChangeActiveItem)
 
-            ml.activateItemAtIndexForKey('list2', 0)
+            ml.activateItemAtIndexForKey('list1', 2)
             assert.equal(ml.getActiveItem(), 'c')
 
             didChangeActiveItem.reset()
             ml.updateLists([
-              { key: 'list1', items: ['a', 'b'] },
-              { key: 'list2', items: [] }
+              { key: 'list1', items: ['a', 'b'] }
             ])
-            assert.equal(ml.getActiveItem(), 'b')
             assert.equal(ml.getActiveItem(), 'b')
             assert.equal(didChangeActiveItem.callCount, 1)
             assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1'])
+
+            didChangeActiveItem.reset()
+            ml.updateLists([
+              { key: 'list1', items: ['a'] }
+            ])
+            assert.equal(ml.getActiveItem(), 'a')
+            assert.equal(didChangeActiveItem.callCount, 1)
+            assert.deepEqual(didChangeActiveItem.args[0], ['a', 'list1'])
+          })
+        })
+
+        describe('when there are no more items in the list', () => {
+          describe('when there is a non-empty list following the active list', () => {
+            it('activates the first item in the following list', () => {
+              const didChangeActiveItem = sinon.spy()
+              const ml = new MultiList([
+                { key: 'list1', items: ['a'] },
+                { key: 'list2', items: ['b', 'c'] }
+              ], didChangeActiveItem)
+
+              ml.activateItemAtIndexForKey('list1', 0)
+              assert.equal(ml.getActiveItem(), 'a')
+
+              didChangeActiveItem.reset()
+              ml.updateLists([
+                { key: 'list1', items: [] },
+                { key: 'list2', items: ['b', 'c'] }
+              ])
+              assert.equal(ml.getActiveItem(), 'b')
+              assert.equal(didChangeActiveItem.callCount, 1)
+              assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list2'])
+            })
+          })
+
+          describe('when the following list is empty, but the preceeding list is non-empty', () => {
+            it('activates the last item in the preceeding list', () => {
+              const didChangeActiveItem = sinon.spy()
+              const ml = new MultiList([
+                { key: 'list1', items: ['a', 'b'] },
+                { key: 'list2', items: ['c'] }
+              ], didChangeActiveItem)
+
+              ml.activateItemAtIndexForKey('list2', 0)
+              assert.equal(ml.getActiveItem(), 'c')
+
+              didChangeActiveItem.reset()
+              ml.updateLists([
+                { key: 'list1', items: ['a', 'b'] },
+                { key: 'list2', items: [] }
+              ])
+              assert.equal(ml.getActiveItem(), 'b')
+              assert.equal(ml.getActiveItem(), 'b')
+              assert.equal(didChangeActiveItem.callCount, 1)
+              assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1'])
+            })
           })
         })
       })
