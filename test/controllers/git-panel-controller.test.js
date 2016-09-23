@@ -56,6 +56,20 @@ describe('GitPanelController', () => {
     assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
   })
 
+  it('displays the staged changes since the *previous* commmit when amending', async function () {
+    const workdirPath = await cloneRepository('multiple-commits')
+    const repository = await buildRepository(workdirPath)
+    const controller = new GitPanelController({workspace, commandRegistry, repository})
+    await controller.lastModelDataRefreshPromise
+    assert.deepEqual(controller.refs.gitPanel.props.stagedChanges, [])
+
+    await controller.setAmendMode(true)
+    assert.deepEqual(
+      controller.refs.gitPanel.props.stagedChanges,
+      await controller.repository.getStagedChangesSincePreviousCommit()
+    )
+  })
+
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
       const workdirPath = await cloneRepository('three-files')
