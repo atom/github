@@ -35,7 +35,7 @@ describe('MultiListCollection', () => {
       assert.deepEqual([...mlc.getSelectedKeys()], ['list1'])
     })
 
-    it('selects first key and first item when multiple are selected', () => {
+    it('sets the first key and first item as active when multiple are selected', () => {
       const mlc = new MultiListCollection([
         { key: 'list1', items: ['a', 'b', 'c'] },
         { key: 'list2', items: ['d', 'e'] },
@@ -43,8 +43,8 @@ describe('MultiListCollection', () => {
       ])
 
       mlc.selectItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list3', item: 'g'})
-      assert.deepEqual(mlc.getLastSelectedListKey(), 'list1')
-      assert.deepEqual(mlc.getLastSelectedItem(), 'b')
+      assert.equal(mlc.getActiveListKey(), 'list1')
+      assert.equal(mlc.getActiveItem(), 'b')
     })
 
     it('handles selection across the 10th item', () => {
