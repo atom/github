@@ -195,6 +195,33 @@ describe('Repository', function () {
     })
   })
 
+  describe('getStagedChangesSincePreviousCommit()', () => {
+    it('resolves to an array of FilePatches representing the diff between the index and HEAD~', async () => {
+      const workingDirPath = await cloneRepository('multiple-commits')
+      const repo = await buildRepository(workingDirPath)
+
+      const newPath = path.join(workingDirPath, 'file2.txt')
+      fs.writeFileSync(newPath, 'four', 'utf8')
+      await repo.stageFiles([newPath])
+
+      assertDeepPropertyVals((await repo.getStagedChangesSincePreviousCommit()), [
+        {
+          oldPath: 'file.txt',
+          newPath: 'file.txt',
+          status: 'modified',
+          hunks: [
+            {
+              lines: [
+                {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
+                {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
+              ]
+            }
+          ]
+        }
+      ].concat(await repo.getStagedChanges()))
+    })
+  })
+
   describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = await cloneRepository('three-files')
