@@ -11,8 +11,7 @@ import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatch', () => {
   describe('update(filePatch)', () => {
-    // TODO: remove once we extract selection state logic to components
-    it('mutates the FilePatch to match the given FilePatch, preserving hunk and line instances where possible', () => {
+    it('mutates the FilePatch to match the given FilePatch, replacing its hunks with the new filePatch\'s hunks', () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -59,18 +58,7 @@ describe('FilePatch', () => {
       const newHunks = patch.getHunks()
 
       assert.deepEqual(patch, newPatch)
-
-      assert.equal(newHunks.length, 3)
-      assert.equal(newHunks.indexOf(originalHunks[0]), -1)
-      assert.equal(newHunks.indexOf(originalHunks[1]), 0)
-      assert.equal(newHunks.indexOf(originalHunks[2]), 2)
-
-      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][0]), -1)
-      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][5]), 0)
-      assert.equal(newHunks[0].getLines().indexOf(originalLines[1][7]), 2)
-      assert.equal(newHunks[2].getLines().indexOf(originalLines[1][0]), -1)
-      assert.equal(newHunks[2].getLines().indexOf(originalLines[2][1]), 0)
-      assert.equal(newHunks[2].getLines().indexOf(originalLines[2][2]), 1)
+      assert.notDeepEqual(originalHunks, newHunks)
     })
 
     it('throws an error when the supplied filePatch has a different id', () => {
