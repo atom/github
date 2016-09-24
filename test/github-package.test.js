@@ -214,6 +214,24 @@ describe('GithubPackage', () => {
     })
   })
 
+  describe('when amend mode is toggled in the staging panel while viewing a staged change', () => {
+    it('closes the file patch pane item', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+
+      githubPackage.getActiveRepository = function () { return repository }
+      const hunk = new Hunk(1, 1, 1, 3, [])
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
+
+      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'staged')
+      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+
+      githubPackage.gitPanelController.props.didChangeAmending()
+      assert.isNull(githubPackage.filePatchController)
+      assert.isUndefined(workspace.getActivePaneItem())
+    })
+  })
+
   describe('when the changed files label in the status bar is clicked', () => {
     it('toggles the git panel', async () => {
       const workdirPath = await cloneRepository('three-files')
