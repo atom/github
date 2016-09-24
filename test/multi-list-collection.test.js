@@ -147,9 +147,9 @@ describe('MultiListCollection', () => {
         mlc.selectItemsAndKeysInRange({key: 'list9', item: 'd'}, {key: 'list9', item: 'h'})
         assert.equal(mlc.getActiveItem(), 'd')
         mlc.updateLists([
-          { key: 'list10', items: ['a'] }
+          { key: 'list10', items: ['a', 'i', 'j'] }
         ])
-        assert.equal(mlc.getActiveItem(), 'a')
+        assert.equal(mlc.getActiveItem(), 'j')
       })
     })
   })
