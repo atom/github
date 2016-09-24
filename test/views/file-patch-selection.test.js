@@ -4,9 +4,9 @@ import FilePatchSelection from '../../lib/views/file-patch-selection'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
-describe('FilePatchSelection', () => {
-  describe('selectLine(hunk, line, expand)', () => {
-    it('starts a new line selection if expand is false and otherwise expands the existing selection',  () => {
+describe.only('FilePatchSelection', () => {
+  describe('line selection', () => {
+    it('starts a new selection with selectLine and expands an existing selection with selectToLine',  () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -26,31 +26,31 @@ describe('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectLine(hunks[0], hunks[0].lines[1], false)
+      selection.selectLine(hunks[0], hunks[0].lines[1])
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[1]
       ])
 
-      selection.selectLine(hunks[1], hunks[1].lines[2], true)
+      selection.selectToLine(hunks[1], hunks[1].lines[2])
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[1],
         hunks[1].lines[1],
         hunks[1].lines[2]
       ])
 
-      selection.selectLine(hunks[1], hunks[1].lines[1], true)
+      selection.selectToLine(hunks[1], hunks[1].lines[1])
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[1],
         hunks[1].lines[1]
       ])
 
-      selection.selectLine(hunks[0], hunks[0].lines[0], true)
+      selection.selectToLine(hunks[0], hunks[0].lines[0])
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[0],
         hunks[0].lines[1]
       ])
 
-      selection.selectLine(hunks[1], hunks[1].lines[2], false)
+      selection.selectLine(hunks[1], hunks[1].lines[2])
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[1].lines[2]
       ])
@@ -78,8 +78,8 @@ describe('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(oldHunks)
 
-      selection.selectLine(oldHunks[1], oldHunks[1].lines[2], false)
-      selection.selectLine(oldHunks[1], oldHunks[1].lines[4], true)
+      selection.selectLine(oldHunks[1], oldHunks[1].lines[2])
+      selection.selectToLine(oldHunks[1], oldHunks[1].lines[4])
 
       const newHunks = [
         new Hunk(1, 1, 1, 3, [
