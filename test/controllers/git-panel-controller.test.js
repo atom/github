@@ -68,6 +68,10 @@ describe('GitPanelController', () => {
       controller.refs.gitPanel.props.stagedChanges,
       await controller.repository.getStagedChangesSinceParentCommit()
     )
+
+    await controller.commit('Delete most of the code', {amend: true})
+    await controller.lastModelDataRefreshPromise
+    assert(!controller.refs.gitPanel.props.isAmending)
   })
 
   describe('integration tests', () => {
