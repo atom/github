@@ -63,7 +63,7 @@ describe('GitPanelController', () => {
     await controller.lastModelDataRefreshPromise
     assert.deepEqual(controller.refs.gitPanel.props.stagedChanges, [])
 
-    await controller.setAmendMode(true)
+    await controller.setAmending(true)
     assert.deepEqual(
       controller.refs.gitPanel.props.stagedChanges,
       await controller.repository.getStagedChangesSinceParentCommit()

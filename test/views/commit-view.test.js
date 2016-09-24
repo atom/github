@@ -262,18 +262,18 @@ describe('CommitView', () => {
       assert.isFalse(amend.checked)
     })
 
-    it('calls props.setAmendMode() when the box is checked or unchecked', async function () {
-      const setAmendMode = sinon.spy()
+    it('calls props.setAmending() when the box is checked or unchecked', async function () {
+      const setAmending = sinon.spy()
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmendMode})
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending})
       const {editor, amend} = view.refs
 
       amend.click()
-      assert.deepEqual(setAmendMode.args, [[true]])
+      assert.deepEqual(setAmending.args, [[true]])
 
       amend.click()
-      assert.deepEqual(setAmendMode.args, [[true], [false]])
+      assert.deepEqual(setAmending.args, [[true], [false]])
     })
   })
 })
