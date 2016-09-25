@@ -155,6 +155,7 @@ describe('FilePatchSelection', () => {
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3),
         ])
       ]
 
@@ -164,6 +165,8 @@ describe('FilePatchSelection', () => {
       const newHunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'unchanged', 1, 2),
+          new HunkLine('line-3', 'unchanged', 2, 3),
         ])
       ]
       selection.updateHunks(newHunks)
