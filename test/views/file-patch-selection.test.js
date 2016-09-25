@@ -102,7 +102,7 @@ describe('FilePatchSelection', () => {
   })
 
   describe('updateHunks(hunks)', function () {
-    it('collapses the selection to a single line at the start of the previous selection range', function () {
+    it('collapses the selection to a single line at the start of the last existing selection range', function () {
       const oldHunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
