@@ -102,7 +102,7 @@ describe('FilePatchSelection', () => {
   })
 
   describe('updateHunks(hunks)', function () {
-    it('collapses the selection to a single line at the start of the last existing selection range', function () {
+    it('collapses the selection to a single line following the previous selected range with the highest start index', function () {
       const oldHunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -147,6 +147,29 @@ describe('FilePatchSelection', () => {
 
       assert.deepEqual(selection.getSelectedLines(), [
         newHunks[2].lines[1]
+      ])
+    })
+
+    it('collapses the selection to the line preceding the previous selected line if it was the *last* line', function () {
+      const oldHunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+        ])
+      ]
+
+      const selection = new FilePatchSelection(oldHunks)
+      selection.selectLine(oldHunks[0], oldHunks[0].lines[1])
+
+      const newHunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ])
+      ]
+      selection.updateHunks(newHunks)
+
+      assert.deepEqual(selection.getSelectedLines(), [
+        newHunks[0].lines[0]
       ])
     })
   })
