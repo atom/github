@@ -172,5 +172,20 @@ describe('FilePatchSelection', () => {
         newHunks[0].lines[0]
       ])
     })
+
+    it('deselects if updating with an empty hunk array', function () {
+      const oldHunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+        ])
+      ]
+
+      const selection = new FilePatchSelection(oldHunks)
+      selection.selectLine(oldHunks[0], oldHunks[0].lines[1])
+
+      selection.updateHunks([])
+      assert.deepEqual(selection.getSelectedLines(), [])
+    })
   })
 })
