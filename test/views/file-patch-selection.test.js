@@ -4,7 +4,7 @@ import FilePatchSelection from '../../lib/views/file-patch-selection'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
-describe('FilePatchSelection', () => {
+describe.only('FilePatchSelection', () => {
   describe('line selection', () => {
     it('starts a new line selection with selectLine and expands an existing line selection with selectToLine',  () => {
       const hunks = [
