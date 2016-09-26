@@ -144,6 +144,18 @@ describe('FilePatchSelection', () => {
         hunks[0].lines[1]
       ])
 
+      selection.selectToNextLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[1],
+        hunks[0].lines[2]
+      ])
+
+      selection.selectNextLine()
+      selection.selectToPreviousLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[2],
+        hunks[1].lines[2]
+      ])
     })
   })
 
