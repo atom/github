@@ -321,6 +321,62 @@ describe('FilePatchSelection', () => {
     })
   })
 
+  describe('selection modes', function () {
+    it('allows the selection mode to be toggled between hunks and lines', function () {
+      const hunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3)
+        ]),
+        new Hunk(5, 7, 5, 4, [
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'deleted', 7, -1),
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
+          new HunkLine('line-9', 'added', -1, 10),
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1)
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      assert.equal(selection.getMode(), 'hunk')
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+      assert.deepEqual(selection.getSelectedLines(), [])
+
+      selection.selectNext()
+      assert.equal(selection.getMode(), 'hunk')
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedLines(), [])
+
+      selection.toggleMode()
+      assert.equal(selection.getMode(), 'line')
+      assert.deepEqual(selection.getSelectedHunks(), [])
+      assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[1]])
+
+      selection.selectNext()
+      assert.deepEqual(selection.getSelectedHunks(), [])
+      assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[2]])
+
+      selection.toggleMode()
+      assert.equal(selection.getMode(), 'hunk')
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedLines(), [])
+
+      selection.selectLine(hunks[0], hunks[0].lines[1])
+      assert.equal(selection.getMode(), 'line')
+      assert.deepEqual(selection.getSelectedHunks(), [])
+      assert.deepEqual(selection.getSelectedLines(), [hunks[0].lines[1]])
+
+      selection.selectHunk(hunks[1])
+      assert.equal(selection.getMode(), 'hunk')
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedLines(), [])
+    })
+  })
+
   describe('updateHunks(hunks)', function () {
     it('collapses the selection to a single line following the previous selected range with the highest start index', function () {
       const oldHunks = [
