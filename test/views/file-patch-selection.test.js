@@ -100,7 +100,7 @@ describe.only('FilePatchSelection', () => {
       ])
     })
 
-    it('allows the next and previous lines to be selected', function () {
+    it('allows the next or previous line to be selected', function () {
       const hunks = [
         new Hunk(1, 1, 2, 4, [
           new HunkLine('line-1', 'unchanged', 1, 1),
@@ -270,6 +270,54 @@ describe.only('FilePatchSelection', () => {
 
       selection.selectToHunk(hunks[1])
       assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1], hunks[2]])
+    })
+
+    it('allows the next or previous hunk to be selected', function () {
+      const hunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ]),
+        new Hunk(10, 12, 0, 1, [
+          new HunkLine('line-3', 'added', -1, 12),
+        ]),
+        new Hunk(15, 18, 0, 1, [
+          new HunkLine('line-4', 'added', -1, 18),
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectNextHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+
+      selection.selectNextHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[2]])
+
+      selection.selectNextHunk()
+      selection.selectNextHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[3]])
+
+      selection.selectPreviousHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[2]])
+
+      selection.selectPreviousHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+
+      selection.selectPreviousHunk()
+      selection.selectPreviousHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+
+      selection.selectNextHunk()
+      selection.selectToNextHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1], hunks[2]])
+
+      selection.selectToPreviousHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+
+      selection.selectToPreviousHunk()
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1]])
     })
   })
 
