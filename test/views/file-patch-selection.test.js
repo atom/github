@@ -99,6 +99,53 @@ describe('FilePatchSelection', () => {
         hunks[1].lines[3]
       ])
     })
+
+    it('allows the next and previous lines to be selected', function () {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4)
+        ]),
+        new Hunk(5, 7, 3, 4, [
+          new HunkLine('line-5', 'unchanged', 5, 7),
+          new HunkLine('line-6', 'unchanged', 6, 8),
+          new HunkLine('line-7', 'added', -1, 9),
+          new HunkLine('line-8', 'unchanged', 7, 10)
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectLine(hunks[0], hunks[0].lines[1])
+      selection.selectNextLine()
+      console.log(selection.getSelectedLines());
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[2]
+      ])
+      selection.selectNextLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[1].lines[2]
+      ])
+      selection.selectNextLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[1].lines[2]
+      ])
+
+      selection.selectPreviousLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[2]
+      ])
+      selection.selectPreviousLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[1]
+      ])
+      selection.selectPreviousLine()
+      assert.deepEqual(selection.getSelectedLines(), [
+        hunks[0].lines[1]
+      ])
+
+    })
   })
 
   describe('updateHunks(hunks)', function () {
