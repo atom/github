@@ -6,7 +6,7 @@ import HunkLine from '../../lib/models/hunk-line'
 
 describe('FilePatchSelection', () => {
   describe('line selection', () => {
-    it('starts a new selection with selectLine and expands an existing selection with selectToLine',  () => {
+    it('starts a new line selection with selectLine and expands an existing line selection with selectToLine',  () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -56,7 +56,7 @@ describe('FilePatchSelection', () => {
       ])
     })
 
-    it('adds a new selection if the `add` option is specified and always expands the most recent selection', function () {
+    it('adds a new line selection if the `add` option is specified and always expands the most recent line selection', function () {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -158,7 +158,7 @@ describe('FilePatchSelection', () => {
       ])
     })
 
-    it('collapses multiple selections down to one when selecting next or previous', function () {
+    it('collapses multiple selections down to one line when selecting next or previous', function () {
       const hunks = [
         new Hunk(1, 1, 2, 4, [
           new HunkLine('line-1', 'unchanged', 1, 1),
@@ -201,6 +201,75 @@ describe('FilePatchSelection', () => {
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[1]
       ])
+    })
+  })
+
+  describe('hunk selection', function () {
+    it('selects the first hunk by default', function () {
+      const hunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ]),
+      ]
+      const selection = new FilePatchSelection(hunks)
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+    })
+
+    it('starts a new hunk selection with selectHunk and expands an existing hunkSelection with selectToHunk', function () {
+      const hunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ]),
+        new Hunk(10, 12, 0, 1, [
+          new HunkLine('line-3', 'added', -1, 12),
+        ]),
+        new Hunk(15, 18, 0, 1, [
+          new HunkLine('line-4', 'added', -1, 18),
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectHunk(hunks[1])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+
+      selection.selectToHunk(hunks[3])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1], hunks[2], hunks[3]])
+
+      selection.selectToHunk(hunks[0])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1]])
+    })
+
+    it('adds a new hunk selection if the `add` option is specified and always expands the most recent hunk selection', function () {
+      const hunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ]),
+        new Hunk(10, 12, 0, 1, [
+          new HunkLine('line-3', 'added', -1, 12),
+        ]),
+        new Hunk(15, 18, 0, 1, [
+          new HunkLine('line-4', 'added', -1, 18),
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectHunk(hunks[2], true)
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[2]])
+
+      selection.selectToHunk(hunks[3])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[2], hunks[3]])
+
+      selection.selectToHunk(hunks[1])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1], hunks[2]])
     })
   })
 
