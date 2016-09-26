@@ -119,7 +119,6 @@ describe('FilePatchSelection', () => {
 
       selection.selectLine(hunks[0], hunks[0].lines[1])
       selection.selectNextLine()
-      console.log(selection.getSelectedLines());
       assert.deepEqual(selection.getSelectedLines(), [
         hunks[0].lines[2]
       ])
