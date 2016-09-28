@@ -453,6 +453,28 @@ describe.only('FilePatchSelection', () => {
       ])
     })
 
+    it('updates the hunk selection if it exceeds the new length of the hunks list', function () {
+      const oldHunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ])
+      ]
+      const selection = new FilePatchSelection(oldHunks)
+      selection.selectHunk(oldHunks[1])
+
+      const newHunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ])
+      ]
+      selection.updateHunks(newHunks)
+
+      assert.deepEqual(selection.getSelectedHunks(), [newHunks[0]])
+    })
+
     it('deselects if updating with an empty hunk array', function () {
       const oldHunks = [
         new Hunk(1, 1, 1, 3, [
