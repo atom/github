@@ -4,7 +4,7 @@ import FilePatchSelection from '../../lib/views/file-patch-selection'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
 
-describe('FilePatchSelection', () => {
+describe.only('FilePatchSelection', () => {
   describe('line selection', () => {
     it('starts a new line selection with selectLine and expands an existing line selection with selectToLine',  () => {
       const hunks = [
@@ -344,36 +344,37 @@ describe('FilePatchSelection', () => {
 
       assert.equal(selection.getMode(), 'hunk')
       assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
-      assert.deepEqual(selection.getSelectedLines(), [])
+      assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[0]))
 
       selection.selectNext()
       assert.equal(selection.getMode(), 'hunk')
       assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
-      assert.deepEqual(selection.getSelectedLines(), [])
+      assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
 
       selection.toggleMode()
       assert.equal(selection.getMode(), 'line')
-      assert.deepEqual(selection.getSelectedHunks(), [])
+      global.debug = true
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
       assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[1]])
 
       selection.selectNext()
-      assert.deepEqual(selection.getSelectedHunks(), [])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
       assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[2]])
 
       selection.toggleMode()
       assert.equal(selection.getMode(), 'hunk')
       assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
-      assert.deepEqual(selection.getSelectedLines(), [])
+      assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
 
       selection.selectLine(hunks[0], hunks[0].lines[1])
       assert.equal(selection.getMode(), 'line')
-      assert.deepEqual(selection.getSelectedHunks(), [])
+      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
       assert.deepEqual(selection.getSelectedLines(), [hunks[0].lines[1]])
 
       selection.selectHunk(hunks[1])
       assert.equal(selection.getMode(), 'hunk')
       assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
-      assert.deepEqual(selection.getSelectedLines(), [])
+      assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
     })
   })
 
@@ -468,3 +469,7 @@ describe('FilePatchSelection', () => {
     })
   })
 })
+
+function getChangedLines (hunk) {
+  return hunk.lines.filter(l => l.isChanged())
+}
