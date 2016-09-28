@@ -70,7 +70,8 @@ describe('WorkspaceChangeObserver', () => {
     assert.isTrue(changeSpy.calledOnce)
 
     changeSpy.reset()
-    const [unstagedChange] = await repository1.refreshUnstagedChanges()
+    repository1.refresh()
+    const [unstagedChange] = await repository1.getUnstagedChanges()
     await repository1.applyPatchToIndex(unstagedChange)
     await changeObserver.lastIndexChangePromise
     assert.isTrue(changeSpy.called)
