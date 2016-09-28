@@ -379,7 +379,7 @@ describe.only('FilePatchSelection', () => {
   })
 
   describe('updateHunks(hunks)', function () {
-    it('collapses the selection to a single line following the previous selected range with the highest start index', function () {
+    it('collapses the line selection to a single line following the previous selected range with the highest start index', function () {
       const oldHunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -427,7 +427,7 @@ describe.only('FilePatchSelection', () => {
       ])
     })
 
-    it('collapses the selection to the line preceding the previous selected line if it was the *last* line', function () {
+    it('collapses the line selection to the line preceding the previous selected line if it was the *last* line', function () {
       const oldHunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
