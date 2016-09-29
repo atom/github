@@ -9,7 +9,7 @@ function assertEqualSets (a, b) {
   a.forEach(item => assert(b.has(item), 'Sets have different elements'))
 }
 
-describe.only('FilePatchSelection', () => {
+describe('FilePatchSelection', () => {
   describe('line selection', () => {
     it('starts a new line selection with selectLine and updates an existing selection when preserveTail is true',  () => {
       const hunks = [
@@ -61,7 +61,7 @@ describe.only('FilePatchSelection', () => {
       ]))
     })
 
-    it('adds a new line selection with addLineSelection and always updates the head of the most recent line selection', function () {
+    it('adds a new line selection when calling addOrSubtractLineSelection with an unselected line and always updates the head of the most recent line selection', function () {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -84,7 +84,7 @@ describe.only('FilePatchSelection', () => {
       selection.selectLine(hunks[0].lines[1])
       selection.selectLine(hunks[1].lines[1], true)
 
-      selection.addLineSelection(hunks[1].lines[3])
+      selection.addOrSubtractLineSelection(hunks[1].lines[3])
       selection.selectLine(hunks[1].lines[4], true)
 
       assertEqualSets(selection.getSelectedLines(), new Set([
@@ -102,6 +102,48 @@ describe.only('FilePatchSelection', () => {
         hunks[1].lines[1],
         hunks[1].lines[2],
         hunks[1].lines[3]
+      ]))
+    })
+
+    it('subtracts from existing selections when calling addOrSubtractLineSelection with a selected line', function () {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4)
+        ]),
+        new Hunk(5, 7, 1, 4, [
+          new HunkLine('line-5', 'unchanged', 5, 7),
+          new HunkLine('line-6', 'added', -1, 8),
+          new HunkLine('line-7', 'added', -1, 9),
+          new HunkLine('line-8', 'added', -1, 10)
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectLine(hunks[0].lines[2])
+      selection.selectLine(hunks[1].lines[2], true)
+      assertEqualSets(selection.getSelectedLines(), new Set([
+        hunks[0].lines[2],
+        hunks[1].lines[1],
+        hunks[1].lines[2]
+      ]))
+
+      selection.addOrSubtractLineSelection(hunks[1].lines[1])
+      assertEqualSets(selection.getSelectedLines(), new Set([
+        hunks[0].lines[2],
+        hunks[1].lines[2]
+      ]))
+
+      selection.selectLine(hunks[1].lines[3], true)
+      assertEqualSets(selection.getSelectedLines(), new Set([
+        hunks[0].lines[2]
+      ]))
+
+      selection.selectLine(hunks[0].lines[1], true)
+      assertEqualSets(selection.getSelectedLines(), new Set([
+        hunks[1].lines[2]
       ]))
     })
 
@@ -181,7 +223,7 @@ describe.only('FilePatchSelection', () => {
       const selection = new FilePatchSelection(hunks)
 
       selection.selectLine(hunks[0].lines[1])
-      selection.addLineSelection(hunks[0].lines[2])
+      selection.addOrSubtractLineSelection(hunks[0].lines[2])
       selection.selectNextLine(true)
       assertEqualSets(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
@@ -195,7 +237,7 @@ describe.only('FilePatchSelection', () => {
       ]))
 
       selection.selectLine(hunks[0].lines[1])
-      selection.addLineSelection(hunks[0].lines[2])
+      selection.addOrSubtractLineSelection(hunks[0].lines[2])
       selection.selectPreviousLine(true)
       assertEqualSets(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
