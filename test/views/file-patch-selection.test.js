@@ -6,7 +6,7 @@ import HunkLine from '../../lib/models/hunk-line'
 
 describe.only('FilePatchSelection', () => {
   describe('line selection', () => {
-    it('starts a new line selection with selectLine and expands an existing line selection with selectToLine',  () => {
+    it('starts a new line selection with selectLine and updates an existing selection when preserveTail is true',  () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -26,37 +26,37 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[0].lines[1])
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1]
-      ])
+      ]))
 
-      selection.selectToLine(hunks[1], hunks[1].lines[2])
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[1].lines[2], true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[1].lines[1],
         hunks[1].lines[2]
-      ])
+      ]))
 
-      selection.selectToLine(hunks[1], hunks[1].lines[1])
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[1].lines[1], true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[1].lines[1]
-      ])
+      ]))
 
-      selection.selectToLine(hunks[0], hunks[0].lines[0])
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[0].lines[0], true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[0],
         hunks[0].lines[1]
-      ])
+      ]))
 
-      selection.selectLine(hunks[1], hunks[1].lines[2])
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[1].lines[2])
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[1].lines[2]
-      ])
+      ]))
     })
 
-    it('adds a new line selection if the `add` option is specified and always expands the most recent line selection', function () {
+    it('adds a new line selection with addLineSelection and always updates the head of the most recent line selection', function () {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -76,28 +76,28 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
-      selection.selectToLine(hunks[1], hunks[1].lines[1])
+      selection.selectLine(hunks[0].lines[1])
+      selection.selectLine(hunks[1].lines[1], true)
 
-      selection.selectLine(hunks[1], hunks[1].lines[3], true)
-      selection.selectToLine(hunks[1], hunks[1].lines[4])
+      selection.addLineSelection(hunks[1].lines[3])
+      selection.selectLine(hunks[1].lines[4], true)
 
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[1].lines[1],
         hunks[1].lines[3],
         hunks[1].lines[4]
-      ])
+      ]))
 
-      selection.selectToLine(hunks[0], hunks[0].lines[0])
+      selection.selectLine(hunks[0].lines[0], true)
 
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[0],
         hunks[0].lines[1],
         hunks[1].lines[1],
         hunks[1].lines[2],
         hunks[1].lines[3]
-      ])
+      ]))
     })
 
     it('allows the next or previous line to be selected', function () {
@@ -117,45 +117,45 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
+      selection.selectLine(hunks[0].lines[1])
       selection.selectNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[2]
-      ])
+      ]))
       selection.selectNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[1].lines[2]
-      ])
+      ]))
       selection.selectNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[1].lines[2]
-      ])
+      ]))
 
       selection.selectPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[2]
-      ])
+      ]))
       selection.selectPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1]
-      ])
+      ]))
       selection.selectPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1]
-      ])
+      ]))
 
-      selection.selectToNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectNextLine(true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[0].lines[2]
-      ])
+      ]))
 
       selection.selectNextLine()
-      selection.selectToPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectPreviousLine(true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[2],
         hunks[1].lines[2]
-      ])
+      ]))
     })
 
     it('collapses multiple selections down to one line when selecting next or previous', function () {
@@ -175,32 +175,32 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
-      selection.selectLine(hunks[0], hunks[0].lines[2], true)
-      selection.selectToNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[0].lines[1])
+      selection.addLineSelection(hunks[0].lines[2])
+      selection.selectNextLine(true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[0].lines[2],
         hunks[1].lines[2]
-      ])
+      ]))
 
       selection.selectNextLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[1].lines[2]
-      ])
+      ]))
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
-      selection.selectLine(hunks[0], hunks[0].lines[2], true)
-      selection.selectToPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      selection.selectLine(hunks[0].lines[1])
+      selection.addLineSelection(hunks[0].lines[2])
+      selection.selectPreviousLine(true)
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[0].lines[2]
-      ])
+      ]))
 
       selection.selectPreviousLine()
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         hunks[0].lines[1]
-      ])
+      ]))
     })
   })
 
@@ -215,10 +215,10 @@ describe.only('FilePatchSelection', () => {
         ]),
       ]
       const selection = new FilePatchSelection(hunks)
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0]]))
     })
 
-    it('starts a new hunk selection with selectHunk and expands an existing hunkSelection with selectToHunk', function () {
+    it('starts a new hunk selection with selectHunk and updates an existing selection when preserveTail is true', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -236,16 +236,16 @@ describe.only('FilePatchSelection', () => {
       const selection = new FilePatchSelection(hunks)
 
       selection.selectHunk(hunks[1])
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
 
-      selection.selectToHunk(hunks[3])
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1], hunks[2], hunks[3]])
+      selection.selectHunk(hunks[3], true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1], hunks[2], hunks[3]]))
 
-      selection.selectToHunk(hunks[0])
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1]])
+      selection.selectHunk(hunks[0], true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0], hunks[1]]))
     })
 
-    it('adds a new hunk selection if the `add` option is specified and always expands the most recent hunk selection', function () {
+    it('adds a new hunk selection with addHunkSelection and always updates the head of the most recent hunk selection', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -262,14 +262,14 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.selectHunk(hunks[2], true)
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[2]])
+      selection.addHunkSelection(hunks[2])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0], hunks[2]]))
 
-      selection.selectToHunk(hunks[3])
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[2], hunks[3]])
+      selection.selectHunk(hunks[3], true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0], hunks[2], hunks[3]]))
 
-      selection.selectToHunk(hunks[1])
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1], hunks[2]])
+      selection.selectHunk(hunks[1], true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0], hunks[1], hunks[2]]))
     })
 
     it('allows the next or previous hunk to be selected', function () {
@@ -290,34 +290,34 @@ describe.only('FilePatchSelection', () => {
       const selection = new FilePatchSelection(hunks)
 
       selection.selectNextHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
 
       selection.selectNextHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[2]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[2]]))
 
       selection.selectNextHunk()
       selection.selectNextHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[3]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[3]]))
 
       selection.selectPreviousHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[2]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[2]]))
 
       selection.selectPreviousHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
 
       selection.selectPreviousHunk()
       selection.selectPreviousHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0]]))
 
       selection.selectNextHunk()
-      selection.selectToNextHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1], hunks[2]])
+      selection.selectNextHunk(true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1], hunks[2]]))
 
-      selection.selectToPreviousHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      selection.selectPreviousHunk(true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
 
-      selection.selectToPreviousHunk()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0], hunks[1]])
+      selection.selectPreviousHunk(true)
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0], hunks[1]]))
     })
   })
 
@@ -343,37 +343,37 @@ describe.only('FilePatchSelection', () => {
       const selection = new FilePatchSelection(hunks)
 
       assert.equal(selection.getMode(), 'hunk')
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0]]))
       assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[0]))
 
       selection.selectNext()
       assert.equal(selection.getMode(), 'hunk')
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
       assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
 
       selection.toggleMode()
       assert.equal(selection.getMode(), 'line')
       global.debug = true
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
-      assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
+      assert.deepEqual(selection.getSelectedLines(), new Set([hunks[1].lines[1]]))
 
       selection.selectNext()
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
-      assert.deepEqual(selection.getSelectedLines(), [hunks[1].lines[2]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
+      assert.deepEqual(selection.getSelectedLines(), new Set([hunks[1].lines[2]]))
 
       selection.toggleMode()
       assert.equal(selection.getMode(), 'hunk')
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
       assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
 
-      selection.selectLine(hunks[0], hunks[0].lines[1])
+      selection.selectLine(hunks[0].lines[1])
       assert.equal(selection.getMode(), 'line')
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[0]])
-      assert.deepEqual(selection.getSelectedLines(), [hunks[0].lines[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[0]]))
+      assert.deepEqual(selection.getSelectedLines(), new Set([hunks[0].lines[1]]))
 
       selection.selectHunk(hunks[1])
       assert.equal(selection.getMode(), 'hunk')
-      assert.deepEqual(selection.getSelectedHunks(), [hunks[1]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([hunks[1]]))
       assert.deepEqual(selection.getSelectedLines(), getChangedLines(hunks[1]))
     })
   })
@@ -399,8 +399,8 @@ describe.only('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(oldHunks)
 
-      selection.selectLine(oldHunks[1], oldHunks[1].lines[2])
-      selection.selectToLine(oldHunks[1], oldHunks[1].lines[4])
+      selection.selectLine(oldHunks[1].lines[2])
+      selection.addLineSelection(oldHunks[1].lines[4])
 
       const newHunks = [
         new Hunk(1, 1, 1, 3, [
@@ -422,9 +422,9 @@ describe.only('FilePatchSelection', () => {
       ]
       selection.updateHunks(newHunks)
 
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         newHunks[2].lines[1]
-      ])
+      ]))
     })
 
     it('collapses the line selection to the line preceding the previous selected line if it was the *last* line', function () {
@@ -437,7 +437,7 @@ describe.only('FilePatchSelection', () => {
       ]
 
       const selection = new FilePatchSelection(oldHunks)
-      selection.selectLine(oldHunks[0], oldHunks[0].lines[1])
+      selection.selectLine(oldHunks[0].lines[1])
 
       const newHunks = [
         new Hunk(1, 1, 1, 3, [
@@ -448,9 +448,9 @@ describe.only('FilePatchSelection', () => {
       ]
       selection.updateHunks(newHunks)
 
-      assert.deepEqual(selection.getSelectedLines(), [
+      assert.deepEqual(selection.getSelectedLines(), new Set([
         newHunks[0].lines[0]
-      ])
+      ]))
     })
 
     it('updates the hunk selection if it exceeds the new length of the hunks list', function () {
@@ -472,7 +472,7 @@ describe.only('FilePatchSelection', () => {
       ]
       selection.updateHunks(newHunks)
 
-      assert.deepEqual(selection.getSelectedHunks(), [newHunks[0]])
+      assert.deepEqual(selection.getSelectedHunks(), new Set([newHunks[0]]))
     })
 
     it('deselects if updating with an empty hunk array', function () {
@@ -487,11 +487,11 @@ describe.only('FilePatchSelection', () => {
       selection.selectLine(oldHunks[0], oldHunks[0].lines[1])
 
       selection.updateHunks([])
-      assert.deepEqual(selection.getSelectedLines(), [])
+      assert.deepEqual(selection.getSelectedLines(), new Set())
     })
   })
 })
 
 function getChangedLines (hunk) {
-  return hunk.lines.filter(l => l.isChanged())
+  return new Set(hunk.lines.filter(l => l.isChanged()))
 }
