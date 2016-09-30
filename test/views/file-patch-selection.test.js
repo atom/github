@@ -205,6 +205,33 @@ describe('FilePatchSelection', () => {
       ]))
     })
 
+    it('defaults to the first/last changed line when selecting next / previous with no current selection', function () {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4)
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+
+      selection.selectLine(hunks[0].lines[1])
+      selection.addOrSubtractLineSelection(hunks[0].lines[1])
+      selection.coalesce()
+      assertEqualSets(selection.getSelectedLines(), new Set())
+
+      selection.selectNextLine()
+      assertEqualSets(selection.getSelectedLines(), new Set([hunks[0].lines[1]]))
+
+      selection.addOrSubtractLineSelection(hunks[0].lines[1])
+      selection.coalesce()
+      assertEqualSets(selection.getSelectedLines(), new Set())
+
+      selection.selectPreviousLine()
+      assertEqualSets(selection.getSelectedLines(), new Set([hunks[0].lines[2]]))
+    })
+
     it('collapses multiple selections down to one line when selecting next or previous', function () {
       const hunks = [
         new Hunk(1, 1, 2, 4, [
