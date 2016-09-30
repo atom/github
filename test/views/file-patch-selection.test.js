@@ -345,7 +345,35 @@ describe('FilePatchSelection', () => {
       })
 
       it('expands selections to contain all adjacent context lines', function () {
+        const hunks = [
+          new Hunk(1, 1, 2, 4, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'unchanged', 1, 3),
+            new HunkLine('line-4', 'unchanged', 2, 4)
+          ]),
+          new Hunk(5, 7, 2, 4, [
+            new HunkLine('line-5', 'unchanged', 5, 7),
+            new HunkLine('line-6', 'unchanged', 6, 8),
+            new HunkLine('line-7', 'added', -1, 9),
+            new HunkLine('line-8', 'added', -1, 10)
+          ])
+        ]
+        const selection = new FilePatchSelection(hunks)
 
+        selection.selectLine(hunks[1].lines[3])
+        selection.selectLine(hunks[1].lines[2], true)
+
+        selection.addOrSubtractLineSelection(hunks[0].lines[1])
+        selection.selectLine(hunks[0].lines[0], true)
+        selection.coalesce()
+
+        selection.selectNext(true)
+        assertEqualSets(selection.getSelectedLines(), new Set([
+          hunks[0].lines[1],
+          hunks[1].lines[2],
+          hunks[1].lines[3]
+        ]))
       })
 
       it('truncates or splits selections where they overlap a negative selection', function () {
