@@ -252,6 +252,30 @@ describe('FilePatchSelection', () => {
       ]))
     })
 
+    it('allows all lines to be selected', function () {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4)
+        ]),
+        new Hunk(5, 7, 3, 4, [
+          new HunkLine('line-5', 'unchanged', 5, 7),
+          new HunkLine('line-6', 'unchanged', 6, 8),
+          new HunkLine('line-7', 'added', -1, 9),
+          new HunkLine('line-8', 'unchanged', 7, 10)
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+      selection.selectAllLines()
+      assertEqualSets(selection.getSelectedLines(), new Set([
+        hunks[0].lines[1],
+        hunks[0].lines[2],
+        hunks[1].lines[2]
+      ]))
+    })
+
     it('defaults to the first/last changed line when selecting next / previous with no current selection', function () {
       const hunks = [
         new Hunk(1, 1, 2, 4, [
@@ -612,6 +636,26 @@ describe('FilePatchSelection', () => {
 
       selection.selectPreviousHunk(true)
       assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0], hunks[1]]))
+    })
+
+    it('allows all hunks to be selected', function () {
+      const hunks = [
+        new Hunk(1, 1, 0, 1, [
+          new HunkLine('line-1', 'added', -1, 1),
+        ]),
+        new Hunk(5, 6, 0, 1, [
+          new HunkLine('line-2', 'added', -1, 6),
+        ]),
+        new Hunk(10, 12, 0, 1, [
+          new HunkLine('line-3', 'added', -1, 12),
+        ]),
+        new Hunk(15, 18, 0, 1, [
+          new HunkLine('line-4', 'added', -1, 18),
+        ])
+      ]
+      const selection = new FilePatchSelection(hunks)
+      selection.selectAllHunks()
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0], hunks[1], hunks[2], hunks[3]]))
     })
   })
 
