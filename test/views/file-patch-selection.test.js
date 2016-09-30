@@ -407,6 +407,20 @@ describe('FilePatchSelection', () => {
           hunks[1].lines[2]
         ]))
       })
+
+      it('does not blow up when coalescing with no selections', function () {
+        const hunks = [
+          new Hunk(1, 1, 0, 1, [
+            new HunkLine('line-1', 'added', -1, 1),
+          ])
+        ]
+        const selection = new FilePatchSelection(hunks)
+
+        selection.selectLine(hunks[0].lines[0])
+        selection.addOrSubtractLineSelection(hunks[0].lines[0])
+        assertEqualSets(selection.getSelectedLines(), new Set())
+        selection.coalesce()
+      })
     })
   })
 
