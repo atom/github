@@ -2,8 +2,6 @@
   'cmd-shift-c': 'git:toggle-git-panel'
 
 '.git-StagingView':
-  'tab': 'git:focus-next-list'
-  'shift-tab': 'git:focus-previous-list'
   'left': 'git:focus-diff-view'
 
 '.git-CommitView-editor atom-text-editor:not([mini])':
@@ -12,6 +10,6 @@
 
 '.git-FilePatchView':
   '/': 'git:toggle-patch-selection-mode'
-  'tab': 'git:focus-next-hunk'
-  'shift-tab': 'git:focus-previous-hunk'
+  'tab': 'git:select-next-hunk'
+  'shift-tab': 'git:select-previous-hunk'
   'right': 'git:focus-git-panel'
