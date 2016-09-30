@@ -377,7 +377,35 @@ describe('FilePatchSelection', () => {
       })
 
       it('truncates or splits selections where they overlap a negative selection', function () {
+        const hunks = [
+          new Hunk(1, 1, 0, 4, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+            new HunkLine('line-4', 'added', -1, 4)
+          ]),
+          new Hunk(5, 7, 0, 4, [
+            new HunkLine('line-5', 'added', -1, 7),
+            new HunkLine('line-6', 'added', -1, 8),
+            new HunkLine('line-7', 'added', -1, 9),
+            new HunkLine('line-8', 'added', -1, 10)
+          ])
+        ]
+        const selection = new FilePatchSelection(hunks)
+        selection.selectLine(hunks[0].lines[0])
+        selection.selectLine(hunks[1].lines[3], true)
 
+        selection.addOrSubtractLineSelection(hunks[0].lines[3])
+        selection.selectLine(hunks[1].lines[0], true)
+        selection.coalesce()
+        selection.selectPrevious(true)
+        assertEqualSets(selection.getSelectedLines(), new Set([
+          hunks[0].lines[0],
+          hunks[0].lines[1],
+          hunks[0].lines[2],
+          hunks[1].lines[1],
+          hunks[1].lines[2]
+        ]))
       })
     })
   })
