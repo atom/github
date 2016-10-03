@@ -82,7 +82,7 @@ describe('FilePatchController', () => {
 
       const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView})
       const view = controller.refs.filePatchView
-      await view.focusNextHunk()
+      await view.selectNext()
       const hunkToStage = hunkViewsByHunk.get(unstagedFilePatch.getHunks()[0])
       assert.notDeepEqual(view.selectedHunk, unstagedFilePatch.getHunks()[0])
       await hunkToStage.props.didClickStageButton()
@@ -122,14 +122,12 @@ describe('FilePatchController', () => {
       // stage a subset of lines from first hunk
       const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView})
       const view = controller.refs.filePatchView
-      view.togglePatchSelectionMode()
-      assert.equal(view.getPatchSelectionMode(), 'hunkLine')
       let hunk = unstagedFilePatch.getHunks()[0]
       let lines = hunk.getLines()
       let hunkView = hunkViewsByHunk.get(hunk)
-      hunkView.props.selectLine(lines[1])
-      hunkView.props.selectLine(lines[2])
-      hunkView.props.selectLine(lines[3])
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1])
+      hunkView.props.mousemoveOnLine({}, hunk, lines[3])
+      view.mouseup()
       await hunkView.props.didClickStageButton()
       let expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
@@ -154,8 +152,11 @@ describe('FilePatchController', () => {
       hunk = stagedFilePatch.getHunks()[0]
       lines = hunk.getLines()
       hunkView = hunkViewsByHunk.get(hunk)
-      hunkView.props.selectLine(lines[1])
-      hunkView.props.selectLine(lines[2])
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1])
+      view.mouseup()
+      hunkView.props.mousedownOnLine({detail: 1, metaKey: true}, hunk, lines[2])
+      view.mouseup()
+
       await hunkView.props.didClickStageButton()
       expectedLines = originalLines.slice()
       expectedLines.splice(2, 0,
