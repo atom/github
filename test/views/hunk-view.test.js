@@ -76,21 +76,6 @@ describe('HunkView', () => {
     assert(!view.element.classList.contains('is-selected'))
   })
 
-  it('updates the button label based on the number of selected lines', async () => {
-    const hunk = new Hunk(5, 5, 2, 1, [
-      new HunkLine('line-1', 'unchanged', 5, 5),
-      new HunkLine('line-2', 'deleted', 6, -1)
-    ])
-    const view = new HunkView({hunk, selectedLines: new Set(), stageButtonLabelPrefix: 'Stage'})
-    assert.equal(view.refs.stageButton.textContent, 'Stage Hunk')
-
-    await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set([hunk.getLines()[0]])})
-    assert.equal(view.refs.stageButton.textContent, 'Stage Selection')
-
-    await view.update({hunk, stageButtonLabelPrefix: 'Stage', selectedLines: new Set(hunk.getLines())})
-    assert.equal(view.refs.stageButton.textContent, 'Stage Selection')
-  })
-
   it('calls the didClickStageButton handler when the staging button is clicked', async () => {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)])
     const didClickStageButton1 = sinon.spy()
@@ -105,7 +90,7 @@ describe('HunkView', () => {
   })
 
   describe('line selection', () => {
-    it('calls the selectLine handler on mousemove & mouseup events when selectionEnabled prop is true and line is a non-context line', async () => {
+    it('calls the mousedownOnLine and mousemoveOnLine handlers on mousedown and mousemove events', async () => {
       const hunk = new Hunk(1234, 1234, 1234, 1234, [
         new HunkLine('line-1', 'added', 1234, 1234),
         new HunkLine('line-2', 'added', 1234, 1234),
@@ -114,57 +99,26 @@ describe('HunkView', () => {
         new HunkLine('line-5', 'deleted', 1234, 1234)
       ])
 
-      const selectLine = sinon.spy()
+      const mousedownOnLine = sinon.spy()
+      const mousemoveOnLine = sinon.spy()
       // selectLine callback not called when selectionEnabled = false
-      let view = new HunkView({hunk, selectedLines: new Set(), selectLine: selectLine, selectionEnabled: false})
-      let element = view.element
-      let lines = Array.from(element.querySelectorAll('.git-HunkView-line'))
-      lines[0].dispatchEvent(new MouseEvent('mousemove'))
-      assert.isFalse(selectLine.called)
+      const view = new HunkView({hunk, selectedLines: new Set(), mousedownOnLine, mousemoveOnLine, selectionEnabled: false})
+      const element = view.element
+      const lineElements = Array.from(element.querySelectorAll('.git-HunkView-line'))
+      const mousedownEvent = new MouseEvent('mousedown')
+      lineElements[0].dispatchEvent(mousedownEvent)
+      assert.deepEqual(mousedownOnLine.args[0], [mousedownEvent, hunk, hunk.lines[0]])
 
-      // selectLine callback called only once when selectionEnabled = true
-      view = new HunkView({hunk, selectedLines: new Set(), selectLine: selectLine, selectionEnabled: true})
-      element = view.element
-      lines = Array.from(element.querySelectorAll('.git-HunkView-line'))
-      lines[0].dispatchEvent(new MouseEvent('mousemove'))
-      assert.isTrue(selectLine.calledOnce)
-      assert.deepEqual(selectLine.args[0][0], hunk.getLines()[0])
+      const mousemoveEvent = new MouseEvent('mousemove')
+      lineElements[1].dispatchEvent(mousemoveEvent)
+      assert.deepEqual(mousemoveOnLine.args[0], [mousemoveEvent, hunk, hunk.lines[1]])
 
-      selectLine.reset()
-      lines[1].dispatchEvent(new MouseEvent('mouseup')) // simulates a mouse click (no drag)
-      assert.isTrue(selectLine.calledOnce)
-      assert.deepEqual(selectLine.args[0][0], hunk.getLines()[1])
-
-      // subsequent mouse events for a given line are muted
-      selectLine.reset()
-      lines[2].dispatchEvent(new MouseEvent('mousemove'))
-      lines[2].dispatchEvent(new MouseEvent('mousemove'))
-      lines[2].dispatchEvent(new MouseEvent('up'))
-      assert.isTrue(selectLine.calledOnce)
-      assert.deepEqual(selectLine.args[0][0], hunk.getLines()[2])
-
-      // selectLine callback not called when selected line is a context line
-      selectLine.reset()
-      lines[3].dispatchEvent(new MouseEvent('mousemove'))
-      assert.isFalse(selectLine.called)
-
-      // simulate mousing over entire hunk
-      selectLine.reset()
-      lines[0].dispatchEvent(new MouseEvent('mousemove'))
-      lines[0].dispatchEvent(new MouseEvent('mousemove'))
-      assert.equal(selectLine.callCount, 1)
-      lines[1].dispatchEvent(new MouseEvent('mousemove'))
-      lines[1].dispatchEvent(new MouseEvent('mousemove'))
-      assert.equal(selectLine.callCount, 2)
-      lines[2].dispatchEvent(new MouseEvent('mousemove'))
-      lines[2].dispatchEvent(new MouseEvent('mousemove'))
-      assert.equal(selectLine.callCount, 3)
-      lines[3].dispatchEvent(new MouseEvent('mousemove'))
-      lines[3].dispatchEvent(new MouseEvent('mousemove'))
-      assert.equal(selectLine.callCount, 3) // context line
-      lines[4].dispatchEvent(new MouseEvent('mousemove'))
-      lines[4].dispatchEvent(new MouseEvent('mousemove'))
-      assert.equal(selectLine.callCount, 4)
+      // we don't call handler with redundant events
+      assert.equal(mousemoveOnLine.args.length, 1)
+      lineElements[1].dispatchEvent(new MouseEvent('mousemove'))
+      assert.equal(mousemoveOnLine.args.length, 1)
+      lineElements[2].dispatchEvent(new MouseEvent('mousemove'))
+      assert.equal(mousemoveOnLine.args.length, 2)
     })
   })
 })
