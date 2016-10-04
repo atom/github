@@ -14,6 +14,7 @@
   },
   "atomTestRunner": "./test/runner",
   "dependencies": {
+    "compare-sets": "^1.0.1",
     "diff": "2.2.2",
     "etch": "0.6.3",
     "etch-stateless": "^1.0.0",

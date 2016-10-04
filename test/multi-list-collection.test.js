@@ -35,7 +35,7 @@ describe('MultiListCollection', () => {
       assert.deepEqual([...mlc.getSelectedKeys()], ['list1'])
     })
 
-    it('selects first key and first item when multiple are selected', () => {
+    it('sets the first key and first item as active when multiple are selected', () => {
       const mlc = new MultiListCollection([
         { key: 'list1', items: ['a', 'b', 'c'] },
         { key: 'list2', items: ['d', 'e'] },
@@ -43,11 +43,13 @@ describe('MultiListCollection', () => {
       ])
 
       mlc.selectItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list3', item: 'g'})
-      assert.deepEqual(mlc.getLastSelectedListKey(), 'list1')
-      assert.deepEqual(mlc.getLastSelectedItem(), 'b')
+      assert.equal(mlc.getActiveListKey(), 'list1')
+      assert.equal(mlc.getActiveItem(), 'b')
     })
 
-    it('handles selection across the 10th item', () => {
+    it('sorts endpoint item indexes correctly based on numerical values and not strings', () => {
+      // this addresses a bug where selecting across the 10th item index would return an empty set
+      // because the indices would be stringified by the sort function ("12" < "7")
       const mlc = new MultiListCollection([
         { key: 'list1', items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] }
       ])
@@ -80,50 +82,75 @@ describe('MultiListCollection', () => {
   })
 
   describe('updateLists', () => {
-    it('updates selection based on previously selected keys and items', () => {
-      const mlc = new MultiListCollection([
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list2', items: ['d', 'e'] }
-      ])
+    describe('when the active list key and item is still present after update', () => {
+      it('maintains active item regardless of positional changes', () => {
+        const mlc = new MultiListCollection([
+          { key: 'list1', items: ['a'] }
+        ])
 
-      mlc.selectItems(['b'])
-      assert.deepEqual([...mlc.getSelectedItems()], ['b'])
+        assert.equal(mlc.getActiveItem(), 'a')
 
-      mlc.updateLists([
-        { key: 'list3', items: ['a', 'c'] },
-        { key: 'list4', items: ['d', 'e'] }
-      ])
-      assert.deepEqual([...mlc.getSelectedItems()], ['c'])
-      assert.deepEqual([...mlc.getSelectedKeys()], ['list3'])
+        mlc.updateLists([
+          { key: 'list1', items: ['b', 'a'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'a')
 
-      mlc.updateLists([
-        { key: 'list5', items: ['a'] },
-        { key: 'list6', items: ['d', 'e'] }
-      ])
-      assert.deepEqual([...mlc.getSelectedItems()], ['d'])
-      assert.deepEqual([...mlc.getSelectedKeys()], ['list6'])
+        mlc.updateLists([
+          { key: 'list1', items: ['a'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'a')
+
+        mlc.updateLists([
+          { key: 'list2', items: ['c'] },
+          { key: 'list1', items: ['a'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'a')
+
+        mlc.updateLists([
+          { key: 'list1', items: ['a'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'a')
+      })
     })
 
-    it('updates selection based on previously selected keys and items', () => {
-      const mlc = new MultiListCollection([
-        { key: 'list1', items: ['a', 'b', 'c'] },
-        { key: 'list2', items: ['d', 'e'] }
-      ])
+    describe('when the active list key and item is NOT present after update', () => {
+      it('updates selection based on the location of the previously active item and key', () => {
+        const mlc = new MultiListCollection([
+          { key: 'list1', items: ['a', 'b', 'c'] },
+          { key: 'list2', items: ['d', 'e'] }
+        ])
 
-      mlc.selectItemsAndKeysInRange({key: 'list1', item: 'b'}, {key: 'list2', item: 'd'})
-      mlc.updateLists([
-        { key: 'list3', items: ['a', 'e'] },
-        { key: 'list4', items: ['f', 'g', 'h'] }
-      ])
-      assert.deepEqual([...mlc.getSelectedItems()], ['e'])
-      assert.deepEqual([...mlc.getSelectedKeys()], ['list3'])
+        mlc.selectItems(['b'])
+        assert.equal(mlc.getActiveItem(), 'b')
 
-      mlc.selectItemsAndKeysInRange({key: 'list4', item: 'f'}, {key: 'list4', item: 'h'})
-      mlc.updateLists([
-        { key: 'list5', items: ['a', 'e'] }
-      ])
-      assert.deepEqual([...mlc.getSelectedItems()], ['e'])
-      assert.deepEqual([...mlc.getSelectedKeys()], ['list5'])
+        mlc.updateLists([
+          { key: 'list3', items: ['a', 'c'] },
+          { key: 'list4', items: ['d', 'e'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'c')
+
+        mlc.updateLists([
+          { key: 'list5', items: ['a'] },
+          { key: 'list6', items: ['d', 'e'] },
+          { key: 'list7', items: ['f', 'g', 'h'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'd')
+
+        mlc.selectItemsAndKeysInRange({key: 'list6', item: 'e'}, {key: 'list7', item: 'g'})
+        assert.equal(mlc.getActiveItem(), 'e')
+        mlc.updateLists([
+          { key: 'list8', items: ['a'] },
+          { key: 'list9', items: ['d', 'h'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'h')
+
+        mlc.selectItemsAndKeysInRange({key: 'list9', item: 'd'}, {key: 'list9', item: 'h'})
+        assert.equal(mlc.getActiveItem(), 'd')
+        mlc.updateLists([
+          { key: 'list10', items: ['a', 'i', 'j'] }
+        ])
+        assert.equal(mlc.getActiveItem(), 'j')
+      })
     })
   })
 })

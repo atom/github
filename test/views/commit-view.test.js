@@ -216,36 +216,40 @@ describe('CommitView', () => {
       const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
       const {editor, amend} = view.refs
 
-      // choose to keep current commit message when prompted
-      confirmChoice = 1
       editor.setText('some commit message')
-
       await view.update({repository, stagedChangesExist: true})
-      assert.isFalse(amend.checked)
-      amend.click()
-      assert.isTrue(amend.checked)
-      assert.equal(editor.getText(), 'some commit message')
 
-      editor.setText('some commit message')
-
-      amend.click()
-      assert.isFalse(amend.checked)
-      assert.equal(editor.getText(), 'some commit message')
-
-      // choose to discard current commit message when prompted
+      // When checking amend with a commit message typed, prompt for whether
+      // to keep the current message or replace it with the last commit's message.
       confirmChoice = 0
-      editor.setText('some commit message')
-
-      await view.update({repository, stagedChangesExist: true})
       assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), 'some commit message')
+
       amend.click()
       assert.isTrue(amend.checked)
+      assert.equal(atom.confirm.callCount, 1)
+      assert.equal(editor.getText(), 'some commit message')
+
+      // When unchecking amend with a different commit message typed, keep the
+      // current message without prompting.
+      amend.click()
+      assert.isFalse(amend.checked)
+      assert.equal(atom.confirm.callCount, 1)
+      assert.equal(editor.getText(), 'some commit message')
+
+      // When checking amend and choosing to discard the current message, replace
+      // the message with the last commit's message.
+      confirmChoice = 1
+      amend.click()
+      assert.isTrue(amend.checked)
+      assert.equal(atom.confirm.callCount, 2)
       assert.equal(editor.getText(), 'previous commit\'s message')
 
-      editor.setText('some commit message')
-
+      // When unchecking amend with the previous commit's message typed, clear
+      // the message box without prompting.
       amend.click()
       assert.isFalse(amend.checked)
+      assert.equal(atom.confirm.callCount, 2)
       assert.equal(editor.getText(), '')
     })
 
@@ -261,6 +265,19 @@ describe('CommitView', () => {
       await view.commit()
       assert.isFalse(amend.checked)
     })
-  })
 
+    it('calls props.setAmending() when the box is checked or unchecked', async function () {
+      const setAmending = sinon.spy()
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending})
+      const {editor, amend} = view.refs
+
+      amend.click()
+      assert.deepEqual(setAmending.args, [[true]])
+
+      amend.click()
+      assert.deepEqual(setAmending.args, [[true], [false]])
+    })
+  })
 })

@@ -22,11 +22,13 @@ describe('ChangedFilesCountController', () => {
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath, 'b.txt'))
-    const [patchToStage] = await repository.refreshUnstagedChanges()
+    repository.refresh()
+
+    const [patchToStage] = await repository.getUnstagedChanges()
     await repository.applyPatchToIndex(patchToStage)
     await view.lastModelDataRefreshPromise
-    assert.deepEqual(view.refs.changedFilesCount.props.stagedChanges, await repository.refreshStagedChanges())
-    assert.deepEqual(view.refs.changedFilesCount.props.unstagedChanges, await repository.refreshUnstagedChanges())
+    assert.deepEqual(view.refs.changedFilesCount.props.stagedChanges, await repository.getStagedChanges())
+    assert.deepEqual(view.refs.changedFilesCount.props.unstagedChanges, await repository.getUnstagedChanges())
 
     view.refs.changedFilesCount.props.didClick()
     assert(didClick.calledOnce)

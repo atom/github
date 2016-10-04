@@ -246,7 +246,7 @@ describe('MultiList', () => {
   })
 
   describe('updateLists(lists, {suppressCallback, oldActiveListIndex, oldActiveListItemIndex})', () => {
-    describe('when referential identity is NOT maintained', () => {
+    describe('when referential identity of list keys is NOT maintained', () => {
       it('updates selected item based on options passed in', () => {
         function getRandomKey () {
           return performance.now() + Math.random() * 100000
@@ -305,7 +305,7 @@ describe('MultiList', () => {
       })
     })
 
-    describe('when referential identity is maintained', () => {
+    describe('when referential identity of list keys is maintained', () => {
       it('adds and removes lists based on list keys and updates order accordingly, remembering the active list', () => {
         const ml = new MultiList([
           { key: 'list1', items: ['a', 'b', 'c'] },
