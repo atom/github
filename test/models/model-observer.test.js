@@ -1,6 +1,7 @@
 /** @babel */
 
 import {Emitter} from 'atom'
+import sinon from 'sinon'
 import ModelObserver from '../../lib/models/model-observer'
 
 describe('ModelObserver', function () {
@@ -73,6 +74,49 @@ describe('ModelObserver', function () {
     await observer.getLastFetchDataPromise()
     assert.equal(observer.getActiveModel(), model2)
     assert.deepEqual(observer.getActiveModelData(), {a: 'Y', b: 'B'})
+  })
+
+  it('emits an update event when the model data changes', async function () {
+    const didUpdate = sinon.spy()
+    const observer = new ModelObserver({
+      fetchData: async (model) => {
+        return { a: await model.fetch() }
+      },
+      didUpdate
+    })
+
+    class Model {
+      constructor () {
+        this.emitter = new Emitter()
+      }
+      onDidUpdate (didUpdate) {
+        return this.emitter.on('did-update', didUpdate)
+      }
+      emitDidUpdate () {
+        this.emitter.emit('did-update')
+      }
+      fetch () {
+        return Promise.resolve('a')
+      }
+    }
+
+    const model1 = new Model()
+    const model2 = new Model()
+
+    const setModel1Promise = observer.setActiveModel(model1)
+    assert.equal(didUpdate.callCount, 0)
+    await setModel1Promise
+    assert.equal(didUpdate.callCount, 1)
+
+    model1.emitDidUpdate()
+    assert.equal(didUpdate.callCount, 1)
+    await observer.getLastFetchDataPromise()
+    assert.equal(didUpdate.callCount, 2)
+
+    const setModel2Promise = observer.setActiveModel(model2)
+    assert.equal(didUpdate.callCount, 2)
+    await setModel2Promise
+    assert.equal(didUpdate.callCount, 3)
   })
 
   it('only assigns model data from the most recently initiated fetch', async function () {
