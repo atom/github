@@ -250,8 +250,7 @@ describe('GitPanelController', () => {
         await newBranchButton.onclick()
         await controller.refreshModelData(repository)
 
-        // TODO: investigate possible etch bug. when the component unmounts the ref isn't removed
-        // assert.isUndefined(branchView.refs.editor)
+        assert.isUndefined(branchView.refs.editor)
         assert.isDefined(branchView.refs.list)
 
         assert.equal(await repository.getCurrentBranch(), 'new-branch')

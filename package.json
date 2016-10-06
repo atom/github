@@ -16,7 +16,7 @@
   "dependencies": {
     "compare-sets": "^1.0.1",
     "diff": "2.2.2",
-    "etch": "0.6.3",
+    "etch": "0.7.2",
     "etch-stateless": "^1.0.0",
     "multi-list-selection": "^0.1.1",
     "nsfw": "1.0.12",
