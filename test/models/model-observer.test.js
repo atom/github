@@ -71,13 +71,19 @@ describe('ModelObserver', function () {
     assert.equal(observer.getActiveModel(), model2)
     assert.deepEqual(observer.getActiveModelData(), {a: 'A', b: 'B'})
 
-    await observer.getLastFetchDataPromise()
+    await observer.getLastModelDataRefreshPromise()
     assert.equal(observer.getActiveModel(), model2)
     assert.deepEqual(observer.getActiveModelData(), {a: 'Y', b: 'B'})
   })
 
   it('emits an update event when the model data changes', async function () {
-    const didUpdate = sinon.spy()
+    let expectedActiveModelInUpdateCallback
+    const didUpdate = () => {
+      assert.equal(observer.getActiveModel(), expectedActiveModelInUpdateCallback)
+      didUpdate.callCount++
+    }
+    didUpdate.callCount = 0
+
     const observer = new ModelObserver({
       fetchData: async (model) => {
         return { a: await model.fetch() }
@@ -103,6 +109,7 @@ describe('ModelObserver', function () {
     const model1 = new Model()
     const model2 = new Model()
 
+    expectedActiveModelInUpdateCallback = model1
     const setModel1Promise = observer.setActiveModel(model1)
     assert.equal(didUpdate.callCount, 0)
     await setModel1Promise
@@ -110,9 +117,10 @@ describe('ModelObserver', function () {
 
     model1.emitDidUpdate()
     assert.equal(didUpdate.callCount, 1)
-    await observer.getLastFetchDataPromise()
+    await observer.getLastModelDataRefreshPromise()
     assert.equal(didUpdate.callCount, 2)
 
+    expectedActiveModelInUpdateCallback = model2
     const setModel2Promise = observer.setActiveModel(model2)
     assert.equal(didUpdate.callCount, 2)
     await setModel2Promise
@@ -155,7 +163,7 @@ describe('ModelObserver', function () {
     await setModel1Promise
 
     model1.emitDidUpdate()
-    const model1RefreshPromise = observer.getLastFetchDataPromise()
+    const model1RefreshPromise = observer.getLastModelDataRefreshPromise()
 
     const setModel2Promise = observer.setActiveModel(model2)
     model2.resolveFetch('b')
