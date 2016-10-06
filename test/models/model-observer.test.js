@@ -74,6 +74,8 @@ describe('ModelObserver', function () {
     await observer.getLastModelDataRefreshPromise()
     assert.equal(observer.getActiveModel(), model2)
     assert.deepEqual(observer.getActiveModelData(), {a: 'Y', b: 'B'})
+
+    await observer.setActiveModel(null) // does not blow up
   })
 
   it('emits an update event when the model data changes', async function () {
