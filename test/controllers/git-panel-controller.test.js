@@ -248,7 +248,7 @@ describe('GitPanelController', () => {
 
         branchView.refs.editor.setText('new-branch')
         await newBranchButton.onclick()
-        await controller.refreshModelData(repository)
+        await controller.getLastModelDataRefreshPromise()
 
         assert.isUndefined(branchView.refs.editor)
         assert.isDefined(branchView.refs.list)
