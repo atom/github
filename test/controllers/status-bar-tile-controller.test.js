@@ -22,7 +22,7 @@ describe('StatusBarTileController', () => {
   })
 
   describe('branches', function () {
-    it('indicates the current branch', async function () {
+    it('indicates the current branch and toggles visibility of the branch menu when clicked', async function () {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
 
@@ -31,10 +31,12 @@ describe('StatusBarTileController', () => {
 
       const branchView = controller.refs.branchView
       assert.equal(branchView.element.textContent, 'master')
-    })
 
-    it('toggles visibility of branch menu when clicked', () => {
-
+      assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
+      branchView.element.onclick()
+      assert.isDefined(document.querySelectorAll('.git-BranchMenuView')[0])
+      branchView.element.onclick()
+      assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
     })
 
     describe('the branch menu', function () {
