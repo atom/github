@@ -1,3 +1,17 @@
+@import "variables";
+
 .git-StatusBarTileController {
   display: inline-block;
+}
+
+.git-StatusBarTileController-tooltipMenu {
+  .tooltip-inner {
+    background-color: @base-background-color !important;
+  }
+
+  &.top {
+    .tooltip-arrow {
+      border-top-color: @base-background-color !important;
+    }
+  }
 }
