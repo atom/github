@@ -33,9 +33,13 @@ describe('StatusBarTileController', () => {
       assert.equal(branchView.element.textContent, 'master')
     })
 
+    it('toggles visibility of branch menu when clicked', () => {
+
+    })
+
     describe('the branch menu', function () {
       describe('checking out an existing branch', () => {
-        it.only('can check out existing branches with no conflicts', async () => {
+        it('can check out existing branches with no conflicts', async () => {
           const workdirPath = await cloneRepository('three-files')
           const repository = await buildRepository(workdirPath)
 
@@ -75,11 +79,11 @@ describe('StatusBarTileController', () => {
           await repository.checkout('branch')
           fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change that conflicts')
 
-          const controller = new GitPanelController({workspace, commandRegistry, repository})
+          const controller = new StatusBarTileController({workspace, repository})
           await controller.getLastModelDataRefreshPromise()
 
-          const branchView = controller.refs.gitPanel.refs.branchView
-          const {list, message} = branchView.refs
+          const branchMenuView = controller.branchMenuView
+          const {list, message} = branchMenuView.refs
 
           const branches = Array.from(list.options).map(option => option.value)
           assert.equal(await repository.getCurrentBranch(), 'branch')
@@ -94,38 +98,38 @@ describe('StatusBarTileController', () => {
         })
       })
 
-      xdescribe('checking out newly created branches', () => {
+      describe('checking out newly created branches', () => {
         it('can check out newly created branches', async () => {
           const workdirPath = await cloneRepository('three-files')
           const repository = await buildRepository(workdirPath)
 
-          const controller = new GitPanelController({workspace, commandRegistry, repository})
+          const controller = new StatusBarTileController({workspace, repository})
           await controller.getLastModelDataRefreshPromise()
 
-          let branchView = controller.refs.gitPanel.refs.branchView
-          const {list, newBranchButton} = branchView.refs
+          const branchMenuView = controller.branchMenuView
+          const {list, newBranchButton} = branchMenuView.refs
 
           const branches = Array.from(list.options).map(option => option.value)
           assert.deepEqual(branches, ['master'])
           assert.equal(await repository.getCurrentBranch(), 'master')
           assert.equal(list.selectedOptions[0].value, 'master')
 
-          assert.isDefined(branchView.refs.list)
-          assert.isUndefined(branchView.refs.editor)
+          assert.isDefined(branchMenuView.refs.list)
+          assert.isUndefined(branchMenuView.refs.editor)
           newBranchButton.click()
           await etch.getScheduler().getNextUpdatePromise()
-          assert.isUndefined(branchView.refs.list)
-          assert.isDefined(branchView.refs.editor)
+          assert.isUndefined(branchMenuView.refs.list)
+          assert.isDefined(branchMenuView.refs.editor)
 
-          branchView.refs.editor.setText('new-branch')
+          branchMenuView.refs.editor.setText('new-branch')
           await newBranchButton.onclick()
           await controller.getLastModelDataRefreshPromise()
 
-          assert.isUndefined(branchView.refs.editor)
-          assert.isDefined(branchView.refs.list)
+          assert.isUndefined(branchMenuView.refs.editor)
+          assert.isDefined(branchMenuView.refs.list)
 
           assert.equal(await repository.getCurrentBranch(), 'new-branch')
-          assert.equal(controller.refs.gitPanel.refs.branchView.refs.list.selectedOptions[0].value, 'new-branch')
+          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'new-branch')
         })
 
         it('displays an error message if branch already exists', async () => {
@@ -134,25 +138,25 @@ describe('StatusBarTileController', () => {
 
           await repository.git.exec(['checkout', '-b', 'branch'])
 
-          const controller = new GitPanelController({workspace, commandRegistry, repository})
+          const controller = new StatusBarTileController({workspace, repository})
           await controller.getLastModelDataRefreshPromise()
 
-          const branchView = controller.refs.gitPanel.refs.branchView
-          const {list, newBranchButton, message} = branchView.refs
+          const branchMenuView = controller.branchMenuView
+          const {list, newBranchButton, message} = branchMenuView.refs
 
-          const branches = Array.from(branchView.refs.list.options).map(option => option.value)
+          const branches = Array.from(branchMenuView.refs.list.options).map(option => option.value)
           assert.deepEqual(branches, ['branch', 'master'])
           assert.equal(await repository.getCurrentBranch(), 'branch')
           assert.equal(list.selectedOptions[0].value, 'branch')
 
           await newBranchButton.onclick()
 
-          branchView.refs.editor.setText('master')
+          branchMenuView.refs.editor.setText('master')
           await newBranchButton.onclick()
           assert.match(message.innerHTML, /branch.*already exists/)
 
           assert.equal(await repository.getCurrentBranch(), 'branch')
-          assert.equal(branchView.refs.list.selectedOptions[0].value, 'branch')
+          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'branch')
         })
       })
     })
