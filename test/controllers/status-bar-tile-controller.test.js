@@ -6,7 +6,7 @@ import path from 'path'
 import etch from 'etch'
 import sinon from 'sinon'
 
-import {cloneRepository, buildRepository} from '../helpers'
+import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers'
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller'
 
 describe('StatusBarTileController', () => {
@@ -71,15 +71,16 @@ describe('StatusBarTileController', () => {
         })
 
         it('displays an error message if checkout fails', async () => {
-          const workdirPath = await cloneRepository('three-files')
-          const repository = await buildRepository(workdirPath)
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories('three-files')
+          const repository = await buildRepository(localRepoPath)
           await repository.git.exec(['branch', 'branch'])
 
           // create a conflict
-          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change')
+          fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change')
+
           await repository.git.exec(['commit', '-a', '-m', 'change on master'])
           await repository.checkout('branch')
-          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change that conflicts')
+          fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts')
 
           const controller = new StatusBarTileController({workspace, repository})
           await controller.getLastModelDataRefreshPromise()
