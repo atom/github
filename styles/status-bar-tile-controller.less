@@ -2,16 +2,14 @@
 
 .git-StatusBarTileController {
   display: inline-block;
-}
 
-.git-StatusBarTileController-tooltipMenu {
-  .tooltip-inner {
-    background-color: @base-background-color !important;
-  }
-
-  &.top {
-    .tooltip-arrow {
-      border-top-color: @base-background-color !important;
+  &-tooltipMenu {
+    .tooltip-inner.tooltip-inner {
+      padding: @component-padding;
+      background-color: @base-background-color;
+    }
+    &.top .tooltip-arrow.tooltip-arrow {
+      border-top-color: @base-background-color;
     }
   }
 }
