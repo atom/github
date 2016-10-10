@@ -33,9 +33,9 @@ describe('StatusBarTileController', () => {
       assert.equal(branchView.element.textContent, 'master')
 
       assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
-      branchView.element.onclick()
+      branchView.element.click()
       assert.isDefined(document.querySelectorAll('.git-BranchMenuView')[0])
-      branchView.element.onclick()
+      branchView.element.click()
       assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
     })
 
@@ -191,9 +191,9 @@ describe('StatusBarTileController', () => {
       assert.equal(behindCount.textContent, '2')
 
       assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
-      pushPullView.element.onclick()
+      pushPullView.element.click()
       assert.isDefined(document.querySelectorAll('.git-PushPullMenuView')[0])
-      pushPullView.element.onclick()
+      pushPullView.element.click()
       assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
     })
 
