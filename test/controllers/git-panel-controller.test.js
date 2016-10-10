@@ -199,7 +199,7 @@ describe('GitPanelController', () => {
 
         // create a conflict
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change')
-        await repository.git.exec(['commit', '-a', '-m', 'change on master'])
+        await repository.git.exec(['commit', '--no-gpg-sign', '-a', '-m', 'change on master'])
         await repository.checkout('branch')
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change that conflicts')
 
