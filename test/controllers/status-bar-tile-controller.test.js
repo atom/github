@@ -165,6 +165,72 @@ describe('StatusBarTileController', () => {
     })
   })
 
+  describe('pushing and pulling', () => {
+    it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories()
+      const repository = await buildRepository(localRepoPath)
+
+      const controller = new StatusBarTileController({workspace, repository})
+      await controller.getLastModelDataRefreshPromise()
+
+      const pushPullView = controller.refs.pushPullView
+      const {aheadCount, behindCount} = pushPullView.refs
+      assert.equal(aheadCount.textContent, '')
+      assert.equal(behindCount.textContent, '')
+
+      await repository.git.exec(['reset', '--hard', 'head~2'])
+      await repository.refresh()
+      await controller.getLastModelDataRefreshPromise()
+      assert.equal(aheadCount.textContent, '')
+      assert.equal(behindCount.textContent, '2')
+
+      await repository.git.commit('new local commit', {allowEmpty: true})
+      await repository.refresh()
+      await controller.getLastModelDataRefreshPromise()
+      assert.equal(aheadCount.textContent, '1')
+      assert.equal(behindCount.textContent, '2')
+
+      assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+      pushPullView.element.onclick()
+      assert.isDefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+      pushPullView.element.onclick()
+      assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+    })
+
+    describe('the push/pull menu', () => {
+      it('disables the pull button when there are changed files', async () => {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories()
+        const repository = await buildRepository(localRepoPath)
+
+        const controller = new StatusBarTileController({workspace, repository})
+        await controller.getLastModelDataRefreshPromise()
+
+        const pushPullMenuView = controller.pushPullMenuView
+        const {pullButton} = pushPullMenuView.refs
+        await repository.git.exec(['reset', '--hard', 'head~2'])
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+
+        assert.isFalse(pullButton.disabled)
+
+        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'a change\n')
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+        assert.isTrue(pullButton.disabled)
+
+        await repository.stageFiles(['file.txt'])
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+        assert.isTrue(pullButton.disabled)
+
+        await repository.commit('commit changes')
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+        assert.isFalse(pullButton.disabled)
+      })
+    })
+  })
+
   describe('changed files', function () {
     it('shows the changed files count view when the repository data is loaded', async () => {
       const workdirPath = await cloneRepository('three-files')
