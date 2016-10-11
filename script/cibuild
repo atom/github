@@ -53,7 +53,7 @@ echo "Using npm version:"
 npm --version
 
 echo "Downloading package dependencies..."
-npm install
+apm install
 
 echo "Running specs..."
 "$ATOM_SCRIPT_PATH" --test test
