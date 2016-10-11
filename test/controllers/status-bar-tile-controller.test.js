@@ -32,11 +32,14 @@ describe('StatusBarTileController', () => {
       const branchView = controller.refs.branchView
       assert.equal(branchView.element.textContent, 'master')
 
-      assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
-      branchView.element.click()
-      assert.isDefined(document.querySelectorAll('.git-BranchMenuView')[0])
-      branchView.element.click()
-      assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
+      // FIXME: Remove this guard when 1.13 is on stable.
+      if (parseFloat(atom.getVersion() >= 1.13)) {
+        assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
+        branchView.element.click()
+        assert.isDefined(document.querySelectorAll('.git-BranchMenuView')[0])
+        branchView.element.click()
+        assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0])
+      }
     })
 
     describe('the branch menu', function () {
