@@ -193,11 +193,14 @@ describe('StatusBarTileController', () => {
       assert.equal(aheadCount.textContent, '1')
       assert.equal(behindCount.textContent, '2')
 
-      assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
-      pushPullView.element.click()
-      assert.isDefined(document.querySelectorAll('.git-PushPullMenuView')[0])
-      pushPullView.element.click()
-      assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+      // FIXME: Remove this guard when 1.13 is on stable.
+      if (parseFloat(atom.getVersion() >= 1.13)) {
+        assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+        pushPullView.element.click()
+        assert.isDefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+        pushPullView.element.click()
+        assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0])
+      }
     })
 
     describe('the push/pull menu', () => {
