@@ -1,8 +1,7 @@
 @import "variables";
 
-.git-BranchView {
-  padding: @component-padding / 2;
-  border-top: 1px solid @base-border-color;
+.git-BranchMenuView {
+  width: 400px;
 
   &-selector {
     display: flex;
@@ -45,6 +44,23 @@
     }
     atom-text-editor[mini] {
       font-size: inherit;
+    }
+  }
+
+  &-message {
+    max-height: 4.8em;
+    margin-top: @component-padding;
+    padding: @component-padding / 2;
+    line-height: 1.4;
+    white-space: normal;
+    text-align: left;
+    overflow-y: auto;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @inset-panel-background-color;
+
+    &:empty {
+      display: none;
     }
   }
 }
