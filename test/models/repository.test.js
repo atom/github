@@ -355,6 +355,28 @@ describe('Repository', function () {
       assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
     })
 
+    it('wraps the commit message at 72 characters', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const repo = await buildRepository(workingDirPath)
+
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      await repo.stageFiles([path.join('subdir-1', 'a.txt')])
+      await repo.commit([
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+        '',
+        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+      ].join('\n'))
+
+      const message = (await repo.getLastCommit()).message
+      assert.deepEqual(message.split('\n'), [
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod',
+        'tempor',
+        '',
+        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
+        'ut aliquip ex ea commodo consequat.'
+      ])
+    })
+
     it('strips out comments', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
