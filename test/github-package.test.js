@@ -36,8 +36,8 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.activate()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
-      assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
-      assert.equal(githubPackage.changedFilesCountController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
     })
   })
 
@@ -51,14 +51,14 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
-      assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
-      assert.equal(githubPackage.changedFilesCountController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
 
       project.setPaths([workdirPath2])
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
-      assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
-      assert.equal(githubPackage.changedFilesCountController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
@@ -95,14 +95,14 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
-      assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
-      assert.equal(githubPackage.changedFilesCountController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
 
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.didChangeActivePaneItem()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
-      assert.equal(githubPackage.gitPanelController.repository, githubPackage.getActiveRepository())
-      assert.equal(githubPackage.changedFilesCountController.repository, githubPackage.getActiveRepository())
+      assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
     })
   })
 
@@ -239,13 +239,13 @@ describe('GithubPackage', () => {
       await githubPackage.updateActiveRepository()
       await workspace.open(path.join(workdirPath, 'a.txt'))
 
-      githubPackage.changedFilesCountController.props.didClick()
+      githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)
 
-      githubPackage.changedFilesCountController.props.didClick()
+      githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 0)
 
-      githubPackage.changedFilesCountController.props.didClick()
+      githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)
     })
   })

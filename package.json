@@ -16,7 +16,7 @@
   "dependencies": {
     "compare-sets": "^1.0.1",
     "diff": "2.2.2",
-    "etch": "0.6.3",
+    "etch": "0.8.0",
     "etch-stateless": "^1.0.0",
     "git-kitchen-sink": "1.11.0",
     "multi-list-selection": "^0.1.1",
@@ -48,7 +48,8 @@
   "consumedServices": {
     "status-bar": {
       "versions": {
-        "1.0.0": "consumeStatusBar"
+        "1.0.0": "consumeStatusBar_1_0",
+        "1.1.0": "consumeStatusBar_1_1"
       }
     }
   }

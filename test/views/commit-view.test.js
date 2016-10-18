@@ -210,7 +210,7 @@ describe('CommitView', () => {
   })
 
   describe('amending', () => {
-    it('displays the appropriate commit message depending on whether the amend box is checked and if the user wants to keep the current message', async () => {
+    it('displays the appropriate commit message', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
@@ -219,38 +219,18 @@ describe('CommitView', () => {
       editor.setText('some commit message')
       await view.update({repository, stagedChangesExist: true})
 
-      // When checking amend with a commit message typed, prompt for whether
-      // to keep the current message or replace it with the last commit's message.
-      confirmChoice = 0
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), 'some commit message')
 
+      // displays message for last commit
       amend.click()
       assert.isTrue(amend.checked)
-      assert.equal(atom.confirm.callCount, 1)
-      assert.equal(editor.getText(), 'some commit message')
-
-      // When unchecking amend with a different commit message typed, keep the
-      // current message without prompting.
-      amend.click()
-      assert.isFalse(amend.checked)
-      assert.equal(atom.confirm.callCount, 1)
-      assert.equal(editor.getText(), 'some commit message')
-
-      // When checking amend and choosing to discard the current message, replace
-      // the message with the last commit's message.
-      confirmChoice = 1
-      amend.click()
-      assert.isTrue(amend.checked)
-      assert.equal(atom.confirm.callCount, 2)
       assert.equal(editor.getText(), 'previous commit\'s message')
 
-      // When unchecking amend with the previous commit's message typed, clear
-      // the message box without prompting.
+      // restores original message
       amend.click()
       assert.isFalse(amend.checked)
-      assert.equal(atom.confirm.callCount, 2)
-      assert.equal(editor.getText(), '')
+      assert.equal(editor.getText(), 'some commit message')
     })
 
     it('clears the amend checkbox after committing', async () => {
