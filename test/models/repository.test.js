@@ -355,7 +355,7 @@ describe('Repository', function () {
       assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString())
     })
 
-    it('wraps the commit message at 72 characters', async () => {
+    it('wraps the commit message body at 72 characters', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
 
@@ -369,8 +369,7 @@ describe('Repository', function () {
 
       const message = (await repo.getLastCommit()).message
       assert.deepEqual(message.split('\n'), [
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod',
-        'tempor',
+        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
         '',
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
         'ut aliquip ex ea commodo consequat.'
