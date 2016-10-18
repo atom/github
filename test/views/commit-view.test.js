@@ -25,7 +25,9 @@ describe('CommitView', () => {
   })
 
   it('displays the remaining characters limit based on which line is being edited', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72})
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72})
     const {editor} = view.refs
     assert.equal(view.refs.remainingCharacters.textContent, '72')
 
@@ -53,7 +55,7 @@ describe('CommitView', () => {
     assert(!view.refs.remainingCharacters.classList.contains('is-error'))
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'))
 
-    await view.update({stagedChanges: [], maximumCharacterLimit: 50})
+    await view.update({stagedChangesExist: true, maximumCharacterLimit: 50})
     assert.equal(view.refs.remainingCharacters.textContent, '39')
     assert(!view.refs.remainingCharacters.classList.contains('is-error'))
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'))
@@ -72,7 +74,9 @@ describe('CommitView', () => {
   })
 
   it('disables the commit button when no changes are staged, there are merge conflict files, or the commit message is empty', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false})
     const {editor, commitButton} = view.refs
     assert.isTrue(commitButton.disabled)
 
@@ -158,7 +162,9 @@ describe('CommitView', () => {
   })
 
   it('replaces the contents of the commit message when it is empty and it is supplied from the outside', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], maximumCharacterLimit: 72, message: 'message 1'})
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, message: 'message 1'})
     const {editor} = view.refs
     assert.equal(editor.getText(), 'message 1')
 
@@ -166,12 +172,14 @@ describe('CommitView', () => {
     assert.equal(editor.getText(), 'message 1')
 
     editor.setText('')
+    await etch.getScheduler().getNextUpdatePromise()
+
     await view.update({message: 'message 3'})
     assert.equal(editor.getText(), 'message 3')
   })
 
   it('shows the "Abort Merge" button when props.isMerging is true', async () => {
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], isMerging: false})
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: true, isMerging: false})
     const {abortMergeButton} = view.refs
     assert.equal(abortMergeButton.style.display, 'none')
 
@@ -184,7 +192,7 @@ describe('CommitView', () => {
 
   it('calls props.abortMerge() when the "Abort Merge" button is clicked and then clears the commit message', async () => {
     const abortMerge = sinon.spy(() => Promise.resolve())
-    const view = new CommitView({workspace, commandRegistry, stagedChanges: [], isMerging: true, abortMerge})
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: true, isMerging: true, abortMerge})
     const {editor, abortMergeButton} = view.refs
     editor.setText('A message.')
     abortMergeButton.dispatchEvent(new MouseEvent('click'))
@@ -198,7 +206,7 @@ describe('CommitView', () => {
       await Promise.resolve()
       throw new AbortMergeError('EDIRTYSTAGED', 'a.txt')
     })
-    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChanges: [], isMerging: true, abortMerge})
+    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChangesExist: true, isMerging: true, abortMerge})
     const {editor, abortMergeButton} = view.refs
     editor.setText('A message.')
     assert.equal(notificationManager.getNotifications().length, 0)
@@ -209,6 +217,57 @@ describe('CommitView', () => {
     assert.equal(notificationManager.getNotifications().length, 1)
   })
 
+  describe('when switching between repositories', () => {
+    it('retains the commit message, cursor location, and amend status', async () => {
+      const workdirPath1 = await cloneRepository('multiple-commits')
+      const repository1 = await buildRepository(workdirPath1)
+      const workdirPath2 = await cloneRepository('three-files')
+      const repository2 = await buildRepository(workdirPath2)
+
+      const view = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      const {editor, amend} = view.refs
+
+      // for repository1 - click amend check box and modify commit message
+      amend.click()
+      const repository1message = 'commit message for first repo\nsome details about the commit\nmore details'
+      editor.setText(repository1message)
+      const repository1CursorPosition = [1, 3]
+      editor.setCursorBufferPosition(repository1CursorPosition)
+      await etch.getScheduler().getNextUpdatePromise()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), repository1message)
+      console.log(editor.getCursorBufferPosition());
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
+
+      // when repository2 is selected, restore to initial state of unchecked amend box and empty commit message
+      await view.update({repository: repository2})
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), '')
+
+      // create commit message for repository2
+      const repository2Message = 'commit message for second repo'
+      editor.setText(repository2Message)
+      const repository2CursorPosition = [0, 10]
+      editor.setCursorBufferPosition(repository2CursorPosition)
+      await etch.getScheduler().getNextUpdatePromise()
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), repository2Message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
+
+      // when repository1 is selected, restore its state
+      await view.update({repository: repository1})
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), repository1message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
+
+      // when repository2 is selected, restore its state
+      await view.update({repository: repository2})
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), repository2Message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
+    })
+  })
+
   describe('amending', () => {
     it('displays the appropriate commit message', async () => {
       const workdirPath = await cloneRepository('three-files')
@@ -217,8 +276,6 @@ describe('CommitView', () => {
       const {editor, amend} = view.refs
 
       editor.setText('some commit message')
-      await view.update({repository, stagedChangesExist: true})
-
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), 'some commit message')
 
