@@ -218,7 +218,7 @@ describe('CommitView', () => {
   })
 
   describe('when switching between repositories', () => {
-    it('retains the commit message, cursor location, and amend status', async () => {
+    it('retains the commit message and cursor location', async () => {
       const workdirPath1 = await cloneRepository('multiple-commits')
       const repository1 = await buildRepository(workdirPath1)
       const workdirPath2 = await cloneRepository('three-files')
@@ -227,52 +227,104 @@ describe('CommitView', () => {
       const view = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
       const {editor, amend} = view.refs
 
-      // for repository1 - click amend check box and modify commit message
-      amend.click()
-      const repository1message = 'commit message for first repo\nsome details about the commit\nmore details'
-      editor.setText(repository1message)
+      const repository1Message = 'commit message for first repo\nsome details about the commit\nmore details'
+      editor.setText(repository1Message)
       const repository1CursorPosition = [1, 3]
       editor.setCursorBufferPosition(repository1CursorPosition)
       await etch.getScheduler().getNextUpdatePromise()
-      assert.isTrue(amend.checked)
-      assert.equal(editor.getText(), repository1message)
-      console.log(editor.getCursorBufferPosition());
+      assert.equal(editor.getText(), repository1Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
 
-      // when repository2 is selected, restore to initial state of unchecked amend box and empty commit message
       await view.update({repository: repository2})
+      assert.equal(editor.getText(), '')
+
+      const repository2Message = 'commit message for second repo'
+      editor.setText(repository2Message)
+      const repository2CursorPosition = [0, 10]
+      editor.setCursorBufferPosition(repository2CursorPosition)
+      await etch.getScheduler().getNextUpdatePromise()
+      assert.equal(editor.getText(), repository2Message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
+
+      // when repository1 is selected, restore its state
+      await view.update({repository: repository1})
+      assert.equal(editor.getText(), repository1Message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
+
+      // when repository2 is selected, restore its state
+      await view.update({repository: repository2})
+      assert.equal(editor.getText(), repository2Message)
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
+    })
+
+    it('retains the amend status and restores the correct commit message when amend state is exited', async () => {
+      const workdirPath1 = await cloneRepository('multiple-commits')
+      const repository1 = await buildRepository(workdirPath1)
+      const workdirPath2 = await cloneRepository('three-files')
+      const repository2 = await buildRepository(workdirPath2)
+
+      const repository1LastCommit = {message: 'first repository\'s previous commit\'s message'}
+      const repository2LastCommit = {message: 'second repository\'s previous commit\'s message'}
+
+      const view = new CommitView({workspace, repository: repository1, lastCommit: repository1LastCommit, commandRegistry, stagedChangesExist: true})
+      const {editor, amend} = view.refs
+
+      // create message for repository1
+      const repository1Message = 'commit message for first repo\nsome details about the commit\nmore details'
+      editor.setText(repository1Message)
+      await etch.getScheduler().getNextUpdatePromise()
+
+      // put repository1 in amend state, commit message changes to that of the last commit
+      amend.click()
+      await etch.getScheduler().getNextUpdatePromise()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), repository1LastCommit.message)
+
+      // when repository2 is selected, restore to initial state of unchecked amend box and empty commit message
+      await view.update({repository: repository2, lastCommit: repository2LastCommit})
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), '')
 
       // create commit message for repository2
       const repository2Message = 'commit message for second repo'
       editor.setText(repository2Message)
-      const repository2CursorPosition = [0, 10]
-      editor.setCursorBufferPosition(repository2CursorPosition)
       await etch.getScheduler().getNextUpdatePromise()
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), repository2Message)
-      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
+
+      // put repository2 in amend state, commit message changes to that of the last commit
+      amend.click()
+      await etch.getScheduler().getNextUpdatePromise()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), repository2LastCommit.message)
 
       // when repository1 is selected, restore its state
       await view.update({repository: repository1})
       assert.isTrue(amend.checked)
-      assert.equal(editor.getText(), repository1message)
-      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
+      assert.equal(editor.getText(), repository1LastCommit.message)
+
+      // exit amend state and restore original message for repository1
+      amend.click()
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), repository1Message)
 
       // when repository2 is selected, restore its state
       await view.update({repository: repository2})
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), repository2LastCommit.message)
+
+      // exit amend state and restore original message for repository2
+      amend.click()
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), repository2Message)
-      assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
     })
   })
 
   describe('amending', () => {
-    it('displays the appropriate commit message', async () => {
+    it('displays the appropriate commit message and sets the cursor to the beginning of the text', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
+      const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
       const {editor, amend} = view.refs
 
       editor.setText('some commit message')
@@ -283,11 +335,13 @@ describe('CommitView', () => {
       amend.click()
       assert.isTrue(amend.checked)
       assert.equal(editor.getText(), 'previous commit\'s message')
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
 
       // restores original message
       amend.click()
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), 'some commit message')
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
     })
 
     it('clears the amend checkbox after committing', async () => {
