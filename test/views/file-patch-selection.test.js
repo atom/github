@@ -563,7 +563,7 @@ describe('FilePatchSelection', () => {
       assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0], hunks[1]]))
     })
 
-    it('adds a new hunk selection with addHunkSelection and always updates the head of the most recent hunk selection', function () {
+    it('adds a new hunk selection with addOrSubtractHunkSelection and always updates the head of the most recent hunk selection', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -580,7 +580,7 @@ describe('FilePatchSelection', () => {
       ]
       const selection = new FilePatchSelection(hunks)
 
-      selection.addHunkSelection(hunks[2])
+      selection.addOrSubtractHunkSelection(hunks[2])
       assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0], hunks[2]]))
 
       selection.selectHunk(hunks[3], true)
