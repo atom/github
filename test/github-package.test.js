@@ -157,7 +157,7 @@ describe('GithubPackage', () => {
 
       project.removePath(workdirPath2)
       await githubPackage.updateActiveRepository()
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+      assert.isNull(githubPackage.getActiveRepository())
 
       project.removePath(workdirPath1)
       await githubPackage.updateActiveRepository()
