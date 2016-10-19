@@ -57,6 +57,14 @@ describe('GithubPackage', () => {
       assert.equal(githubPackage.changeObserver.getActiveRepository(), githubPackage.getActiveRepository())
       assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
 
+      // Remove repository for open file
+      project.setPaths([workdirPath2, nonRepositoryPath])
+      await githubPackage.didChangeProjectPaths()
+      assert.isNull(githubPackage.getActiveRepository())
+      assert.isNull(githubPackage.changeObserver.getActiveRepository())
+      assert.isNull(githubPackage.gitPanelController.getActiveRepository())
+      assert.isNull(githubPackage.statusBarTileController.getActiveRepository())
+
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
@@ -251,8 +259,8 @@ describe('GithubPackage', () => {
     it('toggles the git panel', async () => {
       const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
-      await githubPackage.updateActiveRepository()
       await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.updateActiveRepository()
 
       githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)
