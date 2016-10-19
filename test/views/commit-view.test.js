@@ -217,6 +217,58 @@ describe('CommitView', () => {
     assert.equal(notificationManager.getNotifications().length, 1)
   })
 
+  describe('amending', () => {
+    it('displays the appropriate commit message and sets the cursor to the beginning of the text', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
+      const {editor, amend} = view.refs
+
+      editor.setText('some commit message')
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), 'some commit message')
+
+      // displays message for last commit
+      amend.click()
+      assert.isTrue(amend.checked)
+      assert.equal(editor.getText(), 'previous commit\'s message')
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
+
+      // restores original message
+      amend.click()
+      assert.isFalse(amend.checked)
+      assert.equal(editor.getText(), 'some commit message')
+      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
+    })
+
+    it('clears the amend checkbox after committing', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
+      const {amend} = view.refs
+      await view.update({repository, stagedChangesExist: true})
+      assert.isFalse(amend.checked)
+      amend.click()
+      assert.isTrue(amend.checked)
+      await view.commit()
+      assert.isFalse(amend.checked)
+    })
+
+    it('calls props.setAmending() when the box is checked or unchecked', async function () {
+      const setAmending = sinon.spy()
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending})
+      const {editor, amend} = view.refs
+
+      amend.click()
+      assert.deepEqual(setAmending.args, [[true]])
+
+      amend.click()
+      assert.deepEqual(setAmending.args, [[true], [false]])
+    })
+  })
+
   describe('when switching between repositories', () => {
     it('retains the commit message and cursor location', async () => {
       const workdirPath1 = await cloneRepository('multiple-commits')
@@ -317,58 +369,6 @@ describe('CommitView', () => {
       amend.click()
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), repository2Message)
-    })
-  })
-
-  describe('amending', () => {
-    it('displays the appropriate commit message and sets the cursor to the beginning of the text', async () => {
-      const workdirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
-      const {editor, amend} = view.refs
-
-      editor.setText('some commit message')
-      assert.isFalse(amend.checked)
-      assert.equal(editor.getText(), 'some commit message')
-
-      // displays message for last commit
-      amend.click()
-      assert.isTrue(amend.checked)
-      assert.equal(editor.getText(), 'previous commit\'s message')
-      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
-
-      // restores original message
-      amend.click()
-      assert.isFalse(amend.checked)
-      assert.equal(editor.getText(), 'some commit message')
-      assert.deepEqual(editor.getCursorBufferPosition().serialize(), [0, 0])
-    })
-
-    it('clears the amend checkbox after committing', async () => {
-      const workdirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false})
-      const {amend} = view.refs
-      await view.update({repository, stagedChangesExist: true})
-      assert.isFalse(amend.checked)
-      amend.click()
-      assert.isTrue(amend.checked)
-      await view.commit()
-      assert.isFalse(amend.checked)
-    })
-
-    it('calls props.setAmending() when the box is checked or unchecked', async function () {
-      const setAmending = sinon.spy()
-      const workdirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending})
-      const {editor, amend} = view.refs
-
-      amend.click()
-      assert.deepEqual(setAmending.args, [[true]])
-
-      amend.click()
-      assert.deepEqual(setAmending.args, [[true], [false]])
     })
   })
 })
