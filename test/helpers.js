@@ -64,3 +64,8 @@ export function assertDeepPropertyVals (actual, expected) {
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
 }
+
+export function assertEqualSets (a, b) {
+  assert.equal(a.size, b.size, 'Sets are a different size')
+  a.forEach(item => assert(b.has(item), 'Sets have different elements'))
+}

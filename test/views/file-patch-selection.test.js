@@ -3,11 +3,7 @@
 import FilePatchSelection from '../../lib/views/file-patch-selection'
 import Hunk from '../../lib/models/hunk'
 import HunkLine from '../../lib/models/hunk-line'
-
-function assertEqualSets (a, b) {
-  assert.equal(a.size, b.size, 'Sets are a different size')
-  a.forEach(item => assert(b.has(item), 'Sets have different elements'))
-}
+import {assertEqualSets} from '../helpers'
 
 describe('FilePatchSelection', () => {
   describe('line selection', () => {
