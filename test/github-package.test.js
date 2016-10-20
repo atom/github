@@ -167,6 +167,25 @@ describe('GithubPackage', () => {
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
     })
+
+    describe('when the active item is a FilePatchController', () => {
+      it('updates the active repository to be the one associated with the FilePatchController', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        project.setPaths([workdirPath])
+        const repository = await githubPackage.repositoryForWorkdirPath(workdirPath)
+
+        await workspace.open(path.join(workdirPath, 'b.txt'))
+        await githubPackage.updateActiveRepository()
+        assert.equal(githubPackage.getActiveRepository(), repository)
+
+        const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
+        githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'unstaged')
+        assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+        assert.equal(githubPackage.filePatchController.props.repository, repository)
+        await githubPackage.updateActiveRepository()
+        assert.equal(githubPackage.getActiveRepository(), repository)
+      })
+    })
   })
 
   describe('didSelectMergeConflictFile(filePath)', () => {
