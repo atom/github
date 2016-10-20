@@ -276,8 +276,8 @@ describe('CommitView', () => {
       const workdirPath2 = await cloneRepository('three-files')
       const repository2 = await buildRepository(workdirPath2)
 
-      const view = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
-      const {editor, amend} = view.refs
+      let viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      let editor = viewForRepo1.refs.editor
 
       const repository1Message = 'commit message for first repo\nsome details about the commit\nmore details'
       editor.setText(repository1Message)
@@ -287,7 +287,8 @@ describe('CommitView', () => {
       assert.equal(editor.getText(), repository1Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
 
-      await view.update({repository: repository2})
+      let viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      editor = viewForRepo2.refs.editor
       assert.equal(editor.getText(), '')
 
       const repository2Message = 'commit message for second repo'
@@ -299,12 +300,14 @@ describe('CommitView', () => {
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
 
       // when repository1 is selected, restore its state
-      await view.update({repository: repository1})
+      viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      editor = viewForRepo1.refs.editor
       assert.equal(editor.getText(), repository1Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
 
       // when repository2 is selected, restore its state
-      await view.update({repository: repository2})
+      viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      editor = viewForRepo2.refs.editor
       assert.equal(editor.getText(), repository2Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
     })
