@@ -45,20 +45,39 @@ describe('GithubPackage', () => {
     it('updates the active repository', async () => {
       const workdirPath1 = await cloneRepository('three-files')
       const workdirPath2 = await cloneRepository('three-files')
-      project.setPaths([workdirPath1, workdirPath2])
+      const nonRepositoryPath = temp.mkdirSync()
+      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'))
+      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath])
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8')
 
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
       assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
+      assert.equal(githubPackage.changeObserver.getActiveRepository(), githubPackage.getActiveRepository())
       assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
 
-      project.setPaths([workdirPath2])
+      // Remove repository for open file
+      project.setPaths([workdirPath2, nonRepositoryPath])
+      await githubPackage.didChangeProjectPaths()
+      assert.isNull(githubPackage.getActiveRepository())
+      assert.isNull(githubPackage.changeObserver.getActiveRepository())
+      assert.isNull(githubPackage.gitPanelController.getActiveRepository())
+      assert.isNull(githubPackage.statusBarTileController.getActiveRepository())
+
+      await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.didChangeProjectPaths()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
+      assert.equal(githubPackage.changeObserver.getActiveRepository(), githubPackage.getActiveRepository())
       assert.equal(githubPackage.gitPanelController.getActiveRepository(), githubPackage.getActiveRepository())
       assert.equal(githubPackage.statusBarTileController.getActiveRepository(), githubPackage.getActiveRepository())
+
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'))
+      await githubPackage.didChangeProjectPaths()
+      assert.isNull(githubPackage.getActiveRepository())
+      assert.isNull(githubPackage.changeObserver.getActiveRepository())
+      assert.isNull(githubPackage.gitPanelController.getActiveRepository())
+      assert.isNull(githubPackage.statusBarTileController.getActiveRepository())
     })
 
     it('destroys all the repositories associated with the removed project folders', async () => {
@@ -107,7 +126,7 @@ describe('GithubPackage', () => {
   })
 
   describe('updateActiveRepository()', () => {
-    it('updates the active repository based on the most recent active item with a path unless its directory has been removed from the project', async () => {
+    it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async () => {
       const workdirPath1 = await cloneRepository('three-files')
       const workdirPath2 = await cloneRepository('three-files')
       const nonRepositoryPath = temp.mkdirSync()
@@ -120,29 +139,52 @@ describe('GithubPackage', () => {
       await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
 
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'))
+      await githubPackage.updateActiveRepository()
+      assert.isNull(githubPackage.getActiveRepository())
+
       await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+
+      workspace.getActivePane().activateItem({})
+      await githubPackage.updateActiveRepository()
+      assert.isNull(githubPackage.getActiveRepository())
 
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
 
-      workspace.getActivePane().activateItem({})
-      await githubPackage.updateActiveRepository()
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2))
-
       project.removePath(workdirPath2)
       await githubPackage.updateActiveRepository()
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
+      assert.isNull(githubPackage.getActiveRepository())
 
       project.removePath(workdirPath1)
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
 
-      await workspace.open(path.join(nonRepositoryPath, 'c.txt'))
+      await workspace.open(path.join(workdirPath1, 'a.txt'))
       await githubPackage.updateActiveRepository()
       assert.isNull(githubPackage.getActiveRepository())
+    })
+
+    describe('when the active item is a FilePatchController', () => {
+      it('updates the active repository to be the one associated with the FilePatchController', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        project.setPaths([workdirPath])
+        const repository = await githubPackage.repositoryForWorkdirPath(workdirPath)
+
+        await workspace.open(path.join(workdirPath, 'b.txt'))
+        await githubPackage.updateActiveRepository()
+        assert.equal(githubPackage.getActiveRepository(), repository)
+
+        const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
+        githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'unstaged')
+        assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+        assert.equal(githubPackage.filePatchController.props.repository, repository)
+        await githubPackage.updateActiveRepository()
+        assert.equal(githubPackage.getActiveRepository(), repository)
+      })
     })
   })
 
@@ -236,8 +278,8 @@ describe('GithubPackage', () => {
     it('toggles the git panel', async () => {
       const workdirPath = await cloneRepository('three-files')
       project.setPaths([workdirPath])
-      await githubPackage.updateActiveRepository()
       await workspace.open(path.join(workdirPath, 'a.txt'))
+      await githubPackage.updateActiveRepository()
 
       githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)

@@ -23,6 +23,23 @@ describe('GitPanelController', () => {
     atom.confirm.restore && atom.confirm.restore()
   })
 
+  it('displays loading message in GitPanelView while data is being fetched', async () => {
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+    fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+    const controller = new GitPanelController({workspace, commandRegistry, repository})
+
+    assert.equal(controller.getActiveRepository(), repository)
+    assert.isDefined(controller.refs.gitPanel.refs.repoLoadingMessage)
+    assert.isUndefined(controller.refs.gitPanel.refs.repoInfo)
+
+    await controller.getLastModelDataRefreshPromise()
+    assert.equal(controller.getActiveRepository(), repository)
+    assert.isUndefined(controller.refs.gitPanel.refs.repoLoadingMessage)
+    assert.isDefined(controller.refs.gitPanel.refs.repoInfo)
+  })
+
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
     const workdirPath1 = await cloneRepository('three-files')
     const repository1 = await buildRepository(workdirPath1)
@@ -30,21 +47,20 @@ describe('GitPanelController', () => {
     const repository2 = await buildRepository(workdirPath2)
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'))
-    const controller = new GitPanelController({workspace, commandRegistry, repository: repository1})
+    const controller = new GitPanelController({workspace, commandRegistry, repository: null})
 
-    // Does not render a GitPanelView until initial data is fetched
-    assert.isUndefined(controller.refs.gitPanel)
+    // Renders empty GitPanelView when there is no active repository
+    assert.isDefined(controller.refs.gitPanel)
     assert.isNull(controller.getActiveRepository())
-    await controller.getLastModelDataRefreshPromise()
-    assert.isDefined(controller.getActiveRepository())
-    assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
+    assert.isDefined(controller.refs.gitPanel.refs.noRepoMessage)
 
     // Fetches data when a new repository is assigned
     // Does not update repository instance variable until that data is fetched
-    const updatePromise = controller.update({repository: repository2})
+    await controller.update({repository: repository1})
     assert.equal(controller.getActiveRepository(), repository1)
     assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
-    await updatePromise
+
+    await controller.update({repository: repository2})
     assert.equal(controller.getActiveRepository(), repository2)
     assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
 
