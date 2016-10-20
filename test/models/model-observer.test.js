@@ -43,17 +43,17 @@ describe('ModelObserver', function () {
     assert.isNull(observer.getActiveModel())
     assert.isNull(observer.getActiveModelData())
 
-    const setActiveModelPromise1 = observer.setActiveModel(model1)
-    assert.isNull(observer.getActiveModel())
+    observer.setActiveModel(model1)
+    assert.equal(observer.getActiveModel(), model1)
     assert.isNull(observer.getActiveModelData())
 
-    await setActiveModelPromise1
+    await observer.getLastModelDataRefreshPromise()
     assert.equal(observer.getActiveModel(), model1)
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'})
 
-    const setActiveModelPromise2 = observer.setActiveModel(model2)
-    assert.equal(observer.getActiveModel(), model1)
-    assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'})
+    observer.setActiveModel(model2)
+    assert.equal(observer.getActiveModel(), model2)
+    assert.isNull(observer.getActiveModelData())
 
     // We unsubscribe from updates on the previous active model once we attempt to set a new one
     model1.a = 'X'
@@ -61,7 +61,7 @@ describe('ModelObserver', function () {
     assert.equal(model1.fetchACallCount, 1)
     assert.equal(model1.fetchBCallCount, 1)
 
-    await setActiveModelPromise2
+    await observer.getLastModelDataRefreshPromise()
     assert.equal(observer.getActiveModel(), model2)
     assert.deepEqual(observer.getActiveModelData(), {a: 'A', b: 'B'})
 
@@ -80,7 +80,7 @@ describe('ModelObserver', function () {
     assert.isNull(observer.getActiveModelData())
   })
 
-  it('emits an update event when the model data changes', async function () {
+  it('emits an update event when the model changes and when data is fetched', async function () {
     let expectedActiveModelInUpdateCallback
     const didUpdate = () => {
       assert.equal(observer.getActiveModel(), expectedActiveModelInUpdateCallback)
@@ -114,21 +114,21 @@ describe('ModelObserver', function () {
     const model2 = new Model()
 
     expectedActiveModelInUpdateCallback = model1
-    const setModel1Promise = observer.setActiveModel(model1)
-    assert.equal(didUpdate.callCount, 0)
-    await setModel1Promise
-    assert.equal(didUpdate.callCount, 1)
-
-    model1.emitDidUpdate()
+    observer.setActiveModel(model1)
     assert.equal(didUpdate.callCount, 1)
     await observer.getLastModelDataRefreshPromise()
     assert.equal(didUpdate.callCount, 2)
 
-    expectedActiveModelInUpdateCallback = model2
-    const setModel2Promise = observer.setActiveModel(model2)
+    model1.emitDidUpdate()
     assert.equal(didUpdate.callCount, 2)
-    await setModel2Promise
+    await observer.getLastModelDataRefreshPromise()
     assert.equal(didUpdate.callCount, 3)
+
+    expectedActiveModelInUpdateCallback = model2
+    observer.setActiveModel(model2)
+    assert.equal(didUpdate.callCount, 4)
+    await observer.getLastModelDataRefreshPromise()
+    assert.equal(didUpdate.callCount, 5)
   })
 
   it('only assigns model data from the most recently initiated fetch', async function () {

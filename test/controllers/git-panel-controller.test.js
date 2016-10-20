@@ -23,8 +23,21 @@ describe('GitPanelController', () => {
     atom.confirm.restore && atom.confirm.restore()
   })
 
-  xit('displays loading message in GitPanelView while data is being fetched', async () => {
-    // TODO: implement me
+  it('displays loading message in GitPanelView while data is being fetched', async () => {
+    const workdirPath = await cloneRepository('three-files')
+    const repository = await buildRepository(workdirPath)
+    fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
+    fs.unlinkSync(path.join(workdirPath, 'b.txt'))
+    const controller = new GitPanelController({workspace, commandRegistry, repository})
+
+    assert.equal(controller.getActiveRepository(), repository)
+    assert.isDefined(controller.refs.gitPanel.refs.repoLoadingMessage)
+    assert.isUndefined(controller.refs.gitPanel.refs.repoInfo)
+
+    await controller.getLastModelDataRefreshPromise()
+    assert.equal(controller.getActiveRepository(), repository)
+    assert.isUndefined(controller.refs.gitPanel.refs.repoLoadingMessage)
+    assert.isDefined(controller.refs.gitPanel.refs.repoInfo)
   })
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async (done) => {
