@@ -27,7 +27,8 @@ describe('CommitView', () => {
   it('displays the remaining characters limit based on which line is being edited', async () => {
     const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72})
+    const viewState = {}
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, viewState})
     const {editor} = view.refs
     assert.equal(view.refs.remainingCharacters.textContent, '72')
 
@@ -76,7 +77,8 @@ describe('CommitView', () => {
   it('disables the commit button when no changes are staged, there are merge conflict files, or the commit message is empty', async () => {
     const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false})
+    const viewState = {}
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, viewState})
     const {editor, commitButton} = view.refs
     assert.isTrue(commitButton.disabled)
 
@@ -161,21 +163,23 @@ describe('CommitView', () => {
     assert.equal(notificationManager.getNotifications().length, 1)
   })
 
-  it('replaces the contents of the commit message when it is empty and it is supplied from the outside', async () => {
+  it('replaces the contents of the commit message when it is empty and a message is supplied from the outside', async () => {
     const workdirPath = await cloneRepository('three-files')
     const repository = await buildRepository(workdirPath)
-    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, message: 'message 1'})
+    const viewState = {}
+    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, viewState})
     const {editor} = view.refs
+    editor.setText('message 1')
+    await etch.getScheduler().getNextUpdatePromise()
     assert.equal(editor.getText(), 'message 1')
 
-    await view.update({message: 'message 2'})
+    await view.update({message: 'Merge conflict!'})
     assert.equal(editor.getText(), 'message 1')
 
     editor.setText('')
     await etch.getScheduler().getNextUpdatePromise()
-
-    await view.update({message: 'message 3'})
-    assert.equal(editor.getText(), 'message 3')
+    await view.update({message: 'Merge conflict!'})
+    assert.equal(editor.getText(), 'Merge conflict!')
   })
 
   it('shows the "Abort Merge" button when props.isMerging is true', async () => {
@@ -221,7 +225,8 @@ describe('CommitView', () => {
     it('displays the appropriate commit message and sets the cursor to the beginning of the text', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
-      const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}})
+      const viewState = {}
+      const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, viewState})
       const {editor, amend} = view.refs
 
       editor.setText('some commit message')
@@ -276,7 +281,10 @@ describe('CommitView', () => {
       const workdirPath2 = await cloneRepository('three-files')
       const repository2 = await buildRepository(workdirPath2)
 
-      let viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      const viewStateForRepo1 = {}
+      const viewStateForRepo2 = {}
+
+      let viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, viewState: viewStateForRepo1})
       let editor = viewForRepo1.refs.editor
 
       const repository1Message = 'commit message for first repo\nsome details about the commit\nmore details'
@@ -287,7 +295,7 @@ describe('CommitView', () => {
       assert.equal(editor.getText(), repository1Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
 
-      let viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      let viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, viewState: viewStateForRepo2})
       editor = viewForRepo2.refs.editor
       assert.equal(editor.getText(), '')
 
@@ -300,13 +308,13 @@ describe('CommitView', () => {
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
 
       // when repository1 is selected, restore its state
-      viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      viewForRepo1 = new CommitView({workspace, repository: repository1, commandRegistry, stagedChangesExist: true, viewState: viewStateForRepo1})
       editor = viewForRepo1.refs.editor
       assert.equal(editor.getText(), repository1Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository1CursorPosition)
 
       // when repository2 is selected, restore its state
-      viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, lastCommit: {message: 'previous commit\'s message'}})
+      viewForRepo2 = new CommitView({workspace, repository: repository2, commandRegistry, stagedChangesExist: true, viewState: viewStateForRepo2})
       editor = viewForRepo2.refs.editor
       assert.equal(editor.getText(), repository2Message)
       assert.deepEqual(editor.getCursorBufferPosition().serialize(), repository2CursorPosition)
@@ -320,8 +328,10 @@ describe('CommitView', () => {
 
       const repository1LastCommit = {message: 'first repository\'s previous commit\'s message'}
       const repository2LastCommit = {message: 'second repository\'s previous commit\'s message'}
+      const viewStateForRepo1 = {}
+      const viewStateForRepo2 = {}
 
-      const view = new CommitView({workspace, repository: repository1, lastCommit: repository1LastCommit, commandRegistry, stagedChangesExist: true})
+      const view = new CommitView({workspace, repository: repository1, lastCommit: repository1LastCommit, commandRegistry, stagedChangesExist: true, viewState: viewStateForRepo1})
       const {editor, amend} = view.refs
 
       // create message for repository1
@@ -336,7 +346,7 @@ describe('CommitView', () => {
       assert.equal(editor.getText(), repository1LastCommit.message)
 
       // when repository2 is selected, restore to initial state of unchecked amend box and empty commit message
-      await view.update({repository: repository2, lastCommit: repository2LastCommit})
+      await view.update({repository: repository2, lastCommit: repository2LastCommit, viewState: viewStateForRepo2})
       assert.isFalse(amend.checked)
       assert.equal(editor.getText(), '')
 
@@ -354,7 +364,7 @@ describe('CommitView', () => {
       assert.equal(editor.getText(), repository2LastCommit.message)
 
       // when repository1 is selected, restore its state
-      await view.update({repository: repository1})
+      await view.update({repository: repository1, viewState: viewStateForRepo1})
       assert.isTrue(amend.checked)
       assert.equal(editor.getText(), repository1LastCommit.message)
 
@@ -364,7 +374,7 @@ describe('CommitView', () => {
       assert.equal(editor.getText(), repository1Message)
 
       // when repository2 is selected, restore its state
-      await view.update({repository: repository2})
+      await view.update({repository: repository2, viewState: viewStateForRepo2})
       assert.isTrue(amend.checked)
       assert.equal(editor.getText(), repository2LastCommit.message)
 
