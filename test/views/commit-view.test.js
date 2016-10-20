@@ -116,6 +116,10 @@ describe('CommitView', () => {
     assert.equal(commit.args[0][0], 'Commit 1')
     assert.equal(editor.getText(), '')
 
+    // undo history is cleared
+    commandRegistry.dispatch(editor.element, 'core:undo')
+    assert.equal(editor.getText(), '')
+
     // commit via the git:commit command
     commit.reset()
     await view.update({repository, stagedChangesExist: true})
