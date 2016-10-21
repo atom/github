@@ -131,6 +131,26 @@ describe('FilePatch', () => {
         ]
       ))
     })
+
+    it('handles deleted files', () => {
+      const filePatch = new FilePatch('a.txt', null, 'deleted', [
+        new Hunk(1, 0, 3, 0, [
+          new HunkLine('line-1', 'deleted', 1, -1),
+          new HunkLine('line-2', 'deleted', 2, -1),
+          new HunkLine('line-3', 'deleted', 3, -1)
+        ])
+      ])
+      const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2)
+      assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+        'a.txt', 'a.txt', 'deleted', [
+          new Hunk(1, 1, 3, 1, [
+            new HunkLine('line-1', 'deleted', 1, -1),
+            new HunkLine('line-2', 'deleted', 2, -1),
+            new HunkLine('line-3', 'unchanged', 3, 1)
+          ])
+        ]
+      ))
+    })
   })
 
   describe('getUnstagePatchForLines()', () => {
