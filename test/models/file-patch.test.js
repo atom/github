@@ -193,6 +193,26 @@ describe('FilePatch', () => {
     })
   })
 
+  it('handles newly added files', () => {
+    const filePatch = new FilePatch(null, 'a.txt', 'added', [
+      new Hunk(0, 1, 0, 3, [
+        new HunkLine('line-1', 'added', -1, 1),
+        new HunkLine('line-2', 'added', -1, 2),
+        new HunkLine('line-3', 'added', -1, 3)
+      ])
+    ])
+    const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2)
+    assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+      'a.txt', 'a.txt', 'deleted', [
+        new Hunk(1, 1, 3, 1, [
+          new HunkLine('line-1', 'deleted', 1, -1),
+          new HunkLine('line-2', 'deleted', 2, -1),
+          new HunkLine('line-3', 'unchanged', 3, 1)
+        ])
+      ]
+    ))
+  })
+
   describe('toString()', () => {
     it('converts the patch to the standard textual format', async () => {
       const workdirPath = await cloneRepository('multi-line-file')
