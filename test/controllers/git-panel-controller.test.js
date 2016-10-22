@@ -5,6 +5,7 @@ import path from 'path'
 
 import etch from 'etch'
 import sinon from 'sinon'
+import dedent from 'dedent-js'
 
 import {cloneRepository, buildRepository} from '../helpers'
 import GitPanelController from '../../lib/controllers/git-panel-controller'
@@ -177,6 +178,42 @@ describe('GitPanelController', () => {
       assert.equal(atom.confirm.called, false)
       assert.equal(stagingView.props.mergeConflicts.length, 3)
       assert.equal(stagingView.props.stagedChanges.length, 2)
+    })
+
+    it('updates file status and paths when changed', async () => {
+      const workdirPath = await cloneRepository('three-files')
+      const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n')
+
+      const controller = new GitPanelController({workspace, commandRegistry, repository})
+      await controller.getLastModelDataRefreshPromise()
+      const stagingView = controller.refs.gitPanel.refs.stagingView
+
+      const [addedFilePatch] = stagingView.props.unstagedChanges
+      assert.equal(addedFilePatch.getStatus(), 'added')
+      assert.isNull(addedFilePatch.getOldPath())
+      assert.equal(addedFilePatch.getNewPath(), 'new-file.txt')
+
+      const patchString = dedent`
+        --- /dev/null
+        +++ b/new-file.txt
+        @@ -0,0 +1,1 @@
+        +foo
+
+      `
+
+      // partially stage contents in the newly added file
+      await repository.git.applyPatchToIndex(patchString)
+      await repository.refresh()
+      await controller.getLastModelDataRefreshPromise()
+
+      // since unstaged changes are calculated relative to the index,
+      // which now has new-file.txt on it, the working directory version of
+      // new-file.txt has a modified status
+      const [modifiedFilePatch] = stagingView.props.unstagedChanges
+      assert.equal(modifiedFilePatch.getStatus(), 'modified')
+      assert.equal(modifiedFilePatch.getOldPath(), 'new-file.txt')
+      assert.equal(modifiedFilePatch.getNewPath(), 'new-file.txt')
     })
   })
 })
