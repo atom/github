@@ -146,5 +146,34 @@ describe('CompositeListSelection', () => {
       assert.equal(selection.getActiveListKey(), 'unstaged')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.unstaged[2]]))
     })
+
+    it('collapses to the start of the previous selection if the old head item is removed', function () {
+      let listsByKey = {
+        unstaged: [{filePath: 'a'}, {filePath: 'b'}, {filePath: 'c'}],
+        conflicts: [],
+        staged: [{filePath: 'd'}, {filePath: 'e'}, {filePath: 'f'}],
+      }
+      const selection = new CompositeListSelection({
+        listsByKey, idForItem: (item) => item.filePath
+      })
+
+      selection.selectItem(listsByKey.unstaged[1])
+      selection.selectItem(listsByKey.unstaged[2], true)
+      selection.selectItem(listsByKey.staged[1])
+
+      listsByKey = {
+        unstaged: [{filePath: 'a'}],
+        conflicts: [],
+        staged: [{filePath: 'd'}, {filePath: 'f'}],
+      }
+      selection.updateLists(listsByKey)
+
+      assert.equal(selection.getActiveListKey(), 'staged')
+      assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.staged[1]]))
+
+      selection.activatePreviousList()
+      assert.equal(selection.getActiveListKey(), 'unstaged')
+      assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.unstaged[0]]))
+    })
   })
 })
