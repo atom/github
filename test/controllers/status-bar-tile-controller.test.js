@@ -235,6 +235,30 @@ describe('StatusBarTileController', () => {
         assert.isFalse(pullButton.disabled)
       })
 
+      it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async () => {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories()
+        const repository = await buildRepository(localRepoPath)
+        await repository.git.exec(['checkout', '-b', 'new-branch'])
+
+        const controller = new StatusBarTileController({workspace, repository})
+        await controller.getLastModelDataRefreshPromise()
+
+        const pushPullMenuView = controller.pushPullMenuView
+        const {pushButton, pullButton, fetchButton, message} = pushPullMenuView.refs
+
+        assert.isTrue(pullButton.disabled)
+        assert.isTrue(fetchButton.disabled)
+        assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/)
+
+        pushButton.dispatchEvent(new MouseEvent('click'))
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+
+        assert.isFalse(pullButton.disabled)
+        assert.isFalse(fetchButton.disabled)
+        assert.equal(message.textContent, '')
+      })
+
       it('displays an error message if push fails and allows force pushing if meta key is pressed', async () => {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories()
         const repository = await buildRepository(localRepoPath)
