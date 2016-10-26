@@ -25,7 +25,7 @@
     "what-the-diff": "^0.1.1"
   },
   "devDependencies": {
-    "atom-mocha-test-runner": "0.2.2",
+    "atom-mocha-test-runner": "0.3.0",
     "babel-eslint": "^6.0.4",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
