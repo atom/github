@@ -234,6 +234,33 @@ describe('StatusBarTileController', () => {
         await controller.getLastModelDataRefreshPromise()
         assert.isFalse(pullButton.disabled)
       })
+
+      it('displays an error message if push fails and allows force pushing if meta key is pressed', async () => {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories()
+        const repository = await buildRepository(localRepoPath)
+        await repository.git.exec(['reset', '--hard', 'head~2'])
+        await repository.git.commit('another commit', {allowEmpty: true})
+
+        const controller = new StatusBarTileController({workspace, repository})
+        await controller.getLastModelDataRefreshPromise()
+
+        const pushPullMenuView = controller.pushPullMenuView
+        const {pushButton, pullButton, message} = pushPullMenuView.refs
+
+        assert.equal(pushButton.textContent, 'Push (1)')
+        assert.equal(pullButton.textContent, 'Pull (2)')
+
+        pushButton.dispatchEvent(new MouseEvent('click'))
+        await etch.getScheduler().getNextUpdatePromise()
+        assert.match(message.innerHTML, /Push rejected/)
+
+        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}))
+        await repository.refresh()
+        await controller.getLastModelDataRefreshPromise()
+
+        assert.equal(pushButton.textContent, 'Push ')
+        assert.equal(pullButton.textContent, 'Pull ')
+      })
     })
   })
 
