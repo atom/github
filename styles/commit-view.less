@@ -14,7 +14,11 @@
     background-color: @syntax-background-color;
 
     atom-text-editor {
+      height: 100%;
       font-size: @font-size;
+      .cursor-line {
+        background-color: transparent;
+      }
     }
   }
 
@@ -22,6 +26,10 @@
     display: flex;
     align-items: center;
     margin-top: @component-padding;
+  }
+
+  &-label {
+    margin-right: @component-padding;
   }
 
   &-button {

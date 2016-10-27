@@ -1,6 +1,6 @@
 @import "variables";
 
-.git-PushPull {
+.git-PushPullMenuView {
   display: flex;
   padding: @component-padding / 2;
   align-items: center;
@@ -12,9 +12,10 @@
     }
   }
 
-  // margin not needed, .git-PushPull-item takes care of the spacing
+  // margin not needed, .git-PushPullMenuView-item takes care of the spacing
   .icon-mark-github::before {
     margin-right: 0;
+    color: @text-color-subtle;
   }
 
   // Make Pull/Push buttons take up available space
@@ -29,5 +30,22 @@
   // Removes flickering of the toolip if there is an icon inside
   .btn-tooltip-wrapper .icon {
     pointer-events: none;
+  }
+
+  &-message {
+    max-height: 4.8em;
+    margin-top: @component-padding;
+    padding: @component-padding / 2;
+    line-height: 1.4;
+    white-space: normal;
+    text-align: left;
+    overflow-y: auto;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @inset-panel-background-color;
+
+    &:empty {
+      display: none;
+    }
   }
 }

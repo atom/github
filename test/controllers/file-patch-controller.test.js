@@ -25,9 +25,20 @@ describe('FilePatchController', () => {
     assert.deepEqual(changeHandler.args, [[controller.getTitle()]])
   })
 
+  it('renders FilePatchView only if FilePatch has hunks', async () => {
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [])
+    const view = new FilePatchController({filePatch}) // eslint-disable-line no-new
+    assert.isUndefined(view.refs.filePatchView)
+
+    const hunk1 = new Hunk(0, 0, 1, 1, [new HunkLine('line-1', 'added', 1, 1)])
+    filePatch.update(new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]))
+    await etch.getScheduler().getNextUpdatePromise()
+    assert.isDefined(view.refs.filePatchView)
+  })
+
   it('updates when the associated FilePatch updates', async () => {
     const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)])
-    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'removed', 8, -1)])
+    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)])
     const hunkViewsByHunk = new Map()
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2])
     new FilePatchController({filePatch, registerHunkView: (hunk, controller) => hunkViewsByHunk.set(hunk, controller)}) // eslint-disable-line no-new
@@ -65,12 +76,13 @@ describe('FilePatchController', () => {
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
       const [unstagedFilePatch] = await repository.getUnstagedChanges()
+
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
 
       const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView})
       const view = controller.refs.filePatchView
-      await view.focusNextHunk()
+      await view.selectNext()
       const hunkToStage = hunkViewsByHunk.get(unstagedFilePatch.getHunks()[0])
       assert.notDeepEqual(view.selectedHunk, unstagedFilePatch.getHunks()[0])
       await hunkToStage.props.didClickStageButton()
@@ -110,14 +122,12 @@ describe('FilePatchController', () => {
       // stage a subset of lines from first hunk
       const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView})
       const view = controller.refs.filePatchView
-      view.togglePatchSelectionMode()
-      assert.equal(view.getPatchSelectionMode(), 'hunkLine')
       let hunk = unstagedFilePatch.getHunks()[0]
       let lines = hunk.getLines()
       let hunkView = hunkViewsByHunk.get(hunk)
-      hunkView.props.selectLine(lines[1])
-      hunkView.props.selectLine(lines[2])
-      hunkView.props.selectLine(lines[3])
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1])
+      hunkView.props.mousemoveOnLine({}, hunk, lines[3])
+      view.mouseup()
       await hunkView.props.didClickStageButton()
       let expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
@@ -142,8 +152,11 @@ describe('FilePatchController', () => {
       hunk = stagedFilePatch.getHunks()[0]
       lines = hunk.getLines()
       hunkView = hunkViewsByHunk.get(hunk)
-      hunkView.props.selectLine(lines[1])
-      hunkView.props.selectLine(lines[2])
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1])
+      view.mouseup()
+      hunkView.props.mousedownOnLine({detail: 1, metaKey: true}, hunk, lines[2])
+      view.mouseup()
+
       await hunkView.props.didClickStageButton()
       expectedLines = originalLines.slice()
       expectedLines.splice(2, 0,

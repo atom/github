@@ -7,24 +7,19 @@ import ChangedFilesCountView from '../../lib/views/changed-files-count-view'
 
 describe('ChangedFilesCountView', () => {
   it('shows the count of the unique files that have changed', async () => {
-    const patch1 = new FilePatch('a.txt', 'a.txt', 'modified')
-    const patch2 = new FilePatch('b.txt', 'b.txt', 'modified')
-    const patch3 = new FilePatch(null, 'c.txt', 'added')
-    const patch4 = new FilePatch('a.txt', null, 'removed')
-    const view = new ChangedFilesCountView({stagedChanges: [], unstagedChanges: []})
+    const view = new ChangedFilesCountView({changedFilesCount: 0})
     assert.isUndefined(view.refs.changedFiles)
 
-    await view.update({stagedChanges: [patch1], unstagedChanges: [patch3]})
+    await view.update({changedFilesCount: 2})
     assert.equal(view.refs.changedFiles.textContent, '2 files')
 
-    await view.update({stagedChanges: [patch1, patch2], unstagedChanges: [patch3, patch4]})
+    await view.update({changedFilesCount: 3})
     assert.equal(view.refs.changedFiles.textContent, '3 files')
   })
 
   it('invokes the supplied handler when the label is clicked', async () => {
-    const patch = new FilePatch('a.txt', 'a.txt', 'modified')
     const didClick = sinon.spy()
-    const view = new ChangedFilesCountView({stagedChanges: [patch], unstagedChanges: [], didClick})
+    const view = new ChangedFilesCountView({changedFilesCount: 1, didClick})
     view.refs.changedFiles.dispatchEvent(new MouseEvent('click'))
     assert(didClick.called)
   })

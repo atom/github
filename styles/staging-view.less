@@ -2,24 +2,42 @@
 
 .git-StagingView {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
 
   &-group {
     flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   &-header {
-    padding:0 12px;
-    line-height:2.7em;
-    height:2.7em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    background:contrast(@pane-item-background-color, darken(@pane-item-background-color, 3%), lighten(@pane-item-background-color, 3%));
-    font-size: @font-size;
-    font-weight:bold;
-    box-shadow:inset @separator-border-color 0 -1px 0, inset @separator-border-color 0 1px 0;
+    display: flex;
+    padding: @component-padding;
+    padding-bottom: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .icon {
+      text-align: center;
+      &:before {
+        color: @text-color-subtle;
+        margin-right: @component-padding / 1.2;
+      }
+    }
+  }
+
+  &-title {
+    flex: 1;
+    padding-bottom: .5em;
+    border-bottom: 1px solid @panel-heading-border-color;
+  }
+
+  &-list {
+    padding: .3em 0;
+    flex: 1 1 0;
+    overflow-x: auto;
   }
 }

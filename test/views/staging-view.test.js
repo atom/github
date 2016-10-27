@@ -65,7 +65,7 @@ describe('StagingView', () => {
       const mergeConflict = {
         getPath: () => 'conflicted-path',
         getFileStatus: () => 'modified',
-        getOursStatus: () => 'removed',
+        getOursStatus: () => 'deleted',
         getTheirsStatus: () => 'modified'
       }
       await view.update({repository, mergeConflicts: [mergeConflict], stagedChanges: [], unstagedChanges: []})
@@ -335,7 +335,7 @@ describe('StagingView', () => {
       assert.deepEqual(didSelectFilePatch.args[0], [unstagedChangesView.props.items[0], 'unstaged', {focus: undefined}])
 
       // focus staged changes list and first item gets selected
-      view.selectList(ListTypes.STAGED)
+      view.focusNextList()
       assert.equal(didSelectFilePatch.callCount, 2)
       assert.deepEqual(didSelectFilePatch.args[1], [stagedChangesView.props.items[0], 'staged', {focus: undefined}])
       view.disableSelections()

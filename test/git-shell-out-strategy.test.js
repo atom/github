@@ -3,6 +3,8 @@
 import fs from 'fs-extra'
 import path from 'path'
 
+import mkdirp from 'mkdirp'
+
 import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers'
@@ -72,8 +74,8 @@ describe('Git commands', () => {
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
       assert.deepEqual(diffOutput, {
         'a.txt': 'modified',
-        'b.txt': 'removed',
-        'c.txt': 'removed',
+        'b.txt': 'deleted',
+        'c.txt': 'deleted',
         'd.txt': 'added',
         'e.txt': 'added'
       })
@@ -95,6 +97,27 @@ describe('Git commands', () => {
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8')
       assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt'])
+    })
+
+    it('handles untracked files in nested folders', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8')
+      const folderPath = path.join(workingDirPath, 'folder', 'subfolder')
+      mkdirp.sync(folderPath)
+      fs.writeFileSync(path.join(folderPath, 'e.txt'), 'bar', 'utf8')
+      fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8')
+      assert.deepEqual(await git.getUntrackedFiles(), [
+        'd.txt',
+        path.join('folder', 'subfolder', 'e.txt'),
+        path.join('folder', 'subfolder', 'f.txt')
+      ])
+    })
+
+    it('returns an empty array if there are no untracked files', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      assert.deepEqual(await git.getUntrackedFiles(), [])
     })
   })
 
@@ -124,6 +147,8 @@ describe('Git commands', () => {
       assertDeepPropertyVals(stagedDiffOutput, [{
         'oldPath': null,
         'newPath': 'f.txt',
+        'oldMode': null,
+        'newMode': '100644',
         'hunks': [
           {
             'oldStartLine': 0,
@@ -141,6 +166,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'a.txt',
           'newPath': 'a.txt',
+          'oldMode': '100644',
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 1,
@@ -159,6 +186,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'b.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,
@@ -170,11 +199,13 @@ describe('Git commands', () => {
               ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         },
         {
           'oldPath': 'c.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,
@@ -184,11 +215,13 @@ describe('Git commands', () => {
               'lines': [ '-baz' ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         },
         {
           'oldPath': null,
           'newPath': 'd.txt',
+          'oldMode': null,
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 0,
@@ -203,6 +236,8 @@ describe('Git commands', () => {
         {
           'oldPath': null,
           'newPath': 'e.txt',
+          'oldMode': null,
+          'newMode': '100644',
           'hunks': [
             {
               'oldStartLine': 0,
@@ -217,6 +252,8 @@ describe('Git commands', () => {
         {
           'oldPath': 'f.txt',
           'newPath': null,
+          'oldMode': '100644',
+          'newMode': null,
           'hunks': [
             {
               'oldStartLine': 1,
@@ -226,7 +263,7 @@ describe('Git commands', () => {
               'lines': [ '-cat', '\\ No newline at end of file' ]
             }
           ],
-          'status': 'removed'
+          'status': 'deleted'
         }
       ])
     })
@@ -268,11 +305,11 @@ describe('Git commands', () => {
         },
         'removed-on-branch.txt': {
           ours: 'modified',
-          theirs: 'removed',
+          theirs: 'deleted',
           file: 'equivalent'
         },
         'removed-on-master.txt': {
-          ours: 'removed',
+          ours: 'deleted',
           theirs: 'modified',
           file: 'added'
         }
@@ -317,31 +354,31 @@ describe('Git commands', () => {
     })
   })
 
-  describe('getBranchName() and checkout(branchName)', () => {
+  describe('getCurrentBranch() and checkout(branchName, {createNew})', () => {
     it('returns the current branch name', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
-      assert.equal(await git.getBranchName(), 'master')
+      assert.equal(await git.getCurrentBranch(), 'master')
       await git.checkout('branch')
-      assert.equal(await git.getBranchName(), 'branch')
+      assert.equal(await git.getCurrentBranch(), 'branch')
 
       // newBranch does not yet exist
       await assert.isRejected(git.checkout('newBranch'))
-      assert.equal(await git.getBranchName(), 'branch')
+      assert.equal(await git.getCurrentBranch(), 'branch')
       await git.checkout('newBranch', {createNew: true})
-      assert.equal(await git.getBranchName(), 'newBranch')
+      assert.equal(await git.getCurrentBranch(), 'newBranch')
     })
   })
 
-  describe('getRemote(branchName)', () => {
+  describe('getRemoteForBranch(branchName)', () => {
     it('returns the name of the remote associated with the branch, and null if none exists', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
-      assert.equal(await git.getRemote('master'), 'origin')
+      assert.equal(await git.getRemoteForBranch('master'), 'origin')
       await git.exec(['remote', 'rename', 'origin', 'foo'])
-      assert.equal(await git.getRemote('master'), 'foo')
+      assert.equal(await git.getRemoteForBranch('master'), 'foo')
       await git.exec(['remote', 'rm', 'foo'])
-      assert.isNull(await git.getRemote('master'))
+      assert.isNull(await git.getRemoteForBranch('master'))
     })
   })
 

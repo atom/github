@@ -11,15 +11,21 @@
   }
 
   &-item {
-    -webkit-user-select: none;
+    position: relative;
     display: flex;
     align-items: flex-start;
     padding: @component-padding/2 @component-padding;
-    box-shadow:inset @separator-border-color 0 -1px 0;
-    cursor:default;
-    position:relative;
-    box-sizing:border-box;
-    overflow:hidden;
+    padding-left: @component-padding * 3.5;
+    overflow: hidden;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  &-icon {
+    text-align: right;
+    &:before {
+      margin-right: @component-padding / 1.2;
+    }
   }
 
   &-path {
@@ -35,16 +41,11 @@
 // States
 // -----------------------------------------
 
-.git-StagedChanges, .git-UnstagedChanges, .git-MergeConflictPaths {
-  &.is-focused {
-    .git-FilePatchListView-item.is-selected {
-      background: @background-color-highlight;
-      color: @text-color-highlight;
-      box-shadow: @pane-item-background-color 0 -1px 0;
-      :focus & {
-        background: @background-color-selected;
-        color: @text-color-selected;
-      }
-    }
+.git-StagingView-group.is-focused .git-FilePatchListView-item.is-selected {
+  background: @background-color-highlight;
+  color: @text-color-highlight;
+  .git-StagingView:focus & {
+    background: @background-color-selected;
+    color: @text-color-selected;
   }
 }
