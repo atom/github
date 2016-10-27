@@ -2,11 +2,11 @@
 
 import {execFile} from 'child_process'
 
-import CredentialHelper from '../lib/credential-helper'
+import GitPromptServer from '../lib/git-prompt-server'
 
-xdescribe('CredentialHelper', () => {
+xdescribe('GitPromptServer', () => {
   it('prompts for user input and writes the response to stdout', async () => {
-    const helper = new CredentialHelper()
+    const helper = new GitPromptServer()
     const launchPath = await helper.start((question) => {
       assert.equal(question, 'What... is your favorite color?\u0000')
       return 'Green. I mean blue! AAAhhhh...'
