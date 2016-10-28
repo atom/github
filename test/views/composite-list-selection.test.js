@@ -154,6 +154,22 @@ describe('CompositeListSelection', () => {
       selection.selectPreviousItem()
       assertEqualSets(selection.getSelectedItems(), new Set(['a']))
     })
+
+    it('allows selections to be added in the current active list, but updates the existing seleciton when activating a different list', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b', 'c'],
+          conflicts: [],
+          staged: ['e', 'f', 'g']
+        }
+      })
+
+      selection.addOrSubtractSelection('c')
+      assertEqualSets(selection.getSelectedItems(), new Set(['a', 'c']))
+
+      selection.addOrSubtractSelection('g')
+      assertEqualSets(selection.getSelectedItems(), new Set(['g']))
+    })
   })
 
   describe('updateLists(listsByKey)', function () {
