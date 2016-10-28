@@ -170,6 +170,45 @@ describe('CompositeListSelection', () => {
       selection.addOrSubtractSelection('g')
       assertEqualSets(selection.getSelectedItems(), new Set(['g']))
     })
+
+    it('allows all items in the active list to be selected', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b', 'c'],
+          conflicts: [],
+          staged: ['e', 'f', 'g']
+        }
+      })
+
+      selection.selectAllItems()
+      assertEqualSets(selection.getSelectedItems(), new Set(['a', 'b', 'c']))
+
+      selection.activateNextSelection()
+      selection.selectAllItems()
+      assertEqualSets(selection.getSelectedItems(), new Set(['e', 'f', 'g']))
+    })
+
+    it('allows the first or last item in the active list to be selected', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b', 'c'],
+          conflicts: [],
+          staged: ['e', 'f', 'g']
+        }
+      })
+
+      selection.activateNextSelection()
+      selection.selectLastItem()
+      assertEqualSets(selection.getSelectedItems(), new Set(['g']))
+      selection.selectFirstItem()
+      assertEqualSets(selection.getSelectedItems(), new Set(['e']))
+      selection.selectLastItem(true)
+      assertEqualSets(selection.getSelectedItems(), new Set(['e', 'f', 'g']))
+      selection.selectNextItem()
+      assertEqualSets(selection.getSelectedItems(), new Set(['g']))
+      selection.selectFirstItem(true)
+      assertEqualSets(selection.getSelectedItems(), new Set(['e', 'f', 'g']))
+    })
   })
 
   describe('updateLists(listsByKey)', function () {
