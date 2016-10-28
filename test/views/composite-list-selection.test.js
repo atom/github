@@ -10,7 +10,7 @@ describe('CompositeListSelection', () => {
         listsByKey: {
           unstaged: ['a', 'b'],
           conflicts: ['c'],
-          staged: ['d', 'e', 'f'],
+          staged: ['d', 'e', 'f']
         }
       })
 
@@ -34,7 +34,7 @@ describe('CompositeListSelection', () => {
         listsByKey: {
           unstaged: ['a', 'b'],
           conflicts: ['c'],
-          staged: ['d', 'e'],
+          staged: ['d', 'e']
         }
       })
 
@@ -87,7 +87,7 @@ describe('CompositeListSelection', () => {
         listsByKey: {
           unstaged: ['a', 'b'],
           conflicts: ['c'],
-          staged: ['d', 'e'],
+          staged: ['d', 'e']
         }
       })
 
@@ -110,6 +110,50 @@ describe('CompositeListSelection', () => {
       assertEqualSets(selection.getSelectedItems(), new Set(['d', 'e']))
     })
 
+    it('skips empty lists when selecting the next or previous item', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b'],
+          conflicts: [],
+          staged: ['d', 'e']
+        }
+      })
+
+      selection.selectNextItem()
+      selection.selectNextItem()
+      assert.equal(selection.getActiveListKey(), 'staged')
+      assertEqualSets(selection.getSelectedItems(), new Set(['d']))
+      selection.selectPreviousItem()
+      assert.equal(selection.getActiveListKey(), 'unstaged')
+      assertEqualSets(selection.getSelectedItems(), new Set(['b']))
+    })
+
+    it('collapses the selection when moving down with the next list empty or up with the previous list empty', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b'],
+          conflicts: [],
+          staged: []
+        }
+      })
+
+      selection.selectNextItem(true)
+      assertEqualSets(selection.getSelectedItems(), new Set(['a', 'b']))
+      selection.selectNextItem()
+      assertEqualSets(selection.getSelectedItems(), new Set(['b']))
+
+      selection.updateLists({
+        unstaged: [],
+        conflicts: [],
+        staged: ['a', 'b']
+      })
+
+      selection.selectNextItem()
+      selection.selectPreviousItem(true)
+      assertEqualSets(selection.getSelectedItems(), new Set(['a', 'b']))
+      selection.selectPreviousItem()
+      assertEqualSets(selection.getSelectedItems(), new Set(['a']))
+    })
   })
 
   describe('updateLists(listsByKey)', function () {
@@ -117,7 +161,7 @@ describe('CompositeListSelection', () => {
       let listsByKey = {
         unstaged: [{filePath: 'a'}, {filePath: 'b'}],
         conflicts: [{filePath: 'c'}],
-        staged: [{filePath: 'd'}, {filePath: 'e'}, {filePath: 'f'}],
+        staged: [{filePath: 'd'}, {filePath: 'e'}, {filePath: 'f'}]
       }
       const selection = new CompositeListSelection({
         listsByKey, idForItem: (item) => item.filePath
@@ -130,7 +174,7 @@ describe('CompositeListSelection', () => {
       listsByKey = {
         unstaged: [{filePath: 'a'}, {filePath: 'q'}, {filePath: 'b'}, {filePath: 'r'}],
         conflicts: [{filePath: 's'}, {filePath: 'c'}],
-        staged: [{filePath: 'd'}, {filePath: 't'}, {filePath: 'e'}, {filePath: 'f'}],
+        staged: [{filePath: 'd'}, {filePath: 't'}, {filePath: 'e'}, {filePath: 'f'}]
       }
 
       selection.updateLists(listsByKey)
@@ -138,11 +182,11 @@ describe('CompositeListSelection', () => {
       assert.equal(selection.getActiveListKey(), 'staged')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.staged[3]]))
 
-      selection.activatePreviousList()
+      selection.activatePreviousSelection()
       assert.equal(selection.getActiveListKey(), 'conflicts')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.conflicts[1]]))
 
-      selection.activatePreviousList()
+      selection.activatePreviousSelection()
       assert.equal(selection.getActiveListKey(), 'unstaged')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.unstaged[2]]))
     })
@@ -151,7 +195,7 @@ describe('CompositeListSelection', () => {
       let listsByKey = {
         unstaged: [{filePath: 'a'}, {filePath: 'b'}, {filePath: 'c'}],
         conflicts: [],
-        staged: [{filePath: 'd'}, {filePath: 'e'}, {filePath: 'f'}],
+        staged: [{filePath: 'd'}, {filePath: 'e'}, {filePath: 'f'}]
       }
       const selection = new CompositeListSelection({
         listsByKey, idForItem: (item) => item.filePath
@@ -164,16 +208,40 @@ describe('CompositeListSelection', () => {
       listsByKey = {
         unstaged: [{filePath: 'a'}],
         conflicts: [],
-        staged: [{filePath: 'd'}, {filePath: 'f'}],
+        staged: [{filePath: 'd'}, {filePath: 'f'}]
       }
       selection.updateLists(listsByKey)
 
       assert.equal(selection.getActiveListKey(), 'staged')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.staged[1]]))
 
-      selection.activatePreviousList()
+      selection.activatePreviousSelection()
       assert.equal(selection.getActiveListKey(), 'unstaged')
       assertEqualSets(selection.getSelectedItems(), new Set([listsByKey.unstaged[0]]))
+    })
+
+    it('activates the first non-empty list following or preceding the current active list if one exists', function () {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b'],
+          conflicts: [],
+          staged: []
+        }
+      })
+
+      selection.updateLists({
+        unstaged: [],
+        conflicts: [],
+        staged: ['a', 'b']
+      })
+      assert.equal(selection.getActiveListKey(), 'staged')
+
+      selection.updateLists({
+        unstaged: ['a', 'b'],
+        conflicts: [],
+        staged: []
+      })
+      assert.equal(selection.getActiveListKey(), 'unstaged')
     })
   })
 })
