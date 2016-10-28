@@ -7,7 +7,7 @@ import {assertEqualSets} from '../helpers'
 
 describe('FilePatchSelection', () => {
   describe('line selection', () => {
-    it('starts a new line selection with selectLine and updates an existing selection when preserveTail is true',  () => {
+    it('starts a new line selection with selectLine and updates an existing selection when preserveTail is true', () => {
       const hunks = [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -505,7 +505,7 @@ describe('FilePatchSelection', () => {
       it('does not blow up when coalescing with no selections', function () {
         const hunks = [
           new Hunk(1, 1, 0, 1, [
-            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-1', 'added', -1, 1)
           ])
         ]
         const selection = new FilePatchSelection(hunks)
@@ -522,11 +522,11 @@ describe('FilePatchSelection', () => {
     it('selects the first hunk by default', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
-          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-1', 'added', -1, 1)
         ]),
         new Hunk(5, 6, 0, 1, [
-          new HunkLine('line-2', 'added', -1, 6),
-        ]),
+          new HunkLine('line-2', 'added', -1, 6)
+        ])
       ]
       const selection = new FilePatchSelection(hunks)
       assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0]]))
@@ -535,16 +535,16 @@ describe('FilePatchSelection', () => {
     it('starts a new hunk selection with selectHunk and updates an existing selection when preserveTail is true', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
-          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-1', 'added', -1, 1)
         ]),
         new Hunk(5, 6, 0, 1, [
-          new HunkLine('line-2', 'added', -1, 6),
+          new HunkLine('line-2', 'added', -1, 6)
         ]),
         new Hunk(10, 12, 0, 1, [
-          new HunkLine('line-3', 'added', -1, 12),
+          new HunkLine('line-3', 'added', -1, 12)
         ]),
         new Hunk(15, 18, 0, 1, [
-          new HunkLine('line-4', 'added', -1, 18),
+          new HunkLine('line-4', 'added', -1, 18)
         ])
       ]
       const selection = new FilePatchSelection(hunks)
@@ -562,16 +562,16 @@ describe('FilePatchSelection', () => {
     it('adds a new hunk selection with addOrSubtractHunkSelection and always updates the head of the most recent hunk selection', function () {
       const hunks = [
         new Hunk(1, 1, 0, 1, [
-          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-1', 'added', -1, 1)
         ]),
         new Hunk(5, 6, 0, 1, [
-          new HunkLine('line-2', 'added', -1, 6),
+          new HunkLine('line-2', 'added', -1, 6)
         ]),
         new Hunk(10, 12, 0, 1, [
-          new HunkLine('line-3', 'added', -1, 12),
+          new HunkLine('line-3', 'added', -1, 12)
         ]),
         new Hunk(15, 18, 0, 1, [
-          new HunkLine('line-4', 'added', -1, 18),
+          new HunkLine('line-4', 'added', -1, 18)
         ])
       ]
       const selection = new FilePatchSelection(hunks)
