@@ -103,15 +103,13 @@ describe('StagingView', () => {
       ]
       const view = new StagingView({unstagedChanges, stagedChanges: []})
 
-      // This is an unfortunately large amount of code to get this view on the
-      // DOM with styling.
-      const stylesElement = document.createElement('atom-styles')
-      stylesElement.initialize(atom.styles)
-      document.head.appendChild(stylesElement)
-      atom.themes.requireStylesheet(path.join(__dirname, '..', '..', 'styles', 'staging-view.less'))
+      // Actually loading the style sheet is complicated and prone to timing
+      // issues, so this applies some minimal styling to allow the unstaged
+      // changes list to scroll.
       document.body.appendChild(view.element)
-      view.element.style.flex = 'inherit';
-      view.element.style.height = '600px';
+      view.refs.unstagedChanges.style.flex = 'inherit';
+      view.refs.unstagedChanges.style.overflow = 'scroll';
+      view.refs.unstagedChanges.style.height = '50px';
 
       assert.equal(view.refs.unstagedChanges.scrollTop, 0)
 
@@ -123,7 +121,6 @@ describe('StagingView', () => {
       assert.isAbove(view.refs.unstagedChanges.scrollTop, 0)
 
       view.element.remove()
-      stylesElement.remove()
     })
   })
 })
