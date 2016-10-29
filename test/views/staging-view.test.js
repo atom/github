@@ -85,11 +85,24 @@ describe('StagingView', () => {
         didSelectFilePatch, didSelectMergeConflictFile,
         unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
       })
+      document.body.appendChild(view.element)
+      assert.equal(didSelectFilePatch.callCount, 0)
+
+      view.focus()
       assert.isTrue(didSelectFilePatch.calledWith(filePatches[0]))
       await view.selectNext()
       assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
       await view.selectNext()
       assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0]))
+
+      document.body.focus()
+      assert.isFalse(view.isFocused())
+      didSelectFilePatch.reset()
+      didSelectMergeConflictFile.reset()
+      await view.selectNext()
+      assert.equal(didSelectMergeConflictFile.callCount, 0)
+
+      view.element.remove()
     })
 
     it('autoscroll to the selected item if it is out of view', async function () {
