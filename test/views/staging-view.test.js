@@ -63,4 +63,32 @@ describe('StagingView', () => {
       assert.isDefined(view.refs.mergeConflicts)
     })
   })
+
+  describe('didSelectFilePatch and didSelectMergeConflictFile callbacks', function () {
+    it('calls the appropriate callback on initial render based on the head of the selection, then when the selection changes', async function () {
+      const filePatches = [
+        new FilePatch('a.txt', 'a.txt', 'modified', []),
+        new FilePatch('b.txt', null, 'deleted', [])
+      ]
+      const mergeConflicts = [{
+        getPath: () => 'c.txt',
+        getFileStatus: () => 'modified',
+        getOursStatus: () => 'deleted',
+        getTheirsStatus: () => 'modified'
+      }]
+
+      const didSelectFilePatch = sinon.spy()
+      const didSelectMergeConflictFile = sinon.spy()
+
+      const view = new StagingView({
+        didSelectFilePatch, didSelectMergeConflictFile,
+        unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
+      })
+      assert.isTrue(didSelectFilePatch.calledWith(filePatches[0]))
+      await view.selectNext()
+      assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
+      await view.selectNext()
+      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0]))
+    })
+  })
 })
