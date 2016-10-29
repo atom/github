@@ -5,7 +5,7 @@ import path from 'path'
 import fs from 'fs'
 import sinon from 'sinon'
 
-import StagingView, {ListTypes} from '../../lib/views/staging-view'
+import StagingView from '../../lib/views/staging-view'
 
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
