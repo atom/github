@@ -687,7 +687,6 @@ describe('FilePatchSelection', () => {
 
       selection.toggleMode()
       assert.equal(selection.getMode(), 'line')
-      global.debug = true
       assertEqualSets(selection.getSelectedHunks(), new Set([hunks[1]]))
       assertEqualSets(selection.getSelectedLines(), new Set([hunks[1].lines[1]]))
 

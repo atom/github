@@ -476,17 +476,17 @@ describe('Repository', function () {
     })
   })
 
-  describe('getRemote(branchName)', () => {
+  describe('getRemoteForBranch(branchName)', () => {
     it('returns the remote name associated to the supplied branch name, null if none exists', async () => {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true})
       const localRepo = await buildRepository(localRepoPath)
 
-      assert.equal(await localRepo.getRemote('master'), 'origin')
+      assert.equal(await localRepo.getRemoteForBranch('master'), 'origin')
       await localRepo.git.exec(['remote', 'rename', 'origin', 'foo'])
-      assert.equal(await localRepo.getRemote('master'), 'foo')
+      assert.equal(await localRepo.getRemoteForBranch('master'), 'foo')
 
       await localRepo.git.exec(['remote', 'rm', 'foo'])
-      assert.isNull(await localRepo.getRemote('master'))
+      assert.isNull(await localRepo.getRemoteForBranch('master'))
     })
   })
 

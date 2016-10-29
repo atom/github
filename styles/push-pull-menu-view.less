@@ -2,6 +2,7 @@
 
 .git-PushPullMenuView {
   display: flex;
+  width: 400px;
   padding: @component-padding / 2;
   align-items: center;
 
@@ -30,5 +31,22 @@
   // Removes flickering of the toolip if there is an icon inside
   .btn-tooltip-wrapper .icon {
     pointer-events: none;
+  }
+
+  &-message {
+    max-height: 4.8em;
+    margin-top: @component-padding;
+    padding: @component-padding / 2;
+    line-height: 1.4;
+    white-space: normal;
+    text-align: left;
+    overflow-y: auto;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @inset-panel-background-color;
+
+    &:empty {
+      display: none;
+    }
   }
 }
