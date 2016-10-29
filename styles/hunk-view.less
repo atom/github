@@ -53,11 +53,14 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  &-plusMinus {
+    margin-right: 1ch;
+  }
+
   &-lineContent {
     flex: 1;
-    padding: 0 .5em;
-    padding: 0 .5em 0 3em; // indent 2 levels
-    text-indent: -2.5em; // but only when soft-wrapped
+    padding: 0 .5em 0 3ch; // indent 3 characters
+    text-indent: -2ch; // remove indentation for the +/-
     white-space: pre-wrap;
     word-wrap: break-word;
   }
