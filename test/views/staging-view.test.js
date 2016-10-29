@@ -1,6 +1,7 @@
 /** @babel */
 
 import sinon from 'sinon'
+import path from 'path'
 import StagingView from '../../lib/views/staging-view'
 import FilePatch from '../../lib/models/file-patch'
 
@@ -64,8 +65,8 @@ describe('StagingView', () => {
     })
   })
 
-  describe('didSelectFilePatch and didSelectMergeConflictFile callbacks', function () {
-    it('calls the appropriate callback on initial render based on the head of the selection, then when the selection changes', async function () {
+  describe('when the selection changes', function () {
+    it('notifies the parent component via the appropriate callback', async function () {
       const filePatches = [
         new FilePatch('a.txt', 'a.txt', 'modified', []),
         new FilePatch('b.txt', null, 'deleted', [])
@@ -89,6 +90,40 @@ describe('StagingView', () => {
       assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
       await view.selectNext()
       assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0]))
+    })
+
+    it('autoscroll to the selected item if it is out of view', async function () {
+      const unstagedChanges = [
+        new FilePatch('a.txt', 'a.txt', 'modified', []),
+        new FilePatch('b.txt', 'b.txt', 'modified', []),
+        new FilePatch('c.txt', 'c.txt', 'modified', []),
+        new FilePatch('d.txt', 'd.txt', 'modified', []),
+        new FilePatch('e.txt', 'e.txt', 'modified', []),
+        new FilePatch('f.txt', 'f.txt', 'modified', []),
+      ]
+      const view = new StagingView({unstagedChanges, stagedChanges: []})
+
+      // This is an unfortunately large amount of code to get this view on the
+      // DOM with styling.
+      const stylesElement = document.createElement('atom-styles')
+      stylesElement.initialize(atom.styles)
+      document.head.appendChild(stylesElement)
+      atom.themes.requireStylesheet(path.join(__dirname, '..', '..', 'styles', 'staging-view.less'))
+      document.body.appendChild(view.element)
+      view.element.style.flex = 'inherit';
+      view.element.style.height = '600px';
+
+      assert.equal(view.refs.unstagedChanges.scrollTop, 0)
+
+      await view.selectNext()
+      await view.selectNext()
+      await view.selectNext()
+      await view.selectNext()
+
+      assert.isAbove(view.refs.unstagedChanges.scrollTop, 0)
+
+      view.element.remove()
+      stylesElement.remove()
     })
   })
 })
