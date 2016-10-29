@@ -68,6 +68,16 @@
 // States
 // -------------------------------
 
+// Highlight hunk title
+.git-HunkView {
+  &.is-selected.is-hunkMode &-title {
+    color: @text-color-selected;
+  }
+  &-title:hover {
+    color: @text-color-highlight;
+  }
+}
+
 .git-HunkView-line {
 
   &.is-selected .git-HunkView-lineNumber {
