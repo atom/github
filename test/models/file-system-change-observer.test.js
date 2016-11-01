@@ -110,6 +110,24 @@ describe('FileSystemChangeObserver', async () => {
     assert.isTrue(changeSpy.calledOnce)
   })
 
+  it('emits an event when commits are pushed', async () => {
+    const {localRepoPath} = await setUpLocalAndRemoteRepositories()
+    const repository = await buildRepository(localRepoPath)
+    const changeSpy = sinon.spy()
+    const changeObserver = new FileSystemChangeObserver()
+    changeObserver.onDidChange(changeSpy)
+    await changeObserver.start()
+    await changeObserver.setActiveRepository(repository)
+
+    await repository.git.exec(['commit', '--allow-empty', '-m', 'new commit'])
+    await changeObserver.lastFileChangePromise
+
+    changeSpy.reset()
+    await repository.git.exec(['push', 'origin', 'master'])
+    await changeObserver.lastFileChangePromise
+    assert.isTrue(changeSpy.calledOnce)
+  })
+
   it('emits an event when a new tracking branch is added after pushing', async () => {
     const {localRepoPath} = await setUpLocalAndRemoteRepositories()
     const repository = await buildRepository(localRepoPath)
