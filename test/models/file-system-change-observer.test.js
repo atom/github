@@ -155,7 +155,7 @@ describe('FileSystemChangeObserver', async () => {
     await changeObserver.start()
     await changeObserver.setActiveRepository(repository)
 
-    await repository.git.exec(['fetch'])
+    await repository.git.exec(['fetch', 'origin', 'master'])
     await changeObserver.lastFileChangePromise
     assert.isTrue(changeSpy.calledOnce)
   })
