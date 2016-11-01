@@ -123,7 +123,7 @@ describe('FileSystemChangeObserver', async () => {
     await changeObserver.lastFileChangePromise
 
     changeSpy.reset()
-    await repository.git.exec(['push', '--set-upstream'])
+    await repository.git.exec(['push', '--set-upstream', 'origin', 'new-branch'])
     await changeObserver.lastFileChangePromise
     assert.isTrue(changeSpy.calledOnce)
   })
