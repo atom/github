@@ -8,11 +8,25 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
 
-export async function cloneRepository (repoName = 'three-files') {
+const cachedClonedRepos = {}
+
+// cloning a repo into a folder and then copying it
+// for each subsequent request to clone makes cloning
+// 2-3x faster on macOS and 5-10x faster on Windows
+function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-')
-  const git = new GitShellOutStrategy(workingDirPath)
-  await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+  fs.copySync(cachedClonedRepos[repoName], workingDirPath)
   return fs.realpathSync(workingDirPath)
+}
+
+export async function cloneRepository (repoName = 'three-files') {
+  if (!cachedClonedRepos[repoName]) {
+    const cachedPath = temp.mkdirSync('git-fixture-cache-')
+    const git = new GitShellOutStrategy(cachedPath)
+    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+    cachedClonedRepos[repoName] = cachedPath
+  }
+  return copyCachedRepo(repoName)
 }
 
 export async function setUpLocalAndRemoteRepositories (repoName = 'multiple-commits', options = {}) {
