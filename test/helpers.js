@@ -8,11 +8,16 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
 
-const cachedClonedRepos = {}
+assert.autocrlfEqual = (actual, expected, ...args) => {
+  actual = actual.replace(/\r\n/g, '\n')
+  expected = expected.replace(/\r\n/g, '\n')
+  return assert.equal(actual, expected, ...args)
+}
 
 // cloning a repo into a folder and then copying it
 // for each subsequent request to clone makes cloning
 // 2-3x faster on macOS and 5-10x faster on Windows
+const cachedClonedRepos = {}
 function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-')
   fs.copySync(cachedClonedRepos[repoName], workingDirPath)

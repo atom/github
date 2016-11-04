@@ -92,12 +92,12 @@ describe('FilePatchController', () => {
         'this is a new line',
         'this is another new line'
       )
-      assert.equal(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
 
       const [stagedFilePatch] = await repository.getStagedChanges()
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).props.didClickStageButton()
-      assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
     })
 
     it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
@@ -134,7 +134,7 @@ describe('FilePatchController', () => {
         'this is a modified line',
         'this is a new line'
       )
-      assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // stage remaining lines in hunk
       await hunkView.props.didClickStageButton()
@@ -144,7 +144,7 @@ describe('FilePatchController', () => {
         'this is a new line',
         'this is another new line'
       )
-      assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // unstage a subset of lines from the first hunk
       const [stagedFilePatch] = await repository.getStagedChanges()
@@ -163,12 +163,12 @@ describe('FilePatchController', () => {
         'this is a new line',
         'this is another new line'
       )
-      assert.equal(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // unstage the rest of the hunk
       await view.togglePatchSelectionMode()
       await hunkView.props.didClickStageButton()
-      assert.equal(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
     })
   })
 })
