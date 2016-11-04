@@ -88,12 +88,12 @@ describe('FileSystemChangeObserver', async () => {
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
     await repository.git.exec(['add', 'a.txt'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
 
     changeSpy.reset()
     await repository.git.exec(['reset', 'a.txt'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
   })
 
   it('emits an event when a branch is checked out', async () => {
@@ -107,7 +107,7 @@ describe('FileSystemChangeObserver', async () => {
 
     await repository.git.exec(['checkout', '-b', 'new-branch'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
   })
 
   it('emits an event when commits are pushed', async () => {
@@ -125,7 +125,7 @@ describe('FileSystemChangeObserver', async () => {
     changeSpy.reset()
     await repository.git.exec(['push', 'origin', 'master'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
   })
 
   it('emits an event when a new tracking branch is added after pushing', async () => {
@@ -143,7 +143,7 @@ describe('FileSystemChangeObserver', async () => {
     changeSpy.reset()
     await repository.git.exec(['push', '--set-upstream', 'origin', 'new-branch'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
   })
 
   it('emits an event when commits have been fetched', async () => {
@@ -157,7 +157,7 @@ describe('FileSystemChangeObserver', async () => {
 
     await repository.git.exec(['fetch', 'origin', 'master'])
     await changeObserver.lastFileChangePromise
-    assert.isTrue(changeSpy.calledOnce)
+    assert.isTrue(changeSpy.called)
   })
 
   function timeout(ms) {
