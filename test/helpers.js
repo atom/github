@@ -29,6 +29,8 @@ export async function cloneRepository (repoName = 'three-files') {
     const cachedPath = temp.mkdirSync('git-fixture-cache-')
     const git = new GitShellOutStrategy(cachedPath)
     await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+    await git.exec(['config', '--local', 'core.autocrlf', 'false'])
+    await git.exec(['checkout', '--', '.']) // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath
   }
   return copyCachedRepo(repoName)
