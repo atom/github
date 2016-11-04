@@ -284,6 +284,9 @@ describe('Git commands', () => {
         await git.merge('origin/branch')
       } catch (e) {
         // expected
+        if (!e.message.match(/CONFLICT/)) {
+          throw new Error(`merge failed for wrong reason: ${e.message}`)
+        }
       }
 
       const statusesByPath = await git.getMergeConflictFileStatus()
