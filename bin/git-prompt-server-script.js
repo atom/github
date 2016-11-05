@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const net = require('net')
 
 const sockPath = process.argv[2]
