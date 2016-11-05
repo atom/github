@@ -8,11 +8,32 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 import Repository from '../lib/models/repository'
 
-export async function cloneRepository (repoName = 'three-files') {
+assert.autocrlfEqual = (actual, expected, ...args) => {
+  actual = actual.replace(/\r\n/g, '\n')
+  expected = expected.replace(/\r\n/g, '\n')
+  return assert.equal(actual, expected, ...args)
+}
+
+// cloning a repo into a folder and then copying it
+// for each subsequent request to clone makes cloning
+// 2-3x faster on macOS and 5-10x faster on Windows
+const cachedClonedRepos = {}
+function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-')
-  const git = new GitShellOutStrategy(workingDirPath)
-  await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+  fs.copySync(cachedClonedRepos[repoName], workingDirPath)
   return fs.realpathSync(workingDirPath)
+}
+
+export async function cloneRepository (repoName = 'three-files') {
+  if (!cachedClonedRepos[repoName]) {
+    const cachedPath = temp.mkdirSync('git-fixture-cache-')
+    const git = new GitShellOutStrategy(cachedPath)
+    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'))
+    await git.exec(['config', '--local', 'core.autocrlf', 'false'])
+    await git.exec(['checkout', '--', '.']) // discard \r in working directory
+    cachedClonedRepos[repoName] = cachedPath
+  }
+  return copyCachedRepo(repoName)
 }
 
 export async function setUpLocalAndRemoteRepositories (repoName = 'multiple-commits', options = {}) {
@@ -63,4 +84,9 @@ export function assertDeepPropertyVals (actual, expected) {
   }
 
   assert.deepEqual(extractObjectSubset(actual, expected), expected)
+}
+
+export function assertEqualSets (a, b) {
+  assert.equal(a.size, b.size, 'Sets are a different size')
+  a.forEach(item => assert(b.has(item), 'Sets have different elements'))
 }
