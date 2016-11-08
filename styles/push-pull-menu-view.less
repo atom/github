@@ -1,10 +1,12 @@
 @import "variables";
 
 .git-PushPullMenuView {
-  display: flex;
   width: 400px;
-  padding: @component-padding / 2;
-  align-items: center;
+
+  &-selector {
+    display: flex;
+    align-items: center;
+  }
 
   &-item {
     margin: @component-padding / 2;
@@ -35,7 +37,7 @@
 
   &-message {
     max-height: 4.8em;
-    margin-top: @component-padding;
+    margin: @component-padding / 2;
     padding: @component-padding / 2;
     line-height: 1.4;
     white-space: normal;

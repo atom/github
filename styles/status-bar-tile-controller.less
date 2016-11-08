@@ -8,16 +8,20 @@
       padding-right: @component-padding;
     }
     .tooltip-inner.tooltip-inner {
-      padding: @component-padding;
-      background-color: @base-background-color;
+      padding: @component-padding / 2;
+      background-color: @tool-panel-background-color;
       border: 1px solid @base-border-color;
       box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
       color: @text-color;
     }
     &.top .tooltip-arrow.tooltip-arrow {
-      bottom: -1px;
-      border-width: 10px 10px 0 10px;
-      border-top-color: @base-background-color;
+      width: @component-padding;
+      height: @component-padding;
+      border-width: 0 0 1px 1px;
+      border-color: @base-border-color;
+      background-color: @tool-panel-background-color;
+      border-bottom-right-radius: 2px;
+      transform: rotate(-45deg);
     }
   }
 }
