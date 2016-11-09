@@ -88,6 +88,51 @@ describe('Git commands', () => {
       })
       assert.deepEqual(mergeConflictFiles, {})
     })
+
+    it('returns an object for merge conflict files, including ours/theirs/file status information', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      try {
+        await git.merge('origin/branch')
+      } catch (e) {
+        // expected
+        if (!e.message.match(/CONFLICT/)) {
+          throw new Error(`merge failed for wrong reason: ${e.message}`)
+        }
+      }
+
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatus()
+      assert.deepEqual(stagedFiles, {})
+      assert.deepEqual(unstagedFiles, {})
+
+      assert.deepEqual(mergeConflictFiles, {
+        'added-to-both.txt': {
+          ours: 'added',
+          theirs: 'added',
+          file: 'modified'
+        },
+        'modified-on-both-ours.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'modified-on-both-theirs.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'removed-on-branch.txt': {
+          ours: 'modified',
+          theirs: 'deleted',
+          file: 'equivalent'
+        },
+        'removed-on-master.txt': {
+          ours: 'deleted',
+          theirs: 'modified',
+          file: 'added'
+        }
+      })
+    })
   })
 
   describe('diffFileStatus', () => {
