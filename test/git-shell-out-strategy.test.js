@@ -63,7 +63,7 @@ describe('Git commands', () => {
     })
   })
 
-  describe('getStatus', () => {
+  describe('getStatusesForChangedFiles', () => {
     it('returns objects for staged and unstaged files, including status information', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
@@ -74,7 +74,7 @@ describe('Git commands', () => {
       await git.exec(['add', 'a.txt', 'e.txt'])
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modify after staging', 'utf8')
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'modify after staging', 'utf8')
-      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatus()
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
       assert.deepEqual(stagedFiles, {
         'a.txt': 'modified',
         'e.txt': 'added'
@@ -101,7 +101,7 @@ describe('Git commands', () => {
         }
       }
 
-      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatus()
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
       assert.deepEqual(stagedFiles, {})
       assert.deepEqual(unstagedFiles, {})
 
