@@ -63,6 +63,33 @@ describe('Git commands', () => {
     })
   })
 
+  describe('getStatus', () => {
+    it('returns objects for staged and unstaged files, including status information', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      await git.exec(['add', 'a.txt', 'e.txt'])
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modify after staging', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'modify after staging', 'utf8')
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatus()
+      assert.deepEqual(stagedFiles, {
+        'a.txt': 'modified',
+        'e.txt': 'added'
+      })
+      assert.deepEqual(unstagedFiles, {
+        'a.txt': 'modified',
+        'b.txt': 'deleted',
+        'c.txt': 'deleted',
+        'd.txt': 'added',
+        'e.txt': 'modified'
+      })
+      assert.deepEqual(mergeConflictFiles, {})
+    })
+  })
+
   describe('diffFileStatus', () => {
     it('returns an object with working directory file diff status between relative to HEAD', async () => {
       const workingDirPath = await cloneRepository('three-files')
