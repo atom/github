@@ -18,8 +18,6 @@ describe('GitPromptServer', () => {
         assert.equal(stdout, 'Green. I mean blue! AAAhhhh...\n')
         resolve()
       })
-
-      cp.on('exit', () => console.log('exit'))
     })
 
     await server.terminate()
