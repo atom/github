@@ -51,4 +51,39 @@
       display: none;
     }
   }
+
+
+  // Progress indicator
+  &.in-progress {
+    .icon-mark-github {
+      position: relative;
+      color: @text-color;
+      &:before {
+        color: inherit;
+      }
+      &:after {
+        content: "";
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        width: 24px;
+        height: 24px;
+        border-top: 2px dotted;
+        border-right: 2px dotted;
+        border-bottom: 2px dotted transparent;
+        border-radius: 16px;
+
+        // To limit CPU usage, the animation plays for some time at normal speed,
+        // then slows down frame-rate for a while and stops at some point
+        -webkit-animation: git-PushPullMenuView-animation 2s linear 12,
+                           git-PushPullMenuView-animation 4s 24s steps(12) 100;
+      }
+    }
+  }
+}
+
+
+// Animations
+@-webkit-keyframes git-PushPullMenuView-animation {
+  100% { transform: rotate(360deg); }
 }
