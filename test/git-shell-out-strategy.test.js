@@ -89,6 +89,20 @@ describe('Git commands', () => {
       assert.deepEqual(mergeConflictFiles, {})
     })
 
+    it('displays renamed files as one removed file and one added file', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      await git.exec(['add', '.'])
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
+      assert.deepEqual(stagedFiles, {
+        'c.txt': 'deleted',
+        'd.txt': 'added'
+      })
+      assert.deepEqual(unstagedFiles, {})
+      assert.deepEqual(mergeConflictFiles, {})
+    })
+
     it('returns an object for merge conflict files, including ours/theirs/file status information', async () => {
       const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
