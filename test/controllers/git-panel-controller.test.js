@@ -59,7 +59,6 @@ describe('GitPanelController', () => {
     // Does not update repository instance variable until that data is fetched
     await controller.update({repository: repository1})
     assert.equal(controller.getActiveRepository(), repository1)
-    console.log(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
     assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
 
     await controller.update({repository: repository2})
