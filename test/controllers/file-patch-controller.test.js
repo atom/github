@@ -75,7 +75,7 @@ describe('FilePatchController', () => {
       )
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
-      const [unstagedFilePatch] = await repository.getUnstagedChanges()
+      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
 
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
@@ -94,7 +94,7 @@ describe('FilePatchController', () => {
       )
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
 
-      const [stagedFilePatch] = await repository.getStagedChanges()
+      const stagedFilePatch = await repository.getFilePatchForPath('sample.js', true)
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).props.didClickStageButton()
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
@@ -115,7 +115,7 @@ describe('FilePatchController', () => {
       )
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
-      const [unstagedFilePatch] = await repository.getUnstagedChanges()
+      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
 
@@ -147,7 +147,7 @@ describe('FilePatchController', () => {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // unstage a subset of lines from the first hunk
-      const [stagedFilePatch] = await repository.getStagedChanges()
+      const stagedFilePatch = await repository.getFilePatchForPath('sample.js', true)
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       hunk = stagedFilePatch.getHunks()[0]
       lines = hunk.getLines()

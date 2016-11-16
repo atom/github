@@ -225,7 +225,7 @@ describe('FilePatch', () => {
       lines.splice(12, 1)
       fs.writeFileSync(path.join(workdirPath, 'sample.js'), lines.join('\n'))
 
-      const [patch] = await repository.getUnstagedChanges()
+      const patch = await repository.getFilePatchForPath('sample.js', false)
       assert.equal(patch.toString(), dedent`
         @@ -1,4 +1,5 @@
         -var quicksort = function () {
@@ -250,7 +250,7 @@ describe('FilePatch', () => {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
-      const [patch] = await repo.getUnstagedChanges()
+      const patch = await repo.getFilePatchForPath('e.txt', false)
 
       assert.equal(patch.toString(), dedent`
         @@ -0,0 +1,1 @@

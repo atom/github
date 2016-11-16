@@ -3,9 +3,9 @@
 import fs from 'fs'
 import path from 'path'
 import temp from 'temp'
+import etch from 'etch'
 import {cloneRepository, buildRepository} from './helpers'
 import FilePatch from '../lib/models/file-patch'
-import Hunk from '../lib/models/hunk'
 import GithubPackage from '../lib/github-package'
 
 describe('GithubPackage', () => {
@@ -171,6 +171,8 @@ describe('GithubPackage', () => {
     describe('when the active item is a FilePatchController', () => {
       it('updates the active repository to be the one associated with the FilePatchController', async () => {
         const workdirPath = await cloneRepository('three-files')
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
+
         project.setPaths([workdirPath])
         const repository = await githubPackage.repositoryForWorkdirPath(workdirPath)
 
@@ -178,8 +180,7 @@ describe('GithubPackage', () => {
         await githubPackage.updateActiveRepository()
         assert.equal(githubPackage.getActiveRepository(), repository)
 
-        const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
-        githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'unstaged')
+        await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
         assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
         assert.equal(githubPackage.filePatchController.props.repository, repository)
         await githubPackage.updateActiveRepository()
@@ -217,16 +218,17 @@ describe('GithubPackage', () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
 
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
+      fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new-file', 'utf8')
+      await repository.stageFiles(['d.txt'])
+
       githubPackage.getActiveRepository = function () { return repository }
-      const hunk = new Hunk(1, 1, 1, 3, [])
-      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
-      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [hunk])
 
       assert.isNull(githubPackage.filePatchController)
 
-      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch1, 'unstaged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
       assert(githubPackage.filePatchController)
-      assert.equal(githubPackage.filePatchController.props.filePatch, filePatch1)
+      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'a.txt')
       assert.equal(githubPackage.filePatchController.props.repository, repository)
       assert.equal(githubPackage.filePatchController.props.stagingStatus, 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
@@ -236,9 +238,9 @@ describe('GithubPackage', () => {
       originalPane.splitRight() // activate a different pane
       assert.isUndefined(workspace.getActivePaneItem())
 
-      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch2, 'staged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('d.txt', 'staged')
       assert.equal(githubPackage.filePatchController, existingFilePatchView)
-      assert.equal(githubPackage.filePatchController.props.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
       assert.equal(githubPackage.filePatchController.props.repository, repository)
       assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
       assert.equal(originalPane.getActiveItem(), githubPackage.filePatchController)
@@ -247,9 +249,9 @@ describe('GithubPackage', () => {
       assert.isUndefined(workspace.getActivePaneItem())
       assert.isNull(githubPackage.filePatchController)
 
-      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch2, 'staged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('d.txt', 'staged')
       assert.notEqual(githubPackage.filePatchController, existingFilePatchView)
-      assert.equal(githubPackage.filePatchController.props.filePatch, filePatch2)
+      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
       assert.equal(githubPackage.filePatchController.props.repository, repository)
       assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
@@ -260,12 +262,11 @@ describe('GithubPackage', () => {
     it('closes the file patch pane item', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
 
       githubPackage.getActiveRepository = function () { return repository }
-      const hunk = new Hunk(1, 1, 1, 3, [])
-      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk])
 
-      githubPackage.gitPanelController.props.didSelectFilePatch(filePatch, 'staged')
+      githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
       githubPackage.gitPanelController.props.didChangeAmending()
@@ -280,6 +281,8 @@ describe('GithubPackage', () => {
       project.setPaths([workdirPath])
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.updateActiveRepository()
+
+      await etch.getScheduler().getNextUpdatePromise()
 
       githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)

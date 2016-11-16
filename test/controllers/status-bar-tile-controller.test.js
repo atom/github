@@ -304,8 +304,7 @@ describe('StatusBarTileController', () => {
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
       repository.refresh()
-      const [patchToStage] = await repository.getUnstagedChanges()
-      await repository.applyPatchToIndex(patchToStage)
+      await repository.stageFiles(['a.txt'])
       await controller.getLastModelDataRefreshPromise()
 
       assert.equal(changedFilesCountView.element.textContent, '2 files')

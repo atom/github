@@ -18,7 +18,6 @@ describe('StagingView', () => {
         return Array.from(element.children).map(child => child.textContent)
       }
 
-      console.log(refs.unstagedChanges);
       assert.deepEqual(textContentOfChildren(refs.unstagedChanges), ['a.txt', 'b.txt'])
       assert.deepEqual(textContentOfChildren(refs.stagedChanges), [])
 
@@ -94,11 +93,11 @@ describe('StagingView', () => {
       assert.equal(didSelectFilePatch.callCount, 0)
 
       view.focus()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[0]))
+      assert.isTrue(didSelectFilePatch.calledWith(filePatches[0].filePath))
       await view.selectNext()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
+      assert.isTrue(didSelectFilePatch.calledWith(filePatches[1].filePath))
       await view.selectNext()
-      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0]))
+      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
 
       document.body.focus()
       assert.isFalse(view.isFocused())
