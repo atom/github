@@ -9,8 +9,8 @@ describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
       const filePatches = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', null, 'deleted', [])
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'deleted' }
       ]
       const view = new StagingView({unstagedChanges: filePatches, stagedChanges: []})
       const {refs} = view
@@ -18,6 +18,7 @@ describe('StagingView', () => {
         return Array.from(element.children).map(child => child.textContent)
       }
 
+      console.log(refs.unstagedChanges);
       assert.deepEqual(textContentOfChildren(refs.unstagedChanges), ['a.txt', 'b.txt'])
       assert.deepEqual(textContentOfChildren(refs.stagedChanges), [])
 
@@ -29,8 +30,8 @@ describe('StagingView', () => {
     describe('confirmSelectedItems()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
         const filePatches = [
-          new FilePatch('a.txt', 'a.txt', 'modified', []),
-          new FilePatch('b.txt', null, 'deleted', [])
+          { filePath: 'a.txt', status: 'modified' },
+          { filePath: 'b.txt', status: 'deleted' }
         ]
         const stageFiles = sinon.spy()
         const unstageFiles = sinon.spy()
@@ -55,10 +56,12 @@ describe('StagingView', () => {
       assert.isUndefined(view.refs.mergeConflicts)
 
       const mergeConflicts = [{
-        getPath: () => 'conflicted-path',
-        getFileStatus: () => 'modified',
-        getOursStatus: () => 'deleted',
-        getTheirsStatus: () => 'modified'
+        filePath: 'conflicted-path',
+        status: {
+          file: 'modified',
+          ours: 'deleted',
+          theirs: 'modified'
+        }
       }]
       await view.update({unstagedChanges: [], mergeConflicts, stagedChanges: []})
       assert.isDefined(view.refs.mergeConflicts)
@@ -68,14 +71,16 @@ describe('StagingView', () => {
   describe('when the selection changes', function () {
     it('notifies the parent component via the appropriate callback', async function () {
       const filePatches = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', null, 'deleted', [])
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'deleted' }
       ]
       const mergeConflicts = [{
-        getPath: () => 'c.txt',
-        getFileStatus: () => 'modified',
-        getOursStatus: () => 'deleted',
-        getTheirsStatus: () => 'modified'
+        filePath: 'conflicted-path',
+        status: {
+          file: 'modified',
+          ours: 'deleted',
+          theirs: 'modified'
+        }
       }]
 
       const didSelectFilePatch = sinon.spy()
@@ -107,12 +112,12 @@ describe('StagingView', () => {
 
     it('autoscroll to the selected item if it is out of view', async function () {
       const unstagedChanges = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', 'b.txt', 'modified', []),
-        new FilePatch('c.txt', 'c.txt', 'modified', []),
-        new FilePatch('d.txt', 'd.txt', 'modified', []),
-        new FilePatch('e.txt', 'e.txt', 'modified', []),
-        new FilePatch('f.txt', 'f.txt', 'modified', []),
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'modified' },
+        { filePath: 'c.txt', status: 'modified' },
+        { filePath: 'd.txt', status: 'modified' },
+        { filePath: 'e.txt', status: 'modified' },
+        { filePath: 'f.txt', status: 'modified' }
       ]
       const view = new StagingView({unstagedChanges, stagedChanges: []})
 

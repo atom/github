@@ -59,18 +59,19 @@ describe('GitPanelController', () => {
     // Does not update repository instance variable until that data is fetched
     await controller.update({repository: repository1})
     assert.equal(controller.getActiveRepository(), repository1)
-    assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
+    console.log(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
+    assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository1.getUnstagedChanges())
 
     await controller.update({repository: repository2})
     assert.equal(controller.getActiveRepository(), repository2)
-    assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
+    assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
 
     // Fetches data and updates child view when the repository is mutated
     fs.writeFileSync(path.join(workdirPath2, 'a.txt'), 'a change\n')
     fs.unlinkSync(path.join(workdirPath2, 'b.txt'))
     await repository2.refresh()
     await controller.getLastModelDataRefreshPromise()
-    assert.equal(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
+    assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges())
   })
 
   it('displays the staged changes since the parent commmit when amending', async function () {
@@ -142,8 +143,8 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.mergeConflicts.length, 5)
       assert.equal(stagingView.props.stagedChanges.length, 0)
 
-      const conflict1 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-ours.txt')[0]
-      const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.getPath()), 'utf8')
+      const conflict1 = stagingView.props.mergeConflicts.filter((c) => c.filePath === 'modified-on-both-ours.txt')[0]
+      const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.filePath), 'utf8')
       assert(contentsWithMarkers.includes('>>>>>>>'))
       assert(contentsWithMarkers.includes('<<<<<<<'))
 
@@ -170,9 +171,9 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.stagedChanges.length, 1)
 
       // clear merge markers
-      const conflict2 = stagingView.props.mergeConflicts.filter((c) => c.getPath() === 'modified-on-both-theirs.txt')[0]
+      const conflict2 = stagingView.props.mergeConflicts.filter((c) => c.filePath === 'modified-on-both-theirs.txt')[0]
       atom.confirm.reset()
-      fs.writeFileSync(path.join(workdirPath, conflict2.getPath()), 'text with no merge markers')
+      fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers')
       await stagingView.mousedownOnItem({detail: 2}, conflict2)
       await controller.getLastModelDataRefreshPromise()
       assert.equal(atom.confirm.called, false)
@@ -190,9 +191,8 @@ describe('GitPanelController', () => {
       const stagingView = controller.refs.gitPanel.refs.stagingView
 
       const [addedFilePatch] = stagingView.props.unstagedChanges
-      assert.equal(addedFilePatch.getStatus(), 'added')
-      assert.isNull(addedFilePatch.getOldPath())
-      assert.equal(addedFilePatch.getNewPath(), 'new-file.txt')
+      assert.equal(addedFilePatch.filePath, 'new-file.txt')
+      assert.equal(addedFilePatch.status, 'added')
 
       const patchString = dedent`
         --- /dev/null
@@ -211,9 +211,8 @@ describe('GitPanelController', () => {
       // which now has new-file.txt on it, the working directory version of
       // new-file.txt has a modified status
       const [modifiedFilePatch] = stagingView.props.unstagedChanges
-      assert.equal(modifiedFilePatch.getStatus(), 'modified')
-      assert.equal(modifiedFilePatch.getOldPath(), 'new-file.txt')
-      assert.equal(modifiedFilePatch.getNewPath(), 'new-file.txt')
+      assert.equal(modifiedFilePatch.status, 'modified')
+      assert.equal(modifiedFilePatch.filePath, 'new-file.txt')
     })
   })
 })
