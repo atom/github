@@ -299,7 +299,7 @@ describe('StatusBarTileController', () => {
 
       const changedFilesCountView = controller.refs.changedFilesCountView
 
-      assert.equal(changedFilesCountView.element.textContent, '')
+      assert.equal(changedFilesCountView.element.textContent, '0 files')
 
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
