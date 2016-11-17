@@ -80,39 +80,41 @@ describe('Repository', function () {
       const workingDirPath = await cloneRepository('multiple-commits')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'three\nfour\n', 'utf8')
-      assertDeepPropertyVals(await repo.getStagedChangesSinceParentCommit(), [
+      assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), [
         {
-          oldPath: 'file.txt',
-          newPath: 'file.txt',
-          status: 'modified',
-          hunks: [
-            {
-              lines: [
-                {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-                {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-              ]
-            }
-          ]
+          filePath: 'file.txt',
+          status: 'modified'
         }
       ])
+      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', true, true), {
+        oldPath: 'file.txt',
+        newPath: 'file.txt',
+        status: 'modified',
+        hunks: [
+          {
+            lines: [
+              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
+              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
+            ]
+          }
+        ]
+      })
 
       await repo.stageFiles(['file.txt'])
-      assertDeepPropertyVals(await repo.getStagedChangesSinceParentCommit(), [
-        {
-          oldPath: 'file.txt',
-          newPath: 'file.txt',
-          status: 'modified',
-          hunks: [
-            {
-              lines: [
-                {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-                {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-                {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
-              ]
-            }
-          ]
-        }
-      ])
+      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', true, true), {
+        oldPath: 'file.txt',
+        newPath: 'file.txt',
+        status: 'modified',
+        hunks: [
+          {
+            lines: [
+              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
+              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
+              {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
+            ]
+          }
+        ]
+      })
 
       await repo.stageFilesFromParentCommit(['file.txt'])
       assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), [])
