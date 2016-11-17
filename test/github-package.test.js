@@ -263,10 +263,12 @@ describe('GithubPackage', () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
+      await repository.stageFiles(['a.txt'])
 
       githubPackage.getActiveRepository = function () { return repository }
 
-      githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'staged')
+      assert.isOk(githubPackage.filePatchController)
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
       githubPackage.gitPanelController.props.didChangeAmending()
