@@ -131,15 +131,18 @@ describe('Repository', function () {
 
   describe('getFilePatchForPath', () => {
     it('returns cached FilePatch objects if they exist', async () => {
-      const workingDirPath = await cloneRepository('three-files')
+      const workingDirPath = await cloneRepository('multiple-commits')
       const repo = await buildRepository(workingDirPath)
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foooooo', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      await repo.stageFiles(['file.txt'])
 
-      const filePatchA = await repo.getFilePatchForPath('a.txt')
-      const filePatchB = await repo.getFilePatchForPath('b.txt')
-      assert.equal(await repo.getFilePatchForPath('a.txt'), filePatchA)
-      assert.equal(await repo.getFilePatchForPath('b.txt'), filePatchB)
+      const unstagedFilePatch = await repo.getFilePatchForPath('new-file.txt')
+      const stagedFilePatch = await repo.getFilePatchForPath('file.txt', {staged: true})
+      const stagedFilePatchDuringAmend = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true})
+      assert.equal(await repo.getFilePatchForPath('new-file.txt'), unstagedFilePatch)
+      assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true}), stagedFilePatch)
+      assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), stagedFilePatchDuringAmend)
     })
 
     it('returns new FilePatch object after repository refresh', async () => {
