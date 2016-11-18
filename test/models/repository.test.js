@@ -92,7 +92,7 @@ describe('Repository', function () {
           status: 'modified'
         }
       ])
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', true, true), {
+      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
         oldPath: 'file.txt',
         newPath: 'file.txt',
         status: 'modified',
@@ -108,7 +108,7 @@ describe('Repository', function () {
 
       await repo.stageFiles(['file.txt'])
       await repo.refresh()
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', true, true), {
+      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
         oldPath: 'file.txt',
         newPath: 'file.txt',
         status: 'modified',
@@ -136,10 +136,10 @@ describe('Repository', function () {
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
       fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
 
-      const filePatchA = await repo.getFilePatchForPath('a.txt', false, false)
-      const filePatchB = await repo.getFilePatchForPath('b.txt', false, false)
-      assert.equal(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
-      assert.equal(await repo.getFilePatchForPath('b.txt', false, false), filePatchB)
+      const filePatchA = await repo.getFilePatchForPath('a.txt')
+      const filePatchB = await repo.getFilePatchForPath('b.txt')
+      assert.equal(await repo.getFilePatchForPath('a.txt'), filePatchA)
+      assert.equal(await repo.getFilePatchForPath('b.txt'), filePatchB)
     })
 
     it('returns new FilePatch object after repository refresh', async () => {
@@ -147,12 +147,12 @@ describe('Repository', function () {
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
 
-      const filePatchA = await repo.getFilePatchForPath('a.txt', false, false)
-      assert.equal(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+      const filePatchA = await repo.getFilePatchForPath('a.txt')
+      assert.equal(await repo.getFilePatchForPath('a.txt'), filePatchA)
 
       await repo.refresh()
-      assert.notEqual(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
-      assert.deepEqual(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+      assert.notEqual(await repo.getFilePatchForPath('a.txt'), filePatchA)
+      assert.deepEqual(await repo.getFilePatchForPath('a.txt'), filePatchA)
     })
   })
 
@@ -161,15 +161,15 @@ describe('Repository', function () {
       const workingDirPath = await cloneRepository('three-files')
       const repo = await buildRepository(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
+      const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'))
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refresh()
-      const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
+      const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'))
 
       await repo.applyPatchToIndex(unstagedPatch1)
       await repo.refresh()
-      const stagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), true)
+      const stagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), {staged: true})
       assert.deepEqual(stagedPatch1, unstagedPatch1)
 
       let unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath)
@@ -179,7 +179,7 @@ describe('Repository', function () {
 
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch())
       await repo.refresh()
-      const unstagedPatch3 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
+      const unstagedPatch3 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'))
       assert.deepEqual(unstagedPatch3, unstagedPatch2)
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath)
       stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath)
@@ -195,7 +195,7 @@ describe('Repository', function () {
       assert.equal((await repo.getLastCommit()).message, 'Initial commit')
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
+      const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'))
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8')
       await repo.refresh()
       await repo.applyPatchToIndex(unstagedPatch1)
@@ -206,7 +206,7 @@ describe('Repository', function () {
       const unstagedChanges = await repo.getUnstagedChanges()
       assert.equal(unstagedChanges.length, 1)
 
-      const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
+      const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'))
       await repo.applyPatchToIndex(unstagedPatch2)
       await repo.commit('Commit 2')
       assert.equal((await repo.getLastCommit()).message, 'Commit 2')

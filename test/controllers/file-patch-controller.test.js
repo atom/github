@@ -67,7 +67,7 @@ describe('FilePatchController', () => {
       )
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
-      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
+      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js')
 
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
@@ -86,7 +86,7 @@ describe('FilePatchController', () => {
       )
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'))
 
-      const stagedFilePatch = await repository.getFilePatchForPath('sample.js', true)
+      const stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true})
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).props.didClickStageButton()
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'))
@@ -107,7 +107,7 @@ describe('FilePatchController', () => {
       )
       unstagedLines.splice(11, 2, 'this is a modified line')
       fs.writeFileSync(filePath, unstagedLines.join('\n'))
-      let unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
+      let unstagedFilePatch = await repository.getFilePatchForPath('sample.js')
       const hunkViewsByHunk = new Map()
       function registerHunkView (hunk, view) { hunkViewsByHunk.set(hunk, view) }
 
@@ -130,7 +130,7 @@ describe('FilePatchController', () => {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // stage remaining lines in hunk
-      unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
+      unstagedFilePatch = await repository.getFilePatchForPath('sample.js')
       await controller.update({filePatch: unstagedFilePatch})
       await hunkView.props.didClickStageButton()
       await repository.refresh()
@@ -143,7 +143,7 @@ describe('FilePatchController', () => {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // unstage a subset of lines from the first hunk
-      let stagedFilePatch = await repository.getFilePatchForPath('sample.js', true)
+      let stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true})
       await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView})
       hunk = stagedFilePatch.getHunks()[0]
       lines = hunk.getLines()
@@ -163,7 +163,7 @@ describe('FilePatchController', () => {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'))
 
       // unstage the rest of the hunk
-      stagedFilePatch = await repository.getFilePatchForPath('sample.js', true)
+      stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true})
       await controller.update({filePatch: stagedFilePatch})
       await view.togglePatchSelectionMode()
       await hunkView.props.didClickStageButton()
