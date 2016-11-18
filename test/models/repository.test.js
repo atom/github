@@ -17,10 +17,12 @@ describe('Repository', function () {
       const filePath = patch.filePath
 
       await repo.stageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [])
       assert.deepEqual(await repo.getStagedChanges(), [patch])
 
       await repo.unstageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [patch])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -33,10 +35,12 @@ describe('Repository', function () {
       const filePath = patch.filePath
 
       await repo.stageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [])
       assert.deepEqual(await repo.getStagedChanges(), [patch])
 
       await repo.unstageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [patch])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -49,13 +53,13 @@ describe('Repository', function () {
       const filePath1 = patches[0].filePath
       const filePath2 = patches[1].filePath
 
-      await repo.stageFiles([filePath1])
-      await repo.stageFiles([filePath2])
+      await repo.stageFiles([filePath1, filePath2])
+      await repo.refresh()
       assertEqualSortedArraysByKey(await repo.getStagedChanges(), patches, 'filePath')
       assert.deepEqual(await repo.getUnstagedChanges(), [])
 
-      await repo.unstageFiles([filePath1])
-      await repo.unstageFiles([filePath2])
+      await repo.unstageFiles([filePath1, filePath2])
+      await repo.refresh()
       assertEqualSortedArraysByKey(await repo.getUnstagedChanges(), patches, 'filePath')
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -68,10 +72,12 @@ describe('Repository', function () {
       const filePath = patch.filePath
 
       await repo.stageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [])
       assert.deepEqual(await repo.getStagedChanges(), [patch])
 
       await repo.unstageFiles([filePath])
+      await repo.refresh()
       assert.deepEqual(await repo.getUnstagedChanges(), [patch])
       assert.deepEqual(await repo.getStagedChanges(), [])
     })
@@ -101,6 +107,7 @@ describe('Repository', function () {
       })
 
       await repo.stageFiles(['file.txt'])
+      await repo.refresh()
       assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', true, true), {
         oldPath: 'file.txt',
         newPath: 'file.txt',
@@ -117,6 +124,7 @@ describe('Repository', function () {
       })
 
       await repo.stageFilesFromParentCommit(['file.txt'])
+      await repo.refresh()
       assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), [])
     })
   })
@@ -133,6 +141,7 @@ describe('Repository', function () {
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
 
       await repo.applyPatchToIndex(unstagedPatch1)
+      await repo.refresh()
       const stagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), true)
       assert.deepEqual(stagedPatch1, unstagedPatch1)
 
@@ -142,6 +151,7 @@ describe('Repository', function () {
       assert.deepEqual(stagedChanges, ['subdir-1/a.txt'])
 
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch())
+      await repo.refresh()
       const unstagedPatch3 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), false)
       assert.deepEqual(unstagedPatch3, unstagedPatch2)
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath)
@@ -443,12 +453,14 @@ describe('Repository', function () {
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), [])
 
         await repo.stageFiles(['added-to-both.txt'])
+        await repo.refresh()
         stagedFilePatches = await repo.getStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt'])
 
         // choose version of the file on head
         fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8')
         await repo.stageFiles(['modified-on-both-ours.txt'])
+        await repo.refresh()
         stagedFilePatches = await repo.getStagedChanges()
         // nothing additional to stage
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt'])
@@ -456,18 +468,21 @@ describe('Repository', function () {
         // choose version of the file on branch
         fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8')
         await repo.stageFiles(['modified-on-both-ours.txt'])
+        await repo.refresh()
         stagedFilePatches = await repo.getStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt', 'modified-on-both-ours.txt'])
 
         // remove file that was deleted on branch
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'))
         await repo.stageFiles(['removed-on-branch.txt'])
+        await repo.refresh()
         stagedFilePatches = await repo.getStagedChanges()
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
 
         // remove file that was deleted on master
         fs.unlinkSync(path.join(workingDirPath, 'removed-on-master.txt'))
         await repo.stageFiles(['removed-on-master.txt'])
+        await repo.refresh()
         stagedFilePatches = await repo.getStagedChanges()
         // nothing additional to stage
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt'])
