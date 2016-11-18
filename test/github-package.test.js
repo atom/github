@@ -169,7 +169,7 @@ describe('GithubPackage', () => {
     })
 
     describe('when the active item is a FilePatchController', () => {
-      it('updates the active repository to be the one associated with the FilePatchController', async () => {
+      xit('updates the active repository to be the one associated with the FilePatchController', async () => {
         const workdirPath = await cloneRepository('three-files')
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
 
@@ -214,7 +214,7 @@ describe('GithubPackage', () => {
   })
 
   describe('when a FilePatch is selected in the staging panel', () => {
-    it('shows a FilePatchView for the selected patch as a pane item, always updating the existing pane item', async () => {
+    xit('shows a FilePatchView for the selected patch as a pane item, always updating the existing pane item', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
 
@@ -259,7 +259,7 @@ describe('GithubPackage', () => {
   })
 
   describe('when amend mode is toggled in the staging panel while viewing a staged change', () => {
-    it('closes the file patch pane item', async () => {
+    xit('closes the file patch pane item', async () => {
       const workdirPath = await cloneRepository('three-files')
       const repository = await buildRepository(workdirPath)
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
