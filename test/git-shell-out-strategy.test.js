@@ -360,6 +360,161 @@ describe('Git commands', () => {
       const diffOutput = await git.diff()
       assert.deepEqual(diffOutput, [])
     })
+
+    describe('when a file path is specified', () => {
+      describe('when the file is unstaged', () => {
+        it('returns a diff comparing the working directory copy of the file and the version on the index', async () => {
+          const workingDirPath = await cloneRepository('three-files')
+          const git = new GitShellOutStrategy(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+
+          assertDeepPropertyVals(await git.diff({filePath: 'a.txt'}), {
+            'oldPath': 'a.txt',
+            'newPath': 'a.txt',
+            'oldMode': '100644',
+            'newMode': '100644',
+            'hunks': [
+              {
+                'oldStartLine': 1,
+                'oldLineCount': 1,
+                'newStartLine': 1,
+                'newLineCount': 3,
+                'lines': [
+                  '+qux',
+                  ' foo',
+                  '+bar'
+                ]
+              }
+            ],
+            'status': 'modified'
+          })
+
+          assertDeepPropertyVals(await git.diff({filePath: 'c.txt'}), {
+            'oldPath': 'c.txt',
+            'newPath': null,
+            'oldMode': '100644',
+            'newMode': null,
+            'hunks': [
+              {
+                'oldStartLine': 1,
+                'oldLineCount': 1,
+                'newStartLine': 0,
+                'newLineCount': 0,
+                'lines': [ '-baz' ]
+              }
+            ],
+            'status': 'deleted'
+          })
+
+          assertDeepPropertyVals(await git.diff({filePath: 'd.txt'}), {
+            'oldPath': null,
+            'newPath': 'd.txt',
+            'oldMode': null,
+            'newMode': '100644',
+            'hunks': [
+              {
+                'oldStartLine': 0,
+                'oldLineCount': 0,
+                'newStartLine': 1,
+                'newLineCount': 1,
+                'lines': [ '+baz' ]
+              }
+            ],
+            'status': 'added'
+          })
+        })
+      })
+
+      describe('when the file is staged', () => {
+        it('returns a diff comparing the index and head versions of the file', async () => {
+          const workingDirPath = await cloneRepository('three-files')
+          const git = new GitShellOutStrategy(workingDirPath)
+          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+          await git.exec(['add', '.'])
+
+          assertDeepPropertyVals(await git.diff({filePath: 'a.txt', staged: true}), {
+            'oldPath': 'a.txt',
+            'newPath': 'a.txt',
+            'oldMode': '100644',
+            'newMode': '100644',
+            'hunks': [
+              {
+                'oldStartLine': 1,
+                'oldLineCount': 1,
+                'newStartLine': 1,
+                'newLineCount': 3,
+                'lines': [
+                  '+qux',
+                  ' foo',
+                  '+bar'
+                ]
+              }
+            ],
+            'status': 'modified'
+          })
+
+          assertDeepPropertyVals(await git.diff({filePath: 'c.txt', staged: true}), {
+            'oldPath': 'c.txt',
+            'newPath': null,
+            'oldMode': '100644',
+            'newMode': null,
+            'hunks': [
+              {
+                'oldStartLine': 1,
+                'oldLineCount': 1,
+                'newStartLine': 0,
+                'newLineCount': 0,
+                'lines': [ '-baz' ]
+              }
+            ],
+            'status': 'deleted'
+          })
+
+          assertDeepPropertyVals(await git.diff({filePath: 'd.txt', staged: true}), {
+            'oldPath': null,
+            'newPath': 'd.txt',
+            'oldMode': null,
+            'newMode': '100644',
+            'hunks': [
+              {
+                'oldStartLine': 0,
+                'oldLineCount': 0,
+                'newStartLine': 1,
+                'newLineCount': 1,
+                'lines': [ '+baz' ]
+              }
+            ],
+            'status': 'added'
+          })
+        })
+      })
+
+      describe('when the file is staged and a base commit is specified', () => {
+        it('returns a diff comparing the file on the index and in the specified commit', async () => {
+          const workingDirPath = await cloneRepository('multiple-commits')
+          const git = new GitShellOutStrategy(workingDirPath)
+
+          assertDeepPropertyVals(await git.diff({filePath: 'file.txt', staged: true, baseCommit: 'HEAD~'}), {
+            'oldPath': 'file.txt',
+            'newPath': 'file.txt',
+            'oldMode': '100644',
+            'newMode': '100644',
+            'hunks': [
+              {
+                'oldStartLine': 1,
+                'oldLineCount': 1,
+                'newStartLine': 1,
+                'newLineCount': 1,
+                'lines': [ '-two', '+three' ]
+              }
+            ],
+            'status': 'modified'
+          })
+        })
+      })
+    })
   })
 
   describe('isMerging', () => {
