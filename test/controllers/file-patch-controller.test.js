@@ -53,15 +53,6 @@ describe('FilePatchController', () => {
     assert(hunkViewsByHunk.get(hunk3) != null)
   })
 
-  it('gets destroyed if the associated FilePatch is destroyed', () => {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])])
-    const controller = new FilePatchController({filePatch: filePatch1})
-    const destroyHandler = sinon.spy()
-    controller.onDidDestroy(destroyHandler)
-    filePatch1.destroy()
-    assert(destroyHandler.called)
-  })
-
   describe('integration tests', () => {
     it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async () => {
       const workdirPath = await cloneRepository('multi-line-file')
@@ -130,6 +121,7 @@ describe('FilePatchController', () => {
       hunkView.props.mousemoveOnLine({}, hunk, lines[3])
       view.mouseup()
       await hunkView.props.didClickStageButton()
+      await repository.refresh()
       let expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -141,6 +133,7 @@ describe('FilePatchController', () => {
       unstagedFilePatch = await repository.getFilePatchForPath('sample.js', false)
       await controller.update({filePatch: unstagedFilePatch})
       await hunkView.props.didClickStageButton()
+      await repository.refresh()
       expectedLines = originalLines.slice()
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -161,6 +154,7 @@ describe('FilePatchController', () => {
       view.mouseup()
 
       await hunkView.props.didClickStageButton()
+      await repository.refresh()
       expectedLines = originalLines.slice()
       expectedLines.splice(2, 0,
         'this is a new line',
