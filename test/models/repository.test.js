@@ -129,6 +129,33 @@ describe('Repository', function () {
     })
   })
 
+  describe('getFilePatchForPath', () => {
+    it('returns cached FilePatch objects if they exist', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+
+      const filePatchA = await repo.getFilePatchForPath('a.txt', false, false)
+      const filePatchB = await repo.getFilePatchForPath('b.txt', false, false)
+      assert.equal(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+      assert.equal(await repo.getFilePatchForPath('b.txt', false, false), filePatchB)
+    })
+
+    it('returns new FilePatch object after repository refresh', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const repo = await buildRepository(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+
+      const filePatchA = await repo.getFilePatchForPath('a.txt', false, false)
+      assert.equal(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+
+      await repo.refresh()
+      assert.notEqual(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+      assert.deepEqual(await repo.getFilePatchForPath('a.txt', false, false), filePatchA)
+    })
+  })
+
   describe('applyPatchToIndex', () => {
     it('can stage and unstage modified files', async () => {
       const workingDirPath = await cloneRepository('three-files')
