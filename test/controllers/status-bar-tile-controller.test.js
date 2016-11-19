@@ -276,7 +276,8 @@ describe('StatusBarTileController', () => {
         assert.equal(pullButton.textContent, 'Pull (2)')
 
         pushButton.dispatchEvent(new MouseEvent('click'))
-        await etch.getScheduler().getNextUpdatePromise()
+        await etch.getScheduler().getNextUpdatePromise() // update for loading
+        await etch.getScheduler().getNextUpdatePromise() // update for error message
         assert.match(message.innerHTML, /Push rejected/)
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}))
