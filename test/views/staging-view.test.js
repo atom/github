@@ -93,7 +93,7 @@ describe('StagingView', () => {
       await view.selectNext()
       assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
       await view.selectNext()
-      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0]))
+      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].getPath()))
 
       document.body.focus()
       assert.isFalse(view.isFocused())
