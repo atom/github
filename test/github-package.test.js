@@ -180,7 +180,7 @@ describe('GithubPackage', () => {
         await githubPackage.updateActiveRepository()
         assert.equal(githubPackage.getActiveRepository(), repository)
 
-        await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
+        await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged', {activate: true})
         assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
         assert.equal(githubPackage.filePatchController.props.repository, repository)
         await githubPackage.updateActiveRepository()
@@ -226,7 +226,7 @@ describe('GithubPackage', () => {
 
       assert.isNull(githubPackage.filePatchController)
 
-      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'unstaged', {activate: true})
       assert(githubPackage.filePatchController)
       assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'a.txt')
       assert.equal(githubPackage.filePatchController.props.repository, repository)
@@ -249,7 +249,7 @@ describe('GithubPackage', () => {
       assert.isUndefined(workspace.getActivePaneItem())
       assert.isNull(githubPackage.filePatchController)
 
-      await githubPackage.gitPanelController.props.didSelectFilePatch('d.txt', 'staged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('d.txt', 'staged', {activate: true})
       assert.notEqual(githubPackage.filePatchController, existingFilePatchView)
       assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
       assert.equal(githubPackage.filePatchController.props.repository, repository)
@@ -267,7 +267,7 @@ describe('GithubPackage', () => {
 
       githubPackage.getActiveRepository = function () { return repository }
 
-      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'staged')
+      await githubPackage.gitPanelController.props.didSelectFilePatch('a.txt', 'staged', {activate: true})
       assert.isOk(githubPackage.filePatchController)
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
