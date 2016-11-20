@@ -284,8 +284,6 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath, 'a.txt'))
       await githubPackage.updateActiveRepository()
 
-      await etch.getScheduler().getNextUpdatePromise()
-
       githubPackage.statusBarTileController.refs.changedFilesCountView.props.didClick()
       assert.equal(workspace.getRightPanels().length, 1)
 
