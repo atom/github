@@ -150,7 +150,7 @@ describe('Git commands', () => {
   })
 
   describe('diffFileStatus', () => {
-    it('returns an object with working directory file diff status between relative to HEAD', async () => {
+    it('returns an object with working directory file diff status between relative to specified target commit', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
