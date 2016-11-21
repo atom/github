@@ -173,6 +173,16 @@ describe('Git commands', () => {
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
       assert.deepEqual(diffOutput, {})
     })
+
+    it('only returns untracked files if the staged option is not passed', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8')
+      let diffOutput = await git.diffFileStatus({ target: 'HEAD'})
+      assert.deepEqual(diffOutput, { 'new-file.txt': 'added' })
+      diffOutput = await git.diffFileStatus({ target: 'HEAD', staged: true})
+      assert.deepEqual(diffOutput, {})
+    })
   })
 
   describe('getUntrackedFiles', () => {
