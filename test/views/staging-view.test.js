@@ -82,26 +82,26 @@ describe('StagingView', () => {
         }
       }]
 
-      const didSelectFilePatch = sinon.spy()
+      const didSelectFilePath = sinon.spy()
       const didSelectMergeConflictFile = sinon.spy()
 
       const view = new StagingView({
-        didSelectFilePatch, didSelectMergeConflictFile,
+        didSelectFilePath, didSelectMergeConflictFile,
         unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
       })
       document.body.appendChild(view.element)
-      assert.equal(didSelectFilePatch.callCount, 0)
+      assert.equal(didSelectFilePath.callCount, 0)
 
       view.focus()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[0].filePath))
+      assert.isTrue(didSelectFilePath.calledWith(filePatches[0].filePath))
       await view.selectNext()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[1].filePath))
+      assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
       await view.selectNext()
       assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
 
       document.body.focus()
       assert.isFalse(view.isFocused())
-      didSelectFilePatch.reset()
+      didSelectFilePath.reset()
       didSelectMergeConflictFile.reset()
       await view.selectNext()
       assert.equal(didSelectMergeConflictFile.callCount, 0)
