@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import temp from 'temp'
 import etch from 'etch'
+import sinon from 'sinon'
 import {cloneRepository, buildRepository} from './helpers'
 import FilePatch from '../lib/models/file-patch'
 import GithubPackage from '../lib/github-package'
@@ -213,48 +214,97 @@ describe('GithubPackage', () => {
     })
   })
 
-  describe('when a FilePatch is selected in the staging panel', () => {
-    it('shows a FilePatchView for the selected patch as a pane item, always updating the existing pane item', async () => {
-      const workdirPath = await cloneRepository('three-files')
-      const repository = await buildRepository(workdirPath)
+  describe('showFilePatchForPath(filePath, staged, {amending, activate})', () => {
+    describe('when a file is selected in the staging panel', () => {
+      it('shows a FilePatchView for the selected file as a pane item, always updating the existing pane item', async () => {
+        const workdirPath = await cloneRepository('three-files')
+        const repository = await buildRepository(workdirPath)
 
-      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
-      fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new-file', 'utf8')
-      await repository.stageFiles(['d.txt'])
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8')
+        fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new-file', 'utf8')
+        await repository.stageFiles(['d.txt'])
 
-      githubPackage.getActiveRepository = function () { return repository }
+        githubPackage.getActiveRepository = function () { return repository }
 
-      assert.isNull(githubPackage.filePatchController)
+        assert.isNull(githubPackage.filePatchController)
 
-      await githubPackage.gitPanelController.props.didSelectFilePath('a.txt', 'unstaged', {activate: true})
-      assert(githubPackage.filePatchController)
-      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'a.txt')
-      assert.equal(githubPackage.filePatchController.props.repository, repository)
-      assert.equal(githubPackage.filePatchController.props.stagingStatus, 'unstaged')
-      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+        await githubPackage.showFilePatchForPath('a.txt', 'unstaged', {activate: true})
+        assert(githubPackage.filePatchController)
+        assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'a.txt')
+        assert.equal(githubPackage.filePatchController.props.repository, repository)
+        assert.equal(githubPackage.filePatchController.props.stagingStatus, 'unstaged')
+        assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
-      const existingFilePatchView = githubPackage.filePatchController
-      const originalPane = workspace.getActivePane()
-      originalPane.splitRight() // activate a different pane
-      assert.isUndefined(workspace.getActivePaneItem())
+        const existingFilePatchView = githubPackage.filePatchController
+        const originalPane = workspace.getActivePane()
+        originalPane.splitRight() // activate a different pane
+        assert.isUndefined(workspace.getActivePaneItem())
 
-      await githubPackage.gitPanelController.props.didSelectFilePath('d.txt', 'staged')
-      assert.equal(githubPackage.filePatchController, existingFilePatchView)
-      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
-      assert.equal(githubPackage.filePatchController.props.repository, repository)
-      assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
-      assert.equal(originalPane.getActiveItem(), githubPackage.filePatchController)
+        await githubPackage.showFilePatchForPath('d.txt', 'staged')
+        assert.equal(githubPackage.filePatchController, existingFilePatchView)
+        assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
+        assert.equal(githubPackage.filePatchController.props.repository, repository)
+        assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
+        assert.equal(originalPane.getActiveItem(), githubPackage.filePatchController)
 
-      originalPane.getActiveItem().destroy()
-      assert.isUndefined(workspace.getActivePaneItem())
-      assert.isNull(githubPackage.filePatchController)
+        originalPane.getActiveItem().destroy()
+        assert.isUndefined(workspace.getActivePaneItem())
+        assert.isNull(githubPackage.filePatchController)
 
-      await githubPackage.gitPanelController.props.didSelectFilePath('d.txt', 'staged', {activate: true})
-      assert.notEqual(githubPackage.filePatchController, existingFilePatchView)
-      assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
-      assert.equal(githubPackage.filePatchController.props.repository, repository)
-      assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
-      assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+        await githubPackage.showFilePatchForPath('d.txt', 'staged', {activate: true})
+        assert.notEqual(githubPackage.filePatchController, existingFilePatchView)
+        assert.equal(githubPackage.filePatchController.props.filePatch.getPath(), 'd.txt')
+        assert.equal(githubPackage.filePatchController.props.repository, repository)
+        assert.equal(githubPackage.filePatchController.props.stagingStatus, 'staged')
+        assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
+      })
+    })
+
+    describe('when there is a change to the repo', () => {
+      it('updates the FilePatchController with the correct filePatch', async () => {
+        const workdirPath = await cloneRepository('multiple-commits')
+        const repository = await buildRepository(workdirPath)
+
+        githubPackage.getActiveRepository = function () { return repository }
+        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change', 'utf8')
+        await githubPackage.showFilePatchForPath('file.txt', 'unstaged', {activate: true})
+
+        let filePatchController = githubPackage.filePatchController
+        sinon.spy(filePatchController, 'update')
+
+        // udpate unstaged file patch
+        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nplus more changes', 'utf8')
+        await repository.refresh()
+        // repository refresh causes async actions so waiting for this is the best way to determine the update has finished
+        await etch.getScheduler().getNextUpdatePromise()
+        const unstagedFilePatch = await repository.getFilePatchForPath('file.txt')
+        assert.deepEqual(filePatchController.update.lastCall.args[0].filePatch, unstagedFilePatch)
+
+        // update staged file patch
+        await repository.stageFiles(['file.txt'])
+        await githubPackage.showFilePatchForPath('file.txt', 'staged', {activate: true})
+        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nplus more changes\nand more!', 'utf8')
+        await repository.stageFiles(['file.txt'])
+        await repository.refresh()
+        // repository refresh causes async actions so waiting for this is the best way to determine the update has finished
+        await etch.getScheduler().getNextUpdatePromise()
+        const stagedFilePatch = await repository.getFilePatchForPath('file.txt', {staged: true})
+        assert.deepEqual(filePatchController.update.lastCall.args[0].filePatch, stagedFilePatch)
+
+        // update amended file patch
+        // didChangeAmending destroys current filePatchController
+        githubPackage.gitPanelController.props.didChangeAmending()
+        await githubPackage.showFilePatchForPath('file.txt', 'staged', {activate: true, amending: true})
+        filePatchController = githubPackage.filePatchController
+        sinon.spy(filePatchController, 'update')
+        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change file being amended', 'utf8')
+        await repository.stageFiles(['file.txt'])
+        await repository.refresh()
+        // repository refresh causes async actions so waiting for this is the best way to determine the update has finished
+        await etch.getScheduler().getNextUpdatePromise()
+        const amendedStagedFilePatch = await repository.getFilePatchForPath('file.txt', {staged: true, amending: true})
+        assert.deepEqual(filePatchController.update.lastCall.args[0].filePatch, amendedStagedFilePatch)
+      })
     })
   })
 
@@ -267,7 +317,7 @@ describe('GithubPackage', () => {
 
       githubPackage.getActiveRepository = function () { return repository }
 
-      await githubPackage.gitPanelController.props.didSelectFilePath('a.txt', 'staged', {activate: true})
+      await githubPackage.showFilePatchForPath('a.txt', 'staged', {activate: true})
       assert.isOk(githubPackage.filePatchController)
       assert.equal(workspace.getActivePaneItem(), githubPackage.filePatchController)
 
