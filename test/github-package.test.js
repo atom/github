@@ -189,7 +189,7 @@ describe('GithubPackage', () => {
     })
   })
 
-  describe('didSelectMergeConflictFile(filePath)', () => {
+  describe('showMergeConflictFileForPath(filePath)', () => {
     it('opens the file as a pane item if it exsits', async () => {
       const workdirPath = await cloneRepository('merge-conflict')
       const repository = await buildRepository(workdirPath)
