@@ -148,9 +148,9 @@ describe('GithubPackage', () => {
       await githubPackage.updateActiveRepository()
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
 
-      workspace.getActivePane().activateItem({})
+      workspace.getActivePane().activateItem({}) // such as when find & replace results pane is focused
       await githubPackage.updateActiveRepository()
-      assert.isNull(githubPackage.getActiveRepository())
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1))
 
       await workspace.open(path.join(workdirPath2, 'b.txt'))
       await githubPackage.updateActiveRepository()
