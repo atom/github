@@ -25,7 +25,7 @@ describe('Git commands', () => {
       let promises = []
       for (let i = 0; i < 10; i++) {
         expectedEvents.push(i)
-        promises.push(git.diff().then(() => actualEvents.push(i)))
+        promises.push(git.getHeadCommit().then(() => actualEvents.push(i)))
       }
 
       await Promise.all(promises)
@@ -63,8 +63,94 @@ describe('Git commands', () => {
     })
   })
 
+  describe('getStatusesForChangedFiles', () => {
+    it('returns objects for staged and unstaged files, including status information', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
+      await git.exec(['add', 'a.txt', 'e.txt'])
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modify after staging', 'utf8')
+      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'modify after staging', 'utf8')
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
+      assert.deepEqual(stagedFiles, {
+        'a.txt': 'modified',
+        'e.txt': 'added'
+      })
+      assert.deepEqual(unstagedFiles, {
+        'a.txt': 'modified',
+        'b.txt': 'deleted',
+        'c.txt': 'deleted',
+        'd.txt': 'added',
+        'e.txt': 'modified'
+      })
+      assert.deepEqual(mergeConflictFiles, {})
+    })
+
+    it('displays renamed files as one removed file and one added file', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+      await git.exec(['add', '.'])
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
+      assert.deepEqual(stagedFiles, {
+        'c.txt': 'deleted',
+        'd.txt': 'added'
+      })
+      assert.deepEqual(unstagedFiles, {})
+      assert.deepEqual(mergeConflictFiles, {})
+    })
+
+    it('returns an object for merge conflict files, including ours/theirs/file status information', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
+      const git = new GitShellOutStrategy(workingDirPath)
+      try {
+        await git.merge('origin/branch')
+      } catch (e) {
+        // expected
+        if (!e.message.match(/CONFLICT/)) {
+          throw new Error(`merge failed for wrong reason: ${e.message}`)
+        }
+      }
+
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles()
+      assert.deepEqual(stagedFiles, {})
+      assert.deepEqual(unstagedFiles, {})
+
+      assert.deepEqual(mergeConflictFiles, {
+        'added-to-both.txt': {
+          ours: 'added',
+          theirs: 'added',
+          file: 'modified'
+        },
+        'modified-on-both-ours.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'modified-on-both-theirs.txt': {
+          ours: 'modified',
+          theirs: 'modified',
+          file: 'modified'
+        },
+        'removed-on-branch.txt': {
+          ours: 'modified',
+          theirs: 'deleted',
+          file: 'equivalent'
+        },
+        'removed-on-master.txt': {
+          ours: 'deleted',
+          theirs: 'modified',
+          file: 'added'
+        }
+      })
+    })
+  })
+
   describe('diffFileStatus', () => {
-    it('returns an object with working directory file diff status between relative to HEAD', async () => {
+    it('returns an object with working directory file diff status between relative to specified target commit', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
@@ -85,6 +171,16 @@ describe('Git commands', () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
       const diffOutput = await git.diffFileStatus({ target: 'HEAD' })
+      assert.deepEqual(diffOutput, {})
+    })
+
+    it('only returns untracked files if the staged option is not passed', async () => {
+      const workingDirPath = await cloneRepository('three-files')
+      const git = new GitShellOutStrategy(workingDirPath)
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8')
+      let diffOutput = await git.diffFileStatus({ target: 'HEAD'})
+      assert.deepEqual(diffOutput, { 'new-file.txt': 'added' })
+      diffOutput = await git.diffFileStatus({ target: 'HEAD', staged: true})
       assert.deepEqual(diffOutput, {})
     })
   })
@@ -121,49 +217,30 @@ describe('Git commands', () => {
     })
   })
 
-  describe('diff', () => {
+  describe('getDiffForFilePath', () => {
     it('returns an empty array if there are no modified, added, or deleted files', async () => {
       const workingDirPath = await cloneRepository('three-files')
       const git = new GitShellOutStrategy(workingDirPath)
 
-      const diffOutput = await git.diff()
-      assert.deepEqual(diffOutput, [])
+      const diffOutput = await git.getDiffForFilePath('a.txt')
+      assert.isUndefined(diffOutput)
     })
 
-    it('returns an array of objects for each file patch', async () => {
-      const workingDirPath = await cloneRepository('three-files')
+    it('ignores merge conflict files', async () => {
+      const workingDirPath = await cloneRepository('merge-conflict')
       const git = new GitShellOutStrategy(workingDirPath)
+      const diffOutput = await git.getDiffForFilePath('added-to-both.txt')
+      assert.isUndefined(diffOutput)
+    })
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'))
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
-      fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8')
-      fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'cat', 'utf8')
+    describe('when the file is unstaged', () => {
+      it('returns a diff comparing the working directory copy of the file and the version on the index', async () => {
+        const workingDirPath = await cloneRepository('three-files')
+        const git = new GitShellOutStrategy(workingDirPath)
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
 
-      await git.stageFiles(['f.txt'])
-      fs.unlinkSync(path.join(workingDirPath, 'f.txt'))
-
-      const stagedDiffOutput = await git.diff({staged: true})
-      assertDeepPropertyVals(stagedDiffOutput, [{
-        'oldPath': null,
-        'newPath': 'f.txt',
-        'oldMode': null,
-        'newMode': '100644',
-        'hunks': [
-          {
-            'oldStartLine': 0,
-            'oldLineCount': 0,
-            'newStartLine': 1,
-            'newLineCount': 1,
-            'lines': [ '+cat', '\\ No newline at end of file' ]
-          }
-        ],
-        'status': 'added'
-      }])
-
-      const unstagedDiffOutput = await git.diff()
-      assertDeepPropertyVals(unstagedDiffOutput, [
-        {
+        assertDeepPropertyVals(await git.getDiffForFilePath('a.txt'), {
           'oldPath': 'a.txt',
           'newPath': 'a.txt',
           'oldMode': '100644',
@@ -182,26 +259,9 @@ describe('Git commands', () => {
             }
           ],
           'status': 'modified'
-        },
-        {
-          'oldPath': 'b.txt',
-          'newPath': null,
-          'oldMode': '100644',
-          'newMode': null,
-          'hunks': [
-            {
-              'oldStartLine': 1,
-              'oldLineCount': 1,
-              'newStartLine': 0,
-              'newLineCount': 0,
-              'lines': [
-                '-bar'
-              ]
-            }
-          ],
-          'status': 'deleted'
-        },
-        {
+        })
+
+        assertDeepPropertyVals(await git.getDiffForFilePath('c.txt'), {
           'oldPath': 'c.txt',
           'newPath': null,
           'oldMode': '100644',
@@ -216,8 +276,9 @@ describe('Git commands', () => {
             }
           ],
           'status': 'deleted'
-        },
-        {
+        })
+
+        assertDeepPropertyVals(await git.getDiffForFilePath('d.txt'), {
           'oldPath': null,
           'newPath': 'd.txt',
           'oldMode': null,
@@ -232,25 +293,41 @@ describe('Git commands', () => {
             }
           ],
           'status': 'added'
-        },
-        {
-          'oldPath': null,
-          'newPath': 'e.txt',
-          'oldMode': null,
+        })
+      })
+    })
+
+    describe('when the file is staged', () => {
+      it('returns a diff comparing the index and head versions of the file', async () => {
+        const workingDirPath = await cloneRepository('three-files')
+        const git = new GitShellOutStrategy(workingDirPath)
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8')
+        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'))
+        await git.exec(['add', '.'])
+
+        assertDeepPropertyVals(await git.getDiffForFilePath('a.txt', {staged: true}), {
+          'oldPath': 'a.txt',
+          'newPath': 'a.txt',
+          'oldMode': '100644',
           'newMode': '100644',
           'hunks': [
             {
-              'oldStartLine': 0,
-              'oldLineCount': 0,
+              'oldStartLine': 1,
+              'oldLineCount': 1,
               'newStartLine': 1,
-              'newLineCount': 1,
-              'lines': [ '+qux', '\\ No newline at end of file' ]
+              'newLineCount': 3,
+              'lines': [
+                '+qux',
+                ' foo',
+                '+bar'
+              ]
             }
           ],
-          'status': 'added'
-        },
-        {
-          'oldPath': 'f.txt',
+          'status': 'modified'
+        })
+
+        assertDeepPropertyVals(await git.getDiffForFilePath('c.txt', {staged: true}), {
+          'oldPath': 'c.txt',
           'newPath': null,
           'oldMode': '100644',
           'newMode': null,
@@ -260,62 +337,52 @@ describe('Git commands', () => {
               'oldLineCount': 1,
               'newStartLine': 0,
               'newLineCount': 0,
-              'lines': [ '-cat', '\\ No newline at end of file' ]
+              'lines': [ '-baz' ]
             }
           ],
           'status': 'deleted'
-        }
-      ])
+        })
+
+        assertDeepPropertyVals(await git.getDiffForFilePath('d.txt', {staged: true}), {
+          'oldPath': null,
+          'newPath': 'd.txt',
+          'oldMode': null,
+          'newMode': '100644',
+          'hunks': [
+            {
+              'oldStartLine': 0,
+              'oldLineCount': 0,
+              'newStartLine': 1,
+              'newLineCount': 1,
+              'lines': [ '+baz' ]
+            }
+          ],
+          'status': 'added'
+        })
+      })
     })
 
-    it('ignores merge conflict files', async () => {
-      const workingDirPath = await cloneRepository('merge-conflict')
-      const git = new GitShellOutStrategy(workingDirPath)
-      const diffOutput = await git.diff()
-      assert.deepEqual(diffOutput, [])
-    })
-  })
+    describe('when the file is staged and a base commit is specified', () => {
+      it('returns a diff comparing the file on the index and in the specified commit', async () => {
+        const workingDirPath = await cloneRepository('multiple-commits')
+        const git = new GitShellOutStrategy(workingDirPath)
 
-  describe('getMergeConflictFileStatus', () => {
-    it('returns an object with ours/theirs/file status by path', async () => {
-      const workingDirPath = await cloneRepository('merge-conflict')
-      const git = new GitShellOutStrategy(workingDirPath)
-      try {
-        await git.merge('origin/branch')
-      } catch (e) {
-        // expected
-        if (!e.message.match(/CONFLICT/)) {
-          throw new Error(`merge failed for wrong reason: ${e.message}`)
-        }
-      }
-
-      const statusesByPath = await git.getMergeConflictFileStatus()
-      assert.deepEqual(statusesByPath, {
-        'added-to-both.txt': {
-          ours: 'added',
-          theirs: 'added',
-          file: 'modified'
-        },
-        'modified-on-both-ours.txt': {
-          ours: 'modified',
-          theirs: 'modified',
-          file: 'modified'
-        },
-        'modified-on-both-theirs.txt': {
-          ours: 'modified',
-          theirs: 'modified',
-          file: 'modified'
-        },
-        'removed-on-branch.txt': {
-          ours: 'modified',
-          theirs: 'deleted',
-          file: 'equivalent'
-        },
-        'removed-on-master.txt': {
-          ours: 'deleted',
-          theirs: 'modified',
-          file: 'added'
-        }
+        assertDeepPropertyVals(await git.getDiffForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), {
+          'oldPath': 'file.txt',
+          'newPath': 'file.txt',
+          'oldMode': '100644',
+          'newMode': '100644',
+          'hunks': [
+            {
+              'oldStartLine': 1,
+              'oldLineCount': 1,
+              'newStartLine': 1,
+              'newLineCount': 1,
+              'lines': [ '-two', '+three' ]
+            }
+          ],
+          'status': 'modified'
+        })
       })
     })
   })

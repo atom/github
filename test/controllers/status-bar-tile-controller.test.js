@@ -129,6 +129,7 @@ describe('StatusBarTileController', () => {
 
           branchMenuView.refs.editor.setText('new-branch')
           await newBranchButton.onclick()
+          await repository.refresh()
           await controller.getLastModelDataRefreshPromise()
 
           assert.isUndefined(branchMenuView.refs.editor)
@@ -300,13 +301,13 @@ describe('StatusBarTileController', () => {
 
       const changedFilesCountView = controller.refs.changedFilesCountView
 
-      assert.equal(changedFilesCountView.element.textContent, '')
+      assert.equal(changedFilesCountView.element.textContent, '0 files')
 
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n')
       fs.unlinkSync(path.join(workdirPath, 'b.txt'))
       repository.refresh()
-      const [patchToStage] = await repository.getUnstagedChanges()
-      await repository.applyPatchToIndex(patchToStage)
+      await repository.stageFiles(['a.txt'])
+      await repository.refresh()
       await controller.getLastModelDataRefreshPromise()
 
       assert.equal(changedFilesCountView.element.textContent, '2 files')

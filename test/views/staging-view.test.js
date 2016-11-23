@@ -9,8 +9,8 @@ describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
       const filePatches = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', null, 'deleted', [])
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'deleted' }
       ]
       const view = new StagingView({unstagedChanges: filePatches, stagedChanges: []})
       const {refs} = view
@@ -29,8 +29,8 @@ describe('StagingView', () => {
     describe('confirmSelectedItems()', () => {
       it('calls stageFilePatch or unstageFilePatch depending on the current staging state of the toggled file patch', async () => {
         const filePatches = [
-          new FilePatch('a.txt', 'a.txt', 'modified', []),
-          new FilePatch('b.txt', null, 'deleted', [])
+          { filePath: 'a.txt', status: 'modified' },
+          { filePath: 'b.txt', status: 'deleted' }
         ]
         const stageFiles = sinon.spy()
         const unstageFiles = sinon.spy()
@@ -55,10 +55,12 @@ describe('StagingView', () => {
       assert.isUndefined(view.refs.mergeConflicts)
 
       const mergeConflicts = [{
-        getPath: () => 'conflicted-path',
-        getFileStatus: () => 'modified',
-        getOursStatus: () => 'deleted',
-        getTheirsStatus: () => 'modified'
+        filePath: 'conflicted-path',
+        status: {
+          file: 'modified',
+          ours: 'deleted',
+          theirs: 'modified'
+        }
       }]
       await view.update({unstagedChanges: [], mergeConflicts, stagedChanges: []})
       assert.isDefined(view.refs.mergeConflicts)
@@ -68,36 +70,38 @@ describe('StagingView', () => {
   describe('when the selection changes', function () {
     it('notifies the parent component via the appropriate callback', async function () {
       const filePatches = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', null, 'deleted', [])
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'deleted' }
       ]
       const mergeConflicts = [{
-        getPath: () => 'c.txt',
-        getFileStatus: () => 'modified',
-        getOursStatus: () => 'deleted',
-        getTheirsStatus: () => 'modified'
+        filePath: 'conflicted-path',
+        status: {
+          file: 'modified',
+          ours: 'deleted',
+          theirs: 'modified'
+        }
       }]
 
-      const didSelectFilePatch = sinon.spy()
+      const didSelectFilePath = sinon.spy()
       const didSelectMergeConflictFile = sinon.spy()
 
       const view = new StagingView({
-        didSelectFilePatch, didSelectMergeConflictFile,
+        didSelectFilePath, didSelectMergeConflictFile,
         unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
       })
       document.body.appendChild(view.element)
-      assert.equal(didSelectFilePatch.callCount, 0)
+      assert.equal(didSelectFilePath.callCount, 0)
 
       view.focus()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[0]))
+      assert.isTrue(didSelectFilePath.calledWith(filePatches[0].filePath))
       await view.selectNext()
-      assert.isTrue(didSelectFilePatch.calledWith(filePatches[1]))
+      assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
       await view.selectNext()
-      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].getPath()))
+      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
 
       document.body.focus()
       assert.isFalse(view.isFocused())
-      didSelectFilePatch.reset()
+      didSelectFilePath.reset()
       didSelectMergeConflictFile.reset()
       await view.selectNext()
       assert.equal(didSelectMergeConflictFile.callCount, 0)
@@ -107,12 +111,12 @@ describe('StagingView', () => {
 
     it('autoscroll to the selected item if it is out of view', async function () {
       const unstagedChanges = [
-        new FilePatch('a.txt', 'a.txt', 'modified', []),
-        new FilePatch('b.txt', 'b.txt', 'modified', []),
-        new FilePatch('c.txt', 'c.txt', 'modified', []),
-        new FilePatch('d.txt', 'd.txt', 'modified', []),
-        new FilePatch('e.txt', 'e.txt', 'modified', []),
-        new FilePatch('f.txt', 'f.txt', 'modified', []),
+        { filePath: 'a.txt', status: 'modified' },
+        { filePath: 'b.txt', status: 'modified' },
+        { filePath: 'c.txt', status: 'modified' },
+        { filePath: 'd.txt', status: 'modified' },
+        { filePath: 'e.txt', status: 'modified' },
+        { filePath: 'f.txt', status: 'modified' }
       ]
       const view = new StagingView({unstagedChanges, stagedChanges: []})
 

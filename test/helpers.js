@@ -90,3 +90,8 @@ export function assertEqualSets (a, b) {
   assert.equal(a.size, b.size, 'Sets are a different size')
   a.forEach(item => assert(b.has(item), 'Sets have different elements'))
 }
+
+export function assertEqualSortedArraysByKey (arr1, arr2, key) {
+  const sortFn = (a, b) => a[key] < b[key]
+  assert.deepEqual(arr1.sort(sortFn), arr2.sort(sortFn))
+}
