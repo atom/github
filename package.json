@@ -53,5 +53,12 @@
         "1.1.0": "consumeStatusBar_1_1"
       }
     }
+  },
+  "configSchema": {
+    "keyboardNavigationDelay": {
+      "type": "number",
+      "default": 300,
+      "description": "How long to wait before showing a diff view after navigating to an entry with the keyboard"
+    }
   }
 }
