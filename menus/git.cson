@@ -1,0 +1,25 @@
+'menu': [
+  {
+    'label': 'View'
+    'submenu': [
+      {
+        'label': 'Toggle Git Panel'
+        'command': 'git:toggle-git-panel'
+      }
+    ]
+  }
+  {
+    'label': 'Packages'
+    'submenu': [
+      {
+        'label': 'GitHub',
+        'submenu': [
+          {
+            'label': 'Toggle'
+            'command': 'git:toggle-git-panel'
+          }
+        ]
+      }
+    ]
+  }
+]
