@@ -5,6 +5,8 @@ import ReactDom from 'react-dom'
 
 import Portal from '../../lib/views/portal'
 
+import {createRenderer} from '../helpers'
+
 class Component extends React.Component {
   render () {
     return (
@@ -19,16 +21,15 @@ class Component extends React.Component {
 
 describe('Portal', () => {
   it('renders a subtree into a different dom node', () => {
-    const node = document.createElement('div')
-    let portal, oldPortal
-    ReactDom.render(<Portal ref={c => portal = c}><Component text='hello' /></Portal>, node)
-    assert.equal(portal.getElement().textContent, 'hello')
-    assert.equal(portal.getRenderedSubtree().getText(), 'hello')
-    oldPortal = portal
-    ReactDom.render(<Portal ref={c => portal = c}><Component text='world' /></Portal>, node)
-    assert.equal(oldPortal, portal) // portal got updated, not recreated
-    assert.equal(oldPortal.getRenderedSubtree(), portal.getRenderedSubtree()) // subtree also got updated, not recreated
-    assert.equal(portal.getElement().textContent, 'world')
-    assert.equal(portal.getRenderedSubtree().getText(), 'world')
+    const renderer = createRenderer()
+    renderer.render(<Portal><Component text='hello' /></Portal>)
+    assert.equal(renderer.instance.getElement().textContent, 'hello')
+    assert.equal(renderer.instance.getRenderedSubtree().getText(), 'hello')
+    const oldSubtree = renderer.instance.getRenderedSubtree()
+    renderer.render(<Portal><Component text='world' /></Portal>)
+    assert.equal(renderer.lastInstance, renderer.instance)
+    assert.equal(oldSubtree, renderer.instance.getRenderedSubtree())
+    assert.equal(renderer.instance.getElement().textContent, 'world')
+    assert.equal(renderer.instance.getRenderedSubtree().getText(), 'world')
   })
 })

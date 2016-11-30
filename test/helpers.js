@@ -3,10 +3,13 @@
 import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
+
 import {Directory} from 'atom'
-import GitShellOutStrategy from '../lib/git-shell-out-strategy'
+import React from 'react'
+import ReactDom from 'react-dom'
 
 import Repository from '../lib/models/repository'
+import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   actual = actual.replace(/\r\n/g, '\n')
@@ -149,3 +152,47 @@ export function until (...args) {
     checker()
   })
 }
+
+let activeRenderers = []
+export function createRenderer () {
+  let instance
+  let lastInstance
+  let node = document.createElement('div')
+  // ref function should be reference equal over renders to avoid React
+  // calling the "old" one with `null` and the "new" one with the instance
+  const setTopLevelRef = (c) => { instance = c }
+  const renderer = {
+    render (app) {
+      lastInstance = instance
+      app = React.cloneElement(app, { ref: setTopLevelRef })
+      ReactDom.render(app, node)
+    },
+
+    get instance () {
+      return instance
+    },
+
+    get lastInstance () {
+      return lastInstance
+    },
+
+    get node () {
+      return node
+    },
+
+    unmount () {
+      if (node) {
+        lastInstance = instance
+        ReactDom.unmountComponentAtNode(node)
+        node = null
+      }
+    }
+  }
+  activeRenderers.push(renderer)
+  return renderer
+}
+
+afterEach(() => {
+  activeRenderers.forEach(r => r.unmount())
+  activeRenderers = []
+})

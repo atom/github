@@ -6,6 +6,8 @@ import sinon from 'sinon'
 
 import Panel from '../../lib/views/panel'
 
+import {createRenderer} from '../helpers'
+
 class Component extends React.Component {
   render () {
     return (
@@ -20,15 +22,14 @@ class Component extends React.Component {
 
 describe('Panel component', () => {
   it('renders a React component into an Atom panel', () => {
+    const renderer = createRenderer()
     const workspace = {
       addLeftPanel: sinon.stub().returns({destroy: sinon.stub()})
     }
-    let panel, portal, subtree
+    let portal, subtree
     const item = Symbol('item')
-    const node = document.createElement('div')
-    const app = (
+    let app = (
       <Panel
-        ref={c => panel = c}
         workspace={workspace}
         location='left'
         options={{some: 'option'}}
@@ -41,15 +42,14 @@ describe('Panel component', () => {
         <Component text='hello' />
       </Panel>
     )
-    ReactDom.render(app, node)
+    renderer.render(app)
     assert.equal(workspace.addLeftPanel.callCount, 1)
     assert.deepEqual(workspace.addLeftPanel.args[0], [{some: 'option', item: item}])
     assert.equal(portal.getElement().textContent, 'hello')
     assert.equal(subtree.getText(), 'hello')
 
-    const app2 = (
+    app = (
       <Panel
-        ref={c => panel = c}
         workspace={workspace}
         location='left'
         options={{some: 'option'}}
@@ -60,13 +60,12 @@ describe('Panel component', () => {
         <Component text='world' />
       </Panel>
     )
-    ReactDom.render(app2, node)
+    renderer.render(app)
     assert.equal(workspace.addLeftPanel.callCount, 1)
     assert.equal(portal.getElement().textContent, 'world')
     assert.equal(subtree.getText(), 'world')
 
-    const wrappedPanel = panel.getPanel()
-    ReactDom.unmountComponentAtNode(node)
-    assert.equal(wrappedPanel.destroy.callCount, 1)
+    renderer.unmount()
+    assert.equal(renderer.lastInstance.getPanel().destroy.callCount, 1)
   })
 })
