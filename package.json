@@ -21,6 +21,8 @@
     "multi-list-selection": "^0.1.1",
     "ncp": "^2.0.0",
     "nsfw": "1.0.12",
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1",
     "recursive-readdir": "^2.0.0",
     "tree-kill": "^1.1.0",
     "what-the-diff": "^0.2.0"
