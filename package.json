@@ -45,7 +45,7 @@
     "fs-extra": "^1.0.0",
     "mkdirp": "^0.5.1",
     "simulant": "^0.2.2",
-    "sinon": "^1.17.4",
+    "sinon": "2.0.0-pre.4",
     "temp": "^0.8.3"
   },
   "consumedServices": {
