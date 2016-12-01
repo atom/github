@@ -23,15 +23,23 @@ class Component extends React.Component {
 }
 
 describe('Panel component', () => {
-  it('renders a React component into an Atom panel', () => {
-    const renderer = createRenderer()
-    const emitter = new Emitter()
-    const workspace = {
+  let renderer, emitter, workspace
+  beforeEach(() => {
+    renderer = createRenderer()
+    emitter = new Emitter()
+    workspace = {
       addLeftPanel: sinon.stub().returns({
         destroy: sinon.spy(() => emitter.emit('destroy')),
         onDidDestroy: (cb) => emitter.on('destroy', cb),
       })
     }
+  })
+
+  afterEach(() => {
+    emitter.dispose()
+  })
+
+  it('renders a React component into an Atom panel', () => {
     let portal, subtree
     const item = Symbol('item')
     let app = (
@@ -77,14 +85,7 @@ describe('Panel component', () => {
   })
 
   it('calls props.onDidClosePanel when the panel is destroyed unexpectedly', () => {
-    const renderer = createRenderer()
-    const emitter = new Emitter()
-    const workspace = {
-      addLeftPanel: sinon.stub().returns({
-        destroy: () => emitter.emit('destroy'),
-        onDidDestroy: (cb) => emitter.on('destroy', cb),
-      })
-    }
+
     const onDidClosePanel = sinon.stub()
     let app = (
       <Panel
@@ -98,6 +99,5 @@ describe('Panel component', () => {
     renderer.render(app)
     renderer.instance.getPanel().destroy()
     assert.equal(onDidClosePanel.callCount, 1)
-    emitter.dispose()
   })
 })
