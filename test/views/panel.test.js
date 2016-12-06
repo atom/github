@@ -31,6 +31,8 @@ describe('Panel component', () => {
       addLeftPanel: sinon.stub().returns({
         destroy: sinon.spy(() => emitter.emit('destroy')),
         onDidDestroy: (cb) => emitter.on('destroy', cb),
+        show: sinon.stub(),
+        hide: sinon.stub(),
       })
     }
   })
@@ -58,7 +60,7 @@ describe('Panel component', () => {
     )
     renderer.render(app)
     assert.equal(workspace.addLeftPanel.callCount, 1)
-    assert.deepEqual(workspace.addLeftPanel.args[0], [{some: 'option', item: item}])
+    assert.deepEqual(workspace.addLeftPanel.args[0], [{some: 'option', visible: true, item: item}])
     assert.equal(portal.getElement().textContent, 'hello')
     assert.equal(subtree.getText(), 'hello')
 
@@ -85,7 +87,6 @@ describe('Panel component', () => {
   })
 
   it('calls props.onDidClosePanel when the panel is destroyed unexpectedly', () => {
-
     const onDidClosePanel = sinon.stub()
     let app = (
       <Panel
@@ -99,5 +100,45 @@ describe('Panel component', () => {
     renderer.render(app)
     renderer.instance.getPanel().destroy()
     assert.equal(onDidClosePanel.callCount, 1)
+  })
+
+  describe('when updating the visible prop', () => {
+    it('shows or hides the panel', () => {
+      let app = (
+        <Panel
+          workspace={workspace}
+          location='left'
+          visible={true}
+        >
+          <Component text='hello' />
+        </Panel>
+      )
+      renderer.render(app)
+
+      const panel = renderer.instance.getPanel()
+      app = (
+        <Panel
+          workspace={workspace}
+          location='left'
+          visible={false}
+        >
+          <Component text='hello' />
+        </Panel>
+      )
+      renderer.render(app)
+      assert.equal(panel.hide.callCount, 1)
+
+      app = (
+        <Panel
+          workspace={workspace}
+          location='left'
+          visible={true}
+        >
+          <Component text='hello' />
+        </Panel>
+      )
+      renderer.render(app)
+      assert.equal(panel.show.callCount, 1)
+    })
   })
 })
