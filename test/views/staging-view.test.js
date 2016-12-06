@@ -68,44 +68,101 @@ describe('StagingView', () => {
   })
 
   describe('when the selection changes', function () {
-    it('notifies the parent component via the appropriate callback', async function () {
-      const filePatches = [
-        { filePath: 'a.txt', status: 'modified' },
-        { filePath: 'b.txt', status: 'deleted' }
-      ]
-      const mergeConflicts = [{
-        filePath: 'conflicted-path',
-        status: {
-          file: 'modified',
-          ours: 'deleted',
-          theirs: 'modified'
-        }
-      }]
-
-      const didSelectFilePath = sinon.spy()
-      const didSelectMergeConflictFile = sinon.spy()
-
-      const view = new StagingView({
-        didSelectFilePath, didSelectMergeConflictFile,
-        unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
+    describe("when github.keyboardNavigationDelay is 0", () => {
+      beforeEach(() => {
+        atom.config.set("github.keyboardNavigationDelay", 0)
       })
-      document.body.appendChild(view.element)
-      assert.equal(didSelectFilePath.callCount, 0)
 
-      view.focus()
-      await view.selectNext()
-      assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
-      await view.selectNext()
-      assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
+      it('synchronously notifies the parent component via the appropriate callback', async function () {
+        const filePatches = [
+          { filePath: 'a.txt', status: 'modified' },
+          { filePath: 'b.txt', status: 'deleted' }
+        ]
+        const mergeConflicts = [{
+          filePath: 'conflicted-path',
+          status: {
+            file: 'modified',
+            ours: 'deleted',
+            theirs: 'modified'
+          }
+        }]
 
-      document.body.focus()
-      assert.isFalse(view.isFocused())
-      didSelectFilePath.reset()
-      didSelectMergeConflictFile.reset()
-      await view.selectNext()
-      assert.equal(didSelectMergeConflictFile.callCount, 0)
+        const didSelectFilePath = sinon.spy()
+        const didSelectMergeConflictFile = sinon.spy()
 
-      view.element.remove()
+        const view = new StagingView({
+          didSelectFilePath, didSelectMergeConflictFile,
+          unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
+        })
+        document.body.appendChild(view.element)
+        assert.equal(didSelectFilePath.callCount, 0)
+
+        view.focus()
+        await view.selectNext()
+        assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
+        await view.selectNext()
+        assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
+
+        document.body.focus()
+        assert.isFalse(view.isFocused())
+        didSelectFilePath.reset()
+        didSelectMergeConflictFile.reset()
+        await view.selectNext()
+        assert.equal(didSelectMergeConflictFile.callCount, 0)
+
+        view.element.remove()
+      })
+    })
+
+    describe("when github.keyboardNavigationDelay is greater than 0", () => {
+      beforeEach(() => {
+        atom.config.set("github.keyboardNavigationDelay", 50)
+      })
+
+      it('asynchronously notifies the parent component via the appropriate callback', async function () {
+        const filePatches = [
+          { filePath: 'a.txt', status: 'modified' },
+          { filePath: 'b.txt', status: 'deleted' }
+        ]
+        const mergeConflicts = [{
+          filePath: 'conflicted-path',
+          status: {
+            file: 'modified',
+            ours: 'deleted',
+            theirs: 'modified'
+          }
+        }]
+
+        const didSelectFilePath = sinon.spy()
+        const didSelectMergeConflictFile = sinon.spy()
+
+        const view = new StagingView({
+          didSelectFilePath, didSelectMergeConflictFile,
+          unstagedChanges: filePatches, mergeConflicts, stagedChanges: []
+        })
+        document.body.appendChild(view.element)
+        assert.equal(didSelectFilePath.callCount, 0)
+
+        view.focus()
+        await view.selectNext()
+        assert.isFalse(didSelectFilePath.calledWith(filePatches[1].filePath))
+        await new Promise(resolve => setTimeout(resolve, 100))
+        assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
+        await view.selectNext()
+        assert.isFalse(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
+        await new Promise(resolve => setTimeout(resolve, 100))
+        assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath))
+
+        document.body.focus()
+        assert.isFalse(view.isFocused())
+        didSelectFilePath.reset()
+        didSelectMergeConflictFile.reset()
+        await view.selectNext()
+        await new Promise(resolve => setTimeout(resolve, 100))
+        assert.equal(didSelectMergeConflictFile.callCount, 0)
+
+        view.element.remove()
+      })
     })
 
     it('autoscroll to the selected item if it is out of view', async function () {
