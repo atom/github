@@ -93,7 +93,6 @@ describe('StagingView', () => {
       assert.equal(didSelectFilePath.callCount, 0)
 
       view.focus()
-      assert.isTrue(didSelectFilePath.calledWith(filePatches[0].filePath))
       await view.selectNext()
       assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath))
       await view.selectNext()
