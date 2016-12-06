@@ -3,10 +3,13 @@
 import fs from 'fs-extra'
 import path from 'path'
 import temp from 'temp'
+
 import {Directory} from 'atom'
-import GitShellOutStrategy from '../lib/git-shell-out-strategy'
+import React from 'react'
+import ReactDom from 'react-dom'
 
 import Repository from '../lib/models/repository'
+import GitShellOutStrategy from '../lib/git-shell-out-strategy'
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   actual = actual.replace(/\r\n/g, '\n')
@@ -95,3 +98,102 @@ export function assertEqualSortedArraysByKey (arr1, arr2, key) {
   const sortFn = (a, b) => a[key] < b[key]
   assert.deepEqual(arr1.sort(sortFn), arr2.sort(sortFn))
 }
+
+// like `waitsFor` and `waitsForPromise` except you can `await` it
+// to suspend/block an `async` test, and you don't have to use `runs`.
+// Usage: `await until([description,] [timeout,] fn)`
+//    Arguments can be supplied in any order
+//
+// E.g.:
+//
+//    await until('a thing happens', () => didThingHappen())
+//    expect(thing).toBe(something)
+export function until (...args) {
+  const start = new Date().getTime()
+
+  let latchFunction = null
+  let message = null
+  let timeout = null
+
+  if (args.length > 3) {
+    throw new Error('until only takes up to 3 args')
+  }
+
+  for (let arg of args) {
+    switch (typeof arg) {
+      case 'function':
+        latchFunction = arg
+        break
+      case 'string':
+        message = arg
+        break
+      case 'number':
+        timeout = arg
+        break
+    }
+  }
+
+  message = message || 'something happens'
+  timeout = timeout || 5000
+  const error = new Error(`timeout: timed out after ${timeout} msec waiting until ${message}`)
+
+  return new Promise((resolve, reject) => {
+    const checker = () => {
+      const result = latchFunction()
+      if (result) return resolve(result)
+
+      const now = new Date().getTime()
+      const delta = now - start
+      if (delta > timeout) {
+        return reject(error)
+      } else {
+        setTimeout(checker)
+      }
+    }
+    checker()
+  })
+}
+
+let activeRenderers = []
+export function createRenderer () {
+  let instance
+  let lastInstance
+  let node = document.createElement('div')
+  // ref function should be reference equal over renders to avoid React
+  // calling the "old" one with `null` and the "new" one with the instance
+  const setTopLevelRef = (c) => { instance = c }
+  const renderer = {
+    render (app) {
+      lastInstance = instance
+      app = React.cloneElement(app, { ref: setTopLevelRef })
+      ReactDom.render(app, node)
+    },
+
+    get instance () {
+      return instance
+    },
+
+    get lastInstance () {
+      return lastInstance
+    },
+
+    get node () {
+      return node
+    },
+
+    unmount () {
+      if (node) {
+        lastInstance = instance
+        ReactDom.unmountComponentAtNode(node)
+        node = null
+      }
+    }
+  }
+  activeRenderers.push(renderer)
+  return renderer
+}
+
+afterEach(() => {
+  activeRenderers.forEach(r => r.unmount())
+  activeRenderers = []
+})
