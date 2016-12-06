@@ -1,21 +1,11 @@
 {
   "parser": "babel-eslint",
-  "plugins": [
-    "babel",
-    "react",
-    "flowtype",
-    "flow-vars",
-    "import"
-  ],
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
     }
   },
   "settings": {
-    "react": {
-      "pragma": "etch.dom"
-    },
     "flowtype": {
       "onlyFilesWithAnnotation": true
     },
@@ -23,7 +13,7 @@
       "atom"
     ]
   },
-  "extends": ["standard", "plugin:react/recommended", "plugin:import/errors", "plugin:import/warnings"],
+  "extends": ["fbjs/opensource"],
   "globals": {
     "atom": true,
     "advanceClock": true,
@@ -47,17 +37,5 @@
     "expect": true,
     "spyOn": true,
     "waitsFor": true
-  },
-  "rules": {
-    "strict": 0,
-    "babel/no-await-in-loop": 2,
-    "flow-vars/define-flow-type": 1,
-    "flow-vars/use-flow-type": 1,
-    "react/jsx-quotes": 0,
-    "jsx-quotes": [
-      2,
-      "prefer-single"
-    ],
-    "react/no-unknown-property": 0
   }
 }
