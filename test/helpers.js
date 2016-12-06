@@ -135,6 +135,7 @@ export function until (...args) {
 
   message = message || 'something happens'
   timeout = timeout || 5000
+  const error = new Error(`timeout: timed out after ${timeout} msec waiting until ${message}`)
 
   return new Promise((resolve, reject) => {
     const checker = () => {
@@ -144,7 +145,7 @@ export function until (...args) {
       const now = new Date().getTime()
       const delta = now - start
       if (delta > timeout) {
-        return reject(new Error(`timeout: timed out after ${timeout} msec waiting until ${message}`))
+        return reject(error)
       } else {
         setTimeout(checker)
       }
