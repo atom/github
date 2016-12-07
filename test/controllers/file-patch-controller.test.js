@@ -132,6 +132,8 @@ describe('FilePatchController', () => {
       // stage remaining lines in hunk
       unstagedFilePatch = await repository.getFilePatchForPath('sample.js')
       await controller.update({filePatch: unstagedFilePatch})
+      hunk = unstagedFilePatch.getHunks()[0]
+      hunkView = hunkViewsByHunk.get(hunk)
       await hunkView.props.didClickStageButton()
       await repository.refresh()
       expectedLines = originalLines.slice()

@@ -1,5 +1,6 @@
 /** @babel */
 /** @jsx etch.dom */
+/* eslint react/no-unknown-property: "off" */
 
 import etch from 'etch'
 import sinon from 'sinon'

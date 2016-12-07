@@ -6,9 +6,6 @@
     }
   },
   "settings": {
-    "flowtype": {
-      "onlyFilesWithAnnotation": true
-    },
     "import/core-modules": [
       "atom"
     ]
