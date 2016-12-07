@@ -75,22 +75,22 @@ describe('CommitView', () => {
   });
 
   it('uses the git commit message grammar when the grammar is loaded', async () => {
-    await atom.packages.activatePackage('language-git')
+    await atom.packages.activatePackage('language-git');
 
-    const view = new CommitView({workspace, commandRegistry})
-    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit')
-  })
+    const view = new CommitView({workspace, commandRegistry});
+    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
+  });
 
   it('uses the git commit message grammar when the grammar has not been loaded', async () => {
-    atom.packages.deactivatePackage('language-git')
+    atom.packages.deactivatePackage('language-git');
 
-    const view = new CommitView({workspace, commandRegistry})
-    assert.equal(view.editor.getGrammar().scopeName, 'text.plain.null-grammar')
+    const view = new CommitView({workspace, commandRegistry});
+    assert.equal(view.editor.getGrammar().scopeName, 'text.plain.null-grammar');
 
-    await atom.packages.activatePackage('language-git')
+    await atom.packages.activatePackage('language-git');
 
-    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit')
-  })
+    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
+  });
 
   it('disables the commit button when no changes are staged, there are merge conflict files, or the commit message is empty', async () => {
     const workdirPath = await cloneRepository('three-files');
