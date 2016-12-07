@@ -85,7 +85,7 @@ describe('CommitView', () => {
     atom.packages.deactivatePackage('language-git');
 
     const view = new CommitView({workspace, commandRegistry});
-    assert.equal(view.editor.getGrammar().scopeName, 'text.plain.null-grammar');
+    assert(view.editor.getGrammar().scopeName.startsWith('text.plain'));
 
     await atom.packages.activatePackage('language-git');
 
