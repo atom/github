@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "apm test",
-    "lint": "eslint spec lib"
+    "lint": "eslint test lib"
   },
   "atomTestRunner": "./test/runner",
   "dependencies": {
