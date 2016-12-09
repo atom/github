@@ -55,6 +55,9 @@ npm --version
 echo "Downloading package dependencies..."
 "$APM_SCRIPT_PATH" install
 
+echo "Running linter..."
+npm run lint
+
 echo "Running specs..."
 "$ATOM_SCRIPT_PATH" --test test
 exit
