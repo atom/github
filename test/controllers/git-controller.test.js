@@ -227,6 +227,57 @@ describe('GitController', () => {
     });
   });
 
+  describe('toggleGitPanelFocus()', () => {
+    let wrapper;
+
+    beforeEach(async () => {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+
+      sinon.spy(wrapper.instance(), 'focusGitPanel');
+      sinon.spy(workspace.getActivePane(), 'activate');
+    });
+
+    it('opens and focuses the Git panel when it is initially closed', async () => {
+      assert.isFalse(wrapper.find('Panel').prop('visible'));
+
+      await wrapper.instance().toggleGitPanelFocus();
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.isFalse(workspace.getActivePane().activate.called);
+    });
+
+    it('focuses the Git panel when it is already open, but blurred', async () => {
+      await wrapper.instance().toggleGitPanel();
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+
+      await wrapper.instance().toggleGitPanelFocus();
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.isFalse(workspace.getActivePane().activate.called);
+    });
+
+    it('blurs the Git panel when it is already open and focused', async () => {
+      await wrapper.instance().toggleGitPanel();
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(true);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+
+      await wrapper.instance().toggleGitPanelFocus();
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
+      assert.isTrue(workspace.getActivePane().activate.called);
+    });
+  });
+
   describe('openAndFocusGitPanel()', () => {
     it('shows-and-focuses the git panel', async () => {
       const workdirPath = await cloneRepository('multiple-commits');
