@@ -170,5 +170,74 @@ describe('FilePatchController', () => {
       await hunkView.props.didClickStageButton();
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
     });
+
+    // https://github.com/atom/github/issues/341
+    it('avoids patch conflicts with pending index operations', async () => {
+      const workdirPath = await cloneRepository('multi-line-file');
+      const repository = await buildRepository(workdirPath);
+      const filePath = path.join(workdirPath, 'sample.js');
+      const originalLines = fs.readFileSync(filePath, 'utf8').split('\n');
+
+      // write some unstaged changes
+      const unstagedLines = originalLines.slice();
+      unstagedLines.splice(1, 0,
+        'this is a modified line',
+        'this is a new line',
+        'this is another new line',
+      );
+      unstagedLines.splice(11, 2, 'this is a modified line');
+      fs.writeFileSync(filePath, unstagedLines.join('\n'));
+      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+      const hunkViewsByHunk = new Map();
+      function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
+
+      // enqueue two stage operations before the first has a chance to be applied
+      const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+      const view = controller.refs.filePatchView;
+      let hunk = unstagedFilePatch.getHunks()[0];
+      let lines = hunk.getLines();
+      let hunkView = hunkViewsByHunk.get(hunk);
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
+      view.mouseup();
+      const firstOpPromises = hunkView.props.didClickStageButton();
+
+      await hunkView.props.didClickStageButton();
+
+      await firstOpPromises.stageOperationPromise;
+
+      // refresh the hunks
+      await repository.refresh();
+      const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
+      await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+
+      await firstOpPromises.selectionUpdatePromise;
+
+      // assert that only line 1 has been staged
+      let expectedLines = originalLines.slice();
+      expectedLines.splice(1, 0,
+        'this is a modified line',
+      );
+      let actualLines = await repository.readFileFromIndex('sample.js');
+      assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+
+      hunk = modifiedFilePatch.getHunks()[0];
+      lines = hunk.getLines();
+      hunkView = hunkViewsByHunk.get(hunk);
+      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[2]);
+      view.mouseup();
+
+      const thirdOpPromises = hunkView.props.didClickStageButton();
+
+      await thirdOpPromises.stageOperationPromise;
+
+      // assert that line 2 has now been staged
+      expectedLines = originalLines.slice();
+      expectedLines.splice(1, 0,
+        'this is a modified line',
+        'this is a new line',
+      );
+      actualLines = await repository.readFileFromIndex('sample.js');
+      assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+    });
   });
 });
