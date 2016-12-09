@@ -10,8 +10,11 @@ env:
 
 notifications:
   email:
-    on_success: never
-    on_failure: change
+    on_success: change
+    on_failure: always
+  slack:
+    rooms:
+      secure: g4T7HK9MBnkiEKfcnznnR0RRHK2MeZx7EDLFcBIu2+eho+6eyrBFSVnWbZ37HEUMDGg8JqGZ0AZ8UqumT8jVVGQhMLkVzEOeaO8g8Sg1Jd9S5sN+8+s1l/jJU6RVd2ephNwL0vE5Y5WM46SBmnKAwIjZ2kwyeODF8r4JSV9xw4fN3CYOM/JuBWBl3YDFKTXjkyObQSafeURBbs7LmXijH8cay6D1lasSV9+gcAS/V/XxnlPODXRcM5TjJ/MNVf0lcBqcTA08N1jAVuFj7+xXA113o3r8pf7P0CtvhVIZM2ssbW0tgC6MfT8qcfmmyT+/eUWwyMJUO+uUytdmlnWZ9WPzH19o/sI/tM5IeibRDVZzcj1B5N+XOAylIggiGZ3AFOT4/YBl1C61tsZYh7a809uhl6HR0ottgyhOPFhIYHpyc2xQeckoEAKw94PP/N4i+/ESfzt+UbZyJUDItZibsMFnJnuyMLJkSnG2THNmhCfwPYVmqOjnYqAriF+TdkuVApszV7BHeiYLU45I7XZzpspJYPhUIEVYyioeXBgy60C+bv6PaxATptuaNT54BaOEACAiVZTsnmzxfAhhILSIX7x3Ey1WEdxYDStknesw5JdzKCE60CfuPgkwg0L22lPcZb4QrtUFUixhHhPm/faanxwaYEJ8IpW+n3n25MlC53A=
 
 install:
   - npm install -g npm
