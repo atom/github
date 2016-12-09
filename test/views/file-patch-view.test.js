@@ -1,8 +1,12 @@
 /** @babel */
 
+import sinon from 'sinon'
+
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
+
+import {assertEqualSets} from '../helpers'
 
 describe('FilePatchView', () => {
   it('allows lines and hunks to be selected via the mouse', async () => {
@@ -136,4 +140,35 @@ describe('FilePatchView', () => {
     await view.update({hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
     assert.equal(hunkView.props.stageButtonLabel, 'Stage Selection');
   });
+
+  describe('stageHunk', () => {
+    // ref: https://github.com/atom/github/issues/339
+    it('selects the next hunk after staging', async () => {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4),
+        ]),
+        new Hunk(5, 7, 1, 4, [
+          new HunkLine('line-5', 'unchanged', 5, 7),
+          new HunkLine('line-6', 'added', -1, 8),
+          new HunkLine('line-7', 'added', -1, 9),
+          new HunkLine('line-8', 'added', -1, 10),
+        ]),
+        new Hunk(15, 17, 1, 4, [
+          new HunkLine('line-9', 'unchanged', 15, 17),
+          new HunkLine('line-10', 'added', -1, 18),
+          new HunkLine('line-11', 'added', -1, 19),
+          new HunkLine('line-12', 'added', -1, 20),
+        ]),
+      ];
+
+      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', stageHunk: sinon.stub()});
+      filePatchView.stageHunk(hunks[2])
+      await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])})
+      assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]))
+    })
+  })
 });
