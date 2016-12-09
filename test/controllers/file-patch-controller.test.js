@@ -191,7 +191,6 @@ describe('FilePatchController', () => {
       const hunkViewsByHunk = new Map();
       function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
-      // enqueue two stage operations before the first has a chance to be applied
       const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
       const view = controller.refs.filePatchView;
       let hunk = unstagedFilePatch.getHunks()[0];
@@ -199,18 +198,17 @@ describe('FilePatchController', () => {
       let hunkView = hunkViewsByHunk.get(hunk);
       hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
       view.mouseup();
-      const firstOpPromises = hunkView.props.didClickStageButton();
 
+      // stage lines in rapid succession
+      // second stage action is a no-op since the first staging operation is in flight
+      const line1StagingPromises = hunkView.props.didClickStageButton();
       await hunkView.props.didClickStageButton();
 
-      await firstOpPromises.stageOperationPromise;
-
-      // refresh the hunks
-      await repository.refresh();
+      await line1StagingPromises.stageOperationPromise;
+      await repository.refresh(); // clear the cached file patches
       const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
       await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
-
-      await firstOpPromises.selectionUpdatePromise;
+      await line1StagingPromises.selectionUpdatePromise;
 
       // assert that only line 1 has been staged
       let expectedLines = originalLines.slice();
@@ -226,9 +224,8 @@ describe('FilePatchController', () => {
       hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[2]);
       view.mouseup();
 
-      const thirdOpPromises = hunkView.props.didClickStageButton();
-
-      await thirdOpPromises.stageOperationPromise;
+      const line2StagingPromises = hunkView.props.didClickStageButton();
+      await line2StagingPromises.stageOperationPromise;
 
       // assert that line 2 has now been staged
       expectedLines = originalLines.slice();
