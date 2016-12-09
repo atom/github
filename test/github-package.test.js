@@ -33,7 +33,7 @@ describe('GithubPackage', () => {
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.activate();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      assert.equal(githubPackage.getActiveRepository(), 'this is a failure!');
     });
   });
 
