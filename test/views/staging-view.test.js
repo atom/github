@@ -3,6 +3,8 @@
 import sinon from 'sinon';
 import StagingView from '../../lib/views/staging-view';
 
+import {assertEqualSets} from '../helpers'
+
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
@@ -193,5 +195,27 @@ describe('StagingView', () => {
 
       view.element.remove();
     });
+  });
+
+  describe('when dragging a mouse across multiple items', () => {
+    // https://github.com/atom/github/issues/352
+    it('selects the items', async () => {
+      const unstagedChanges = [
+        {filePath: 'a.txt', status: 'modified'},
+        {filePath: 'b.txt', status: 'modified'},
+        {filePath: 'c.txt', status: 'modified'},
+      ];
+      const didSelectFilePath = sinon.stub()
+      const view = new StagingView({unstagedChanges, stagedChanges: [], didSelectFilePath});
+      view.isFocused = sinon.stub().returns(true)
+
+      document.body.appendChild(view.element);
+      await view.mousedownOnItem({detail: 1}, unstagedChanges[0])
+      await view.mousemoveOnItem({}, unstagedChanges[1])
+      console.log('mouseup');
+      view.mouseup()
+      assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)))
+      assert.equal(view.props.didSelectFilePath.callCount, 0)
+    })
   });
 });
