@@ -3,7 +3,7 @@
 import FilePatchSelection from '../../lib/views/file-patch-selection';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
-import {assertEqualSets} from '../helpers';
+import {assertEqualSets, until} from '../helpers';
 
 describe('FilePatchSelection', () => {
   describe('line selection', () => {
@@ -821,6 +821,37 @@ describe('FilePatchSelection', () => {
 
       selection.updateHunks([]);
       assertEqualSets(selection.getSelectedLines(), new Set());
+    });
+
+    it('resolves the getNextUpdatePromise the next time hunks are changed', async () => {
+      const hunk0 = new Hunk(1, 1, 1, 3, [
+        new HunkLine('line-1', 'added', -1, 1),
+        new HunkLine('line-2', 'added', -1, 2),
+      ]);
+      const hunk1 = new Hunk(4, 4, 1, 3, [
+        new HunkLine('line-4', 'added', -1, 1),
+        new HunkLine('line-7', 'added', -1, 2),
+      ]);
+
+      const existingHunks = [hunk0, hunk1];
+      const selection = new FilePatchSelection(existingHunks);
+
+      let wasResolved = false;
+      selection.getNextUpdatePromise().then(() => { wasResolved = true; });
+
+      const unchangedHunks = [hunk0, hunk1];
+      selection.updateHunks(unchangedHunks);
+
+      assert.isFalse(wasResolved);
+
+      const hunk2 = new Hunk(6, 4, 1, 3, [
+        new HunkLine('line-12', 'added', -1, 1),
+        new HunkLine('line-77', 'added', -1, 2),
+      ]);
+      const changedHunks = [hunk0, hunk2];
+      selection.updateHunks(changedHunks);
+
+      await until(() => wasResolved);
     });
   });
 });
