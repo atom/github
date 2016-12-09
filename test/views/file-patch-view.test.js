@@ -141,7 +141,7 @@ describe('FilePatchView', () => {
     assert.equal(hunkView.props.stageButtonLabel, 'Stage Selection');
   });
 
-  describe('stageHunk', () => {
+  describe('didClickStageButtonForHunk', () => {
     // ref: https://github.com/atom/github/issues/339
     it('selects the next hunk after staging', async () => {
       const hunks = [
@@ -165,8 +165,8 @@ describe('FilePatchView', () => {
         ]),
       ];
 
-      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', stageHunk: sinon.stub()});
-      filePatchView.stageHunk(hunks[2])
+      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', stageOrUnstageHunk: sinon.stub()});
+      filePatchView.didClickStageButtonForHunk(hunks[2])
       await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])})
       assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]))
     })
