@@ -1,9 +1,12 @@
 /** @babel */
 
+import {Directory} from 'atom';
+
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
 import sinon from 'sinon';
+
 import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
@@ -155,6 +158,29 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
+    });
+  });
+
+  describe('#repositoryForProjectDirectory', () => {
+    it('returns the same repository over multiple overlapping calls', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const dir = new Directory(workdirPath);
+
+      const repo1 = githubPackage.repositoryForProjectDirectory(dir);
+      const repo2 = githubPackage.repositoryForProjectDirectory(dir);
+
+      assert.equal(await repo1, await repo2);
+    });
+
+    it('returns the same repository for different Directories with the same path', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const dir1 = new Directory(workdirPath);
+      const dir2 = new Directory(workdirPath);
+
+      const repo1 = await githubPackage.repositoryForProjectDirectory(dir1);
+      const repo2 = await githubPackage.repositoryForProjectDirectory(dir2);
+
+      assert.equal(repo1, repo2);
     });
   });
 });
