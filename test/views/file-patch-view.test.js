@@ -1,12 +1,12 @@
 /** @babel */
 
-import sinon from 'sinon'
+import sinon from 'sinon';
 
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
-import {assertEqualSets} from '../helpers'
+import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', () => {
   it('allows lines and hunks to be selected via the mouse', async () => {
@@ -166,9 +166,9 @@ describe('FilePatchView', () => {
       ];
 
       const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', stageOrUnstageHunk: sinon.stub()});
-      filePatchView.didClickStageButtonForHunk(hunks[2])
-      await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])})
-      assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]))
-    })
-  })
+      filePatchView.didClickStageButtonForHunk(hunks[2]);
+      await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])});
+      assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));
+    });
+  });
 });
