@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "atom --test test",
-    "lint": "eslint test lib"
+    "lint": "eslint --max-warnings 0 test lib"
   },
   "atomTestRunner": "./test/runner",
   "dependencies": {
