@@ -1,8 +1,6 @@
-'.platform-darwin':
-  'cmd-shift-c': 'github:toggle-git-panel'
-
-'.platform-win32, .platform-linux':
-  'alt-shift-c': 'github:toggle-git-panel'
+'.workspace':
+  'ctrl-shift-9': 'github:toggle-git-panel'
+  'ctrl-9': 'github:toggle-git-panel-focus'
 
 '.github-StagingView':
   'left': 'github:focus-diff-view'
