@@ -9,6 +9,9 @@
     "test": "atom --test test",
     "lint": "eslint test lib"
   },
+  "engines": {
+    "atom": ">=1.13.0"
+  },
   "atomTestRunner": "./test/runner",
   "dependencies": {
     "compare-sets": "^1.0.1",
