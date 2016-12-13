@@ -209,6 +209,19 @@ describe('CompositeListSelection', () => {
       selection.selectFirstItem(true);
       assertEqualSets(selection.getSelectedItems(), new Set(['e', 'f', 'g']));
     });
+
+    it('allows the last non-empty selection to be chosen', () => {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b', 'c'],
+          conflicts: ['e', 'f'],
+          staged: [],
+        },
+      });
+
+      assert.isTrue(selection.activateLastSelection());
+      assertEqualSets(selection.getSelectedItems(), new Set(['e']));
+    });
   });
 
   describe('updateLists(listsByKey)', () => {
