@@ -268,5 +268,12 @@ describe('StagingView', () => {
       assert.isFalse(view.activatePreviousList());
       assertSelected(['unstaged-one.txt']);
     });
+
+    it('selects the first item of the final list', () => {
+      assertSelected(['unstaged-one.txt']);
+
+      assert.isTrue(view.activateLastList());
+      assertSelected(['staged-one.txt']);
+    });
   });
 });
