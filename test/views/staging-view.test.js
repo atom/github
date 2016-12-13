@@ -217,4 +217,47 @@ describe('StagingView', () => {
       assert.equal(view.props.didSelectFilePath.callCount, 0);
     });
   });
+
+  describe('when advancing activation', () => {
+    let view, stagedChanges;
+
+    beforeEach(() => {
+      const unstagedChanges = [
+        {filePath: 'unstaged-one.txt', status: 'modified'},
+        {filePath: 'unstaged-two.txt', status: 'modified'},
+        {filePath: 'unstaged-two.txt', status: 'modified'},
+      ];
+      const mergeConflicts = [
+        {filePath: 'conflict-one.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
+        {filePath: 'conflict-two.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+      ];
+      stagedChanges = [
+        {filePath: 'staged-one.txt', status: 'staged'},
+        {filePath: 'staged-two.txt', status: 'staged'},
+      ];
+      view = new StagingView({unstagedChanges, stagedChanges, mergeConflicts});
+    });
+
+    const assertSelected = expected => {
+      const actual = Array.from(view.selection.getSelectedItems()).map(item => item.filePath);
+      assert.deepEqual(actual, expected);
+    };
+
+    it('selects the first item of the next list', () => {
+      assert.isTrue(view.activateNextList());
+      assertSelected(['conflict-one.txt']);
+
+      assert.isTrue(view.activateNextList());
+      assertSelected(['staged-one.txt']);
+    });
+
+    it('is aware when the final list is activated', () => {
+      view.mousedownOnItem({detail: 1}, stagedChanges[1]);
+      view.mouseup();
+      assertSelected(['staged-two.txt']);
+
+      assert.isFalse(view.activateNextList());
+      assertSelected(['staged-two.txt']);
+    });
+  });
 });
