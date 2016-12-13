@@ -218,7 +218,7 @@ describe('StagingView', () => {
     });
   });
 
-  describe('when advancing activation', () => {
+  describe('when advancing and retreating activation', () => {
     let view, stagedChanges;
 
     beforeEach(() => {
@@ -249,15 +249,24 @@ describe('StagingView', () => {
 
       assert.isTrue(view.activateNextList());
       assertSelected(['staged-one.txt']);
+
+      assert.isFalse(view.activateNextList());
+      assertSelected(['staged-one.txt']);
     });
 
-    it('is aware when the final list is activated', () => {
+    it('selects the first item of the previous list', () => {
       view.mousedownOnItem({detail: 1}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-two.txt']);
 
-      assert.isFalse(view.activateNextList());
-      assertSelected(['staged-two.txt']);
+      assert.isTrue(view.activatePreviousList());
+      assertSelected(['conflict-one.txt']);
+
+      assert.isTrue(view.activatePreviousList());
+      assertSelected(['unstaged-one.txt']);
+
+      assert.isFalse(view.activatePreviousList());
+      assertSelected(['unstaged-one.txt']);
     });
   });
 });
