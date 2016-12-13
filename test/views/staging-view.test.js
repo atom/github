@@ -3,7 +3,7 @@
 import sinon from 'sinon';
 import StagingView from '../../lib/views/staging-view';
 
-import {assertEqualSets} from '../helpers'
+import {assertEqualSets} from '../helpers';
 
 describe('StagingView', () => {
   describe('staging and unstaging files', () => {
@@ -205,17 +205,16 @@ describe('StagingView', () => {
         {filePath: 'b.txt', status: 'modified'},
         {filePath: 'c.txt', status: 'modified'},
       ];
-      const didSelectFilePath = sinon.stub()
+      const didSelectFilePath = sinon.stub();
       const view = new StagingView({unstagedChanges, stagedChanges: [], didSelectFilePath});
-      view.isFocused = sinon.stub().returns(true)
+      view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
-      await view.mousedownOnItem({detail: 1}, unstagedChanges[0])
-      await view.mousemoveOnItem({}, unstagedChanges[1])
-      console.log('mouseup');
-      view.mouseup()
-      assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)))
-      assert.equal(view.props.didSelectFilePath.callCount, 0)
-    })
+      await view.mousedownOnItem({detail: 1}, unstagedChanges[0]);
+      await view.mousemoveOnItem({}, unstagedChanges[1]);
+      view.mouseup();
+      assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)));
+      assert.equal(view.props.didSelectFilePath.callCount, 0);
+    });
   });
 });

@@ -55,9 +55,18 @@ npm --version
 echo "Downloading package dependencies..."
 "$APM_SCRIPT_PATH" install
 
-echo "Running linter..."
+echo "Running lint..."
 npm run lint
+LINT_RESULT=$?
+if [ $LINT_RESULT -ne 0 ]; then echo ">>> LINTING FAILED! <<< Continuing on to tests..."; fi
 
 echo "Running specs..."
 "$ATOM_SCRIPT_PATH" --test test
+TEST_RESULT=$?
+
+echo "=================="
+echo "Linting exit code: $LINT_RESULT"
+echo "Test exit code: $TEST_RESULT"
+if [ $LINT_RESULT -ne 0 ]; then exit $LINT_RESULT; fi
+if [ $TEST_RESULT -ne 0 ]; then exit $TEST_RESULT; fi
 exit

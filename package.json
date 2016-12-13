@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "test": "atom --test test",
-    "lint": "eslint test lib"
+    "lint": "eslint --max-warnings 0 test lib"
   },
   "engines": {
     "atom": ">=1.13.0"
