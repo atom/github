@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 5090a19c49efe751af0cd1b17591cd28eb4bb104 Ash Wilson <smashwilson@github.com> 1481641819 -0500	commit (initial): initial commit
+5090a19c49efe751af0cd1b17591cd28eb4bb104 5090a19c49efe751af0cd1b17591cd28eb4bb104 Ash Wilson <smashwilson@github.com> 1481641833 -0500	checkout: moving from master to one
+5090a19c49efe751af0cd1b17591cd28eb4bb104 4be8364bcf546f78cac1a71271c39cd566469dbe Ash Wilson <smashwilson@github.com> 1481641876 -0500	commit: commit on branch one
+4be8364bcf546f78cac1a71271c39cd566469dbe 5090a19c49efe751af0cd1b17591cd28eb4bb104 Ash Wilson <smashwilson@github.com> 1481641878 -0500	checkout: moving from one to master
+5090a19c49efe751af0cd1b17591cd28eb4bb104 b32cc47c2cb778e80c899b0edf25537274a5f570 Ash Wilson <smashwilson@github.com> 1481641914 -0500	commit: Commit on master
+b32cc47c2cb778e80c899b0edf25537274a5f570 b32cc47c2cb778e80c899b0edf25537274a5f570 Ash Wilson <smashwilson@github.com> 1481645327 -0500	reset: moving to HEAD

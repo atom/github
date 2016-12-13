@@ -95,13 +95,31 @@ describe('GitPanelController', () => {
     assert(!controller.refs.gitPanel.props.isAmending);
   });
 
-  describe('navigation commands', () => {
+  describe('keyboard navigation commands', () => {
     let controller;
 
     beforeEach(async () => {
-      const workdirPath = await cloneRepository('three-files');
+      const workdirPath = await cloneRepository('each-staging-group');
       const repository = await buildRepository(workdirPath);
+
+      // Merge with conflicts
+      assert.isRejected(repository.git.merge('origin/one'));
+
+      // Three unstaged files
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-one'), 'This is an unstaged file.');
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-two'), 'This is an unstaged file.');
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-three'), 'This is an unstaged file.');
+
+      // Three staged files
+      fs.writeFileSync(path.join(workdirPath, 'staged-one'), 'This is a file with some changes staged for commit.');
+      fs.writeFileSync(path.join(workdirPath, 'staged-two'), 'This is another file staged for commit.');
+      fs.writeFileSync(path.join(workdirPath, 'staged-three'), 'This is a third file staged for commit.');
+      await repository.stageFiles(['staged-one', 'staged-two', 'staged-three']);
+
+      await repository.refresh();
+
       controller = new GitPanelController({workspace, commandRegistry, repository});
+      await controller.getLastModelDataRefreshPromise();
     });
 
     it('blurs on core:cancel', () => {
