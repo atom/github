@@ -155,7 +155,7 @@ describe('CompositeListSelection', () => {
       assertEqualSets(selection.getSelectedItems(), new Set(['a']));
     });
 
-    it('allows selections to be added in the current active list, but updates the existing seleciton when activating a different list', () => {
+    it('allows selections to be added in the current active list, but updates the existing selection when activating a different list', () => {
       const selection = new CompositeListSelection({
         listsByKey: {
           unstaged: ['a', 'b', 'c'],
