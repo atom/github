@@ -422,6 +422,36 @@ describe('Git commands', () => {
       assert.equal(await git.getBehindCount('master'), 1);
       assert.equal(await git.getAheadCount('master'), 2);
     });
+
+    it('returns null if there is no remote tracking branch specified', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+      const git = new GitShellOutStrategy(localRepoPath);
+      await git.exec(['config', '--remove-section', 'branch.master']);
+      assert.equal(await git.getBehindCount('master'), null);
+      assert.equal(await git.getAheadCount('master'), null);
+    });
+
+    it('returns null if the configured remote tracking branch does not exist locally', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+      const git = new GitShellOutStrategy(localRepoPath);
+      await git.exec(['branch', '-d', '-r', 'origin/master']);
+      assert.equal(await git.getBehindCount('master'), null);
+      assert.equal(await git.getAheadCount('master'), null);
+
+      await git.exec(['fetch']);
+      assert.equal(await git.getBehindCount('master'), 0);
+      assert.equal(await git.getAheadCount('master'), 0);
+    });
+
+    it('handles a remote tracking branch with a name that differs from the local branch', async () => {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+      const git = new GitShellOutStrategy(localRepoPath);
+      await git.exec(['checkout', '-b', 'new-local-branch']);
+      await git.exec(['remote', 'rename', 'origin', 'upstream']);
+      await git.exec(['branch', '--set-upstream-to=upstream/master']);
+      assert.equal(await git.getBehindCount('new-local-branch'), 0);
+      assert.equal(await git.getAheadCount('new-local-branch'), 0);
+    });
   });
 
   describe('getCurrentBranch() and checkout(branchName, {createNew})', () => {
