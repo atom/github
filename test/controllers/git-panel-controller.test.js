@@ -96,7 +96,7 @@ describe('GitPanelController', () => {
   });
 
   describe('keyboard navigation commands', () => {
-    let controller;
+    let controller, gitPanel, stagingView, commitView, focusElement;
 
     beforeEach(async () => {
       const workdirPath = await cloneRepository('each-staging-group');
@@ -120,7 +120,20 @@ describe('GitPanelController', () => {
 
       controller = new GitPanelController({workspace, commandRegistry, repository});
       await controller.getLastModelDataRefreshPromise();
+
+      gitPanel = controller.refs.gitPanel;
+      stagingView = gitPanel.refs.stagingView;
+      commitView = gitPanel.refs.commitView;
+      focusElement = stagingView;
+
+      sinon.stub(commitView, 'focus', () => { focusElement = commitView; });
+      sinon.stub(stagingView, 'focus', () => { focusElement = stagingView; });
     });
+
+    const assertSelected = paths => {
+      const selectionPaths = Array.from(stagingView.selection.getSelectedItems()).map(each => each.filePath);
+      assert.deepEqual(selectionPaths, paths);
+    };
 
     it('blurs on core:cancel', () => {
       sinon.spy(workspace.getActivePane(), 'activate');
@@ -128,6 +141,25 @@ describe('GitPanelController', () => {
       commandRegistry.dispatch(controller.element, 'core:cancel');
 
       assert.isTrue(workspace.getActivePane().activate.called);
+    });
+
+    it('advances focus through StagingView groups and CommitView, but does not cycle', () => {
+      assertSelected(['unstaged-one']);
+
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      assertSelected(['all']);
+
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      assertSelected(['staged-one']);
+
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      assertSelected(['staged-one']);
+      assert.strictEqual(focusElement, commitView);
+
+      // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      assertSelected(['staged-one']);
+      assert.strictEqual(focusElement, commitView);
     });
   });
 
