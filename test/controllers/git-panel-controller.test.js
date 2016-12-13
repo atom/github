@@ -95,16 +95,22 @@ describe('GitPanelController', () => {
     assert(!controller.refs.gitPanel.props.isAmending);
   });
 
-  it('blurs on core:cancel', async () => {
-    const workdirPath = await cloneRepository('three-files');
-    const repository = await buildRepository(workdirPath);
-    const controller = new GitPanelController({workspace, commandRegistry, repository});
+  describe('navigation commands', () => {
+    let controller;
 
-    sinon.spy(workspace.getActivePane(), 'activate');
+    beforeEach(async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      controller = new GitPanelController({workspace, commandRegistry, repository});
+    });
 
-    commandRegistry.dispatch(controller.element, 'core:cancel');
+    it('blurs on core:cancel', () => {
+      sinon.spy(workspace.getActivePane(), 'activate');
 
-    assert.isTrue(workspace.getActivePane().activate.called);
+      commandRegistry.dispatch(controller.element, 'core:cancel');
+
+      assert.isTrue(workspace.getActivePane().activate.called);
+    });
   });
 
   describe('integration tests', () => {
