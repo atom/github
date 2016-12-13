@@ -1,6 +1,6 @@
 '.workspace':
-  'ctrl-shift-9': 'github:toggle-git-panel'
-  'ctrl-9': 'github:toggle-git-panel-focus'
+  'ctrl-9': 'github:toggle-git-panel'
+  'ctrl-shift-9': 'github:toggle-git-panel-focus'
 
 '.github-StagingView':
   'left': 'github:focus-diff-view'
