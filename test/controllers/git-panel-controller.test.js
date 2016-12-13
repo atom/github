@@ -32,12 +32,14 @@ describe('GitPanelController', () => {
 
     assert.equal(controller.getActiveRepository(), repository);
     assert.isDefined(controller.refs.gitPanel.refs.repoLoadingMessage);
-    assert.isUndefined(controller.refs.gitPanel.refs.repoInfo);
+    assert.isUndefined(controller.refs.gitPanel.refs.stagingView);
+    assert.isUndefined(controller.refs.gitPanel.refs.commitView);
 
     await controller.getLastModelDataRefreshPromise();
     assert.equal(controller.getActiveRepository(), repository);
     assert.isUndefined(controller.refs.gitPanel.refs.repoLoadingMessage);
-    assert.isDefined(controller.refs.gitPanel.refs.repoInfo);
+    assert.isDefined(controller.refs.gitPanel.refs.stagingView);
+    assert.isDefined(controller.refs.gitPanel.refs.commitView);
   });
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async done => {
