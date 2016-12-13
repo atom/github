@@ -95,6 +95,18 @@ describe('GitPanelController', () => {
     assert(!controller.refs.gitPanel.props.isAmending);
   });
 
+  it('blurs on core:cancel', async () => {
+    const workdirPath = await cloneRepository('three-files');
+    const repository = await buildRepository(workdirPath);
+    const controller = new GitPanelController({workspace, commandRegistry, repository});
+
+    sinon.spy(workspace.getActivePane(), 'activate');
+
+    commandRegistry.dispatch(controller.element, 'core:cancel');
+
+    assert.isTrue(workspace.getActivePane().activate.called);
+  });
+
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
       const workdirPath = await cloneRepository('three-files');
