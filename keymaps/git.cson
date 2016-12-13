@@ -4,6 +4,7 @@
 
 '.github-Panel':
   'tab': 'github:advance-focus'
+  'shift-tab': 'github:retreat-focus'
 
 '.github-StagingView':
   'left': 'github:focus-diff-view'

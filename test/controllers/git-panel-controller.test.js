@@ -127,6 +127,7 @@ describe('GitPanelController', () => {
       focusElement = stagingView;
 
       sinon.stub(commitView, 'focus', () => { focusElement = commitView; });
+      sinon.stub(commitView, 'isFocused', () => focusElement === commitView);
       sinon.stub(stagingView, 'focus', () => { focusElement = stagingView; });
     });
 
@@ -160,6 +161,23 @@ describe('GitPanelController', () => {
       commandRegistry.dispatch(controller.element, 'git:advance-focus');
       assertSelected(['staged-one']);
       assert.strictEqual(focusElement, commitView);
+    });
+
+    it('retreats focus from the CommitView through StagingView groups, but does not cycle', () => {
+      commitView.focus();
+
+      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      assertSelected(['staged-one']);
+
+      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      assertSelected(['all']);
+
+      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      assertSelected(['unstaged-one']);
+
+      // This should be a no-op.
+      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      assertSelected(['unstaged-one']);
     });
   });
 
