@@ -2,6 +2,9 @@
   'ctrl-9': 'github:toggle-git-panel'
   'ctrl-shift-9': 'github:toggle-git-panel-focus'
 
+'.github-Panel':
+  'tab': 'github:advance-focus'
+
 '.github-StagingView':
   'left': 'github:focus-diff-view'
 

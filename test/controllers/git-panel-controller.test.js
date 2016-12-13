@@ -146,18 +146,18 @@ describe('GitPanelController', () => {
     it('advances focus through StagingView groups and CommitView, but does not cycle', () => {
       assertSelected(['unstaged-one']);
 
-      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      commandRegistry.dispatch(controller.element, 'git:advance-focus');
       assertSelected(['all']);
 
-      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      commandRegistry.dispatch(controller.element, 'git:advance-focus');
       assertSelected(['staged-one']);
 
-      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      commandRegistry.dispatch(controller.element, 'git:advance-focus');
       assertSelected(['staged-one']);
       assert.strictEqual(focusElement, commitView);
 
       // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
-      commandRegistry.dispatch(controller.element, 'core:focus-next');
+      commandRegistry.dispatch(controller.element, 'git:advance-focus');
       assertSelected(['staged-one']);
       assert.strictEqual(focusElement, commitView);
     });
