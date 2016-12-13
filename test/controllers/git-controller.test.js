@@ -277,23 +277,4 @@ describe('GitController', () => {
       assert.isTrue(workspace.getActivePane().activate.called);
     });
   });
-
-  describe('openAndFocusGitPanel()', () => {
-    it('shows-and-focuses the git panel', async () => {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      sinon.spy(wrapper.instance(), 'focusGitPanel');
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.instance().openAndFocusGitPanel();
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
-      // TODO: remove this once we figure out the odd behavior that requires
-      // a setTimeout in openAndFocusGitPanel's setState callbasck
-      await new Promise(res => setTimeout(res, 250));
-      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
-    });
-  });
 });
