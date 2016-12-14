@@ -179,6 +179,16 @@ describe('GitPanelController', () => {
       commandRegistry.dispatch(controller.element, 'git:retreat-focus');
       assertSelected(['unstaged-one']);
     });
+
+    it('advances from the final populated list to the CommitView', async () => {
+      const lastItem = gitPanel.props.stagedChanges[gitPanel.props.stagedChanges.length - 1];
+      await stagingView.mousedownOnItem({detail: 1}, lastItem);
+      await stagingView.mouseup();
+
+      commandRegistry.dispatch(stagingView.element, 'core:move-down');
+
+      assert.strictEqual(focusElement, commitView);
+    });
   });
 
   describe('integration tests', () => {
