@@ -176,6 +176,34 @@ describe('GitController', () => {
     });
   });
 
+  describe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', () => {
+    it('reveals and focuses the file patch', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8');
+      await repository.refresh();
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      const focusFilePatch = sinon.spy();
+      wrapper.instance().filePatchController = {
+        getWrappedComponent: () => {
+          return {focus: focusFilePatch};
+        },
+      };
+
+      await wrapper.instance().diveIntoFilePatchForPath('a.txt', 'unstaged');
+
+      assert.equal(wrapper.state('filePath'), 'a.txt');
+      assert.equal(wrapper.state('filePatch').getPath(), 'a.txt');
+      assert.equal(wrapper.state('stagingStatus'), 'unstaged');
+
+      assert.isTrue(focusFilePatch.called);
+    });
+  });
+
   describe('when amend mode is toggled in the staging panel while viewing a staged change', () => {
     it('refetches the FilePatch with the amending flag toggled', async () => {
       const workdirPath = await cloneRepository('multiple-commits');
