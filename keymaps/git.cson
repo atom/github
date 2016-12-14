@@ -2,17 +2,15 @@
   'ctrl-9': 'github:toggle-git-panel'
   'ctrl-shift-9': 'github:toggle-git-panel-focus'
 
-'.github-Panel':
-  'tab': 'github:advance-focus'
-  'shift-tab': 'github:retreat-focus'
-
 '.github-StagingView':
   'left': 'github:focus-diff-view'
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'github:commit'
   'ctrl-enter': 'github:commit'
-  'shift-tab': 'github:retreat-focus'
+  'shift-tab': 'core:focus-previous'
 
 '.github-FilePatchView':
   '/': 'github:toggle-patch-selection-mode'

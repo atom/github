@@ -148,18 +148,18 @@ describe('GitPanelController', () => {
     it('advances focus through StagingView groups and CommitView, but does not cycle', () => {
       assertSelected(['unstaged-one']);
 
-      commandRegistry.dispatch(controller.element, 'git:advance-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
       assertSelected(['all']);
 
-      commandRegistry.dispatch(controller.element, 'git:advance-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
       assertSelected(['staged-one']);
 
-      commandRegistry.dispatch(controller.element, 'git:advance-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
       assertSelected(['staged-one']);
       assert.strictEqual(focusElement, commitView);
 
       // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
-      commandRegistry.dispatch(controller.element, 'git:advance-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-next');
       assertSelected(['staged-one']);
       assert.strictEqual(focusElement, commitView);
     });
@@ -167,17 +167,17 @@ describe('GitPanelController', () => {
     it('retreats focus from the CommitView through StagingView groups, but does not cycle', () => {
       commitView.focus();
 
-      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-previous');
       assertSelected(['staged-one']);
 
-      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-previous');
       assertSelected(['all']);
 
-      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-previous');
       assertSelected(['unstaged-one']);
 
       // This should be a no-op.
-      commandRegistry.dispatch(controller.element, 'git:retreat-focus');
+      commandRegistry.dispatch(controller.element, 'core:focus-previous');
       assertSelected(['unstaged-one']);
     });
 
