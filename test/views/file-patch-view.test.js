@@ -178,4 +178,22 @@ describe('FilePatchView', () => {
       assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));
     });
   });
+
+  describe('keyboard navigation', () => {
+    it('invokes the didSurfaceFile callback on core:move-right', () => {
+      const hunks = [
+        new Hunk(1, 1, 2, 2, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+        ]),
+      ];
+      const didSurfaceFile = sinon.spy();
+
+      const filePatchView = new FilePatchView({commandRegistry, hunks, didSurfaceFile});
+
+      commandRegistry.dispatch(filePatchView.element, 'core:move-right');
+
+      assert.equal(didSurfaceFile.callCount, 1);
+    });
+  });
 });
