@@ -59,6 +59,15 @@ describe('FilePatchController', () => {
     assert(hunkViewsByHunk.get(hunk3) != null);
   });
 
+  it('invokes a didSurfaceFile callback with the current file path', () => {
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
+    const didSurfaceFile = sinon.spy();
+    const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged', didSurfaceFile});
+
+    commandRegistry.dispatch(controller.refs.filePatchView.element, 'core:move-right');
+    assert.isTrue(didSurfaceFile.calledWith('a.txt'));
+  });
+
   describe('integration tests', () => {
     it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async () => {
       const workdirPath = await cloneRepository('multi-line-file');
