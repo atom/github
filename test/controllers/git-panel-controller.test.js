@@ -96,6 +96,32 @@ describe('GitPanelController', () => {
     assert(!controller.refs.gitPanel.props.isAmending);
   });
 
+  it('selects an item by description', async () => {
+    const workdirPath = await cloneRepository('three-files');
+    const repository = await buildRepository(workdirPath);
+
+    fs.writeFileSync(path.join(workdirPath, 'unstaged-1.txt'), 'This is an unstaged file.');
+    fs.writeFileSync(path.join(workdirPath, 'unstaged-2.txt'), 'This is an unstaged file.');
+    fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
+    await repository.refresh();
+
+    const controller = new GitPanelController({workspace, commandRegistry, repository});
+    await controller.getLastModelDataRefreshPromise();
+
+    const gitPanel = controller.refs.gitPanel;
+    const stagingView = gitPanel.refs.stagingView;
+
+    sinon.spy(stagingView, 'focus');
+
+    controller.focusOnStagingItem('unstaged-2.txt', 'unstaged');
+
+    const selections = Array.from(stagingView.selection.getSelectedItems());
+    assert.equal(selections.length, 1);
+    assert.equal(selections[0].filePath, 'unstaged-2.txt');
+
+    assert.equal(stagingView.focus.callCount, 1);
+  });
+
   describe('keyboard navigation commands', () => {
     let controller, gitPanel, stagingView, commitView, focusElement;
 
