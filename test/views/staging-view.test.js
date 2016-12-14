@@ -306,4 +306,63 @@ describe('StagingView', () => {
       assertSelected(['staged-one.txt']);
     });
   });
+
+  describe('when navigating with core:move-left', () => {
+    let view, didDiveIntoFilePath, didDiveIntoMergeConflictPath;
+
+    beforeEach(() => {
+      const unstagedChanges = [
+        {filePath: 'unstaged-1.txt', status: 'modified'},
+        {filePath: 'unstaged-2.txt', status: 'modified'},
+      ];
+      const mergeConflicts = [
+        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
+        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
+      ];
+
+      didDiveIntoFilePath = sinon.spy();
+      didDiveIntoMergeConflictPath = sinon.spy();
+
+      view = new StagingView({
+        commandRegistry, didDiveIntoFilePath, didDiveIntoMergeConflictPath,
+        unstagedChanges, stagedChanges: [], mergeConflicts,
+      });
+    });
+
+    it('invokes a callback with a single file selection', async () => {
+      await view.selectFirst();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.isTrue(didDiveIntoFilePath.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
+    });
+
+    it('invokes a callback with a single merge conflict selection', async () => {
+      await view.activateNextList();
+      await view.selectFirst();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.isTrue(didDiveIntoMergeConflictPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
+    });
+
+    it('does nothing with multiple files selections', async () => {
+      await view.selectAll();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.equal(didDiveIntoFilePath.callCount, 0);
+      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
+    });
+
+    it('does nothing with multiple merge conflict selections', async () => {
+      await view.activateNextList();
+      await view.selectAll();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.equal(didDiveIntoFilePath.callCount, 0);
+      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
+    });
+  });
 });
