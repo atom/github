@@ -76,21 +76,21 @@ describe('GitPanelController', () => {
     const didChangeAmending = sinon.spy();
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
-    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
+    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, isAmending: false});
     await controller.getLastModelDataRefreshPromise();
     assert.deepEqual(controller.refs.gitPanel.props.stagedChanges, []);
     assert.equal(didChangeAmending.callCount, 0);
 
     await controller.setAmending(true);
     assert.equal(didChangeAmending.callCount, 1);
+    await controller.update({isAmending: true});
     assert.deepEqual(
       controller.refs.gitPanel.props.stagedChanges,
       await controller.getActiveRepository().getStagedChangesSinceParentCommit(),
     );
 
     await controller.commit('Delete most of the code', {amend: true});
-    await controller.getLastModelDataRefreshPromise();
-    assert(!controller.refs.gitPanel.props.isAmending);
+    assert.equal(didChangeAmending.callCount, 2);
   });
 
   describe('integration tests', () => {
@@ -99,10 +99,10 @@ describe('GitPanelController', () => {
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      const controller = new GitPanelController({workspace, commandRegistry, repository});
+      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending: sinon.stub()});
       await controller.getLastModelDataRefreshPromise();
       const stagingView = controller.refs.gitPanel.refs.stagingView;
-      const commitView = controller.refs.gitPanel.refs.commitView;
+      const commitView = controller.refs.gitPanel.refs.commitViewController.refs.commitView;
 
       assert.equal(stagingView.props.unstagedChanges.length, 2);
       assert.equal(stagingView.props.stagedChanges.length, 0);
