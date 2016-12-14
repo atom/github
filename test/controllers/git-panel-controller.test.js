@@ -163,10 +163,10 @@ describe('GitPanelController', () => {
       assert.deepEqual(selectionPaths, paths);
     };
 
-    it('blurs on core:cancel', () => {
+    it('blurs on tool-panel:unfocus', () => {
       sinon.spy(workspace.getActivePane(), 'activate');
 
-      commandRegistry.dispatch(controller.element, 'core:cancel');
+      commandRegistry.dispatch(controller.element, 'tool-panel:unfocus');
 
       assert.isTrue(workspace.getActivePane().activate.called);
     });

@@ -20,4 +20,4 @@
 
 '.github-Prompt-input':
   'enter': 'core:confirm'
-  'esc': 'core:cancel'
+  'esc': 'tool-panel:unfocus'
