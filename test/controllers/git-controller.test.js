@@ -65,6 +65,21 @@ describe('GitController', () => {
     });
   });
 
+  describe('diveIntoMergeConflictFileForPath(relativeFilePath)', () => {
+    it('opens the file and focuses the pane', async () => {
+      const workdirPath = await cloneRepository('merge-conflict');
+      const repository = await buildRepository(workdirPath);
+      sinon.spy(workspace, 'open');
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      await wrapper.instance().diveIntoMergeConflictFileForPath('added-to-both.txt');
+
+      assert.equal(workspace.open.callCount, 1);
+      assert.deepEqual(workspace.open.args[0], [path.join(workdirPath, 'added-to-both.txt'), {activatePane: true, pending: true}]);
+    });
+  });
+
   describe('rendering a FilePatch', () => {
     it('renders the FilePatchController based on state', async () => {
       const workdirPath = await cloneRepository('three-files');
