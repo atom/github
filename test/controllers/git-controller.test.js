@@ -33,7 +33,7 @@ describe('GitController', () => {
   });
 
   describe('showMergeConflictFileForPath(filePath)', () => {
-    it('opens the file as a pending pane item if it exsits', async () => {
+    it('opens the file as a pending pane item if it exists', async () => {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
       sinon.spy(workspace, 'open');
