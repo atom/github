@@ -10,10 +10,17 @@ import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
-describe('FilePatchController', () => {
+describe.only('FilePatchController', () => {
+  let commandRegistry;
+
+  beforeEach(() => {
+    const atomEnv = global.buildAtomEnvironment();
+    commandRegistry = atomEnv.commands;
+  });
+
   it('bases its tab title on the staging status', () => {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
-    const controller = new FilePatchController({filePatch: filePatch1, stagingStatus: 'unstaged'});
+    const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged'});
     assert.equal(controller.getTitle(), 'Unstaged Changes: a.txt');
 
     const changeHandler = sinon.spy();
@@ -26,7 +33,7 @@ describe('FilePatchController', () => {
 
   it('renders FilePatchView only if FilePatch has hunks', async () => {
     const emptyFilePatch = new FilePatch('a.txt', 'a.txt', 'modified', []);
-    const controller = new FilePatchController({filePatch: emptyFilePatch}); // eslint-disable-line no-new
+    const controller = new FilePatchController({commandRegistry, filePatch: emptyFilePatch}); // eslint-disable-line no-new
     assert.isUndefined(controller.refs.filePatchView);
 
     const hunk1 = new Hunk(0, 0, 1, 1, [new HunkLine('line-1', 'added', 1, 1)]);
@@ -40,7 +47,7 @@ describe('FilePatchController', () => {
     const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)]);
     const hunkViewsByHunk = new Map();
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2]);
-    const controller = new FilePatchController({filePatch, registerHunkView: (hunk, ctrl) => hunkViewsByHunk.set(hunk, ctrl)}); // eslint-disable-line no-new
+    const controller = new FilePatchController({commandRegistry, filePatch, registerHunkView: (hunk, ctrl) => hunkViewsByHunk.set(hunk, ctrl)}); // eslint-disable-line no-new
     assert(hunkViewsByHunk.get(hunk1) != null);
     assert(hunkViewsByHunk.get(hunk2) != null);
 
@@ -71,7 +78,7 @@ describe('FilePatchController', () => {
       const hunkViewsByHunk = new Map();
       function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
-      const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
       const view = controller.refs.filePatchView;
       await view.selectNext();
       const hunkToStage = hunkViewsByHunk.get(unstagedFilePatch.getHunks()[0]);
@@ -111,7 +118,7 @@ describe('FilePatchController', () => {
       function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
       // stage a subset of lines from first hunk
-      const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
       const view = controller.refs.filePatchView;
       let hunk = unstagedFilePatch.getHunks()[0];
       let lines = hunk.getLines();
@@ -191,7 +198,7 @@ describe('FilePatchController', () => {
       const hunkViewsByHunk = new Map();
       function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
-      const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
       const view = controller.refs.filePatchView;
       let hunk = unstagedFilePatch.getHunks()[0];
       let lines = hunk.getLines();
