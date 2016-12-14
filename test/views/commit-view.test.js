@@ -25,50 +25,41 @@ describe('CommitView', () => {
   });
 
   it('displays the remaining characters limit based on which line is being edited', async () => {
-    const workdirPath = await cloneRepository('three-files');
-    const repository = await buildRepository(workdirPath);
-    const viewState = {};
-    const view = new CommitView({workspace, repository, commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, viewState});
-    const {editor} = view.refs;
+    const view = new CommitView({commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, message: ''});
     assert.equal(view.refs.remainingCharacters.textContent, '72');
 
-    editor.insertText('abcde fghij');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({message: 'abcde fghij'});
     assert.equal(view.refs.remainingCharacters.textContent, '61');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
 
-    editor.insertText('\nklmno');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({message: '\nklmno'});
     assert.equal(view.refs.remainingCharacters.textContent, '∞');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
 
-    editor.insertText('\npqrst');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({message: 'abcde\npqrst'});
     assert.equal(view.refs.remainingCharacters.textContent, '∞');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
 
-    editor.setCursorBufferPosition([0, 3]);
+    view.editor.setCursorBufferPosition([0, 3]);
     await etch.getScheduler().getNextUpdatePromise();
-    assert.equal(view.refs.remainingCharacters.textContent, '61');
+    assert.equal(view.refs.remainingCharacters.textContent, '67');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
 
     await view.update({stagedChangesExist: true, maximumCharacterLimit: 50});
-    assert.equal(view.refs.remainingCharacters.textContent, '39');
+    assert.equal(view.refs.remainingCharacters.textContent, '45');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
 
-    editor.insertText('abcde fghij klmno pqrst uvwxyz');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({message: 'a'.repeat(41)});
     assert.equal(view.refs.remainingCharacters.textContent, '9');
     assert(!view.refs.remainingCharacters.classList.contains('is-error'));
     assert(view.refs.remainingCharacters.classList.contains('is-warning'));
 
-    editor.insertText('ABCDE FGHIJ KLMNO');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({message: 'a'.repeat(58)});
     assert.equal(view.refs.remainingCharacters.textContent, '-8');
     assert(view.refs.remainingCharacters.classList.contains('is-error'));
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
@@ -119,20 +110,14 @@ describe('CommitView', () => {
   });
 
   it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
-    const workdirPath = await cloneRepository('three-files');
-    const repository = await buildRepository(workdirPath);
     const commit = sinon.spy();
-    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, commit});
+    const view = new CommitView({workspace, commandRegistry, stagedChangesExist: false, commit, message: ''});
     const {editor, commitButton} = view.refs;
 
     // commit by clicking the commit button
-    await view.update({repository, stagedChangesExist: true});
-    editor.setText('Commit 1');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({stagedChangesExist: true, message: 'Commit 1'});
     commitButton.dispatchEvent(new MouseEvent('click'));
-    await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.args[0][0], 'Commit 1');
-    assert.equal(editor.getText(), '');
 
     // undo history is cleared
     commandRegistry.dispatch(editor.element, 'core:undo');
@@ -140,50 +125,40 @@ describe('CommitView', () => {
 
     // commit via the git:commit command
     commit.reset();
-    await view.update({repository, stagedChangesExist: true});
-    editor.setText('Commit 2');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({stagedChangesExist: true, message: 'Commit 2'});
     commandRegistry.dispatch(editor.element, 'git:commit');
-    await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.args[0][0], 'Commit 2');
-    assert.equal(editor.getText(), '');
 
     // disable git:commit when there are no staged changes...
     commit.reset();
-    await view.update({repository, stagedChangesExist: false});
-    editor.setText('Commit 4');
-    await etch.getScheduler().getNextUpdatePromise();
+    await view.update({stagedChangesExist: false, message: 'Commit 4'});
     commandRegistry.dispatch(editor.element, 'git:commit');
-    await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.callCount, 0);
-    assert.equal(editor.getText(), 'Commit 4');
 
     // ...or the commit message is empty
     commit.reset();
-    editor.setText('');
-    await etch.getScheduler().getNextUpdatePromise();
-    await view.update({repository, stagedChangesExist: true});
+    await view.update({stagedChangesExist: true, message: ''});
     commandRegistry.dispatch(editor.element, 'git:commit');
-    await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.callCount, 0);
   });
 
-  it('shows an error notification when props.commit() throws an ECONFLICT exception', async () => {
-    const commit = sinon.spy(async () => {
-      await Promise.resolve();
-      throw new CommitError('ECONFLICT');
-    });
-    const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChangesExist: true, commit});
-    const {editor, commitButton} = view.refs;
-    editor.setText('A message.');
-    await etch.getScheduler().getNextUpdatePromise();
-    assert.equal(notificationManager.getNotifications().length, 0);
-    commitButton.dispatchEvent(new MouseEvent('click'));
-    await etch.getScheduler().getNextUpdatePromise();
-    assert(commit.calledOnce);
-    assert.equal(editor.getText(), 'A message.');
-    assert.equal(notificationManager.getNotifications().length, 1);
-  });
+  // // move to git panel controller
+  // it('shows an error notification when props.commit() throws an ECONFLICT exception', async () => {
+  //   const commit = sinon.spy(async () => {
+  //     await Promise.resolve();
+  //     throw new CommitError('ECONFLICT');
+  //   });
+  //   const view = new CommitView({workspace, commandRegistry, notificationManager, stagedChangesExist: true, commit});
+  //   const {editor, commitButton} = view.refs;
+  //   editor.setText('A message.');
+  //   await etch.getScheduler().getNextUpdatePromise();
+  //   assert.equal(notificationManager.getNotifications().length, 0);
+  //   commitButton.dispatchEvent(new MouseEvent('click'));
+  //   await etch.getScheduler().getNextUpdatePromise();
+  //   assert(commit.calledOnce);
+  //   assert.equal(editor.getText(), 'A message.');
+  //   assert.equal(notificationManager.getNotifications().length, 1);
+  // });
 
   it('replaces the contents of the commit message when it is empty and a message is supplied from the outside', async () => {
     const workdirPath = await cloneRepository('three-files');
