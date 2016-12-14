@@ -6,13 +6,20 @@ import StagingView from '../../lib/views/staging-view';
 import {assertEqualSets} from '../helpers';
 
 describe('StagingView', () => {
+  let commandRegistry;
+
+  beforeEach(() => {
+    const atomEnv = global.buildAtomEnvironment();
+    commandRegistry = atomEnv.commands;
+  });
+
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
       const filePatches = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const view = new StagingView({unstagedChanges: filePatches, stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: []});
       const {refs} = view;
       function textContentOfChildren(element) {
         return Array.from(element.children).map(child => child.textContent);
@@ -34,7 +41,7 @@ describe('StagingView', () => {
         ];
         const stageFiles = sinon.spy();
         const unstageFiles = sinon.spy();
-        const view = new StagingView({unstagedChanges: filePatches, stagedChanges: [], stageFiles, unstageFiles});
+        const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], stageFiles, unstageFiles});
 
         view.mousedownOnItem({detail: 1}, filePatches[1]);
         view.confirmSelectedItems();
@@ -50,7 +57,7 @@ describe('StagingView', () => {
 
   describe('merge conflicts list', () => {
     it('is visible only when conflicted paths are passed', async () => {
-      const view = new StagingView({unstagedChanges: [], stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
 
       assert.isUndefined(view.refs.mergeConflicts);
 
@@ -91,7 +98,7 @@ describe('StagingView', () => {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -137,7 +144,7 @@ describe('StagingView', () => {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -174,7 +181,7 @@ describe('StagingView', () => {
         {filePath: 'e.txt', status: 'modified'},
         {filePath: 'f.txt', status: 'modified'},
       ];
-      const view = new StagingView({unstagedChanges, stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
@@ -207,7 +214,7 @@ describe('StagingView', () => {
 
       const didSelectPastEnd = sinon.spy();
 
-      const view = new StagingView({unstagedChanges, mergeConflicts, stagedChanges: [], didSelectPastEnd});
+      const view = new StagingView({commandRegistry, unstagedChanges, mergeConflicts, stagedChanges: [], didSelectPastEnd});
 
       view.activateLastList();
       await view.selectLast();
@@ -229,7 +236,7 @@ describe('StagingView', () => {
         {filePath: 'c.txt', status: 'modified'},
       ];
       const didSelectFilePath = sinon.stub();
-      const view = new StagingView({unstagedChanges, stagedChanges: [], didSelectFilePath});
+      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
       view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
@@ -258,7 +265,7 @@ describe('StagingView', () => {
         {filePath: 'staged-one.txt', status: 'staged'},
         {filePath: 'staged-two.txt', status: 'staged'},
       ];
-      view = new StagingView({unstagedChanges, stagedChanges, mergeConflicts});
+      view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
     });
 
     const assertSelected = expected => {
