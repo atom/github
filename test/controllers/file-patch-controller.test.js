@@ -65,7 +65,7 @@ describe('FilePatchController', () => {
     const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged', didSurfaceFile});
 
     commandRegistry.dispatch(controller.refs.filePatchView.element, 'core:move-right');
-    assert.isTrue(didSurfaceFile.calledWith('a.txt'));
+    assert.isTrue(didSurfaceFile.calledWith('a.txt', 'unstaged'));
   });
 
   describe('integration tests', () => {
