@@ -10,7 +10,7 @@ import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
-describe.only('FilePatchController', () => {
+describe('FilePatchController', () => {
   let commandRegistry;
 
   beforeEach(() => {
