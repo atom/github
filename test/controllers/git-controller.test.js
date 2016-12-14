@@ -32,7 +32,7 @@ describe('GitController', () => {
     atomEnv.destroy();
   });
 
-  describe('showMergeConflictFileForPath(filePath)', () => {
+  describe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', () => {
     it('opens the file as a pending pane item if it exists', async () => {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
