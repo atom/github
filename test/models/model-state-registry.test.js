@@ -10,7 +10,7 @@ const Type2 = {type: 2};
 const model1 = {model: 1};
 const model2 = {model: 2};
 
-describe.only('ModelStateRegistry', () => {
+describe('ModelStateRegistry', () => {
   beforeEach(() => {
     ModelStateRegistry.clearSavedState();
   });
