@@ -1,21 +1,21 @@
 '.platform-darwin':
-  'cmd-shift-c': 'git:toggle-git-panel'
+  'cmd-shift-c': 'github:toggle-git-panel'
 
 '.platform-win32, .platform-linux':
-  'alt-shift-c': 'git:toggle-git-panel'
+  'alt-shift-c': 'github:toggle-git-panel'
 
 '.github-StagingView':
-  'left': 'git:focus-diff-view'
+  'left': 'github:focus-diff-view'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
-  'cmd-enter': 'git:commit'
-  'ctrl-enter': 'git:commit'
+  'cmd-enter': 'github:commit'
+  'ctrl-enter': 'github:commit'
 
 '.github-FilePatchView':
-  '/': 'git:toggle-patch-selection-mode'
-  'tab': 'git:select-next-hunk'
-  'shift-tab': 'git:select-previous-hunk'
-  'right': 'git:focus-git-panel'
+  '/': 'github:toggle-patch-selection-mode'
+  'tab': 'github:select-next-hunk'
+  'shift-tab': 'github:select-previous-hunk'
+  'right': 'github:focus-git-panel'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'

@@ -118,7 +118,7 @@ describe('CommitView', () => {
     assert.isTrue(commitButton.disabled);
   });
 
-  it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
+  it('calls props.commit(message) when the commit button is clicked or github:commit is dispatched', async () => {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const commit = sinon.spy();
@@ -138,22 +138,22 @@ describe('CommitView', () => {
     commandRegistry.dispatch(editor.element, 'core:undo');
     assert.equal(editor.getText(), '');
 
-    // commit via the git:commit command
+    // commit via the github:commit command
     commit.reset();
     await view.update({repository, stagedChangesExist: true});
     editor.setText('Commit 2');
     await etch.getScheduler().getNextUpdatePromise();
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.args[0][0], 'Commit 2');
     assert.equal(editor.getText(), '');
 
-    // disable git:commit when there are no staged changes...
+    // disable github:commit when there are no staged changes...
     commit.reset();
     await view.update({repository, stagedChangesExist: false});
     editor.setText('Commit 4');
     await etch.getScheduler().getNextUpdatePromise();
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.callCount, 0);
     assert.equal(editor.getText(), 'Commit 4');
@@ -163,7 +163,7 @@ describe('CommitView', () => {
     editor.setText('');
     await etch.getScheduler().getNextUpdatePromise();
     await view.update({repository, stagedChangesExist: true});
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     await etch.getScheduler().getNextUpdatePromise();
     assert.equal(commit.callCount, 0);
   });
