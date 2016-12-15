@@ -2,7 +2,6 @@
 
 import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
-import sinon from 'sinon';
 
 import CommitView from '../../lib/views/commit-view';
 import {AbortMergeError, CommitError} from '../../lib/models/repository';

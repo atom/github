@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 
 import etch from 'etch';
-import sinon from 'sinon';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';

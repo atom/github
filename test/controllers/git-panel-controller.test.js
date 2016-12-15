@@ -3,7 +3,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import sinon from 'sinon';
 import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';

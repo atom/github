@@ -1,6 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
 
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';

@@ -1,7 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
-
 import ModelStateRegistry from '../../lib/models/model-state-registry';
 
 const Type1 = {type: 1};

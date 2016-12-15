@@ -1,6 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
 import StagingView from '../../lib/views/staging-view';
 
 import {assertEqualSets} from '../helpers';
