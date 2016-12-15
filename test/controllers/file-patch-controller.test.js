@@ -203,7 +203,7 @@ describe('FilePatchController', () => {
         // stage lines in rapid succession
         // second stage action is a no-op since the first staging operation is in flight
         const line1StagingPromises = hunkView.props.didClickStageButton();
-        await hunkView.props.didClickStageButton();
+        hunkView.props.didClickStageButton();
 
         await line1StagingPromises.stageOperationPromise;
         await repository.refresh(); // clear the cached file patches
@@ -264,7 +264,7 @@ describe('FilePatchController', () => {
         // ensure staging the same hunk twice does not cause issues
         // second stage action is a no-op since the first staging operation is in flight
         const hunk1StagingPromises = hunkView.props.didClickStageButton();
-        await hunkView.props.didClickStageButton();
+        hunkView.props.didClickStageButton();
 
         await hunk1StagingPromises.stageOperationPromise;
         await repository.refresh(); // clear the cached file patches

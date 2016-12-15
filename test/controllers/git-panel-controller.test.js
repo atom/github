@@ -185,6 +185,34 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.stagedChanges.length, 2);
     });
 
+    it('avoids conflicts with pending file staging operations', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      fs.unlinkSync(path.join(workdirPath, 'a.txt'));
+      fs.unlinkSync(path.join(workdirPath, 'b.txt'));
+      const controller = new GitPanelController({workspace, commandRegistry, repository});
+      await controller.getLastModelDataRefreshPromise();
+      const stagingView = controller.refs.gitPanel.refs.stagingView;
+
+      assert.equal(stagingView.props.unstagedChanges.length, 2);
+
+      // ensure staging the same file twice does not cause issues
+      // second stage action is a no-op since the first staging operation is in flight
+      const file1StagingPromises = stagingView.confirmSelectedItems();
+      stagingView.confirmSelectedItems();
+
+      await file1StagingPromises.stageOperationPromise;
+      await repository.refresh();
+      await file1StagingPromises.selectionUpdatePromise;
+      assert.equal(stagingView.props.unstagedChanges.length, 1);
+
+      const file2StagingPromises = stagingView.confirmSelectedItems();
+      await file2StagingPromises.stageOperationPromise;
+      await repository.refresh();
+      await file2StagingPromises.selectionUpdatePromise;
+      assert.equal(stagingView.props.unstagedChanges.length, 0);
+    });
+
     it('updates file status and paths when changed', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
