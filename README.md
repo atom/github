@@ -1,5 +1,7 @@
 # GitHub Package
 
+[![Build Status](https://travis-ci.com/atom/github.svg?token=RwrCnzpsZN5oEq5S5p7V&branch=master)](https://travis-ci.com/atom/github)
+
 ## Installation
 
 In the Atom settings view, click the "Install" tab, paste the URL to this repository in the box, and press Enter. Note that you may need to use the SSH URL to the repo if Git doesn't have your HTTPS credentials cached.
