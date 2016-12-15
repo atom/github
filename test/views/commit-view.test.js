@@ -4,10 +4,9 @@ import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
 
 import CommitView from '../../lib/views/commit-view';
-import {AbortMergeError, CommitError} from '../../lib/models/repository';
 
 describe('CommitView', () => {
-  let atomEnv, commandRegistry, notificationManager;
+  let atomEnv, commandRegistry;
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment();
@@ -136,24 +135,6 @@ describe('CommitView', () => {
     assert.equal(commit.callCount, 0);
   });
 
-  // FIXME: move to git panel controller
-  xit('shows an error notification when props.commit() throws an ECONFLICT exception', async () => {
-    const commit = sinon.spy(async () => {
-      await Promise.resolve();
-      throw new CommitError('ECONFLICT');
-    });
-    const view = new CommitView({commandRegistry, notificationManager, stagedChangesExist: true, commit});
-    const {editor, commitButton} = view.refs;
-    editor.setText('A message.');
-    await etch.getScheduler().getNextUpdatePromise();
-    assert.equal(notificationManager.getNotifications().length, 0);
-    commitButton.dispatchEvent(new MouseEvent('click'));
-    await etch.getScheduler().getNextUpdatePromise();
-    assert(commit.calledOnce);
-    assert.equal(editor.getText(), 'A message.');
-    assert.equal(notificationManager.getNotifications().length, 1);
-  });
-
   it('shows the "Abort Merge" button when props.isMerging is true', async () => {
     const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: false});
     const {abortMergeButton} = view.refs;
@@ -166,7 +147,6 @@ describe('CommitView', () => {
     assert.equal(abortMergeButton.style.display, 'none');
   });
 
-  // FIXME: we should test elsewhere that this clears the mergeMessage prop to commitViewController
   it('calls props.abortMerge() when the "Abort Merge" button is clicked', () => {
     const abortMerge = sinon.spy(() => Promise.resolve());
     const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: true, abortMerge});
@@ -175,38 +155,7 @@ describe('CommitView', () => {
     assert(abortMerge.calledOnce);
   });
 
-  // FIXME: this needs to go elsewhere, e.g. gitPanelController
-  xit('shows an error notification when props.abortMerge() throws an EDIRTYSTAGED exception', async () => {
-    const abortMerge = sinon.spy(async () => {
-      await Promise.resolve();
-      throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
-    });
-    const view = new CommitView({commandRegistry, notificationManager, stagedChangesExist: true, isMerging: true, abortMerge});
-    const {editor, abortMergeButton} = view.refs;
-    editor.setText('A message.');
-    assert.equal(notificationManager.getNotifications().length, 0);
-    abortMergeButton.dispatchEvent(new MouseEvent('click'));
-    await etch.getScheduler().getNextUpdatePromise();
-    assert(abortMerge.calledOnce);
-    assert.equal(editor.getText(), 'A message.');
-    assert.equal(notificationManager.getNotifications().length, 1);
-  });
-
   describe('amending', () => {
-    // FIXME: move
-    xit('clears the amend checkbox after committing', async () => {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      const view = new CommitView({commandRegistry, stagedChangesExist: false});
-      const {amend} = view.refs;
-      await view.update({repository, stagedChangesExist: true});
-      assert.isFalse(amend.checked);
-      amend.click();
-      assert.isTrue(amend.checked);
-      await view.commit();
-      assert.isFalse(amend.checked);
-    });
-
     it('calls props.setAmending() when the box is checked or unchecked', () => {
       const setAmending = sinon.spy();
       const view = new CommitView({commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending});
