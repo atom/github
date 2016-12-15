@@ -4,7 +4,7 @@
     'submenu': [
       {
         'label': 'Toggle Git Panel'
-        'command': 'git:toggle-git-panel'
+        'command': 'github:toggle-git-panel'
       }
     ]
   }
@@ -16,7 +16,7 @@
         'submenu': [
           {
             'label': 'Toggle'
-            'command': 'git:toggle-git-panel'
+            'command': 'github:toggle-git-panel'
           }
         ]
       }
