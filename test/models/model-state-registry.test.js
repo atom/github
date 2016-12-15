@@ -117,4 +117,22 @@ describe('ModelStateRegistry', () => {
     registry2.setModel(model1);
     assert.deepEqual(data2, {evenMore: 'data'});
   });
+
+  describe('#save and #restore', () => {
+    it('manually saves and restores data', () => {
+      let data;
+      const registry = new ModelStateRegistry(Type1, {
+        initialModel: model1,
+        save: () => data,
+        restore: (saved = {}) => { data = saved; },
+      });
+      data = {some: 'data'};
+      registry.save();
+      data = {};
+      registry.restore(model2);
+      assert.deepEqual(data, {});
+      registry.restore(model1);
+      assert.deepEqual(data, {some: 'data'});
+    });
+  });
 });
