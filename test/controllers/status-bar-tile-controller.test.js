@@ -34,11 +34,11 @@ describe('StatusBarTileController', () => {
 
       // FIXME: Remove this guard when 1.13 is on stable.
       if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0]);
+        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
         branchView.element.click();
-        assert.isDefined(document.querySelectorAll('.git-BranchMenuView')[0]);
+        assert.isDefined(document.querySelectorAll('.github-BranchMenuView')[0]);
         branchView.element.click();
-        assert.isUndefined(document.querySelectorAll('.git-BranchMenuView')[0]);
+        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
       }
     });
 
@@ -196,11 +196,11 @@ describe('StatusBarTileController', () => {
 
       // FIXME: Remove this guard when 1.13 is on stable.
       if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0]);
+        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
         pushPullView.element.click();
-        assert.isDefined(document.querySelectorAll('.git-PushPullMenuView')[0]);
+        assert.isDefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
         pushPullView.element.click();
-        assert.isUndefined(document.querySelectorAll('.git-PushPullMenuView')[0]);
+        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
       }
     });
 

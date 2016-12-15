@@ -2,7 +2,7 @@
 
 @hunk-bg-color: @pane-item-background-color;
 
-.git-HunkView {
+.github-HunkView {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   border-bottom: 1px solid @pane-item-border-color;
   background-color: @hunk-bg-color;
@@ -72,7 +72,7 @@
 // -------------------------------
 
 // Highlight hunk title
-.git-HunkView {
+.github-HunkView {
   &.is-selected.is-hunkMode &-title {
     color: @text-color-selected;
   }
@@ -81,9 +81,9 @@
   }
 }
 
-.git-HunkView-line {
+.github-HunkView-line {
 
-  &.is-selected .git-HunkView-lineNumber {
+  &.is-selected .github-HunkView-lineNumber {
     color: fade(@text-color-selected, 50%);
     background-color: @background-color-selected;
   }
@@ -93,11 +93,11 @@
     &:hover {
       background-color: @background-color-highlight;
     }
-    .git-HunkView-lineContent {
+    .github-HunkView-lineContent {
       color: mix(@fg, @text-color-highlight, 75%);
       background-color: mix(@bg, @hunk-bg-color, 8%);
     }
-    &.is-selected .git-HunkView-lineContent {
+    &.is-selected .github-HunkView-lineContent {
       color: mix(@fg, @text-color-highlight, 50%);
       background-color: mix(@bg, @hunk-bg-color, 20%);
     }

@@ -1,6 +1,6 @@
 @import "variables";
 
-.git-FilePatchListView {
+.github-FilePatchListView {
   &:empty:before {
     content:'No changes';
     display: block;
@@ -33,7 +33,7 @@
   }
 }
 
-.git-MergeConflictPaths .git-FilePatchListView-icon:last-child {
+.github-MergeConflictPaths .github-FilePatchListView-icon:last-child {
   margin-left: @component-padding / 2;
 }
 
@@ -41,10 +41,10 @@
 // States
 // -----------------------------------------
 
-.git-StagingView-group.is-focused .git-FilePatchListView-item.is-selected {
+.github-StagingView-group.is-focused .github-FilePatchListView-item.is-selected {
   background: @background-color-highlight;
   color: @text-color-highlight;
-  .git-StagingView:focus & {
+  .github-StagingView:focus & {
     background: @background-color-selected;
     color: @text-color-selected;
   }
