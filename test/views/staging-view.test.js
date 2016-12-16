@@ -5,11 +5,15 @@ import StagingView from '../../lib/views/staging-view';
 import {assertEqualSets} from '../helpers';
 
 describe('StagingView', () => {
-  let commandRegistry;
+  let atomEnv, commandRegistry;
 
   beforeEach(() => {
-    const atomEnv = global.buildAtomEnvironment();
+    atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+  });
+
+  afterEach(() => {
+    atomEnv.destroy();
   });
 
   describe('staging and unstaging files', () => {

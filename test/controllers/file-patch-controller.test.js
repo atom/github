@@ -10,11 +10,15 @@ import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
 describe('FilePatchController', () => {
-  let commandRegistry;
+  let atomEnv, commandRegistry;
 
   beforeEach(() => {
-    const atomEnv = global.buildAtomEnvironment();
+    atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+  });
+
+  afterEach(() => {
+    atomEnv.destroy();
   });
 
   it('bases its tab title on the staging status', () => {

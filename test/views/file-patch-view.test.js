@@ -7,11 +7,15 @@ import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', () => {
-  let commandRegistry;
+  let atomEnv, commandRegistry;
 
   beforeEach(() => {
-    const atomEnv = global.buildAtomEnvironment();
+    atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+  });
+
+  afterEach(() => {
+    atomEnv.destroy();
   });
 
   it('allows lines and hunks to be selected via the mouse', async () => {
