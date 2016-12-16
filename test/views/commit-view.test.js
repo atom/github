@@ -155,46 +155,6 @@ describe('CommitView', () => {
     assert(abortMerge.calledOnce);
   });
 
-  describe('captured core:move-up events', () => {
-    let view, didMoveUpOnFirstLine;
-
-    beforeEach(async () => {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      didMoveUpOnFirstLine = sinon.spy();
-      view = new CommitView({repository, commandRegistry, didMoveUpOnFirstLine});
-
-      view.editor.setText('first line\n\nthird line\nfourth line\n');
-    });
-
-    it('invokes a callback when up is pressed on the first line', () => {
-      view.editor.setCursorBufferPosition([0, 5]);
-      assert.equal(didMoveUpOnFirstLine.callCount, 0);
-
-      commandRegistry.dispatch(view.editorElement, 'core:move-up');
-      assert.equal(didMoveUpOnFirstLine.callCount, 1);
-    });
-
-    it('does not invoke the callback when up is pressed on another line', () => {
-      view.editor.setCursorBufferPosition([3, 2]);
-      assert.equal(didMoveUpOnFirstLine.callCount, 0);
-
-      commandRegistry.dispatch(view.editorElement, 'core:move-up');
-      assert.equal(didMoveUpOnFirstLine.callCount, 0);
-      assert.isTrue(view.editor.getCursorBufferPosition().isEqual([2, 2]));
-    });
-
-    it('does not invoke the callback when any cursor is not on the first line', () => {
-      view.editor.setCursorBufferPosition([0, 1]);
-      view.editor.addCursorAtBufferPosition([0, 3]);
-      view.editor.addCursorAtBufferPosition([1, 0]);
-      assert.equal(didMoveUpOnFirstLine.callCount, 0);
-
-      commandRegistry.dispatch(view.editorElement, 'core:move-up');
-      assert.equal(didMoveUpOnFirstLine.callCount, 0);
-    });
-  });
-
   describe('amending', () => {
     it('calls props.setAmending() when the box is checked or unchecked', () => {
       const setAmending = sinon.spy();

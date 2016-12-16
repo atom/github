@@ -3,7 +3,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import etch from 'etch';
 import dedent from 'dedent-js';
 
 import GitPanelController from '../../lib/controllers/git-panel-controller';
@@ -278,39 +277,6 @@ describe('GitPanelController', () => {
       // This should be a no-op.
       commandRegistry.dispatch(controller.element, 'core:focus-previous');
       assertSelected(['unstaged-1.txt']);
-    });
-
-    it('advances from the final populated list to the CommitView', async () => {
-      const lastItem = gitPanel.props.stagedChanges[gitPanel.props.stagedChanges.length - 1];
-      await stagingView.mousedownOnItem({detail: 1}, lastItem);
-      await stagingView.mouseup();
-
-      commandRegistry.dispatch(stagingView.element, 'core:move-down');
-
-      assert.strictEqual(focusElement, commitView);
-    });
-
-    it('retreats from the CommitView to the final populated StagingView list', async () => {
-      commitView.focus();
-      commitView.editor.setCursorBufferPosition([0, 0]);
-
-      commandRegistry.dispatch(commitView.editorElement, 'core:move-up');
-      await etch.getScheduler().getNextUpdatePromise();
-
-      assert.strictEqual(focusElement, stagingView);
-      assertSelected(['staged-3.txt']);
-    });
-
-    it('remains within the CommitView when any cursor is not on the first line', async () => {
-      commitView.focus();
-      commitView.editor.setText('zero\n\ntwo\nthree\n');
-      commitView.editor.setCursorBufferPosition([2, 1]);
-
-      commandRegistry.dispatch(commitView.editorElement, 'core:move-up');
-      await etch.getScheduler().getNextUpdatePromise();
-
-      assert.strictEqual(focusElement, commitView);
-      assert.isTrue(commitView.editor.getCursorBufferPosition().isEqual([1, 0]));
     });
   });
 

@@ -201,29 +201,6 @@ describe('StagingView', () => {
 
       view.element.remove();
     });
-
-    it('invokes a callback when advanced at the last item', async () => {
-      const unstagedChanges = [
-        {filePath: 'a.txt', status: 'modified'},
-        {filePath: 'b.txt', status: 'deleted'},
-      ];
-      const mergeConflicts = [
-        {filePath: 'conflicted-path', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
-      ];
-
-      const didSelectPastEnd = sinon.spy();
-
-      const view = new StagingView({commandRegistry, unstagedChanges, mergeConflicts, stagedChanges: [], didSelectPastEnd});
-
-      view.activateLastList();
-      await view.selectLast();
-
-      assert.equal(didSelectPastEnd.callCount, 0);
-
-      await view.selectNext();
-
-      assert.equal(didSelectPastEnd.callCount, 1);
-    });
   });
 
   describe('when dragging a mouse across multiple items', () => {
