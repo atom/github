@@ -253,7 +253,7 @@ describe('StagingView', () => {
       assert.deepEqual(actual, expected);
     };
 
-    it('selects the first item of the next list', () => {
+    it("selects the next list, retaining that list's selection", () => {
       assert.isTrue(view.activateNextList());
       assertSelected(['conflict-1.txt']);
 
@@ -264,7 +264,7 @@ describe('StagingView', () => {
       assertSelected(['staged-1.txt']);
     });
 
-    it('selects the first item of the previous list', () => {
+    it("selects the previous list, retaining that list's selection", () => {
       view.mousedownOnItem({detail: 1}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-2.txt']);
