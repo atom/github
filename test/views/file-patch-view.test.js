@@ -1,6 +1,5 @@
 /** @babel */
 
-
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
@@ -8,6 +7,17 @@ import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', () => {
+  let atomEnv, commandRegistry;
+
+  beforeEach(() => {
+    atomEnv = global.buildAtomEnvironment();
+    commandRegistry = atomEnv.commands;
+  });
+
+  afterEach(() => {
+    atomEnv.destroy();
+  });
+
   it('allows lines and hunks to be selected via the mouse', async () => {
     const hunks = [
       new Hunk(1, 1, 2, 4, [
@@ -26,7 +36,7 @@ describe('FilePatchView', () => {
     const hunkViews = new Map();
     function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-    const filePatchView = new FilePatchView({hunks, registerHunkView});
+    const filePatchView = new FilePatchView({commandRegistry, hunks, registerHunkView});
     const hunkView0 = hunkViews.get(hunks[0]);
     const hunkView1 = hunkViews.get(hunks[1]);
 
@@ -107,7 +117,7 @@ describe('FilePatchView', () => {
         new HunkLine('line-8', 'added', -1, 10),
       ]),
     ];
-    const filePatchView = new FilePatchView({hunks});
+    const filePatchView = new FilePatchView({commandRegistry, hunks});
     document.body.appendChild(filePatchView.element);
     filePatchView.element.style.overflow = 'scroll';
     filePatchView.element.style.height = '100px';
@@ -130,13 +140,13 @@ describe('FilePatchView', () => {
     const hunk = new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)]);
     let hunkView;
     function registerHunkView(_hunk, view) { hunkView = view; }
-    const view = new FilePatchView({hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
+    const view = new FilePatchView({commandRegistry, hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
     assert.equal(hunkView.props.stageButtonLabel, 'Stage Hunk');
-    await view.update({hunks: [hunk], stagingStatus: 'staged', registerHunkView});
+    await view.update({commandRegistry, hunks: [hunk], stagingStatus: 'staged', registerHunkView});
     assert.equal(hunkView.props.stageButtonLabel, 'Unstage Hunk');
     await view.togglePatchSelectionMode();
     assert.equal(hunkView.props.stageButtonLabel, 'Unstage Selection');
-    await view.update({hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
+    await view.update({commandRegistry, hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
     assert.equal(hunkView.props.stageButtonLabel, 'Stage Selection');
   });
 
@@ -164,10 +174,28 @@ describe('FilePatchView', () => {
         ]),
       ];
 
-      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', attemptHunkStageOperation: sinon.stub()});
+      const filePatchView = new FilePatchView({commandRegistry, hunks, stagingStatus: 'unstaged', attemptHunkStageOperation: sinon.stub()});
       filePatchView.didClickStageButtonForHunk(hunks[2]);
       await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])});
       assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));
+    });
+  });
+
+  describe('keyboard navigation', () => {
+    it('invokes the didSurfaceFile callback on core:move-right', () => {
+      const hunks = [
+        new Hunk(1, 1, 2, 2, [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+        ]),
+      ];
+      const didSurfaceFile = sinon.spy();
+
+      const filePatchView = new FilePatchView({commandRegistry, hunks, didSurfaceFile});
+
+      commandRegistry.dispatch(filePatchView.element, 'core:move-right');
+
+      assert.equal(didSurfaceFile.callCount, 1);
     });
   });
 });

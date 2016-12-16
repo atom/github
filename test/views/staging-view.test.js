@@ -5,13 +5,24 @@ import StagingView from '../../lib/views/staging-view';
 import {assertEqualSets} from '../helpers';
 
 describe('StagingView', () => {
+  let atomEnv, commandRegistry;
+
+  beforeEach(() => {
+    atomEnv = global.buildAtomEnvironment();
+    commandRegistry = atomEnv.commands;
+  });
+
+  afterEach(() => {
+    atomEnv.destroy();
+  });
+
   describe('staging and unstaging files', () => {
     it('renders staged and unstaged files', async () => {
       const filePatches = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const view = new StagingView({unstagedChanges: filePatches, stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: []});
       const {refs} = view;
       function textContentOfChildren(element) {
         return Array.from(element.children).map(child => child.textContent);
@@ -32,7 +43,7 @@ describe('StagingView', () => {
           {filePath: 'b.txt', status: 'deleted'},
         ];
         const attemptFileStageOperation = sinon.spy();
-        const view = new StagingView({unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
+        const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
         view.mousedownOnItem({detail: 1}, filePatches[1]);
         view.confirmSelectedItems();
@@ -49,7 +60,7 @@ describe('StagingView', () => {
 
   describe('merge conflicts list', () => {
     it('is visible only when conflicted paths are passed', async () => {
-      const view = new StagingView({unstagedChanges: [], stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
 
       assert.isUndefined(view.refs.mergeConflicts);
 
@@ -90,7 +101,7 @@ describe('StagingView', () => {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -136,7 +147,7 @@ describe('StagingView', () => {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -173,7 +184,7 @@ describe('StagingView', () => {
         {filePath: 'e.txt', status: 'modified'},
         {filePath: 'f.txt', status: 'modified'},
       ];
-      const view = new StagingView({unstagedChanges, stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
@@ -205,7 +216,7 @@ describe('StagingView', () => {
         {filePath: 'c.txt', status: 'modified'},
       ];
       const didSelectFilePath = sinon.stub();
-      const view = new StagingView({unstagedChanges, stagedChanges: [], didSelectFilePath});
+      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
       view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
@@ -214,6 +225,124 @@ describe('StagingView', () => {
       view.mouseup();
       assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)));
       assert.equal(view.props.didSelectFilePath.callCount, 0);
+    });
+  });
+
+  describe('when advancing and retreating activation', () => {
+    let view, stagedChanges;
+
+    beforeEach(() => {
+      const unstagedChanges = [
+        {filePath: 'unstaged-1.txt', status: 'modified'},
+        {filePath: 'unstaged-2.txt', status: 'modified'},
+        {filePath: 'unstaged-3.txt', status: 'modified'},
+      ];
+      const mergeConflicts = [
+        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
+        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+      ];
+      stagedChanges = [
+        {filePath: 'staged-1.txt', status: 'staged'},
+        {filePath: 'staged-2.txt', status: 'staged'},
+      ];
+      view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
+    });
+
+    const assertSelected = expected => {
+      const actual = Array.from(view.selection.getSelectedItems()).map(item => item.filePath);
+      assert.deepEqual(actual, expected);
+    };
+
+    it("selects the next list, retaining that list's selection", () => {
+      assert.isTrue(view.activateNextList());
+      assertSelected(['conflict-1.txt']);
+
+      assert.isTrue(view.activateNextList());
+      assertSelected(['staged-1.txt']);
+
+      assert.isFalse(view.activateNextList());
+      assertSelected(['staged-1.txt']);
+    });
+
+    it("selects the previous list, retaining that list's selection", () => {
+      view.mousedownOnItem({detail: 1}, stagedChanges[1]);
+      view.mouseup();
+      assertSelected(['staged-2.txt']);
+
+      assert.isTrue(view.activatePreviousList());
+      assertSelected(['conflict-1.txt']);
+
+      assert.isTrue(view.activatePreviousList());
+      assertSelected(['unstaged-1.txt']);
+
+      assert.isFalse(view.activatePreviousList());
+      assertSelected(['unstaged-1.txt']);
+    });
+
+    it('selects the first item of the final list', () => {
+      assertSelected(['unstaged-1.txt']);
+
+      assert.isTrue(view.activateLastList());
+      assertSelected(['staged-1.txt']);
+    });
+  });
+
+  describe('when navigating with core:move-left', () => {
+    let view, didDiveIntoFilePath, didDiveIntoMergeConflictPath;
+
+    beforeEach(() => {
+      const unstagedChanges = [
+        {filePath: 'unstaged-1.txt', status: 'modified'},
+        {filePath: 'unstaged-2.txt', status: 'modified'},
+      ];
+      const mergeConflicts = [
+        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
+        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
+      ];
+
+      didDiveIntoFilePath = sinon.spy();
+      didDiveIntoMergeConflictPath = sinon.spy();
+
+      view = new StagingView({
+        commandRegistry, didDiveIntoFilePath, didDiveIntoMergeConflictPath,
+        unstagedChanges, stagedChanges: [], mergeConflicts,
+      });
+    });
+
+    it('invokes a callback with a single file selection', async () => {
+      await view.selectFirst();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.isTrue(didDiveIntoFilePath.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
+    });
+
+    it('invokes a callback with a single merge conflict selection', async () => {
+      await view.activateNextList();
+      await view.selectFirst();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.isTrue(didDiveIntoMergeConflictPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
+    });
+
+    it('does nothing with multiple files selections', async () => {
+      await view.selectAll();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.equal(didDiveIntoFilePath.callCount, 0);
+      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
+    });
+
+    it('does nothing with multiple merge conflict selections', async () => {
+      await view.activateNextList();
+      await view.selectAll();
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.equal(didDiveIntoFilePath.callCount, 0);
+      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
     });
   });
 });

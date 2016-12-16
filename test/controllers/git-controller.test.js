@@ -31,8 +31,8 @@ describe('GitController', () => {
     atomEnv.destroy();
   });
 
-  describe('showMergeConflictFileForPath(filePath)', () => {
-    it('opens the file as a pending pane item if it exsits', async () => {
+  describe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', () => {
+    it('opens the file as a pending pane item if it exists', async () => {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
       sinon.spy(workspace, 'open');
@@ -61,6 +61,21 @@ describe('GitController', () => {
         assert.equal(notificationManager.addInfo.callCount, 1);
         assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
       });
+    });
+  });
+
+  describe('diveIntoMergeConflictFileForPath(relativeFilePath)', () => {
+    it('opens the file and focuses the pane', async () => {
+      const workdirPath = await cloneRepository('merge-conflict');
+      const repository = await buildRepository(workdirPath);
+      sinon.spy(workspace, 'open');
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      await wrapper.instance().diveIntoMergeConflictFileForPath('added-to-both.txt');
+
+      assert.equal(workspace.open.callCount, 1);
+      assert.deepEqual(workspace.open.args[0], [path.join(workdirPath, 'added-to-both.txt'), {activatePane: true, pending: true}]);
     });
   });
 
@@ -175,6 +190,34 @@ describe('GitController', () => {
     });
   });
 
+  describe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', () => {
+    it('reveals and focuses the file patch', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8');
+      await repository.refresh();
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      const focusFilePatch = sinon.spy();
+      wrapper.instance().filePatchController = {
+        getWrappedComponent: () => {
+          return {focus: focusFilePatch};
+        },
+      };
+
+      await wrapper.instance().diveIntoFilePatchForPath('a.txt', 'unstaged');
+
+      assert.equal(wrapper.state('filePath'), 'a.txt');
+      assert.equal(wrapper.state('filePatch').getPath(), 'a.txt');
+      assert.equal(wrapper.state('stagingStatus'), 'unstaged');
+
+      assert.isTrue(focusFilePatch.called);
+    });
+  });
+
   describe('when amend mode is toggled in the staging panel while viewing a staged change', () => {
     it('refetches the FilePatch with the amending flag toggled', async () => {
       const workdirPath = await cloneRepository('multiple-commits');
@@ -226,22 +269,55 @@ describe('GitController', () => {
     });
   });
 
-  describe('openAndFocusGitPanel()', () => {
-    it('shows-and-focuses the git panel', async () => {
+  describe('toggleGitPanelFocus()', () => {
+    let wrapper;
+
+    beforeEach(async () => {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
       app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
+      wrapper = shallow(app);
 
-      sinon.spy(wrapper.instance(), 'focusGitPanel');
+      sinon.stub(wrapper.instance(), 'focusGitPanel');
+      sinon.spy(workspace.getActivePane(), 'activate');
+    });
+
+    it('opens and focuses the Git panel when it is initially closed', () => {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.instance().openAndFocusGitPanel();
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
+
+      wrapper.instance().toggleGitPanelFocus();
+
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      // TODO: remove this once we figure out the odd behavior that requires
-      // a setTimeout in openAndFocusGitPanel's setState callbasck
-      await new Promise(res => setTimeout(res, 250));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.isFalse(workspace.getActivePane().activate.called);
+    });
+
+    it('focuses the Git panel when it is already open, but blurred', () => {
+      wrapper.instance().toggleGitPanel();
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+
+      wrapper.instance().toggleGitPanelFocus();
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.isFalse(workspace.getActivePane().activate.called);
+    });
+
+    it('blurs the Git panel when it is already open and focused', () => {
+      wrapper.instance().toggleGitPanel();
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(true);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+
+      wrapper.instance().toggleGitPanelFocus();
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
+      assert.isTrue(workspace.getActivePane().activate.called);
     });
   });
 

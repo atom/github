@@ -41,43 +41,43 @@ describe('CompositeListSelection', () => {
       assert.equal(selection.getActiveListKey(), 'unstaged');
       assertEqualSets(selection.getSelectedItems(), new Set(['a']));
 
-      selection.selectNextItem();
+      assert.isTrue(selection.selectNextItem());
       assert.equal(selection.getActiveListKey(), 'unstaged');
       assertEqualSets(selection.getSelectedItems(), new Set(['b']));
 
-      selection.selectNextItem();
+      assert.isTrue(selection.selectNextItem());
       assert.equal(selection.getActiveListKey(), 'conflicts');
       assertEqualSets(selection.getSelectedItems(), new Set(['c']));
 
-      selection.selectNextItem();
+      assert.isTrue(selection.selectNextItem());
       assert.equal(selection.getActiveListKey(), 'staged');
       assertEqualSets(selection.getSelectedItems(), new Set(['d']));
 
-      selection.selectNextItem();
+      assert.isTrue(selection.selectNextItem());
       assert.equal(selection.getActiveListKey(), 'staged');
       assertEqualSets(selection.getSelectedItems(), new Set(['e']));
 
-      selection.selectNextItem();
+      assert.isFalse(selection.selectNextItem());
       assert.equal(selection.getActiveListKey(), 'staged');
       assertEqualSets(selection.getSelectedItems(), new Set(['e']));
 
-      selection.selectPreviousItem();
+      assert.isTrue(selection.selectPreviousItem());
       assert.equal(selection.getActiveListKey(), 'staged');
       assertEqualSets(selection.getSelectedItems(), new Set(['d']));
 
-      selection.selectPreviousItem();
+      assert.isTrue(selection.selectPreviousItem());
       assert.equal(selection.getActiveListKey(), 'conflicts');
       assertEqualSets(selection.getSelectedItems(), new Set(['c']));
 
-      selection.selectPreviousItem();
+      assert.isTrue(selection.selectPreviousItem());
       assert.equal(selection.getActiveListKey(), 'unstaged');
       assertEqualSets(selection.getSelectedItems(), new Set(['b']));
 
-      selection.selectPreviousItem();
+      assert.isTrue(selection.selectPreviousItem());
       assert.equal(selection.getActiveListKey(), 'unstaged');
       assertEqualSets(selection.getSelectedItems(), new Set(['a']));
 
-      selection.selectPreviousItem();
+      assert.isFalse(selection.selectPreviousItem());
       assert.equal(selection.getActiveListKey(), 'unstaged');
       assertEqualSets(selection.getSelectedItems(), new Set(['a']));
     });
@@ -155,7 +155,7 @@ describe('CompositeListSelection', () => {
       assertEqualSets(selection.getSelectedItems(), new Set(['a']));
     });
 
-    it('allows selections to be added in the current active list, but updates the existing seleciton when activating a different list', () => {
+    it('allows selections to be added in the current active list, but updates the existing selection when activating a different list', () => {
       const selection = new CompositeListSelection({
         listsByKey: {
           unstaged: ['a', 'b', 'c'],
@@ -208,6 +208,19 @@ describe('CompositeListSelection', () => {
       assertEqualSets(selection.getSelectedItems(), new Set(['g']));
       selection.selectFirstItem(true);
       assertEqualSets(selection.getSelectedItems(), new Set(['e', 'f', 'g']));
+    });
+
+    it('allows the last non-empty selection to be chosen', () => {
+      const selection = new CompositeListSelection({
+        listsByKey: {
+          unstaged: ['a', 'b', 'c'],
+          conflicts: ['e', 'f'],
+          staged: [],
+        },
+      });
+
+      assert.isTrue(selection.activateLastSelection());
+      assertEqualSets(selection.getSelectedItems(), new Set(['e']));
     });
   });
 
