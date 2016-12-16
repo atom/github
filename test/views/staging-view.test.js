@@ -252,17 +252,17 @@ describe('StagingView', () => {
 
     beforeEach(() => {
       const unstagedChanges = [
-        {filePath: 'unstaged-one.txt', status: 'modified'},
-        {filePath: 'unstaged-two.txt', status: 'modified'},
-        {filePath: 'unstaged-two.txt', status: 'modified'},
+        {filePath: 'unstaged-1.txt', status: 'modified'},
+        {filePath: 'unstaged-2.txt', status: 'modified'},
+        {filePath: 'unstaged-3.txt', status: 'modified'},
       ];
       const mergeConflicts = [
-        {filePath: 'conflict-one.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
-        {filePath: 'conflict-two.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
+        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
       ];
       stagedChanges = [
-        {filePath: 'staged-one.txt', status: 'staged'},
-        {filePath: 'staged-two.txt', status: 'staged'},
+        {filePath: 'staged-1.txt', status: 'staged'},
+        {filePath: 'staged-2.txt', status: 'staged'},
       ];
       view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
     });
@@ -274,35 +274,35 @@ describe('StagingView', () => {
 
     it('selects the first item of the next list', () => {
       assert.isTrue(view.activateNextList());
-      assertSelected(['conflict-one.txt']);
+      assertSelected(['conflict-1.txt']);
 
       assert.isTrue(view.activateNextList());
-      assertSelected(['staged-one.txt']);
+      assertSelected(['staged-1.txt']);
 
       assert.isFalse(view.activateNextList());
-      assertSelected(['staged-one.txt']);
+      assertSelected(['staged-1.txt']);
     });
 
     it('selects the first item of the previous list', () => {
       view.mousedownOnItem({detail: 1}, stagedChanges[1]);
       view.mouseup();
-      assertSelected(['staged-two.txt']);
+      assertSelected(['staged-2.txt']);
 
       assert.isTrue(view.activatePreviousList());
-      assertSelected(['conflict-one.txt']);
+      assertSelected(['conflict-1.txt']);
 
       assert.isTrue(view.activatePreviousList());
-      assertSelected(['unstaged-one.txt']);
+      assertSelected(['unstaged-1.txt']);
 
       assert.isFalse(view.activatePreviousList());
-      assertSelected(['unstaged-one.txt']);
+      assertSelected(['unstaged-1.txt']);
     });
 
     it('selects the first item of the final list', () => {
-      assertSelected(['unstaged-one.txt']);
+      assertSelected(['unstaged-1.txt']);
 
       assert.isTrue(view.activateLastList());
-      assertSelected(['staged-one.txt']);
+      assertSelected(['staged-1.txt']);
     });
   });
 
