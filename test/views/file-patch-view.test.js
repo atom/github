@@ -1,7 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
-
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
@@ -172,7 +170,7 @@ describe('FilePatchView', () => {
         ]),
       ];
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks, stagingStatus: 'unstaged', stageOrUnstageHunk: sinon.stub()});
+      const filePatchView = new FilePatchView({commandRegistry, hunks, stagingStatus: 'unstaged', attemptHunkStageOperation: sinon.stub()});
       filePatchView.didClickStageButtonForHunk(hunks[2]);
       await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])});
       assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));

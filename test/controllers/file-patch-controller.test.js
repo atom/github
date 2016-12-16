@@ -2,7 +2,6 @@
 
 import fs from 'fs';
 import path from 'path';
-import sinon from 'sinon';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatch from '../../lib/models/file-patch';
@@ -188,69 +187,131 @@ describe('FilePatchController', () => {
     });
 
     // https://github.com/atom/github/issues/341
-    it('avoids patch conflicts with pending index operations', async () => {
-      const workdirPath = await cloneRepository('multi-line-file');
-      const repository = await buildRepository(workdirPath);
-      const filePath = path.join(workdirPath, 'sample.js');
-      const originalLines = fs.readFileSync(filePath, 'utf8').split('\n');
+    describe('when duplicate staging occurs', () => {
+      it('avoids patch conflicts with pending line staging operations', async () => {
+        const workdirPath = await cloneRepository('multi-line-file');
+        const repository = await buildRepository(workdirPath);
+        const filePath = path.join(workdirPath, 'sample.js');
+        const originalLines = fs.readFileSync(filePath, 'utf8').split('\n');
 
-      // write some unstaged changes
-      const unstagedLines = originalLines.slice();
-      unstagedLines.splice(1, 0,
-        'this is a modified line',
-        'this is a new line',
-        'this is another new line',
-      );
-      unstagedLines.splice(11, 2, 'this is a modified line');
-      fs.writeFileSync(filePath, unstagedLines.join('\n'));
-      const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-      const hunkViewsByHunk = new Map();
-      function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
+        // write some unstaged changes
+        const unstagedLines = originalLines.slice();
+        unstagedLines.splice(1, 0,
+          'this is a modified line',
+          'this is a new line',
+          'this is another new line',
+        );
+        unstagedLines.splice(11, 2, 'this is a modified line');
+        fs.writeFileSync(filePath, unstagedLines.join('\n'));
+        const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        const hunkViewsByHunk = new Map();
+        function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
-      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
-      const view = controller.refs.filePatchView;
-      let hunk = unstagedFilePatch.getHunks()[0];
-      let lines = hunk.getLines();
-      let hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
-      view.mouseup();
+        const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+        const view = controller.refs.filePatchView;
+        let hunk = unstagedFilePatch.getHunks()[0];
+        let lines = hunk.getLines();
+        let hunkView = hunkViewsByHunk.get(hunk);
+        hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
+        view.mouseup();
 
-      // stage lines in rapid succession
-      // second stage action is a no-op since the first staging operation is in flight
-      const line1StagingPromises = hunkView.props.didClickStageButton();
-      await hunkView.props.didClickStageButton();
+        // stage lines in rapid succession
+        // second stage action is a no-op since the first staging operation is in flight
+        const line1StagingPromises = hunkView.props.didClickStageButton();
+        hunkView.props.didClickStageButton();
 
-      await line1StagingPromises.stageOperationPromise;
-      await repository.refresh(); // clear the cached file patches
-      const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
-      await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
-      await line1StagingPromises.selectionUpdatePromise;
+        await line1StagingPromises.stageOperationPromise;
+        await repository.refresh(); // clear the cached file patches
+        const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
+        await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+        await line1StagingPromises.selectionUpdatePromise;
 
-      // assert that only line 1 has been staged
-      let expectedLines = originalLines.slice();
-      expectedLines.splice(1, 0,
-        'this is a modified line',
-      );
-      let actualLines = await repository.readFileFromIndex('sample.js');
-      assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+        // assert that only line 1 has been staged
+        let expectedLines = originalLines.slice();
+        expectedLines.splice(1, 0,
+          'this is a modified line',
+        );
+        let actualLines = await repository.readFileFromIndex('sample.js');
+        assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
-      hunk = modifiedFilePatch.getHunks()[0];
-      lines = hunk.getLines();
-      hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[2]);
-      view.mouseup();
+        hunk = modifiedFilePatch.getHunks()[0];
+        lines = hunk.getLines();
+        hunkView = hunkViewsByHunk.get(hunk);
+        hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[2]);
+        view.mouseup();
 
-      const line2StagingPromises = hunkView.props.didClickStageButton();
-      await line2StagingPromises.stageOperationPromise;
+        const line2StagingPromises = hunkView.props.didClickStageButton();
+        await line2StagingPromises.stageOperationPromise;
 
-      // assert that line 2 has now been staged
-      expectedLines = originalLines.slice();
-      expectedLines.splice(1, 0,
-        'this is a modified line',
-        'this is a new line',
-      );
-      actualLines = await repository.readFileFromIndex('sample.js');
-      assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+        // assert that line 2 has now been staged
+        expectedLines = originalLines.slice();
+        expectedLines.splice(1, 0,
+          'this is a modified line',
+          'this is a new line',
+        );
+        actualLines = await repository.readFileFromIndex('sample.js');
+        assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+      });
+
+      it('avoids patch conflicts with pending hunk staging operations', async () => {
+        const workdirPath = await cloneRepository('multi-line-file');
+        const repository = await buildRepository(workdirPath);
+        const filePath = path.join(workdirPath, 'sample.js');
+        const originalLines = fs.readFileSync(filePath, 'utf8').split('\n');
+
+        // write some unstaged changes
+        const unstagedLines = originalLines.slice();
+        unstagedLines.splice(1, 0,
+          'this is a modified line',
+          'this is a new line',
+          'this is another new line',
+        );
+        unstagedLines.splice(11, 2, 'this is a modified line');
+        fs.writeFileSync(filePath, unstagedLines.join('\n'));
+        const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        const hunkViewsByHunk = new Map();
+        function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
+
+        const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+        let hunk = unstagedFilePatch.getHunks()[0];
+        let hunkView = hunkViewsByHunk.get(hunk);
+
+        // ensure staging the same hunk twice does not cause issues
+        // second stage action is a no-op since the first staging operation is in flight
+        const hunk1StagingPromises = hunkView.props.didClickStageButton();
+        hunkView.props.didClickStageButton();
+
+        await hunk1StagingPromises.stageOperationPromise;
+        await repository.refresh(); // clear the cached file patches
+        const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
+        await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+        await hunk1StagingPromises.selectionUpdatePromise;
+
+        let expectedLines = originalLines.slice();
+        expectedLines.splice(1, 0,
+          'this is a modified line',
+          'this is a new line',
+          'this is another new line',
+        );
+        let actualLines = await repository.readFileFromIndex('sample.js');
+        assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+
+        hunk = modifiedFilePatch.getHunks()[0];
+        hunkView = hunkViewsByHunk.get(hunk);
+
+        const hunk2StagingPromises = hunkView.props.didClickStageButton();
+        await hunk2StagingPromises.stageOperationPromise;
+
+        expectedLines = originalLines.slice();
+        expectedLines.splice(1, 0,
+          'this is a modified line',
+          'this is a new line',
+          'this is another new line',
+        );
+        expectedLines.splice(11, 2, 'this is a modified line');
+        actualLines = await repository.readFileFromIndex('sample.js');
+        assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
+      });
     });
   });
 });

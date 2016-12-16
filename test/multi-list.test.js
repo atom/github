@@ -1,6 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
 import MultiList from '../lib/multi-list';
 
 describe('MultiList', () => {
