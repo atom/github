@@ -2,14 +2,16 @@
   'ctrl-9': 'github:toggle-git-panel'
   'ctrl-(': 'github:toggle-git-panel-focus' # ctrl-shift-9
 
+'.github-Panel':
+  'cmd-enter': 'github:commit'
+  'ctrl-enter': 'github:commit'
+
 '.github-StagingView':
   'left': 'github:focus-diff-view'
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
-  'cmd-enter': 'github:commit'
-  'ctrl-enter': 'github:commit'
   'shift-tab': 'core:focus-previous'
 
 '.github-FilePatchView':
