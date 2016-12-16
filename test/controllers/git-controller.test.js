@@ -279,12 +279,13 @@ describe('GitController', () => {
       app = React.cloneElement(app, {repository});
       wrapper = shallow(app);
 
-      sinon.spy(wrapper.instance(), 'focusGitPanel');
+      sinon.stub(wrapper.instance(), 'focusGitPanel');
       sinon.spy(workspace.getActivePane(), 'activate');
     });
 
     it('opens and focuses the Git panel when it is initially closed', async () => {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
+      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
 
       await wrapper.instance().toggleGitPanelFocus();
 
