@@ -27,23 +27,23 @@ describe('StagingView', () => {
     });
 
     describe('confirmSelectedItems()', () => {
-      it('calls attemptStageOrUnstageFilesOperation with the paths to stage/unstage and the staging status', async () => {
+      it('calls attemptFileStageOperation with the paths to stage/unstage and the staging status', async () => {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
         ];
-        const attemptStageOrUnstageFilesOperation = sinon.spy();
-        const view = new StagingView({unstagedChanges: filePatches, stagedChanges: [], attemptStageOrUnstageFilesOperation});
+        const attemptFileStageOperation = sinon.spy();
+        const view = new StagingView({unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
         view.mousedownOnItem({detail: 1}, filePatches[1]);
         view.confirmSelectedItems();
-        assert.isTrue(attemptStageOrUnstageFilesOperation.calledWith(['b.txt'], 'unstaged'));
+        assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
 
-        attemptStageOrUnstageFilesOperation.reset();
-        await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptStageOrUnstageFilesOperation});
+        attemptFileStageOperation.reset();
+        await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptFileStageOperation});
         view.mousedownOnItem({detail: 1}, filePatches[1]);
         view.confirmSelectedItems();
-        assert.isTrue(attemptStageOrUnstageFilesOperation.calledWith(['b.txt'], 'staged'));
+        assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
     });
   });
