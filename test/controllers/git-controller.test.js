@@ -11,13 +11,16 @@ import {cloneRepository, buildRepository} from '../helpers';
 import GitController from '../../lib/controllers/git-controller';
 
 describe('GitController', () => {
-  let atomEnv, workspace, commandRegistry, notificationManager, app;
+  let atomEnv, workspace, workspaceElement, commandRegistry, notificationManager, app;
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+
+    workspaceElement = atomEnv.views.getView(workspace);
+
     app = (
       <GitController
         workspace={workspace}
@@ -338,5 +341,22 @@ describe('GitController', () => {
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.state('amending'), true);
+  });
+
+  it('ensures that the panel is visible with github:commit is sent', async () => {
+    const workdirPath = await cloneRepository('three-files');
+    const repository = await buildRepository(workdirPath);
+
+    sinon.stub(repository, 'commit');
+
+    app = React.cloneElement(app, {repository});
+    const wrapper = shallow(app);
+
+    assert.isFalse(wrapper.find('Panel').prop('visible'));
+
+    commandRegistry.dispatch(workspaceElement, 'github:commit');
+
+    assert.isTrue(wrapper.find('Panel').prop('visible'));
+    assert.isFalse(repository.commit.called);
   });
 });
