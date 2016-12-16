@@ -202,18 +202,18 @@ describe('GitPanelController', () => {
       const repository = await buildRepository(workdirPath);
 
       // Merge with conflicts
-      assert.isRejected(repository.git.merge('origin/one'));
+      assert.isRejected(repository.git.merge('origin/branch'));
 
       // Three unstaged files
-      fs.writeFileSync(path.join(workdirPath, 'unstaged-one'), 'This is an unstaged file.');
-      fs.writeFileSync(path.join(workdirPath, 'unstaged-two'), 'This is an unstaged file.');
-      fs.writeFileSync(path.join(workdirPath, 'unstaged-three'), 'This is an unstaged file.');
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-1.txt'), 'This is an unstaged file.');
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-2.txt'), 'This is an unstaged file.');
+      fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
 
       // Three staged files
-      fs.writeFileSync(path.join(workdirPath, 'staged-one'), 'This is a file with some changes staged for commit.');
-      fs.writeFileSync(path.join(workdirPath, 'staged-two'), 'This is another file staged for commit.');
-      fs.writeFileSync(path.join(workdirPath, 'staged-three'), 'This is a third file staged for commit.');
-      await repository.stageFiles(['staged-one', 'staged-two', 'staged-three']);
+      fs.writeFileSync(path.join(workdirPath, 'staged-1.txt'), 'This is a file with some changes staged for commit.');
+      fs.writeFileSync(path.join(workdirPath, 'staged-2.txt'), 'This is another file staged for commit.');
+      fs.writeFileSync(path.join(workdirPath, 'staged-3.txt'), 'This is a third file staged for commit.');
+      await repository.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
 
       await repository.refresh();
 
@@ -245,21 +245,21 @@ describe('GitPanelController', () => {
     });
 
     it('advances focus through StagingView groups and CommitView, but does not cycle', () => {
-      assertSelected(['unstaged-one']);
+      assertSelected(['unstaged-1.txt']);
 
       commandRegistry.dispatch(controller.element, 'core:focus-next');
-      assertSelected(['all']);
+      assertSelected(['conflict-1.txt']);
 
       commandRegistry.dispatch(controller.element, 'core:focus-next');
-      assertSelected(['staged-one']);
+      assertSelected(['staged-1.txt']);
 
       commandRegistry.dispatch(controller.element, 'core:focus-next');
-      assertSelected(['staged-one']);
+      assertSelected(['staged-1.txt']);
       assert.strictEqual(focusElement, commitView);
 
       // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
       commandRegistry.dispatch(controller.element, 'core:focus-next');
-      assertSelected(['staged-one']);
+      assertSelected(['staged-1.txt']);
       assert.strictEqual(focusElement, commitView);
     });
 
@@ -267,17 +267,17 @@ describe('GitPanelController', () => {
       commitView.focus();
 
       commandRegistry.dispatch(controller.element, 'core:focus-previous');
-      assertSelected(['staged-one']);
+      assertSelected(['staged-1.txt']);
 
       commandRegistry.dispatch(controller.element, 'core:focus-previous');
-      assertSelected(['all']);
+      assertSelected(['conflict-1.txt']);
 
       commandRegistry.dispatch(controller.element, 'core:focus-previous');
-      assertSelected(['unstaged-one']);
+      assertSelected(['unstaged-1.txt']);
 
       // This should be a no-op.
       commandRegistry.dispatch(controller.element, 'core:focus-previous');
-      assertSelected(['unstaged-one']);
+      assertSelected(['unstaged-1.txt']);
     });
 
     it('advances from the final populated list to the CommitView', async () => {
@@ -298,7 +298,7 @@ describe('GitPanelController', () => {
       await etch.getScheduler().getNextUpdatePromise();
 
       assert.strictEqual(focusElement, stagingView);
-      assertSelected(['staged-two']);
+      assertSelected(['staged-3.txt']);
     });
 
     it('remains within the CommitView when any cursor is not on the first line', async () => {
