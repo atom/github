@@ -4,7 +4,6 @@ import path from 'path';
 import fs from 'fs';
 
 import React from 'react';
-import sinon from 'sinon';
 import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
@@ -244,5 +243,24 @@ describe('GitController', () => {
       await new Promise(res => setTimeout(res, 250));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
     });
+  });
+
+  it('correctly updates state when switching repos', async () => {
+    const workdirPath1 = await cloneRepository('three-files');
+    const repository1 = await buildRepository(workdirPath1);
+    const workdirPath2 = await cloneRepository('three-files');
+    const repository2 = await buildRepository(workdirPath2);
+
+    app = React.cloneElement(app, {repository: repository1});
+    const wrapper = shallow(app);
+
+    assert.equal(wrapper.state('amending'), false);
+
+    wrapper.setState({amending: true});
+    wrapper.setProps({repository: repository2});
+    assert.equal(wrapper.state('amending'), false);
+
+    wrapper.setProps({repository: repository1});
+    assert.equal(wrapper.state('amending'), true);
   });
 });

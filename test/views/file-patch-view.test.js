@@ -1,6 +1,5 @@
 /** @babel */
 
-import sinon from 'sinon';
 
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';

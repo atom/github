@@ -2,7 +2,6 @@
 
 import fs from 'fs';
 import path from 'path';
-import sinon from 'sinon';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatch from '../../lib/models/file-patch';

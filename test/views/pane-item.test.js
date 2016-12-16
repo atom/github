@@ -1,7 +1,6 @@
 /** @babel */
 
 import React from 'react';
-import sinon from 'sinon';
 
 import PaneItem from '../../lib/views/pane-item';
 

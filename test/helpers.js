@@ -7,6 +7,7 @@ import temp from 'temp';
 import {Directory} from 'atom';
 import React from 'react';
 import ReactDom from 'react-dom';
+import sinon from 'sinon';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
@@ -196,7 +197,13 @@ export function createRenderer() {
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
+beforeEach(() => {
+  global.sinon = sinon.sandbox.create();
+});
+
+// eslint-disable-next-line jasmine/no-global-setup
 afterEach(() => {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
+  global.sinon.restore();
 });

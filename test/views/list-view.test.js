@@ -3,7 +3,6 @@
 /* eslint react/no-unknown-property: "off" */
 
 import etch from 'etch';
-import sinon from 'sinon';
 import simulant from 'simulant';
 
 import ListView from '../../lib/views/list-view';

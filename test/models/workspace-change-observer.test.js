@@ -1,7 +1,6 @@
 /** @babel */
 
 import path from 'path';
-import sinon from 'sinon';
 
 import {cloneRepository, buildRepository} from '../helpers';
 

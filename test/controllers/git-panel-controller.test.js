@@ -3,19 +3,21 @@
 import fs from 'fs';
 import path from 'path';
 
-import sinon from 'sinon';
 import dedent from 'dedent-js';
 
-import {cloneRepository, buildRepository} from '../helpers';
 import GitPanelController from '../../lib/controllers/git-panel-controller';
 
+import {cloneRepository, buildRepository} from '../helpers';
+import {AbortMergeError, CommitError} from '../../lib/models/repository';
+
 describe('GitPanelController', () => {
-  let atomEnvironment, workspace, commandRegistry;
+  let atomEnvironment, workspace, commandRegistry, notificationManager;
 
   beforeEach(() => {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
+    notificationManager = atomEnvironment.notifications;
   });
 
   afterEach(() => {
@@ -40,7 +42,7 @@ describe('GitPanelController', () => {
     assert.isDefined(controller.refs.gitPanel.refs.repoInfo);
   });
 
-  it('keeps the state of the GitPanelView in sync with the assigned repository', async done => {
+  it('keeps the state of the GitPanelView in sync with the assigned repository', async () => {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
@@ -76,22 +78,93 @@ describe('GitPanelController', () => {
     const didChangeAmending = sinon.spy();
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
-    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
+    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, isAmending: false});
     await controller.getLastModelDataRefreshPromise();
     assert.deepEqual(controller.refs.gitPanel.props.stagedChanges, []);
     assert.equal(didChangeAmending.callCount, 0);
 
     await controller.setAmending(true);
     assert.equal(didChangeAmending.callCount, 1);
+    await controller.update({isAmending: true});
     assert.deepEqual(
       controller.refs.gitPanel.props.stagedChanges,
       await controller.getActiveRepository().getStagedChangesSinceParentCommit(),
     );
 
     await controller.commit('Delete most of the code', {amend: true});
-    await controller.getLastModelDataRefreshPromise();
-    assert(!controller.refs.gitPanel.props.isAmending);
+    assert.equal(didChangeAmending.callCount, 2);
   });
+
+  describe('abortMerge()', () => {
+    it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'abortMerge', async () => {
+        await Promise.resolve();
+        throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
+      });
+
+      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository});
+      assert.equal(notificationManager.getNotifications().length, 0);
+      sinon.stub(atom, 'confirm').returns(0);
+      await controller.abortMerge();
+      assert.equal(notificationManager.getNotifications().length, 1);
+    });
+
+    it('resets merge related state', async () => {
+      const workdirPath = await cloneRepository('merge-conflict');
+      const repository = await buildRepository(workdirPath);
+
+      await repository.git.merge('origin/branch')
+        .then(() => { throw new Error('Expected merge to throw an error'); })
+        .catch(() => true);
+
+      const controller = new GitPanelController({workspace, commandRegistry, repository});
+      await controller.getLastModelDataRefreshPromise();
+      let modelData = controller.repositoryObserver.getActiveModelData();
+
+      assert.notEqual(modelData.mergeConflicts.length, 0);
+      assert.isTrue(modelData.isMerging);
+      assert.isOk(modelData.mergeMessage);
+
+      sinon.stub(atom, 'confirm').returns(0);
+      await controller.abortMerge();
+      await controller.getLastModelDataRefreshPromise();
+      modelData = controller.repositoryObserver.getActiveModelData();
+
+      assert.equal(modelData.mergeConflicts.length, 0);
+      assert.isFalse(modelData.isMerging);
+      assert.isNull(modelData.mergeMessage);
+    });
+  });
+
+  describe('commit(message)', () => {
+    it('shows an error notification when committing throws an ECONFLICT exception', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'commit', async () => {
+        await Promise.resolve();
+        throw new CommitError('ECONFLICT');
+      });
+
+      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository});
+      assert.equal(notificationManager.getNotifications().length, 0);
+      await controller.commit();
+      assert.equal(notificationManager.getNotifications().length, 1);
+    });
+
+    it('sets amending to false', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'commit', () => Promise.resolve());
+      const didChangeAmending = sinon.stub();
+      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
+
+      await controller.commit('message');
+      assert.equal(didChangeAmending.callCount, 1);
+    });
+  });
+
 
   describe('integration tests', () => {
     it('can stage and unstage files and commit', async () => {
@@ -99,10 +172,10 @@ describe('GitPanelController', () => {
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      const controller = new GitPanelController({workspace, commandRegistry, repository});
+      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending: sinon.stub()});
       await controller.getLastModelDataRefreshPromise();
       const stagingView = controller.refs.gitPanel.refs.stagingView;
-      const commitView = controller.refs.gitPanel.refs.commitView;
+      const commitView = controller.refs.gitPanel.refs.commitViewController.refs.commitView;
 
       assert.equal(stagingView.props.unstagedChanges.length, 2);
       assert.equal(stagingView.props.stagedChanges.length, 0);
