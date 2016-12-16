@@ -12,6 +12,8 @@
   'shift-tab': 'core:focus-previous'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
+  'cmd-enter': 'github:commit'
+  'ctrl-enter': 'github:commit'
   'shift-tab': 'core:focus-previous'
 
 '.github-FilePatchView':
