@@ -16,7 +16,7 @@ describe('HunkView', () => {
     const view = new HunkView({hunk: hunk1, selectedLines: new Set()});
     const element = view.element;
     // eslint-disable-next-line prefer-const
-    let [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.git-HunkView-line'));
+    let [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.github-HunkView-line'));
 
     assert.equal(view.refs.header.textContent, hunk1.getHeader());
     assertHunkLineElementEqual(
@@ -40,7 +40,7 @@ describe('HunkView', () => {
       new HunkLine('line-1', 'deleted', 8, -1),
       new HunkLine('line-2', 'added', -1, 8),
     ]);
-    const lines = Array.from(element.querySelectorAll('.git-HunkView-line'));
+    const lines = Array.from(element.querySelectorAll('.github-HunkView-line'));
     line1 = lines[0];
     line2 = lines[1];
 
@@ -104,7 +104,7 @@ describe('HunkView', () => {
       // selectLine callback not called when selectionEnabled = false
       const view = new HunkView({hunk, selectedLines: new Set(), mousedownOnLine, mousemoveOnLine, selectionEnabled: false});
       const element = view.element;
-      const lineElements = Array.from(element.querySelectorAll('.git-HunkView-line'));
+      const lineElements = Array.from(element.querySelectorAll('.github-HunkView-line'));
       const mousedownEvent = new MouseEvent('mousedown');
       lineElements[0].dispatchEvent(mousedownEvent);
       assert.deepEqual(mousedownOnLine.args[0], [mousedownEvent, hunk, hunk.lines[0]]);
@@ -124,8 +124,8 @@ describe('HunkView', () => {
 });
 
 function assertHunkLineElementEqual(lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
-  assert.equal(lineElement.querySelector('.git-HunkView-lineNumber.is-old').textContent, oldLineNumber);
-  assert.equal(lineElement.querySelector('.git-HunkView-lineNumber.is-new').textContent, newLineNumber);
-  assert.equal(lineElement.querySelector('.git-HunkView-lineContent').textContent, origin + content);
+  assert.equal(lineElement.querySelector('.github-HunkView-lineNumber.is-old').textContent, oldLineNumber);
+  assert.equal(lineElement.querySelector('.github-HunkView-lineNumber.is-new').textContent, newLineNumber);
+  assert.equal(lineElement.querySelector('.github-HunkView-lineContent').textContent, origin + content);
   assert.equal(lineElement.classList.contains('is-selected'), isSelected);
 }

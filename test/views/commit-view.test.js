@@ -102,7 +102,7 @@ describe('CommitView', () => {
     assert.isTrue(commitButton.disabled);
   });
 
-  it('calls props.commit(message) when the commit button is clicked or git:commit is dispatched', async () => {
+  it('calls props.commit(message) when the commit button is clicked or github:commit is dispatched', async () => {
     const commit = sinon.spy();
     const view = new CommitView({commandRegistry, stagedChangesExist: false, commit, message: ''});
     const {editor, commitButton} = view.refs;
@@ -116,22 +116,22 @@ describe('CommitView', () => {
     commandRegistry.dispatch(editor.element, 'core:undo');
     assert.equal(editor.getText(), '');
 
-    // commit via the git:commit command
+    // commit via the github:commit command
     commit.reset();
     await view.update({stagedChangesExist: true, message: 'Commit 2'});
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     assert.equal(commit.args[0][0], 'Commit 2');
 
-    // disable git:commit when there are no staged changes...
+    // disable github:commit when there are no staged changes...
     commit.reset();
     await view.update({stagedChangesExist: false, message: 'Commit 4'});
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     assert.equal(commit.callCount, 0);
 
     // ...or the commit message is empty
     commit.reset();
     await view.update({stagedChangesExist: true, message: ''});
-    commandRegistry.dispatch(editor.element, 'git:commit');
+    commandRegistry.dispatch(editor.element, 'github:commit');
     assert.equal(commit.callCount, 0);
   });
 
