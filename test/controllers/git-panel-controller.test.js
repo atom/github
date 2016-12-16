@@ -316,7 +316,7 @@ describe('GitPanelController', () => {
         assert.isFalse(controller.commit.called);
       });
 
-      it.only('creates a commit on github:commit with a nonempty commit message', async () => {
+      it('creates a commit on github:commit with a nonempty commit message', async () => {
         commitView.editor.setText('I fixed the things');
         sinon.spy(controller, 'commit');
         await etch.update(controller); // Ensure that the spy is passed to child components in props
