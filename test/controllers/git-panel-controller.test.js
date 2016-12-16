@@ -232,7 +232,7 @@ describe('GitPanelController', () => {
     });
 
     const assertSelected = paths => {
-      const selectionPaths = Array.from(stagingView.selection.getSelectedItems()).map(each => each.filePath);
+      const selectionPaths = Array.from(stagingView.selection.getSelectedItems()).map(item => item.filePath);
       assert.deepEqual(selectionPaths, paths);
     };
 
