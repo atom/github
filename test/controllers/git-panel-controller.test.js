@@ -185,7 +185,7 @@ describe('GitPanelController', () => {
 
     sinon.spy(stagingView, 'focus');
 
-    controller.focusOnStagingItem('unstaged-2.txt', 'unstaged');
+    await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
     const selections = Array.from(stagingView.selection.getSelectedItems());
     assert.equal(selections.length, 1);
