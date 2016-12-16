@@ -106,11 +106,12 @@ describe('CommitView', () => {
     const commit = sinon.spy();
     const view = new CommitView({commandRegistry, stagedChangesExist: false, commit, message: ''});
     const {editor, commitButton} = view.refs;
+    const workspaceElement = atomEnv.views.getView(atomEnv.workspace);
 
     // commit by clicking the commit button
     await view.update({stagedChangesExist: true, message: 'Commit 1'});
     commitButton.dispatchEvent(new MouseEvent('click'));
-    assert.equal(commit.args[0][0], 'Commit 1');
+    assert.isTrue(commit.calledWith('Commit 1'));
 
     // undo history is cleared
     commandRegistry.dispatch(editor.element, 'core:undo');
@@ -119,19 +120,19 @@ describe('CommitView', () => {
     // commit via the github:commit command
     commit.reset();
     await view.update({stagedChangesExist: true, message: 'Commit 2'});
-    commandRegistry.dispatch(editor.element, 'github:commit');
-    assert.equal(commit.args[0][0], 'Commit 2');
+    commandRegistry.dispatch(workspaceElement, 'github:commit');
+    assert.isTrue(commit.calledWith('Commit 2'));
 
     // disable github:commit when there are no staged changes...
     commit.reset();
     await view.update({stagedChangesExist: false, message: 'Commit 4'});
-    commandRegistry.dispatch(editor.element, 'github:commit');
+    commandRegistry.dispatch(workspaceElement, 'github:commit');
     assert.equal(commit.callCount, 0);
 
     // ...or the commit message is empty
     commit.reset();
     await view.update({stagedChangesExist: true, message: ''});
-    commandRegistry.dispatch(editor.element, 'github:commit');
+    commandRegistry.dispatch(workspaceElement, 'github:commit');
     assert.equal(commit.callCount, 0);
   });
 
