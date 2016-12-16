@@ -165,7 +165,7 @@ describe('FilePatchView', () => {
         ]),
       ];
 
-      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', stageOrUnstageHunk: sinon.stub()});
+      const filePatchView = new FilePatchView({hunks, stagingStatus: 'unstaged', attemptHunkStageOperation: sinon.stub()});
       filePatchView.didClickStageButtonForHunk(hunks[2]);
       await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])});
       assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));
