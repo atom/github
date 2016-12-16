@@ -283,37 +283,37 @@ describe('GitController', () => {
       sinon.spy(workspace.getActivePane(), 'activate');
     });
 
-    it('opens and focuses the Git panel when it is initially closed', async () => {
+    it('opens and focuses the Git panel when it is initially closed', () => {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
 
-      await wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitPanelFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
-    it('focuses the Git panel when it is already open, but blurred', async () => {
-      await wrapper.instance().toggleGitPanel();
+    it('focuses the Git panel when it is already open, but blurred', () => {
+      wrapper.instance().toggleGitPanel();
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
 
-      await wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitPanelFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
-    it('blurs the Git panel when it is already open and focused', async () => {
-      await wrapper.instance().toggleGitPanel();
+    it('blurs the Git panel when it is already open and focused', () => {
+      wrapper.instance().toggleGitPanel();
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(true);
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
 
-      await wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitPanelFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
