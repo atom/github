@@ -42,7 +42,7 @@ describe('GitPanelController', () => {
     assert.equal(controller.getActiveRepository(), repository);
     assert.isUndefined(controller.refs.gitPanel.refs.repoLoadingMessage);
     assert.isDefined(controller.refs.gitPanel.refs.stagingView);
-    assert.isDefined(controller.refs.gitPanel.refs.commitView);
+    assert.isDefined(controller.refs.gitPanel.refs.commitViewController);
   });
 
   it('keeps the state of the GitPanelView in sync with the assigned repository', async () => {
@@ -195,7 +195,7 @@ describe('GitPanelController', () => {
   });
 
   describe('keyboard navigation commands', () => {
-    let controller, gitPanel, stagingView, commitView, focusElement;
+    let controller, gitPanel, stagingView, commitView, commitViewController, focusElement;
 
     beforeEach(async () => {
       const workdirPath = await cloneRepository('each-staging-group');
@@ -222,7 +222,8 @@ describe('GitPanelController', () => {
 
       gitPanel = controller.refs.gitPanel;
       stagingView = gitPanel.refs.stagingView;
-      commitView = gitPanel.refs.commitView;
+      commitViewController = gitPanel.refs.commitViewController;
+      commitView = commitViewController.refs.commitView;
       focusElement = stagingView;
 
       sinon.stub(commitView, 'focus', () => { focusElement = commitView; });

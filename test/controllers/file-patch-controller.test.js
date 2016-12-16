@@ -272,7 +272,7 @@ describe('FilePatchController', () => {
         const hunkViewsByHunk = new Map();
         function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
 
-        const controller = new FilePatchController({filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
+        const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
         let hunk = unstagedFilePatch.getHunks()[0];
         let hunkView = hunkViewsByHunk.get(hunk);
 

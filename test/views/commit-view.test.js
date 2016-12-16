@@ -162,7 +162,7 @@ describe('CommitView', () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       didMoveUpOnFirstLine = sinon.spy();
-      view = new CommitView({workspace, repository, commandRegistry, didMoveUpOnFirstLine});
+      view = new CommitView({repository, commandRegistry, didMoveUpOnFirstLine});
 
       view.editor.setText('first line\n\nthird line\nfourth line\n');
     });
