@@ -26,6 +26,7 @@
     }
   ],
   "dependencies": {
+    "atom-babel6-transpiler": "0.0.2",
     "compare-sets": "^1.0.1",
     "core-decorators": "^0.15.0",
     "diff": "2.2.2",
