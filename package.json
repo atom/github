@@ -27,6 +27,7 @@
   ],
   "dependencies": {
     "compare-sets": "^1.0.1",
+    "core-decorators": "^0.15.0",
     "diff": "2.2.2",
     "etch": "0.8.0",
     "git-kitchen-sink": "1.11.0",
