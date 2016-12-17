@@ -1,5 +1,3 @@
-/** @babel */
-
 import CompositeListSelection from '../../lib/views/composite-list-selection';
 import {assertEqualSets} from '../helpers';
 

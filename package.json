@@ -13,6 +13,18 @@
     "atom": ">=1.13.0"
   },
   "atomTestRunner": "./test/runner",
+  "atomTranspilers": [
+    {
+      "glob": "{lib,test}/**/*.js",
+      "transpiler": "atom-babel6-transpiler",
+      "options": {
+        "cacheKeyFiles": [
+          "package.json",
+          ".babelrc"
+        ]
+      }
+    }
+  ],
   "dependencies": {
     "compare-sets": "^1.0.1",
     "diff": "2.2.2",

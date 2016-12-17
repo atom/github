@@ -1,5 +1,3 @@
-/** @babel */
-
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';

@@ -1,6 +1,3 @@
-/** @babel */
-
-
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import HunkView from '../../lib/views/hunk-view';

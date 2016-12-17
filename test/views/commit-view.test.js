@@ -1,5 +1,3 @@
-/** @babel */
-
 import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
 
