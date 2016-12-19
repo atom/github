@@ -144,15 +144,29 @@ describe('GitPanelController', () => {
   });
 
   describe('commit(message)', () => {
+    it('shows the git panel and takes no further action if it was hidden', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'commit', () => Promise.resolve());
+
+      const ensureGitPanel = () => Promise.resolve(true);
+      const controller = new GitPanelController({workspace, commandRegistry, repository, ensureGitPanel});
+
+      await controller.commit('message');
+
+      assert.equal(repository.commit.callCount, 0);
+    });
+
     it('shows an error notification when committing throws an ECONFLICT exception', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
+      const ensureGitPanel = () => Promise.resolve(false);
       sinon.stub(repository, 'commit', async () => {
         await Promise.resolve();
         throw new CommitError('ECONFLICT');
       });
 
-      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository});
+      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository, ensureGitPanel});
       assert.equal(notificationManager.getNotifications().length, 0);
       await controller.commit();
       assert.equal(notificationManager.getNotifications().length, 1);
@@ -161,9 +175,10 @@ describe('GitPanelController', () => {
     it('sets amending to false', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
+      const ensureGitPanel = () => Promise.resolve(false);
       sinon.stub(repository, 'commit', () => Promise.resolve());
       const didChangeAmending = sinon.stub();
-      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
+      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, ensureGitPanel});
 
       await controller.commit('message');
       assert.equal(didChangeAmending.callCount, 1);
