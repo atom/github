@@ -79,11 +79,12 @@ describe('GitPanelController', () => {
     assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges());
   });
 
-  it('displays the staged changes since the parent commmit when amending', async () => {
+  it('displays the staged changes since the parent commit when amending', async () => {
     const didChangeAmending = sinon.spy();
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
-    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, isAmending: false});
+    const ensureGitPanel = () => Promise.resolve(false);
+    const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, ensureGitPanel, isAmending: false});
     await controller.getLastModelDataRefreshPromise();
     assert.deepEqual(controller.refs.gitPanel.props.stagedChanges, []);
     assert.equal(didChangeAmending.callCount, 0);
@@ -348,7 +349,8 @@ describe('GitPanelController', () => {
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending: sinon.stub()});
+      const ensureGitPanel = () => Promise.resolve(false);
+      const controller = new GitPanelController({workspace, commandRegistry, repository, ensureGitPanel, didChangeAmending: sinon.stub()});
       await controller.getLastModelDataRefreshPromise();
       const stagingView = controller.refs.gitPanel.refs.stagingView;
       const commitView = controller.refs.gitPanel.refs.commitViewController.refs.commitView;
