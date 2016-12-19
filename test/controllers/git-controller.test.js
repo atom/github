@@ -324,6 +324,30 @@ describe('GitController', () => {
     });
   });
 
+  describe('ensureGitPanel()', () => {
+    let wrapper;
+
+    beforeEach(async () => {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+    });
+
+    it('opens the Git panel when it is initially closed', async () => {
+      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(await wrapper.instance().ensureGitPanel());
+    });
+
+    it('does nothing when the Git panel is already open', async () => {
+      wrapper.instance().toggleGitPanel();
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(await wrapper.instance().ensureGitPanel());
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+    });
+  });
+
   it('correctly updates state when switching repos', async () => {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
