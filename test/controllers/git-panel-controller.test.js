@@ -8,7 +8,7 @@ import dedent from 'dedent-js';
 
 import GitPanelController from '../../lib/controllers/git-panel-controller';
 
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, until} from '../helpers';
 import {AbortMergeError, CommitError} from '../../lib/models/repository';
 
 describe('GitPanelController', () => {
@@ -144,30 +144,38 @@ describe('GitPanelController', () => {
     });
   });
 
-  describe('commit(message)', () => {
-    it('shows the git panel and takes no further action if it was hidden', async () => {
+  describe('prepareToCommit', () => {
+    it('shows the git panel and returns false if it was hidden', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'commit', () => Promise.resolve());
 
       const ensureGitPanel = () => Promise.resolve(true);
       const controller = new GitPanelController({workspace, commandRegistry, repository, ensureGitPanel});
 
-      await controller.commit('message');
-
-      assert.equal(repository.commit.callCount, 0);
+      assert.isFalse(await controller.prepareToCommit());
     });
 
+    it('returns true if the git panel was already visible', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      const ensureGitPanel = () => Promise.resolve(false);
+      const controller = new GitPanelController({workspace, commandRegistry, repository, ensureGitPanel});
+
+      assert.isTrue(await controller.prepareToCommit());
+    });
+  });
+
+  describe('commit(message)', () => {
     it('shows an error notification when committing throws an ECONFLICT exception', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      const ensureGitPanel = () => Promise.resolve(false);
       sinon.stub(repository, 'commit', async () => {
         await Promise.resolve();
         throw new CommitError('ECONFLICT');
       });
 
-      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository, ensureGitPanel});
+      const controller = new GitPanelController({workspace, commandRegistry, notificationManager, repository});
       assert.equal(notificationManager.getNotifications().length, 0);
       await controller.commit();
       assert.equal(notificationManager.getNotifications().length, 1);
@@ -176,10 +184,9 @@ describe('GitPanelController', () => {
     it('sets amending to false', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      const ensureGitPanel = () => Promise.resolve(false);
       sinon.stub(repository, 'commit', () => Promise.resolve());
       const didChangeAmending = sinon.stub();
-      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, ensureGitPanel});
+      const controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
 
       await controller.commit('message');
       assert.equal(didChangeAmending.callCount, 1);
@@ -315,8 +322,10 @@ describe('GitPanelController', () => {
         await repository.refresh();
 
         const didChangeAmending = () => {};
+        const prepareToCommit = () => Promise.resolve(true);
+        const ensureGitPanel = () => Promise.resolve(false);
 
-        controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending});
+        controller = new GitPanelController({workspace, commandRegistry, repository, didChangeAmending, prepareToCommit, ensureGitPanel});
         await controller.getLastModelDataRefreshPromise();
 
         extractReferences();
@@ -328,7 +337,8 @@ describe('GitPanelController', () => {
         await etch.update(controller); // Ensure that the spy is passed to child components in props
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
-        assert.strictEqual(focusElement, commitView);
+
+        await until('CommitView is focused', () => focusElement === commitView);
         assert.isFalse(controller.commit.called);
       });
 
@@ -338,7 +348,8 @@ describe('GitPanelController', () => {
         await etch.update(controller); // Ensure that the spy is passed to child components in props
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
-        assert.isTrue(controller.commit.calledWith('I fixed the things'));
+
+        await until('Commit method called', () => controller.commit.calledWith('I fixed the things'));
       });
     });
   });
