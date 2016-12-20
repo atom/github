@@ -11,15 +11,13 @@ import {cloneRepository, buildRepository} from '../helpers';
 import GitController from '../../lib/controllers/git-controller';
 
 describe('GitController', () => {
-  let atomEnv, workspace, workspaceElement, commandRegistry, notificationManager, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, app;
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
-
-    workspaceElement = atomEnv.views.getView(workspace);
 
     app = (
       <GitController
