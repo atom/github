@@ -123,7 +123,21 @@ describe('Conflict', () => {
     });
   });
 
-  it('flips "ours" and "theirs" sides when rebasing');
+  it('flips "ours" and "theirs" sides when rebasing', async () => {
+    const editor = await editorOnFixture('rebase-2way-diff.txt');
+    const conflicts = Conflict.all(editor, true);
+
+    assert.equal(conflicts.length, 1);
+    assertConflictOnRows(conflicts[0], {
+      theirBannerRow: 2,
+      theirSideRows: [3, 4],
+      theirPosition: TOP,
+      separatorRow: 4,
+      ourSideRows: [5, 6],
+      ourBannerRow: 6,
+      ourPosition: BOTTOM,
+    });
+  });
 
   it('is resilient to malformed 2-way diff markings');
 
