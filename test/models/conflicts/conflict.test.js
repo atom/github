@@ -112,6 +112,7 @@ describe('Conflict', () => {
     const editor = await editorOnFixture('single-3way-diff-complex.txt');
     const conflicts = Conflict.all(editor, false);
     assert.equal(conflicts.length, 1);
+
     assertConflictOnRows(conflicts[0], {
       ourBannerRow: 0,
       ourSideRows: [1, 2],
