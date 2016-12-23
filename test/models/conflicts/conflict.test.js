@@ -140,7 +140,17 @@ describe('Conflict', () => {
     });
   });
 
-  it('is resilient to malformed 2-way diff markings');
+  it('is resilient to malformed 2-way diff markings', async () => {
+    const editor = await editorOnFixture('corrupted-2way-diff.txt');
+    const conflicts = Conflict.all(editor, true);
 
-  it('is resilient to malformed 3-way diff markings');
+    assert.equal(conflicts.length, 0);
+  });
+
+  it('is resilient to malformed 3-way diff markings', async () => {
+    const editor = await editorOnFixture('corrupted-3way-diff.txt');
+    const conflicts = Conflict.all(editor, true);
+
+    assert.equal(conflicts.length, 0);
+  });
 });

@@ -8,13 +8,9 @@ Oops, we never get a separator
 These are your changes
 >>>>>>> master
 
-It also contains a valid one.
-
-<<<<<<< HEAD
 These are my changes
 ||||||| merged common ancestors
 These are original texts
-=======
 These are your changes
 >>>>>>> master
 
