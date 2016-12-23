@@ -108,7 +108,20 @@ describe('Conflict', () => {
     });
   });
 
-  it('parses recursive 3-way diff markings');
+  it('parses recursive 3-way diff markings', async () => {
+    const editor = await editorOnFixture('single-3way-diff-complex.txt');
+    const conflicts = Conflict.all(editor, false);
+    assert.equal(conflicts.length, 1);
+    assertConflictOnRows(conflicts[0], {
+      ourBannerRow: 0,
+      ourSideRows: [1, 2],
+      baseBannerRow: 2,
+      baseSideRows: [3, 18],
+      separatorRow: 18,
+      theirSideRows: [19, 20],
+      theirBannerRow: 20,
+    });
+  });
 
   it('flips "ours" and "theirs" sides when rebasing');
 
