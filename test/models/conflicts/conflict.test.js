@@ -5,7 +5,6 @@ import path from 'path';
 import Conflict from '../../../lib/models/conflicts/conflict';
 import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
 
-
 describe('Conflict', () => {
   let atomEnv;
 
