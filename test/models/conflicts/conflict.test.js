@@ -3,6 +3,7 @@
 import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
+import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
 
 
 describe('Conflict', () => {
@@ -31,12 +32,14 @@ describe('Conflict', () => {
 
     const ourSideRange = conflict.ours.marker.getBufferRange();
     isRangeOnRows(ourSideRange, description.ourSideRows[0], description.ourSideRows[1], '"ours"');
+    assert.strictEqual(conflict.ours.position, description.ourPosition || TOP, '"ours" in expected position');
 
     const theirBannerRange = conflict.theirs.banner.marker.getBufferRange();
     isRangeOnRow(theirBannerRange, description.theirBannerRow, '"theirs" banner');
 
     const theirSideRange = conflict.theirs.marker.getBufferRange();
     isRangeOnRows(theirSideRange, description.theirSideRows[0], description.theirSideRows[1], '"theirs"');
+    assert.strictEqual(conflict.theirs.position, description.theirPosition || BOTTOM, '"theirs" in expected position');
 
     if (description.baseBannerRow || description.baseSideRows) {
       assert.isNotNull(conflict.base, "expected conflict's base side to be non-null");
@@ -46,6 +49,7 @@ describe('Conflict', () => {
 
       const baseSideRange = conflict.base.marker.getBufferRange();
       isRangeOnRows(baseSideRange, description.baseSideRows[0], description.baseSideRows[1], '"base"');
+      assert.strictEqual(conflict.base.position, MIDDLE, '"base" in MIDDLE position');
     } else {
       assert.isNull(conflict.base, "expected conflict's base side to be null");
     }
@@ -67,4 +71,48 @@ describe('Conflict', () => {
       theirBannerRow: 6,
     });
   });
+
+  it('parses multiple 2-way diff markings', async () => {
+    const editor = await editorOnFixture('multi-2way-diff.txt');
+    const conflicts = Conflict.all(editor, false);
+
+    assert.equal(conflicts.length, 2);
+    assertConflictOnRows(conflicts[0], {
+      ourBannerRow: 4,
+      ourSideRows: [5, 7],
+      separatorRow: 7,
+      theirSideRows: [8, 9],
+      theirBannerRow: 9,
+    });
+    assertConflictOnRows(conflicts[1], {
+      ourBannerRow: 13,
+      ourSideRows: [14, 15],
+      separatorRow: 15,
+      theirSideRows: [16, 17],
+      theirBannerRow: 17,
+    });
+  });
+
+  it('parses 3-way diff markings', async () => {
+    const editor = await editorOnFixture('single-3way-diff.txt');
+    const conflicts = Conflict.all(editor, false);
+    assert.equal(conflicts.length, 1);
+    assertConflictOnRows(conflicts[0], {
+      ourBannerRow: 0,
+      ourSideRows: [1, 2],
+      baseBannerRow: 2,
+      baseSideRows: [3, 4],
+      separatorRow: 4,
+      theirSideRows: [5, 6],
+      theirBannerRow: 6,
+    });
+  });
+
+  it('parses recursive 3-way diff markings');
+
+  it('flips "ours" and "theirs" sides when rebasing');
+
+  it('is resilient to malformed 2-way diff markings');
+
+  it('is resilient to malformed 3-way diff markings');
 });
