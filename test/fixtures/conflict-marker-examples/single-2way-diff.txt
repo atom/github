@@ -1,3 +1,5 @@
+Before the start
+
 <<<<<<< HEAD
 These are my changes
 =======
