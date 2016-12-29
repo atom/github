@@ -18,6 +18,7 @@ describe('GitController', () => {
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+
     app = (
       <GitController
         workspace={workspace}
@@ -318,6 +319,30 @@ describe('GitController', () => {
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
       assert.isTrue(workspace.getActivePane().activate.called);
+    });
+  });
+
+  describe('ensureGitPanel()', () => {
+    let wrapper;
+
+    beforeEach(async () => {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+    });
+
+    it('opens the Git panel when it is initially closed', async () => {
+      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(await wrapper.instance().ensureGitPanel());
+    });
+
+    it('does nothing when the Git panel is already open', async () => {
+      wrapper.instance().toggleGitPanel();
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(await wrapper.instance().ensureGitPanel());
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
     });
   });
 
