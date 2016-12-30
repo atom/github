@@ -696,4 +696,38 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
   });
+
+  describe('conflict progress', () => {
+    let repo;
+    beforeEach(async () => {
+      const workingDirPath = await cloneRepository('merge-conflict');
+      repo = await buildRepository(workingDirPath);
+      assert.isRejected(repo.git.merge('origin/branch'));
+
+      await repo.refresh();
+    });
+
+    it('reports 0% for paths that have not reported resolution progress yet', () => {
+      assert.equal(repo.getResolutionProgressValue('modified-on-both-ours.txt'), 0);
+      assert.isAbove(repo.getResolutionProgressMax('modified-on-both-ours.txt'), 0);
+    });
+
+    it('reports the current progress after a resolution progress notification', () => {
+      repo.setConflictMarkerCount('modified-on-both-ours.txt', 3);
+      repo.reportConflictResolution('modified-on-both-ours.txt');
+
+      assert.equal(repo.getResolutionProgressValue('modified-on-both-ours.txt'), 1);
+      assert.equal(repo.getResolutionProgressMax('modified-on-both-ours.txt'), 3);
+    });
+
+    it('disregards duplicate conflict marker counts', () => {
+      repo.setConflictMarkerCount('modified-on-both-ours.txt', 3);
+      assert.equal(repo.getResolutionProgressMax('modified-on-both-ours.txt'), 3);
+
+      repo.setConflictMarkerCount('modified-on-both-ours.txt', 2);
+      assert.equal(repo.getResolutionProgressMax('modified-on-both-ours.txt'), 3);
+    });
+
+    it('resets conflict marker counts');
+  });
 });
