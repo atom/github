@@ -5,6 +5,7 @@ import {Directory} from 'atom';
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
+import sinon from 'sinon';
 
 import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
@@ -156,7 +157,7 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('#repositoryForProjectDirectory', () => {
+  describe('repositoryForProjectDirectory()', () => {
     it('returns the same repository over multiple overlapping calls', async () => {
       const workdirPath = await cloneRepository('three-files');
       const dir = new Directory(workdirPath);
@@ -176,6 +177,55 @@ describe('GithubPackage', () => {
       const repo2 = await githubPackage.repositoryForProjectDirectory(dir2);
 
       assert.equal(repo1, repo2);
+    });
+  });
+
+  describe('watchRepoForUpdates(repository)', () => {
+    describe('when there is a change in the repository', () => {
+      it.only('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
+        const workdirPath1 = await cloneRepository('three-files');
+        const workdirPath2 = await cloneRepository('three-files');
+        fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
+        fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
+
+        project.setPaths([workdirPath1, workdirPath2]);
+        const [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
+        sinon.stub(atomGitRepository1, 'refreshStatus');
+        sinon.stub(atomGitRepository2, 'refreshStatus');
+
+        const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1);
+        const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2);
+        sinon.stub(repository1, 'refresh');
+        sinon.stub(repository2, 'refresh');
+
+        await githubPackage.watchRepoForUpdates(repository1);
+        await githubPackage.watchRepoForUpdates(repository2);
+
+        repository1.refresh.reset();
+        repository2.refresh.reset();
+        atomGitRepository1.refreshStatus.reset();
+        atomGitRepository2.refreshStatus.reset();
+
+        let changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath1).getLastChangePromise();
+        await repository1.git.exec(['commit', '-am', 'commit in repository1']);
+        await changePromise;
+
+        assert.isTrue(repository1.refresh.called);
+        assert.isTrue(atomGitRepository1.refreshStatus.called);
+        assert.isFalse(repository2.refresh.called);
+        assert.isFalse(atomGitRepository2.refreshStatus.called);
+
+        repository1.refresh.reset();
+        atomGitRepository1.refreshStatus.reset();
+        changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath2).getLastChangePromise();
+        await repository2.git.exec(['commit', '-am', 'commit in repository2']);
+        await changePromise;
+
+        assert.isTrue(repository2.refresh.called);
+        assert.isTrue(atomGitRepository2.refreshStatus.called);
+        assert.isFalse(repository1.refresh.called);
+        assert.isFalse(atomGitRepository1.refreshStatus.called);
+      });
     });
   });
 });
