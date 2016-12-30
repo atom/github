@@ -52,26 +52,22 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.didChangeProjectPaths();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
-      assert.equal(githubPackage.changeObserver.getActiveRepository(), githubPackage.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
       await githubPackage.didChangeProjectPaths();
       assert.isNull(githubPackage.getActiveRepository());
-      assert.isNull(githubPackage.changeObserver.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       await githubPackage.didChangeProjectPaths();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2));
-      assert.equal(githubPackage.changeObserver.getActiveRepository(), githubPackage.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await githubPackage.didChangeProjectPaths();
       assert.isNull(githubPackage.getActiveRepository());
-      assert.isNull(githubPackage.changeObserver.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 4);
     });
 
