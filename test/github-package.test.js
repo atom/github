@@ -182,7 +182,7 @@ describe('GithubPackage', () => {
 
   describe('watchRepoForUpdates(repository)', () => {
     describe('when there is a change in the repository', () => {
-      it.only('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
+      it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
         const workdirPath1 = await cloneRepository('three-files');
         const workdirPath2 = await cloneRepository('three-files');
         fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
