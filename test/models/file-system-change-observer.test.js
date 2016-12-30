@@ -113,8 +113,4 @@ describe('FileSystemChangeObserver', () => {
     await changeObserver.lastFileChangePromise;
     assert.isTrue(changeSpy.called);
   });
-
-  function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 });
