@@ -5,10 +5,10 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import EditorConflictController from '../../lib/controllers/editor-conflict-controller';
-import Decoration from '../../lib/views/decoration';
+import ConflictController from '../../lib/controllers/conflict-controller';
 
 describe('EditorConflictController', () => {
-  let atomEnv, workspace, app, editor, decorations;
+  let atomEnv, workspace, app, editor, conflictControllers;
 
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment();
@@ -17,86 +17,46 @@ describe('EditorConflictController', () => {
 
   afterEach(() => atomEnv.destroy());
 
-  const decorationsFromFixture = async fixtureName => {
+  const useFixture = async fixtureName => {
     editor = await workspace.open(path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName));
 
     app = <EditorConflictController workspace={workspace} editor={editor} isRebase={false} />;
     const wrapper = shallow(app);
-    decorations = wrapper.find(Decoration);
+    conflictControllers = wrapper.find(ConflictController);
   };
 
-  const decorationsMatching = query => decorations.filterWhere(d => {
-    const queryKeys = Object.keys(query);
-    const props = d.props();
-    for (let i = 0; i < queryKeys.length; i++) {
-      const key = queryKeys[i];
-
-      if (props[key] !== query[key]) {
-        return false;
-      }
-    }
-    return true;
-  });
-
-  const textFromDecorations = ds => ds.map(d => {
-    return editor.getTextInBufferRange(d.props().marker.getBufferRange());
-  });
+  const textFromSide = side => editor.getTextInBufferRange(side.marker.getBufferRange());
 
   describe('on a file with 2-way diff markers', () => {
-    beforeEach(() => decorationsFromFixture('triple-2way-diff.txt'));
+    beforeEach(() => useFixture('triple-2way-diff.txt'));
 
-    it('decorates the banner lines for our and their sides', () => {
-      const matches = decorationsMatching({type: 'line', class: 'conflict-banner'});
-      assert.deepEqual(textFromDecorations(matches), [
-        '<<<<<<< HEAD\n',
-        '>>>>>>> other-branch\n',
-        '<<<<<<< HEAD\n',
-        '>>>>>>> other-branch\n',
-        '<<<<<<< HEAD\n',
-        '>>>>>>> other-branch\n',
-      ]);
-    });
+    it('creates a conflict controller for each conflict', () => {
+      const conflicts = conflictControllers.map(c => c.props().conflict);
+      assert.lengthOf(conflicts, 3);
 
-    it('decorates the banner line numbers', () => {
-      assert.lengthOf(decorationsMatching({type: 'line-number', class: 'conflict-banner'}), 6);
-    });
+      assert.equal(textFromSide(conflicts[0].ours), 'My changes\nMulti-line even\n');
+      assert.equal(textFromSide(conflicts[0].separator), '=======\n');
+      assert.equal(textFromSide(conflicts[0].theirs), 'Your changes\n');
 
-    it('decorates separators', () => {
-      const matches = decorationsMatching({type: 'line', class: 'conflict-separator'});
-      assert.deepEqual(textFromDecorations(matches), ['=======\n', '=======\n', '=======\n']);
-    });
+      assert.equal(textFromSide(conflicts[1].ours), 'My middle changes\n');
+      assert.equal(textFromSide(conflicts[1].separator), '=======\n');
+      assert.equal(textFromSide(conflicts[1].theirs), 'Your middle changes\n');
 
-    it('decorates our and their sides of each', () => {
-      const ourLines = decorationsMatching({type: 'line', class: 'conflict-ours'});
-      assert.deepEqual(textFromDecorations(ourLines), [
-        'My changes\nMulti-line even\n',
-        'My middle changes\n',
-        'More of my changes\n',
-      ]);
-
-      const theirLines = decorationsMatching({type: 'line', class: 'conflict-theirs'});
-      assert.deepEqual(textFromDecorations(theirLines), [
-        'Your changes\n',
-        'Your middle changes\n',
-        'More of your changes\n',
-      ]);
+      assert.equal(textFromSide(conflicts[2].ours), 'More of my changes\n');
+      assert.equal(textFromSide(conflicts[2].separator), '=======\n');
+      assert.equal(textFromSide(conflicts[2].theirs), 'More of your changes\n');
     });
   });
 
   describe('on a file with 3-way diff markers', () => {
-    beforeEach(() => decorationsFromFixture('single-3way-diff.txt'));
+    beforeEach(() => useFixture('single-3way-diff.txt'));
 
-    it('decorates the base banner', () => {
-      const banners = decorationsMatching({type: 'line', class: 'conflict-banner'});
-      assert.include(textFromDecorations(banners), '||||||| merged common ancestors\n');
-    });
+    it('creates a conflict controller for each conflict', () => {
+      const conflicts = conflictControllers.map(c => c.props().conflict);
+      assert.lengthOf(conflicts, 1);
 
-    it('decorates the base side lines', () => {
-      const baseLines = decorationsMatching({type: 'line', class: 'conflict-base'});
-      assert.deepEqual(textFromDecorations(baseLines), [
-        'These are original texts\n',
-      ]);
+      assert.equal(textFromSide(conflicts[0].base), 'These are original texts\n');
     });
   });
 });
