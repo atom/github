@@ -1,7 +1,5 @@
 /** @babel */
 
-import {Directory} from 'atom';
-
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
@@ -28,6 +26,7 @@ describe('GithubPackage', () => {
 
   describe('activate()', () => {
     it('updates the active repository', async () => {
+      await githubPackage.activate();
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2]);
@@ -35,12 +34,11 @@ describe('GithubPackage', () => {
       fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8');
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.activate();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
     });
   });
 
-  describe('didChangeProjectPaths()', () => {
+  describe('changing the project paths', () => {
     it('updates the active repository', async () => {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
@@ -48,26 +46,23 @@ describe('GithubPackage', () => {
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
+      await githubPackage.activate();
 
       sinon.spy(githubPackage, 'rerender');
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.didChangeProjectPaths();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
       assert.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
-      await githubPackage.didChangeProjectPaths();
       assert.isNull(githubPackage.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.didChangeProjectPaths();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2));
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
       assert.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.didChangeProjectPaths();
       assert.isNull(githubPackage.getActiveRepository());
       assert.equal(githubPackage.rerender.callCount, 4);
     });
@@ -77,10 +72,11 @@ describe('GithubPackage', () => {
       const workdirPath2 = await cloneRepository('three-files');
       const workdirPath3 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+      await githubPackage.activate();
 
-      const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1);
-      const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2);
-      const repository3 = await githubPackage.repositoryForWorkdirPath(workdirPath3);
+      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
+      const repository3 = await githubPackage.getRepositoryForWorkdirPath(workdirPath3);
       assert.isOk(repository1);
       assert.isOk(repository2);
       assert.isOk(repository3);
@@ -91,14 +87,13 @@ describe('GithubPackage', () => {
 
       project.removePath(workdirPath1);
       project.removePath(workdirPath3);
-      await githubPackage.didChangeProjectPaths();
 
       assert.equal(repository1.destroy.callCount, 1);
       assert.equal(repository2.destroy.callCount, 0);
       assert.equal(repository1.destroy.callCount, 1);
-      assert.notEqual(await githubPackage.repositoryForWorkdirPath(repository1.getWorkingDirectoryPath()), repository1);
-      assert.notEqual(await githubPackage.repositoryForWorkdirPath(repository3.getWorkingDirectoryPath()), repository3);
-      assert.equal(await githubPackage.repositoryForWorkdirPath(repository2.getWorkingDirectoryPath()), repository2);
+      assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository1.getWorkingDirectoryPath()), repository1);
+      assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository3.getWorkingDirectoryPath()), repository3);
+      assert.equal(await githubPackage.getRepositoryForWorkdirPath(repository2.getWorkingDirectoryPath()), repository2);
     });
   });
 
@@ -111,116 +106,104 @@ describe('GithubPackage', () => {
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'change 2', 'utf8');
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.didChangeActivePaneItem();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      githubPackage.didChangeActivePaneItem();
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.didChangeActivePaneItem();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2));
+      githubPackage.didChangeActivePaneItem();
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
     });
   });
 
   describe('updateActiveRepository()', () => {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async () => {
+      // TODO: FIXME Warning: Possible EventEmitter memory leak detected. 11 ipc-helpers-window-method-response listeners added.
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = temp.mkdirSync();
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
+      await githubPackage.activate();
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await workspace.open(path.join(workdirPath2, 'b.txt'));
 
-      await githubPackage.updateActiveRepository();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2));
+      githubPackage.updateActiveRepository();
+      assert.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveRepository();
+      githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveRepository();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      githubPackage.updateActiveRepository();
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
-      await githubPackage.updateActiveRepository();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath1));
+      githubPackage.updateActiveRepository();
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.updateActiveRepository();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.repositoryForWorkdirPath(workdirPath2));
+      githubPackage.updateActiveRepository();
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
-      await githubPackage.updateActiveRepository();
+      githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
-      await githubPackage.updateActiveRepository();
+      githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveRepository();
+      githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
     });
   });
 
-  describe('repositoryForProjectPath()', () => {
-    it('returns the same repository over multiple overlapping calls', async () => {
-      const workdirPath = await cloneRepository('three-files');
+  describe('when there is a change in the repository', () => {
+    it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
+      fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
-      const repo1 = githubPackage.repositoryForProjectPath(workdirPath);
-      const repo2 = githubPackage.repositoryForProjectPath(workdirPath);
+      project.setPaths([workdirPath1, workdirPath2]);
+      await githubPackage.activate();
+      const [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
+      sinon.stub(atomGitRepository1, 'refreshStatus');
+      sinon.stub(atomGitRepository2, 'refreshStatus');
 
-      assert.equal(await repo1, await repo2);
-    });
-  });
+      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
+      sinon.stub(repository1, 'refresh');
+      sinon.stub(repository2, 'refresh');
 
-  describe('watchRepoForUpdates(repository)', () => {
-    describe('when there is a change in the repository', () => {
-      it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
-        const workdirPath1 = await cloneRepository('three-files');
-        const workdirPath2 = await cloneRepository('three-files');
-        fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
-        fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
+      repository1.refresh.reset();
+      repository2.refresh.reset();
+      atomGitRepository1.refreshStatus.reset();
+      atomGitRepository2.refreshStatus.reset();
 
-        project.setPaths([workdirPath1, workdirPath2]);
-        const [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
-        sinon.stub(atomGitRepository1, 'refreshStatus');
-        sinon.stub(atomGitRepository2, 'refreshStatus');
+      let changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath1).getLastChangePromise();
+      await repository1.git.exec(['commit', '-am', 'commit in repository1']);
+      await changePromise;
 
-        const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1);
-        const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2);
-        sinon.stub(repository1, 'refresh');
-        sinon.stub(repository2, 'refresh');
+      assert.isTrue(repository1.refresh.called);
+      assert.isTrue(atomGitRepository1.refreshStatus.called);
+      assert.isFalse(repository2.refresh.called);
+      assert.isFalse(atomGitRepository2.refreshStatus.called);
 
-        await githubPackage.watchRepoForUpdates(repository1);
-        await githubPackage.watchRepoForUpdates(repository2);
+      repository1.refresh.reset();
+      atomGitRepository1.refreshStatus.reset();
+      changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath2).getLastChangePromise();
+      await repository2.git.exec(['commit', '-am', 'commit in repository2']);
+      await changePromise;
 
-        repository1.refresh.reset();
-        repository2.refresh.reset();
-        atomGitRepository1.refreshStatus.reset();
-        atomGitRepository2.refreshStatus.reset();
-
-        let changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath1).getLastChangePromise();
-        await repository1.git.exec(['commit', '-am', 'commit in repository1']);
-        await changePromise;
-
-        assert.isTrue(repository1.refresh.called);
-        assert.isTrue(atomGitRepository1.refreshStatus.called);
-        assert.isFalse(repository2.refresh.called);
-        assert.isFalse(atomGitRepository2.refreshStatus.called);
-
-        repository1.refresh.reset();
-        atomGitRepository1.refreshStatus.reset();
-        changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath2).getLastChangePromise();
-        await repository2.git.exec(['commit', '-am', 'commit in repository2']);
-        await changePromise;
-
-        assert.isTrue(repository2.refresh.called);
-        assert.isTrue(atomGitRepository2.refreshStatus.called);
-        assert.isFalse(repository1.refresh.called);
-        assert.isFalse(atomGitRepository1.refreshStatus.called);
-      });
+      assert.isTrue(repository2.refresh.called);
+      assert.isTrue(atomGitRepository2.refreshStatus.called);
+      assert.isFalse(repository1.refresh.called);
+      assert.isFalse(atomGitRepository1.refreshStatus.called);
     });
   });
 });
