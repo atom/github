@@ -81,17 +81,24 @@ describe('GithubPackage', () => {
       const repository1 = await githubPackage.repositoryForWorkdirPath(workdirPath1);
       const repository2 = await githubPackage.repositoryForWorkdirPath(workdirPath2);
       const repository3 = await githubPackage.repositoryForWorkdirPath(workdirPath3);
-      assert(repository1);
-      assert(repository2);
-      assert(repository3);
+      assert.isOk(repository1);
+      assert.isOk(repository2);
+      assert.isOk(repository3);
+
+      sinon.stub(repository1, 'destroy');
+      sinon.stub(repository2, 'destroy');
+      sinon.stub(repository3, 'destroy');
 
       project.removePath(workdirPath1);
       project.removePath(workdirPath3);
       await githubPackage.didChangeProjectPaths();
 
-      assert.notEqual(await githubPackage.repositoryForProjectDirectory(repository1.getWorkingDirectory()), repository1);
-      assert.notEqual(await githubPackage.repositoryForProjectDirectory(repository3.getWorkingDirectory()), repository3);
-      assert.equal(await githubPackage.repositoryForProjectDirectory(repository2.getWorkingDirectory()), repository2);
+      assert.equal(repository1.destroy.callCount, 1);
+      assert.equal(repository2.destroy.callCount, 0);
+      assert.equal(repository1.destroy.callCount, 1);
+      assert.notEqual(await githubPackage.repositoryForWorkdirPath(repository1.getWorkingDirectoryPath()), repository1);
+      assert.notEqual(await githubPackage.repositoryForWorkdirPath(repository3.getWorkingDirectoryPath()), repository3);
+      assert.equal(await githubPackage.repositoryForWorkdirPath(repository2.getWorkingDirectoryPath()), repository2);
     });
   });
 
@@ -157,26 +164,14 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('repositoryForProjectDirectory()', () => {
+  describe('repositoryForProjectPath()', () => {
     it('returns the same repository over multiple overlapping calls', async () => {
       const workdirPath = await cloneRepository('three-files');
-      const dir = new Directory(workdirPath);
 
-      const repo1 = githubPackage.repositoryForProjectDirectory(dir);
-      const repo2 = githubPackage.repositoryForProjectDirectory(dir);
+      const repo1 = githubPackage.repositoryForProjectPath(workdirPath);
+      const repo2 = githubPackage.repositoryForProjectPath(workdirPath);
 
       assert.equal(await repo1, await repo2);
-    });
-
-    it('returns the same repository for different Directories with the same path', async () => {
-      const workdirPath = await cloneRepository('three-files');
-      const dir1 = new Directory(workdirPath);
-      const dir2 = new Directory(workdirPath);
-
-      const repo1 = await githubPackage.repositoryForProjectDirectory(dir1);
-      const repo2 = await githubPackage.repositoryForProjectDirectory(dir2);
-
-      assert.equal(repo1, repo2);
     });
   });
 

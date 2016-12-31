@@ -72,7 +72,7 @@ export async function getHeadCommitOnRemote(remotePath) {
 }
 
 export function buildRepository(workingDirPath) {
-  return Repository.open(new Directory(workingDirPath));
+  return Repository.open(workingDirPath);
 }
 
 export function assertDeepPropertyVals(actual, expected) {
