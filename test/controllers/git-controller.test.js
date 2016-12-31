@@ -157,8 +157,9 @@ describe('GitController', () => {
         const wrapper = shallow(app);
 
         sinon.spy(wrapper.instance(), 'onRepoRefresh');
-        await repository.refresh();
-        assert(wrapper.instance().onRepoRefresh.called);
+        repository.refresh();
+        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise;
+        assert.isTrue(wrapper.instance().onRepoRefresh.called);
       });
     });
 
@@ -180,7 +181,7 @@ describe('GitController', () => {
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
 
         fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nand again!', 'utf8');
-        await repository.refresh();
+        repository.refresh();
         await wrapper.instance().onRepoRefresh();
 
         assert.equal(wrapper.state('filePath'), 'file.txt');
@@ -197,7 +198,7 @@ describe('GitController', () => {
       const repository = await buildRepository(workdirPath);
 
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8');
-      await repository.refresh();
+      repository.refresh();
 
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app);

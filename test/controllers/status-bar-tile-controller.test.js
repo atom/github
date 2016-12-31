@@ -128,7 +128,7 @@ describe('StatusBarTileController', () => {
 
           branchMenuView.refs.editor.setText('new-branch');
           await newBranchButton.onclick();
-          await repository.refresh();
+          repository.refresh();
           await controller.getLastModelDataRefreshPromise();
 
           assert.isUndefined(branchMenuView.refs.editor);
@@ -182,13 +182,13 @@ describe('StatusBarTileController', () => {
       assert.equal(behindCount.textContent, '');
 
       await repository.git.exec(['reset', '--hard', 'head~2']);
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(aheadCount.textContent, '');
       assert.equal(behindCount.textContent, '2');
 
       await repository.git.commit('new local commit', {allowEmpty: true});
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(aheadCount.textContent, '1');
       assert.equal(behindCount.textContent, '2');
@@ -214,23 +214,23 @@ describe('StatusBarTileController', () => {
         const pushPullMenuView = controller.pushPullMenuView;
         const {pullButton} = pushPullMenuView.refs;
         await repository.git.exec(['reset', '--hard', 'head~2']);
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
         assert.isFalse(pullButton.disabled);
 
         fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'a change\n');
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
         assert.isTrue(pullButton.disabled);
 
         await repository.stageFiles(['file.txt']);
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
         assert.isTrue(pullButton.disabled);
 
         await repository.commit('commit changes');
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
         assert.isFalse(pullButton.disabled);
       });
@@ -251,7 +251,7 @@ describe('StatusBarTileController', () => {
         assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
 
         pushButton.dispatchEvent(new MouseEvent('click'));
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
         assert.isFalse(pullButton.disabled);
@@ -280,7 +280,7 @@ describe('StatusBarTileController', () => {
         assert.match(message.innerHTML, /Push rejected/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
-        await repository.refresh();
+        repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
         assert.equal(pushButton.textContent, 'Push ');
@@ -306,7 +306,7 @@ describe('StatusBarTileController', () => {
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       repository.refresh();
       await repository.stageFiles(['a.txt']);
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
 
       assert.equal(changedFilesCountView.element.textContent, '2 files');

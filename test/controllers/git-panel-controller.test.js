@@ -74,7 +74,7 @@ describe('GitPanelController', () => {
     // Fetches data and updates child view when the repository is mutated
     fs.writeFileSync(path.join(workdirPath2, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath2, 'b.txt'));
-    await repository2.refresh();
+    repository2.refresh();
     await controller.getLastModelDataRefreshPromise();
     assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges());
   });
@@ -200,7 +200,7 @@ describe('GitPanelController', () => {
     fs.writeFileSync(path.join(workdirPath, 'unstaged-1.txt'), 'This is an unstaged file.');
     fs.writeFileSync(path.join(workdirPath, 'unstaged-2.txt'), 'This is an unstaged file.');
     fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
-    await repository.refresh();
+    repository.refresh();
 
     const controller = new GitPanelController({workspace, commandRegistry, repository});
     await controller.getLastModelDataRefreshPromise();
@@ -256,7 +256,7 @@ describe('GitPanelController', () => {
         fs.writeFileSync(path.join(workdirPath, 'staged-2.txt'), 'This is another file staged for commit.');
         fs.writeFileSync(path.join(workdirPath, 'staged-3.txt'), 'This is a third file staged for commit.');
         await repository.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
-        await repository.refresh();
+        repository.refresh();
 
         const didChangeAmending = () => {};
 
@@ -319,7 +319,7 @@ describe('GitPanelController', () => {
         // A staged file
         fs.writeFileSync(path.join(workdirPath, 'staged-1.txt'), 'This is a file with some changes staged for commit.');
         await repository.stageFiles(['staged-1.txt']);
-        await repository.refresh();
+        repository.refresh();
 
         const didChangeAmending = () => {};
         const prepareToCommit = () => Promise.resolve(true);
@@ -369,15 +369,15 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.unstagedChanges.length, 2);
       assert.equal(stagingView.props.stagedChanges.length, 0);
       await stagingView.mousedownOnItem({detail: 2}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       await stagingView.mousedownOnItem({detail: 2}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(stagingView.props.unstagedChanges.length, 0);
       assert.equal(stagingView.props.stagedChanges.length, 2);
       await stagingView.mousedownOnItem({detail: 2}, stagingView.props.stagedChanges[1]).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(stagingView.props.unstagedChanges.length, 1);
       assert.equal(stagingView.props.stagedChanges.length, 1);
@@ -419,7 +419,7 @@ describe('GitPanelController', () => {
       // click Cancel
       choice = 1;
       await stagingView.mousedownOnItem({detail: 2}, conflict1).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.calledOnce, true);
       assert.equal(stagingView.props.mergeConflicts.length, 5);
@@ -429,7 +429,7 @@ describe('GitPanelController', () => {
       choice = 0;
       atom.confirm.reset();
       await stagingView.mousedownOnItem({detail: 2}, conflict1).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.calledOnce, true);
       assert.equal(stagingView.props.mergeConflicts.length, 4);
@@ -440,7 +440,7 @@ describe('GitPanelController', () => {
       atom.confirm.reset();
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
       await stagingView.mousedownOnItem({detail: 2}, conflict2).stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.called, false);
       assert.equal(stagingView.props.mergeConflicts.length, 3);
@@ -464,13 +464,13 @@ describe('GitPanelController', () => {
       stagingView.confirmSelectedItems();
 
       await file1StagingPromises.stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await file1StagingPromises.selectionUpdatePromise;
       assert.equal(stagingView.props.unstagedChanges.length, 1);
 
       const file2StagingPromises = stagingView.confirmSelectedItems();
       await file2StagingPromises.stageOperationPromise;
-      await repository.refresh();
+      repository.refresh();
       await file2StagingPromises.selectionUpdatePromise;
       assert.equal(stagingView.props.unstagedChanges.length, 0);
     });
@@ -498,7 +498,7 @@ describe('GitPanelController', () => {
 
       // partially stage contents in the newly added file
       await repository.git.applyPatchToIndex(patchString);
-      await repository.refresh();
+      repository.refresh();
       await controller.getLastModelDataRefreshPromise();
 
       // since unstaged changes are calculated relative to the index,
