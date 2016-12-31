@@ -1,7 +1,6 @@
 /** @babel */
 
 import {exec} from 'child_process';
-import fs from 'fs';
 
 import GitPromptServer from '../lib/git-prompt-server';
 

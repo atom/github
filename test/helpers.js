@@ -4,7 +4,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 
-import {Directory} from 'atom';
 import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
