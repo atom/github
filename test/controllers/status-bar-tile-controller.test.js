@@ -5,7 +5,7 @@ import path from 'path';
 
 import etch from 'etch';
 
-import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories, until} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 
 describe('StatusBarTileController', () => {
@@ -275,9 +275,7 @@ describe('StatusBarTileController', () => {
         assert.equal(pullButton.textContent, 'Pull (2)');
 
         pushButton.dispatchEvent(new MouseEvent('click'));
-        await etch.getScheduler().getNextUpdatePromise(); // update for loading
-        await etch.getScheduler().getNextUpdatePromise(); // update for error message
-        assert.match(message.innerHTML, /Push rejected/);
+        await until('error message appears', () => /Push rejected/.test(message.innerHTML));
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         await repository.refresh();
