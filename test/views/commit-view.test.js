@@ -1,4 +1,4 @@
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, until} from '../helpers';
 import etch from 'etch';
 
 import CommitView from '../../lib/views/commit-view';
@@ -74,63 +74,104 @@ describe('CommitView', () => {
     assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
   });
 
-  it('disables the commit button when no changes are staged, there are merge conflict files, or the commit message is empty', async () => {
-    const workdirPath = await cloneRepository('three-files');
-    const repository = await buildRepository(workdirPath);
-    const viewState = {};
-    const view = new CommitView({repository, commandRegistry, stagedChangesExist: false, viewState});
-    const {editor, commitButton} = view.refs;
-    assert.isTrue(commitButton.disabled);
+  describe('the commit button', () => {
+    let view, editor, commitButton;
 
-    editor.setText('something');
-    await etch.getScheduler().getNextUpdatePromise();
-    assert.isTrue(commitButton.disabled);
+    beforeEach(async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const viewState = {};
+      view = new CommitView({repository, commandRegistry, stagedChangesExist: true, mergeConflictsExist: false, viewState});
+      editor = view.refs.editor;
+      commitButton = view.refs.commitButton;
 
-    await view.update({stagedChangesExist: true});
-    assert.isFalse(commitButton.disabled);
+      editor.setText('something');
+      await etch.getScheduler().getNextUpdatePromise();
+    });
 
-    await view.update({mergeConflictsExist: true});
-    assert.isTrue(commitButton.disabled);
+    it('is disabled when no changes are staged', async () => {
+      await view.update({stagedChangesExist: false});
+      assert.isTrue(commitButton.disabled);
 
-    await view.update({mergeConflictsExist: false});
-    assert.isFalse(commitButton.disabled);
+      await view.update({stagedChangesExist: true});
+      assert.isFalse(commitButton.disabled);
+    });
 
-    editor.setText('');
-    await etch.getScheduler().getNextUpdatePromise();
-    assert.isTrue(commitButton.disabled);
+    it('is disabled when there are merge conflicts', async () => {
+      await view.update({mergeConflictsExist: false});
+      assert.isFalse(commitButton.disabled);
+
+      await view.update({mergeConflictsExist: true});
+      assert.isTrue(commitButton.disabled);
+    });
+
+    it('is disabled when the commit message is empty', async () => {
+      editor.setText('');
+      await etch.getScheduler().getNextUpdatePromise();
+      assert.isTrue(commitButton.disabled);
+
+      editor.setText('Not empty');
+      await etch.getScheduler().getNextUpdatePromise();
+      assert.isFalse(commitButton.disabled);
+    });
   });
 
-  it('calls props.commit(message) when the commit button is clicked or github:commit is dispatched', async () => {
-    const commit = sinon.spy();
-    const view = new CommitView({commandRegistry, stagedChangesExist: false, commit, message: ''});
-    const {editor, commitButton} = view.refs;
+  describe('committing', () => {
+    let view, commit, prepareToCommitResolution;
+    let editor, commitButton, workspaceElement;
 
-    // commit by clicking the commit button
-    await view.update({stagedChangesExist: true, message: 'Commit 1'});
-    commitButton.dispatchEvent(new MouseEvent('click'));
-    assert.equal(commit.args[0][0], 'Commit 1');
+    beforeEach(async () => {
+      const prepareToCommit = () => Promise.resolve(prepareToCommitResolution);
 
-    // undo history is cleared
-    commandRegistry.dispatch(editor.element, 'core:undo');
-    assert.equal(editor.getText(), '');
+      commit = sinon.spy();
+      view = new CommitView({commandRegistry, stagedChangesExist: true, prepareToCommit, commit, message: 'Something'});
+      sinon.spy(view, 'focus');
 
-    // commit via the github:commit command
-    commit.reset();
-    await view.update({stagedChangesExist: true, message: 'Commit 2'});
-    commandRegistry.dispatch(editor.element, 'github:commit');
-    assert.equal(commit.args[0][0], 'Commit 2');
+      editor = view.refs.editor;
+      commitButton = view.refs.commitButton;
 
-    // disable github:commit when there are no staged changes...
-    commit.reset();
-    await view.update({stagedChangesExist: false, message: 'Commit 4'});
-    commandRegistry.dispatch(editor.element, 'github:commit');
-    assert.equal(commit.callCount, 0);
+      workspaceElement = atomEnv.views.getView(atomEnv.workspace);
 
-    // ...or the commit message is empty
-    commit.reset();
-    await view.update({stagedChangesExist: true, message: ''});
-    commandRegistry.dispatch(editor.element, 'github:commit');
-    assert.equal(commit.callCount, 0);
+      await view.update();
+    });
+
+    describe('when props.prepareToCommit() resolves true', () => {
+      beforeEach(() => { prepareToCommitResolution = true; });
+
+      it('calls props.commit(message) when the commit button is clicked', async () => {
+        commitButton.dispatchEvent(new MouseEvent('click'));
+
+        await until('props.commit() is called', () => commit.calledWith('Something'));
+
+        // undo history is cleared
+        commandRegistry.dispatch(editor.element, 'core:undo');
+        assert.equal(editor.getText(), '');
+      });
+
+      it('calls props.commit(message) when github:commit is dispatched', async () => {
+        commandRegistry.dispatch(workspaceElement, 'github:commit');
+
+        await until('props.commit() is called', () => commit.calledWith('Something'));
+      });
+    });
+
+    describe('when props.prepareToCommit() resolves false', () => {
+      beforeEach(() => { prepareToCommitResolution = false; });
+
+      it('takes no further action when the commit button is clicked', async () => {
+        commitButton.dispatchEvent(new MouseEvent('click'));
+
+        await until('focus() is called', () => view.focus.called);
+        assert.isFalse(commit.called);
+      });
+
+      it('takes no further action when github:commit is dispatched', async () => {
+        commandRegistry.dispatch(workspaceElement, 'github:commit');
+
+        await until('focus() is called', () => view.focus.called);
+        assert.isFalse(commit.called);
+      });
+    });
   });
 
   it('shows the "Abort Merge" button when props.isMerging is true', async () => {
