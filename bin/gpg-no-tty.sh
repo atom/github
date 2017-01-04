@@ -6,4 +6,4 @@ set -e
 unset GIT_CONFIG_PARAMETERS
 GPG_PROGRAM=$(git config gpg.program || echo 'gpg')
 
-exec ${GPG_PROGRAM} --batch --no-tty "$@" </dev/null
+exec ${GPG_PROGRAM} --batch --no-tty "$@"
