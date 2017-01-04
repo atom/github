@@ -1,5 +1,3 @@
-/** @babel */
-
 import {Directory} from 'atom';
 
 import fs from 'fs';

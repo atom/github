@@ -1,5 +1,3 @@
-/** @babel */
-
 import ListSelection from '../../lib/views/list-selection';
 import {assertEqualSets} from '../helpers';
 

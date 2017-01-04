@@ -1,5 +1,3 @@
-'use babel';
-
 import {createRunner} from 'atom-mocha-test-runner';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
