@@ -5,7 +5,7 @@ import path from 'path';
 import temp from 'temp';
 import sinon from 'sinon';
 
-import {cloneRepository} from './helpers';
+import {cloneRepository, until} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', () => {
@@ -88,9 +88,9 @@ describe('GithubPackage', () => {
       project.removePath(workdirPath1);
       project.removePath(workdirPath3);
 
-      assert.equal(repository1.destroy.callCount, 1);
+      await until(() => repository1.destroy.callCount === 1, 'repository1 is destroyed');
+      await until(() => repository3.destroy.callCount === 1, 'repository3 is destroyed');
       assert.equal(repository2.destroy.callCount, 0);
-      assert.equal(repository1.destroy.callCount, 1);
       assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository1.getWorkingDirectoryPath()), repository1);
       assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository3.getWorkingDirectoryPath()), repository3);
       assert.equal(await githubPackage.getRepositoryForWorkdirPath(repository2.getWorkingDirectoryPath()), repository2);
@@ -184,7 +184,7 @@ describe('GithubPackage', () => {
       atomGitRepository2.refreshStatus.reset();
 
       // change file in repository1
-      let changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath1).getLastChangePromise();
+      let changePromise = (await githubPackage.getChangeObserverForWorkdirPath(workdirPath1)).getLastChangePromise();
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
       await changePromise;
 
@@ -196,7 +196,7 @@ describe('GithubPackage', () => {
       atomGitRepository1.refreshStatus.reset();
 
       // change file in repository2
-      changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath2).getLastChangePromise();
+      changePromise = (await githubPackage.getChangeObserverForWorkdirPath(workdirPath2)).getLastChangePromise();
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
       await changePromise;
 
@@ -208,7 +208,7 @@ describe('GithubPackage', () => {
       atomGitRepository2.refreshStatus.reset();
 
       // change HEAD in repository1
-      changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath1).getLastChangePromise();
+      changePromise = (await githubPackage.getChangeObserverForWorkdirPath(workdirPath1)).getLastChangePromise();
       await repository1.git.exec(['commit', '-am', 'commit in repository1']);
       await changePromise;
 
@@ -220,7 +220,7 @@ describe('GithubPackage', () => {
       atomGitRepository1.refreshStatus.reset();
 
       // change HEAD in repository1
-      changePromise = githubPackage.getChangeObserverForWorkdirPath(workdirPath2).getLastChangePromise();
+      changePromise = (await githubPackage.getChangeObserverForWorkdirPath(workdirPath2)).getLastChangePromise();
       await repository2.git.exec(['commit', '-am', 'commit in repository2']);
       await changePromise;
 
