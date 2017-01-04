@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
-import sinon from 'sinon';
 
 import {cloneRepository, until} from './helpers';
 import GithubPackage from '../lib/github-package';
