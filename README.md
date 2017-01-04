@@ -54,10 +54,13 @@ This package is currently :construction: under heavy development. :construction:
 - [x] Unstage files/hunks/lines
 - [ ] Discard changed files/hunks/lines
 - [x] Create commits
-- [ ] Commit signing ([#396]())
+- [x] Amend last commit
+- [ ] Sign commits ([#396](https://github.com/atom/github/pull/396))
 - [x] Change branches
 - [x] Create new branches
 - [x] Push/pull/fetch
+- [x] Abort merges
+- [ ] Resolve merge conflicts via special UI
 
 **GitHub**
 
