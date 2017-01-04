@@ -1,11 +1,18 @@
 import {exec} from 'child_process';
 
+import semver from 'semver';
+
+const {major, minor, patch} = semver.parse(atom.appVersion);
+const atomVersion = `${major}.${minor}.${patch}`;
+const requiredVersion = '>=1.14.0';
+
 import GitPromptServer from '../lib/git-prompt-server';
 
 // Will not pass on Appveyor
-if (process.platform !== 'win32') {
+if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersion)) {
   describe('GitPromptServer', () => {
     it('prompts for user input and writes the response to stdout', async () => {
+      console.log(atomVersion, requiredVersion);
       const server = new GitPromptServer();
       const {helper, socket, electron} = await server.start(question => {
         assert.equal(question, 'What... is your favorite color?\u0000');
