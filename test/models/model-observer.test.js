@@ -1,5 +1,3 @@
-/** @babel */
-
 import {Emitter} from 'atom';
 import ModelObserver from '../../lib/models/model-observer';
 

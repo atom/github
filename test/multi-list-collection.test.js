@@ -1,5 +1,3 @@
-/** @babel */
-
 import MultiListCollection from '../lib/multi-list-collection';
 
 describe('MultiListCollection', () => {

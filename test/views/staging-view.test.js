@@ -1,5 +1,3 @@
-/** @babel */
-
 import StagingView from '../../lib/views/staging-view';
 
 import {assertEqualSets} from '../helpers';

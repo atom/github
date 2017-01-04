@@ -1,5 +1,3 @@
-/** @babel */
-
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';

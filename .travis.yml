@@ -6,7 +6,7 @@ node_js:
   - '4.4.7'
 
 env:
-  - ATOM_CHANNEL=stable
+  - ATOM_CHANNEL=beta
 
 notifications:
   email:

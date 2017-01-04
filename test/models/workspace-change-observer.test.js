@@ -1,5 +1,3 @@
-/** @babel */
-
 import path from 'path';
 
 import {cloneRepository, buildRepository} from '../helpers';

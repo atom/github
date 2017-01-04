@@ -1,5 +1,3 @@
-/** @babel */
-
 import AsyncQueue from '../lib/async-queue';
 
 const timer = n => {

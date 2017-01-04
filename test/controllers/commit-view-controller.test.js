@@ -1,5 +1,3 @@
-/** @babel */
-
 import CommitViewController from '../../lib/controllers/commit-view-controller';
 import {cloneRepository, buildRepository} from '../helpers';
 
