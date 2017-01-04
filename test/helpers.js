@@ -2,7 +2,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 
-import {Directory} from 'atom';
 import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
@@ -70,7 +69,7 @@ export async function getHeadCommitOnRemote(remotePath) {
 }
 
 export function buildRepository(workingDirPath) {
-  return Repository.open(new Directory(workingDirPath));
+  return Repository.open(workingDirPath);
 }
 
 export function assertDeepPropertyVals(actual, expected) {

@@ -137,7 +137,7 @@ describe('FilePatchController', () => {
       hunkView.props.mousemoveOnLine({}, hunk, lines[3]);
       view.mouseup();
       await hunkView.props.didClickStageButton();
-      await repository.refresh();
+      repository.refresh();
       let expectedLines = originalLines.slice();
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -151,7 +151,7 @@ describe('FilePatchController', () => {
       hunk = unstagedFilePatch.getHunks()[0];
       hunkView = hunkViewsByHunk.get(hunk);
       await hunkView.props.didClickStageButton();
-      await repository.refresh();
+      repository.refresh();
       expectedLines = originalLines.slice();
       expectedLines.splice(1, 1,
         'this is a modified line',
@@ -172,7 +172,7 @@ describe('FilePatchController', () => {
       view.mouseup();
 
       await hunkView.props.didClickStageButton();
-      await repository.refresh();
+      repository.refresh();
       expectedLines = originalLines.slice();
       expectedLines.splice(2, 0,
         'this is a new line',
@@ -223,7 +223,7 @@ describe('FilePatchController', () => {
         hunkView.props.didClickStageButton();
 
         await line1StagingPromises.stageOperationPromise;
-        await repository.refresh(); // clear the cached file patches
+        repository.refresh(); // clear the cached file patches
         const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
         await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
         await line1StagingPromises.selectionUpdatePromise;
@@ -284,7 +284,7 @@ describe('FilePatchController', () => {
         hunkView.props.didClickStageButton();
 
         await hunk1StagingPromises.stageOperationPromise;
-        await repository.refresh(); // clear the cached file patches
+        repository.refresh(); // clear the cached file patches
         const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
         await controller.update({filePatch: modifiedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
         await hunk1StagingPromises.selectionUpdatePromise;
