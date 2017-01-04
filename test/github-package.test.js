@@ -227,4 +227,13 @@ describe('GithubPackage', () => {
       assert.isFalse(atomGitRepository1.refreshStatus.called);
     });
   });
+
+  describe('#projectPathForItemPath', () => {
+    it('does not error when the path is falsy (e.g. an empty text editor)', () => {
+      sinon.stub(project, 'getPaths').returns(['path']);
+      assert.doesNotThrow(() => {
+        githubPackage.projectPathForItemPath(null);
+      });
+    });
+  });
 });
