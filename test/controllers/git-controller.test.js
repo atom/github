@@ -156,7 +156,7 @@ describe('GitController', () => {
 
         sinon.spy(wrapper.instance(), 'onRepoRefresh');
         repository.refresh();
-        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise;
+        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
         assert.isTrue(wrapper.instance().onRepoRefresh.called);
       });
     });
