@@ -31,8 +31,8 @@ describe('GithubPackage', () => {
       fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8');
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath1)
-      await until(() => githubPackage.getActiveRepository() === repository)
+      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      await until(() => githubPackage.getActiveRepository() === repository);
     });
   });
 
@@ -48,22 +48,22 @@ describe('GithubPackage', () => {
 
       sinon.spy(githubPackage, 'rerender');
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1)
+      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       await until(() => githubPackage.getActiveRepository() === repository1);
       assert.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
-      await until(() => githubPackage.getActiveRepository() === null)
+      await until(() => githubPackage.getActiveRepository() === null);
       assert.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2)
+      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
       await until(() => githubPackage.getActiveRepository() === repository2);
       assert.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await until(() => githubPackage.getActiveRepository() === null)
+      await until(() => githubPackage.getActiveRepository() === null);
       assert.equal(githubPackage.rerender.callCount, 4);
     });
 
@@ -192,7 +192,7 @@ describe('GithubPackage', () => {
       assert.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 500))
+      await new Promise(res => setTimeout(res, 500));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
@@ -205,7 +205,7 @@ describe('GithubPackage', () => {
       assert.isFalse(atomGitRepository1.refreshStatus.called);
       assert.isTrue(repository2.refresh.called);
       assert.isTrue(atomGitRepository2.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 500))
+      await new Promise(res => setTimeout(res, 500));
       repository2.refresh.reset();
       atomGitRepository2.refreshStatus.reset();
 
@@ -218,7 +218,7 @@ describe('GithubPackage', () => {
       assert.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 500))
+      await new Promise(res => setTimeout(res, 500));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
