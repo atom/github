@@ -852,8 +852,69 @@ describe('FilePatchSelection', () => {
       await until(() => wasResolved);
     });
   });
+
+  describe('jumpToNextHunk() and jumpToPreviousHunk()', () => {
+    it('selects the next/previous hunk', () => {
+      const hunks = [
+        new Hunk(1, 1, 1, 3, [
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3),
+        ]),
+        new Hunk(5, 7, 3, 2, [
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'unchanged', 7, 8),
+        ]),
+        new Hunk(9, 10, 3, 2, [
+          new HunkLine('line-8', 'unchanged', 9, 10),
+          new HunkLine('line-9', 'added', -1, 11),
+          new HunkLine('line-10', 'deleted', 10, -1),
+          new HunkLine('line-11', 'deleted', 11, -1),
+        ]),
+      ];
+      const selection = new FilePatchSelection(hunks);
+
+      // in hunk mode, selects the entire next/previous hunk
+      assert.equal(selection.getMode(), 'hunk');
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0]]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[1]]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[2]]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[2]]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[1]]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0]]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedHunks(), new Set([hunks[0]]));
+
+      // in line selection mode, the first changed line of the next/previous hunk is selected
+      selection.toggleMode();
+      assert.equal(selection.getMode(), 'line');
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[0])]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[1])]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[2])]));
+      selection.jumpToNextHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[2])]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[1])]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[0])]));
+      selection.jumpToPreviousHunk();
+      assertEqualSets(selection.getSelectedLines(), new Set([getFirstChangedLine(hunks[0])]));
+    });
+  });
 });
 
 function getChangedLines(hunk) {
-  return new Set(hunk.lines.filter(l => l.isChanged()));
+  return new Set(hunk.getLines().filter(l => l.isChanged()));
+}
+
+function getFirstChangedLine(hunk) {
+  return hunk.getLines().find(l => l.isChanged());
 }
