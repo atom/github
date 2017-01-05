@@ -31,7 +31,8 @@ describe('GithubPackage', () => {
       fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8');
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
+      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      await until(() => githubPackage.getActiveRepository() === repository);
     });
   });
 
@@ -47,20 +48,22 @@ describe('GithubPackage', () => {
 
       sinon.spy(githubPackage, 'rerender');
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
+      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      await until(() => githubPackage.getActiveRepository() === repository1);
       assert.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
-      assert.isNull(githubPackage.getActiveRepository());
+      await until(() => githubPackage.getActiveRepository() === null);
       assert.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
+      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
+      await until(() => githubPackage.getActiveRepository() === repository2);
       assert.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      assert.isNull(githubPackage.getActiveRepository());
+      await until(() => githubPackage.getActiveRepository() === null);
       assert.equal(githubPackage.rerender.callCount, 4);
     });
 
@@ -125,36 +128,36 @@ describe('GithubPackage', () => {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await workspace.open(path.join(workdirPath2, 'b.txt'));
 
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.isNotNull(githubPackage.getActiveRepository());
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
     });
   });
@@ -189,6 +192,7 @@ describe('GithubPackage', () => {
       assert.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 500));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
@@ -201,6 +205,7 @@ describe('GithubPackage', () => {
       assert.isFalse(atomGitRepository1.refreshStatus.called);
       assert.isTrue(repository2.refresh.called);
       assert.isTrue(atomGitRepository2.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 500));
       repository2.refresh.reset();
       atomGitRepository2.refreshStatus.reset();
 
@@ -213,6 +218,7 @@ describe('GithubPackage', () => {
       assert.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 500));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
@@ -234,6 +240,11 @@ describe('GithubPackage', () => {
       assert.doesNotThrow(() => {
         githubPackage.projectPathForItemPath(null);
       });
+    });
+
+    it('returns the correct path when the item path starts with the project path but the item path is not in the project', () => {
+      sinon.stub(project, 'getPaths').returns([path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')]);
+      assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
     });
   });
 });
