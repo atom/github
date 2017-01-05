@@ -12,4 +12,6 @@ if [ -n "${ATOM_GITHUB_CREDENTIAL_HELPER_SCRIPT_PATH:-}" ] && [ -n "${GIT_ASKPAS
   PASSPHRASE_ARG="--passphrase-fd 3"
 fi
 
-exec ${GPG_PROGRAM} --batch --no-tty --yes ${PASSPHRASE_ARG} "$@" 3<<< "${PASSPHRASE}"
+exec ${GPG_PROGRAM} --batch --no-tty --yes ${PASSPHRASE_ARG} "$@" 3<<EOM
+${PASSPHRASE}
+EOM
