@@ -97,7 +97,7 @@ describe('StatusBarTileController', () => {
           await etch.getScheduler().getNextUpdatePromise();
           assert.equal(await repository.getCurrentBranch(), 'branch');
           assert.equal(list.selectedOptions[0].value, 'branch');
-          assert.match(message.innerHTML, /local changes.*would be overwritten/);
+          await until(() => message.innerHTML.match(/local changes.*would be overwritten/), 'error message displays');
         });
       });
 
