@@ -13,30 +13,57 @@
 
   &-header {
     display: flex;
-    padding: @component-padding;
-    padding-bottom: 0;
+    align-items: center;
+    padding: 0 0 0 @component-padding;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    border-top: 1px solid @panel-heading-border-color;
+    border-bottom: 1px solid @panel-heading-border-color;
+
+    .github-StagingView-group:first-child & {
+      border-top: none;
+    }
 
     .icon {
       text-align: center;
       &:before {
         color: @text-color-subtle;
         margin-right: @component-padding / 1.2;
+        vertical-align: middle;
       }
     }
   }
 
+  &-headerButton {
+    height: 2.5em;
+    border: none;
+    padding: 0 @component-padding;
+    font-weight: normal;
+    border-left: 1px solid @panel-heading-border-color;
+    background: none;
+    cursor: default;
+
+    &:active {
+      background-color: @button-background-color-hover;
+    }
+
+    &.icon:before {
+      margin-right: 0;
+      font-size: 1em;
+      text-align: left;
+    }
+  }
+
+
   &-title {
     flex: 1;
-    padding-bottom: .5em;
-    border-bottom: 1px solid @panel-heading-border-color;
+    margin-right: @component-padding;
+    line-height: 2.5em;
   }
 
   &-list {
-    padding: .3em 0;
     flex: 1 1 0;
     overflow-x: auto;
   }
