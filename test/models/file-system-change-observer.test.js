@@ -66,6 +66,8 @@ describe('FileSystemChangeObserver', function() {
   });
 
   it('emits an event when commits are pushed', async function() {
+    this.retries(2); // this test occasionally times out
+
     const {localRepoPath} = await setUpLocalAndRemoteRepositories();
     const repository = await buildRepository(localRepoPath);
     const changeSpy = sinon.spy();
