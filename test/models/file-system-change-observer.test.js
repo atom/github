@@ -5,12 +5,12 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
-describe('FileSystemChangeObserver', () => {
+describe('FileSystemChangeObserver', function() {
   beforeEach(function() {
     this.timeout(5000); // increase the timeout because we're interacting with file system events.
   });
 
-  it('emits an event when a project file is modified, created, or deleted', async () => {
+  it('emits an event when a project file is modified, created, or deleted', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const changeSpy = sinon.spy();
@@ -33,7 +33,7 @@ describe('FileSystemChangeObserver', () => {
     assert.isTrue(changeSpy.calledOnce);
   });
 
-  it('emits an event when a file is staged or unstaged', async () => {
+  it('emits an event when a file is staged or unstaged', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const changeSpy = sinon.spy();
@@ -52,7 +52,7 @@ describe('FileSystemChangeObserver', () => {
     assert.isTrue(changeSpy.called);
   });
 
-  it('emits an event when a branch is checked out', async () => {
+  it('emits an event when a branch is checked out', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const changeSpy = sinon.spy();
@@ -65,7 +65,9 @@ describe('FileSystemChangeObserver', () => {
     assert.isTrue(changeSpy.called);
   });
 
-  it('emits an event when commits are pushed', async () => {
+  it('emits an event when commits are pushed', async function() {
+    this.retries(2); // this test occasionally times out
+
     const {localRepoPath} = await setUpLocalAndRemoteRepositories();
     const repository = await buildRepository(localRepoPath);
     const changeSpy = sinon.spy();
@@ -82,7 +84,7 @@ describe('FileSystemChangeObserver', () => {
     assert.isTrue(changeSpy.called);
   });
 
-  it('emits an event when a new tracking branch is added after pushing', async () => {
+  it('emits an event when a new tracking branch is added after pushing', async function() {
     const {localRepoPath} = await setUpLocalAndRemoteRepositories();
     const repository = await buildRepository(localRepoPath);
     const changeSpy = sinon.spy();
@@ -99,7 +101,7 @@ describe('FileSystemChangeObserver', () => {
     assert.isTrue(changeSpy.called);
   });
 
-  it('emits an event when commits have been fetched', async () => {
+  it('emits an event when commits have been fetched', async function() {
     const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
     const repository = await buildRepository(localRepoPath);
     const changeSpy = sinon.spy();

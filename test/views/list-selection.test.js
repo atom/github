@@ -4,9 +4,9 @@ import {assertEqualSets} from '../helpers';
 // This class is mostly tested via CompositeListSelection and
 // FilePatchSelection. This file contains unit tests that are more convenient to
 // write directly against this class.
-describe('ListSelection', () => {
-  describe('coalesce', () => {
-    it('correctly handles adding and subtracting a single item (regression)', () => {
+describe('ListSelection', function() {
+  describe('coalesce', function() {
+    it('correctly handles adding and subtracting a single item (regression)', function() {
       const selection = new ListSelection({items: ['a', 'b', 'c']});
       selection.selectLastItem(true);
       selection.coalesce();

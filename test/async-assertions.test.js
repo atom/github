@@ -1,13 +1,13 @@
 import {until} from './helpers'; // eslint-disable-line no-unused-vars
 
-describe('assert.async', () => {
-  it('allows for asynchronous assertions', async () => {
+describe('assert.async', function() {
+  it('allows for asynchronous assertions', async function() {
     let val = false;
     setTimeout(() => { val = true; });
     await assert.async.isTrue(val);
   });
 
-  it('allows for setting the timeout', async () => {
+  it('allows for setting the timeout', async function() {
     let val = false;
     setTimeout(() => { val = true; }, 100);
     let caught = false;
@@ -20,7 +20,7 @@ describe('assert.async', () => {
     assert.isTrue(caught);
   });
 
-  it('retains the assertion message and adds the timeout', async () => {
+  it('retains the assertion message and adds the timeout', async function() {
     let val = false;
     setTimeout(() => { val = true; }, 100);
     let caught = null;

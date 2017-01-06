@@ -2,20 +2,20 @@ import StagingView from '../../lib/views/staging-view';
 
 import {assertEqualSets} from '../helpers';
 
-describe('StagingView', () => {
+describe('StagingView', function() {
   let atomEnv, commandRegistry;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  describe('staging and unstaging files', () => {
-    it('renders staged and unstaged files', async () => {
+  describe('staging and unstaging files', function() {
+    it('renders staged and unstaged files', async function() {
       const filePatches = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
@@ -34,8 +34,8 @@ describe('StagingView', () => {
       assert.deepEqual(textContentOfChildren(refs.stagedChanges), ['b.txt']);
     });
 
-    describe('confirmSelectedItems()', () => {
-      it('calls attemptFileStageOperation with the paths to stage/unstage and the staging status', async () => {
+    describe('confirmSelectedItems()', function() {
+      it('calls attemptFileStageOperation with the paths to stage/unstage and the staging status', async function() {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
@@ -56,8 +56,8 @@ describe('StagingView', () => {
     });
   });
 
-  describe('merge conflicts list', () => {
-    it('is visible only when conflicted paths are passed', async () => {
+  describe('merge conflicts list', function() {
+    it('is visible only when conflicted paths are passed', async function() {
       const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
 
       assert.isUndefined(view.refs.mergeConflicts);
@@ -75,13 +75,13 @@ describe('StagingView', () => {
     });
   });
 
-  describe('when the selection changes', () => {
-    describe('when github.keyboardNavigationDelay is 0', () => {
-      beforeEach(() => {
+  describe('when the selection changes', function() {
+    describe('when github.keyboardNavigationDelay is 0', function() {
+      beforeEach(function() {
         atom.config.set('github.keyboardNavigationDelay', 0);
       });
 
-      it('synchronously notifies the parent component via the appropriate callback', async () => {
+      it('synchronously notifies the parent component via the appropriate callback', async function() {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
@@ -122,12 +122,12 @@ describe('StagingView', () => {
       });
     });
 
-    describe('when github.keyboardNavigationDelay is greater than 0', () => {
-      beforeEach(() => {
+    describe('when github.keyboardNavigationDelay is greater than 0', function() {
+      beforeEach(function() {
         atom.config.set('github.keyboardNavigationDelay', 50);
       });
 
-      it('asynchronously notifies the parent component via the appropriate callback', async () => {
+      it('asynchronously notifies the parent component via the appropriate callback', async function() {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
@@ -173,7 +173,7 @@ describe('StagingView', () => {
       });
     });
 
-    it('autoscroll to the selected item if it is out of view', async () => {
+    it('autoscroll to the selected item if it is out of view', async function() {
       const unstagedChanges = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'modified'},
@@ -205,9 +205,9 @@ describe('StagingView', () => {
     });
   });
 
-  describe('when dragging a mouse across multiple items', () => {
+  describe('when dragging a mouse across multiple items', function() {
     // https://github.com/atom/github/issues/352
-    it('selects the items', async () => {
+    it('selects the items', async function() {
       const unstagedChanges = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'modified'},
@@ -226,10 +226,10 @@ describe('StagingView', () => {
     });
   });
 
-  describe('when advancing and retreating activation', () => {
+  describe('when advancing and retreating activation', function() {
     let view, stagedChanges;
 
-    beforeEach(() => {
+    beforeEach(function() {
       const unstagedChanges = [
         {filePath: 'unstaged-1.txt', status: 'modified'},
         {filePath: 'unstaged-2.txt', status: 'modified'},
@@ -277,7 +277,7 @@ describe('StagingView', () => {
       assertSelected(['unstaged-1.txt']);
     });
 
-    it('selects the first item of the final list', () => {
+    it('selects the first item of the final list', function() {
       assertSelected(['unstaged-1.txt']);
 
       assert.isTrue(view.activateLastList());
@@ -285,10 +285,10 @@ describe('StagingView', () => {
     });
   });
 
-  describe('when navigating with core:move-left', () => {
+  describe('when navigating with core:move-left', function() {
     let view, didDiveIntoFilePath, didDiveIntoMergeConflictPath;
 
-    beforeEach(() => {
+    beforeEach(function() {
       const unstagedChanges = [
         {filePath: 'unstaged-1.txt', status: 'modified'},
         {filePath: 'unstaged-2.txt', status: 'modified'},
@@ -307,7 +307,7 @@ describe('StagingView', () => {
       });
     });
 
-    it('invokes a callback with a single file selection', async () => {
+    it('invokes a callback with a single file selection', async function() {
       await view.selectFirst();
 
       commandRegistry.dispatch(view.element, 'core:move-left');
@@ -315,7 +315,7 @@ describe('StagingView', () => {
       assert.isTrue(didDiveIntoFilePath.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
     });
 
-    it('invokes a callback with a single merge conflict selection', async () => {
+    it('invokes a callback with a single merge conflict selection', async function() {
       await view.activateNextList();
       await view.selectFirst();
 
@@ -324,7 +324,7 @@ describe('StagingView', () => {
       assert.isTrue(didDiveIntoMergeConflictPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
     });
 
-    it('does nothing with multiple files selections', async () => {
+    it('does nothing with multiple files selections', async function() {
       await view.selectAll();
 
       commandRegistry.dispatch(view.element, 'core:move-left');
@@ -333,7 +333,7 @@ describe('StagingView', () => {
       assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
     });
 
-    it('does nothing with multiple merge conflict selections', async () => {
+    it('does nothing with multiple merge conflict selections', async function() {
       await view.activateNextList();
       await view.selectAll();
 

@@ -1,8 +1,8 @@
 import MultiListCollection from '../lib/multi-list-collection';
 
-describe('MultiListCollection', () => {
-  describe('selectItemsAndKeysInRange(endPoint1, endPoint2)', () => {
-    it('takes endpoints ({key, item}) and returns an array of items between those points', () => {
+describe('MultiListCollection', function() {
+  describe('selectItemsAndKeysInRange(endPoint1, endPoint2)', function() {
+    it('takes endpoints ({key, item}) and returns an array of items between those points', function() {
       const mlc = new MultiListCollection([
         {key: 'list1', items: ['a', 'b', 'c']},
         {key: 'list2', items: ['d', 'e']},
@@ -33,7 +33,7 @@ describe('MultiListCollection', () => {
       assert.deepEqual([...mlc.getSelectedKeys()], ['list1']);
     });
 
-    it('sets the first key and first item as active when multiple are selected', () => {
+    it('sets the first key and first item as active when multiple are selected', function() {
       const mlc = new MultiListCollection([
         {key: 'list1', items: ['a', 'b', 'c']},
         {key: 'list2', items: ['d', 'e']},
@@ -45,7 +45,7 @@ describe('MultiListCollection', () => {
       assert.equal(mlc.getActiveItem(), 'b');
     });
 
-    it('sorts endpoint item indexes correctly based on numerical values and not strings', () => {
+    it('sorts endpoint item indexes correctly based on numerical values and not strings', function() {
       // this addresses a bug where selecting across the 10th item index would return an empty set
       // because the indices would be stringified by the sort function ("12" < "7")
       const mlc = new MultiListCollection([
@@ -56,7 +56,7 @@ describe('MultiListCollection', () => {
       assert.deepEqual([...mlc.getSelectedItems()], [7, 8, 9, 10, 11, 12]);
     });
 
-    it('throws error when keys or items aren\'t found', () => {
+    it('throws error when keys or items aren\'t found', function() {
       const mlc = new MultiListCollection([
         {key: 'list1', items: ['a', 'b', 'c']},
       ]);
@@ -79,9 +79,9 @@ describe('MultiListCollection', () => {
     });
   });
 
-  describe('updateLists', () => {
-    describe('when the active list key and item is still present after update', () => {
-      it('maintains active item regardless of positional changes', () => {
+  describe('updateLists', function() {
+    describe('when the active list key and item is still present after update', function() {
+      it('maintains active item regardless of positional changes', function() {
         const mlc = new MultiListCollection([
           {key: 'list1', items: ['a']},
         ]);
@@ -111,8 +111,8 @@ describe('MultiListCollection', () => {
       });
     });
 
-    describe('when the active list key and item is NOT present after update', () => {
-      it('updates selection based on the location of the previously active item and key', () => {
+    describe('when the active list key and item is NOT present after update', function() {
+      it('updates selection based on the location of the previously active item and key', function() {
         const mlc = new MultiListCollection([
           {key: 'list1', items: ['a', 'b', 'c']},
           {key: 'list2', items: ['d', 'e']},

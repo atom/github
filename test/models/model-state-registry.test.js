@@ -6,13 +6,13 @@ const Type2 = {type: 2};
 const model1 = {model: 1};
 const model2 = {model: 2};
 
-describe('ModelStateRegistry', () => {
-  beforeEach(() => {
+describe('ModelStateRegistry', function() {
+  beforeEach(function() {
     ModelStateRegistry.clearSavedState();
   });
 
-  describe('#setModel', () => {
-    it('saves the previous data to be restored later', () => {
+  describe('#setModel', function() {
+    it('saves the previous data to be restored later', function() {
       let data;
       const registry = new ModelStateRegistry(Type1, {
         initialModel: model1,
@@ -27,7 +27,7 @@ describe('ModelStateRegistry', () => {
       assert.deepEqual(data, {some: 'data'});
     });
 
-    it('does not call save or restore if the model has not changed', () => {
+    it('does not call save or restore if the model has not changed', function() {
       let data;
       const save = sinon.spy(() => data);
       const restore = sinon.spy((saved = {}) => { data = saved; });
@@ -43,7 +43,7 @@ describe('ModelStateRegistry', () => {
       assert.equal(restore.callCount, 0);
     });
 
-    it('does not call save or restore for a model that does not exist', () => {
+    it('does not call save or restore for a model that does not exist', function() {
       const save = sinon.stub();
       const restore = sinon.stub();
       const registry = new ModelStateRegistry(Type1, {
@@ -65,7 +65,7 @@ describe('ModelStateRegistry', () => {
     });
   });
 
-  it('shares data across multiple instances given the same type and model', () => {
+  it('shares data across multiple instances given the same type and model', function() {
     let data;
     const registry1 = new ModelStateRegistry(Type1, {
       initialModel: model1,
@@ -89,7 +89,7 @@ describe('ModelStateRegistry', () => {
     assert.deepEqual(data2, {more: 'datas'});
   });
 
-  it('does not share data across multiple instances given the same model but a different type', () => {
+  it('does not share data across multiple instances given the same model but a different type', function() {
     let data;
     const registry1 = new ModelStateRegistry(Type1, {
       initialModel: model1,
@@ -116,8 +116,8 @@ describe('ModelStateRegistry', () => {
     assert.deepEqual(data2, {evenMore: 'data'});
   });
 
-  describe('#save and #restore', () => {
-    it('manually saves and restores data', () => {
+  describe('#save and #restore', function() {
+    it('manually saves and restores data', function() {
       let data;
       const registry = new ModelStateRegistry(Type1, {
         initialModel: model1,

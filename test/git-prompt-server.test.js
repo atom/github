@@ -10,8 +10,8 @@ import GitPromptServer from '../lib/git-prompt-server';
 
 // Will not pass on Appveyor
 if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersion)) {
-  describe('GitPromptServer', () => {
-    it('prompts for user input and writes the response to stdout', async () => {
+  describe('GitPromptServer', function() {
+    it('prompts for user input and writes the response to stdout', async function() {
       const server = new GitPromptServer();
       const {helper, socket, electron} = await server.start(question => {
         assert.equal(question, 'What... is your favorite color?\u0000');
