@@ -9,10 +9,10 @@ import GitPanelController from '../../lib/controllers/git-panel-controller';
 import {cloneRepository, buildRepository, until} from '../helpers';
 import {AbortMergeError, CommitError} from '../../lib/models/repository';
 
-describe('GitPanelController', () => {
+describe('GitPanelController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
@@ -21,12 +21,12 @@ describe('GitPanelController', () => {
     workspaceElement = atomEnvironment.views.getView(workspace);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnvironment.destroy();
     atom.confirm.restore && atom.confirm.restore();
   });
 
-  it('displays loading message in GitPanelView while data is being fetched', async () => {
+  it('displays loading message in GitPanelView while data is being fetched', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
@@ -45,7 +45,7 @@ describe('GitPanelController', () => {
     assert.isDefined(controller.refs.gitPanel.refs.commitViewController);
   });
 
-  it('keeps the state of the GitPanelView in sync with the assigned repository', async () => {
+  it('keeps the state of the GitPanelView in sync with the assigned repository', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
@@ -77,7 +77,7 @@ describe('GitPanelController', () => {
     assert.deepEqual(controller.refs.gitPanel.props.unstagedChanges, await repository2.getUnstagedChanges());
   });
 
-  it('displays the staged changes since the parent commit when amending', async () => {
+  it('displays the staged changes since the parent commit when amending', async function() {
     const didChangeAmending = sinon.spy();
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
@@ -99,8 +99,8 @@ describe('GitPanelController', () => {
     assert.equal(didChangeAmending.callCount, 2);
   });
 
-  describe('abortMerge()', () => {
-    it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async () => {
+  describe('abortMerge()', function() {
+    it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'abortMerge', async () => {
@@ -115,7 +115,7 @@ describe('GitPanelController', () => {
       assert.equal(notificationManager.getNotifications().length, 1);
     });
 
-    it('resets merge related state', async () => {
+    it('resets merge related state', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
@@ -142,8 +142,8 @@ describe('GitPanelController', () => {
     });
   });
 
-  describe('prepareToCommit', () => {
-    it('shows the git panel and returns false if it was hidden', async () => {
+  describe('prepareToCommit', function() {
+    it('shows the git panel and returns false if it was hidden', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
@@ -153,7 +153,7 @@ describe('GitPanelController', () => {
       assert.isFalse(await controller.prepareToCommit());
     });
 
-    it('returns true if the git panel was already visible', async () => {
+    it('returns true if the git panel was already visible', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
@@ -164,8 +164,8 @@ describe('GitPanelController', () => {
     });
   });
 
-  describe('commit(message)', () => {
-    it('shows an error notification when committing throws an ECONFLICT exception', async () => {
+  describe('commit(message)', function() {
+    it('shows an error notification when committing throws an ECONFLICT exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'commit', async () => {
@@ -179,7 +179,7 @@ describe('GitPanelController', () => {
       assert.equal(notificationManager.getNotifications().length, 1);
     });
 
-    it('sets amending to false', async () => {
+    it('sets amending to false', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'commit', () => Promise.resolve());
@@ -191,7 +191,7 @@ describe('GitPanelController', () => {
     });
   });
 
-  it('selects an item by description', async () => {
+  it('selects an item by description', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
 
@@ -217,7 +217,7 @@ describe('GitPanelController', () => {
     assert.equal(stagingView.focus.callCount, 1);
   });
 
-  describe('keyboard navigation commands', () => {
+  describe('keyboard navigation commands', function() {
     let controller, gitPanel, stagingView, commitView, commitViewController, focusElement;
 
     const extractReferences = () => {
@@ -237,8 +237,8 @@ describe('GitPanelController', () => {
       assert.deepEqual(selectionPaths, paths);
     };
 
-    describe('with conflicts and staged files', () => {
-      beforeEach(async () => {
+    describe('with conflicts and staged files', function() {
+      beforeEach(async function() {
         const workdirPath = await cloneRepository('each-staging-group');
         const repository = await buildRepository(workdirPath);
 
@@ -264,7 +264,7 @@ describe('GitPanelController', () => {
         extractReferences();
       });
 
-      it('blurs on tool-panel:unfocus', () => {
+      it('blurs on tool-panel:unfocus', function() {
         sinon.spy(workspace.getActivePane(), 'activate');
 
         commandRegistry.dispatch(controller.element, 'tool-panel:unfocus');
@@ -272,7 +272,7 @@ describe('GitPanelController', () => {
         assert.isTrue(workspace.getActivePane().activate.called);
       });
 
-      it('advances focus through StagingView groups and CommitView, but does not cycle', () => {
+      it('advances focus through StagingView groups and CommitView, but does not cycle', function() {
         assertSelected(['unstaged-1.txt']);
 
         commandRegistry.dispatch(controller.element, 'core:focus-next');
@@ -291,7 +291,7 @@ describe('GitPanelController', () => {
         assert.strictEqual(focusElement, commitView);
       });
 
-      it('retreats focus from the CommitView through StagingView groups, but does not cycle', () => {
+      it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
         commitView.focus();
 
         commandRegistry.dispatch(controller.element, 'core:focus-previous');
@@ -309,8 +309,8 @@ describe('GitPanelController', () => {
       });
     });
 
-    describe('with staged changes', () => {
-      beforeEach(async () => {
+    describe('with staged changes', function() {
+      beforeEach(async function() {
         const workdirPath = await cloneRepository('each-staging-group');
         const repository = await buildRepository(workdirPath);
 
@@ -329,7 +329,7 @@ describe('GitPanelController', () => {
         extractReferences();
       });
 
-      it('focuses the CommitView on github:commit with an empty commit message', async () => {
+      it('focuses the CommitView on github:commit with an empty commit message', async function() {
         commitView.editor.setText('');
         sinon.spy(controller, 'commit');
         await etch.update(controller); // Ensure that the spy is passed to child components in props
@@ -340,7 +340,7 @@ describe('GitPanelController', () => {
         assert.isFalse(controller.commit.called);
       });
 
-      it('creates a commit on github:commit with a nonempty commit message', async () => {
+      it('creates a commit on github:commit with a nonempty commit message', async function() {
         commitView.editor.setText('I fixed the things');
         sinon.spy(controller, 'commit');
         await etch.update(controller); // Ensure that the spy is passed to child components in props
@@ -352,8 +352,8 @@ describe('GitPanelController', () => {
     });
   });
 
-  describe('integration tests', () => {
-    it('can stage and unstage files and commit', async () => {
+  describe('integration tests', function() {
+    it('can stage and unstage files and commit', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
@@ -387,7 +387,7 @@ describe('GitPanelController', () => {
       assert.equal((await repository.getLastCommit()).message, 'Make it so');
     });
 
-    it('can stage merge conflict files', async () => {
+    it('can stage merge conflict files', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
@@ -445,7 +445,7 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.stagedChanges.length, 2);
     });
 
-    it('avoids conflicts with pending file staging operations', async () => {
+    it('avoids conflicts with pending file staging operations', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       fs.unlinkSync(path.join(workdirPath, 'a.txt'));
@@ -473,7 +473,7 @@ describe('GitPanelController', () => {
       assert.equal(stagingView.props.unstagedChanges.length, 0);
     });
 
-    it('updates file status and paths when changed', async () => {
+    it('updates file status and paths when changed', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');

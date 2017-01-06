@@ -6,8 +6,8 @@ const timer = n => {
   });
 };
 
-describe('AsyncQueue', () => {
-  it('runs items in the order queued', async () => {
+describe('AsyncQueue', function() {
+  it('runs items in the order queued', async function() {
     const queue = new AsyncQueue();
 
     const expectedEvents = [];
@@ -23,7 +23,7 @@ describe('AsyncQueue', () => {
     assert.deepEqual(expectedEvents, actualEvents);
   });
 
-  it('continues running queued items when one fails', async () => {
+  it('continues running queued items when one fails', async function() {
     const queue = new AsyncQueue();
 
     const expectedEvents = [];

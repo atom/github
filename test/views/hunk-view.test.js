@@ -2,8 +2,8 @@ import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import HunkView from '../../lib/views/hunk-view';
 
-describe('HunkView', () => {
-  it('renders the hunk header and its lines', async () => {
+describe('HunkView', function() {
+  it('renders the hunk header and its lines', async function() {
     const hunk1 = new Hunk(5, 5, 2, 1, [
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'deleted', 6, -1),
@@ -64,7 +64,7 @@ describe('HunkView', () => {
     );
   });
 
-  it('adds the is-selected class based on the isSelected property', async () => {
+  it('adds the is-selected class based on the isSelected property', async function() {
     const hunk = new Hunk(5, 5, 2, 1, []);
     const view = new HunkView({hunk, selectedLines: new Set(), isSelected: true});
     assert(view.element.classList.contains('is-selected'));
@@ -73,7 +73,7 @@ describe('HunkView', () => {
     assert(!view.element.classList.contains('is-selected'));
   });
 
-  it('calls the didClickStageButton handler when the staging button is clicked', async () => {
+  it('calls the didClickStageButton handler when the staging button is clicked', async function() {
     const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)]);
     const didClickStageButton1 = sinon.spy();
     const view = new HunkView({hunk, selectedLines: new Set(), didClickStageButton: didClickStageButton1});
@@ -86,8 +86,8 @@ describe('HunkView', () => {
     assert(didClickStageButton2.calledOnce);
   });
 
-  describe('line selection', () => {
-    it('calls the mousedownOnLine and mousemoveOnLine handlers on mousedown and mousemove events', () => {
+  describe('line selection', function() {
+    it('calls the mousedownOnLine and mousemoveOnLine handlers on mousedown and mousemove events', function() {
       const hunk = new Hunk(1234, 1234, 1234, 1234, [
         new HunkLine('line-1', 'added', 1234, 1234),
         new HunkLine('line-2', 'added', 1234, 1234),

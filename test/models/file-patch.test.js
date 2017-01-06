@@ -7,9 +7,9 @@ import FilePatch from '../../lib/models/file-patch';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
-describe('FilePatch', () => {
-  describe('getStagePatchForLines()', () => {
-    it('returns a new FilePatch that applies only the specified lines', () => {
+describe('FilePatch', function() {
+  describe('getStagePatchForLines()', function() {
+    it('returns a new FilePatch that applies only the specified lines', function() {
       const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -73,7 +73,7 @@ describe('FilePatch', () => {
       ));
     });
 
-    it('handles deleted files', () => {
+    it('handles deleted files', function() {
       const filePatch = new FilePatch('a.txt', null, 'deleted', [
         new Hunk(1, 0, 3, 0, [
           new HunkLine('line-1', 'deleted', 1, -1),
@@ -94,8 +94,8 @@ describe('FilePatch', () => {
     });
   });
 
-  describe('getUnstagePatchForLines()', () => {
-    it('returns a new FilePatch that applies only the specified lines', () => {
+  describe('getUnstagePatchForLines()', function() {
+    it('returns a new FilePatch that applies only the specified lines', function() {
       const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, [
           new HunkLine('line-1', 'added', -1, 1),
@@ -134,7 +134,7 @@ describe('FilePatch', () => {
     });
   });
 
-  it('handles newly added files', () => {
+  it('handles newly added files', function() {
     const filePatch = new FilePatch(null, 'a.txt', 'added', [
       new Hunk(0, 1, 0, 3, [
         new HunkLine('line-1', 'added', -1, 1),
@@ -154,8 +154,8 @@ describe('FilePatch', () => {
     ));
   });
 
-  describe('toString()', () => {
-    it('converts the patch to the standard textual format', async () => {
+  describe('toString()', function() {
+    it('converts the patch to the standard textual format', async function() {
       const workdirPath = await cloneRepository('multi-line-file');
       const repository = await buildRepository(workdirPath);
 
@@ -187,7 +187,7 @@ describe('FilePatch', () => {
       `);
     });
 
-    it('correctly formats new files with no newline at the end', async () => {
+    it('correctly formats new files with no newline at the end', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8');

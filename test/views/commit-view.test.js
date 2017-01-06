@@ -3,19 +3,19 @@ import etch from 'etch';
 
 import CommitView from '../../lib/views/commit-view';
 
-describe('CommitView', () => {
+describe('CommitView', function() {
   let atomEnv, commandRegistry;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  it('displays the remaining characters limit based on which line is being edited', async () => {
+  it('displays the remaining characters limit based on which line is being edited', async function() {
     const view = new CommitView({commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, message: ''});
     assert.equal(view.refs.remainingCharacters.textContent, '72');
 
@@ -56,14 +56,14 @@ describe('CommitView', () => {
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
   });
 
-  it('uses the git commit message grammar when the grammar is loaded', async () => {
+  it('uses the git commit message grammar when the grammar is loaded', async function() {
     await atom.packages.activatePackage('language-git');
 
     const view = new CommitView({commandRegistry});
     assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
   });
 
-  it('uses the git commit message grammar when the grammar has not been loaded', async () => {
+  it('uses the git commit message grammar when the grammar has not been loaded', async function() {
     atom.packages.deactivatePackage('language-git');
 
     const view = new CommitView({commandRegistry});
@@ -74,10 +74,10 @@ describe('CommitView', () => {
     assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
   });
 
-  describe('the commit button', () => {
+  describe('the commit button', function() {
     let view, editor, commitButton;
 
-    beforeEach(async () => {
+    beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       const viewState = {};
@@ -89,7 +89,7 @@ describe('CommitView', () => {
       await etch.getScheduler().getNextUpdatePromise();
     });
 
-    it('is disabled when no changes are staged', async () => {
+    it('is disabled when no changes are staged', async function() {
       await view.update({stagedChangesExist: false});
       assert.isTrue(commitButton.disabled);
 
@@ -97,7 +97,7 @@ describe('CommitView', () => {
       assert.isFalse(commitButton.disabled);
     });
 
-    it('is disabled when there are merge conflicts', async () => {
+    it('is disabled when there are merge conflicts', async function() {
       await view.update({mergeConflictsExist: false});
       assert.isFalse(commitButton.disabled);
 
@@ -105,7 +105,7 @@ describe('CommitView', () => {
       assert.isTrue(commitButton.disabled);
     });
 
-    it('is disabled when the commit message is empty', async () => {
+    it('is disabled when the commit message is empty', async function() {
       editor.setText('');
       await etch.getScheduler().getNextUpdatePromise();
       assert.isTrue(commitButton.disabled);
@@ -116,11 +116,11 @@ describe('CommitView', () => {
     });
   });
 
-  describe('committing', () => {
+  describe('committing', function() {
     let view, commit, prepareToCommitResolution;
     let editor, commitButton, workspaceElement;
 
-    beforeEach(async () => {
+    beforeEach(async function() {
       const prepareToCommit = () => Promise.resolve(prepareToCommitResolution);
 
       commit = sinon.spy();
@@ -135,10 +135,10 @@ describe('CommitView', () => {
       await view.update();
     });
 
-    describe('when props.prepareToCommit() resolves true', () => {
-      beforeEach(() => { prepareToCommitResolution = true; });
+    describe('when props.prepareToCommit() resolves true', function() {
+      beforeEach(function() { prepareToCommitResolution = true; });
 
-      it('calls props.commit(message) when the commit button is clicked', async () => {
+      it('calls props.commit(message) when the commit button is clicked', async function() {
         commitButton.dispatchEvent(new MouseEvent('click'));
 
         await until('props.commit() is called', () => commit.calledWith('Something'));
@@ -148,24 +148,24 @@ describe('CommitView', () => {
         assert.equal(editor.getText(), '');
       });
 
-      it('calls props.commit(message) when github:commit is dispatched', async () => {
+      it('calls props.commit(message) when github:commit is dispatched', async function() {
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
         await until('props.commit() is called', () => commit.calledWith('Something'));
       });
     });
 
-    describe('when props.prepareToCommit() resolves false', () => {
-      beforeEach(() => { prepareToCommitResolution = false; });
+    describe('when props.prepareToCommit() resolves false', function() {
+      beforeEach(function() { prepareToCommitResolution = false; });
 
-      it('takes no further action when the commit button is clicked', async () => {
+      it('takes no further action when the commit button is clicked', async function() {
         commitButton.dispatchEvent(new MouseEvent('click'));
 
         await until('focus() is called', () => view.focus.called);
         assert.isFalse(commit.called);
       });
 
-      it('takes no further action when github:commit is dispatched', async () => {
+      it('takes no further action when github:commit is dispatched', async function() {
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
         await until('focus() is called', () => view.focus.called);
@@ -174,7 +174,7 @@ describe('CommitView', () => {
     });
   });
 
-  it('shows the "Abort Merge" button when props.isMerging is true', async () => {
+  it('shows the "Abort Merge" button when props.isMerging is true', async function() {
     const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: false});
     const {abortMergeButton} = view.refs;
     assert.equal(abortMergeButton.style.display, 'none');
@@ -186,7 +186,7 @@ describe('CommitView', () => {
     assert.equal(abortMergeButton.style.display, 'none');
   });
 
-  it('calls props.abortMerge() when the "Abort Merge" button is clicked', () => {
+  it('calls props.abortMerge() when the "Abort Merge" button is clicked', function() {
     const abortMerge = sinon.spy(() => Promise.resolve());
     const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: true, abortMerge});
     const {abortMergeButton} = view.refs;
@@ -194,8 +194,8 @@ describe('CommitView', () => {
     assert(abortMerge.calledOnce);
   });
 
-  describe('amending', () => {
-    it('calls props.setAmending() when the box is checked or unchecked', () => {
+  describe('amending', function() {
+    it('calls props.setAmending() when the box is checked or unchecked', function() {
       const setAmending = sinon.spy();
       const view = new CommitView({commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending});
       const {amend} = view.refs;

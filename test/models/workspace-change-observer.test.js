@@ -4,19 +4,19 @@ import {cloneRepository, buildRepository, until} from '../helpers';
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 
-describe('WorkspaceChangeObserver', () => {
+describe('WorkspaceChangeObserver', function() {
   let atomEnv, workspace;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  it('emits a change event when the window is focused', async () => {
+  it('emits a change event when the window is focused', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
 
@@ -32,7 +32,7 @@ describe('WorkspaceChangeObserver', () => {
     await until(() => changeSpy.calledOnce);
   });
 
-  it('emits a change event when a staging action takes place', async () => {
+  it('emits a change event when a staging action takes place', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const changeSpy = sinon.spy();
@@ -47,7 +47,7 @@ describe('WorkspaceChangeObserver', () => {
     assert.isTrue(changeSpy.called);
   });
 
-  it('emits a change event when a buffer belonging to the project directory changes', async () => {
+  it('emits a change event when a buffer belonging to the project directory changes', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const editor = await workspace.open(path.join(workdirPath, 'a.txt'));

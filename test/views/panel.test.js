@@ -18,9 +18,9 @@ class Component extends React.Component {
   }
 }
 
-describe('Panel component', () => {
+describe('Panel component', function() {
   let renderer, emitter, workspace;
-  beforeEach(() => {
+  beforeEach(function() {
     renderer = createRenderer();
     emitter = new Emitter();
     workspace = {
@@ -33,11 +33,11 @@ describe('Panel component', () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(function() {
     emitter.dispose();
   });
 
-  it('renders a React component into an Atom panel', () => {
+  it('renders a React component into an Atom panel', function() {
     let portal, subtree;
     const item = Symbol('item');
     let app = (
@@ -80,7 +80,7 @@ describe('Panel component', () => {
     assert.equal(renderer.lastInstance.getPanel().destroy.callCount, 1);
   });
 
-  it('calls props.onDidClosePanel when the panel is destroyed unexpectedly', () => {
+  it('calls props.onDidClosePanel when the panel is destroyed unexpectedly', function() {
     const onDidClosePanel = sinon.stub();
     const app = (
       <Panel
@@ -95,8 +95,8 @@ describe('Panel component', () => {
     assert.equal(onDidClosePanel.callCount, 1);
   });
 
-  describe('when updating the visible prop', () => {
-    it('shows or hides the panel', () => {
+  describe('when updating the visible prop', function() {
+    it('shows or hides the panel', function() {
       let app = (
         <Panel
           workspace={workspace}

@@ -13,9 +13,9 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
  *  output that we rely on, to serve as documentation
  */
 
-describe('Git commands', () => {
-  describe('exec', () => {
-    it('serializes operations', async () => {
+describe('Git commands', function() {
+  describe('exec', function() {
+    it('serializes operations', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       const expectedEvents = [];
@@ -30,7 +30,7 @@ describe('Git commands', () => {
       assert.deepEqual(expectedEvents, actualEvents);
     });
 
-    it('runs operations after one fails', async () => {
+    it('runs operations after one fails', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       const expectedEvents = [];
@@ -50,8 +50,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('isGitRepository(directoryPath)', () => {
-    it('returns true if the path passed is a valid repository, and false if not', async () => {
+  describe('isGitRepository(directoryPath)', function() {
+    it('returns true if the path passed is a valid repository, and false if not', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       assert.isTrue(await git.isGitRepository(workingDirPath));
@@ -61,8 +61,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getStatusesForChangedFiles', () => {
-    it('returns objects for staged and unstaged files, including status information', async () => {
+  describe('getStatusesForChangedFiles', function() {
+    it('returns objects for staged and unstaged files, including status information', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -87,7 +87,7 @@ describe('Git commands', () => {
       assert.deepEqual(mergeConflictFiles, {});
     });
 
-    it('displays renamed files as one removed file and one added file', async () => {
+    it('displays renamed files as one removed file and one added file', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
@@ -101,7 +101,7 @@ describe('Git commands', () => {
       assert.deepEqual(mergeConflictFiles, {});
     });
 
-    it('returns an object for merge conflict files, including ours/theirs/file status information', async () => {
+    it('returns an object for merge conflict files, including ours/theirs/file status information', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
       try {
@@ -147,8 +147,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('diffFileStatus', () => {
-    it('returns an object with working directory file diff status between relative to specified target commit', async () => {
+  describe('diffFileStatus', function() {
+    it('returns an object with working directory file diff status between relative to specified target commit', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -165,14 +165,14 @@ describe('Git commands', () => {
       });
     });
 
-    it('returns an empty object if there are no added, modified, or removed files', async () => {
+    it('returns an empty object if there are no added, modified, or removed files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       const diffOutput = await git.diffFileStatus({target: 'HEAD'});
       assert.deepEqual(diffOutput, {});
     });
 
-    it('only returns untracked files if the staged option is not passed', async () => {
+    it('only returns untracked files if the staged option is not passed', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8');
@@ -183,8 +183,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getUntrackedFiles', () => {
-    it('returns an array of untracked file paths', async () => {
+  describe('getUntrackedFiles', function() {
+    it('returns an array of untracked file paths', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
@@ -193,7 +193,7 @@ describe('Git commands', () => {
       assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt']);
     });
 
-    it('handles untracked files in nested folders', async () => {
+    it('handles untracked files in nested folders', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
@@ -208,15 +208,15 @@ describe('Git commands', () => {
       ]);
     });
 
-    it('returns an empty array if there are no untracked files', async () => {
+    it('returns an empty array if there are no untracked files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       assert.deepEqual(await git.getUntrackedFiles(), []);
     });
   });
 
-  describe('getDiffForFilePath', () => {
-    it('returns an empty array if there are no modified, added, or deleted files', async () => {
+  describe('getDiffForFilePath', function() {
+    it('returns an empty array if there are no modified, added, or deleted files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
 
@@ -224,15 +224,15 @@ describe('Git commands', () => {
       assert.isUndefined(diffOutput);
     });
 
-    it('ignores merge conflict files', async () => {
+    it('ignores merge conflict files', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
       const diffOutput = await git.getDiffForFilePath('added-to-both.txt');
       assert.isUndefined(diffOutput);
     });
 
-    describe('when the file is unstaged', () => {
-      it('returns a diff comparing the working directory copy of the file and the version on the index', async () => {
+    describe('when the file is unstaged', function() {
+      it('returns a diff comparing the working directory copy of the file and the version on the index', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = new GitShellOutStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -295,8 +295,8 @@ describe('Git commands', () => {
       });
     });
 
-    describe('when the file is staged', () => {
-      it('returns a diff comparing the index and head versions of the file', async () => {
+    describe('when the file is staged', function() {
+      it('returns a diff comparing the index and head versions of the file', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = new GitShellOutStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -360,8 +360,8 @@ describe('Git commands', () => {
       });
     });
 
-    describe('when the file is staged and a base commit is specified', () => {
-      it('returns a diff comparing the file on the index and in the specified commit', async () => {
+    describe('when the file is staged and a base commit is specified', function() {
+      it('returns a diff comparing the file on the index and in the specified commit', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = new GitShellOutStrategy(workingDirPath);
 
@@ -385,8 +385,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('isMerging', () => {
-    it('returns true if `.git/MERGE_HEAD` exists', async () => {
+  describe('isMerging', function() {
+    it('returns true if `.git/MERGE_HEAD` exists', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
       let isMerging = await git.isMerging();
@@ -406,8 +406,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
-    it('returns the number of different commits on the branch vs the remote', async () => {
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
+    it('returns the number of different commits on the branch vs the remote', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const git = new GitShellOutStrategy(localRepoPath);
       await git.exec(['config', 'push.default', 'upstream']);
@@ -422,7 +422,7 @@ describe('Git commands', () => {
       assert.equal(await git.getAheadCount('master'), 2);
     });
 
-    it('returns null if there is no remote tracking branch specified', async () => {
+    it('returns null if there is no remote tracking branch specified', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const git = new GitShellOutStrategy(localRepoPath);
       await git.exec(['config', 'push.default', 'upstream']);
@@ -431,7 +431,7 @@ describe('Git commands', () => {
       assert.equal(await git.getAheadCount('master'), null);
     });
 
-    it('returns null if the configured remote tracking branch does not exist locally', async () => {
+    it('returns null if the configured remote tracking branch does not exist locally', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const git = new GitShellOutStrategy(localRepoPath);
       await git.exec(['config', 'push.default', 'upstream']);
@@ -444,7 +444,7 @@ describe('Git commands', () => {
       assert.equal(await git.getAheadCount('master'), 0);
     });
 
-    it('handles a remote tracking branch with a name that differs from the local branch', async () => {
+    it('handles a remote tracking branch with a name that differs from the local branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const git = new GitShellOutStrategy(localRepoPath);
       await git.exec(['config', 'push.default', 'upstream']);
@@ -456,8 +456,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getCurrentBranch() and checkout(branchName, {createNew})', () => {
-    it('returns the current branch name', async () => {
+  describe('getCurrentBranch() and checkout(branchName, {createNew})', function() {
+    it('returns the current branch name', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
       assert.equal(await git.getCurrentBranch(), 'master');
@@ -472,8 +472,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getRemoteForBranch(branchName)', () => {
-    it('returns the name of the remote associated with the branch, and null if none exists', async () => {
+  describe('getRemoteForBranch(branchName)', function() {
+    it('returns the name of the remote associated with the branch, and null if none exists', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       assert.equal(await git.getRemoteForBranch('master'), 'origin');
@@ -484,8 +484,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('getBranches()', () => {
-    it('returns an array of all branches', async () => {
+  describe('getBranches()', function() {
+    it('returns an array of all branches', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       assert.deepEqual(await git.getBranches(), ['master']);
@@ -496,8 +496,8 @@ describe('Git commands', () => {
     });
   });
 
-  describe('commit(message, options) where amend option is true', () => {
-    it('amends the last commit', async () => {
+  describe('commit(message, options) where amend option is true', function() {
+    it('amends the last commit', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const git = new GitShellOutStrategy(workingDirPath);
       const lastCommit = await git.getHeadCommit();

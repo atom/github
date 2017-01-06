@@ -7,19 +7,19 @@ import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
-describe('FilePatchController', () => {
+describe('FilePatchController', function() {
   let atomEnv, commandRegistry;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  it('bases its tab title on the staging status', () => {
+  it('bases its tab title on the staging status', function() {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
     const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged'});
     assert.equal(controller.getTitle(), 'Unstaged Changes: a.txt');
@@ -32,7 +32,7 @@ describe('FilePatchController', () => {
     assert.deepEqual(changeHandler.args, [[controller.getTitle()]]);
   });
 
-  it('renders FilePatchView only if FilePatch has hunks', async () => {
+  it('renders FilePatchView only if FilePatch has hunks', async function() {
     const emptyFilePatch = new FilePatch('a.txt', 'a.txt', 'modified', []);
     const controller = new FilePatchController({commandRegistry, filePatch: emptyFilePatch}); // eslint-disable-line no-new
     assert.isUndefined(controller.refs.filePatchView);
@@ -43,7 +43,7 @@ describe('FilePatchController', () => {
     assert.isDefined(controller.refs.filePatchView);
   });
 
-  it('updates when a new FilePatch is passed', async () => {
+  it('updates when a new FilePatch is passed', async function() {
     const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)]);
     const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)]);
     const hunkViewsByHunk = new Map();
@@ -60,7 +60,7 @@ describe('FilePatchController', () => {
     assert(hunkViewsByHunk.get(hunk3) != null);
   });
 
-  it('invokes a didSurfaceFile callback with the current file path', () => {
+  it('invokes a didSurfaceFile callback with the current file path', function() {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
     const didSurfaceFile = sinon.spy();
     const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged', didSurfaceFile});
@@ -69,8 +69,8 @@ describe('FilePatchController', () => {
     assert.isTrue(didSurfaceFile.calledWith('a.txt', 'unstaged'));
   });
 
-  describe('integration tests', () => {
-    it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async () => {
+  describe('integration tests', function() {
+    it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async function() {
       const workdirPath = await cloneRepository('multi-line-file');
       const repository = await buildRepository(workdirPath);
       const filePath = path.join(workdirPath, 'sample.js');
@@ -108,7 +108,7 @@ describe('FilePatchController', () => {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
     });
 
-    it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async () => {
+    it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
       const workdirPath = await cloneRepository('multi-line-file');
       const repository = await buildRepository(workdirPath);
       const filePath = path.join(workdirPath, 'sample.js');
@@ -189,8 +189,8 @@ describe('FilePatchController', () => {
     });
 
     // https://github.com/atom/github/issues/341
-    describe('when duplicate staging occurs', () => {
-      it('avoids patch conflicts with pending line staging operations', async () => {
+    describe('when duplicate staging occurs', function() {
+      it('avoids patch conflicts with pending line staging operations', async function() {
         const workdirPath = await cloneRepository('multi-line-file');
         const repository = await buildRepository(workdirPath);
         const filePath = path.join(workdirPath, 'sample.js');
@@ -255,7 +255,7 @@ describe('FilePatchController', () => {
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
       });
 
-      it('avoids patch conflicts with pending hunk staging operations', async () => {
+      it('avoids patch conflicts with pending hunk staging operations', async function() {
         const workdirPath = await cloneRepository('multi-line-file');
         const repository = await buildRepository(workdirPath);
         const filePath = path.join(workdirPath, 'sample.js');

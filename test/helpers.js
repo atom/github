@@ -207,12 +207,12 @@ export function createRenderer() {
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
-beforeEach(() => {
+beforeEach(function() {
   global.sinon = sinon.sandbox.create();
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
-afterEach(() => {
+afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
   global.sinon.restore();
