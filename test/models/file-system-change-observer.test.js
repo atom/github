@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
+// eslint-disable-next-line no-unused-vars
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories, until} from '../helpers';
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
