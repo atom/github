@@ -43,8 +43,7 @@ describe('WorkspaceChangeObserver', function() {
     const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
     editor.setText('change');
     await repository.stageFiles(['a.txt']);
-    await changeObserver.getLastChangePromise();
-    assert.isTrue(changeSpy.called);
+    assert.async.isTrue(changeSpy.called);
   });
 
   it('emits a change event when a buffer belonging to the project directory changes', async function() {
