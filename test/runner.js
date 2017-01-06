@@ -7,4 +7,4 @@ global.assert = chai.assert;
 
 module.exports = createRunner({
   overrideTestPaths: [/spec$/, /test/],
-}, mocha => mocha.timeout(20000));
+});
