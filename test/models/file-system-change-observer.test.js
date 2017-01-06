@@ -73,12 +73,14 @@ describe('FileSystemChangeObserver', function() {
     changeObserver.onDidChange(changeSpy);
     await changeObserver.start();
 
+    let changePromise = changeObserver.getLastChangePromise();
     await repository.git.exec(['commit', '--allow-empty', '-m', 'new commit']);
-    await changeObserver.lastFileChangePromise;
+    await changePromise;
 
     changeSpy.reset();
+    changePromise = changeObserver.getLastChangePromise();
     await repository.git.exec(['push', 'origin', 'master']);
-    await changeObserver.lastFileChangePromise;
+    await changePromise;
     assert.isTrue(changeSpy.called);
   });
 
