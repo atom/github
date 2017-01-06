@@ -18,9 +18,9 @@ class Component extends React.Component {
   }
 }
 
-describe('PaneItem component', () => {
+describe('PaneItem component', function() {
   let renderer, emitter, workspace, activePane;
-  beforeEach(() => {
+  beforeEach(function() {
     renderer = createRenderer();
     emitter = new Emitter();
     const paneItem = {
@@ -39,11 +39,11 @@ describe('PaneItem component', () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(function() {
     emitter.dispose();
   });
 
-  it('renders a React component into an Atom pane item', () => {
+  it('renders a React component into an Atom pane item', function() {
     let portal, subtree;
     const item = Symbol('item');
     let app = (
@@ -82,7 +82,7 @@ describe('PaneItem component', () => {
     assert.equal(renderer.lastInstance.getPaneItem().destroy.callCount, 1);
   });
 
-  it('calls props.onDidCloseItem when the pane item is destroyed unexpectedly', () => {
+  it('calls props.onDidCloseItem when the pane item is destroyed unexpectedly', function() {
     const onDidCloseItem = sinon.stub();
     const app = (
       <PaneItem

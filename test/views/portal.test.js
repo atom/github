@@ -16,8 +16,8 @@ class Component extends React.Component {
   }
 }
 
-describe('Portal', () => {
-  it('renders a subtree into a different dom node', () => {
+describe('Portal', function() {
+  it('renders a subtree into a different dom node', function() {
     const renderer = createRenderer();
     renderer.render(<Portal><Component text="hello" /></Portal>);
     assert.equal(renderer.instance.getElement().textContent, 'hello');

@@ -3,19 +3,19 @@ import {mount} from 'enzyme';
 
 import Commands, {Command} from '../../lib/views/commands';
 
-describe('Commands', () => {
+describe('Commands', function() {
   let atomEnv, commandRegistry;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  it('registers commands on mount and unregisters them on unmount', async () => {
+  it('registers commands on mount and unregisters them on unmount', async function() {
     const callback1 = sinon.stub();
     const callback2 = sinon.stub();
     const element = document.createElement('div');
@@ -53,7 +53,7 @@ describe('Commands', () => {
     assert.equal(callback2.callCount, 0);
   });
 
-  it('updates commands when props change', async () => {
+  it('updates commands when props change', async function() {
     const element = document.createElement('div');
     const callback1 = sinon.stub();
     const callback2 = sinon.stub();

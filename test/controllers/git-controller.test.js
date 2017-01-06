@@ -8,10 +8,10 @@ import {cloneRepository, buildRepository} from '../helpers';
 
 import GitController from '../../lib/controllers/git-controller';
 
-describe('GitController', () => {
+describe('GitController', function() {
   let atomEnv, workspace, commandRegistry, notificationManager, app;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
@@ -26,12 +26,12 @@ describe('GitController', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  describe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', () => {
-    it('opens the file as a pending pane item if it exists', async () => {
+  describe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', function() {
+    it('opens the file as a pending pane item if it exists', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
       sinon.spy(workspace, 'open');
@@ -43,8 +43,8 @@ describe('GitController', () => {
       assert.deepEqual(workspace.open.args[0], [path.join(workdirPath, 'added-to-both.txt'), {activatePane: false, pending: true}]);
     });
 
-    describe('when the file doesn\'t exist', () => {
-      it('shows an info notification and does not open the file', async () => {
+    describe('when the file doesn\'t exist', function() {
+      it('shows an info notification and does not open the file', async function() {
         const workdirPath = await cloneRepository('merge-conflict');
         const repository = await buildRepository(workdirPath);
         fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'));
@@ -63,8 +63,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('diveIntoMergeConflictFileForPath(relativeFilePath)', () => {
-    it('opens the file and focuses the pane', async () => {
+  describe('diveIntoMergeConflictFileForPath(relativeFilePath)', function() {
+    it('opens the file and focuses the pane', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
       sinon.spy(workspace, 'open');
@@ -78,8 +78,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('rendering a FilePatch', () => {
-    it('renders the FilePatchController based on state', async () => {
+  describe('rendering a FilePatch', function() {
+    it('renders the FilePatchController based on state', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       app = React.cloneElement(app, {repository});
@@ -107,9 +107,9 @@ describe('GitController', () => {
     });
   });
 
-  describe('showFilePatchForPath(filePath, staged, {amending, activate})', () => {
-    describe('when a file is selected in the staging panel', () => {
-      it('sets appropriate state', async () => {
+  describe('showFilePatchForPath(filePath, staged, {amending, activate})', function() {
+    describe('when a file is selected in the staging panel', function() {
+      it('sets appropriate state', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
 
@@ -144,8 +144,8 @@ describe('GitController', () => {
       });
     });
 
-    describe('when there is a change to the repo', () => {
-      it('calls onRepoRefresh', async () => {
+    describe('when there is a change to the repo', function() {
+      it('calls onRepoRefresh', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
@@ -161,8 +161,8 @@ describe('GitController', () => {
       });
     });
 
-    describe('#onRepoRefresh', () => {
-      it('sets the correct FilePatch as state', async () => {
+    describe('#onRepoRefresh', function() {
+      it('sets the correct FilePatch as state', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
@@ -190,8 +190,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', () => {
-    it('reveals and focuses the file patch', async () => {
+  describe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', function() {
+    it('reveals and focuses the file patch', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
@@ -218,8 +218,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('when amend mode is toggled in the staging panel while viewing a staged change', () => {
-    it('refetches the FilePatch with the amending flag toggled', async () => {
+  describe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
+    it('refetches the FilePatch with the amending flag toggled', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
@@ -237,8 +237,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('when the StatusBarTileController calls toggleGitPanel', () => {
-    it('toggles the git panel', async () => {
+  describe('when the StatusBarTileController calls toggleGitPanel', function() {
+    it('toggles the git panel', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
@@ -253,8 +253,8 @@ describe('GitController', () => {
     });
   });
 
-  describe('toggleGitPanel()', () => {
-    it('toggles the visibility of the Git panel', async () => {
+  describe('toggleGitPanel()', function() {
+    it('toggles the visibility of the Git panel', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
@@ -269,10 +269,10 @@ describe('GitController', () => {
     });
   });
 
-  describe('toggleGitPanelFocus()', () => {
+  describe('toggleGitPanelFocus()', function() {
     let wrapper;
 
-    beforeEach(async () => {
+    beforeEach(async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
@@ -283,7 +283,7 @@ describe('GitController', () => {
       sinon.spy(workspace.getActivePane(), 'activate');
     });
 
-    it('opens and focuses the Git panel when it is initially closed', () => {
+    it('opens and focuses the Git panel when it is initially closed', function() {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
 
@@ -294,7 +294,7 @@ describe('GitController', () => {
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
-    it('focuses the Git panel when it is already open, but blurred', () => {
+    it('focuses the Git panel when it is already open, but blurred', function() {
       wrapper.instance().toggleGitPanel();
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
 
@@ -307,7 +307,7 @@ describe('GitController', () => {
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
-    it('blurs the Git panel when it is already open and focused', () => {
+    it('blurs the Git panel when it is already open and focused', function() {
       wrapper.instance().toggleGitPanel();
       sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(true);
 
@@ -321,10 +321,10 @@ describe('GitController', () => {
     });
   });
 
-  describe('ensureGitPanel()', () => {
+  describe('ensureGitPanel()', function() {
     let wrapper;
 
-    beforeEach(async () => {
+    beforeEach(async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
@@ -332,12 +332,12 @@ describe('GitController', () => {
       wrapper = shallow(app);
     });
 
-    it('opens the Git panel when it is initially closed', async () => {
+    it('opens the Git panel when it is initially closed', async function() {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
       assert.isTrue(await wrapper.instance().ensureGitPanel());
     });
 
-    it('does nothing when the Git panel is already open', async () => {
+    it('does nothing when the Git panel is already open', async function() {
       wrapper.instance().toggleGitPanel();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.isFalse(await wrapper.instance().ensureGitPanel());
@@ -345,7 +345,7 @@ describe('GitController', () => {
     });
   });
 
-  it('correctly updates state when switching repos', async () => {
+  it('correctly updates state when switching repos', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');

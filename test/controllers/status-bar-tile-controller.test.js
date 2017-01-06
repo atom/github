@@ -6,20 +6,20 @@ import etch from 'etch';
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories, until} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 
-describe('StatusBarTileController', () => {
+describe('StatusBarTileController', function() {
   let atomEnvironment, workspace;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnvironment.destroy();
   });
 
-  describe('branches', () => {
-    it('indicates the current branch and toggles visibility of the branch menu when clicked', async () => {
+  describe('branches', function() {
+    it('indicates the current branch and toggles visibility of the branch menu when clicked', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
@@ -39,9 +39,9 @@ describe('StatusBarTileController', () => {
       }
     });
 
-    describe('the branch menu', () => {
-      describe('checking out an existing branch', () => {
-        it('can check out existing branches with no conflicts', async () => {
+    describe('the branch menu', function() {
+      describe('checking out an existing branch', function() {
+        it('can check out existing branches with no conflicts', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
@@ -70,7 +70,7 @@ describe('StatusBarTileController', () => {
           assert.equal(list.selectedOptions[0].value, 'master');
         });
 
-        it('displays an error message if checkout fails', async () => {
+        it('displays an error message if checkout fails', async function() {
           const {localRepoPath} = await setUpLocalAndRemoteRepositories('three-files');
           const repository = await buildRepository(localRepoPath);
           await repository.git.exec(['branch', 'branch']);
@@ -101,8 +101,8 @@ describe('StatusBarTileController', () => {
         });
       });
 
-      describe('checking out newly created branches', () => {
-        it('can check out newly created branches', async () => {
+      describe('checking out newly created branches', function() {
+        it('can check out newly created branches', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
@@ -136,7 +136,7 @@ describe('StatusBarTileController', () => {
           assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'new-branch');
         });
 
-        it('displays an error message if branch already exists', async () => {
+        it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
@@ -166,8 +166,8 @@ describe('StatusBarTileController', () => {
     });
   });
 
-  describe('pushing and pulling', () => {
-    it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async () => {
+  describe('pushing and pulling', function() {
+    it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
@@ -201,8 +201,8 @@ describe('StatusBarTileController', () => {
       }
     });
 
-    describe('the push/pull menu', () => {
-      it('disables the pull button when there are changed files', async () => {
+    describe('the push/pull menu', function() {
+      it('disables the pull button when there are changed files', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
@@ -233,7 +233,7 @@ describe('StatusBarTileController', () => {
         assert.isFalse(pullButton.disabled);
       });
 
-      it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async () => {
+      it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['checkout', '-b', 'new-branch']);
@@ -257,7 +257,7 @@ describe('StatusBarTileController', () => {
         assert.equal(message.textContent, '');
       });
 
-      it('displays an error message if push fails and allows force pushing if meta key is pressed', async () => {
+      it('displays an error message if push fails and allows force pushing if meta key is pressed', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['reset', '--hard', 'head~2']);
@@ -285,8 +285,8 @@ describe('StatusBarTileController', () => {
     });
   });
 
-  describe('changed files', () => {
-    it('shows the changed files count view when the repository data is loaded', async () => {
+  describe('changed files', function() {
+    it('shows the changed files count view when the repository data is loaded', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 

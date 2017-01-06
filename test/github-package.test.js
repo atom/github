@@ -5,10 +5,10 @@ import temp from 'temp';
 import {cloneRepository, until} from './helpers';
 import GithubPackage from '../lib/github-package';
 
-describe('GithubPackage', () => {
+describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, githubPackage;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     project = atomEnv.project;
@@ -17,12 +17,12 @@ describe('GithubPackage', () => {
     githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  describe('activate()', () => {
-    it('updates the active repository', async () => {
+  describe('activate()', function() {
+    it('updates the active repository', async function() {
       await githubPackage.activate();
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
@@ -36,8 +36,8 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('changing the project paths', () => {
-    it('updates the active repository', async () => {
+  describe('changing the project paths', function() {
+    it('updates the active repository', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = temp.mkdirSync();
@@ -67,7 +67,7 @@ describe('GithubPackage', () => {
       assert.equal(githubPackage.rerender.callCount, 4);
     });
 
-    it('destroys all the repositories associated with the removed project folders', async () => {
+    it('destroys all the repositories associated with the removed project folders', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const workdirPath3 = await cloneRepository('three-files');
@@ -97,8 +97,8 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('didChangeActivePaneItem()', () => {
-    it('updates the active repository', async () => {
+  describe('didChangeActivePaneItem()', function() {
+    it('updates the active repository', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2]);
@@ -115,8 +115,8 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('updateActiveRepository()', () => {
-    it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async () => {
+  describe('updateActiveRepository()', function() {
+    it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
       // TODO: FIXME Warning: Possible EventEmitter memory leak detected. 11 ipc-helpers-window-method-response listeners added.
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
@@ -162,8 +162,8 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('when there is a change in the repository', () => {
-    it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async () => {
+  describe('when there is a change in the repository', function() {
+    it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
 
@@ -234,15 +234,15 @@ describe('GithubPackage', () => {
     });
   });
 
-  describe('#projectPathForItemPath', () => {
-    it('does not error when the path is falsy (e.g. an empty text editor)', () => {
+  describe('#projectPathForItemPath', function() {
+    it('does not error when the path is falsy (e.g. an empty text editor)', function() {
       sinon.stub(project, 'getPaths').returns(['path']);
       assert.doesNotThrow(() => {
         githubPackage.projectPathForItemPath(null);
       });
     });
 
-    it('returns the correct path when the item path starts with the project path but the item path is not in the project', () => {
+    it('returns the correct path when the item path starts with the project path but the item path is not in the project', function() {
       sinon.stub(project, 'getPaths').returns([path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')]);
       assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
     });

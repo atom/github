@@ -1,8 +1,8 @@
 import {Emitter} from 'atom';
 import ModelObserver from '../../lib/models/model-observer';
 
-describe('ModelObserver', () => {
-  it('keeps asynchronously-queried model data in sync with the assigned active model', async () => {
+describe('ModelObserver', function() {
+  it('keeps asynchronously-queried model data in sync with the assigned active model', async function() {
     const observer = new ModelObserver({fetchData: async model => {
       return {
         a: await model.fetchA(),
@@ -77,7 +77,7 @@ describe('ModelObserver', () => {
     assert.isNull(observer.getActiveModelData());
   });
 
-  it('emits an update event when the model changes and when data is fetched', async () => {
+  it('emits an update event when the model changes and when data is fetched', async function() {
     let expectedActiveModelInUpdateCallback;
     const didUpdate = () => {
       assert.equal(observer.getActiveModel(), expectedActiveModelInUpdateCallback);
@@ -128,7 +128,7 @@ describe('ModelObserver', () => {
     assert.equal(didUpdate.callCount, 5);
   });
 
-  it('only assigns model data from the most recently initiated fetch', async () => {
+  it('only assigns model data from the most recently initiated fetch', async function() {
     const observer = new ModelObserver({fetchData: async model => {
       return {a: await model.fetch()};
     }});

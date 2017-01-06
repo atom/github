@@ -20,7 +20,8 @@
       "options": {
         "cacheKeyFiles": [
           "package.json",
-          ".babelrc"
+          ".babelrc",
+          "assert-async-plugin.js"
         ]
       }
     }

@@ -135,16 +135,29 @@ export function until(...args) {
 
   message = message || 'something happens';
   timeout = timeout || 5000;
-  const error = new Error(`timeout: timed out after ${timeout} msec waiting until ${message}`);
+  let error;
+
+  const setError = err => {
+    if (typeof err === 'string') {
+      error = new Error(err);
+    } else {
+      error = err;
+    }
+    return false;
+  };
 
   return new Promise((resolve, reject) => {
     const checker = () => {
-      const result = latchFunction();
+      const result = latchFunction(setError);
       if (result) { return resolve(result); }
 
       const now = new Date().getTime();
       const delta = now - start;
       if (delta > timeout) {
+        if (!error) {
+          error = new Error(`timed out after ${timeout} msec waiting until ${message}`);
+        }
+        error.message = `async(${timeout}ms): ${error.message}`;
         return reject(error);
       } else {
         return setTimeout(checker);
@@ -194,12 +207,12 @@ export function createRenderer() {
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
-beforeEach(() => {
+beforeEach(function() {
   global.sinon = sinon.sandbox.create();
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
-afterEach(() => {
+afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
   global.sinon.restore();

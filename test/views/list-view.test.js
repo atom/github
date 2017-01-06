@@ -6,8 +6,8 @@ import simulant from 'simulant';
 
 import ListView from '../../lib/views/list-view';
 
-describe('ListView', () => {
-  it('renders a list of items', () => {
+describe('ListView', function() {
+  it('renders a list of items', function() {
     const items = ['one', 'two', 'three'];
 
     const renderItem = (item, selected, handleClick) => {

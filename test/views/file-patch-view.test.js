@@ -4,19 +4,19 @@ import HunkLine from '../../lib/models/hunk-line';
 
 import {assertEqualSets} from '../helpers';
 
-describe('FilePatchView', () => {
+describe('FilePatchView', function() {
   let atomEnv, commandRegistry;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     atomEnv.destroy();
   });
 
-  it('allows lines and hunks to be selected via the mouse', async () => {
+  it('allows lines and hunks to be selected via the mouse', async function() {
     const hunks = [
       new Hunk(1, 1, 2, 4, [
         new HunkLine('line-1', 'unchanged', 1, 1),
@@ -100,7 +100,7 @@ describe('FilePatchView', () => {
     assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
   });
 
-  it('scrolls off-screen lines and hunks into view when they are selected', async () => {
+  it('scrolls off-screen lines and hunks into view when they are selected', async function() {
     const hunks = [
       new Hunk(1, 1, 2, 4, [
         new HunkLine('line-1', 'unchanged', 1, 1),
@@ -134,7 +134,7 @@ describe('FilePatchView', () => {
     filePatchView.element.remove();
   });
 
-  it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', async () => {
+  it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', async function() {
     const hunk = new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)]);
     let hunkView;
     function registerHunkView(_hunk, view) { hunkView = view; }
@@ -148,9 +148,9 @@ describe('FilePatchView', () => {
     assert.equal(hunkView.props.stageButtonLabel, 'Stage Selection');
   });
 
-  describe('didClickStageButtonForHunk', () => {
+  describe('didClickStageButtonForHunk', function() {
     // ref: https://github.com/atom/github/issues/339
-    it('selects the next hunk after staging', async () => {
+    it('selects the next hunk after staging', async function() {
       const hunks = [
         new Hunk(1, 1, 2, 4, [
           new HunkLine('line-1', 'unchanged', 1, 1),
@@ -179,8 +179,8 @@ describe('FilePatchView', () => {
     });
   });
 
-  describe('keyboard navigation', () => {
-    it('invokes the didSurfaceFile callback on core:move-right', () => {
+  describe('keyboard navigation', function() {
+    it('invokes the didSurfaceFile callback on core:move-right', function() {
       const hunks = [
         new Hunk(1, 1, 2, 2, [
           new HunkLine('line-1', 'unchanged', 1, 1),

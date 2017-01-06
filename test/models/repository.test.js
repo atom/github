@@ -4,9 +4,9 @@ import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
 
-describe('Repository', () => {
-  describe('staging and unstaging files', () => {
-    it('can stage and unstage modified files', async () => {
+describe('Repository', function() {
+  describe('staging and unstaging files', function() {
+    it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -24,7 +24,7 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getStagedChanges(), []);
     });
 
-    it('can stage and unstage removed files', async () => {
+    it('can stage and unstage removed files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'));
@@ -42,7 +42,7 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getStagedChanges(), []);
     });
 
-    it('can stage and unstage renamed files', async () => {
+    it('can stage and unstage renamed files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'));
@@ -61,7 +61,7 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getStagedChanges(), []);
     });
 
-    it('can stage and unstage added files', async () => {
+    it('can stage and unstage added files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
       const repo = await buildRepository(workingDirPath);
@@ -79,7 +79,7 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getStagedChanges(), []);
     });
 
-    it('can unstage and retrieve staged changes relative to HEAD~', async () => {
+    it('can unstage and retrieve staged changes relative to HEAD~', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'three\nfour\n', 'utf8');
@@ -126,8 +126,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('getFilePatchForPath', () => {
-    it('returns cached FilePatch objects if they exist', async () => {
+  describe('getFilePatchForPath', function() {
+    it('returns cached FilePatch objects if they exist', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foooooo', 'utf8');
@@ -142,7 +142,7 @@ describe('Repository', () => {
       assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), stagedFilePatchDuringAmend);
     });
 
-    it('returns new FilePatch object after repository refresh', async () => {
+    it('returns new FilePatch object after repository refresh', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -156,8 +156,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('applyPatchToIndex', () => {
-    it('can stage and unstage modified files', async () => {
+  describe('applyPatchToIndex', function() {
+    it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -188,8 +188,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('commit', () => {
-    it('creates a commit that contains the staged changes', async () => {
+  describe('commit', function() {
+    it('creates a commit that contains the staged changes', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       assert.equal((await repo.getLastCommit()).message, 'Initial commit');
@@ -215,7 +215,7 @@ describe('Repository', () => {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
 
-    it('amends the last commit when the amend option is set to true', async () => {
+    it('amends the last commit when the amend option is set to true', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = await buildRepository(workingDirPath);
       const lastCommit = await repo.git.getHeadCommit();
@@ -227,7 +227,7 @@ describe('Repository', () => {
       assert.deepEqual(lastCommitParent, amendedCommitParent);
     });
 
-    it('throws an error when there are unmerged files', async () => {
+    it('throws an error when there are unmerged files', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workingDirPath);
       try {
@@ -250,7 +250,7 @@ describe('Repository', () => {
       assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString());
     });
 
-    it('wraps the commit message body at 72 characters', async () => {
+    it('wraps the commit message body at 72 characters', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
 
@@ -271,7 +271,7 @@ describe('Repository', () => {
       ]);
     });
 
-    it('strips out comments', async () => {
+    it('strips out comments', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
 
@@ -289,8 +289,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('fetch(branchName)', () => {
-    it('brings commits from the remote and updates remote branch, and does not update branch', async () => {
+  describe('fetch(branchName)', function() {
+    it('brings commits from the remote and updates remote branch, and does not update branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
       let remoteHead, localHead;
@@ -307,8 +307,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('pull()', () => {
-    it('updates the remote branch and merges into local branch', async () => {
+  describe('pull()', function() {
+    it('updates the remote branch and merges into local branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
       let remoteHead, localHead;
@@ -325,8 +325,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('push()', () => {
-    it('sends commits to the remote and updates ', async () => {
+  describe('push()', function() {
+    it('sends commits to the remote and updates ', async function() {
       const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories();
       const localRepo = await buildRepository(localRepoPath);
 
@@ -354,8 +354,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('getAheadCount(branchName) and getBehindCount(branchName)', () => {
-    it('returns the number of commits ahead and behind the remote', async () => {
+  describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
+    it('returns the number of commits ahead and behind the remote', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
 
@@ -371,8 +371,8 @@ describe('Repository', () => {
     });
   });
 
-  describe('getRemoteForBranch(branchName)', () => {
-    it('returns the remote name associated to the supplied branch name, null if none exists', async () => {
+  describe('getRemoteForBranch(branchName)', function() {
+    it('returns the remote name associated to the supplied branch name, null if none exists', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
 
@@ -385,9 +385,9 @@ describe('Repository', () => {
     });
   });
 
-  describe('merge conflicts', () => {
-    describe('getMergeConflicts()', () => {
-      it('returns a promise resolving to an array of MergeConflict objects', async () => {
+  describe('merge conflicts', function() {
+    describe('getMergeConflicts()', function() {
+      it('returns a promise resolving to an array of MergeConflict objects', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const repo = await buildRepository(workingDirPath);
         try {
@@ -453,7 +453,7 @@ describe('Repository', () => {
         assertDeepPropertyVals(mergeConflicts, expected);
       });
 
-      it('returns an empty arry if the repo has no merge conflicts', async () => {
+      it('returns an empty arry if the repo has no merge conflicts', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const repo = await buildRepository(workingDirPath);
 
@@ -462,8 +462,8 @@ describe('Repository', () => {
       });
     });
 
-    describe('stageFiles([path])', () => {
-      it('updates the staged changes accordingly', async () => {
+    describe('stageFiles([path])', function() {
+      it('updates the staged changes accordingly', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const repo = await buildRepository(workingDirPath);
         try {
@@ -516,8 +516,8 @@ describe('Repository', () => {
       });
     });
 
-    describe('pathHasMergeMarkers()', () => {
-      it('returns true if and only if the file has merge markers', async () => {
+    describe('pathHasMergeMarkers()', function() {
+      it('returns true if and only if the file has merge markers', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const repo = await buildRepository(workingDirPath);
         try {
@@ -556,9 +556,9 @@ describe('Repository', () => {
       });
     });
 
-    describe('abortMerge()', () => {
-      describe('when the working directory is clean', () => {
-        it('resets the index and the working directory to match HEAD', async () => {
+    describe('abortMerge()', function() {
+      describe('when the working directory is clean', function() {
+        it('resets the index and the working directory to match HEAD', async function() {
           const workingDirPath = await cloneRepository('merge-conflict-abort');
           const repo = await buildRepository(workingDirPath);
           try {
@@ -572,8 +572,8 @@ describe('Repository', () => {
         });
       });
 
-      describe('when a dirty file in the working directory is NOT under conflict', () => {
-        it('successfully aborts the merge and does not affect the dirty file', async () => {
+      describe('when a dirty file in the working directory is NOT under conflict', function() {
+        it('successfully aborts the merge and does not affect the dirty file', async function() {
           const workingDirPath = await cloneRepository('merge-conflict-abort');
           const repo = await buildRepository(workingDirPath);
           try {
@@ -593,8 +593,8 @@ describe('Repository', () => {
         });
       });
 
-      describe('when a dirty file in the working directory is under conflict', () => {
-        it('throws an error indicating that the abort could not be completed', async () => {
+      describe('when a dirty file in the working directory is under conflict', function() {
+        it('throws an error indicating that the abort could not be completed', async function() {
           const workingDirPath = await cloneRepository('merge-conflict-abort');
           const repo = await buildRepository(workingDirPath);
           try {

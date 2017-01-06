@@ -29,8 +29,8 @@ class EtchComponent {
   }
 }
 
-describe('EtchWrapper', () => {
-  it('constructs a wrapped etch component with the given props', async () => {
+describe('EtchWrapper', function() {
+  it('constructs a wrapped etch component with the given props', async function() {
     const app = (
       <EtchWrapper className="wrapper">
         <EtchComponent text="hello" other="world" />
