@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories, until} from '../helpers';
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
@@ -73,15 +73,11 @@ describe('FileSystemChangeObserver', function() {
     changeObserver.onDidChange(changeSpy);
     await changeObserver.start();
 
-    let changePromise = changeObserver.getLastChangePromise();
     await repository.git.exec(['commit', '--allow-empty', '-m', 'new commit']);
-    await changePromise;
 
     changeSpy.reset();
-    changePromise = changeObserver.getLastChangePromise();
     await repository.git.exec(['push', 'origin', 'master']);
-    await changePromise;
-    assert.isTrue(changeSpy.called);
+    assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when a new tracking branch is added after pushing', async function() {
