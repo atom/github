@@ -46,6 +46,11 @@ module.exports = function({types: t, template}) {
         // "something"
         const meth = callee.property.name;
 
+        if (t.isExpressionStatement(path.parent)) {
+          const error = `${assert}.async.${meth} can not be used as a statement (did you forget to 'await' it?)`;
+          throw path.buildCodeFrameError(error);
+        }
+
         // assert.something
         const assertDotMethod = t.memberExpression(t.identifier(assert), t.identifier(meth));
         // assert.something(arg1, arg2)
