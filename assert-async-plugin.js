@@ -33,8 +33,8 @@ module.exports = function({types: t, template}) {
         const calleeObjectObject = calleeObject.object;
         const calleeObjectProperty = calleeObject.property;
 
-        if (calleeObjectObject.name !== 'assert') { return; }
-        if (t.isIdentifier(calleeObjectProperty) && calleeObjectProperty.name !== 'async') { return; }
+        if (!t.isIdentifier(calleeObjectObject) || calleeObjectObject.name !== 'assert') { return; }
+        if (!t.isIdentifier(calleeObjectProperty) || calleeObjectProperty.name !== 'async') { return; }
 
         // path === assert.async.something(arg1, arg2)
 
