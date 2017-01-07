@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import sinon from 'sinon';
 
 import mkdirp from 'mkdirp';
 
