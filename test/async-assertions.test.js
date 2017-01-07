@@ -1,4 +1,4 @@
-import {until} from './helpers'; // eslint-disable-line no-unused-vars
+import until from 'test-until'; // eslint-disable-line no-unused-vars
 
 describe('assert.async', function() {
   it('allows for asynchronous assertions', async function() {

@@ -76,7 +76,8 @@
     "react-addons-test-utils": "^15.4.1",
     "simulant": "^0.2.2",
     "sinon": "2.0.0-pre.4",
-    "temp": "^0.8.3"
+    "temp": "^0.8.3",
+    "test-until": "^1.0.0"
   },
   "consumedServices": {
     "status-bar": {

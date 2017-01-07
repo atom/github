@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
+import until from 'test-until';
 
-import {cloneRepository, until} from './helpers';
+import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
