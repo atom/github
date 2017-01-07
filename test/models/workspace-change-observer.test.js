@@ -1,6 +1,8 @@
 import path from 'path';
 
-import {cloneRepository, buildRepository, until} from '../helpers';
+import until from 'test-until';
+
+import {cloneRepository, buildRepository} from '../helpers';
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 
@@ -43,7 +45,7 @@ describe('WorkspaceChangeObserver', function() {
     const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
     editor.setText('change');
     await repository.stageFiles(['a.txt']);
-    assert.async.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits a change event when a buffer belonging to the project directory changes', async function() {

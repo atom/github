@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
+import until from 'test-until';
 
-import {cloneRepository, until} from './helpers';
+import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 for (let i = 0; i < 50; i++) {
@@ -209,41 +210,38 @@ for (let i = 0; i < 50; i++) {
       // change file in repository1
         fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
-        assert.async.isTrue(repository1.refresh.called);
-        assert.async.isTrue(atomGitRepository1.refreshStatus.called);
+      await assert.async.isTrue(repository1.refresh.called);
+      await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
         assert.isFalse(repository2.refresh.called);
         assert.isFalse(atomGitRepository2.refreshStatus.called);
-        await new Promise(res => setTimeout(res, 500));
         repository1.refresh.reset();
         atomGitRepository1.refreshStatus.reset();
 
       // change file in repository2
         fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
-        assert.async.isTrue(repository2.refresh.called);
-        assert.async.isTrue(atomGitRepository2.refreshStatus.called);
+      await assert.async.isTrue(repository2.refresh.called);
+      await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
         assert.isFalse(repository1.refresh.called);
         assert.isFalse(atomGitRepository1.refreshStatus.called);
-        await new Promise(res => setTimeout(res, 500));
         repository2.refresh.reset();
         atomGitRepository2.refreshStatus.reset();
 
       // change HEAD in repository1
         await repository1.git.exec(['commit', '-am', 'commit in repository1']);
 
-        assert.async.isTrue(repository1.refresh.called);
-        assert.async.isTrue(atomGitRepository1.refreshStatus.called);
+      await assert.async.isTrue(repository1.refresh.called);
+      await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
         assert.isFalse(repository2.refresh.called);
         assert.isFalse(atomGitRepository2.refreshStatus.called);
-        await new Promise(res => setTimeout(res, 500));
         repository1.refresh.reset();
         atomGitRepository1.refreshStatus.reset();
 
       // change HEAD in repository1
         await repository2.git.exec(['commit', '-am', 'commit in repository2']);
 
-        assert.async.isTrue(repository2.refresh.called);
-        assert.async.isTrue(atomGitRepository2.refreshStatus.called);
+      await assert.async.isTrue(repository2.refresh.called);
+      await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
         assert.isFalse(repository1.refresh.called);
         assert.isFalse(atomGitRepository1.refreshStatus.called);
       });
