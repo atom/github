@@ -3,10 +3,11 @@ import path from 'path';
 import etch from 'etch';
 
 import dedent from 'dedent-js';
+import until from 'test-until';
 
 import GitPanelController from '../../lib/controllers/git-panel-controller';
 
-import {cloneRepository, buildRepository, until} from '../helpers';
+import {cloneRepository, buildRepository} from '../helpers';
 import {AbortMergeError, CommitError} from '../../lib/models/repository';
 
 describe('GitPanelController', function() {

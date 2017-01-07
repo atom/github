@@ -1,5 +1,6 @@
-import {cloneRepository, buildRepository, until} from '../helpers';
+import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
+import until from 'test-until';
 
 import CommitView from '../../lib/views/commit-view';
 

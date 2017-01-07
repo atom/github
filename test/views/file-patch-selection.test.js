@@ -1,7 +1,9 @@
+import until from 'test-until';
+
 import FilePatchSelection from '../../lib/views/file-patch-selection';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
-import {assertEqualSets, until} from '../helpers';
+import {assertEqualSets} from '../helpers';
 
 describe('FilePatchSelection', function() {
   describe('line selection', function() {
