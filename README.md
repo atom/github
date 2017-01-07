@@ -10,7 +10,7 @@ You may install the GitHub package via the Atom GUI or via the command line.
 
 **Settings View**
 
-In settings view, click "Install," enter the URL to the repository in the search field, and press enter. In the installation card that appears, click "Install."
+In settings view, click "Install," enter `atom/github` in the search field, and press enter. In the installation card that appears, click "Install."
 
 ![Installation via settings view](./docs/install-settings-view.png)
 
@@ -60,7 +60,7 @@ This package is currently :construction: under heavy development. :construction:
 - [x] Create new branches
 - [x] Push/pull/fetch
 - [x] Abort merges
-- [ ] Resolve merge conflicts via special UI
+- [ ] Resolve merge conflicts via special UI ([#385](https://github.com/atom/github/pull/385))
 
 **GitHub**
 
