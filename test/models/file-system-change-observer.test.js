@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import until from 'test-until'; // eslint-disable-line no-unused-vars
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 
@@ -19,18 +20,15 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.calledOnce);
 
     changeSpy.reset();
     fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'a change\n');
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.calledOnce);
 
     changeSpy.reset();
     fs.unlinkSync(path.join(workdirPath, 'a.txt'));
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.calledOnce);
   });
 
   it('emits an event when a file is staged or unstaged', async function() {
@@ -43,13 +41,11 @@ describe('FileSystemChangeObserver', function() {
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     await repository.git.exec(['add', 'a.txt']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
 
     changeSpy.reset();
     await repository.git.exec(['reset', 'a.txt']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when a branch is checked out', async function() {
@@ -61,13 +57,10 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     await repository.git.exec(['checkout', '-b', 'new-branch']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when commits are pushed', async function() {
-    this.retries(2); // this test occasionally times out
-
     const {localRepoPath} = await setUpLocalAndRemoteRepositories();
     const repository = await buildRepository(localRepoPath);
     const changeSpy = sinon.spy();
@@ -76,12 +69,10 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     await repository.git.exec(['commit', '--allow-empty', '-m', 'new commit']);
-    await changeObserver.lastFileChangePromise;
 
     changeSpy.reset();
     await repository.git.exec(['push', 'origin', 'master']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when a new tracking branch is added after pushing', async function() {
@@ -93,12 +84,10 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     await repository.git.exec(['checkout', '-b', 'new-branch']);
-    await changeObserver.lastFileChangePromise;
 
     changeSpy.reset();
     await repository.git.exec(['push', '--set-upstream', 'origin', 'new-branch']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when commits have been fetched', async function() {
@@ -110,7 +99,6 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     await repository.git.exec(['fetch', 'origin', 'master']);
-    await changeObserver.lastFileChangePromise;
-    assert.isTrue(changeSpy.called);
+    await assert.async.isTrue(changeSpy.called);
   });
 });
