@@ -1,5 +1,3 @@
-import until from 'test-until'; // eslint-disable-line no-unused-vars
-
 describe('assert.async', function() {
   it('allows for asynchronous assertions', async function() {
     let val = false;

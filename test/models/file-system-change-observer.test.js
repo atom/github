@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import until from 'test-until'; // eslint-disable-line no-unused-vars
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 

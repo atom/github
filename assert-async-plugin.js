@@ -13,7 +13,7 @@ module.exports = function({types: t, template}) {
   return {
     name: 'assert-async',
     visitor: {
-      CallExpression(path) {
+      CallExpression(path, state) {
         // assuming `assert.async.something(arg1, arg2)`
 
         // assert.async.something
@@ -59,7 +59,7 @@ module.exports = function({types: t, template}) {
         path.replaceWith(generator({
           ASSERT_CALL: assertExpression,
           UNTIL_ARGS: asyncArgs,
-          UNTIL_FUNC: t.identifier('until'),
+          UNTIL_FUNC: state.addImport('test-until', 'default', 'until'),
         }));
       },
     },
