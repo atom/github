@@ -3,7 +3,7 @@ import path from 'path';
 
 import mkdirp from 'mkdirp';
 
-import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 
@@ -507,6 +507,87 @@ describe('Git commands', function() {
       const amendedCommitParent = await git.getCommit('HEAD~');
       assert.notDeepEqual(lastCommit, amendedCommit);
       assert.deepEqual(lastCommitParent, amendedCommitParent);
+    });
+  });
+
+  describe('GPG signing', () => {
+    let git;
+
+    beforeEach(async () => {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      git = new GitShellOutStrategy(workingDirPath);
+    });
+
+    const operations = [
+      {
+        verbalNoun: 'commit',
+        progressiveTense: 'committing',
+        action: () => git.commit('message'),
+      },
+      {
+        verbalNoun: 'merge',
+        progressiveTense: 'merging',
+        action: () => git.merge('some-branch'),
+      },
+      {
+        verbalNoun: 'pull',
+        progressiveTense: 'pulling',
+        action: () => git.pull('some-branch'),
+        configureStub: stub => {
+          // Stub the `git config` call to resolve the branch's upstream.
+          stub.onCall(0).returns(Promise.resolve('origin'));
+          return 1;
+        },
+      },
+    ];
+
+    operations.forEach(op => {
+      it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async () => {
+        const execStub = sinon.stub(git, 'exec');
+        let callIndex = 0;
+        if (op.configureStub) {
+          callIndex = op.configureStub(execStub);
+        }
+        execStub.returns(Promise.resolve());
+
+        await op.action();
+
+        const callArgs = execStub.getCall(callIndex).args;
+        const execArgs = callArgs[0];
+        assert.equal(execArgs[0], '-c');
+        assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
+        assert.isNull(callArgs[1]);
+        assert.isNotOk(callArgs[2]);
+      });
+
+      it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
+        const gpgErr = new GitError('Mock GPG failure', 'stderr includes "gpg failed"');
+        gpgErr.code = 128;
+
+        let callIndex = 0;
+        const execStub = sinon.stub(git, 'exec');
+        if (op.configureStub) {
+          callIndex = op.configureStub(execStub);
+        }
+        execStub.onCall(callIndex).returns(Promise.reject(gpgErr));
+        execStub.returns(Promise.resolve());
+
+        await op.action();
+
+        const callArgs0 = execStub.getCall(callIndex).args;
+        const execArgs0 = callArgs0[0];
+        assert.equal(execArgs0[0], '-c');
+        assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
+        assert.isNull(callArgs0[1]);
+        assert.isNotOk(callArgs0[2]);
+
+        const callArgs1 = execStub.getCall(callIndex + 1).args;
+        const execArgs1 = callArgs1[0];
+        assert.equal(execArgs1[0], '-c');
+        assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
+        assert.isNull(callArgs1[1]);
+        assert.isTrue(callArgs1[2]);
+      });
     });
   });
 });

@@ -1,6 +1,8 @@
 import path from 'path';
 
-import {cloneRepository, buildRepository, until} from '../helpers';
+import until from 'test-until';
+
+import {cloneRepository, buildRepository} from '../helpers';
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 

@@ -243,7 +243,7 @@ describe('Repository', function() {
         await repository.commit('Merge Commit');
       } catch (e) {
         assert.isAbove(e.code, 0);
-        assert.match(e.command, /^git commit/);
+        assert.match(e.command, /commit/);
       }
 
       assert.equal(await repository.isMerging(), true);
