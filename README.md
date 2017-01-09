@@ -55,7 +55,7 @@ This package is currently :construction: under heavy development. :construction:
 - [ ] Discard changed files/hunks/lines
 - [x] Create commits
 - [x] Amend last commit
-- [ ] Sign commits ([#396](https://github.com/atom/github/pull/396))
+- [x] Sign commits
 - [x] Change branches
 - [x] Create new branches
 - [x] Push/pull/fetch
