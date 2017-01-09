@@ -18,7 +18,8 @@ describe('GithubPackage', function() {
     githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager);
   });
 
-  afterEach(function() {
+  afterEach(async function() {
+    await githubPackage.deactivate();
     atomEnv.destroy();
   });
 
