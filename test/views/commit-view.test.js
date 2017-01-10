@@ -57,24 +57,6 @@ describe('CommitView', function() {
     assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
   });
 
-  it('uses the git commit message grammar when the grammar is loaded', async function() {
-    await atom.packages.activatePackage('language-git');
-
-    const view = new CommitView({commandRegistry});
-    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
-  });
-
-  it('uses the git commit message grammar when the grammar has not been loaded', async function() {
-    atom.packages.deactivatePackage('language-git');
-
-    const view = new CommitView({commandRegistry});
-    assert(view.editor.getGrammar().scopeName.startsWith('text.plain'));
-
-    await atom.packages.activatePackage('language-git');
-
-    assert.equal(view.editor.getGrammar().scopeName, 'text.git-commit');
-  });
-
   describe('the commit button', function() {
     let view, editor, commitButton;
 
