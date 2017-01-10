@@ -30,6 +30,7 @@ describe('FilePatch', function() {
           new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20),
+          new HunkLine('No newline at end of file', 'nonewline', -1, -1),
         ]),
       ]);
       const linesFromHunk2 = filePatch.getHunks()[1].getLines().slice(1, 4);
@@ -68,6 +69,7 @@ describe('FilePatch', function() {
             new HunkLine('line-12', 'unchanged', 20, 18),
             new HunkLine('line-13', 'added', -1, 19),
             new HunkLine('line-14', 'unchanged', 21, 20),
+            new HunkLine('No newline at end of file', 'nonewline', -1, -1),
           ]),
         ],
       ));
@@ -138,9 +140,11 @@ describe('FilePatch', function() {
           new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20),
+          new HunkLine('No newline at end of file', 'nonewline', -1, -1),
         ]),
       ]);
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5));
+      filePatch.getHunks()[2].getLines().forEach(line => lines.add(line));
       assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, [
@@ -150,6 +154,12 @@ describe('FilePatch', function() {
             new HunkLine('line-5', 'added', -1, 8),
             new HunkLine('line-6', 'added', -1, 9),
             new HunkLine('line-9', 'unchanged', 10, 10),
+          ]),
+          new Hunk(19, 21, 2, 2, [
+            new HunkLine('line-13', 'deleted', 19, -1),
+            new HunkLine('line-12', 'added', -1, 21),
+            new HunkLine('line-14', 'unchanged', 20, 22),
+            new HunkLine('No newline at end of file', 'nonewline', -1, -1),
           ]),
         ],
       ));
