@@ -73,24 +73,46 @@ describe('FilePatch', function() {
       ));
     });
 
-    it('handles deleted files', function() {
-      const filePatch = new FilePatch('a.txt', null, 'deleted', [
-        new Hunk(1, 0, 3, 0, [
-          new HunkLine('line-1', 'deleted', 1, -1),
-          new HunkLine('line-2', 'deleted', 2, -1),
-          new HunkLine('line-3', 'deleted', 3, -1),
-        ]),
-      ]);
-      const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
-      assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
-        'a.txt', 'a.txt', 'deleted', [
-          new Hunk(1, 1, 3, 1, [
+    describe('staging lines from deleted files', function() {
+      it('handles staging part of the file', function() {
+        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+          new Hunk(1, 0, 3, 0, [
             new HunkLine('line-1', 'deleted', 1, -1),
             new HunkLine('line-2', 'deleted', 2, -1),
-            new HunkLine('line-3', 'unchanged', 3, 1),
+            new HunkLine('line-3', 'deleted', 3, -1),
           ]),
-        ],
-      ));
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', 'a.txt', 'deleted', [
+            new Hunk(1, 1, 3, 1, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'unchanged', 3, 1),
+            ]),
+          ],
+        ));
+      });
+
+      it('handles staging all lines, leaving nothing unstaged', function() {
+        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+          new Hunk(1, 0, 3, 0, [
+            new HunkLine('line-1', 'deleted', 1, -1),
+            new HunkLine('line-2', 'deleted', 2, -1),
+            new HunkLine('line-3', 'deleted', 3, -1),
+          ]),
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines();
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', null, 'deleted', [
+            new Hunk(1, 0, 3, 0, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'deleted', 3, -1),
+            ]),
+          ],
+        ));
+      });
     });
   });
 
@@ -131,6 +153,49 @@ describe('FilePatch', function() {
           ]),
         ],
       ));
+    });
+
+    describe('unstaging lines from an added file', function() {
+      it('handles unstaging part of the file', function() {
+        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+          new Hunk(0, 1, 0, 3, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]),
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', 'a.txt', 'deleted', [
+            new Hunk(1, 1, 3, 1, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'unchanged', 3, 1),
+            ]),
+          ],
+        ));
+      });
+
+      it('handles unstaging all lines, leaving nothign staged', function() {
+        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+          new Hunk(0, 1, 0, 3, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]),
+        ]);
+
+        const linesFromHunk = filePatch.getHunks()[0].getLines();
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', null, 'deleted', [
+            new Hunk(1, 0, 3, 0, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'deleted', 3, -1),
+            ]),
+          ],
+        ));
+      });
     });
   });
 
