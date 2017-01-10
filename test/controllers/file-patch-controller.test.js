@@ -188,6 +188,50 @@ describe('FilePatchController', function() {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
     });
 
+    // https://github.com/atom/github/issues/417
+    describe('when unstaging the last lines/hunks from a file', function() {
+      it('removes added files from index when last hunk is unstaged', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const filePath = path.join(workdirPath, 'new-file.txt');
+
+        fs.writeFileSync(filePath, 'foo\n');
+        await repository.stageFiles(['new-file.txt']);
+        const stagedFilePatch = await repository.getFilePatchForPath('new-file.txt', {staged: true});
+
+        const controller = new FilePatchController({commandRegistry, filePatch: stagedFilePatch, repository, stagingStatus: 'staged'});
+        const view = controller.refs.filePatchView;
+        const hunk = stagedFilePatch.getHunks()[0];
+
+        const {stageOperationPromise} = view.didClickStageButtonForHunk(hunk);
+        await stageOperationPromise;
+        const stagedChanges = await repository.getStagedChanges();
+        assert.equal(stagedChanges.length, 0);
+      });
+
+      it('removes added files from index when last lines are unstaged', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const filePath = path.join(workdirPath, 'new-file.txt');
+
+        fs.writeFileSync(filePath, 'foo\n');
+        await repository.stageFiles(['new-file.txt']);
+        const stagedFilePatch = await repository.getFilePatchForPath('new-file.txt', {staged: true});
+
+        const controller = new FilePatchController({commandRegistry, filePatch: stagedFilePatch, repository, stagingStatus: 'staged'});
+        const view = controller.refs.filePatchView;
+        const hunk = stagedFilePatch.getHunks()[0];
+
+        view.togglePatchSelectionMode();
+        view.selectAll();
+
+        const {stageOperationPromise} = view.didClickStageButtonForHunk(hunk);
+        await stageOperationPromise;
+        const stagedChanges = await repository.getStagedChanges();
+        assert.equal(stagedChanges.length, 0);
+      });
+    });
+
     // https://github.com/atom/github/issues/341
     describe('when duplicate staging occurs', function() {
       it('avoids patch conflicts with pending line staging operations', async function() {
