@@ -215,21 +215,6 @@ describe('Git commands', function() {
     });
   });
 
-  describe('getIndexContentsForPath(filePath)', function() {
-    it('returns a string of file contents', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-
-
-      let contents = await git.getIndexContentsForPath('a.txt');
-      assert.equal(contents, 'foo\n');
-
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), '', 'utf8');
-      contents = await git.getIndexContentsForPath('a.txt');
-      assert.equal(contents, 'foo\n');
-    });
-  });
-
   describe('getDiffForFilePath', function() {
     it('returns an empty array if there are no modified, added, or deleted files', async function() {
       const workingDirPath = await cloneRepository('three-files');
