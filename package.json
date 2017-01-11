@@ -46,7 +46,7 @@
     "git-kitchen-sink": "1.11.0",
     "multi-list-selection": "^0.1.1",
     "ncp": "^2.0.0",
-    "nsfw": "1.0.13",
+    "nsfw": "1.0.14",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "recursive-readdir": "^2.0.0",
