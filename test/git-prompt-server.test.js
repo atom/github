@@ -20,7 +20,7 @@ if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersio
         return 'Green. I mean blue! AAAhhhh...';
       });
 
-      let err, stdout, stderr;
+      let err, stdout;
       await new Promise((resolve, reject) => {
         const command = `"${electron}" "${helper}" "${socket}" "What... is your favorite color?"`;
         exec(command, {
@@ -31,7 +31,6 @@ if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersio
         }, (_err, _stdout, _stderr) => {
           err = _err;
           stdout = _stdout;
-          stderr = _stderr;
           resolve();
         });
       });
