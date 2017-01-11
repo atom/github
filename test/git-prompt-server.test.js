@@ -20,19 +20,24 @@ if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersio
         return 'Green. I mean blue! AAAhhhh...';
       });
 
-      await new Promise(resolve => {
+      let err, stdout, stderr;
+      await new Promise((resolve, reject) => {
         const command = `"${electron}" "${helper}" "${socket}" "What... is your favorite color?"`;
         exec(command, {
           env: {
             ELECTRON_RUN_AS_NODE: 1,
             ELECTRON_NO_ATTACH_CONSOLE: 1,
           },
-        }, (err, stdout, stderr) => {
-          assert.isNull(err);
-          assert.equal(stdout, 'Green. I mean blue! AAAhhhh...\n');
+        }, (_err, _stdout, _stderr) => {
+          err = _err;
+          stdout = _stdout;
+          stderr = _stderr;
           resolve();
         });
       });
+
+      assert.ifError(err);
+      assert.equal(stdout, 'Green. I mean blue! AAAhhhh...\n');
 
       await server.terminate();
     });
