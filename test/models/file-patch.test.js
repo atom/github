@@ -30,6 +30,7 @@ describe('FilePatch', function() {
           new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20),
+          new HunkLine('No newline at end of file', 'nonewline', -1, -1),
         ]),
       ]);
       const linesFromHunk2 = filePatch.getHunks()[1].getLines().slice(1, 4);
@@ -68,29 +69,52 @@ describe('FilePatch', function() {
             new HunkLine('line-12', 'unchanged', 20, 18),
             new HunkLine('line-13', 'added', -1, 19),
             new HunkLine('line-14', 'unchanged', 21, 20),
+            new HunkLine('No newline at end of file', 'nonewline', -1, -1),
           ]),
         ],
       ));
     });
 
-    it('handles deleted files', function() {
-      const filePatch = new FilePatch('a.txt', null, 'deleted', [
-        new Hunk(1, 0, 3, 0, [
-          new HunkLine('line-1', 'deleted', 1, -1),
-          new HunkLine('line-2', 'deleted', 2, -1),
-          new HunkLine('line-3', 'deleted', 3, -1),
-        ]),
-      ]);
-      const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
-      assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
-        'a.txt', 'a.txt', 'deleted', [
-          new Hunk(1, 1, 3, 1, [
+    describe('staging lines from deleted files', function() {
+      it('handles staging part of the file', function() {
+        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+          new Hunk(1, 0, 3, 0, [
             new HunkLine('line-1', 'deleted', 1, -1),
             new HunkLine('line-2', 'deleted', 2, -1),
-            new HunkLine('line-3', 'unchanged', 3, 1),
+            new HunkLine('line-3', 'deleted', 3, -1),
           ]),
-        ],
-      ));
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', 'a.txt', 'deleted', [
+            new Hunk(1, 1, 3, 1, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'unchanged', 3, 1),
+            ]),
+          ],
+        ));
+      });
+
+      it('handles staging all lines, leaving nothing unstaged', function() {
+        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+          new Hunk(1, 0, 3, 0, [
+            new HunkLine('line-1', 'deleted', 1, -1),
+            new HunkLine('line-2', 'deleted', 2, -1),
+            new HunkLine('line-3', 'deleted', 3, -1),
+          ]),
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines();
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', null, 'deleted', [
+            new Hunk(1, 0, 3, 0, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'deleted', 3, -1),
+            ]),
+          ],
+        ));
+      });
     });
   });
 
@@ -116,9 +140,11 @@ describe('FilePatch', function() {
           new HunkLine('line-12', 'deleted', 20, -1),
           new HunkLine('line-13', 'added', -1, 19),
           new HunkLine('line-14', 'unchanged', 21, 20),
+          new HunkLine('No newline at end of file', 'nonewline', -1, -1),
         ]),
       ]);
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5));
+      filePatch.getHunks()[2].getLines().forEach(line => lines.add(line));
       assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, [
@@ -129,8 +155,57 @@ describe('FilePatch', function() {
             new HunkLine('line-6', 'added', -1, 9),
             new HunkLine('line-9', 'unchanged', 10, 10),
           ]),
+          new Hunk(19, 21, 2, 2, [
+            new HunkLine('line-13', 'deleted', 19, -1),
+            new HunkLine('line-12', 'added', -1, 21),
+            new HunkLine('line-14', 'unchanged', 20, 22),
+            new HunkLine('No newline at end of file', 'nonewline', -1, -1),
+          ]),
         ],
       ));
+    });
+
+    describe('unstaging lines from an added file', function() {
+      it('handles unstaging part of the file', function() {
+        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+          new Hunk(0, 1, 0, 3, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]),
+        ]);
+        const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', 'a.txt', 'deleted', [
+            new Hunk(1, 1, 3, 1, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'unchanged', 3, 1),
+            ]),
+          ],
+        ));
+      });
+
+      it('handles unstaging all lines, leaving nothign staged', function() {
+        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+          new Hunk(0, 1, 0, 3, [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]),
+        ]);
+
+        const linesFromHunk = filePatch.getHunks()[0].getLines();
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+          'a.txt', null, 'deleted', [
+            new Hunk(1, 0, 3, 0, [
+              new HunkLine('line-1', 'deleted', 1, -1),
+              new HunkLine('line-2', 'deleted', 2, -1),
+              new HunkLine('line-3', 'deleted', 3, -1),
+            ]),
+          ],
+        ));
+      });
     });
   });
 

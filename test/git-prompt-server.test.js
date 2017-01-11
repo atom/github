@@ -12,6 +12,8 @@ import GitPromptServer from '../lib/git-prompt-server';
 if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersion)) {
   describe('GitPromptServer', function() {
     it('prompts for user input and writes the response to stdout', async function() {
+      this.timeout(10000);
+
       const server = new GitPromptServer();
       const {helper, socket, electron} = await server.start(question => {
         assert.equal(question, 'What... is your favorite color?\u0000');
