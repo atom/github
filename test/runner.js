@@ -6,5 +6,6 @@ chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
 module.exports = createRunner({
+  reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
 });
