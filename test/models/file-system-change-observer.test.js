@@ -6,10 +6,6 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
 describe('FileSystemChangeObserver', function() {
-  beforeEach(function() {
-    this.timeout(5000); // increase the timeout because we're interacting with file system events.
-  });
-
   it('emits an event when a project file is modified, created, or deleted', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);

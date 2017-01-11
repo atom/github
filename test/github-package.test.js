@@ -10,8 +10,6 @@ describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, githubPackage;
 
   beforeEach(function() {
-    this.timeout(5000); // increase the timeout because we're interacting with file system events.
-
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     project = atomEnv.project;
