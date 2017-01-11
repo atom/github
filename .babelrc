@@ -2,6 +2,7 @@
   "sourceMaps": "inline",
   "plugins": [
     "./assert-async-plugin.js",
+    "./assert-messages-plugin.js",
     "transform-object-rest-spread",
     "transform-es2015-modules-commonjs",
     "transform-async-to-generator",

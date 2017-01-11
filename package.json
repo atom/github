@@ -21,7 +21,8 @@
         "cacheKeyFiles": [
           "package.json",
           ".babelrc",
-          "assert-async-plugin.js"
+          "assert-async-plugin.js",
+          "assert-messages-plugin.js"
         ]
       }
     }
@@ -29,6 +30,7 @@
   "dependencies": {
     "atom-babel6-transpiler": "0.0.3",
     "babel-core": "^6.21.0",
+    "babel-generator": "^6.21.0",
     "babel-plugin-transform-async-to-generator": "^6.16.0",
     "babel-plugin-transform-class-properties": "^6.19.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
