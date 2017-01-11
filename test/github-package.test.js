@@ -191,6 +191,7 @@ describe('GithubPackage', function() {
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 300));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
@@ -201,6 +202,7 @@ describe('GithubPackage', function() {
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
       assert.isFalse(repository1.refresh.called);
       assert.isFalse(atomGitRepository1.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 300));
       repository2.refresh.reset();
       atomGitRepository2.refreshStatus.reset();
 
@@ -211,6 +213,7 @@ describe('GithubPackage', function() {
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
       assert.isFalse(repository2.refresh.called);
       assert.isFalse(atomGitRepository2.refreshStatus.called);
+      await new Promise(res => setTimeout(res, 300));
       repository1.refresh.reset();
       atomGitRepository1.refreshStatus.reset();
 
