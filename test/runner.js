@@ -13,4 +13,4 @@ until.setDefaultTimeout(5000);
 module.exports = createRunner({
   reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
-});
+}, m => m.timeout(5000));
