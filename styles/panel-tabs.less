@@ -1,0 +1,57 @@
+.github-PanelPortal {
+  display: flex;
+  width: 400px;
+
+  .github-PanelTabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &.githubDisabled .github-PanelTabs .tabs-navigation {
+    display: none;
+  }
+
+  .tabs-navigation {
+    .tabs-menu {
+      list-style: none;
+      padding-left: 0;
+      display: flex;
+      margin-bottom: 0;
+      margin-top: 10px;
+    }
+
+    .tabs-menu-item {
+      flex: 1;
+      text-align: center;
+      height: 32px;
+      vertical-align: baseline;
+      display: flex;
+      align-items: center;
+      border-radius: 3px 3px 0 0;
+
+      > a {
+        flex: 1;
+      }
+
+      &.is-active {
+        border: 1px solid @tab-border-color;
+        border-left: 2px solid @background-color-info;
+        border-bottom: none;
+        background: @tab-background-color-active;
+      }
+    }
+  }
+
+  .tab-panel {
+    display: flex;
+    flex: 1;
+    // background-color: mix(@base-background-color, @tool-panel-background-color);
+    background: #f0f0f0; // TODO: why does the above not reproduce this color?
+
+    > div {
+      display: flex;
+      flex: 1;
+    }
+  }
+}
