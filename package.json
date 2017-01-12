@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "test": "atom --test test",
-    "lint": "eslint --max-warnings 0 test lib"
+    "lint": "eslint --max-warnings 0 test lib",
+    "fetch-schema": "node graphql/fetch-schema.js"
   },
   "engines": {
     "atom": ">=1.13.0"
@@ -22,7 +23,9 @@
           "package.json",
           ".babelrc",
           "assert-async-plugin.js",
-          "assert-messages-plugin.js"
+          "assert-messages-plugin.js",
+          "graphql/relay-babel.js",
+          "graphql/schema.graphql"
         ]
       }
     }
@@ -52,6 +55,7 @@
     "nsfw": "1.0.14",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
+    "react-relay": "^0.10.0",
     "react-simpletabs": "^0.7.0",
     "recursive-readdir": "^2.0.0",
     "semver": "^5.3.0",
