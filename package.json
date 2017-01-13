@@ -39,6 +39,7 @@
     "babel-plugin-transform-es2015-parameters": "^6.21.0",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-preset-react": "^6.16.0",
+    "classnames": "^2.2.5",
     "compare-sets": "^1.0.1",
     "core-decorators": "^0.15.0",
     "diff": "2.2.2",
