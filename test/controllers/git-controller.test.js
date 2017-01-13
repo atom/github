@@ -379,13 +379,13 @@ describe('GitController', function() {
       await wrapper.instance().openFiles(['file1.txt']);
 
       assert.equal(workspace.open.callCount, 1);
-      assert.deepEqual(workspace.open.args[0], ['file1.txt', {pending: true}]);
+      assert.deepEqual(workspace.open.args[0], [path.join(repository.getWorkingDirectoryPath(), 'file1.txt'), {pending: true}]);
 
       workspace.open.reset();
       await wrapper.instance().openFiles(['file2.txt', 'file3.txt']);
       assert.equal(workspace.open.callCount, 2);
-      assert.deepEqual(workspace.open.args[0], ['file2.txt', {pending: false}]);
-      assert.deepEqual(workspace.open.args[1], ['file3.txt', {pending: false}]);
+      assert.deepEqual(workspace.open.args[0], [path.join(repository.getWorkingDirectoryPath(), 'file2.txt'), {pending: false}]);
+      assert.deepEqual(workspace.open.args[1], [path.join(repository.getWorkingDirectoryPath(), 'file3.txt'), {pending: false}]);
     });
   });
 
