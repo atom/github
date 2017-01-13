@@ -30,3 +30,9 @@
       'command': 'github:open-file'
     }
   ]
+  '.github-FilePatchView': [
+    {
+      'label': 'Open File'
+      'command': 'github:open-file'
+    }
+  ]
