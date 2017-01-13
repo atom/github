@@ -363,4 +363,30 @@ describe('GitController', function() {
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.state('amending'), true);
   });
+
+  describe('openFiles(filePaths)', () => {
+    it('calls workspace.open, passing pending:true if only one file path is passed', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      fs.writeFileSync(path.join(workdirPath, 'file1.txt'), 'foo');
+      fs.writeFileSync(path.join(workdirPath, 'file2.txt'), 'bar');
+      fs.writeFileSync(path.join(workdirPath, 'file3.txt'), 'baz');
+
+      sinon.stub(workspace, 'open');
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+      await wrapper.instance().openFiles(['file1.txt']);
+
+      assert.equal(workspace.open.callCount, 1);
+      assert.deepEqual(workspace.open.args[0], ['file1.txt', {pending: true}]);
+
+      workspace.open.reset();
+      await wrapper.instance().openFiles(['file2.txt', 'file3.txt']);
+      assert.equal(workspace.open.callCount, 2);
+      assert.deepEqual(workspace.open.args[0], ['file2.txt', {pending: false}]);
+      assert.deepEqual(workspace.open.args[1], ['file3.txt', {pending: false}]);
+    });
+  });
+
 });

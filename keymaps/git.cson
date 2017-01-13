@@ -21,6 +21,7 @@
   'tab': 'github:select-next-hunk'
   'shift-tab': 'github:select-previous-hunk'
   'right': 'core:move-right'
+  'o': 'github:open-file'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'
