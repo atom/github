@@ -12,6 +12,7 @@ skip_tags: true
 
 environment:
   APM_TEST_PACKAGES:
+  ATOM_GITHUB_FS_EVENT_LOG: '1'
 
   matrix:
   - ATOM_CHANNEL: stable

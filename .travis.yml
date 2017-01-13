@@ -6,7 +6,9 @@ node_js:
   - '4.4.7'
 
 env:
+  global:
   - ATOM_CHANNEL=stable
+  - ATOM_GITHUB_FS_EVENT_LOG=1
 
 notifications:
   email:
