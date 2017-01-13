@@ -43,7 +43,7 @@
     "core-decorators": "^0.15.0",
     "diff": "2.2.2",
     "etch": "0.8.0",
-    "git-kitchen-sink": "1.11.0",
+    "git-kitchen-sink": "1.17.0",
     "multi-list-selection": "^0.1.1",
     "ncp": "^2.0.0",
     "nsfw": "1.0.14",
