@@ -9,6 +9,7 @@
 '.github-StagingView':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
+  'o': 'github:open-file'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'github:commit'
