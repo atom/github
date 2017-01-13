@@ -193,8 +193,6 @@ describe('GithubPackage', function() {
 
       await assert.async.isTrue(repository1.refresh.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
-      assert.isFalse(repository2.refresh.called);
-      assert.isFalse(atomGitRepository2.refreshStatus.called);
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 2', async function() {
@@ -202,8 +200,6 @@ describe('GithubPackage', function() {
 
       await assert.async.isTrue(repository2.refresh.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
-      assert.isFalse(repository1.refresh.called);
-      assert.isFalse(atomGitRepository1.refreshStatus.called);
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 1', async function() {
@@ -211,8 +207,6 @@ describe('GithubPackage', function() {
 
       await assert.async.isTrue(repository1.refresh.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
-      assert.isFalse(repository2.refresh.called);
-      assert.isFalse(atomGitRepository2.refreshStatus.called);
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 2', async function() {
@@ -220,8 +214,6 @@ describe('GithubPackage', function() {
 
       await assert.async.isTrue(repository2.refresh.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
-      assert.isFalse(repository1.refresh.called);
-      assert.isFalse(atomGitRepository1.refreshStatus.called);
     });
   });
 
