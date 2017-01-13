@@ -1,7 +1,4 @@
-os:
-- osx
-- linux
-
+os: osx
 language: node_js
 
 node_js:
