@@ -15,15 +15,15 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
 
     changeSpy.reset();
     fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'a change\n');
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
 
     changeSpy.reset();
     fs.unlinkSync(path.join(workdirPath, 'a.txt'));
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when a file is staged or unstaged', async function() {
