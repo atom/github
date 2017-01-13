@@ -23,3 +23,10 @@
     ]
   }
 ]
+'context-menu':
+  '.github-FilePatchListView-item': [
+    {
+      'label': 'Open File'
+      'command': 'github:open-file'
+    }
+  ]
