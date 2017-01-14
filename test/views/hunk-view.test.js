@@ -15,7 +15,7 @@ describe('HunkView', function() {
     // eslint-disable-next-line prefer-const
     let [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.github-HunkView-line'));
 
-    assert.equal(view.refs.header.textContent, hunk1.getHeader());
+    assert.equal(view.refs.header.textContent, hunk1.getHeader().trim());
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '5', newLineNumber: '5', origin: ' ', content: 'line-1', isSelected: false},
