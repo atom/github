@@ -6,7 +6,7 @@ chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
 module.exports = createRunner({
-  'spec',
+  reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
   if (process.env.APPVEYOR_API_URL) {
