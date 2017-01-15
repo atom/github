@@ -18,13 +18,13 @@ describe('FilePatchView', function() {
 
   it('allows lines and hunks to be selected via the mouse', async function() {
     const hunks = [
-      new Hunk(1, 1, 2, 4, [
+      new Hunk(1, 1, 2, 4, '', [
         new HunkLine('line-1', 'unchanged', 1, 1),
         new HunkLine('line-2', 'added', -1, 2),
         new HunkLine('line-3', 'added', -1, 3),
         new HunkLine('line-4', 'unchanged', 2, 4),
       ]),
-      new Hunk(5, 7, 1, 4, [
+      new Hunk(5, 7, 1, 4, '', [
         new HunkLine('line-5', 'unchanged', 5, 7),
         new HunkLine('line-6', 'added', -1, 8),
         new HunkLine('line-7', 'added', -1, 9),
@@ -102,13 +102,13 @@ describe('FilePatchView', function() {
 
   it('scrolls off-screen lines and hunks into view when they are selected', async function() {
     const hunks = [
-      new Hunk(1, 1, 2, 4, [
+      new Hunk(1, 1, 2, 4, '', [
         new HunkLine('line-1', 'unchanged', 1, 1),
         new HunkLine('line-2', 'added', -1, 2),
         new HunkLine('line-3', 'added', -1, 3),
         new HunkLine('line-4', 'unchanged', 2, 4),
       ]),
-      new Hunk(5, 7, 1, 4, [
+      new Hunk(5, 7, 1, 4, '', [
         new HunkLine('line-5', 'unchanged', 5, 7),
         new HunkLine('line-6', 'added', -1, 8),
         new HunkLine('line-7', 'added', -1, 9),
@@ -135,7 +135,7 @@ describe('FilePatchView', function() {
   });
 
   it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', async function() {
-    const hunk = new Hunk(1, 1, 1, 2, [new HunkLine('line-1', 'added', -1, 1)]);
+    const hunk = new Hunk(1, 1, 1, 2, '', [new HunkLine('line-1', 'added', -1, 1)]);
     let hunkView;
     function registerHunkView(_hunk, view) { hunkView = view; }
     const view = new FilePatchView({commandRegistry, hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
@@ -152,19 +152,19 @@ describe('FilePatchView', function() {
     // ref: https://github.com/atom/github/issues/339
     it('selects the next hunk after staging', async function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 1, 4, [
+        new Hunk(5, 7, 1, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'added', -1, 8),
           new HunkLine('line-7', 'added', -1, 9),
           new HunkLine('line-8', 'added', -1, 10),
         ]),
-        new Hunk(15, 17, 1, 4, [
+        new Hunk(15, 17, 1, 4, '', [
           new HunkLine('line-9', 'unchanged', 15, 17),
           new HunkLine('line-10', 'added', -1, 18),
           new HunkLine('line-11', 'added', -1, 19),
@@ -182,7 +182,7 @@ describe('FilePatchView', function() {
   describe('keyboard navigation', function() {
     it('invokes the didSurfaceFile callback on core:move-right', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 2, [
+        new Hunk(1, 1, 2, 2, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
         ]),
