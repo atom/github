@@ -376,7 +376,7 @@ describe('FilePatchController', function() {
         }));
       };
 
-      const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)]);
+      const hunk1 = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
       const filePatch = new FilePatch('sample.js', 'sample.js', 'modified', [hunk1]);
       const controller = new FilePatchController({commandRegistry, filePatch, openFiles}); // eslint-disable-line no-new
 
