@@ -4,7 +4,7 @@ import HunkView from '../../lib/views/hunk-view';
 
 describe('HunkView', function() {
   it('renders the hunk header and its lines', async function() {
-    const hunk1 = new Hunk(5, 5, 2, 1, [
+    const hunk1 = new Hunk(5, 5, 2, 1, 'function fn {', [
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'deleted', 6, -1),
       new HunkLine('line-3', 'deleted', 7, -1),
@@ -15,7 +15,7 @@ describe('HunkView', function() {
     // eslint-disable-next-line prefer-const
     let [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.github-HunkView-line'));
 
-    assert.equal(view.refs.header.textContent, hunk1.getHeader());
+    assert.equal(view.refs.header.textContent.trim(), `${hunk1.getHeader().trim()} ${hunk1.getSectionHeading().trim()}`);
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '5', newLineNumber: '5', origin: ' ', content: 'line-1', isSelected: false},
@@ -33,7 +33,7 @@ describe('HunkView', function() {
       {oldLineNumber: ' ', newLineNumber: '6', origin: '+', content: 'line-4', isSelected: false},
     );
 
-    const hunk2 = new Hunk(8, 8, 1, 1, [
+    const hunk2 = new Hunk(8, 8, 1, 1, 'function fn2 {', [
       new HunkLine('line-1', 'deleted', 8, -1),
       new HunkLine('line-2', 'added', -1, 8),
     ]);
@@ -43,7 +43,7 @@ describe('HunkView', function() {
 
     await view.update({hunk: hunk2, selectedLines: new Set()});
 
-    assert.equal(view.refs.header.textContent, hunk2.getHeader());
+    assert.equal(view.refs.header.textContent.trim(), `${hunk2.getHeader().trim()} ${hunk2.getSectionHeading().trim()}`);
     assertHunkLineElementEqual(
       line1,
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1', isSelected: false},
@@ -65,7 +65,7 @@ describe('HunkView', function() {
   });
 
   it('adds the is-selected class based on the isSelected property', async function() {
-    const hunk = new Hunk(5, 5, 2, 1, []);
+    const hunk = new Hunk(5, 5, 2, 1, '', []);
     const view = new HunkView({hunk, selectedLines: new Set(), isSelected: true});
     assert(view.element.classList.contains('is-selected'));
 
@@ -74,7 +74,7 @@ describe('HunkView', function() {
   });
 
   it('calls the didClickStageButton handler when the staging button is clicked', async function() {
-    const hunk = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'unchanged', 5, 5)]);
+    const hunk = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'unchanged', 5, 5)]);
     const didClickStageButton1 = sinon.spy();
     const view = new HunkView({hunk, selectedLines: new Set(), didClickStageButton: didClickStageButton1});
     view.refs.stageButton.dispatchEvent(new MouseEvent('click'));
@@ -88,7 +88,7 @@ describe('HunkView', function() {
 
   describe('line selection', function() {
     it('calls the mousedownOnLine and mousemoveOnLine handlers on mousedown and mousemove events', function() {
-      const hunk = new Hunk(1234, 1234, 1234, 1234, [
+      const hunk = new Hunk(1234, 1234, 1234, 1234, '', [
         new HunkLine('line-1', 'added', 1234, 1234),
         new HunkLine('line-2', 'added', 1234, 1234),
         new HunkLine('line-3', 'added', 1234, 1234),

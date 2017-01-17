@@ -11,6 +11,7 @@ global.assert = chai.assert;
 until.setDefaultTimeout(5000);
 
 module.exports = createRunner({
+  htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
   reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
