@@ -18,7 +18,8 @@ describe('GithubPackage', function() {
     githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager);
   });
 
-  afterEach(function() {
+  afterEach(async function() {
+    await githubPackage.deactivate();
     atomEnv.destroy();
   });
 
@@ -164,66 +165,55 @@ describe('GithubPackage', function() {
   });
 
   describe('when there is a change in the repository', function() {
-    it('refreshes the appropriate Repository instance and corresponding Atom GitRepository instance', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
+    let workdirPath1, atomGitRepository1, repository1;
+    let workdirPath2, atomGitRepository2, repository2;
+
+    beforeEach(async function() {
+      workdirPath1 = await cloneRepository('three-files');
+      workdirPath2 = await cloneRepository('three-files');
+
+      fs.writeFileSync(path.join(workdirPath1, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
+      fs.writeFileSync(path.join(workdirPath2, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      const [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
+      await githubPackage.getInitialWatchersStartedPromise();
+      [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
       sinon.stub(atomGitRepository2, 'refreshStatus');
 
-      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
+      repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
+      repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
       sinon.stub(repository1, 'refresh');
       sinon.stub(repository2, 'refresh');
+    });
 
-      repository1.refresh.reset();
-      repository2.refresh.reset();
-      atomGitRepository1.refreshStatus.reset();
-      atomGitRepository2.refreshStatus.reset();
-
-      // change file in repository1
+    it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 1', async function() {
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
       await assert.async.isTrue(repository1.refresh.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
-      assert.isFalse(repository2.refresh.called);
-      assert.isFalse(atomGitRepository2.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 300));
-      repository1.refresh.reset();
-      atomGitRepository1.refreshStatus.reset();
+    });
 
-      // change file in repository2
+    it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 2', async function() {
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
       await assert.async.isTrue(repository2.refresh.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
-      assert.isFalse(repository1.refresh.called);
-      assert.isFalse(atomGitRepository1.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 300));
-      repository2.refresh.reset();
-      atomGitRepository2.refreshStatus.reset();
+    });
 
-      // change HEAD in repository1
+    it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 1', async function() {
       await repository1.git.exec(['commit', '-am', 'commit in repository1']);
 
       await assert.async.isTrue(repository1.refresh.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
-      assert.isFalse(repository2.refresh.called);
-      assert.isFalse(atomGitRepository2.refreshStatus.called);
-      await new Promise(res => setTimeout(res, 300));
-      repository1.refresh.reset();
-      atomGitRepository1.refreshStatus.reset();
+    });
 
-      // change HEAD in repository1
+    it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 2', async function() {
       await repository2.git.exec(['commit', '-am', 'commit in repository2']);
 
       await assert.async.isTrue(repository2.refresh.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
-      assert.isFalse(repository1.refresh.called);
-      assert.isFalse(atomGitRepository1.refreshStatus.called);
     });
   });
 
