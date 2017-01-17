@@ -8,4 +8,8 @@ global.assert = chai.assert;
 module.exports = createRunner({
   reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
+}, mocha => {
+  if (process.env.APPVEYOR_API_URL) {
+    mocha.reporter(require('mocha-appveyor-reporter'));
+  }
 });
