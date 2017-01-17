@@ -13,4 +13,9 @@ until.setDefaultTimeout(5000);
 module.exports = createRunner({
   reporter: 'spec',
   overrideTestPaths: [/spec$/, /test/],
-}, m => m.timeout(5000));
+}, mocha => {
+  mocha.timeout(5000);
+  if (process.env.APPVEYOR_API_URL) {
+    mocha.reporter(require('mocha-appveyor-reporter'));
+  }
+});
