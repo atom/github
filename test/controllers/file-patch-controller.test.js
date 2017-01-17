@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {TextEditor, Point} from 'atom';
+import {Point} from 'atom';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatch from '../../lib/models/file-patch';
