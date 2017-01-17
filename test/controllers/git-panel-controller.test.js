@@ -367,15 +367,15 @@ describe('GitPanelController', function() {
 
       assert.equal(stagingView.props.unstagedChanges.length, 2);
       assert.equal(stagingView.props.stagedChanges.length, 0);
-      await stagingView.mousedownOnItem({detail: 2}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
-      await stagingView.mousedownOnItem({detail: 2}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(stagingView.props.unstagedChanges.length, 0);
       assert.equal(stagingView.props.stagedChanges.length, 2);
-      await stagingView.mousedownOnItem({detail: 2}, stagingView.props.stagedChanges[1]).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, stagingView.props.stagedChanges[1]).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(stagingView.props.unstagedChanges.length, 1);
@@ -417,7 +417,7 @@ describe('GitPanelController', function() {
 
       // click Cancel
       choice = 1;
-      await stagingView.mousedownOnItem({detail: 2}, conflict1).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, conflict1).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.calledOnce, true);
@@ -427,7 +427,7 @@ describe('GitPanelController', function() {
       // click Stage
       choice = 0;
       atom.confirm.reset();
-      await stagingView.mousedownOnItem({detail: 2}, conflict1).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, conflict1).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.calledOnce, true);
@@ -438,7 +438,7 @@ describe('GitPanelController', function() {
       const conflict2 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-theirs.txt')[0];
       atom.confirm.reset();
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
-      await stagingView.mousedownOnItem({detail: 2}, conflict2).stageOperationPromise;
+      await stagingView.dblclickOnItem({}, conflict2).stageOperationPromise;
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
       assert.equal(atom.confirm.called, false);

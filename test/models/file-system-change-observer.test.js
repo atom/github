@@ -6,10 +6,6 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
 describe('FileSystemChangeObserver', function() {
-  beforeEach(function() {
-    this.timeout(5000); // increase the timeout because we're interacting with file system events.
-  });
-
   it('emits an event when a project file is modified, created, or deleted', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
@@ -19,15 +15,15 @@ describe('FileSystemChangeObserver', function() {
     await changeObserver.start();
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
 
     changeSpy.reset();
     fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'a change\n');
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
 
     changeSpy.reset();
     fs.unlinkSync(path.join(workdirPath, 'a.txt'));
-    await assert.async.isTrue(changeSpy.calledOnce);
+    await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when a file is staged or unstaged', async function() {
