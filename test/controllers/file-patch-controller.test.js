@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+import {TextEditor, Point} from 'atom';
+
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatch from '../../lib/models/file-patch';
 import FilePatchController from '../../lib/controllers/file-patch-controller';
@@ -8,11 +10,12 @@ import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
 describe('FilePatchController', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, workspace;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    workspace = atomEnv.workspace;
   });
 
   afterEach(function() {
@@ -358,6 +361,27 @@ describe('FilePatchController', function() {
         actualLines = await repository.readFileFromIndex('sample.js');
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
       });
+    });
+  });
+
+  describe('openCurrentFile({lineNumber})', () => {
+    it('sets the cursor on the correct line of the opened text editor', async () => {
+      const workdirPath = await cloneRepository('multi-line-file');
+      const repository = await buildRepository(workdirPath);
+
+      const openFiles = filePaths => {
+        return Promise.all(filePaths.map(filePath => {
+          const absolutePath = path.join(repository.getWorkingDirectoryPath(), filePath);
+          return workspace.open(absolutePath, {pending: filePaths.length === 1});
+        }));
+      };
+
+      const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)]);
+      const filePatch = new FilePatch('sample.js', 'sample.js', 'modified', [hunk1]);
+      const controller = new FilePatchController({commandRegistry, filePatch, openFiles}); // eslint-disable-line no-new
+
+      const editor = await controller.openCurrentFile({lineNumber: 5});
+      assert.deepEqual(editor.getCursorBufferPosition(), new Point(4, 0));
     });
   });
 });
