@@ -196,4 +196,80 @@ describe('FilePatchView', function() {
       assert.equal(didSurfaceFile.callCount, 1);
     });
   });
+
+  describe('openFile', () => {
+    describe('when the selected line is an added line', () => {
+      it('calls this.props.openCurrentFile with the first selected line\'s new line number', async () => {
+        const hunks = [
+          new Hunk(1, 1, 2, 4, [
+            new HunkLine('line-1', 'unchanged', 1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+            new HunkLine('line-4', 'added', -1, 4),
+            new HunkLine('line-5', 'unchanged', 2, 5),
+          ]),
+        ];
+
+        const openCurrentFile = sinon.stub();
+        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
+        filePatchView.mousedownOnLine({detail: 1}, hunks[0], hunks[0].lines[2]);
+        await filePatchView.mousemoveOnLine({}, hunks[0], hunks[0].lines[3]);
+        await filePatchView.mouseup();
+
+        filePatchView.openFile();
+        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 3}]);
+      });
+    });
+
+    describe('when the selected line is a deleted line in a non-empty file', () => {
+      it('calls this.props.openCurrentFile with the new start row of the first selected hunk', async () => {
+        const hunks = [
+          new Hunk(1, 1, 2, 4, [
+            new HunkLine('line-1', 'unchanged', 1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+            new HunkLine('line-4', 'added', -1, 4),
+            new HunkLine('line-5', 'unchanged', 2, 5),
+          ]),
+          new Hunk(15, 17, 4, 1, [
+            new HunkLine('line-5', 'unchanged', 15, 17),
+            new HunkLine('line-6', 'deleted', 16, -1),
+            new HunkLine('line-7', 'deleted', 17, -1),
+            new HunkLine('line-8', 'deleted', 18, -1),
+          ]),
+        ];
+
+        const openCurrentFile = sinon.stub();
+        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
+        filePatchView.mousedownOnLine({detail: 1}, hunks[1], hunks[1].lines[2]);
+        await filePatchView.mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
+        await filePatchView.mouseup();
+
+        filePatchView.openFile();
+        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 17}]);
+      });
+    });
+
+    describe('when the selected line is a deleted line in an empty file', () => {
+      it('calls this.props.openCurrentFile with a line number of 0', async () => {
+        const hunks = [
+          new Hunk(1, 0, 4, 0, [
+            new HunkLine('line-5', 'deleted', 1, -1),
+            new HunkLine('line-6', 'deleted', 2, -1),
+            new HunkLine('line-7', 'deleted', 3, -1),
+            new HunkLine('line-8', 'deleted', 4, -1),
+          ]),
+        ];
+
+        const openCurrentFile = sinon.stub();
+        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
+        filePatchView.mousedownOnLine({detail: 1}, hunks[0], hunks[0].lines[2]);
+        await filePatchView.mouseup();
+
+        filePatchView.openFile();
+        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 0}]);
+      });
+    });
+
+  });
 });

@@ -43,13 +43,13 @@ describe('StagingView', function() {
         const attemptFileStageOperation = sinon.spy();
         const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
-        view.mousedownOnItem({detail: 1}, filePatches[1]);
+        view.clickOnItem({}, filePatches[1]);
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
 
         attemptFileStageOperation.reset();
         await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptFileStageOperation});
-        view.mousedownOnItem({detail: 1}, filePatches[1]);
+        view.clickOnItem({}, filePatches[1]);
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
@@ -218,7 +218,8 @@ describe('StagingView', function() {
       view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
-      await view.mousedownOnItem({detail: 1}, unstagedChanges[0]);
+      await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
+      await view.mousemoveOnItem({}, unstagedChanges[0]);
       await view.mousemoveOnItem({}, unstagedChanges[1]);
       view.mouseup();
       assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)));
@@ -263,7 +264,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", () => {
-      view.mousedownOnItem({detail: 1}, stagedChanges[1]);
+      view.clickOnItem({}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-2.txt']);
 
