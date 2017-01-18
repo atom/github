@@ -119,7 +119,6 @@ describe('GithubPackage', function() {
 
   describe('updateActiveRepository()', function() {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
-      // TODO: FIXME Warning: Possible EventEmitter memory leak detected. 11 ipc-helpers-window-method-response listeners added.
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = temp.mkdirSync();
