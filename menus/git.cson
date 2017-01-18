@@ -36,12 +36,6 @@
       'command': 'github:discard-changes'
     }
   ]
-  '.github-StagedChanges .github-FilePatchListView-item': [
-    {
-      'label': 'Unstage and Discard Changes'
-      'command': 'github:discard-changes'
-    }
-  ]
   '.github-FilePatchView': [
     {
       'label': 'Open File'

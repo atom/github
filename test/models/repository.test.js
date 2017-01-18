@@ -623,7 +623,7 @@ describe('Repository', function() {
   });
 
   describe('discardWorkDirChangesForPaths()', () => {
-    it('can discard changes in modified files', async function() {
+    it('can discard working directory changes in modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -636,7 +636,7 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
 
-    it('can discard changes in removed files', async function() {
+    it('can discard working directory changes in removed files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'a.txt'));
@@ -649,7 +649,7 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
 
-    it('can stage and unstage added files', async function() {
+    it('can discard working directory changes added files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
@@ -657,7 +657,6 @@ describe('Repository', function() {
       const unstagedChanges = await repo.getUnstagedChanges();
 
       assert.equal(unstagedChanges.length, 2);
-      console.log(workingDirPath);
       await repo.discardWorkDirChangesForPaths(unstagedChanges.map(c => c.filePath));
       repo.refresh();
       assert.deepEqual(await repo.getUnstagedChanges(), []);
