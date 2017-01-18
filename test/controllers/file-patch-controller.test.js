@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+import {Point} from 'atom';
+
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatch from '../../lib/models/file-patch';
 import FilePatchController from '../../lib/controllers/file-patch-controller';
@@ -8,11 +10,12 @@ import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
 describe('FilePatchController', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, workspace;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    workspace = atomEnv.workspace;
   });
 
   afterEach(function() {
@@ -20,7 +23,7 @@ describe('FilePatchController', function() {
   });
 
   it('bases its tab title on the staging status', function() {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
     const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged'});
     assert.equal(controller.getTitle(), 'Unstaged Changes: a.txt');
 
@@ -37,15 +40,15 @@ describe('FilePatchController', function() {
     const controller = new FilePatchController({commandRegistry, filePatch: emptyFilePatch}); // eslint-disable-line no-new
     assert.isUndefined(controller.refs.filePatchView);
 
-    const hunk1 = new Hunk(0, 0, 1, 1, [new HunkLine('line-1', 'added', 1, 1)]);
+    const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]);
     await controller.update({filePatch});
     assert.isDefined(controller.refs.filePatchView);
   });
 
   it('updates when a new FilePatch is passed', async function() {
-    const hunk1 = new Hunk(5, 5, 2, 1, [new HunkLine('line-1', 'added', -1, 5)]);
-    const hunk2 = new Hunk(8, 8, 1, 1, [new HunkLine('line-5', 'deleted', 8, -1)]);
+    const hunk1 = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
+    const hunk2 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-5', 'deleted', 8, -1)]);
     const hunkViewsByHunk = new Map();
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2]);
     const controller = new FilePatchController({commandRegistry, filePatch, registerHunkView: (hunk, ctrl) => hunkViewsByHunk.set(hunk, ctrl)}); // eslint-disable-line no-new
@@ -53,7 +56,7 @@ describe('FilePatchController', function() {
     assert(hunkViewsByHunk.get(hunk2) != null);
 
     hunkViewsByHunk.clear();
-    const hunk3 = new Hunk(8, 8, 1, 1, [new HunkLine('line-10', 'modified', 10, 10)]);
+    const hunk3 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-10', 'modified', 10, 10)]);
     await controller.update({filePatch: new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk3])});
     assert(hunkViewsByHunk.get(hunk1) != null);
     assert(hunkViewsByHunk.get(hunk2) == null);
@@ -61,7 +64,7 @@ describe('FilePatchController', function() {
   });
 
   it('invokes a didSurfaceFile callback with the current file path', function() {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, [])]);
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
     const didSurfaceFile = sinon.spy();
     const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged', didSurfaceFile});
 
@@ -358,6 +361,27 @@ describe('FilePatchController', function() {
         actualLines = await repository.readFileFromIndex('sample.js');
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
       });
+    });
+  });
+
+  describe('openCurrentFile({lineNumber})', () => {
+    it('sets the cursor on the correct line of the opened text editor', async () => {
+      const workdirPath = await cloneRepository('multi-line-file');
+      const repository = await buildRepository(workdirPath);
+
+      const openFiles = filePaths => {
+        return Promise.all(filePaths.map(filePath => {
+          const absolutePath = path.join(repository.getWorkingDirectoryPath(), filePath);
+          return workspace.open(absolutePath, {pending: filePaths.length === 1});
+        }));
+      };
+
+      const hunk1 = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
+      const filePatch = new FilePatch('sample.js', 'sample.js', 'modified', [hunk1]);
+      const controller = new FilePatchController({commandRegistry, filePatch, openFiles}); // eslint-disable-line no-new
+
+      const editor = await controller.openCurrentFile({lineNumber: 5});
+      assert.deepEqual(editor.getCursorBufferPosition(), new Point(4, 0));
     });
   });
 });

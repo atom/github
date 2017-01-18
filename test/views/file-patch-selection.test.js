@@ -9,12 +9,12 @@ describe('FilePatchSelection', function() {
   describe('line selection', function() {
     it('starts a new line selection with selectLine and updates an existing selection when preserveTail is true', function() {
       const hunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 5, 4, [
+        new Hunk(5, 7, 5, 4, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'deleted', 7, -1),
@@ -59,12 +59,12 @@ describe('FilePatchSelection', function() {
 
     it('adds a new line selection when calling addOrSubtractLineSelection with an unselected line and always updates the head of the most recent line selection', function() {
       const hunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 5, 4, [
+        new Hunk(5, 7, 5, 4, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'deleted', 7, -1),
@@ -103,13 +103,13 @@ describe('FilePatchSelection', function() {
 
     it('subtracts from existing selections when calling addOrSubtractLineSelection with a selected line', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 1, 4, [
+        new Hunk(5, 7, 1, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'added', -1, 8),
           new HunkLine('line-7', 'added', -1, 9),
@@ -145,13 +145,13 @@ describe('FilePatchSelection', function() {
 
     it('allows the next or previous line to be selected', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 3, 4, [
+        new Hunk(5, 7, 3, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'unchanged', 6, 8),
           new HunkLine('line-7', 'added', -1, 9),
@@ -203,13 +203,13 @@ describe('FilePatchSelection', function() {
 
     it('allows the first/last changed line to be selected', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 3, 4, [
+        new Hunk(5, 7, 3, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'unchanged', 6, 8),
           new HunkLine('line-7', 'added', -1, 9),
@@ -250,13 +250,13 @@ describe('FilePatchSelection', function() {
 
     it('allows all lines to be selected', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 3, 4, [
+        new Hunk(5, 7, 3, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'unchanged', 6, 8),
           new HunkLine('line-7', 'added', -1, 9),
@@ -274,7 +274,7 @@ describe('FilePatchSelection', function() {
 
     it('defaults to the first/last changed line when selecting next / previous with no current selection', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
@@ -301,13 +301,13 @@ describe('FilePatchSelection', function() {
 
     it('collapses multiple selections down to one line when selecting next or previous', function() {
       const hunks = [
-        new Hunk(1, 1, 2, 4, [
+        new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'added', -1, 3),
           new HunkLine('line-4', 'unchanged', 2, 4),
         ]),
-        new Hunk(5, 7, 3, 4, [
+        new Hunk(5, 7, 3, 4, '', [
           new HunkLine('line-5', 'unchanged', 5, 7),
           new HunkLine('line-6', 'unchanged', 6, 8),
           new HunkLine('line-7', 'added', -1, 9),
@@ -347,13 +347,13 @@ describe('FilePatchSelection', function() {
     describe('coalescing', function() {
       it('merges overlapping selections', function() {
         const hunks = [
-          new Hunk(1, 1, 0, 4, [
+          new Hunk(1, 1, 0, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
             new HunkLine('line-3', 'added', -1, 3),
             new HunkLine('line-4', 'added', -1, 4),
           ]),
-          new Hunk(5, 7, 0, 4, [
+          new Hunk(5, 7, 0, 4, '', [
             new HunkLine('line-5', 'added', -1, 7),
             new HunkLine('line-6', 'added', -1, 8),
             new HunkLine('line-7', 'added', -1, 9),
@@ -396,13 +396,13 @@ describe('FilePatchSelection', function() {
 
       it('merges adjacent selections', function() {
         const hunks = [
-          new Hunk(1, 1, 0, 4, [
+          new Hunk(1, 1, 0, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
             new HunkLine('line-3', 'added', -1, 3),
             new HunkLine('line-4', 'added', -1, 4),
           ]),
-          new Hunk(5, 7, 0, 4, [
+          new Hunk(5, 7, 0, 4, '', [
             new HunkLine('line-5', 'added', -1, 7),
             new HunkLine('line-6', 'added', -1, 8),
             new HunkLine('line-7', 'added', -1, 9),
@@ -440,13 +440,13 @@ describe('FilePatchSelection', function() {
 
       it('expands selections to contain all adjacent context lines', function() {
         const hunks = [
-          new Hunk(1, 1, 2, 4, [
+          new Hunk(1, 1, 2, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
             new HunkLine('line-3', 'unchanged', 1, 3),
             new HunkLine('line-4', 'unchanged', 2, 4),
           ]),
-          new Hunk(5, 7, 2, 4, [
+          new Hunk(5, 7, 2, 4, '', [
             new HunkLine('line-5', 'unchanged', 5, 7),
             new HunkLine('line-6', 'unchanged', 6, 8),
             new HunkLine('line-7', 'added', -1, 9),
@@ -472,13 +472,13 @@ describe('FilePatchSelection', function() {
 
       it('truncates or splits selections where they overlap a negative selection', function() {
         const hunks = [
-          new Hunk(1, 1, 0, 4, [
+          new Hunk(1, 1, 0, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
             new HunkLine('line-3', 'added', -1, 3),
             new HunkLine('line-4', 'added', -1, 4),
           ]),
-          new Hunk(5, 7, 0, 4, [
+          new Hunk(5, 7, 0, 4, '', [
             new HunkLine('line-5', 'added', -1, 7),
             new HunkLine('line-6', 'added', -1, 8),
             new HunkLine('line-7', 'added', -1, 9),
@@ -504,7 +504,7 @@ describe('FilePatchSelection', function() {
 
       it('does not blow up when coalescing with no selections', function() {
         const hunks = [
-          new Hunk(1, 1, 0, 1, [
+          new Hunk(1, 1, 0, 1, '', [
             new HunkLine('line-1', 'added', -1, 1),
           ]),
         ];
@@ -521,10 +521,10 @@ describe('FilePatchSelection', function() {
   describe('hunk selection', function() {
     it('selects the first hunk by default', function() {
       const hunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
       ];
@@ -534,16 +534,16 @@ describe('FilePatchSelection', function() {
 
     it('starts a new hunk selection with selectHunk and updates an existing selection when preserveTail is true', function() {
       const hunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
-        new Hunk(10, 12, 0, 1, [
+        new Hunk(10, 12, 0, 1, '', [
           new HunkLine('line-3', 'added', -1, 12),
         ]),
-        new Hunk(15, 18, 0, 1, [
+        new Hunk(15, 18, 0, 1, '', [
           new HunkLine('line-4', 'added', -1, 18),
         ]),
       ];
@@ -561,16 +561,16 @@ describe('FilePatchSelection', function() {
 
     it('adds a new hunk selection with addOrSubtractHunkSelection and always updates the head of the most recent hunk selection', function() {
       const hunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
-        new Hunk(10, 12, 0, 1, [
+        new Hunk(10, 12, 0, 1, '', [
           new HunkLine('line-3', 'added', -1, 12),
         ]),
-        new Hunk(15, 18, 0, 1, [
+        new Hunk(15, 18, 0, 1, '', [
           new HunkLine('line-4', 'added', -1, 18),
         ]),
       ];
@@ -588,16 +588,16 @@ describe('FilePatchSelection', function() {
 
     it('allows the next or previous hunk to be selected', function() {
       const hunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
-        new Hunk(10, 12, 0, 1, [
+        new Hunk(10, 12, 0, 1, '', [
           new HunkLine('line-3', 'added', -1, 12),
         ]),
-        new Hunk(15, 18, 0, 1, [
+        new Hunk(15, 18, 0, 1, '', [
           new HunkLine('line-4', 'added', -1, 18),
         ]),
       ];
@@ -636,16 +636,16 @@ describe('FilePatchSelection', function() {
 
     it('allows all hunks to be selected', function() {
       const hunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
-        new Hunk(10, 12, 0, 1, [
+        new Hunk(10, 12, 0, 1, '', [
           new HunkLine('line-3', 'added', -1, 12),
         ]),
-        new Hunk(15, 18, 0, 1, [
+        new Hunk(15, 18, 0, 1, '', [
           new HunkLine('line-4', 'added', -1, 18),
         ]),
       ];
@@ -658,12 +658,12 @@ describe('FilePatchSelection', function() {
   describe('selection modes', function() {
     it('allows the selection mode to be toggled between hunks and lines', function() {
       const hunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 5, 4, [
+        new Hunk(5, 7, 5, 4, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'deleted', 7, -1),
@@ -714,12 +714,12 @@ describe('FilePatchSelection', function() {
   describe('updateHunks(hunks)', function() {
     it('collapses the line selection to a single line following the previous selected range with the highest start index', function() {
       const oldHunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 5, 4, [
+        new Hunk(5, 7, 5, 4, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'deleted', 7, -1),
@@ -736,17 +736,17 @@ describe('FilePatchSelection', function() {
       selection.selectLine(oldHunks[1].lines[4], true);
 
       const newHunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 3, 2, [
+        new Hunk(5, 7, 3, 2, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'unchanged', 7, 8),
         ]),
-        new Hunk(9, 10, 3, 2, [
+        new Hunk(9, 10, 3, 2, '', [
           new HunkLine('line-8', 'unchanged', 9, 10),
           new HunkLine('line-9', 'added', -1, 11),
           new HunkLine('line-10', 'deleted', 10, -1),
@@ -762,7 +762,7 @@ describe('FilePatchSelection', function() {
 
     it('collapses the line selection to the line preceding the previous selected line if it was the *last* line', function() {
       const oldHunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
@@ -773,7 +773,7 @@ describe('FilePatchSelection', function() {
       selection.selectLine(oldHunks[0].lines[1]);
 
       const newHunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'unchanged', 1, 2),
           new HunkLine('line-3', 'unchanged', 2, 3),
@@ -788,10 +788,10 @@ describe('FilePatchSelection', function() {
 
     it('updates the hunk selection if it exceeds the new length of the hunks list', function() {
       const oldHunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
-        new Hunk(5, 6, 0, 1, [
+        new Hunk(5, 6, 0, 1, '', [
           new HunkLine('line-2', 'added', -1, 6),
         ]),
       ];
@@ -799,7 +799,7 @@ describe('FilePatchSelection', function() {
       selection.selectHunk(oldHunks[1]);
 
       const newHunks = [
-        new Hunk(1, 1, 0, 1, [
+        new Hunk(1, 1, 0, 1, '', [
           new HunkLine('line-1', 'added', -1, 1),
         ]),
       ];
@@ -810,7 +810,7 @@ describe('FilePatchSelection', function() {
 
     it('deselects if updating with an empty hunk array', function() {
       const oldHunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
         ]),
@@ -824,11 +824,11 @@ describe('FilePatchSelection', function() {
     });
 
     it('resolves the getNextUpdatePromise the next time hunks are changed', async function() {
-      const hunk0 = new Hunk(1, 1, 1, 3, [
+      const hunk0 = new Hunk(1, 1, 1, 3, '', [
         new HunkLine('line-1', 'added', -1, 1),
         new HunkLine('line-2', 'added', -1, 2),
       ]);
-      const hunk1 = new Hunk(4, 4, 1, 3, [
+      const hunk1 = new Hunk(4, 4, 1, 3, '', [
         new HunkLine('line-4', 'added', -1, 1),
         new HunkLine('line-7', 'added', -1, 2),
       ]);
@@ -844,7 +844,7 @@ describe('FilePatchSelection', function() {
 
       assert.isFalse(wasResolved);
 
-      const hunk2 = new Hunk(6, 4, 1, 3, [
+      const hunk2 = new Hunk(6, 4, 1, 3, '', [
         new HunkLine('line-12', 'added', -1, 1),
         new HunkLine('line-77', 'added', -1, 2),
       ]);
@@ -858,17 +858,17 @@ describe('FilePatchSelection', function() {
   describe('jumpToNextHunk() and jumpToPreviousHunk()', function() {
     it('selects the next/previous hunk', function() {
       const hunks = [
-        new Hunk(1, 1, 1, 3, [
+        new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
-        new Hunk(5, 7, 3, 2, [
+        new Hunk(5, 7, 3, 2, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
           new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'unchanged', 7, 8),
         ]),
-        new Hunk(9, 10, 3, 2, [
+        new Hunk(9, 10, 3, 2, '', [
           new HunkLine('line-8', 'unchanged', 9, 10),
           new HunkLine('line-9', 'added', -1, 11),
           new HunkLine('line-10', 'deleted', 10, -1),
