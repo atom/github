@@ -162,6 +162,19 @@ describe('GithubPackage', function() {
       await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
     });
+
+    it('handles symlinked project paths', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const symlinkPath = temp.mkdirSync() + '-symlink';
+      fs.symlinkSync(workdirPath, symlinkPath);
+      project.setPaths([symlinkPath]);
+      await githubPackage.activate();
+
+      await workspace.open(path.join(symlinkPath, 'a.txt'));
+
+      await githubPackage.updateActiveRepository();
+      assert.isOk(githubPackage.getActiveRepository());
+    });
   });
 
   describe('when there is a change in the repository', function() {
