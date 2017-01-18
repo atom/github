@@ -165,10 +165,10 @@ describe('GithubPackage', function() {
       assert.isNull(githubPackage.getActiveRepository());
     });
 
-    it('handles symlinked project paths', async () => {
+    it.only('handles symlinked project paths', async () => {
       const workdirPath = await cloneRepository('three-files');
       const symlinkPath = temp.mkdirSync() + '-symlink';
-      fs.symlinkSync(workdirPath, symlinkPath);
+      fs.symlinkSync(workdirPath, symlinkPath, 'junction');
       project.setPaths([symlinkPath]);
       await githubPackage.activate();
 
