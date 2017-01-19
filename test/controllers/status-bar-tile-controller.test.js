@@ -8,11 +8,14 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 
 describe('StatusBarTileController', function() {
-  let atomEnvironment, workspace;
+  let atomEnvironment, workspace, workspaceElement, commandRegistry;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
+    commandRegistry = atomEnvironment.commands;
+
+    workspaceElement = atomEnvironment.views.getView(workspace);
   });
 
   afterEach(function() {
@@ -283,6 +286,26 @@ describe('StatusBarTileController', function() {
         assert.equal(pushButton.textContent, 'Push ');
         assert.equal(pullButton.textContent, 'Pull ');
       });
+    });
+
+    describe('fetch and pull commands', function() {
+      it('fetches when github:fetch is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'fetch');
+
+        commandRegistry.dispatch(workspaceElement, 'github:fetch');
+
+        assert.isTrue(repository.fetch.called);
+      });
+
+      it('pulls when github:pull is triggered');
+      it('pushes when github:push is triggered');
+      it('force pushes when github:push-force is triggered');
     });
   });
 
