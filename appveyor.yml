@@ -31,12 +31,11 @@ build_script:
 
 on_failure:
   - ps: |-
-      Get-ChildItem -Recurse
       $files = Get-ChildItem "$($env:LOCALAPPDATA)\CrashDumps"
       Write-Output $files
       ForEEach ($file in $files)
       {
-        cdb -z $file -c '!analyze -v; q'
+        cdb -z $file -c "|;~;kq;q"
       }
 
 test: off
