@@ -328,10 +328,22 @@ describe('StatusBarTileController', function() {
 
         commandRegistry.dispatch(workspaceElement, 'github:push');
 
-        assert.isTrue(repository.push.calledWith({force: false}));
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: false})));
       });
 
-      it('force pushes when github:push-force is triggered');
+      it('force pushes when github:force-push is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'push');
+
+        commandRegistry.dispatch(workspaceElement, 'github:force-push');
+
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true})));
+      });
     });
   });
 
