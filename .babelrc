@@ -1,6 +1,7 @@
 {
   "sourceMaps": "inline",
   "plugins": [
+    "./graphql/relay-babel-plugin.js",
     "./assert-async-plugin.js",
     "./assert-messages-plugin.js",
     "transform-object-rest-spread",
