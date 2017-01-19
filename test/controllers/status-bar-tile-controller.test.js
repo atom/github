@@ -303,8 +303,34 @@ describe('StatusBarTileController', function() {
         assert.isTrue(repository.fetch.called);
       });
 
-      it('pulls when github:pull is triggered');
-      it('pushes when github:push is triggered');
+      it('pulls when github:pull is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'pull');
+
+        commandRegistry.dispatch(workspaceElement, 'github:pull');
+
+        assert.isTrue(repository.pull.called);
+      });
+
+      it('pushes when github:push is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'push');
+
+        commandRegistry.dispatch(workspaceElement, 'github:push');
+
+        assert.isTrue(repository.push.calledWith({force: false}));
+      });
+
       it('force pushes when github:push-force is triggered');
     });
   });
