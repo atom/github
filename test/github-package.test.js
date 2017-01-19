@@ -1,3 +1,5 @@
+import {Directory} from 'atom';
+
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
@@ -119,7 +121,6 @@ describe('GithubPackage', function() {
 
   describe('updateActiveRepository()', function() {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
-      // TODO: FIXME Warning: Possible EventEmitter memory leak detected. 11 ipc-helpers-window-method-response listeners added.
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = temp.mkdirSync();
@@ -162,6 +163,22 @@ describe('GithubPackage', function() {
       await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
     });
+
+    // Don't worry about this on Windows as it's not a common op
+    if (process.platform !== 'win32') {
+      it('handles symlinked project paths', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const symlinkPath = temp.mkdirSync() + '-symlink';
+        fs.symlinkSync(workdirPath, symlinkPath);
+        project.setPaths([symlinkPath]);
+        await githubPackage.activate();
+
+        await workspace.open(path.join(symlinkPath, 'a.txt'));
+
+        await githubPackage.updateActiveRepository();
+        assert.isOk(githubPackage.getActiveRepository());
+      });
+    }
   });
 
   describe('when there is a change in the repository', function() {
@@ -218,15 +235,16 @@ describe('GithubPackage', function() {
   });
 
   describe('#projectPathForItemPath', function() {
-    it('does not error when the path is falsy (e.g. an empty text editor)', function() {
-      sinon.stub(project, 'getPaths').returns(['path']);
+    it('does not error when the path is falsy (e.g. new unsaved file)', function() {
+      sinon.stub(project, 'getDirectories').returns([new Directory('path')]);
       assert.doesNotThrow(() => {
         githubPackage.projectPathForItemPath(null);
       });
     });
 
     it('returns the correct path when the item path starts with the project path but the item path is not in the project', function() {
-      sinon.stub(project, 'getPaths').returns([path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')]);
+      const dirs = [path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')].map(p => new Directory(p));
+      sinon.stub(project, 'getDirectories').returns(dirs);
       assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
     });
   });
