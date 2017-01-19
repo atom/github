@@ -13,7 +13,7 @@ const schemaPath = path.resolve(__dirname, '..', 'graphql', 'schema');
 
 const token = process.env.GITHUB_TOKEN;
 if (!token) {
-  throw new Error("You must specify a GitHub auth token in GITHUB_TOKEN");
+  throw new Error('You must specify a GitHub auth token in GITHUB_TOKEN');
 }
 const SERVER = 'https://api.github.com/graphql';
 
