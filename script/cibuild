@@ -7,7 +7,7 @@ function checkForSchemaChanges {
   sleep 2
 
   echo "Checking for schema changes..."
-  git status
+  git status > /dev/null
   if ! git diff-index HEAD --quiet -- graphql/schema.graphql
   then
     echo "Schema is out of date:"
