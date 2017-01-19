@@ -621,4 +621,45 @@ describe('Repository', function() {
       });
     });
   });
+
+  describe('discardWorkDirChangesForPaths()', () => {
+    it('can discard working directory changes in modified files', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = await buildRepository(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'b.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const unstagedChanges = await repo.getUnstagedChanges();
+
+      assert.equal(unstagedChanges.length, 2);
+      await repo.discardWorkDirChangesForPaths(unstagedChanges.map(c => c.filePath));
+      repo.refresh();
+      assert.deepEqual(await repo.getUnstagedChanges(), []);
+    });
+
+    it('can discard working directory changes in removed files', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = await buildRepository(workingDirPath);
+      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'a.txt'));
+      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'));
+      const unstagedChanges = await repo.getUnstagedChanges();
+
+      assert.equal(unstagedChanges.length, 2);
+      await repo.discardWorkDirChangesForPaths(unstagedChanges.map(c => c.filePath));
+      repo.refresh();
+      assert.deepEqual(await repo.getUnstagedChanges(), []);
+    });
+
+    it('can discard working directory changes added files', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = await buildRepository(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'f.txt'), 'qux', 'utf8');
+      const unstagedChanges = await repo.getUnstagedChanges();
+
+      assert.equal(unstagedChanges.length, 2);
+      await repo.discardWorkDirChangesForPaths(unstagedChanges.map(c => c.filePath));
+      repo.refresh();
+      assert.deepEqual(await repo.getUnstagedChanges(), []);
+    });
+  });
 });
