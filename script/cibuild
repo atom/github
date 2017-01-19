@@ -1,11 +1,12 @@
 #!/bin/sh
 
 function checkForSchemaChanges {
-  echo "Checking for schema changes.."
-  npm install
-  npm run fetch-schema
+  time npm install
+  echo "Fetching schema..."
+  time npm run fetch-schema
   sleep 2
 
+  echo "Checking for schema changes..."
   if ! git diff-index HEAD --quiet -- graphql/schema.graphql
   then
     echo "Schema is out of date:"
