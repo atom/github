@@ -12,7 +12,7 @@ until.setDefaultTimeout(5000);
 
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
-  reporter: 'spec',
+  reporter: process.env.MOCHA_REPORTER || 'spec',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
   mocha.timeout(5000);
