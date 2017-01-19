@@ -35,6 +35,22 @@
       'label': 'Discard Changes'
       'command': 'github:discard-changes'
     }
+    {
+      'label': 'Stage'
+      'command': 'core:confirm'
+    }
+  ]
+  '.github-StagedChanges': [
+    {
+      'label': 'Unstage'
+      'command': 'core:confirm'
+    }
+  ]
+  '.github-MergeConflictPaths': [
+    {
+      'label': 'Stage'
+      'command': 'core:confirm'
+    }
   ]
   '.github-FilePatchView': [
     {
