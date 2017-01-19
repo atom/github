@@ -22,7 +22,7 @@ install:
   - ps: Install-Product node 4
 
 build_script:
-  - ps: 'Get-ItemProperty "HKLM:\Software\Microsoft\Windows\Windows Error Reporting"'
+  - ps: Get-ChildItem -Recurse
   - ps: 'New-Item -Path "HKLM:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Force'
   - ps: >-
       New-ItemProperty
