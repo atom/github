@@ -22,7 +22,20 @@ install:
   - ps: Install-Product node 4
 
 build_script:
+  - ps: 'Get-ItemProperty "HKLM:\Software\Microsoft\Windows\Windows Error Reporting"'
+  - ps: 'New-Item -Path "HKLM:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Force'
+  - ps: >-
+      New-ItemProperty
+      -Path 'HKLM:\Software\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+      -Name DumpType -Value 2 -PropertyType DWORD -Force
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
+  - ps: |-
+      $files = Get-ChildItem "$($env:LOCALAPPDATA)\CrashDumps"
+      Write-Output $files
+      ForEEach ($file in $files)
+      {
+        cdb -z $file -c '!analyze -v; q'
+      }
 
 test: off
 deploy: off
