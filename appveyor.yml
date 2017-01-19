@@ -33,10 +33,6 @@ on_failure:
   - ps: |-
       $files = Get-ChildItem "$($env:LOCALAPPDATA)\CrashDumps"
       Write-Output $files
-      ForEEach ($file in $files)
-      {
-        cdb -z $file -c "|;~;kq;q"
-      }
 
 test: off
 deploy: off
