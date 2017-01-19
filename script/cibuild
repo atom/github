@@ -1,13 +1,19 @@
 #!/bin/sh
 
-if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]; then
-  checkForSchemaChanges
-else
-  runTests
-fi
-
 function checkForSchemaChanges {
   echo "Checking for schema changes.."
+  npm install
+  npm run fetch-schema
+  sleep 2
+
+  if ! git diff-index HEAD --quiet -- graphql/schema.graphql
+  then
+    echo "Schema is out of date:"
+    echo
+    git --no-pager diff -- graphql/schema.graphql
+    exit 1
+  fi
+  echo "Schema is up to date"
   exit
 }
 
@@ -83,3 +89,9 @@ function runTests {
   if [ $TEST_RESULT -ne 0 ]; then exit $TEST_RESULT; fi
   exit
 }
+
+if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]; then
+  checkForSchemaChanges
+else
+  runTests
+fi
