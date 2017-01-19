@@ -27,7 +27,7 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const controller = new StatusBarTileController({workspace, repository});
+      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const branchView = controller.refs.branchView;
@@ -52,7 +52,7 @@ describe('StatusBarTileController', function() {
           // create branch called 'branch'
           await repository.git.exec(['branch', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -86,7 +86,7 @@ describe('StatusBarTileController', function() {
           await repository.checkout('branch');
           fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts');
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -110,7 +110,7 @@ describe('StatusBarTileController', function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -146,7 +146,7 @@ describe('StatusBarTileController', function() {
 
           await repository.git.exec(['checkout', '-b', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -175,7 +175,7 @@ describe('StatusBarTileController', function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
-      const controller = new StatusBarTileController({workspace, repository});
+      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const pushPullView = controller.refs.pushPullView;
@@ -210,7 +210,7 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -242,7 +242,7 @@ describe('StatusBarTileController', function() {
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['checkout', '-b', 'new-branch']);
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -267,7 +267,7 @@ describe('StatusBarTileController', function() {
         await repository.git.exec(['reset', '--hard', 'head~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -341,7 +341,7 @@ describe('StatusBarTileController', function() {
       const repository = await buildRepository(workdirPath);
 
       const toggleGitPanel = sinon.spy();
-      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel});
+      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const changedFilesCountView = controller.refs.changedFilesCountView;
