@@ -30,7 +30,7 @@
       'command': 'github:open-file'
     }
   ]
-  '.github-UnstagedChanges .github-FilePatchListView-item': [
+  '.github-UnstagedChanges': [
     {
       'label': 'Discard Changes'
       'command': 'github:discard-changes'
