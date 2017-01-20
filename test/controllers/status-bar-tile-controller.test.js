@@ -330,7 +330,7 @@ describe('StatusBarTileController', function() {
 
         commandRegistry.dispatch(workspaceElement, 'github:push');
 
-        assert.isTrue(repository.push.calledWith('master', sinon.match({force: false})));
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: false, setUpstream: false})));
       });
 
       it('force pushes when github:force-push is triggered', async function() {
@@ -344,7 +344,7 @@ describe('StatusBarTileController', function() {
 
         commandRegistry.dispatch(workspaceElement, 'github:force-push');
 
-        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true})));
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
       });
     });
   });
