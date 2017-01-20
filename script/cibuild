@@ -1,72 +1,99 @@
 #!/bin/sh
 
-echo "Downloading latest Atom release..."
-ATOM_CHANNEL="${ATOM_CHANNEL:=stable}"
-ACCESS_TOKEN_CHECK="${ATOM_ACCESS_TOKEN:=unset}"
-if [ "$ACCESS_TOKEN_CHECK" = "unset" ]; then
-  export ATOM_ACCESS_TOKEN="da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4"
-fi
+function checkForSchemaChanges {
+  time npm install
+  echo "Fetching schema..."
+  time npm run fetch-schema
+  sleep 2
 
-if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    curl -s -L "https://atom.io/download/mac?channel=$ATOM_CHANNEL" \
-      -H 'Accept: application/octet-stream' \
-      -o "atom.zip"
-    mkdir atom
-    unzip -q atom.zip -d atom
-    if [ "$ATOM_CHANNEL" = "stable" ]; then
-      export ATOM_APP_NAME="Atom.app"
-      export ATOM_SCRIPT_NAME="atom.sh"
-      export ATOM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh"
-    else
-      export ATOM_APP_NAME="Atom ${ATOM_CHANNEL}.app"
-      export ATOM_SCRIPT_NAME="atom-${ATOM_CHANNEL}"
-      export ATOM_SCRIPT_PATH="./atom-${ATOM_CHANNEL}"
-      ln -s "./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh" "${ATOM_SCRIPT_PATH}"
-    fi
-    export ATOM_PATH="./atom"
-    export APM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/apm"
+  echo "Checking for schema changes..."
+  git status > /dev/null
+  if ! git diff-index HEAD --quiet -- graphql/schema.graphql
+  then
+    echo "Schema is out of date:"
+    echo
+    git --no-pager diff -- graphql/schema.graphql
+    exit 1
+  fi
+  echo "Schema is up to date"
+  exit
+}
+
+function runTests {
+  echo "Downloading latest Atom release..."
+  ATOM_CHANNEL="${ATOM_CHANNEL:=stable}"
+  ACCESS_TOKEN_CHECK="${ATOM_ACCESS_TOKEN:=unset}"
+  if [ "$ACCESS_TOKEN_CHECK" = "unset" ]; then
+    export ATOM_ACCESS_TOKEN="da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4"
+  fi
+
+  if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      curl -s -L "https://atom.io/download/mac?channel=$ATOM_CHANNEL" \
+        -H 'Accept: application/octet-stream' \
+        -o "atom.zip"
+      mkdir atom
+      unzip -q atom.zip -d atom
+      if [ "$ATOM_CHANNEL" = "stable" ]; then
+        export ATOM_APP_NAME="Atom.app"
+        export ATOM_SCRIPT_NAME="atom.sh"
+        export ATOM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh"
+      else
+        export ATOM_APP_NAME="Atom ${ATOM_CHANNEL}.app"
+        export ATOM_SCRIPT_NAME="atom-${ATOM_CHANNEL}"
+        export ATOM_SCRIPT_PATH="./atom-${ATOM_CHANNEL}"
+        ln -s "./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh" "${ATOM_SCRIPT_PATH}"
+      fi
+      export ATOM_PATH="./atom"
+      export APM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/apm"
+  else
+      curl -s -L "https://atom.io/download/deb?channel=$ATOM_CHANNEL" \
+        -H 'Accept: application/octet-stream' \
+        -o "atom.deb"
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+      export DISPLAY=":99"
+      dpkg-deb -x atom.deb "$HOME/atom"
+      if [ "$ATOM_CHANNEL" = "stable" ]; then
+        export ATOM_SCRIPT_NAME="atom"
+        export APM_SCRIPT_NAME="apm"
+      else
+        export ATOM_SCRIPT_NAME="atom-$ATOM_CHANNEL"
+        export APM_SCRIPT_NAME="apm-$ATOM_CHANNEL"
+      fi
+      export ATOM_SCRIPT_PATH="$HOME/atom/usr/bin/$ATOM_SCRIPT_NAME"
+      export APM_SCRIPT_PATH="$HOME/atom/usr/bin/$APM_SCRIPT_NAME"
+  fi
+
+  echo "Using Atom version:"
+  "$ATOM_SCRIPT_PATH" --version
+  echo "Using apm version:"
+  "$APM_SCRIPT_PATH" --version
+  echo "Using node version:"
+  node --version
+  echo "Using npm version:"
+  npm --version
+
+  echo "Downloading package dependencies..."
+  "$APM_SCRIPT_PATH" install
+
+  echo "Running lint..."
+  npm run lint
+  LINT_RESULT=$?
+  if [ $LINT_RESULT -ne 0 ]; then echo ">>> LINTING FAILED! <<< Continuing on to tests..."; fi
+
+  echo "Running specs..."
+  "$ATOM_SCRIPT_PATH" --test test
+  TEST_RESULT=$?
+
+  echo "=================="
+  echo "Linting exit code: $LINT_RESULT"
+  echo "Test exit code: $TEST_RESULT"
+  if [ $LINT_RESULT -ne 0 ]; then exit $LINT_RESULT; fi
+  if [ $TEST_RESULT -ne 0 ]; then exit $TEST_RESULT; fi
+  exit
+}
+
+if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]; then
+  checkForSchemaChanges
 else
-    curl -s -L "https://atom.io/download/deb?channel=$ATOM_CHANNEL" \
-      -H 'Accept: application/octet-stream' \
-      -o "atom.deb"
-    /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-    export DISPLAY=":99"
-    dpkg-deb -x atom.deb "$HOME/atom"
-    if [ "$ATOM_CHANNEL" = "stable" ]; then
-      export ATOM_SCRIPT_NAME="atom"
-      export APM_SCRIPT_NAME="apm"
-    else
-      export ATOM_SCRIPT_NAME="atom-$ATOM_CHANNEL"
-      export APM_SCRIPT_NAME="apm-$ATOM_CHANNEL"
-    fi
-    export ATOM_SCRIPT_PATH="$HOME/atom/usr/bin/$ATOM_SCRIPT_NAME"
-    export APM_SCRIPT_PATH="$HOME/atom/usr/bin/$APM_SCRIPT_NAME"
+  runTests
 fi
-
-echo "Using Atom version:"
-"$ATOM_SCRIPT_PATH" --version
-echo "Using apm version:"
-"$APM_SCRIPT_PATH" --version
-echo "Using node version:"
-node --version
-echo "Using npm version:"
-npm --version
-
-echo "Downloading package dependencies..."
-"$APM_SCRIPT_PATH" install
-
-echo "Running lint..."
-npm run lint
-LINT_RESULT=$?
-if [ $LINT_RESULT -ne 0 ]; then echo ">>> LINTING FAILED! <<< Continuing on to tests..."; fi
-
-echo "Running specs..."
-"$ATOM_SCRIPT_PATH" --test test
-TEST_RESULT=$?
-
-echo "=================="
-echo "Linting exit code: $LINT_RESULT"
-echo "Test exit code: $TEST_RESULT"
-if [ $LINT_RESULT -ne 0 ]; then exit $LINT_RESULT; fi
-if [ $TEST_RESULT -ne 0 ]; then exit $TEST_RESULT; fi
-exit

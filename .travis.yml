@@ -2,12 +2,15 @@ os: osx
 language: node_js
 
 node_js:
-  - '4.4.7'
+  - '6.9.4'
 
 env:
   global:
-  - ATOM_CHANNEL=stable
-  - ATOM_GITHUB_FS_EVENT_LOG=1
+    - secure: "er/MMyeHzgvBiMObPn/h9rIgf/8pKLjtMB3sTywIO3KPsfcoGh6SPMz+jOpJBzbCQ+si660AHgWzko/t4WJIfZ7BBmn+35dcy6k8dWkZ6dP+WqLPjmuDQ/O1uv8xi4enwg3r0MeFBTXsd0QAW05kA9HJ9oHzZKjM3B67uuRmFwI1QsDJqMtLCgvDJ3hHpem/lccf5iDLtDR8orbaWuYy7T0irID2yFRXyYzPOY/w7sy4pQTGMA4YlBkQSEJ6yQTHrRXo6BxR0KvOcNZNy/SiGk4BXICU3h8NiSjmPLtvbH4MptpiQ7MZgGBGBB71NGGwZNoyIIJiPGHDYHjdtek/JyTI74X87Wqx9obTSkusBCylIcrWc2RjKcMcS9sYojJhgiZjsvrkbv03Ti3/yAhe62Y5Ca7ok4e68dEUG23yQm47oOENuHdW9tx35lYoHrQqQc0pbpYfKxlRsOA9fJtvn0fjcM5ZKyja3ABPwVgchx7erpd0tyPPuUDQOkWQlkIGzmthk1JLtaoCVJkUjX8MrRIBrPB2h0EUPgh3AbIl2P7CTJdsUKvSaTpgzONmIXA4xAjWGmwCLWyRC/FWJeeKg9LItwUXMwyLM+0CPX7C0MBQWgxKBFohAaBWwU1QY71KEGYYnDQLt75Qh1aF/u/SGGZxBE+Hp9+3+Jt5fOYgiiU="
+  matrix:
+    - TRAVIS_BUILD_JOB=schemacheck
+    - TRAVIS_BUILD_JOB=runtests ATOM_CHANNEL=stable ATOM_GITHUB_FS_EVENT_LOG=1
+    # - TRAVIS_BUILD_JOB=runtests ATOM_CHANNEL=beta ATOM_GITHUB_FS_EVENT_LOG=1
 
 notifications:
   email:
