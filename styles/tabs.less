@@ -1,0 +1,65 @@
+// General Styles
+.github-Tabs {
+  &-Panel {
+    &.active {
+      display: block;
+    }
+
+    &.inactive {
+      display: none;
+    }
+  }
+}
+
+// App-specific styles
+.github-Tabs.sidebar-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .github-Tabs-NavigationContainer {
+    display: flex;
+    flex-direction: row;
+    padding-top: 10px;
+  }
+
+  &[data-tabs-count="1"] {
+    .github-Tabs-NavigationContainer {
+      display: none;
+    }
+  }
+
+  .github-Tabs-PanelContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    // background-color: mix(@base-background-color, @tool-panel-background-color);
+  }
+
+  .github-Tabs-NavigationItem {
+    flex: 1;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    height: 30px;
+
+    &.active {
+      border: 1px solid @tab-border-color;
+      border-left: 2px solid @background-color-info;
+      border-bottom: none;
+      background: @tab-background-color-active;
+    }
+  }
+
+  .github-Tabs-Panel {
+    flex: 1;
+
+    &.active {
+    }
+
+    &.inactive {
+    }
+  }
+}
