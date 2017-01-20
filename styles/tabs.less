@@ -1,3 +1,5 @@
+@import "variables";
+
 // General Styles
 .github-Tabs {
   &-Panel {
@@ -20,7 +22,6 @@
   .github-Tabs-NavigationContainer {
     display: flex;
     flex-direction: row;
-    padding-top: 10px;
   }
 
   &[data-tabs-count="1"] {
@@ -33,7 +34,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    // background-color: mix(@base-background-color, @tool-panel-background-color);
+    background-color: @inset-panel-background-color;
   }
 
   .github-Tabs-NavigationItem {
@@ -43,13 +44,16 @@
     flex-direction: column;
     justify-content: center;
     cursor: pointer;
-    height: 30px;
+    height: 36px; // TODO: This is currently matched with the One themes
+    border-bottom: 1px solid @tab-border-color;
+
+    & + .github-Tabs-NavigationItem {
+      border-left: 1px solid @tab-border-color;
+    }
 
     &.active {
-      border: 1px solid @tab-border-color;
-      border-left: 2px solid @background-color-info;
-      border-bottom: none;
-      background: @tab-background-color-active;
+      border-bottom-color: transparent;
+      background-color: @inset-panel-background-color;
     }
   }
 
