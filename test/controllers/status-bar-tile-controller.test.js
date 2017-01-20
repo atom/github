@@ -277,14 +277,16 @@ describe('StatusBarTileController', function() {
         assert.equal(pullButton.textContent, 'Pull (2)');
 
         pushButton.dispatchEvent(new MouseEvent('click'));
-        await until('error message appears', () => /Push rejected/.test(message.innerHTML));
+        await controller.getLastModelDataRefreshPromise();
+
+        await assert.async.match(message.innerHTML, /Push rejected/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
-        assert.equal(pushButton.textContent, 'Push ');
-        assert.equal(pullButton.textContent, 'Pull ');
+        await assert.async.equal(pushButton.textContent, 'Push ');
+        await assert.async.equal(pullButton.textContent, 'Pull ');
       });
     });
 
