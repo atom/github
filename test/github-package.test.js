@@ -9,7 +9,7 @@ import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, githubPackage;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, config, githubPackage;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,7 +17,8 @@ describe('GithubPackage', function() {
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
-    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager);
+    config = atomEnv.config;
+    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager, config);
   });
 
   afterEach(async function() {
