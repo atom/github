@@ -30,8 +30,11 @@
       cursor: pointer;
       background-color: @button-background-color;
       color: contrast(@button-background-color, hsla(0,0%,0%,.6), hsla(0,0%,100%,.6));
-      padding: 5px;
       border: 1px solid @button-border-color;
+      padding: .25em .5em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       & + .github-Tabs-NavigationItem {
         border-left: none;
