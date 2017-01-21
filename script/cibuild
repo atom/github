@@ -5,6 +5,11 @@ function updateStatus {
   CTX=$2
   DESC=$3
 
+  SHA=$TRAVIS_COMMIT
+  if [ ! -z "$TRAVIS_PULL_REQUEST_SHA" ]; then
+    SHA=$TRAVIS_PULL_REQUEST_SHA
+  fi
+
   TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_ID"
   GH_API_URL="https://api.github.com/repos/atom/github/statuses/$TRAVIS_COMMIT"
   curl -H "Authorization: token $GITHUB_TOKEN" --data "{\"state\": \"$STATUS\", \"target_url\": \"$TRAVIS_JOB_URL\", \"description\": \"$DESC\", \"context\": \"schema/$CTX\"}" $GH_API_URL
