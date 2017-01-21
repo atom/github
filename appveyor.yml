@@ -29,13 +29,11 @@ build_script:
         -Name DumpType -Value 2 -PropertyType DWORD -Force
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
 
-artifacts:
-  - path: minidumps
-    name: minidumps
-
 on_failure:
   - ps: |-
       Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp" -Recurse | `
+        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+      Get-ChildItem -Path ".\*.pdb" -Recurse | `
         % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 test: off
