@@ -29,13 +29,13 @@
       text-align: center;
       cursor: pointer;
       background-color: @button-background-color;
-      color: @text-color;
+      color: contrast(@button-background-color, hsla(0,0%,0%,.6), hsla(0,0%,100%,.6));
       padding: 5px;
       border: 1px solid @button-border-color;
 
       &.active {
         background-color: @button-background-color-selected;
-        color: @base-background-color;
+        color: contrast(@button-background-color-selected, hsla(0,0%,0%,1), hsla(0,0%,100%,1));
         border-color: @button-background-color-selected;
       }
 
