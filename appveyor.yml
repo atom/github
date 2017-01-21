@@ -31,6 +31,10 @@ build_script:
         -Name DumpType -Value 2 -PropertyType DWORD -Force
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
 
+artifacts:
+  - path: "$(TEMP)\Atom Crashes\"
+    name: minidumps
+
 on_failure:
   - ps: |-
       $symPath = "SRV*c:\symbols\*http://msdl.microsoft.com/download/symbols;SRV*c:\symbols\*https://electron-symbols.githubapp.com;c:\Users\smash\src\crashy\build\Release"
