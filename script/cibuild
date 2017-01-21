@@ -4,7 +4,7 @@ function updateStatus {
   STATUS=$1
 
   TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_NUMBER"
-  GH_API_URL="https://api.github.com/repos/atom/github/statuses/$TRAVIS_PULL_REQUEST_SHA"
+  GH_API_URL="https://api.github.com/repos/atom/github/statuses/$TRAVIS_COMMIT"
   curl -H "Authorization: token $GITHUB_TOKEN" --data '{"state": "$STATUS", "target_url": "$TRAVIS_JOB_URL", "description": "Schema Check", "context": "schemacheck"}' $GH_API_URL
 }
 
