@@ -1,6 +1,5 @@
 import {Directory} from 'atom';
 
-import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
