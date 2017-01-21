@@ -33,10 +33,13 @@
       padding: 5px;
       border: 1px solid @button-border-color;
 
+      & + .github-Tabs-NavigationItem {
+        border-left: none;
+      }
+
       &.active {
         background-color: @button-background-color-selected;
         color: contrast(@button-background-color-selected, hsla(0,0%,0%,1), hsla(0,0%,100%,1));
-        border-color: @button-background-color-selected;
       }
 
       &:first-child {
