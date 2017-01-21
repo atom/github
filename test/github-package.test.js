@@ -1,5 +1,6 @@
 import {Directory} from 'atom';
 
+import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
@@ -23,6 +24,10 @@ describe('GithubPackage', function() {
   afterEach(async function() {
     await githubPackage.deactivate();
     atomEnv.destroy();
+  });
+
+  it('writes the temp dir path', function() {
+    assert.equal(os.tmpdir(), '');
   });
 
   describe('activate()', function() {
