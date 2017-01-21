@@ -2,9 +2,43 @@ import fs from 'fs';
 import path from 'path';
 import dedent from 'dedent-js';
 
+import Repository from '../../lib/models/repository';
+
 import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
 
 describe('Repository', function() {
+  describe('githubInfoFromRemote', function() {
+    it('returns info about a GitHub repo based on the remote URL', function() {
+      const atomRepo = {
+        githubRepo: true,
+        owner: 'atom',
+        name: 'github',
+      };
+
+      const notARepo = {
+        githubRepo: false,
+        owner: null,
+        name: null,
+      };
+
+      const remotes = [
+        'git@github.com:atom/github.git',
+        'https://github.com/atom/github.git',
+        'https://git:pass@github.com/atom/github.git',
+        'ssh+https://github.com/atom/github.git',
+        'git://github.com/atom/github',
+        'ssh://git@github.com:atom/github.git',
+      ];
+
+      for (const remote of remotes) {
+        assert.deepEqual(Repository.githubInfoFromRemote(remote), atomRepo);
+      }
+
+      assert.deepEqual(Repository.githubInfoFromRemote('git@gitlab.com:atom/github.git'), notARepo);
+      assert.deepEqual(Repository.githubInfoFromRemote('atom/github'), notARepo);
+    });
+  });
+
   describe('staging and unstaging files', function() {
     it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
