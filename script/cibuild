@@ -5,9 +5,9 @@ function updateStatus {
   CTX=$2
   DESC=$3
 
-  TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_NUMBER"
+  TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_ID"
   GH_API_URL="https://api.github.com/repos/atom/github/statuses/$TRAVIS_COMMIT"
-  curl -H "Authorization: token $GITHUB_TOKEN" --data "{\"state\": \"$STATUS\", \"target_url\": \"$TRAVIS_JOB_ID\", \"description\": \"$DESC\", \"context\": \"schema/$CTX\"}" $GH_API_URL
+  curl -H "Authorization: token $GITHUB_TOKEN" --data "{\"state\": \"$STATUS\", \"target_url\": \"$TRAVIS_JOB_URL\", \"description\": \"$DESC\", \"context\": \"schema/$CTX\"}" $GH_API_URL
 }
 
 function checkForSchemaChanges {
