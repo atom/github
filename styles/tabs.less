@@ -43,23 +43,13 @@
       }
 
       &:first-child {
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-      }
-
-      &:first-child:not(:last-child) {
-        border-bottom-right-radius: 0;
-        border-top-right-radius: 0;
+        border-top-left-radius: @component-border-radius;
+        border-bottom-left-radius: @component-border-radius;
       }
 
       &:last-child {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-      }
-
-      &:last-child:not(:first-child) {
-        border-bottom-left-radius: 0;
-        border-top-left-radius: 0;
+        border-top-right-radius: @component-border-radius;
+        border-bottom-right-radius: @component-border-radius;
       }
     }
 
