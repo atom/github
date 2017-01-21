@@ -11,10 +11,7 @@ function updateStatus {
 }
 
 function checkForSchemaChanges {
-  CTX="push"
-  if [ $TRAVIS_PULL_REQUEST ]; then
-    CTX="pr"
-  fi
+  CTX="$TRAVIS_EVENT_TYPE"
 
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
   time npm install
