@@ -21,6 +21,7 @@ environment:
 install:
   - ps: Install-Product node 4
   - ps: choco install windbg
+  - ps: Get-ChildItem -Recurse -Path 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\'
 
 build_script:
   - ps: |-
