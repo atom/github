@@ -30,10 +30,10 @@ build_script:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
 
 on_failure:
-  - ps: Get-ChildItem -Path "$($env:LOCALAPPDATA)\Temp\" -Recurse
+  - ps: Get-ChildItem -Path "$($env:TEMP)\" -Recurse
   - ps: |-
       $symPath = "SRV*c:\symbols\*http://msdl.microsoft.com/download/symbols;SRV*c:\symbols\*https://electron-symbols.githubapp.com;c:\Users\smash\src\crashy\build\Release"
-      $files = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Temp\Atom Crashes\*.dmp"
+      $files = Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp"
       ForEach ($file in $files) {
         Write-Output "Analyzing crash dump: $file"
         cdb -y $symPath -z $file -c '!analyze -v; q'
