@@ -20,6 +20,7 @@ environment:
 
 install:
   - ps: Install-Product node 4
+  - ps: choco install windbg
 
 build_script:
   - ps: |-
