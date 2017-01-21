@@ -20,9 +20,6 @@ environment:
 
 install:
   - ps: Install-Product node 4
-  - ps: choco install windbg
-  - ps: |-
-      Get-ChildItem -Recurse -Path "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\*.exe"
 
 build_script:
   - ps: |-
@@ -33,18 +30,15 @@ build_script:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
 
 artifacts:
-  - path: $(TEMP)\Atom Crashes\
+  - path: minidumps
     name: minidumps
 
 on_failure:
   - ps: |-
-      $symPath = "SRV*c:\symbols\*http://msdl.microsoft.com/download/symbols;SRV*c:\symbols\*https://electron-symbols.githubapp.com;c:\Users\smash\src\crashy\build\Release"
-      $files = Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp"
-      ForEach ($file in $files) {
-        Write-Output "Analyzing crash dump: $file"
-        'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe' `
-          -y $symPath -z $file -c '!analyze -v; q'
-      }
+      New-Item -ItemType directory -Path "C:\projects\github\minidumps\"
+      Copy-Item `
+        -Path "$($env:TEMP)\Atom Crashes\*.dmp" `
+        -Destination "C:\projects\github\minidumps\"
 
 test: off
 deploy: off
