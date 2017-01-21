@@ -35,10 +35,8 @@ artifacts:
 
 on_failure:
   - ps: |-
-      New-Item -ItemType directory -Path "C:\projects\github\minidumps\"
-      Copy-Item `
-        -Path "$($env:TEMP)\Atom Crashes\*.dmp" `
-        -Destination "C:\projects\github\minidumps\"
+      Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp" -Recurse | `
+        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 test: off
 deploy: off
