@@ -3,10 +3,11 @@
 function updateStatus {
   STATUS=$1
   CTX=$2
+  DESC=$3
 
   TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_NUMBER"
   GH_API_URL="https://api.github.com/repos/atom/github/statuses/$TRAVIS_COMMIT"
-  curl -H "Authorization: token $GITHUB_TOKEN" --data '{"state": "$STATUS", "target_url": "$TRAVIS_JOB_URL", "description": "GraphQL Schema Check", "context": "schemacheck/$CTX"}' $GH_API_URL
+  curl -H "Authorization: token $GITHUB_TOKEN" --data "{\"state\": \"$STATUS\", \"target_url\": \"$TRAVIS_JOB_URL\", \"description\": \"$DESC\", \"context\": \"schema/$CTX\"}" $GH_API_URL
 }
 
 function checkForSchemaChanges {
@@ -15,7 +16,7 @@ function checkForSchemaChanges {
     CTX="pr"
   fi
 
-  updateStatus "pending" $CTX
+  updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
   time npm install
   echo "Fetching schema..."
   time npm run fetch-schema
@@ -26,13 +27,13 @@ function checkForSchemaChanges {
   git status > /dev/null
   if ! git diff-index HEAD --quiet -- graphql/schema.graphql
   then
-    updateStatus "failure" $CTX
+    updateStatus "failure" $CTX "GraphQL Schema out of date"
     echo "Schema is out of date:"
     echo
     git --no-pager diff -- graphql/schema.graphql
     exit
   fi
-  updateStatus "success" $CTX
+  updateStatus "success" $CTX "GraphQL Schema up to date"
   echo "Schema is up to date"
   exit
 }
