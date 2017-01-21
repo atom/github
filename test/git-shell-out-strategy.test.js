@@ -503,6 +503,22 @@ describe('Git commands', function() {
     });
   });
 
+  describe('getRemotes()', function() {
+    it('returns an array of remotes', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'set-url', 'origin', 'git@github.com:other/origin.git']);
+      await git.exec(['remote', 'add', 'upstream', 'git@github.com:my/upstream.git']);
+      await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, [
+        {name: 'origin', url: 'git@github.com:other/origin.git'},
+        {name: 'upstream', url: 'git@github.com:my/upstream.git'},
+        {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
+      ]);
+    });
+  });
+
   describe('commit(message, options) where amend option is true', function() {
     it('amends the last commit', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
