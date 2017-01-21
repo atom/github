@@ -26,10 +26,6 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
-  it('writes the temp dir path', function() {
-    assert.equal(os.tmpdir(), '');
-  });
-
   describe('activate()', function() {
     it('updates the active repository', async function() {
       await githubPackage.activate();
