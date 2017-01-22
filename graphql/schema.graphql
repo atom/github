@@ -319,6 +319,9 @@ interface Comment {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 }
 
 # The possible errors that will prevent a user from editting a comment.
@@ -440,7 +443,7 @@ type Commit implements Node, GitObject {
 }
 
 # Represents a comment on a given Commit.
-type CommitComment implements Node, Comment, Reactable {
+type CommitComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the user who created the comment.
   author: User
 
@@ -519,6 +522,9 @@ type CommitComment implements Node, Comment, Reactable {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 }
 
 # The connection type for CommitComment.
@@ -923,6 +929,9 @@ type GistComment implements Node, Comment {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 }
 
 # The connection type for Gist.
@@ -1161,7 +1170,7 @@ type HeadRefRestoredEvent implements Node, IssueEvent {
 scalar HTML
 
 # An Issue is a place to discuss ideas, enhancements, tasks, and bugs for a project.
-type Issue implements Node, Comment, Issueish, Reactable, Timeline, UniformResourceLocatable {
+type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
   # A list of Users assigned to the Issue.
   assignees(
     # Returns the first _n_ elements from the list.
@@ -1325,6 +1334,9 @@ type Issue implements Node, Comment, Issueish, Reactable, Timeline, UniformResou
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
 
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
+
   # The websocket channel ID for live updates.
   websocket(
     # The channel to use.
@@ -1333,7 +1345,7 @@ type Issue implements Node, Comment, Issueish, Reactable, Timeline, UniformResou
 }
 
 # Represents a comment on an Issue.
-type IssueComment implements Node, Comment, Reactable {
+type IssueComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the author of the comment.
   author: User
 
@@ -1386,8 +1398,8 @@ type IssueComment implements Node, Comment, Reactable {
   # The websocket channel ID for reaction live updates.
   reactionsWebsocket: String!
 
-  # The repository associated with this reaction subject.
-  repository: Repository! @deprecated(reason: "Future reaction subjects may not be scoped under repositories.")
+  # The repository associated with this node.
+  repository: Repository!
 
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime!
@@ -1403,6 +1415,9 @@ type IssueComment implements Node, Comment, Reactable {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 
   # The websocket channel ID for live updates.
   websocket(
@@ -2565,7 +2580,7 @@ interface ProjectOwner {
 }
 
 # A repository pull request.
-type PullRequest implements Node, Comment, Issueish, Reactable, Timeline, UniformResourceLocatable {
+type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
   # The user associated with this pull request.
   author: User
 
@@ -2750,6 +2765,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, Timeline, Unifor
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
 
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
+
   # The websocket channel ID for live updates.
   websocket(
     # The channel to use.
@@ -2791,7 +2809,7 @@ enum PullRequestPubSubTopic {
 }
 
 # A review object for a given pull request.
-type PullRequestReview implements Node, Comment {
+type PullRequestReview implements Node, Comment, RepositoryNode {
   # Identifies the author associated with this pull request review.
   author: User!
 
@@ -2838,6 +2856,9 @@ type PullRequestReview implements Node, Comment {
   # Identifies the pull request associated with this pull request review.
   pullRequest: PullRequest!
 
+  # The repository associated with this node.
+  repository: Repository!
+
   # Identifies the current state of the pull request review.
   state: PullRequestReviewState!
 
@@ -2858,10 +2879,13 @@ type PullRequestReview implements Node, Comment {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 }
 
 # A review comment associated with a given repository pull request.
-type PullRequestReviewComment implements Node, Comment, Reactable {
+type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNode {
   # The user associated with this review comment.
   author: User
 
@@ -2958,6 +2982,9 @@ type PullRequestReviewComment implements Node, Comment, Reactable {
 
   # Errors why the current viewer can not edit this comment.
   viewerCannotEditReasons: [CommentCannotEditReason!]!
+
+  # Did the viewer author this comment.
+  viewerDidAuthor: Boolean!
 
   # The websocket channel ID for live updates.
   websocket(
@@ -4097,6 +4124,12 @@ enum RepositoryLockReason {
 
   # The repository is locked due to a migration.
   MIGRATING
+}
+
+# Represents a object that belongs to a repository.
+interface RepositoryNode {
+  # The repository associated with this node.
+  repository: Repository!
 }
 
 # Ordering options for repository connections
