@@ -30,6 +30,8 @@ on_failure:
         % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       Get-ChildItem -Path ".\*.pdb" -Recurse | `
         % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+      Get-ChildItem -Path ".\*.node" -Recurse | `
+        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 test: off
 deploy: off
