@@ -344,4 +344,23 @@ describe('StagingView', function() {
       assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
     });
   });
+
+  // https://github.com/atom/github/issues/468
+  it('updates selection on mousedown', async () => {
+    const unstagedChanges = [
+      {filePath: 'a.txt', status: 'modified'},
+      {filePath: 'b.txt', status: 'modified'},
+      {filePath: 'c.txt', status: 'modified'},
+    ];
+    const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+    view.isFocused = sinon.stub().returns(true);
+
+    document.body.appendChild(view.element);
+    await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
+    view.mouseup();
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[0]]));
+
+    await view.mousedownOnItem({button: 0}, unstagedChanges[2]);
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[2]]));
+  });
 });
