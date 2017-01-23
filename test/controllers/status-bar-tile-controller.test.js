@@ -8,11 +8,14 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 
 describe('StatusBarTileController', function() {
-  let atomEnvironment, workspace;
+  let atomEnvironment, workspace, workspaceElement, commandRegistry;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
+    commandRegistry = atomEnvironment.commands;
+
+    workspaceElement = atomEnvironment.views.getView(workspace);
   });
 
   afterEach(function() {
@@ -24,7 +27,7 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const controller = new StatusBarTileController({workspace, repository});
+      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const branchView = controller.refs.branchView;
@@ -49,7 +52,7 @@ describe('StatusBarTileController', function() {
           // create branch called 'branch'
           await repository.git.exec(['branch', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -83,7 +86,7 @@ describe('StatusBarTileController', function() {
           await repository.checkout('branch');
           fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts');
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -107,7 +110,7 @@ describe('StatusBarTileController', function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -143,7 +146,7 @@ describe('StatusBarTileController', function() {
 
           await repository.git.exec(['checkout', '-b', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
@@ -172,7 +175,7 @@ describe('StatusBarTileController', function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
-      const controller = new StatusBarTileController({workspace, repository});
+      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const pushPullView = controller.refs.pushPullView;
@@ -207,7 +210,7 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -239,7 +242,7 @@ describe('StatusBarTileController', function() {
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['checkout', '-b', 'new-branch']);
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -264,7 +267,7 @@ describe('StatusBarTileController', function() {
         await repository.git.exec(['reset', '--hard', 'head~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
-        const controller = new StatusBarTileController({workspace, repository});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
@@ -274,14 +277,74 @@ describe('StatusBarTileController', function() {
         assert.equal(pullButton.textContent, 'Pull (2)');
 
         pushButton.dispatchEvent(new MouseEvent('click'));
-        await until('error message appears', () => /Push rejected/.test(message.innerHTML));
+        await controller.getLastModelDataRefreshPromise();
+
+        await assert.async.match(message.innerHTML, /Push rejected/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
-        assert.equal(pushButton.textContent, 'Push ');
-        assert.equal(pullButton.textContent, 'Pull ');
+        await assert.async.equal(pushButton.textContent, 'Push ');
+        await assert.async.equal(pullButton.textContent, 'Pull ');
+      });
+    });
+
+    describe('fetch and pull commands', function() {
+      it('fetches when github:fetch is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'fetch');
+
+        commandRegistry.dispatch(workspaceElement, 'github:fetch');
+
+        assert.isTrue(repository.fetch.called);
+      });
+
+      it('pulls when github:pull is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'pull');
+
+        commandRegistry.dispatch(workspaceElement, 'github:pull');
+
+        assert.isTrue(repository.pull.called);
+      });
+
+      it('pushes when github:push is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'push');
+
+        commandRegistry.dispatch(workspaceElement, 'github:push');
+
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: false, setUpstream: false})));
+      });
+
+      it('force pushes when github:force-push is triggered', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = await buildRepository(localRepoPath);
+
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        await controller.getLastModelDataRefreshPromise();
+
+        sinon.spy(repository, 'push');
+
+        commandRegistry.dispatch(workspaceElement, 'github:force-push');
+
+        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
       });
     });
   });
@@ -292,7 +355,7 @@ describe('StatusBarTileController', function() {
       const repository = await buildRepository(workdirPath);
 
       const toggleGitPanel = sinon.spy();
-      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel});
+      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
 
       const changedFilesCountView = controller.refs.changedFilesCountView;
