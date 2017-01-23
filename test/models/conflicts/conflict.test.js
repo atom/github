@@ -1,5 +1,3 @@
-/** @babel */
-
 import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
