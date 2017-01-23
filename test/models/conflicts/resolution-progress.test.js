@@ -1,6 +1,6 @@
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
 
-describe.only('ResolutionProgress', function() {
+describe('ResolutionProgress', function() {
   it('reports 0% for any path that has not reported progress yet', function() {
     const progress = new ResolutionProgress('1234abcd', {});
     assert.equal(progress.getValue('path/to/file.txt'), 0);
