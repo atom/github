@@ -43,15 +43,13 @@ describe('StagingView', function() {
         const attemptFileStageOperation = sinon.spy();
         const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
-        view.mousedownOnItem({button: 0}, filePatches[1]);
-        view.mouseup();
+        view.clickOnItem({}, filePatches[1]);
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
 
         attemptFileStageOperation.reset();
         await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptFileStageOperation});
-        view.mousedownOnItem({button: 0}, filePatches[1]);
-        view.mouseup();
+        view.clickOnItem({}, filePatches[1]);
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
@@ -266,7 +264,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", () => {
-      view.mousedownOnItem({button: 0}, stagedChanges[1]);
+      view.clickOnItem({}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-2.txt']);
 
