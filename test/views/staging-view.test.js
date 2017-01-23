@@ -43,13 +43,15 @@ describe('StagingView', function() {
         const attemptFileStageOperation = sinon.spy();
         const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
-        view.clickOnItem({}, filePatches[1]);
+        view.mousedownOnItem({button: 0}, filePatches[1]);
+        view.mouseup();
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
 
         attemptFileStageOperation.reset();
         await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptFileStageOperation});
-        view.clickOnItem({}, filePatches[1]);
+        view.mousedownOnItem({button: 0}, filePatches[1]);
+        view.mouseup();
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
@@ -264,7 +266,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", () => {
-      view.clickOnItem({}, stagedChanges[1]);
+      view.mousedownOnItem({button: 0}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-2.txt']);
 
@@ -343,5 +345,24 @@ describe('StagingView', function() {
       assert.equal(didDiveIntoFilePath.callCount, 0);
       assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
     });
+  });
+
+  // https://github.com/atom/github/issues/468
+  it('updates selection on mousedown', async () => {
+    const unstagedChanges = [
+      {filePath: 'a.txt', status: 'modified'},
+      {filePath: 'b.txt', status: 'modified'},
+      {filePath: 'c.txt', status: 'modified'},
+    ];
+    const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+    view.isFocused = sinon.stub().returns(true);
+
+    document.body.appendChild(view.element);
+    await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
+    view.mouseup();
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[0]]));
+
+    await view.mousedownOnItem({button: 0}, unstagedChanges[2]);
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[2]]));
   });
 });
