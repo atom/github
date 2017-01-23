@@ -58,3 +58,15 @@
       'command': 'github:open-file'
     }
   ]
+  '.github-FilePatchView.is-staged': [
+    {
+      'label': 'Unstage Selection'
+      'command': 'core:confirm'
+    }
+  ]
+  '.github-FilePatchView.is-unstaged': [
+    {
+      'label': 'Stage Selection'
+      'command': 'core:confirm'
+    }
+  ]
