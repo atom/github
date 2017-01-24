@@ -251,7 +251,7 @@ describe('FilePatchView', function() {
       assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk1, hunk2]));
       assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
 
-      // in line selection mode, shift-click hunk header for separate hunk that comes after selected line
+      // in hunk selection mode, shift-click hunk header for separate hunk that comes after selected line
       await hunkView0.props.mousedownOnHeader({button: 0}, hunk0);
       await filePatchView.mouseup();
       assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
@@ -265,7 +265,7 @@ describe('FilePatchView', function() {
       assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
       assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines]));
 
-      // in hunk selection mode, shift-click hunk header for separate hunk that comes after selected line
+      // in hunk selection mode, shift-click hunk header for separate hunk that comes before selected line
       await hunkView2.props.mousedownOnHeader({button: 0}, hunk2);
       await filePatchView.mouseup();
       assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk2]));
