@@ -37,11 +37,19 @@
   margin-left: @component-padding / 2;
 }
 
+.github-FilePatchListView-resolutionItem {
+  padding-top: 0;
+  padding-bottom: 10px;
+  progress {
+    width: 100%;
+  }
+}
+
 //
 // States
 // -----------------------------------------
 
-.github-StagingView-group.is-focused .github-FilePatchListView-item.is-selected {
+.github-StagingView-group.is-focused .is-selected {
   background: @background-color-highlight;
   color: @text-color-highlight;
   .github-StagingView:focus & {
