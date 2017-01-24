@@ -136,7 +136,7 @@ describe('FilePatchController', function() {
       let hunk = unstagedFilePatch.getHunks()[0];
       let lines = hunk.getLines();
       let hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
+      hunkView.props.mousedownOnLine({button: 0}, hunk, lines[1]);
       hunkView.props.mousemoveOnLine({}, hunk, lines[3]);
       view.mouseup();
       await hunkView.props.didClickStageButton();
@@ -169,9 +169,9 @@ describe('FilePatchController', function() {
       hunk = stagedFilePatch.getHunks()[0];
       lines = hunk.getLines();
       hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
+      hunkView.props.mousedownOnLine({button: 0}, hunk, lines[1]);
       view.mouseup();
-      hunkView.props.mousedownOnLine({detail: 1, metaKey: true}, hunk, lines[2]);
+      hunkView.props.mousedownOnLine({button: 0, metaKey: true}, hunk, lines[2]);
       view.mouseup();
 
       await hunkView.props.didClickStageButton();
@@ -261,7 +261,7 @@ describe('FilePatchController', function() {
         let hunk = unstagedFilePatch.getHunks()[0];
         let lines = hunk.getLines();
         let hunkView = hunkViewsByHunk.get(hunk);
-        hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[1]);
+        hunkView.props.mousedownOnLine({button: 0}, hunk, lines[1]);
         view.mouseup();
 
         // stage lines in rapid succession
@@ -286,7 +286,7 @@ describe('FilePatchController', function() {
         hunk = modifiedFilePatch.getHunks()[0];
         lines = hunk.getLines();
         hunkView = hunkViewsByHunk.get(hunk);
-        hunkView.props.mousedownOnLine({detail: 1}, hunk, lines[2]);
+        hunkView.props.mousedownOnLine({button: 0}, hunk, lines[2]);
         view.mouseup();
 
         const line2StagingPromises = hunkView.props.didClickStageButton();

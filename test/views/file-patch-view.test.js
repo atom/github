@@ -39,7 +39,7 @@ describe('FilePatchView', function() {
     const hunkView1 = hunkViews.get(hunks[1]);
 
     // drag a selection
-    await hunkView0.props.mousedownOnLine({detail: 1}, hunks[0], hunks[0].lines[2]);
+    await hunkView0.props.mousedownOnLine({button: 0}, hunks[0], hunks[0].lines[2]);
     await hunkViews.get(hunks[1]).props.mousemoveOnLine({}, hunks[1], hunks[1].lines[1]);
     await filePatchView.mouseup();
     assert(hunkView0.props.isSelected);
@@ -48,7 +48,7 @@ describe('FilePatchView', function() {
     assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
 
     // start a new selection, drag it across an existing selection
-    await hunkView1.props.mousedownOnLine({detail: 1, metaKey: true}, hunks[1], hunks[1].lines[3]);
+    await hunkView1.props.mousedownOnLine({button: 0, metaKey: true}, hunks[1], hunks[1].lines[3]);
     await hunkView0.props.mousemoveOnLine({}, hunks[0], hunks[0].lines[0]);
     assert(hunkView0.props.isSelected);
     assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
@@ -83,8 +83,8 @@ describe('FilePatchView', function() {
     assert(!hunkView0.props.isSelected);
     assert(!hunkView0.props.selectedLines.has(hunks[0].lines[2]));
 
-    // double-click drag clears the existing selection and starts hunk-wise selection
-    await hunkView0.props.mousedownOnLine({detail: 2}, hunks[0], hunks[0].lines[2]);
+    // clicking the header clears the existing selection and starts hunk-wise selection
+    await hunkView0.props.mousedownOnHeader({button: 0}, hunks[0], hunks[0].lines[2]);
     assert(hunkView0.props.isSelected);
     assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
     assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
@@ -212,7 +212,7 @@ describe('FilePatchView', function() {
 
         const openCurrentFile = sinon.stub();
         const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({detail: 1}, hunks[0], hunks[0].lines[2]);
+        filePatchView.mousedownOnLine({button: 0}, hunks[0], hunks[0].lines[2]);
         await filePatchView.mousemoveOnLine({}, hunks[0], hunks[0].lines[3]);
         await filePatchView.mouseup();
 
@@ -241,7 +241,7 @@ describe('FilePatchView', function() {
 
         const openCurrentFile = sinon.stub();
         const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({detail: 1}, hunks[1], hunks[1].lines[2]);
+        filePatchView.mousedownOnLine({button: 0}, hunks[1], hunks[1].lines[2]);
         await filePatchView.mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
         await filePatchView.mouseup();
 
@@ -263,7 +263,7 @@ describe('FilePatchView', function() {
 
         const openCurrentFile = sinon.stub();
         const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({detail: 1}, hunks[0], hunks[0].lines[2]);
+        filePatchView.mousedownOnLine({button: 0}, hunks[0], hunks[0].lines[2]);
         await filePatchView.mouseup();
 
         filePatchView.openFile();
