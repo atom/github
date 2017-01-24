@@ -4,13 +4,11 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
-  let atomEnv, commandRegistry, resolutionProgress;
+  let atomEnv, commandRegistry;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
-
-    resolutionProgress = new ResolutionProgress('', {});
   });
 
   afterEach(function() {
@@ -25,7 +23,6 @@ describe('StagingView', function() {
       ];
       const view = new StagingView({
         commandRegistry,
-        resolutionProgress,
         unstagedChanges: filePatches,
         stagedChanges: [],
       });
@@ -51,7 +48,6 @@ describe('StagingView', function() {
         const attemptFileStageOperation = sinon.spy();
         const view = new StagingView({
           commandRegistry,
-          resolutionProgress,
           unstagedChanges: filePatches,
           stagedChanges: [],
           attemptFileStageOperation,
@@ -74,7 +70,7 @@ describe('StagingView', function() {
 
   describe('merge conflicts list', function() {
     it('is visible only when conflicted paths are passed', async function() {
-      const view = new StagingView({commandRegistry, resolutionProgress, unstagedChanges: [], stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
 
       assert.isUndefined(view.refs.mergeConflicts);
 
@@ -144,8 +140,7 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          commandRegistry, resolutionProgress,
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -191,8 +186,7 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          commandRegistry, resolutionProgress,
-          didSelectFilePath, didSelectMergeConflictFile,
+          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -229,7 +223,7 @@ describe('StagingView', function() {
         {filePath: 'e.txt', status: 'modified'},
         {filePath: 'f.txt', status: 'modified'},
       ];
-      const view = new StagingView({commandRegistry, resolutionProgress, unstagedChanges, stagedChanges: []});
+      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
@@ -262,8 +256,7 @@ describe('StagingView', function() {
       ];
       const didSelectFilePath = sinon.stub();
       const view = new StagingView({
-        commandRegistry, resolutionProgress,
-        didSelectFilePath,
+        commandRegistry, didSelectFilePath,
         unstagedChanges, stagedChanges: [],
       });
       view.isFocused = sinon.stub().returns(true);
@@ -295,7 +288,7 @@ describe('StagingView', function() {
         {filePath: 'staged-1.txt', status: 'staged'},
         {filePath: 'staged-2.txt', status: 'staged'},
       ];
-      view = new StagingView({commandRegistry, resolutionProgress, unstagedChanges, stagedChanges, mergeConflicts});
+      view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
     });
 
     const assertSelected = expected => {
@@ -354,7 +347,7 @@ describe('StagingView', function() {
       didDiveIntoMergeConflictPath = sinon.spy();
 
       view = new StagingView({
-        commandRegistry, resolutionProgress,
+        commandRegistry,
         didDiveIntoFilePath, didDiveIntoMergeConflictPath,
         unstagedChanges, stagedChanges: [], mergeConflicts,
       });
