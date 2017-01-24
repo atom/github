@@ -73,6 +73,9 @@
 
 // Highlight hunk title
 .github-HunkView {
+  &.is-selected.is-hunkMode &-header {
+    background-color: @background-color-selected;
+  }
   &.is-selected.is-hunkMode &-title {
     color: @text-color-selected;
   }
