@@ -1542,6 +1542,15 @@ enum IssueEventType {
   # The issue was reopened by the actor.
   REOPENED
 
+  # The actor requested review from the subject.
+  REVIEW_REQUESTED
+
+  # The actor removed the review request for the subject.
+  REVIEW_REQUEST_REMOVED
+
+  # The review was dismissed by the actor.
+  REVIEW_DISMISSED
+
   # The pull request or issue was subscribed to by the actor.
   SUBSCRIBED
 
@@ -1629,7 +1638,7 @@ type IssueTimelineConnection {
 }
 
 # An item in an issue/pull request timeline
-union IssueTimelineItem = Commit | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | MentionedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent
+union IssueTimelineItem = Commit | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | MentionedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
 
 # An edge in a connection.
 type IssueTimelineItemEdge {
@@ -2585,7 +2594,10 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
   author: User
 
   # Identifies the base Ref associated with the pull request.
-  baseRef: Ref!
+  baseRef: Ref
+
+  # Identifies the name of the base Ref associated with the pull request, even if the ref has been deleted.
+  baseRefName: String!
 
   # Identifies the body of the pull request.
   body: String!
@@ -2634,6 +2646,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
 
   # Identifies the head Ref associated with the pull request.
   headRef: Ref
+
+  # Identifies the name of the head Ref associated with the pull request, even if the ref has been deleted.
+  headRefName: String!
   id: ID!
 
   # A list of labels associated with the Issue or Pull Request.
@@ -2653,6 +2668,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
+
+  # The commit that was created when this pull request was merged.
+  mergeCommit: Commit
 
   # Identifies the pull request number.
   number: Int!
@@ -3469,6 +3487,9 @@ type ReleaseAsset implements Node {
   # Identifies the title of the release asset.
   name: String!
 
+  # release that the asset is associated with
+  release: Release
+
   # Identifies the url of the release asset.
   url: URI!
 }
@@ -3748,6 +3769,9 @@ type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, Uni
     orderBy: LanguageOrder
   ): LanguageConnection
 
+  # The license associated with the repository
+  license: String
+
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
 
@@ -3872,6 +3896,12 @@ type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, Uni
 
     # A list of label names to filter the pull requests by.
     labels: [String!]
+
+    # The head ref name to filter the pull requests by.
+    headRefName: [String!]
+
+    # The base ref name to filter the pull requests by.
+    baseRefName: [String!]
   ): PullRequestConnection!
 
   # Identifies when the repository was last pushed to.
@@ -4015,6 +4045,9 @@ interface RepositoryInfo {
   # Identifies if the repository is private.
   isPrivate: Boolean!
 
+  # The license associated with the repository
+  license: String
+
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
 
@@ -4085,6 +4118,9 @@ type RepositoryInvitationRepository implements RepositoryInfo {
 
   # Identifies if the repository is private.
   isPrivate: Boolean!
+
+  # The license associated with the repository
+  license: String
 
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
@@ -4262,6 +4298,34 @@ type RequestReviewsPayload {
   requestedReviewersEdge: UserEdge!
 }
 
+# Represents a 'review_dismissed' event on a given issue or pull request.
+type ReviewDismissedEvent implements Node, IssueEvent {
+  # Identifies the actor (user) associated with the event.
+  actor: User!
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+  id: ID!
+
+  # Identifies the issue associated with the event.
+  issue: Issue!
+
+  # Identifies the message associated with the 'review_dismissed' event.
+  message: String!
+
+  # Identifies the previous state of the review with the 'review_dismissed' event.
+  previousReviewState: PullRequestReviewState!
+
+  # Identifies the repository associated with the event.
+  repository: Repository!
+
+  # Identifies the review associated with the 'review_dismissed' event.
+  review: PullRequestReview!
+
+  # Identifies the event type associated with the event.
+  type: IssueEventType!
+}
+
 # A request for a user to review a pull request.
 type ReviewRequest implements Node {
   # Identifies the primary key from the database.
@@ -4290,6 +4354,28 @@ type ReviewRequestConnection {
   totalCount: Int!
 }
 
+# Represents an 'review_requested' event on a given pull request.
+type ReviewRequestedEvent implements Node, IssueEvent {
+  # Identifies the actor (user) associated with the event.
+  actor: User!
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+  id: ID!
+
+  # Identifies the issue associated with the event.
+  issue: Issue!
+
+  # Identifies the repository associated with the event.
+  repository: Repository!
+
+  # Identifies the user who performed the 'review_requested' event.
+  subject: User!
+
+  # Identifies the event type associated with the event.
+  type: IssueEventType!
+}
+
 # An edge in a connection.
 type ReviewRequestEdge {
   # A cursor for use in pagination.
@@ -4297,6 +4383,28 @@ type ReviewRequestEdge {
 
   # The item at the end of the edge.
   node: ReviewRequest
+}
+
+# Represents an 'review_request_removed' event on a given pull request.
+type ReviewRequestRemovedEvent implements Node, IssueEvent {
+  # Identifies the actor (user) associated with the event.
+  actor: User!
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+  id: ID!
+
+  # Identifies the issue associated with the event.
+  issue: Issue!
+
+  # Identifies the repository associated with the event.
+  repository: Repository!
+
+  # Identifies the user who performed the 'review_request_removed' event.
+  subject: User!
+
+  # Identifies the event type associated with the event.
+  type: IssueEventType!
 }
 
 # The results of a search.
