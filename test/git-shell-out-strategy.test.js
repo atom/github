@@ -517,6 +517,14 @@ describe('Git commands', function() {
         {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
       ]);
     });
+
+    it('returns an empty array when no remotes are set up', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'rm', 'origin']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, []);
+    });
   });
 
   describe('commit(message, options) where amend option is true', function() {
