@@ -527,6 +527,16 @@ describe('Git commands', function() {
     });
   });
 
+  describe('getConfig() and setConfig()', function() {
+    it('gets and sets configs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      assert.isNull(await git.getConfig('awesome.devs'));
+      await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
+      assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
+    });
+  });
+
   describe('commit(message, options) where amend option is true', function() {
     it('amends the last commit', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
