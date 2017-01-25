@@ -101,6 +101,23 @@ describe('Git commands', function() {
       assert.deepEqual(mergeConflictFiles, {});
     });
 
+    it('displays copied files as an added file', async function() {
+      // This repo is carefully constructed after much experimentation
+      // to cause git to detect `two.cc` as a copy of `one.cc`.
+      const workingDirPath = await cloneRepository('copied-file');
+      const git = new GitShellOutStrategy(workingDirPath);
+      // Undo the last commit, which is where we copied one.cc to two.cc
+      // and then emptied one.cc.
+      await git.exec(['reset', '--soft', 'head^']);
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
+      assert.deepEqual(stagedFiles, {
+        'one.cc': 'modified',
+        'two.cc': 'added',
+      });
+      assert.deepEqual(unstagedFiles, {});
+      assert.deepEqual(mergeConflictFiles, {});
+    });
+
     it('returns an object for merge conflict files, including ours/theirs/file status information', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
