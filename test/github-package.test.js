@@ -307,4 +307,41 @@ describe('GithubPackage', function() {
       assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
     });
   });
+
+  describe('serialized state', function() {
+    it('restores nonempty resolution progress', async function() {
+      const workdirMergeConflict = await cloneRepository('merge-conflict');
+      const workdirNoConflict = await cloneRepository('three-files');
+
+      project.setPaths([workdirMergeConflict, workdirNoConflict]);
+      await githubPackage.activate();
+      await githubPackage.getInitialModelsPromise();
+
+      // Record some state to recover later.
+      const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
+      resolutionMergeConflict0.markerWasResolved('modified-on-both-ours.txt');
+      resolutionMergeConflict0.markerWasResolved('modified-on-both-ours.txt');
+
+      const payload = githubPackage.serialize();
+
+      // Use a little guilty knowledge of the payload structure to ensure that the workdir without resolution
+      // progress isn't serialized with the rest of the package state.
+      assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
+      assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
+
+      const githubPackage1 = new GithubPackage(workspace, project, commandRegistry, notificationManager, config);
+      await githubPackage1.activate(payload);
+      await githubPackage1.getInitialModelsPromise();
+
+      const resolutionMergeConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      const resolutionNoConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirNoConflict);
+
+      assert.isFalse(resolutionMergeConflict1.isEmpty());
+      assert.equal(resolutionMergeConflict1.getMax('modified-on-both-ours.txt'), 3);
+      assert.equal(resolutionMergeConflict1.getValue('modified-on-both-ours.txt'), 2);
+
+      assert.isTrue(resolutionNoConflict1.isEmpty());
+    });
+  });
 });
