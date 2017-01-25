@@ -48,6 +48,7 @@
     "etch": "0.8.0",
     "git-kitchen-sink": "1.17.0",
     "graphql": "^0.8.2",
+    "keytar": "^3.0.2",
     "multi-list-selection": "^0.1.1",
     "ncp": "^2.0.0",
     "node-fetch": "^1.6.3",
