@@ -1,0 +1,32 @@
+.github-GithubController {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &-content {
+    flex: 1;
+  }
+
+  &-no-remotes {
+    margin: 10px;
+    font-size: @font-size * 1.25;
+  }
+
+  .github-RemoteSelector {
+    font-size: @font-size * 1.25;
+
+    p {
+      text-align: center;
+      margin: 10px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 1em;
+    }
+
+    a {
+      color: @text-color-info;
+    }
+  }
+}
