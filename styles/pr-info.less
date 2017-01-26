@@ -1,3 +1,5 @@
+@import 'colors';
+
 .github-RemotePrController {
   flex: 1;
   display: flex;
@@ -27,19 +29,23 @@
     font-weight: bold;
     text-transform: capitalize;
 
+    .icon {
+      vertical-align: middle;
+    }
+
     &.open {
-      color: contrast(@background-color-success, black, white, 50%);
-      background-color: @background-color-success;
+      color: contrast(@gh-background-color-green, black, white, 50%);
+      background-color: @gh-background-color-green;
     }
 
     &.closed {
-      color: contrast(@background-color-error, black, white, 50%);
-      background-color: @background-color-error;
+      color: contrast(@gh-background-color-red, black, white, 50%);
+      background-color: @gh-background-color-red;
     }
 
     &.merged {
-      color: contrast(@background-color-info, black, white, 50%);
-      background-color: @background-color-info;
+      color: contrast(@gh-background-color-purple, black, white, 50%);
+      background-color: @gh-background-color-purple;
     }
   }
 
