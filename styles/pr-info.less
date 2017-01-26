@@ -9,7 +9,38 @@
   overflow: auto;
   flex: 1;
 
-  > h3 {
-    margin-top: 0;
+  .pr-title {
+    margin: 5px 0;
+  }
+
+  .pr-badge {
+    margin-right: 10px;
+    font-weight: bold;
+    text-transform: capitalize;
+
+    &.open {
+      color: contrast(@background-color-success, black, white, 50%);
+      background-color: @background-color-success;
+    }
+
+    &.closed {
+      color: contrast(@background-color-error, black, white, 50%);
+      background-color: @background-color-error;
+    }
+
+    &.merged {
+      color: contrast(@background-color-info, black, white, 50%);
+      background-color: @background-color-info;
+    }
+  }
+
+  .pr-link a {
+    color: @text-color-subtle;
+  }
+
+  .pr-body {
+    a {
+      color: @text-color-info;
+    }
   }
 }
