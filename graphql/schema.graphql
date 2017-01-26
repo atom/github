@@ -4825,6 +4825,21 @@ interface Timeline {
   ): IssueTimelineConnection!
 }
 
+# Allows specifying the order in which topics are returned.
+input TopicOrder {
+  # The field to order topics by.
+  field: TopicOrderField!
+
+  # The ordering direction.
+  direction: OrderDirection!
+}
+
+# Properties by which topic connections can be ordered.
+enum TopicOrderField {
+  # Order topics by name
+  NAME
+}
+
 # Represents a Git tree.
 type Tree implements Node, GitObject {
   # A list of tree entries.
