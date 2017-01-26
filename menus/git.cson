@@ -69,4 +69,8 @@
       'label': 'Stage Selection'
       'command': 'core:confirm'
     }
+    {
+      'label': 'Discard Selection'
+      'command': 'github:discard-selected-lines'
+    }
   ]
