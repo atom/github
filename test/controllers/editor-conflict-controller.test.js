@@ -7,7 +7,7 @@ import {shallow} from 'enzyme';
 import EditorConflictController from '../../lib/controllers/editor-conflict-controller';
 import ConflictController from '../../lib/controllers/conflict-controller';
 
-describe.only('EditorConflictController', function() {
+describe('EditorConflictController', function() {
   let atomEnv, workspace, app, editor, conflictControllers;
 
   beforeEach(function() {
@@ -33,8 +33,8 @@ describe.only('EditorConflictController', function() {
   };
 
   describe('on a file with 2-way diff markers', function() {
-    beforeEach(function() {
-      useFixture('triple-2way-diff.txt');
+    beforeEach(async function() {
+      await useFixture('triple-2way-diff.txt');
     });
 
     it('creates a conflict controller for each conflict', function() {

@@ -8,17 +8,19 @@ import Conflict from '../../lib/models/conflicts/conflict';
 import ConflictController from '../../lib/controllers/conflict-controller';
 import Decoration from '../../lib/views/decoration';
 
-describe('ConflictController', () => {
-  let atomEnv, workspace, app, editor, conflict, decorations;
+describe('ConflictController', function() {
+  let atomEnv, workspace, app, editor, conflict, controller, decorations;
 
-  beforeEach(() => {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
   });
 
-  afterEach(() => atomEnv.destroy());
+  afterEach(async function() {
+    await atomEnv.destroy();
+  });
 
-  const useFixture = async (fixtureName, conflictIndex) => {
+  const useFixture = async function(fixtureName, conflictIndex) {
     editor = await workspace.open(path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName));
 
@@ -27,6 +29,7 @@ describe('ConflictController', () => {
 
     app = <ConflictController workspace={workspace} editor={editor} conflict={conflict} />;
     const wrapper = shallow(app);
+    controller = wrapper.instance();
     decorations = wrapper.find(Decoration);
   };
 
@@ -43,9 +46,11 @@ describe('ConflictController', () => {
     return true;
   });
 
-  const textFromDecoration = d => editor.getTextInBufferRange(d.props().marker.getBufferRange());
+  const textFromDecoration = function(d) {
+    return editor.getTextInBufferRange(d.props().marker.getBufferRange());
+  };
 
-  it('creates a Decoration for each conflict', async () => {
+  it('creates a Decoration for each conflict', async function() {
     await useFixture('triple-2way-diff.txt', 1);
 
     const bannerDecorations = decorationsMatching({type: 'line', class: 'conflict-banner'});
@@ -74,5 +79,30 @@ describe('ConflictController', () => {
     assert.deepEqual(theirSideDecorations.map(textFromDecoration), [
       'Your middle changes\n',
     ]);
+  });
+
+  describe('resolving', function() {
+    beforeEach(async function() {
+      await useFixture('triple-2way-diff.txt', 1);
+    });
+
+    it('resolves a conflict as "ours"', function() {
+      assert.isFalse(conflict.isResolved());
+
+      controller.resolveAsOurs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.ours);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.theirs]);
+
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\nMy middle changes\n\nText in between 1 and 2.');
+    });
+
+    it('resolves a conflict as "theirs"');
+    it('resolves a conflict as "ours then theirs"');
+    it('resolves a conflict as "theirs then ours"');
+    it('resolves a conflict as custom text');
+    it('reverts changes to their original state');
+    it('preserves a modified side banner');
   });
 });
