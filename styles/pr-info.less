@@ -39,8 +39,26 @@
   }
 
   .pr-body {
+    display: flex;
+    flex-direction: column;
+
     a {
       color: @text-color-info;
+    }
+
+    hr {
+      margin-top: 5px;
+      margin-bottom: 5px;
+      border-top: 1px solid @text-color;
+      width: 100%
+    }
+
+    ul {
+      margin-left: -10px;
+    }
+
+    ol {
+      margin-left: -20px;
     }
   }
 }
