@@ -140,4 +140,30 @@ describe('discardChangesInBuffer', () => {
     await repository.refresh();
     assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
   });
+
+  it('allows undoing the discard action', async () => {
+    const originalFileContents = fs.readFileSync(filePath, 'utf8');
+    const originalLines = originalFileContents.split('\n');
+    const unstagedLines = originalLines.slice();
+    unstagedLines.splice(1, 2, 'one modified line', 'another modified line');
+    fs.writeFileSync(filePath, unstagedLines.join('\n'));
+    await new Promise(r => setTimeout(r, 100));
+    const contentSnapshot1 = buffer.getText();
+
+    const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
+    const hunkLines = getHunkLinesForPatch(unstagedFilePatch1);
+    let deletedLine = hunkLines[1];
+    let addedLine = hunkLines[3];
+    discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine, addedLine]));
+    const contentSnapshot2 = buffer.getText();
+
+    const unstagedFilePatch2 = await repository.getFilePatchForPath('sample.js');
+    [deletedLine, addedLine] = getHunkLinesForPatch(unstagedFilePatch2);
+    discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine, addedLine]));
+
+    buffer.undo();
+    assert.equal(buffer.getText(), contentSnapshot2);
+    buffer.undo();
+    assert.equal(buffer.getText(), contentSnapshot1);
+  });
 });
