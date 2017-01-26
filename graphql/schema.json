@@ -2807,6 +2807,18 @@
           "description": "A release contains the content for a release.",
           "fields": [
             {
+              "name": "description",
+              "description": "Identifies the description of the release.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -2840,7 +2852,7 @@
             },
             {
               "name": "releaseAsset",
-              "description": "list of releases assets which are dependent on this release",
+              "description": "List of releases assets which are dependent on this release.",
               "args": [
                 {
                   "name": "first",
@@ -2907,7 +2919,7 @@
             },
             {
               "name": "releaseAssets",
-              "description": "list of releases assets which are dependent on this release",
+              "description": "List of releases assets which are dependent on this release.",
               "args": [
                 {
                   "name": "first",
@@ -4270,17 +4282,9 @@
                   "name": "headRefName",
                   "description": "The head ref name to filter the pull requests by.",
                   "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      }
-                    }
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
                   },
                   "defaultValue": null
                 },
@@ -4288,17 +4292,9 @@
                   "name": "baseRefName",
                   "description": "The base ref name to filter the pull requests by.",
                   "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      }
-                    }
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
                   },
                   "defaultValue": null
                 }
@@ -4329,11 +4325,11 @@
             },
             {
               "name": "ref",
-              "description": "Fetch a given branch from the repository",
+              "description": "Fetch a given ref from the repository",
               "args": [
                 {
                   "name": "qualifiedName",
-                  "description": "The branch name with the refs/heads/ prefix",
+                  "description": "The ref to retrieve.Fully qualified matches are checked in order (`refs/heads/master`) before falling back onto checks for short name matches (`master`).",
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -4355,8 +4351,85 @@
               "deprecationReason": null
             },
             {
+              "name": "refs",
+              "description": "Fetch a list of refs from the repository",
+              "args": [
+                {
+                  "name": "first",
+                  "description": "Returns the first _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "after",
+                  "description": "Returns the elements in the list that come after the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "last",
+                  "description": "Returns the last _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "before",
+                  "description": "Returns the elements in the list that come before the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "refPrefix",
+                  "description": "A ref name prefix like `refs/heads/`, `refs/tags/`, etc.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "direction",
+                  "description": "The ordering direction.",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "OrderDirection",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "OBJECT",
+                "name": "RefConnection",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "releases",
-              "description": "list of releases which are dependent on this repository",
+              "description": "List of releases which are dependent on this repository.",
               "args": [
                 {
                   "name": "first",
@@ -14951,7 +15024,7 @@
             },
             {
               "name": "repository",
-              "description": "Idenfifies the repository associated with the deployment.",
+              "description": "Identifies the repository associated with the deployment.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -18758,6 +18831,120 @@
         },
         {
           "kind": "OBJECT",
+          "name": "RefConnection",
+          "description": "The connection type for Ref.",
+          "fields": [
+            {
+              "name": "edges",
+              "description": "A list of edges.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "RefEdge",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "nodes",
+              "description": "A list of nodes.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Ref",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "pageInfo",
+              "description": "Information to aid in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "PageInfo",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "totalCount",
+              "description": "Identifies the total count of items in the connection.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "RefEdge",
+          "description": "An edge in a connection.",
+          "fields": [
+            {
+              "name": "cursor",
+              "description": "A cursor for use in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "node",
+              "description": "The item at the end of the edge.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "Ref",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
           "name": "StargazerConnection",
           "description": "The connection type for User.",
           "fields": [
@@ -21935,23 +22122,19 @@
             },
             {
               "name": "message",
-              "description": "The Git tag message",
+              "description": "The Git tag message.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "name",
-              "description": "The Git tag name",
+              "description": "The Git tag name.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -21998,8 +22181,20 @@
               "deprecationReason": null
             },
             {
+              "name": "tagger",
+              "description": "Details about the tag author.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "GitActor",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "target",
-              "description": "The Git object the tag points to",
+              "description": "The Git object the tag points to.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",

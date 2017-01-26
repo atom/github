@@ -762,7 +762,7 @@ type Deployment implements Node {
   creator: User!
   id: ID!
 
-  # Idenfifies the repository associated with the deployment.
+  # Identifies the repository associated with the deployment.
   repository: Repository!
 
   # A list of statuses associated with the deployment.
@@ -3411,6 +3411,30 @@ type Ref implements Node {
   target: GitObject!
 }
 
+# The connection type for Ref.
+type RefConnection {
+  # A list of edges.
+  edges: [RefEdge]
+
+  # A list of nodes.
+  nodes: [Ref]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type RefEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: Ref
+}
+
 # Represents a 'referenced' event on a given issue or pull request.
 type ReferencedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -3438,12 +3462,14 @@ type ReferencedEvent implements Node, IssueEvent {
 
 # A release contains the content for a release.
 type Release implements Node {
+  # Identifies the description of the release.
+  description: String
   id: ID!
 
   # Identifies the title of the release.
   name: String!
 
-  # list of releases assets which are dependent on this release
+  # List of releases assets which are dependent on this release.
   releaseAsset(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3461,7 +3487,7 @@ type Release implements Node {
     name: String
   ): ReleaseAssetConnection!
 
-  # list of releases assets which are dependent on this release
+  # List of releases assets which are dependent on this release.
   releaseAssets(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3898,22 +3924,44 @@ type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, Uni
     labels: [String!]
 
     # The head ref name to filter the pull requests by.
-    headRefName: [String!]
+    headRefName: String
 
     # The base ref name to filter the pull requests by.
-    baseRefName: [String!]
+    baseRefName: String
   ): PullRequestConnection!
 
   # Identifies when the repository was last pushed to.
   pushedAt: DateTime
 
-  # Fetch a given branch from the repository
+  # Fetch a given ref from the repository
   ref(
-    # The branch name with the refs/heads/ prefix
+    # The ref to retrieve.Fully qualified matches are checked in order
+    # (`refs/heads/master`) before falling back onto checks for short name matches (`master`).
     qualifiedName: String!
   ): Ref
 
-  # list of releases which are dependent on this repository
+  # Fetch a list of refs from the repository
+  refs(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # A ref name prefix like `refs/heads/`, `refs/tags/`, etc.
+    refPrefix: String!
+
+    # The ordering direction.
+    direction: OrderDirection
+  ): RefConnection
+
+  # List of releases which are dependent on this repository.
   releases(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -4673,10 +4721,10 @@ enum SubscriptionState {
 type Tag implements Node, GitObject {
   id: ID!
 
-  # The Git tag message
-  message: String!
+  # The Git tag message.
+  message: String
 
-  # The Git tag name
+  # The Git tag name.
   name: String!
 
   # The Git object ID
@@ -4685,7 +4733,10 @@ type Tag implements Node, GitObject {
   # The Repository the Git object belongs to
   repository: Repository!
 
-  # The Git object the tag points to
+  # Details about the tag author.
+  tagger: GitActor
+
+  # The Git object the tag points to.
   target: GitObject!
 }
 
