@@ -155,6 +155,24 @@
               "deprecationReason": null
             },
             {
+              "name": "REVIEW_REQUESTED",
+              "description": "The actor requested review from the subject.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "REVIEW_REQUEST_REMOVED",
+              "description": "The actor removed the review request for the subject.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "REVIEW_DISMISSED",
+              "description": "The review was dismissed by the actor.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "SUBSCRIBED",
               "description": "The pull request or issue was subscribed to by the actor.",
               "isDeprecated": false,
@@ -372,6 +390,21 @@
             {
               "kind": "OBJECT",
               "name": "ReopenedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewDismissedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestRemovedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestedEvent",
               "ofType": null
             },
             {
@@ -2282,9 +2315,389 @@
           "possibleTypes": null
         },
         {
+          "kind": "INTERFACE",
+          "name": "Node",
+          "description": "An object with an ID.",
+          "fields": [
+            {
+              "name": "id",
+              "description": "ID of the object.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "OBJECT",
+              "name": "AssignedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "BaseRefForcePushedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Blob",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ClosedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Commit",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "CommitComment",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "DemilestonedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "DeployedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Deployment",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "DeploymentStatus",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Gist",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "GistComment",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "HeadRefDeletedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "HeadRefForcePushedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "HeadRefRestoredEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Issue",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "IssueComment",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Label",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "LabeledEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Language",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "LockedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "MentionedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "MergedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Milestone",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "MilestonedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Organization",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Project",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ProjectCard",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ProjectColumn",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PullRequest",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PullRequestReview",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PullRequestReviewComment",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PullRequestReviewThread",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Reaction",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Ref",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReferencedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Release",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReleaseAsset",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "RenamedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReopenedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Repository",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "RepositoryInvitation",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewDismissedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequest",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestRemovedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Status",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "StatusContext",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "SubscribedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Tag",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Team",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Tree",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "UnassignedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "UnlabeledEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "UnlockedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "UnsubscribedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "User",
+              "ofType": null
+            }
+          ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "PageInfo",
+          "description": "Information about pagination in a connection.",
+          "fields": [
+            {
+              "name": "endCursor",
+              "description": "When paginating forwards, the cursor to continue",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "hasNextPage",
+              "description": "Indicates if there are more pages to fetch",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "hasPreviousPage",
+              "description": "Indicates if there are any pages prior to the current page",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "startCursor",
+              "description": "When paginating backwards, the cursor to continue",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
           "kind": "SCALAR",
-          "name": "URI",
-          "description": "An RFC 3986, RFC 3987, and RFC 6570 (level 4) compliant URI string.",
+          "name": "Boolean",
+          "description": "Represents `true` or `false` values.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2298,6 +2711,462 @@
           "fields": null,
           "inputFields": null,
           "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReleaseAsset",
+          "description": "A release asset contains the content for a release asset.",
+          "fields": [
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "name",
+              "description": "Identifies the title of the release asset.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "release",
+              "description": "release that the asset is associated with",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "Release",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "url",
+              "description": "Identifies the url of the release asset.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "URI",
+          "description": "An RFC 3986, RFC 3987, and RFC 6570 (level 4) compliant URI string.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Release",
+          "description": "A release contains the content for a release.",
+          "fields": [
+            {
+              "name": "description",
+              "description": "Identifies the description of the release.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "name",
+              "description": "Identifies the title of the release.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "releaseAsset",
+              "description": "List of releases assets which are dependent on this release.",
+              "args": [
+                {
+                  "name": "first",
+                  "description": "Returns the first _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "after",
+                  "description": "Returns the elements in the list that come after the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "last",
+                  "description": "Returns the last _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "before",
+                  "description": "Returns the elements in the list that come before the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "name",
+                  "description": "A list of names to filter the assets by.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "ReleaseAssetConnection",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "releaseAssets",
+              "description": "List of releases assets which are dependent on this release.",
+              "args": [
+                {
+                  "name": "first",
+                  "description": "Returns the first _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "after",
+                  "description": "Returns the elements in the list that come after the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "last",
+                  "description": "Returns the last _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "before",
+                  "description": "Returns the elements in the list that come before the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "ReleaseAssetConnection",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "tag",
+              "description": "The Git tag the release points to",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "Ref",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Ref",
+          "description": "Represents a Git reference.",
+          "fields": [
+            {
+              "name": "associatedPullRequests",
+              "description": "A list of pull requests with this ref as the head ref.",
+              "args": [
+                {
+                  "name": "first",
+                  "description": "Returns the first _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "after",
+                  "description": "Returns the elements in the list that come after the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "last",
+                  "description": "Returns the last _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "before",
+                  "description": "Returns the elements in the list that come before the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "states",
+                  "description": "A list of states to filter the pull requests by.",
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "name": null,
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "PullRequestState",
+                        "ofType": null
+                      }
+                    }
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "PullRequestConnection",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "name",
+              "description": "The ref name.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "prefix",
+              "description": "The ref's prefix, such as `refs/heads/` or `refs/tags/`.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "repository",
+              "description": "The repository the ref belongs to.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Repository",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "target",
+              "description": "The object the ref points to.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "INTERFACE",
+                  "name": "GitObject",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            }
+          ],
           "enumValues": null,
           "possibleTypes": null
         },
@@ -2889,6 +3758,18 @@
               "deprecationReason": null
             },
             {
+              "name": "license",
+              "description": "The license associated with the repository",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "lockReason",
               "description": "The reason the repository has been locked.",
               "args": [],
@@ -3396,6 +4277,26 @@
                     }
                   },
                   "defaultValue": null
+                },
+                {
+                  "name": "headRefName",
+                  "description": "The head ref name to filter the pull requests by.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "baseRefName",
+                  "description": "The base ref name to filter the pull requests by.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
                 }
               ],
               "type": {
@@ -3424,11 +4325,11 @@
             },
             {
               "name": "ref",
-              "description": "Fetch a given branch from the repository",
+              "description": "Fetch a given ref from the repository",
               "args": [
                 {
                   "name": "qualifiedName",
-                  "description": "The branch name with the refs/heads/ prefix",
+                  "description": "The ref to retrieve.Fully qualified matches are checked in order (`refs/heads/master`) before falling back onto checks for short name matches (`master`).",
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -3450,8 +4351,85 @@
               "deprecationReason": null
             },
             {
+              "name": "refs",
+              "description": "Fetch a list of refs from the repository",
+              "args": [
+                {
+                  "name": "first",
+                  "description": "Returns the first _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "after",
+                  "description": "Returns the elements in the list that come after the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "last",
+                  "description": "Returns the last _n_ elements from the list.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "before",
+                  "description": "Returns the elements in the list that come before the specified global ID.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "refPrefix",
+                  "description": "A ref name prefix like `refs/heads/`, `refs/tags/`, etc.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "direction",
+                  "description": "The ordering direction.",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "OrderDirection",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "OBJECT",
+                "name": "RefConnection",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "releases",
-              "description": "list of releases which are dependent on this repository",
+              "description": "List of releases which are dependent on this repository.",
               "args": [
                 {
                   "name": "first",
@@ -4058,16 +5036,6 @@
           "possibleTypes": null
         },
         {
-          "kind": "SCALAR",
-          "name": "Boolean",
-          "description": "Represents `true` or `false` values.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
           "kind": "INTERFACE",
           "name": "ProjectOwner",
           "description": "Represents an owner of a Project.",
@@ -4360,73 +5328,6 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "Project",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "inputFields": null,
-          "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "OBJECT",
-          "name": "PageInfo",
-          "description": "Information about pagination in a connection.",
-          "fields": [
-            {
-              "name": "endCursor",
-              "description": "When paginating forwards, the cursor to continue",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "hasNextPage",
-              "description": "Indicates if there are more pages to fetch",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "hasPreviousPage",
-              "description": "Indicates if there are any pages prior to the current page",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "startCursor",
-              "description": "When paginating backwards, the cursor to continue",
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -5140,11 +6041,23 @@
               "description": "Identifies the base Ref associated with the pull request.",
               "args": [],
               "type": {
+                "kind": "OBJECT",
+                "name": "Ref",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "baseRefName",
+              "description": "Identifies the name of the base Ref associated with the pull request, even if the ref has been deleted.",
+              "args": [],
+              "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "Ref",
+                  "kind": "SCALAR",
+                  "name": "String",
                   "ofType": null
                 }
               },
@@ -5354,6 +6267,22 @@
               "deprecationReason": null
             },
             {
+              "name": "headRefName",
+              "description": "Identifies the name of the head Ref associated with the pull request, even if the ref has been deleted.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -5434,6 +6363,18 @@
                   "name": "Boolean",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "mergeCommit",
+              "description": "The commit that was created when this pull request was merged.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "Commit",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -6586,304 +7527,6 @@
           "possibleTypes": null
         },
         {
-          "kind": "INTERFACE",
-          "name": "Node",
-          "description": "An object with an ID.",
-          "fields": [
-            {
-              "name": "id",
-              "description": "ID of the object.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "ID",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": [
-            {
-              "kind": "OBJECT",
-              "name": "AssignedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "BaseRefForcePushedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Blob",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ClosedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Commit",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "CommitComment",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "DemilestonedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "DeployedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Deployment",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "DeploymentStatus",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Gist",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "GistComment",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "HeadRefDeletedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "HeadRefForcePushedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "HeadRefRestoredEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Issue",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "IssueComment",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Label",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "LabeledEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Language",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "LockedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "MentionedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "MergedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Milestone",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "MilestonedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Organization",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Project",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ProjectCard",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ProjectColumn",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "PullRequest",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "PullRequestReview",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "PullRequestReviewComment",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "PullRequestReviewThread",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Reaction",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Ref",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ReferencedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Release",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ReleaseAsset",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "RenamedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ReopenedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Repository",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "RepositoryInvitation",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "ReviewRequest",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Status",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "StatusContext",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "SubscribedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Tag",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Team",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Tree",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "UnassignedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "UnlabeledEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "UnlockedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "UnsubscribedEvent",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "User",
-              "ofType": null
-            }
-          ]
-        },
-        {
           "kind": "OBJECT",
           "name": "ReactionGroup",
           "description": "A group of emoji reactions to a particular piece of content.",
@@ -7931,6 +8574,21 @@
             {
               "kind": "OBJECT",
               "name": "BaseRefForcePushedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewRequestRemovedEvent",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "ReviewDismissedEvent",
               "ofType": null
             }
           ]
@@ -12693,207 +13351,6 @@
         },
         {
           "kind": "OBJECT",
-          "name": "Ref",
-          "description": "Represents a Git reference.",
-          "fields": [
-            {
-              "name": "associatedPullRequests",
-              "description": "A list of pull requests with this ref as the head ref.",
-              "args": [
-                {
-                  "name": "first",
-                  "description": "Returns the first _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "after",
-                  "description": "Returns the elements in the list that come after the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "last",
-                  "description": "Returns the last _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "before",
-                  "description": "Returns the elements in the list that come before the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "states",
-                  "description": "A list of states to filter the pull requests by.",
-                  "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "ENUM",
-                        "name": "PullRequestState",
-                        "ofType": null
-                      }
-                    }
-                  },
-                  "defaultValue": null
-                }
-              ],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "PullRequestConnection",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "id",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "ID",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "name",
-              "description": "The ref name.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "prefix",
-              "description": "The ref's prefix, such as `refs/heads/` or `refs/tags/`.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "repository",
-              "description": "The repository the ref belongs to.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "Repository",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "target",
-              "description": "The object the ref points to.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "INTERFACE",
-                  "name": "GitObject",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "inputFields": null,
-          "interfaces": [
-            {
-              "kind": "INTERFACE",
-              "name": "Node",
-              "ofType": null
-            }
-          ],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "ENUM",
-          "name": "PullRequestState",
-          "description": "The possible states of a pull request.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": [
-            {
-              "name": "OPEN",
-              "description": "A pull request that is still open.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "CLOSED",
-              "description": "A pull request that has been closed without being merged.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "MERGED",
-              "description": "A pull request that has been closed by being merged.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "possibleTypes": null
-        },
-        {
-          "kind": "OBJECT",
           "name": "ReferencedEvent",
           "description": "Represents a 'referenced' event on a given issue or pull request.",
           "fields": [
@@ -14567,7 +15024,7 @@
             },
             {
               "name": "repository",
-              "description": "Idenfifies the repository associated with the deployment.",
+              "description": "Identifies the repository associated with the deployment.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -15451,6 +15908,469 @@
             }
           ],
           "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReviewRequestedEvent",
+          "description": "Represents an 'review_requested' event on a given pull request.",
+          "fields": [
+            {
+              "name": "actor",
+              "description": "Identifies the actor (user) associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "createdAt",
+              "description": "Identifies the date and time when the object was created.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "issue",
+              "description": "Identifies the issue associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Issue",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "repository",
+              "description": "Identifies the repository associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Repository",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "subject",
+              "description": "Identifies the user who performed the 'review_requested' event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "type",
+              "description": "Identifies the event type associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "IssueEventType",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "IssueEvent",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReviewRequestRemovedEvent",
+          "description": "Represents an 'review_request_removed' event on a given pull request.",
+          "fields": [
+            {
+              "name": "actor",
+              "description": "Identifies the actor (user) associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "createdAt",
+              "description": "Identifies the date and time when the object was created.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "issue",
+              "description": "Identifies the issue associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Issue",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "repository",
+              "description": "Identifies the repository associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Repository",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "subject",
+              "description": "Identifies the user who performed the 'review_request_removed' event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "type",
+              "description": "Identifies the event type associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "IssueEventType",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "IssueEvent",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReviewDismissedEvent",
+          "description": "Represents a 'review_dismissed' event on a given issue or pull request.",
+          "fields": [
+            {
+              "name": "actor",
+              "description": "Identifies the actor (user) associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "createdAt",
+              "description": "Identifies the date and time when the object was created.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "ID",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "issue",
+              "description": "Identifies the issue associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Issue",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "message",
+              "description": "Identifies the message associated with the 'review_dismissed' event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "previousReviewState",
+              "description": "Identifies the previous state of the review with the 'review_dismissed' event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "PullRequestReviewState",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "repository",
+              "description": "Identifies the repository associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Repository",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "review",
+              "description": "Identifies the review associated with the 'review_dismissed' event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "PullRequestReview",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "type",
+              "description": "Identifies the event type associated with the event.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "IssueEventType",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {
+              "kind": "INTERFACE",
+              "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "IssueEvent",
+              "ofType": null
+            }
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "ENUM",
+          "name": "PullRequestState",
+          "description": "The possible states of a pull request.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": [
+            {
+              "name": "OPEN",
+              "description": "A pull request that is still open.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "CLOSED",
+              "description": "A pull request that has been closed without being merged.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "MERGED",
+              "description": "A pull request that has been closed by being merged.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
           "possibleTypes": null
         },
         {
@@ -17911,6 +18831,120 @@
         },
         {
           "kind": "OBJECT",
+          "name": "RefConnection",
+          "description": "The connection type for Ref.",
+          "fields": [
+            {
+              "name": "edges",
+              "description": "A list of edges.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "RefEdge",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "nodes",
+              "description": "A list of nodes.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Ref",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "pageInfo",
+              "description": "Information to aid in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "PageInfo",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "totalCount",
+              "description": "Identifies the total count of items in the connection.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "RefEdge",
+          "description": "An edge in a connection.",
+          "fields": [
+            {
+              "name": "cursor",
+              "description": "A cursor for use in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "node",
+              "description": "The item at the end of the edge.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "Ref",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
           "name": "StargazerConnection",
           "description": "The connection type for User.",
           "fields": [
@@ -18214,367 +19248,59 @@
           "possibleTypes": null
         },
         {
-          "kind": "OBJECT",
-          "name": "Release",
-          "description": "A release contains the content for a release.",
-          "fields": [
+          "kind": "INPUT_OBJECT",
+          "name": "TopicOrder",
+          "description": "Allows specifying the order in which topics are returned.",
+          "fields": null,
+          "inputFields": [
             {
-              "name": "id",
-              "description": null,
-              "args": [],
+              "name": "field",
+              "description": "The field to order topics by.",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "SCALAR",
-                  "name": "ID",
+                  "kind": "ENUM",
+                  "name": "TopicOrderField",
                   "ofType": null
                 }
               },
-              "isDeprecated": false,
-              "deprecationReason": null
+              "defaultValue": null
             },
             {
-              "name": "name",
-              "description": "Identifies the title of the release.",
-              "args": [],
+              "name": "direction",
+              "description": "The ordering direction.",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
+                  "kind": "ENUM",
+                  "name": "OrderDirection",
                   "ofType": null
                 }
               },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "releaseAsset",
-              "description": "list of releases assets which are dependent on this release",
-              "args": [
-                {
-                  "name": "first",
-                  "description": "Returns the first _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "after",
-                  "description": "Returns the elements in the list that come after the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "last",
-                  "description": "Returns the last _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "before",
-                  "description": "Returns the elements in the list that come before the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "name",
-                  "description": "A list of names to filter the assets by.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                }
-              ],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "ReleaseAssetConnection",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "releaseAssets",
-              "description": "list of releases assets which are dependent on this release",
-              "args": [
-                {
-                  "name": "first",
-                  "description": "Returns the first _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "after",
-                  "description": "Returns the elements in the list that come after the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "last",
-                  "description": "Returns the last _n_ elements from the list.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "Int",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                },
-                {
-                  "name": "before",
-                  "description": "Returns the elements in the list that come before the specified global ID.",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null
-                }
-              ],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "ReleaseAssetConnection",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "tag",
-              "description": "The Git tag the release points to",
-              "args": [],
-              "type": {
-                "kind": "OBJECT",
-                "name": "Ref",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
+              "defaultValue": null
             }
           ],
-          "inputFields": null,
-          "interfaces": [
-            {
-              "kind": "INTERFACE",
-              "name": "Node",
-              "ofType": null
-            }
-          ],
+          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         },
         {
-          "kind": "OBJECT",
-          "name": "ReleaseAssetConnection",
-          "description": "The connection type for ReleaseAsset.",
-          "fields": [
-            {
-              "name": "edges",
-              "description": "A list of edges.",
-              "args": [],
-              "type": {
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "ReleaseAssetEdge",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "nodes",
-              "description": "A list of nodes.",
-              "args": [],
-              "type": {
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "ReleaseAsset",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "pageInfo",
-              "description": "Information to aid in pagination.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "PageInfo",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "totalCount",
-              "description": "Identifies the total count of items in the connection.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
+          "kind": "ENUM",
+          "name": "TopicOrderField",
+          "description": "Properties by which topic connections can be ordered.",
+          "fields": null,
           "inputFields": null,
-          "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "OBJECT",
-          "name": "ReleaseAssetEdge",
-          "description": "An edge in a connection.",
-          "fields": [
+          "interfaces": null,
+          "enumValues": [
             {
-              "name": "cursor",
-              "description": "A cursor for use in pagination.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "node",
-              "description": "The item at the end of the edge.",
-              "args": [],
-              "type": {
-                "kind": "OBJECT",
-                "name": "ReleaseAsset",
-                "ofType": null
-              },
+              "name": "NAME",
+              "description": "Order topics by name",
               "isDeprecated": false,
               "deprecationReason": null
             }
           ],
-          "inputFields": null,
-          "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "OBJECT",
-          "name": "ReleaseAsset",
-          "description": "A release asset contains the content for a release asset.",
-          "fields": [
-            {
-              "name": "id",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "ID",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "name",
-              "description": "Identifies the title of the release asset.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "url",
-              "description": "Identifies the url of the release asset.",
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "URI",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "inputFields": null,
-          "interfaces": [
-            {
-              "kind": "INTERFACE",
-              "name": "Node",
-              "ofType": null
-            }
-          ],
-          "enumValues": null,
           "possibleTypes": null
         },
         {
@@ -18730,6 +19456,18 @@
                   "name": "Boolean",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "license",
+              "description": "The license associated with the repository",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -18915,6 +19653,120 @@
               "ofType": null
             }
           ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReleaseAssetConnection",
+          "description": "The connection type for ReleaseAsset.",
+          "fields": [
+            {
+              "name": "edges",
+              "description": "A list of edges.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "ReleaseAssetEdge",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "nodes",
+              "description": "A list of nodes.",
+              "args": [],
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "ReleaseAsset",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "pageInfo",
+              "description": "Information to aid in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "PageInfo",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "totalCount",
+              "description": "Identifies the total count of items in the connection.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "ReleaseAssetEdge",
+          "description": "An edge in a connection.",
+          "fields": [
+            {
+              "name": "cursor",
+              "description": "A cursor for use in pagination.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "node",
+              "description": "The item at the end of the edge.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "ReleaseAsset",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
         },
         {
           "kind": "SCALAR",
@@ -21055,6 +21907,18 @@
               "deprecationReason": null
             },
             {
+              "name": "license",
+              "description": "The license associated with the repository",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "lockReason",
               "description": "The reason the repository has been locked.",
               "args": [],
@@ -21314,23 +22178,19 @@
             },
             {
               "name": "message",
-              "description": "The Git tag message",
+              "description": "The Git tag message.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "name",
-              "description": "The Git tag name",
+              "description": "The Git tag name.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -21377,8 +22237,20 @@
               "deprecationReason": null
             },
             {
+              "name": "tagger",
+              "description": "Details about the tag author.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "GitActor",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "target",
-              "description": "The Git object the tag points to",
+              "description": "The Git object the tag points to.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
