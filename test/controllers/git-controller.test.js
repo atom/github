@@ -389,4 +389,39 @@ describe('GitController', function() {
     });
   });
 
+  describe('discardLines', () => {
+    it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
+      const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+
+      const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+      const state = {
+        filePath: 'a.txt',
+        filePatch: unstagedFilePatch,
+        stagingStatus: 'unstaged',
+      };
+      wrapper.setState(state);
+
+      // unmodified buffer
+      const discardChangesSpy = sinon.spy(wrapper.instance(), 'discardChangesInBuffer');
+      const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
+      await wrapper.instance().discardLines(new Set(hunkLines.slice(0, 2)));
+      assert.isTrue(discardChangesSpy.called);
+
+      // modified buffer
+      discardChangesSpy.reset();
+      sinon.stub(notificationManager, 'addError');
+      const buffer = editor.getBuffer();
+      buffer.append('new line');
+      await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
+      assert.isFalse(discardChangesSpy.called);
+      assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: 'You have unsaved changes.'}]);
+    });
+  });
 });
