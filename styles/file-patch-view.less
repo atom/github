@@ -6,6 +6,7 @@
   -webkit-user-select: none;
   cursor: default;
   flex: 1;
+  min-width: 0;
 
   &-header {
     display: flex;
@@ -14,6 +15,14 @@
     padding: @component-padding/2;
     padding-left: @component-padding;
     border-bottom: 1px solid @base-border-color;
+  }
+
+  &-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: @component-padding;
   }
 
   &-container {
