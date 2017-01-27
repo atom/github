@@ -81,7 +81,7 @@ describe('ConflictController', function() {
     ]);
   });
 
-  describe('resolving', function() {
+  describe('resolving two-way diff markers', function() {
     beforeEach(async function() {
       await useFixture('triple-2way-diff.txt', 1);
     });
@@ -98,9 +98,32 @@ describe('ConflictController', function() {
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\nMy middle changes\n\nText in between 1 and 2.');
     });
 
-    it('resolves a conflict as "theirs"');
-    it('resolves a conflict as "ours then theirs"');
-    it('resolves a conflict as "theirs then ours"');
+    it('resolves a conflict as "theirs"', function() {
+      controller.resolveAsTheirs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.theirs);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.ours]);
+
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\nYour middle changes\n\nText in between 1 and 2.');
+    });
+
+    it('resolves a conflict as "ours then theirs"', function() {
+      controller.resolveAsOursThenTheirs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.include(editor.getText(), 'Text in between 0 and 1.' +
+        '\n\nMy middle changes\nYour middle changes\n\nText in between 1 and 2.');
+    });
+
+    it('resolves a conflict as "theirs then ours"', function() {
+      controller.resolveAsTheirsThenOurs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.include(editor.getText(), 'Text in between 0 and 1.' +
+        '\n\nYour middle changes\nMy middle changes\n\nText in between 1 and 2.');
+    });
+
     it('resolves a conflict as custom text');
     it('reverts changes to their original state');
     it('preserves a modified side banner');
