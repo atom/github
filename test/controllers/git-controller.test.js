@@ -389,39 +389,145 @@ describe('GitController', function() {
     });
   });
 
-  describe('discardLines', () => {
-    it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
+  describe('discarding and restoring changed lines', () => {
+    describe('discardLines(lines)', () => {
+      it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
 
-      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
-      const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
+        const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
 
-      const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+        const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-      const state = {
-        filePath: 'a.txt',
-        filePatch: unstagedFilePatch,
-        stagingStatus: 'unstaged',
-      };
-      wrapper.setState(state);
+        app = React.cloneElement(app, {repository});
+        const wrapper = shallow(app);
+        const state = {
+          filePath: 'a.txt',
+          filePatch: unstagedFilePatch,
+          stagingStatus: 'unstaged',
+        };
+        wrapper.setState(state);
 
-      // unmodified buffer
-      const discardChangesSpy = sinon.spy(wrapper.instance(), 'discardChangesInBuffer');
-      const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
-      await wrapper.instance().discardLines(new Set(hunkLines.slice(0, 2)));
-      assert.isTrue(discardChangesSpy.called);
+        // unmodified buffer
+        const discardChangesSpy = sinon.spy(wrapper.instance(), 'discardChangesInBuffer');
+        const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
+        await wrapper.instance().discardLines(new Set([hunkLines[0]]));
+        assert.isTrue(discardChangesSpy.called);
 
-      // modified buffer
-      discardChangesSpy.reset();
-      sinon.stub(notificationManager, 'addError');
-      const buffer = editor.getBuffer();
-      buffer.append('new line');
-      await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
-      assert.isFalse(discardChangesSpy.called);
-      assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: 'You have unsaved changes.'}]);
+        // modified buffer
+        discardChangesSpy.reset();
+        sinon.stub(notificationManager, 'addError');
+        const buffer = editor.getBuffer();
+        buffer.append('new line');
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
+        assert.isFalse(discardChangesSpy.called);
+        assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: 'You have unsaved changes.'}]);
+      });
+    });
+
+    describe('undoLastDiscard(filePath)', () => {
+      let unstagedFilePatch, repository, absFilePath, wrapper;
+      beforeEach(async () => {
+        const workdirPath = await cloneRepository('multi-line-file');
+        repository = await buildRepository(workdirPath);
+
+        absFilePath = path.join(workdirPath, 'sample.js');
+        fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
+        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+
+        app = React.cloneElement(app, {repository});
+        wrapper = shallow(app);
+        wrapper.setState({
+          filePath: 'sample.js',
+          filePatch: unstagedFilePatch,
+          stagingStatus: 'unstaged',
+        });
+      });
+
+      it('reverses last discard for file path', async () => {
+        const contents1 = fs.readFileSync(absFilePath, 'utf8');
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        const contents2 = fs.readFileSync(absFilePath, 'utf8');
+        assert.notEqual(contents1, contents2);
+        await repository.refresh();
+        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        wrapper.setState({filePatch: unstagedFilePatch});
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+        const contents3 = fs.readFileSync(absFilePath, 'utf8');
+        assert.notEqual(contents2, contents3);
+
+        await wrapper.instance().undoLastDiscard('sample.js');
+        assert.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
+        await wrapper.instance().undoLastDiscard('sample.js');
+        assert.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
+      });
+
+      it('does not undo if buffer is modified', async () => {
+        const contents1 = fs.readFileSync(absFilePath, 'utf8');
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        const contents2 = fs.readFileSync(absFilePath, 'utf8');
+        assert.notEqual(contents1, contents2);
+
+        // modify buffer
+        const editor = await workspace.open(absFilePath);
+        editor.getBuffer().append('new line');
+
+        const attemptRestoreSpy = sinon.spy(repository, 'attemptToRestoreBlob');
+        sinon.stub(notificationManager, 'addError');
+
+        await repository.refresh();
+        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        wrapper.setState({filePatch: unstagedFilePatch});
+        await wrapper.instance().undoLastDiscard('sample.js');
+        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'You have unsaved changes.'}]);
+        assert.isFalse(attemptRestoreSpy.called);
+      });
+
+      it('does not undo if buffer contents differ from results of discard action', async () => {
+        const contents1 = fs.readFileSync(absFilePath, 'utf8');
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        const contents2 = fs.readFileSync(absFilePath, 'utf8');
+        assert.notEqual(contents1, contents2);
+
+        // change file contents on disk
+        fs.writeFileSync(absFilePath, 'change file contents');
+
+        const attemptRestoreSpy = sinon.spy(repository, 'attemptToRestoreBlob');
+        sinon.stub(notificationManager, 'addError');
+
+        await repository.refresh();
+        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        wrapper.setState({filePatch: unstagedFilePatch});
+        await wrapper.instance().undoLastDiscard('sample.js');
+        assert.isTrue(attemptRestoreSpy.called);
+        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Contents have been modified since last discard.'}]);
+      });
+    });
+
+    describe('hasUndoHistory', () => {
+      it('returns true if there is undo history', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
+        const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = shallow(app);
+        const state = {
+          filePath: 'a.txt',
+          filePatch: unstagedFilePatch,
+          stagingStatus: 'unstaged',
+        };
+        wrapper.setState(state);
+        const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
+        assert.isFalse(wrapper.instance().hasUndoHistory());
+        await wrapper.instance().discardLines(new Set([hunkLines[0]]));
+        assert.isTrue(wrapper.instance().hasUndoHistory());
+        await wrapper.instance().undoLastDiscard('a.txt');
+        assert.isFalse(wrapper.instance().hasUndoHistory());
+      });
     });
   });
 });
