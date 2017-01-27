@@ -10,7 +10,7 @@ function test(kindOfDisplay, modifier, expectation) {
   });
 }
 
-describe.only('Timeago component', function() {
+describe('Timeago component', function() {
   describe('time display calcuation', function() {
     test('recent items', m => m, 'a few seconds ago');
     test('items within a minute', m => m.subtract(45, 'seconds'), 'a minute ago');
