@@ -155,5 +155,19 @@ describe('ConflictController', function() {
         'My middle changes\n\n' +
         'Text in between 1 and 2.');
     });
+
+    it('preserves a modified separator', function() {
+      const range = conflict.getSeparator().getMarker().getBufferRange();
+      editor.setTextInBufferRange(range, '==== hooray ====\n');
+
+      assert.isTrue(conflict.getSeparator().isModified());
+
+      controller.resolveAsOurs();
+
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
+        'My middle changes\n' +
+        '==== hooray ====\n\n' +
+        'Text in between 1 and 2.');
+    });
   });
 });
