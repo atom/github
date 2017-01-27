@@ -1,0 +1,85 @@
+@import 'colors';
+
+.github-RemotePrController {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.github-PrInfo {
+  padding: 10px;
+  overflow: auto;
+  flex: 1;
+
+  .author-avatar-link {
+    float: left;
+    margin-right: 5px;
+  }
+
+  .author-avatar {
+    max-width: 30px;
+  }
+
+  .pr-title {
+    margin: 5px 0;
+  }
+
+  .pr-badge {
+    margin-right: 10px;
+    font-weight: bold;
+    text-transform: capitalize;
+
+    .icon {
+      vertical-align: middle;
+    }
+
+    &.open {
+      color: contrast(@gh-background-color-green, black, white, 50%);
+      background-color: @gh-background-color-green;
+    }
+
+    &.closed {
+      color: contrast(@gh-background-color-red, black, white, 50%);
+      background-color: @gh-background-color-red;
+    }
+
+    &.merged {
+      color: contrast(@gh-background-color-purple, black, white, 50%);
+      background-color: @gh-background-color-purple;
+    }
+  }
+
+  .pr-link a {
+    color: @text-color-subtle;
+  }
+
+  .pr-body {
+    display: flex;
+    flex-direction: column;
+
+    a {
+      color: @text-color-info;
+    }
+
+    hr {
+      margin-top: 5px;
+      margin-bottom: 5px;
+      border-top: 1px solid @text-color;
+      width: 100%
+    }
+
+    ul {
+      margin-left: -10px;
+    }
+
+    ol {
+      margin-left: -20px;
+    }
+  }
+
+  .reactions {
+    .reaction-group {
+      margin-right: 5px;
+    }
+  }
+}

@@ -101,6 +101,23 @@ describe('Git commands', function() {
       assert.deepEqual(mergeConflictFiles, {});
     });
 
+    it('displays copied files as an added file', async function() {
+      // This repo is carefully constructed after much experimentation
+      // to cause git to detect `two.cc` as a copy of `one.cc`.
+      const workingDirPath = await cloneRepository('copied-file');
+      const git = new GitShellOutStrategy(workingDirPath);
+      // Undo the last commit, which is where we copied one.cc to two.cc
+      // and then emptied one.cc.
+      await git.exec(['reset', '--soft', 'head^']);
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
+      assert.deepEqual(stagedFiles, {
+        'one.cc': 'modified',
+        'two.cc': 'added',
+      });
+      assert.deepEqual(unstagedFiles, {});
+      assert.deepEqual(mergeConflictFiles, {});
+    });
+
     it('returns an object for merge conflict files, including ours/theirs/file status information', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
       const git = new GitShellOutStrategy(workingDirPath);
@@ -500,6 +517,40 @@ describe('Git commands', function() {
       assert.deepEqual(await git.getBranches(), ['master', 'new-branch']);
       await git.checkout('another-branch', {createNew: true});
       assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
+    });
+  });
+
+  describe('getRemotes()', function() {
+    it('returns an array of remotes', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'set-url', 'origin', 'git@github.com:other/origin.git']);
+      await git.exec(['remote', 'add', 'upstream', 'git@github.com:my/upstream.git']);
+      await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, [
+        {name: 'origin', url: 'git@github.com:other/origin.git'},
+        {name: 'upstream', url: 'git@github.com:my/upstream.git'},
+        {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
+      ]);
+    });
+
+    it('returns an empty array when no remotes are set up', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'rm', 'origin']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, []);
+    });
+  });
+
+  describe('getConfig() and setConfig()', function() {
+    it('gets and sets configs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      assert.isNull(await git.getConfig('awesome.devs'));
+      await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
+      assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
     });
   });
 
