@@ -139,7 +139,21 @@ describe('ConflictController', function() {
         'Actually it should be this\n\nText in between 1 and 2.');
     });
 
-    it('reverts changes to their original state');
-    it('preserves a modified side banner');
+    it('preserves a modified side banner', function() {
+      const range = conflict.ours.getBannerMarker().getBufferRange();
+      editor.setTextInBufferRange(range, '>>>>>>> Changed this myself\n');
+
+      assert.isTrue(conflict.ours.isBannerModified());
+
+      controller.resolveAsOurs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.ours);
+
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
+        '>>>>>>> Changed this myself\n' +
+        'My middle changes\n\n' +
+        'Text in between 1 and 2.');
+    });
   });
 });
