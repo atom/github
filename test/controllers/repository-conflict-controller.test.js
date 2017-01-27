@@ -1,5 +1,3 @@
-/** @babel */
-
 import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
