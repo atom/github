@@ -16,9 +16,6 @@
     align-items: center;
     padding: 0 0 0 @component-padding;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     border-top: 1px solid @panel-heading-border-color;
     border-bottom: 1px solid @panel-heading-border-color;
 
@@ -61,6 +58,9 @@
     flex: 1;
     margin-right: @component-padding;
     line-height: 2.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &-list {
