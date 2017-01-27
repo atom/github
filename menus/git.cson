@@ -32,12 +32,15 @@
   ]
   '.github-UnstagedChanges': [
     {
-      'label': 'Discard Changes'
-      'command': 'github:discard-changes-in-selected-file'
-    }
-    {
       'label': 'Stage'
       'command': 'core:confirm'
+    }
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Discard Changes'
+      'command': 'github:discard-changes-in-selected-file'
     }
   ]
   '.github-StagedChanges': [
@@ -68,6 +71,9 @@
     {
       'label': 'Stage Selection'
       'command': 'core:confirm'
+    }
+    {
+      'type': 'separator'
     }
     {
       'label': 'Discard Selection'
