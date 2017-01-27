@@ -168,4 +168,56 @@ describe('ConflictController', function() {
         'Text in between 1 and 2.');
     });
   });
+
+  describe('resolving three-way diff markers', function() {
+    beforeEach(async function() {
+      await useFixture('single-3way-diff.txt', 0);
+    });
+
+    it('resolves a conflict as "ours"', function() {
+      assert.isFalse(conflict.isResolved());
+
+      controller.resolveAsOurs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.ours);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.theirs, conflict.base]);
+
+      assert.include(editor.getText(), 'These are my changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "theirs"', function() {
+      controller.resolveAsTheirs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.theirs);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.ours, conflict.base]);
+
+      assert.include(editor.getText(), 'These are your changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "base"', function() {
+      controller.resolveAsBase();
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.base);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.ours, conflict.theirs]);
+
+      assert.include(editor.getText(), 'These are original texts\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "ours then theirs"', function() {
+      controller.resolveAsOursThenTheirs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.include(editor.getText(), 'These are my changes\nThese are your changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "theirs then ours"', function() {
+      controller.resolveAsTheirsThenOurs();
+
+      assert.isTrue(conflict.isResolved());
+      assert.include(editor.getText(), 'These are your changes\nThese are my changes\n\nPast the end\n');
+    });
+  });
 });
