@@ -11,6 +11,12 @@
   overflow: auto;
   flex: 1;
   border-top: 1px solid @base-border-color;
+  position: relative;
+
+  * {
+    user-select: all;
+    -webkit-user-select: all;
+  }
 
 
   // Badge and link ------------------------
@@ -100,6 +106,10 @@
 
     ol {
       margin-left: -20px;
+    }
+
+    pre > code {
+      white-space: pre;
     }
   }
 

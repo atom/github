@@ -1,0 +1,101 @@
+@import 'variables';
+
+@avatar-size: 20px;
+
+.github-PrTimeline {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  .author-avatar {
+    width: @avatar-size;
+    height: @avatar-size;
+    margin-right: 3px;
+  }
+
+  > * {
+    margin-bottom: 5px;
+  }
+
+  .pre-timeline-item-icon {
+    color: @text-color-subtle;
+  }
+
+  .commit {
+    display: flex;
+
+    > * {
+      display: inline-block;
+    }
+
+    .author-avatar {
+      flex-basis: @avatar-size;
+    }
+
+    .commit-message-headline {
+      flex: 1;
+      max-height: @avatar-size;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .commit-sha {
+      text-align: right;
+      font-family: monospace;
+    }
+  }
+
+  .merged-event {
+    display: flex;
+
+    > * {
+      display: inline-block;
+    }
+
+    .author-avatar {
+      flex-basis: @avatar-size;
+    }
+
+    .username {
+      font-weight: bold;
+    }
+
+    .sha {
+      font-family: monospace;
+    }
+
+    .merge-ref {
+      background-color: @gh-background-color-light-blue;
+      color: @gh-background-color-blue;
+      margin: 2px;
+    }
+
+    .commit-message-headline {
+      flex: 1;
+      max-height: @avatar-size;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .commit-sha {
+      text-align: right;
+      font-family: monospace;
+    }
+  }
+
+  .issue {
+    .comment-message-body {
+      margin: 10px 0 10px 20px;
+
+      pre > code {
+        white-space: pre;
+      }
+    }
+  }
+}
