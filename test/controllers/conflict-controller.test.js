@@ -128,7 +128,7 @@ describe('ConflictController', function() {
       const range = conflict.ours.getMarker().getBufferRange();
       editor.setTextInBufferRange(range, 'Actually it should be this\n');
 
-      assert.isTrue(conflict.ours.isModifiedIn(editor));
+      assert.isTrue(conflict.ours.isModified());
 
       controller.resolveAsOurs();
 
