@@ -473,7 +473,7 @@ describe('GitController', function() {
         const editor = await workspace.open(absFilePath);
         editor.getBuffer().append('new line');
 
-        const attemptRestoreSpy = sinon.spy(repository, 'attemptToRestoreBlob');
+        const restoreBlob = sinon.spy(repository, 'restoreBlob');
         sinon.stub(notificationManager, 'addError');
 
         await repository.refresh();
@@ -481,7 +481,7 @@ describe('GitController', function() {
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().undoLastDiscard('sample.js');
         assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'You have unsaved changes.'}]);
-        assert.isFalse(attemptRestoreSpy.called);
+        assert.isFalse(restoreBlob.called);
       });
 
       it('does not undo if buffer contents differ from results of discard action', async () => {
@@ -493,15 +493,15 @@ describe('GitController', function() {
         // change file contents on disk
         fs.writeFileSync(absFilePath, 'change file contents');
 
-        const attemptRestoreSpy = sinon.spy(repository, 'attemptToRestoreBlob');
+        const restoreBlob = sinon.spy(repository, 'restoreBlob');
         sinon.stub(notificationManager, 'addError');
 
         await repository.refresh();
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.isTrue(attemptRestoreSpy.called);
         assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Contents have been modified since last discard.'}]);
+        assert.isFalse(restoreBlob.called);
       });
     });
 
