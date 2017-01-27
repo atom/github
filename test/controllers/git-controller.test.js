@@ -94,7 +94,7 @@ describe('GitController', function() {
 
       const state = {
         filePath: 'path',
-        filePatch: Symbol('filePatch'),
+        filePatch: {getPath: () => 'path.txt'},
         stagingStatus: 'stagingStatus',
       };
       wrapper.setState(state);
