@@ -409,6 +409,42 @@ describe('Git commands', function() {
     });
   });
 
+  describe('isPartiallyStaged(filePath)', () => {
+    it('returns true if specified file path is partially staged', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      await git.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      // modified on both
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      // modified in working directory, added on index
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      // deleted in working directory, modified on index
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      // untracked in working directory, deleted on index
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+
+      assert.isTrue(await git.isPartiallyStaged('a.txt'));
+      assert.isTrue(await git.isPartiallyStaged('b.txt'));
+      assert.isTrue(await git.isPartiallyStaged('c.txt'));
+      assert.isTrue(await git.isPartiallyStaged('new-file.txt'));
+    });
+  });
+
   describe('isMerging', function() {
     it('returns true if `.git/MERGE_HEAD` exists', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
