@@ -22,6 +22,7 @@
   'shift-tab': 'github:select-previous-hunk'
   'right': 'core:move-right'
   'o': 'github:open-file'
+  'cmd-z': 'github:undo-last-file-diff-discard'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'
