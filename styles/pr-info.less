@@ -1,4 +1,4 @@
-@import 'colors';
+@import 'variables';
 
 .github-RemotePrController {
   flex: 1;
@@ -7,27 +7,25 @@
 }
 
 .github-PrInfo {
-  padding: 10px;
+  padding: @component-padding;
   overflow: auto;
   flex: 1;
+  border-top: 1px solid @base-border-color;
 
-  .author-avatar-link {
-    float: left;
-    margin-right: 5px;
+
+  // Badge and link ------------------------
+  .pr-badge-and-link {
+    display: flex;
+    align-items: center;
+    margin-bottom: @component-padding;
   }
-
-  .author-avatar {
-    max-width: 30px;
-  }
-
-  .pr-title {
-    margin: 5px 0;
-  }
-
   .pr-badge {
-    margin-right: 10px;
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin-right: @component-padding;
     font-weight: bold;
     text-transform: capitalize;
+    border-radius: @component-border-radius;
 
     .icon {
       vertical-align: middle;
@@ -53,9 +51,37 @@
     color: @text-color-subtle;
   }
 
-  .pr-body {
+
+  // Avatar and title ------------------------
+
+  .pr-avatar-and-title {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    margin-bottom: @component-padding;
+  }
+
+  .author-avatar-link {
+    margin-right: @component-padding;
+    align-self: flex-start;
+  }
+
+  .author-avatar {
+    max-height: 32px;
+    border-radius: @component-border-radius;
+  }
+
+  .pr-title {
+    margin: 0;
+    line-height: 1.2;
+    color: @text-color-highlight;
+  }
+
+
+  // Body ------------------------
+
+  .pr-body {
+    padding-top: @component-padding;
+    border-top: 1px solid @base-border-color;
 
     a {
       color: @text-color-info;
@@ -77,9 +103,14 @@
     }
   }
 
+
+  // Reactions ------------------------
+
   .reactions {
+    border-top: 1px solid @base-border-color;
+    padding-top: @component-padding;
     .reaction-group {
-      margin-right: 5px;
+      margin-right: @component-padding * 2;
     }
   }
 }
