@@ -597,4 +597,28 @@ describe('Git commands', function() {
       });
     });
   });
+
+  describe('createBlob(filePath)', () => {
+    it('creates a blob for the file path specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob('a.txt');
+      assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'qux\nfoo\nbar\n');
+    });
+  });
+
+  describe('restoreBlob(filePath, sha)', () => {
+    it('creates a blob for the file path specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob('a.txt');
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modifications', 'utf8');
+      await git.restoreBlob('a.txt', sha);
+      assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt')), 'qux\nfoo\nbar\n');
+    });
+  });
 });
