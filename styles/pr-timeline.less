@@ -6,7 +6,6 @@
   display: flex;
   flex-direction: column;
   margin-top: @component-padding;
-  padding: @component-padding;
   border-top: 1px solid @base-border-color;
 
   position: absolute;
@@ -16,22 +15,26 @@
   .author-avatar {
     width: @avatar-size;
     height: @avatar-size;
-    margin-right: 3px;
-  }
-
-  > * {
-    margin-bottom: 5px;
+    margin-right: 5px;
   }
 
   .pre-timeline-item-icon {
     color: @text-color-subtle;
+    vertical-align: -webkit-baseline-middle;
   }
 
   .commit {
     display: flex;
+    align-items: center;
+    padding: 0 @component-padding;
+    margin-bottom: @component-padding/2;
 
-    > * {
-      display: inline-block;
+    &:first-child {
+      padding-top: @component-padding;
+    }
+
+    & + .issue {
+      margin-top: @component-padding/2;
     }
 
     .author-avatar {
@@ -92,8 +95,19 @@
   }
 
   .issue {
+    padding: @component-padding;
+    border-top: 1px solid @base-border-color;
+
+    .comment-message-header {
+      color: @text-color-subtle;
+    }
+
     .comment-message-body {
-      margin: 10px 0 10px 20px;
+      margin: 5px 0 0 20px;
+
+      p:last-child {
+        margin-bottom: 0;
+      }
 
       pre > code {
         white-space: pre;
