@@ -50,7 +50,7 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'block');
-      const child = args[1].item.firstElementChild;
+      const child = args[1].item.node.firstElementChild;
       assert.equal(child.className, 'decoration-subtree');
       assert.equal(child.textContent, 'This is a subtree');
     });
@@ -68,7 +68,7 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'overlay');
-      const child = args[1].item.firstElementChild;
+      const child = args[1].item.node.firstElementChild;
       assert.equal(child.className, 'decoration-subtree');
       assert.equal(child.textContent, 'This is a subtree');
     });
@@ -86,7 +86,7 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'gutter');
-      const child = args[1].item.firstElementChild;
+      const child = args[1].item.node.firstElementChild;
       assert.equal(child.className, 'decoration-subtree');
       assert.equal(child.textContent, 'This is a subtree');
     });
