@@ -1,5 +1,3 @@
-/** @babel */
-
 import React from 'react';
 import sinon from 'sinon';
 import {mount} from 'enzyme';
