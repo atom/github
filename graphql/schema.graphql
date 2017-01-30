@@ -308,6 +308,12 @@ interface Comment {
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
+  # The user who edited the comment.
+  editor: User
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
+
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime!
 
@@ -464,7 +470,13 @@ type CommitComment implements Node, Comment, Reactable, RepositoryNode {
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
@@ -916,7 +928,13 @@ type GistComment implements Node, Comment {
 
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime!
@@ -1218,6 +1236,9 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
 
   # A list of labels associated with the Issue or Pull Request.
@@ -1234,6 +1255,9 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
     # Returns the elements in the list that come before the specified global ID.
     before: String
   ): LabelConnection
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
@@ -1363,10 +1387,16 @@ type IssueComment implements Node, Comment, Reactable, RepositoryNode {
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
 
   # Identifies the issue associated with the comment.
   issue: Issue!
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
@@ -2644,6 +2674,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
+  # The user who edited this pull request's body.
+  editor: User
+
   # Identifies the head Ref associated with the pull request.
   headRef: Ref
 
@@ -2665,6 +2698,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
     # Returns the elements in the list that come before the specified global ID.
     before: String
   ): LabelConnection
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
@@ -2866,7 +2902,13 @@ type PullRequestReview implements Node, Comment, RepositoryNode {
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # The HTTP URL permalink for this PullRequestReview.
   path: URI!
@@ -2930,7 +2972,13 @@ type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNod
 
   # The diff hunk to which the comment applies.
   diffHunk: String!
+
+  # The user who edited the comment.
+  editor: User
   id: ID!
+
+  # The moment the editor made the last edit
+  lastEditedAt: DateTime
 
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
@@ -3461,13 +3509,16 @@ type ReferencedEvent implements Node, IssueEvent {
 }
 
 # A release contains the content for a release.
-type Release implements Node {
+type Release implements Node, UniformResourceLocatable {
   # Identifies the description of the release.
   description: String
   id: ID!
 
   # Identifies the title of the release.
   name: String!
+
+  # The HTTP path for this issue
+  path: URI!
 
   # List of releases assets which are dependent on this release.
   releaseAsset(
@@ -3504,6 +3555,9 @@ type Release implements Node {
 
   # The Git tag the release points to
   tag: Ref
+
+  # The HTTP url for this issue
+  url: URI!
 }
 
 # A release asset contains the content for a release asset.
