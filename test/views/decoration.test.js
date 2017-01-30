@@ -50,8 +50,9 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'block');
-      assert.equal(args[1].item.className, 'decoration-subtree');
-      assert.equal(args[1].item.textContent, 'This is a subtree');
+      const child = args[1].item.firstElementChild;
+      assert.equal(child.className, 'decoration-subtree');
+      assert.equal(child.textContent, 'This is a subtree');
     });
 
     it('creates an overlay decoration', () => {
@@ -67,8 +68,9 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'overlay');
-      assert.equal(args[1].item.className, 'decoration-subtree');
-      assert.equal(args[1].item.textContent, 'This is a subtree');
+      const child = args[1].item.firstElementChild;
+      assert.equal(child.className, 'decoration-subtree');
+      assert.equal(child.textContent, 'This is a subtree');
     });
 
     it('creates a gutter decoration', () => {
@@ -84,8 +86,9 @@ describe('Decoration', () => {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'gutter');
-      assert.equal(args[1].item.className, 'decoration-subtree');
-      assert.equal(args[1].item.textContent, 'This is a subtree');
+      const child = args[1].item.firstElementChild;
+      assert.equal(child.className, 'decoration-subtree');
+      assert.equal(child.textContent, 'This is a subtree');
     });
   });
 
