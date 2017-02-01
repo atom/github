@@ -6,7 +6,6 @@ import EditorConflictController from '../../lib/controllers/editor-conflict-cont
 import ConflictController from '../../lib/controllers/conflict-controller';
 
 describe('EditorConflictController', function() {
-  let atomEnv, workspace, app, editor, instance, conflictControllers;
   let atomEnv, workspace, commandRegistry, app, editor, editorView, conflictControllers;
 
   beforeEach(function() {
@@ -105,9 +104,31 @@ describe('EditorConflictController', function() {
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\nMy middle changes\n\nText in between 1 and 2.');
     });
 
-    it('resolves multiple conflicts as current');
+    it('resolves multiple conflicts as current', function() {
+      editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
+      editor.addCursorAtBufferPosition([24, 3]); // On "More of your changes"
 
-    it('disregards conflicts with cursors on both sides');
+      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+
+      assert.isFalse(conflicts[0].isResolved());
+      assert.isTrue(conflicts[1].isResolved());
+      assert.strictEqual(conflicts[1].getChosenSide(), conflicts[1].ours);
+      assert.isTrue(conflicts[2].isResolved());
+      assert.strictEqual(conflicts[2].getChosenSide(), conflicts[2].theirs);
+    });
+
+    it('disregards conflicts with cursors on both sides', function() {
+      editor.setCursorBufferPosition([6, 3]); // On "Multi-line even"
+      editor.addCursorAtBufferPosition([14, 1]); // On "My middle changes"
+      editor.addCursorAtBufferPosition([16, 0]); // On "Your middle changes"
+
+      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+
+      assert.isTrue(conflicts[0].isResolved());
+      assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].ours);
+      assert.isFalse(conflicts[1].isResolved());
+      assert.isFalse(conflicts[2].isResolved());
+    });
 
     it('resolves a conflict as "ours then theirs"', function() {
       const conflict = conflicts[1];
