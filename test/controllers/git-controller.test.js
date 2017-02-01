@@ -450,7 +450,6 @@ describe('GitController', function() {
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
         const contents2 = fs.readFileSync(absFilePath, 'utf8');
         assert.notEqual(contents1, contents2);
-        await repository.refresh();
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
