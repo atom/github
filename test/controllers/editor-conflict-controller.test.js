@@ -92,7 +92,18 @@ describe('EditorConflictController', function() {
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\nYour middle changes\n\nText in between 1 and 2.');
     });
 
-    it('resolves a conflict as current');
+    it('resolves a conflict as current', function() {
+      const conflict = conflicts[1];
+
+      editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.ours);
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.theirs]);
+
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\nMy middle changes\n\nText in between 1 and 2.');
+    });
 
     it('resolves multiple conflicts as current');
 
