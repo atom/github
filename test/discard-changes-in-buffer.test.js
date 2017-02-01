@@ -57,6 +57,7 @@ describe('discardChangesInBuffer', () => {
 
     remainingLines.splice(5, 0, 'c', 'd', 'e');
     fs.writeFileSync(filePath, remainingLines.join('\n'));
+    await until(() => buffer.getText() === remainingLines.join('\n'));
 
     // discard multiple lines
     const unstagedFilePatch3 = await repository.getFilePatchForPath('sample.js');
@@ -114,6 +115,7 @@ describe('discardChangesInBuffer', () => {
     const unstagedLines = originalLines.slice();
     let deletedTextLines = unstagedLines.splice(1, 2, 'one modified line', 'another modified line');
     fs.writeFileSync(filePath, unstagedLines.join('\n'));
+    await until(() => buffer.getText() === unstagedLines.join('\n'));
 
     const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
     const hunkLines = getHunkLinesForPatch(unstagedFilePatch1);
@@ -139,6 +141,7 @@ describe('discardChangesInBuffer', () => {
 
     deletedTextLines = remainingLines.splice(5, 3, 'a', 'b', 'c');
     fs.writeFileSync(filePath, remainingLines.join('\n'));
+    await until(() => buffer.getText() === remainingLines.join('\n'));
 
     const unstagedFilePatch3 = await repository.getFilePatchForPath('sample.js');
     // discard last two deletions and first addition
@@ -158,11 +161,8 @@ describe('discardChangesInBuffer', () => {
     const unstagedLines = originalLines.slice();
     unstagedLines.splice(1, 2, 'one modified line', 'another modified line');
     fs.writeFileSync(filePath, unstagedLines.join('\n'));
-    let contentSnapshot1;
-    await until(() => {
-      contentSnapshot1 = buffer.getText();
-      return contentSnapshot1.split('\n').includes('one modified line');
-    });
+    await until(() => buffer.getText() === unstagedLines.join('\n'));
+    const contentSnapshot1 = buffer.getText();
 
     const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
     const hunkLines = getHunkLinesForPatch(unstagedFilePatch1);
