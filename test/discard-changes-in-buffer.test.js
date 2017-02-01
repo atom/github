@@ -3,6 +3,8 @@ import fs from 'fs';
 
 import {TextBuffer} from 'atom';
 
+import until from 'test-until';
+
 import {cloneRepository, buildRepository} from './helpers';
 import discardChangesInBuffer from '../lib/discard-changes-in-buffer';
 
@@ -38,18 +40,20 @@ describe('discardChangesInBuffer', () => {
     let addedLine = getHunkLinesForPatch(unstagedFilePatch1)[1];
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([addedLine]));
     let remainingLines = unstagedLines.filter(l => l !== addedLine.getText());
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
+    });
 
     // discard first line
     const unstagedFilePatch2 = await repository.getFilePatchForPath('sample.js');
     addedLine = getHunkLinesForPatch(unstagedFilePatch2)[0];
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([addedLine]));
     remainingLines = remainingLines.filter(text => text !== addedLine.getText());
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath) === remainingLines.join('\n');
+    });
 
     remainingLines.splice(5, 0, 'c', 'd', 'e');
     fs.writeFileSync(filePath, remainingLines.join('\n'));
@@ -59,9 +63,10 @@ describe('discardChangesInBuffer', () => {
     const addedLines = getHunkLinesForPatch(unstagedFilePatch3).slice(1, 3);
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(addedLines));
     remainingLines = remainingLines.filter(text => !addedLines.map(l => l.getText()).includes(text));
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
+    });
   });
 
   it('discards deleted lines', async () => {
@@ -75,18 +80,20 @@ describe('discardChangesInBuffer', () => {
     let deletedLine = getHunkLinesForPatch(unstagedFilePatch1)[1];
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[1]);
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), unstagedLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === unstagedLines.join('\n');
+    });
 
     // discard first line
     const unstagedFilePatch2 = await repository.getFilePatchForPath('sample.js');
     deletedLine = getHunkLinesForPatch(unstagedFilePatch2)[0];
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[0]);
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath), unstagedLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath) === unstagedLines.join('\n');
+    });
 
     deletedTextLines = unstagedLines.splice(5, 3);
     fs.writeFileSync(filePath, unstagedLines.join('\n'));
@@ -96,9 +103,10 @@ describe('discardChangesInBuffer', () => {
     const deletedLines = getHunkLinesForPatch(unstagedFilePatch3).slice(1, 3);
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(deletedLines));
     unstagedLines.splice(5, 0, ...deletedTextLines.slice(1, 3));
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), unstagedLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === unstagedLines.join('\n');
+    });
   });
 
   it('discards added and deleted lines together', async () => {
@@ -114,18 +122,20 @@ describe('discardChangesInBuffer', () => {
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine, addedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[1]);
     let remainingLines = unstagedLines.filter(l => l !== addedLine.getText());
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
+    });
 
     const unstagedFilePatch2 = await repository.getFilePatchForPath('sample.js');
     [deletedLine, addedLine] = getHunkLinesForPatch(unstagedFilePatch2);
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine, addedLine]));
     remainingLines.splice(1, 0, deletedTextLines[0]);
     remainingLines = remainingLines.filter(l => l !== addedLine.getText());
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
+    });
 
     deletedTextLines = remainingLines.splice(5, 3, 'a', 'b', 'c');
     fs.writeFileSync(filePath, remainingLines.join('\n'));
@@ -136,9 +146,10 @@ describe('discardChangesInBuffer', () => {
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(linesToDiscard));
     remainingLines.splice(5, 0, ...deletedTextLines.slice(1, 3));
     remainingLines = remainingLines.filter(l => l !== linesToDiscard[2].getText());
-    await new Promise(r => setTimeout(r, 100));
-    await repository.refresh();
-    assert.equal(fs.readFileSync(filePath, 'utf8'), remainingLines.join('\n'));
+    await until(async () => {
+      await repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
+    });
   });
 
   it('allows undoing the discard action', async () => {
@@ -147,8 +158,11 @@ describe('discardChangesInBuffer', () => {
     const unstagedLines = originalLines.slice();
     unstagedLines.splice(1, 2, 'one modified line', 'another modified line');
     fs.writeFileSync(filePath, unstagedLines.join('\n'));
-    await new Promise(r => setTimeout(r, 100));
-    const contentSnapshot1 = buffer.getText();
+    let contentSnapshot1;
+    await until(() => {
+      contentSnapshot1 = buffer.getText();
+      return contentSnapshot1.split('\n').includes('one modified line');
+    });
 
     const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
     const hunkLines = getHunkLinesForPatch(unstagedFilePatch1);
