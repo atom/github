@@ -1793,7 +1793,7 @@ type LanguageConnection {
   totalCount: Int!
 
   # The total size in bytes of files written in that language.
-  totalSize: Int
+  totalSize: Int!
 }
 
 # Represents the language of a repository.
@@ -3519,6 +3519,9 @@ type Release implements Node, UniformResourceLocatable {
 
   # The HTTP path for this issue
   path: URI!
+
+  # Identifies the date and time when the release was created.
+  publishedAt: DateTime
 
   # List of releases assets which are dependent on this release.
   releaseAsset(
