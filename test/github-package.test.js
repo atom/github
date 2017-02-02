@@ -165,6 +165,17 @@ describe('GithubPackage', function() {
       assert.isNull(githubPackage.getActiveRepository());
     });
 
+    it('defaults to a single repository even without an active pane item', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+      await githubPackage.activate();
+
+      await githubPackage.updateActiveRepository();
+
+      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
+      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
+    });
+
     // Don't worry about this on Windows as it's not a common op
     if (process.platform !== 'win32') {
       it('handles symlinked project paths', async () => {
