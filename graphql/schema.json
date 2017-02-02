@@ -2891,6 +2891,18 @@
               "deprecationReason": null
             },
             {
+              "name": "publishedAt",
+              "description": "Identifies the date and time when the release was created.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "releaseAsset",
               "description": "List of releases assets which are dependent on this release.",
               "args": [
@@ -18850,9 +18862,13 @@
               "description": "The total size in bytes of files written in that language.",
               "args": [],
               "type": {
-                "kind": "SCALAR",
-                "name": "Int",
-                "ofType": null
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
