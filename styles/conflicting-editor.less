@@ -1,19 +1,76 @@
 @import "variables";
 
 atom-text-editor {
-  .conflict-banner {
-    background-color: red;
+  .github-ConflictSeparator {
+    background-color: @banner-line-color;
+    span { color: lighten(@banner-line-color, 10%); };
   }
 
-  .conflict-separator {
-    background-color: red;
+  .github-ConflictOurs {
+    background-color: @ours-line-color;
+    &.cursor-line { background-color: @ours-current-color; }
   }
 
-  .conflict-ours {
-    background-color: blue;
+  .github-ConflictOursBanner {
+    background-color: @ours-line-color;
+    span { color: lighten(@ours-line-color, 10%); };
   }
 
-  .conflict-theirs {
-    background-color: green;
+  .github-ConflictOursBlock {
+    background-color: @ours-line-color;
+    display: flex;
+    padding: 3px 10px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-style: double;
+    border-bottom-width: 2px;
+    border-bottom-color: #333;
+    margin-bottom: 2px;
+
+    .github-ResolutionControls {
+      flex: 1;
+      button {
+        margin-right: 10px;
+      }
+    }
   }
+
+  .github-ConflictTheirs {
+    background-color: @theirs-line-color;
+    &.cursor-line { background-color: @theirs-current-color; };
+  }
+
+  .github-ConflictTheirsBanner {
+    background-color: @theirs-line-color;
+    span { color: lighten(@theirs-line-color, 10%); };
+  }
+
+  .github-ConflictTheirsBlock {
+    background-color: @theirs-line-color;
+    display: flex;
+    padding: 2px 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-style: double;
+    border-top-width: 2px;
+    border-top-color: #333;
+    margin-top: 2px;
+
+    .github-SideDescription {
+    }
+
+    .github-ResolutionControls {
+      flex: 1;
+      button {
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .github-ConflictBase {
+    background-color: @base-line-color;
+    &.cursor-line { background-color: @base-current-color; }
+  }
+
+  .github-ConflictBaseBanner span { color: lighten(@base-line-color, 50%); }
 }
