@@ -47,7 +47,7 @@ describe('ConflictController', function() {
     return editor.getTextInBufferRange(d.props().marker.getBufferRange());
   };
 
-  it('creates a Decoration for each side of the conflict', async function() {
+  it('creates a line Decoration for each side and banner of the conflict', async function() {
     await useFixture('triple-2way-diff.txt', 1);
 
     const bannerDecorations = decorationsMatching({type: 'line', class: 'conflict-banner'});
