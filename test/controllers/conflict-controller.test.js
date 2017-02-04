@@ -56,12 +56,6 @@ describe('ConflictController', function() {
       '>>>>>>> other-branch\n',
     ]);
 
-    const bannerLineDecorations = decorationsMatching({type: 'line-number', class: 'conflict-banner'});
-    assert.deepEqual(bannerLineDecorations.map(textFromDecoration), [
-      '<<<<<<< HEAD\n',
-      '>>>>>>> other-branch\n',
-    ]);
-
     const ourSideDecorations = decorationsMatching({type: 'line', class: 'conflict-ours'});
     assert.deepEqual(ourSideDecorations.map(textFromDecoration), [
       'My middle changes\n',
