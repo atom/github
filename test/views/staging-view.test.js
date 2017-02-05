@@ -157,17 +157,17 @@ describe('StagingView', function() {
         view.focus();
         await view.selectNext();
         assert.isFalse(didSelectFilePath.calledWith(filePatches[1].filePath));
-        await until(() => didSelectFilePath.calledWith(filePatches[1].filePath));
+        await assert.async.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath));
         await view.selectNext();
         assert.isFalse(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
-        await until(() => didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
+        await assert.async.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
 
         document.body.focus();
         assert.isFalse(view.isFocused());
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
-        await until(() => didSelectMergeConflictFile.callCount === 0);
+        await assert.async.isTrue(didSelectMergeConflictFile.callCount === 0);
 
         view.element.remove();
       });
