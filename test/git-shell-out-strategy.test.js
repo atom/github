@@ -717,4 +717,14 @@ describe('Git commands', function() {
       assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt')), 'qux\nfoo\nbar\n');
     });
   });
+
+  describe('getBlobContents(sha)', () => {
+    it('returns blob contents for sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
+      const contents = await git.getBlobContents(sha);
+      assert.equal(contents, 'foo\nbar\nbaz\n');
+    });
+  });
 });
