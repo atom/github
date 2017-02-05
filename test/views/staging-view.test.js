@@ -1,7 +1,6 @@
 import StagingView from '../../lib/views/staging-view';
 
 import {assertEqualSets} from '../helpers';
-import until from 'test-until';
 
 describe('StagingView', function() {
   let atomEnv, commandRegistry;
