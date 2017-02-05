@@ -685,15 +685,24 @@ describe('Git commands', function() {
     });
   });
 
-  describe('createBlob(filePath)', () => {
+  describe('createBlob({filePath})', () => {
     it('creates a blob for the file path specified and returns its sha', async () => {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      const sha = await git.createBlob('a.txt');
+      const sha = await git.createBlob({filePath: 'a.txt'});
       assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
       const contents = await git.exec(['cat-file', '-p', sha]);
       assert.equal(contents, 'qux\nfoo\nbar\n');
+    });
+
+    it('creates a blob for the stdin specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\n'});
+      assert.equal(sha, '257cc5642cb1a054f08cc83f2d943e56fd3ebe99');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'foo\n');
     });
   });
 
@@ -702,7 +711,7 @@ describe('Git commands', function() {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      const sha = await git.createBlob('a.txt');
+      const sha = await git.createBlob({filePath: 'a.txt'});
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modifications', 'utf8');
       await git.restoreBlob('a.txt', sha);
       assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt')), 'qux\nfoo\nbar\n');
