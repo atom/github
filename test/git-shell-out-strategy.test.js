@@ -707,7 +707,7 @@ describe('Git commands', function() {
   });
 
   describe('restoreBlob(filePath, sha)', () => {
-    it('creates a blob for the file path specified and returns its sha', async () => {
+    it('restores blob contents for sha to specified file path', async () => {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
