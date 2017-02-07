@@ -189,6 +189,7 @@ describe('GitController', function() {
       });
     });
 
+    // https://github.com/atom/github/issues/505
     it('calls repository.getFilePatchForPath with amending: true only if staging status is staged', async () => {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
