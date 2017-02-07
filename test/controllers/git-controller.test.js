@@ -188,6 +188,19 @@ describe('GitController', function() {
         assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
       });
     });
+
+    it('calls repository.getFilePatchForPath with amending: true only if staging status is staged', async () => {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      sinon.stub(repository, 'getFilePatchForPath');
+      await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged', {amending: true});
+      assert.equal(repository.getFilePatchForPath.callCount, 1);
+      assert.deepEqual(repository.getFilePatchForPath.args[0], ['a.txt', {staged: false, amending: false}]);
+    });
   });
 
   describe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', function() {
