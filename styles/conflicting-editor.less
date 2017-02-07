@@ -18,14 +18,11 @@ atom-text-editor {
 
   .github-ConflictOursBlock {
     background-color: @ours-line-color;
+  }
+
+  .github-ConflictBlock {
     display: flex;
-    padding: 3px 10px;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    border-bottom-style: double;
-    border-bottom-width: 2px;
-    border-bottom-color: #333;
-    margin-bottom: 2px;
+    padding: 3px 15px 3px 10px;
 
     .github-ResolutionControls {
       flex: 1;
@@ -47,24 +44,6 @@ atom-text-editor {
 
   .github-ConflictTheirsBlock {
     background-color: @theirs-line-color;
-    display: flex;
-    padding: 2px 5px;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-top-style: double;
-    border-top-width: 2px;
-    border-top-color: #333;
-    margin-top: 2px;
-
-    .github-SideDescription {
-    }
-
-    .github-ResolutionControls {
-      flex: 1;
-      button {
-        margin-right: 10px;
-      }
-    }
   }
 
   .github-ConflictBase {
@@ -72,5 +51,41 @@ atom-text-editor {
     &.cursor-line { background-color: @base-current-color; }
   }
 
-  .github-ConflictBaseBanner span { color: lighten(@base-line-color, 50%); }
+  .github-ConflictBaseBanner {
+    background-color: @base-line-color;
+    span { color: lighten(@base-line-color, 10%); }
+  }
+
+  .github-ConflictBaseBlock {
+    background-color: @base-line-color;
+  }
+
+  .github-ConflictTopBlock {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-style: double;
+    border-bottom-width: 2px;
+    border-bottom-color: #333;
+    margin-bottom: 2px;
+  }
+
+  .github-ConflictMiddleBlock {
+    border-top-style: double;
+    border-top-width: 2px;
+    border-top-color: #333;
+    margin-top: 2px;
+    border-bottom-style: double;
+    border-bottom-width: 2px;
+    border-bottom-color: #333;
+    margin-bottom: 2px;
+  }
+
+  .github-ConflictBottomBlock {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-style: double;
+    border-top-width: 2px;
+    border-top-color: #333;
+    margin-top: 2px;
+  }
 }
