@@ -642,6 +642,18 @@
               "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -705,6 +717,18 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "LabelConnection",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -2851,6 +2875,34 @@
               "deprecationReason": null
             },
             {
+              "name": "path",
+              "description": "The HTTP path for this issue",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "publishedAt",
+              "description": "Identifies the date and time when the release was created.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "releaseAsset",
               "description": "List of releases assets which are dependent on this release.",
               "args": [
@@ -2985,6 +3037,22 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "url",
+              "description": "The HTTP url for this issue",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -2992,6 +3060,11 @@
             {
               "kind": "INTERFACE",
               "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "UniformResourceLocatable",
               "ofType": null
             }
           ],
@@ -6255,6 +6328,18 @@
               "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
             },
             {
+              "name": "editor",
+              "description": "The user who edited this pull request's body.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "headRef",
               "description": "Identifies the head Ref associated with the pull request.",
               "args": [],
@@ -6346,6 +6431,18 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "LabelConnection",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -9800,6 +9897,18 @@
               "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -9811,6 +9920,18 @@
                   "name": "ID",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -10208,6 +10329,30 @@
                   "name": "Boolean",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -11187,6 +11332,18 @@
               "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -11198,6 +11355,18 @@
                   "name": "ID",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -11701,6 +11870,18 @@
               "deprecationReason": null
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -11712,6 +11893,18 @@
                   "name": "ID",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -12354,6 +12547,18 @@
               "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -12381,6 +12586,18 @@
                   "name": "Issue",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17198,6 +17415,11 @@
             },
             {
               "kind": "OBJECT",
+              "name": "Release",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
               "name": "Repository",
               "ofType": null
             },
@@ -18640,9 +18862,13 @@
               "description": "The total size in bytes of files written in that language.",
               "args": [],
               "type": {
-                "kind": "SCALAR",
-                "name": "Int",
-                "ofType": null
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -21427,6 +21653,18 @@
               "deprecationReason": null
             },
             {
+              "name": "editor",
+              "description": "The user who edited the comment.",
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "User",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -21438,6 +21676,18 @@
                   "name": "ID",
                   "ofType": null
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "lastEditedAt",
+              "description": "The moment the editor made the last edit",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
