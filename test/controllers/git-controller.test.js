@@ -516,6 +516,23 @@ describe('GitController', function() {
         assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Contents have been modified since last discard.'}]);
         assert.isFalse(restoreBlob.called);
       });
+
+      it('clears the discard history if the last blob is no longer valid', async () => {
+        // this would occur in the case of garbage collection cleaning out the blob
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+        wrapper.setState({filePatch: unstagedFilePatch});
+        const {beforeSha} = await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+
+        // remove blob from git object store
+        fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
+
+        sinon.stub(notificationManager, 'addError');
+        assert.equal(repository.getDiscardHistoryForPath('sample.js').length, 2);
+        await wrapper.instance().undoLastDiscard('sample.js');
+        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Discard history has expired.'}]);
+        assert.equal(repository.getDiscardHistoryForPath('sample.js').length, 0);
+      });
     });
 
     describe('hasUndoHistory', () => {
