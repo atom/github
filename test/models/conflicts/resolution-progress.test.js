@@ -18,7 +18,7 @@ describe('ResolutionProgress', function() {
   it('reports progress after a resolution notification', function() {
     const progress = new ResolutionProgress('1234abcd', {});
     progress.reportMarkerCount('path/to/file.txt', 3);
-    progress.markerWasResolved('path/to/file.txt');
+    progress.reportResolvedCount('path/to/file.txt', 1);
 
     assert.equal(progress.getValue('path/to/file.txt'), 1);
     assert.equal(progress.getMax('path/to/file.txt'), 3);
@@ -35,9 +35,7 @@ describe('ResolutionProgress', function() {
   it('caps resolution notification count to the current maximum', function() {
     const progress = new ResolutionProgress('1234abcd', {});
     progress.reportMarkerCount('path/to/file.txt', 2);
-    progress.markerWasResolved('path/to/file.txt');
-    progress.markerWasResolved('path/to/file.txt');
-    progress.markerWasResolved('path/to/file.txt');
+    progress.reportResolvedCount('path/to/file.txt', 3);
 
     assert.equal(progress.getValue('path/to/file.txt'), 2);
   });
@@ -48,10 +46,9 @@ describe('ResolutionProgress', function() {
     beforeEach(function() {
       const progress0 = new ResolutionProgress('1234abcd', {});
       progress0.reportMarkerCount('path/to/file0.txt', 3);
-      progress0.markerWasResolved('path/to/file0.txt');
-      progress0.markerWasResolved('path/to/file0.txt');
+      progress0.reportResolvedCount('path/to/file0.txt', 2);
       progress0.reportMarkerCount('path/to/file1.txt', 4);
-      progress0.markerWasResolved('path/to/file1.txt');
+      progress0.reportResolvedCount('path/to/file1.txt', 1);
 
       payload = progress0.serialize();
     });
@@ -72,5 +69,38 @@ describe('ResolutionProgress', function() {
       assert.equal(progress2.getValue('path/to/file1.txt'), 0);
       assert.isTrue(progress2.isEmpty());
     });
+  });
+
+  describe('onDidUpdate', function() {
+    let progress, didUpdateSpy;
+
+    beforeEach(function() {
+      progress = new ResolutionProgress('1234abcd', {});
+      progress.reportMarkerCount('path/file0.txt', 4);
+
+      didUpdateSpy = sinon.spy();
+      progress.onDidUpdate(didUpdateSpy);
+    });
+
+    it('triggers an event when the marker count is reported', function() {
+      progress.reportMarkerCount('path/file1.txt', 7);
+      assert.isTrue(didUpdateSpy.called);
+    });
+
+    it('triggers no events when the marker count is unchanged', function() {
+      progress.reportMarkerCount('path/file0.txt', 4);
+      assert.isFalse(didUpdateSpy.called);
+    });
+
+    it('triggers an event when the resolved count is reported', function() {
+      progress.reportResolvedCount('path/file0.txt', 2);
+      assert.isTrue(didUpdateSpy.called);
+    });
+
+    it('triggers no events when the resolved count is unchanged', function() {
+      progress.reportResolvedCount('path/file0.txt', 0);
+      assert.isFalse(didUpdateSpy.called);
+    });
+
   });
 });

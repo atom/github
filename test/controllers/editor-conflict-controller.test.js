@@ -2,16 +2,19 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 
+import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import EditorConflictController from '../../lib/controllers/editor-conflict-controller';
 import ConflictController from '../../lib/controllers/conflict-controller';
 
 describe('EditorConflictController', function() {
-  let atomEnv, workspace, commandRegistry, app, editor, editorView, conflictControllers;
+  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView, resolutionProgress, conflictControllers;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
+
+    resolutionProgress = ResolutionProgress.empty();
   });
 
   afterEach(function() {
@@ -28,10 +31,11 @@ describe('EditorConflictController', function() {
         workspace={workspace}
         commandRegistry={commandRegistry}
         editor={editor}
+        resolutionProgress={resolutionProgress}
         isRebase={false}
       />
     );
-    const wrapper = mount(app);
+    wrapper = mount(app);
     conflictControllers = wrapper.find(ConflictController);
   };
 
@@ -45,10 +49,10 @@ describe('EditorConflictController', function() {
     beforeEach(async function() {
       await useFixture('triple-2way-diff.txt');
 
-      conflicts = conflictControllers.map(c => c.props().conflict);
+      conflicts = wrapper.state('conflicts');
     });
 
-    it('creates a conflict controller for each conflict', function() {
+    it('creates a Conflict from each conflict marker', function() {
       assert.lengthOf(conflicts, 3);
 
       assert.equal(textFromSide(conflicts[0].ours), 'My changes\nMulti-line even\n');
@@ -62,6 +66,10 @@ describe('EditorConflictController', function() {
       assert.equal(textFromSide(conflicts[2].ours), 'More of my changes\n');
       assert.equal(textFromSide(conflicts[2].separator), '=======\n');
       assert.equal(textFromSide(conflicts[2].theirs), 'More of your changes\n');
+    });
+
+    it('reports the unresolved conflict count', function() {
+      assert.equal(resolutionProgress.getMax(editor.getPath()), 3);
     });
 
     it('resolves a conflict as "ours"', function() {
@@ -201,6 +209,15 @@ describe('EditorConflictController', function() {
         '==== hooray ====\n\n' +
         'Text in between 1 and 2.');
     });
+
+    it('reports resolution progress', function() {
+      assert.equal(resolutionProgress.getValue(editor.getPath()), 0);
+
+      editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+
+      assert.equal(resolutionProgress.getValue(editor.getPath()), 1);
+    });
   });
 
   describe('on a file with 3-way diff markers', function() {
@@ -208,7 +225,7 @@ describe('EditorConflictController', function() {
 
     beforeEach(async function() {
       await useFixture('single-3way-diff.txt');
-      conflicts = conflictControllers.map(c => c.props().conflict);
+      conflicts = wrapper.state('conflicts');
       conflict = conflicts[0];
     });
 

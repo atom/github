@@ -171,7 +171,7 @@ describe('GithubPackage', function() {
       project.setPaths([workdirPath]);
       await githubPackage.activate();
 
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
 
       const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
@@ -197,7 +197,7 @@ describe('GithubPackage', function() {
 
       // Record some resolution progress to recall later
       resolutionMergeConflict.reportMarkerCount('modified-on-both-ours.txt', 3);
-      resolutionMergeConflict.markerWasResolved('modified-on-both-ours.txt');
+      resolutionMergeConflict.reportResolvedCount('modified-on-both-ours.txt', 1);
 
       // Open a file in the non-merge conflict repository.
       await workspace.open(path.join(workdirNoConflict, 'b.txt'));
@@ -320,8 +320,7 @@ describe('GithubPackage', function() {
       // Record some state to recover later.
       const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
       resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
-      resolutionMergeConflict0.markerWasResolved('modified-on-both-ours.txt');
-      resolutionMergeConflict0.markerWasResolved('modified-on-both-ours.txt');
+      resolutionMergeConflict0.reportResolvedCount('modified-on-both-ours.txt', 2);
 
       const payload = githubPackage.serialize();
 

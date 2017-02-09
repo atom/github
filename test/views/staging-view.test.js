@@ -1,3 +1,4 @@
+import path from 'path';
 import StagingView from '../../lib/views/staging-view';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
@@ -70,7 +71,12 @@ describe('StagingView', function() {
 
   describe('merge conflicts list', function() {
     it('is visible only when conflicted paths are passed', async function() {
-      const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
+      const view = new StagingView({
+        workingDirectoryPath: __dirname,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+      });
 
       assert.isUndefined(view.refs.mergeConflicts);
 
@@ -95,11 +101,12 @@ describe('StagingView', function() {
       const resolutionProgress = new ResolutionProgress('abcd1234', {
         revision: 'abcd1234',
         paths: {
-          'conflicted-path': {value: 4, max: 10},
+          [path.join(__dirname, 'conflicted-path')]: {value: 4, max: 10},
         },
       });
 
       const view = new StagingView({
+        workingDirectoryPath: __dirname,
         commandRegistry,
         unstagedChanges: [],
         stagedChanges: [],
@@ -140,6 +147,7 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
+          workingDirectoryPath: __dirname,
           commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
@@ -186,6 +194,7 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
+          workingDirectoryPath: __dirname,
           commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
@@ -223,7 +232,10 @@ describe('StagingView', function() {
         {filePath: 'e.txt', status: 'modified'},
         {filePath: 'f.txt', status: 'modified'},
       ];
-      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+      const view = new StagingView({
+        workingDirectoryPath: __dirname, commandRegistry,
+        unstagedChanges, stagedChanges: [],
+      });
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
@@ -256,7 +268,7 @@ describe('StagingView', function() {
       ];
       const didSelectFilePath = sinon.stub();
       const view = new StagingView({
-        commandRegistry, didSelectFilePath,
+        workingDirectoryPath: __dirname, commandRegistry, didSelectFilePath,
         unstagedChanges, stagedChanges: [],
       });
       view.isFocused = sinon.stub().returns(true);
@@ -288,7 +300,10 @@ describe('StagingView', function() {
         {filePath: 'staged-1.txt', status: 'staged'},
         {filePath: 'staged-2.txt', status: 'staged'},
       ];
-      view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
+      view = new StagingView({
+        workingDirectoryPath: __dirname, commandRegistry,
+        unstagedChanges, stagedChanges, mergeConflicts,
+      });
     });
 
     const assertSelected = expected => {
@@ -347,7 +362,7 @@ describe('StagingView', function() {
       didDiveIntoMergeConflictPath = sinon.spy();
 
       view = new StagingView({
-        commandRegistry,
+        commandRegistry, workingDirectoryPath: __dirname,
         didDiveIntoFilePath, didDiveIntoMergeConflictPath,
         unstagedChanges, stagedChanges: [], mergeConflicts,
       });
@@ -397,7 +412,9 @@ describe('StagingView', function() {
       {filePath: 'b.txt', status: 'modified'},
       {filePath: 'c.txt', status: 'modified'},
     ];
-    const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+    const view = new StagingView({
+      workingDirectoryPath: __dirname, commandRegistry, unstagedChanges, stagedChanges: [],
+    });
     view.isFocused = sinon.stub().returns(true);
 
     document.body.appendChild(view.element);

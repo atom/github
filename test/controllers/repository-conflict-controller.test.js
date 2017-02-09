@@ -13,8 +13,9 @@ describe('RepositoryConflictController', () => {
   beforeEach(() => {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
+    const commandRegistry = atomEnv.commands;
 
-    app = <RepositoryConflictController workspace={workspace} />;
+    app = <RepositoryConflictController workspace={workspace} commandRegistry={commandRegistry} />;
   });
 
   afterEach(() => atomEnv.destroy());
