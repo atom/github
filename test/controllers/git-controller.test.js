@@ -559,5 +559,28 @@ describe('GitController', function() {
         assert.isFalse(wrapper.instance().hasUndoHistory());
       });
     });
+
+    describe('openFileInNewBuffer(filePath)', () => {
+      it('opens the file in a new editor and loads the contents before the most recent discard', async () => {
+        const workdirPath = await cloneRepository('multi-line-file');
+        const repository = await buildRepository(workdirPath);
+
+        const absFilePath = path.join(workdirPath, 'sample.js');
+        fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
+        const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = shallow(app);
+        wrapper.setState({
+          filePath: 'sample.js',
+          filePatch: unstagedFilePatch,
+          stagingStatus: 'unstaged',
+        });
+
+        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        await wrapper.instance().openFileInNewBuffer('sample.js');
+        assert.equal(workspace.getActiveTextEditor().getText(), 'foo\nbar\nbaz\n');
+      });
+    });
   });
 });
