@@ -573,12 +573,12 @@ describe('GitController', function() {
         fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
         sinon.stub(notificationManager, 'addError');
-        assert.equal(repository.getUndoHistoryForPath('sample.js').length, 2);
+        assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 2);
         await wrapper.instance().undoLastDiscard('sample.js');
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Discard history has expired.');
         assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
-        assert.equal(repository.getUndoHistoryForPath('sample.js').length, 0);
+        assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 0);
       });
     });
   });

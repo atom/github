@@ -711,10 +711,10 @@ describe('Repository', function() {
       await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
       });
-      const repo1History = repo1.getUndoHistoryForPath('a.txt');
+      const repo1History = repo1.getPartialDiscardUndoHistoryForPath('a.txt');
 
       const repo2 = await buildRepository(workingDirPath);
-      const repo2History = repo2.getUndoHistoryForPath('a.txt');
+      const repo2History = repo2.getPartialDiscardUndoHistoryForPath('a.txt');
 
       assert.deepEqual(repo2History, repo1History);
     });
