@@ -493,7 +493,9 @@ describe('GitController', function() {
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'You have unsaved changes.'}]);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
+        assert.match(notificationArgs[1].description, /You have unsaved changes./);
         assert.isFalse(restoreBlob.called);
       });
 
@@ -513,7 +515,9 @@ describe('GitController', function() {
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Contents have been modified since last discard.'}]);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
+        assert.match(notificationArgs[1].description, /Contents have been modified since last discard./);
         assert.isFalse(restoreBlob.called);
       });
 
@@ -530,33 +534,10 @@ describe('GitController', function() {
         sinon.stub(notificationManager, 'addError');
         assert.isDefined(repository.getLastHistorySnapshotsForPath('sample.js'));
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.deepEqual(notificationManager.addError.args[0], ['Cannot undo last discard.', {description: 'Discard history has expired.'}]);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
+        assert.match(notificationArgs[1].description, /Discard history has expired./);
         assert.isUndefined(repository.getLastHistorySnapshotsForPath('sample.js'));
-      });
-    });
-
-    describe('hasUndoHistory', () => {
-      it('returns true if there is undo history', async () => {
-        const workdirPath = await cloneRepository('three-files');
-        const repository = await buildRepository(workdirPath);
-
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
-        const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-        const state = {
-          filePath: 'a.txt',
-          filePatch: unstagedFilePatch,
-          stagingStatus: 'unstaged',
-        };
-        wrapper.setState(state);
-        const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
-        assert.isFalse(wrapper.instance().hasUndoHistory());
-        await wrapper.instance().discardLines(new Set([hunkLines[0]]));
-        assert.isTrue(wrapper.instance().hasUndoHistory());
-        await wrapper.instance().undoLastDiscard('a.txt');
-        assert.isFalse(wrapper.instance().hasUndoHistory());
       });
     });
 
