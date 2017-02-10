@@ -409,6 +409,42 @@ describe('Git commands', function() {
     });
   });
 
+  describe('isPartiallyStaged(filePath)', () => {
+    it('returns true if specified file path is partially staged', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      await git.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      // modified on both
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      // modified in working directory, added on index
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      // deleted in working directory, modified on index
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      // untracked in working directory, deleted on index
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+
+      assert.isTrue(await git.isPartiallyStaged('a.txt'));
+      assert.isTrue(await git.isPartiallyStaged('b.txt'));
+      assert.isTrue(await git.isPartiallyStaged('c.txt'));
+      assert.isTrue(await git.isPartiallyStaged('new-file.txt'));
+    });
+  });
+
   describe('isMerging', function() {
     it('returns true if `.git/MERGE_HEAD` exists', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
@@ -646,6 +682,49 @@ describe('Git commands', function() {
         assert.isNull(callArgs1[1]);
         assert.isTrue(callArgs1[2]);
       });
+    });
+  });
+
+  describe('createBlob({filePath})', () => {
+    it('creates a blob for the file path specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob({filePath: 'a.txt'});
+      assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'qux\nfoo\nbar\n');
+    });
+
+    it('creates a blob for the stdin specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\n'});
+      assert.equal(sha, '257cc5642cb1a054f08cc83f2d943e56fd3ebe99');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'foo\n');
+    });
+  });
+
+  describe('restoreBlob(filePath, sha)', () => {
+    it('restores blob contents for sha to specified file path', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob({filePath: 'a.txt'});
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modifications', 'utf8');
+      await git.restoreBlob('a.txt', sha);
+      assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt')), 'qux\nfoo\nbar\n');
+    });
+  });
+
+  describe('getBlobContents(sha)', () => {
+    it('returns blob contents for sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
+      const contents = await git.getBlobContents(sha);
+      assert.equal(contents, 'foo\nbar\nbaz\n');
     });
   });
 });
