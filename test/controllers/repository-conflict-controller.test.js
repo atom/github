@@ -32,8 +32,6 @@ describe('RepositoryConflictController', () => {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
-
       assert.equal(wrapper.find(EditorConflictController).length, 0);
     });
   });
@@ -48,8 +46,6 @@ describe('RepositoryConflictController', () => {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
-
       assert.equal(wrapper.find(EditorConflictController).length, 0);
     });
   });
@@ -59,7 +55,7 @@ describe('RepositoryConflictController', () => {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
-      assert.isRejected(repository.git.merge('origin/branch'));
+      await assert.isRejected(repository.git.merge('origin/branch'));
 
       await Promise.all(['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(basename => {
         return workspace.open(path.join(workdirPath, basename));
@@ -68,9 +64,7 @@ describe('RepositoryConflictController', () => {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
-
-      assert.equal(wrapper.find(EditorConflictController).length, 2);
+      await assert.async.equal(wrapper.find(EditorConflictController).length, 2);
     });
   });
 });
