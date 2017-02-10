@@ -541,7 +541,7 @@ describe('GitController', function() {
       });
     });
 
-    describe('openFileInNewBuffer(filePath)', () => {
+    describe('openFileBeforeLastDiscard(filePath)', () => {
       it('opens the file in a new editor and loads the contents before the most recent discard', async () => {
         const workdirPath = await cloneRepository('multi-line-file');
         const repository = await buildRepository(workdirPath);
@@ -559,7 +559,7 @@ describe('GitController', function() {
         });
 
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        await wrapper.instance().openFileInNewBuffer('sample.js');
+        await wrapper.instance().openFileBeforeLastDiscard('sample.js');
         assert.equal(workspace.getActiveTextEditor().getText(), 'foo\nbar\nbaz\n');
       });
     });
