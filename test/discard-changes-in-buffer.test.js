@@ -40,8 +40,8 @@ describe('discardChangesInBuffer', () => {
     let addedLine = getHunkLinesForPatch(unstagedFilePatch1)[1];
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([addedLine]));
     let remainingLines = unstagedLines.filter(l => l !== addedLine.getText());
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
 
@@ -50,9 +50,9 @@ describe('discardChangesInBuffer', () => {
     addedLine = getHunkLinesForPatch(unstagedFilePatch2)[0];
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([addedLine]));
     remainingLines = remainingLines.filter(text => text !== addedLine.getText());
-    await until(async () => {
-      await repository.refresh();
-      return fs.readFileSync(filePath) === remainingLines.join('\n');
+    await until(() => {
+      repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
 
     remainingLines.splice(5, 0, 'c', 'd', 'e');
@@ -64,8 +64,8 @@ describe('discardChangesInBuffer', () => {
     const addedLines = getHunkLinesForPatch(unstagedFilePatch3).slice(1, 3);
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(addedLines));
     remainingLines = remainingLines.filter(text => !addedLines.map(l => l.getText()).includes(text));
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
   });
@@ -81,8 +81,8 @@ describe('discardChangesInBuffer', () => {
     let deletedLine = getHunkLinesForPatch(unstagedFilePatch1)[1];
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[1]);
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === unstagedLines.join('\n');
     });
 
@@ -91,9 +91,9 @@ describe('discardChangesInBuffer', () => {
     deletedLine = getHunkLinesForPatch(unstagedFilePatch2)[0];
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[0]);
-    await until(async () => {
-      await repository.refresh();
-      return fs.readFileSync(filePath) === unstagedLines.join('\n');
+    await until(() => {
+      repository.refresh();
+      return fs.readFileSync(filePath, 'utf8') === unstagedLines.join('\n');
     });
 
     deletedTextLines = unstagedLines.splice(5, 3);
@@ -104,8 +104,8 @@ describe('discardChangesInBuffer', () => {
     const deletedLines = getHunkLinesForPatch(unstagedFilePatch3).slice(1, 3);
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(deletedLines));
     unstagedLines.splice(5, 0, ...deletedTextLines.slice(1, 3));
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === unstagedLines.join('\n');
     });
   });
@@ -124,8 +124,8 @@ describe('discardChangesInBuffer', () => {
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine, addedLine]));
     unstagedLines.splice(1, 0, deletedTextLines[1]);
     let remainingLines = unstagedLines.filter(l => l !== addedLine.getText());
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
 
@@ -134,8 +134,8 @@ describe('discardChangesInBuffer', () => {
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine, addedLine]));
     remainingLines.splice(1, 0, deletedTextLines[0]);
     remainingLines = remainingLines.filter(l => l !== addedLine.getText());
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
 
@@ -149,8 +149,8 @@ describe('discardChangesInBuffer', () => {
     discardChangesInBuffer(buffer, unstagedFilePatch3, new Set(linesToDiscard));
     remainingLines.splice(5, 0, ...deletedTextLines.slice(1, 3));
     remainingLines = remainingLines.filter(l => l !== linesToDiscard[2].getText());
-    await until(async () => {
-      await repository.refresh();
+    await until(() => {
+      repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
   });
