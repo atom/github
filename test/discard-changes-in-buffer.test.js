@@ -117,22 +117,24 @@ describe('discardChangesInBuffer', () => {
     fs.writeFileSync(filePath, unstagedLines.join('\n'));
     await assert.async.equal(buffer.getText(), unstagedLines.join('\n'));
 
+    // discard changes made to second line
     const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
     const hunkLines = getHunkLinesForPatch(unstagedFilePatch1);
     let deletedLine = hunkLines[1];
     let addedLine = hunkLines[3];
     discardChangesInBuffer(buffer, unstagedFilePatch1, new Set([deletedLine, addedLine]));
-    unstagedLines.splice(1, 0, deletedTextLines[1]);
+    unstagedLines.splice(2, 0, deletedLine.getText());
     let remainingLines = unstagedLines.filter(l => l !== addedLine.getText());
     await until(() => {
       repository.refresh();
       return fs.readFileSync(filePath, 'utf8') === remainingLines.join('\n');
     });
 
+    // discard remaining changes
     const unstagedFilePatch2 = await repository.getFilePatchForPath('sample.js');
     [deletedLine, addedLine] = getHunkLinesForPatch(unstagedFilePatch2);
     discardChangesInBuffer(buffer, unstagedFilePatch2, new Set([deletedLine, addedLine]));
-    remainingLines.splice(1, 0, deletedTextLines[0]);
+    remainingLines.splice(1, 0, deletedLine.getText());
     remainingLines = remainingLines.filter(l => l !== addedLine.getText());
     await until(() => {
       repository.refresh();
