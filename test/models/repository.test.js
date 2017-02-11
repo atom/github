@@ -696,32 +696,4 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
   });
-
-  describe('maintaining discard history across repository instances', () => {
-    it('restores the history', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo1 = await buildRepository(workingDirPath);
-
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-
-      const isSafe = () => true;
-      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
-      });
-      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
-      });
-      await repo1.attemptToRestoreBlob('a.txt', isSafe);
-
-      const repo2 = await buildRepository(workingDirPath);
-      assert.isTrue(repo2.hasUndoHistory('a.txt'));
-      await repo2.attemptToRestoreBlob('a.txt', isSafe);
-      assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'), 'qux\nfoo\nbar\n');
-      assert.isFalse(repo2.hasUndoHistory('a.txt'));
-
-      // upon re-focusing first window we update the discard history
-      await repo1.updateDiscardHistory();
-      assert.isFalse(repo1.hasUndoHistory('a.txt'));
-    });
-  });
 });
