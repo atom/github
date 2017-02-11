@@ -9,15 +9,14 @@
 
   &-header {
     display: flex;
-    align-items: stretch;
-    font-size: .9em;
+    align-items: center;
     background-color: @panel-heading-background-color;
     border-bottom: 1px solid @panel-heading-border-color;
   }
 
   &-title {
     flex: 1;
-    line-height: 2.4;
+    font-size: .9em;
     padding: 0 @component-padding;
     color: @text-color-subtle;
     overflow: hidden;
@@ -27,11 +26,12 @@
   }
 
   &-stageButton {
+    margin: @component-padding / 2;
     line-height: 1;
     font-family: @font-family;
-    border: none;
-    border-left: 1px solid @panel-heading-border-color;
-    background-color: transparent;
+    border-radius: @component-border-radius;
+    border: 1px solid @panel-heading-border-color;
+    background-color: @button-background-color;
     cursor: default;
     &:hover  { background-color: @button-background-color-hover; }
     &:active { background-color: @panel-heading-border-color; }
