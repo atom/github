@@ -423,19 +423,19 @@ describe('GitController', function() {
         };
         wrapper.setState(state);
 
+        sinon.stub(repository, 'applyPatchToWorkdir');
+        sinon.stub(notificationManager, 'addError');
         // unmodified buffer
-        const discardChangesSpy = sinon.spy(wrapper.instance(), 'discardChangesInBuffer');
         const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
         await wrapper.instance().discardLines(new Set([hunkLines[0]]));
-        assert.isTrue(discardChangesSpy.called);
+        assert.isTrue(repository.applyPatchToWorkdir.calledOnce);
+        assert.isFalse(notificationManager.addError.called);
 
         // modified buffer
-        discardChangesSpy.reset();
-        sinon.stub(notificationManager, 'addError');
-        const buffer = editor.getBuffer();
-        buffer.append('new line');
+        repository.applyPatchToWorkdir.reset();
+        editor.setText('modify contents');
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
-        assert.isFalse(discardChangesSpy.called);
+        assert.isFalse(repository.applyPatchToWorkdir.called);
         assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: 'You have unsaved changes.'}]);
       });
     });
@@ -459,11 +459,13 @@ describe('GitController', function() {
         });
       });
 
+      // QUESTION: why is filePatch state not equal in storeBeforeAndAfterBlobs callback?
       it('reverses last discard for file path', async () => {
         const contents1 = fs.readFileSync(absFilePath, 'utf8');
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
         const contents2 = fs.readFileSync(absFilePath, 'utf8');
         assert.notEqual(contents1, contents2);
+        await repository.refresh();
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
@@ -524,6 +526,7 @@ describe('GitController', function() {
       it('clears the discard history if the last blob is no longer valid', async () => {
         // this would occur in the case of garbage collection cleaning out the blob
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+        await repository.refresh();
         unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setState({filePatch: unstagedFilePatch});
         const {beforeSha} = await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
