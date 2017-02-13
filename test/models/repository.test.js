@@ -711,11 +711,11 @@ describe('Repository', function() {
       await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
       });
-      await repo1.attemptToRestoreBlob('a.txt', isSafe);
+      await repo1.undoLastDiscardInTempFile('a.txt', isSafe);
 
       const repo2 = await buildRepository(workingDirPath);
       assert.isTrue(repo2.hasUndoHistory('a.txt'));
-      await repo2.attemptToRestoreBlob('a.txt', isSafe);
+      await repo2.undoLastDiscardInTempFile('a.txt', isSafe);
       assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'), 'qux\nfoo\nbar\n');
       assert.isFalse(repo2.hasUndoHistory('a.txt'));
 

@@ -459,7 +459,6 @@ describe('GitController', function() {
         });
       });
 
-      // QUESTION: why is filePatch state not equal in storeBeforeAndAfterBlobs callback?
       it('reverses last discard for file path', async () => {
         const contents1 = fs.readFileSync(absFilePath, 'utf8');
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
@@ -501,27 +500,31 @@ describe('GitController', function() {
         assert.isFalse(restoreBlob.called);
       });
 
-      it('does not undo if buffer contents differ from results of discard action', async () => {
-        const contents1 = fs.readFileSync(absFilePath, 'utf8');
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        const contents2 = fs.readFileSync(absFilePath, 'utf8');
-        assert.notEqual(contents1, contents2);
+      describe('when file content has changed since last discard', () => {
+        it('successfully undoes discard if changes do not conflict', async () => {
+          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+          await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          const contents2 = fs.readFileSync(absFilePath, 'utf8');
+          assert.notEqual(contents1, contents2);
 
-        // change file contents on disk
-        fs.writeFileSync(absFilePath, 'change file contents');
+          // change file contents on disk in non-conflicting way
+          const change = '\nchange file contents';
+          fs.writeFileSync(absFilePath, contents2 + change);
 
-        const restoreBlob = sinon.spy(repository, 'restoreBlob');
-        sinon.stub(notificationManager, 'addError');
+          await repository.refresh();
+          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          wrapper.setState({filePatch: unstagedFilePatch});
+          await wrapper.instance().undoLastDiscard('sample.js');
 
-        await repository.refresh();
-        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-        wrapper.setState({filePatch: unstagedFilePatch});
-        await wrapper.instance().undoLastDiscard('sample.js');
-        const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
-        assert.match(notificationArgs[1].description, /Contents have been modified since last discard./);
-        assert.isFalse(restoreBlob.called);
+          const contents3 = fs.readFileSync(absFilePath, 'utf8');
+          assert.equal(contents3, contents1 + change);
+        });
+
+        it('prompts user to continue if conflicts arise', () => {
+          // TODO
+        });
       });
+
 
       it('clears the discard history if the last blob is no longer valid', async () => {
         // this would occur in the case of garbage collection cleaning out the blob
