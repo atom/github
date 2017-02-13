@@ -711,17 +711,12 @@ describe('Repository', function() {
       await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
       });
-      await repo1.undoLastDiscardInTempFile('a.txt', isSafe);
+      const repo1History = repo1.getUndoHistoryForPath('a.txt');
 
       const repo2 = await buildRepository(workingDirPath);
-      assert.isTrue(repo2.hasUndoHistory('a.txt'));
-      await repo2.undoLastDiscardInTempFile('a.txt', isSafe);
-      assert.equal(fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'), 'qux\nfoo\nbar\n');
-      assert.isFalse(repo2.hasUndoHistory('a.txt'));
+      const repo2History = repo2.getUndoHistoryForPath('a.txt');
 
-      // upon re-focusing first window we update the discard history
-      await repo1.updateDiscardHistory();
-      assert.isFalse(repo1.hasUndoHistory('a.txt'));
+      assert.deepEqual(repo2History, repo1History);
     });
   });
 });

@@ -655,7 +655,8 @@ describe('Git commands', function() {
       });
 
       it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
-        const gpgErr = new GitError('Mock GPG failure', 'stderr includes "gpg failed"');
+        const gpgErr = new GitError('Mock GPG failure');
+        gpgErr.stdErr = 'stderr includes "gpg failed"';
         gpgErr.code = 128;
 
         let callIndex = 0;
@@ -666,7 +667,11 @@ describe('Git commands', function() {
         execStub.onCall(callIndex).returns(Promise.reject(gpgErr));
         execStub.returns(Promise.resolve());
 
-        await op.action();
+        try {
+          await op.action();
+        } catch (err) {
+          assert.fail('expected op.action() not to throw the mock error');
+        }
 
         const callArgs0 = execStub.getCall(callIndex).args;
         const execArgs0 = callArgs0[0];

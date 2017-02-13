@@ -16,12 +16,14 @@ describe('GitController', function() {
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+    confirm = atomEnv.confirm.bind(atomEnv);
 
     app = (
       <GitController
         workspace={workspace}
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
+        confirm={confirm}
       />
     );
   });
@@ -436,7 +438,7 @@ describe('GitController', function() {
         editor.setText('modify contents');
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
         assert.isFalse(repository.applyPatchToWorkdir.called);
-        assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: 'You have unsaved changes.'}]);
+        assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: `You have unsaved changes in ${state.filePath}.`}]);
       });
     });
 
@@ -538,17 +540,17 @@ describe('GitController', function() {
         fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
         sinon.stub(notificationManager, 'addError');
-        assert.isDefined(repository.getLastHistorySnapshotsForPath('sample.js'));
+        assert.equal(repository.getUndoHistoryForPath('sample.js').length, 2);
         await wrapper.instance().undoLastDiscard('sample.js');
         const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
-        assert.match(notificationArgs[1].description, /Discard history has expired./);
-        assert.isUndefined(repository.getLastHistorySnapshotsForPath('sample.js'));
+        assert.equal(notificationArgs[0], 'Discard history has expired.');
+        assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
+        assert.equal(repository.getUndoHistoryForPath('sample.js').length, 0);
       });
     });
 
-    describe('openFileBeforeLastDiscard(filePath)', () => {
-      it('opens the file in a new editor and loads the contents before the most recent discard', async () => {
+    xdescribe('openConflictInNewFile(resultPath)', () => {
+      it('opens the file in a new editor', async () => {
         const workdirPath = await cloneRepository('multi-line-file');
         const repository = await buildRepository(workdirPath);
 
@@ -565,7 +567,7 @@ describe('GitController', function() {
         });
 
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        await wrapper.instance().openFileBeforeLastDiscard('sample.js');
+        await wrapper.instance().openConflictInNewFile('sample.js');
         assert.equal(workspace.getActiveTextEditor().getText(), 'foo\nbar\nbaz\n');
       });
     });

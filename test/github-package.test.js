@@ -18,7 +18,8 @@ describe('GithubPackage', function() {
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
     config = atomEnv.config;
-    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager, config);
+    confirm = atomEnv.confirm.bind(atomEnv);
+    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager, config, confirm);
   });
 
   afterEach(async function() {
