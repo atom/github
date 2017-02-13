@@ -7,7 +7,7 @@ import EditorConflictController from '../../lib/controllers/editor-conflict-cont
 import ConflictController from '../../lib/controllers/conflict-controller';
 
 describe('EditorConflictController', function() {
-  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView, resolutionProgress, conflictControllers;
+  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView, resolutionProgress;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -36,7 +36,6 @@ describe('EditorConflictController', function() {
       />
     );
     wrapper = mount(app);
-    conflictControllers = wrapper.find(ConflictController);
   };
 
   const textFromSide = function(side) {
@@ -68,8 +67,17 @@ describe('EditorConflictController', function() {
       assert.equal(textFromSide(conflicts[2].theirs), 'More of your changes\n');
     });
 
-    it('reports the unresolved conflict count', function() {
-      assert.equal(resolutionProgress.getMax(editor.getPath()), 3);
+    it('renders a ConflictController for each Conflict', function() {
+      const conflictControllers = wrapper.find(ConflictController);
+      assert.lengthOf(conflictControllers, conflicts.length);
+
+      conflicts.forEach(conflict => {
+        assert.isTrue(conflictControllers.someWhere(cc => cc.prop('conflict') === conflict));
+      });
+    });
+
+    it('reports the unresolved conflict count on render', function() {
+      assert.equal(resolutionProgress.getRemaining(editor.getPath()), 3);
     });
 
     it('resolves a conflict as "ours"', function() {
@@ -211,12 +219,12 @@ describe('EditorConflictController', function() {
     });
 
     it('reports resolution progress', function() {
-      assert.equal(resolutionProgress.getValue(editor.getPath()), 0);
+      assert.equal(resolutionProgress.getRemaining(editor.getPath()), 3);
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
       commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
 
-      assert.equal(resolutionProgress.getValue(editor.getPath()), 1);
+      assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
     });
   });
 

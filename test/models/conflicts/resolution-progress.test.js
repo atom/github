@@ -1,6 +1,6 @@
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
 
-describe.only('ResolutionProgress', function() {
+describe('ResolutionProgress', function() {
   it('reports undefined for any path that has not reported progress yet', function() {
     const progress = new ResolutionProgress('1234abcd', {});
     assert.isUndefined(progress.getRemaining('path/to/file.txt'));
