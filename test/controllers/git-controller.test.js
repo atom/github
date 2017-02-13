@@ -9,7 +9,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import GitController from '../../lib/controllers/git-controller';
 
 describe('GitController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, confirm, app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
