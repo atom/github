@@ -16,7 +16,7 @@ describe('GitController', function() {
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
-    confirm = atomEnv.confirm.bind(atomEnv);
+    confirm = sinon.stub(atomEnv, 'confirm');
 
     app = (
       <GitController
@@ -522,8 +522,44 @@ describe('GitController', function() {
           assert.equal(contents3, contents1 + change);
         });
 
-        it('prompts user to continue if conflicts arise', () => {
-          // TODO
+        it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+          await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          const contents2 = fs.readFileSync(absFilePath, 'utf8');
+          assert.notEqual(contents1, contents2);
+
+          // change file contents on disk in a conflicting way
+          const change = '\nchange file contents';
+          fs.writeFileSync(absFilePath, change + contents2);
+
+          await repository.refresh();
+          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          wrapper.setState({filePatch: unstagedFilePatch});
+
+          // click 'Cancel'
+          confirm.returns(2);
+          await wrapper.instance().undoLastDiscard('sample.js');
+          assert.equal(confirm.callCount, 1);
+          const confirmArg = confirm.args[0][0];
+          assert.equal(confirmArg.message, 'Undo will result in conflicts.');
+          assert.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
+
+          // click 'Open in new buffer'
+          confirm.returns(1);
+          await wrapper.instance().undoLastDiscard('sample.js');
+          assert.equal(confirm.callCount, 2);
+          const activeEditor = workspace.getActiveTextEditor();
+          assert.isNull(activeEditor.getFileName());
+          assert.isTrue(activeEditor.getText().includes('<<<<<<<'));
+          assert.isTrue(activeEditor.getText().includes('>>>>>>>'));
+
+          // click 'Proceed and resolve conflicts'
+          confirm.returns(0);
+          await wrapper.instance().undoLastDiscard('sample.js');
+          assert.equal(confirm.callCount, 3);
+          const contentsAfterMerge = fs.readFileSync(absFilePath, 'utf8');
+          assert.isTrue(contentsAfterMerge.includes('<<<<<<<'));
+          assert.isTrue(contentsAfterMerge.includes('>>>>>>>'));
         });
       });
 
@@ -546,29 +582,6 @@ describe('GitController', function() {
         assert.equal(notificationArgs[0], 'Discard history has expired.');
         assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
         assert.equal(repository.getUndoHistoryForPath('sample.js').length, 0);
-      });
-    });
-
-    xdescribe('openConflictInNewFile(resultPath)', () => {
-      it('opens the file in a new editor', async () => {
-        const workdirPath = await cloneRepository('multi-line-file');
-        const repository = await buildRepository(workdirPath);
-
-        const absFilePath = path.join(workdirPath, 'sample.js');
-        fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
-        const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-        wrapper.setState({
-          filePath: 'sample.js',
-          filePatch: unstagedFilePatch,
-          stagingStatus: 'unstaged',
-        });
-
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        await wrapper.instance().openConflictInNewFile('sample.js');
-        assert.equal(workspace.getActiveTextEditor().getText(), 'foo\nbar\nbaz\n');
       });
     });
   });
