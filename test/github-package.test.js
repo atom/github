@@ -197,7 +197,6 @@ describe('GithubPackage', function() {
 
       // Record some resolution progress to recall later
       resolutionMergeConflict.reportMarkerCount('modified-on-both-ours.txt', 3);
-      resolutionMergeConflict.reportResolvedCount('modified-on-both-ours.txt', 1);
 
       // Open a file in the non-merge conflict repository.
       await workspace.open(path.join(workdirNoConflict, 'b.txt'));
@@ -219,8 +218,7 @@ describe('GithubPackage', function() {
 
       await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
       assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
-      assert.equal(githubPackage.getActiveResolutionProgress().getValue('modified-on-both-ours.txt'), 1);
-      assert.equal(githubPackage.getActiveResolutionProgress().getMax('modified-on-both-ours.txt'), 3);
+      assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
     });
 
     // Don't worry about this on Windows as it's not a common op
@@ -320,7 +318,6 @@ describe('GithubPackage', function() {
       // Record some state to recover later.
       const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
       resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
-      resolutionMergeConflict0.reportResolvedCount('modified-on-both-ours.txt', 2);
 
       const payload = githubPackage.serialize();
 
@@ -337,8 +334,7 @@ describe('GithubPackage', function() {
       const resolutionNoConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirNoConflict);
 
       assert.isFalse(resolutionMergeConflict1.isEmpty());
-      assert.equal(resolutionMergeConflict1.getMax('modified-on-both-ours.txt'), 3);
-      assert.equal(resolutionMergeConflict1.getValue('modified-on-both-ours.txt'), 2);
+      assert.equal(resolutionMergeConflict1.getRemaining('modified-on-both-ours.txt'), 3);
 
       assert.isTrue(resolutionNoConflict1.isEmpty());
     });
