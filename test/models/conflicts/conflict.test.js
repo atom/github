@@ -1,28 +1,36 @@
+import EventEmitter from 'events';
 import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
 import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
 
-describe('Conflict', () => {
+describe('Conflict', function() {
   let atomEnv;
 
-  beforeEach(() => { atomEnv = global.buildAtomEnvironment(); });
-  afterEach(() => { atomEnv.destroy(); });
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+  });
 
-  const editorOnFixture = name => {
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
+  const editorOnFixture = function(name) {
     const fullPath = path.join(path.dirname(__filename), '..', '..', 'fixtures', 'conflict-marker-examples', name);
     return atomEnv.workspace.open(fullPath);
   };
 
-  const assertConflictOnRows = (conflict, description, message) => {
-    const isRangeOnRows = (range, startRow, endRow, rangeName) => {
+  const assertConflictOnRows = function(conflict, description, message) {
+    const isRangeOnRows = function(range, startRow, endRow, rangeName) {
       assert(
         range.start.row === startRow && range.start.column === 0 && range.end.row === endRow && range.end.column === 0,
         `expected conflict's ${rangeName} range to cover rows ${startRow} to ${endRow}, but it was ${range}`,
       );
     };
 
-    const isRangeOnRow = (range, row, rangeName) => isRangeOnRows(range, row, row + 1, rangeName);
+    const isRangeOnRow = function(range, row, rangeName) {
+      return isRangeOnRows(range, row, row + 1, rangeName);
+    };
 
     const ourBannerRange = conflict.ours.banner.marker.getBufferRange();
     isRangeOnRow(ourBannerRange, description.ourBannerRow, '"ours" banner');
@@ -55,7 +63,7 @@ describe('Conflict', () => {
     isRangeOnRow(separatorRange, description.separatorRow, 'separator');
   };
 
-  it('parses 2-way diff markings', async () => {
+  it('parses 2-way diff markings', async function() {
     const editor = await editorOnFixture('single-2way-diff.txt');
     const conflicts = Conflict.all(editor, false);
 
@@ -69,7 +77,7 @@ describe('Conflict', () => {
     });
   });
 
-  it('parses multiple 2-way diff markings', async () => {
+  it('parses multiple 2-way diff markings', async function() {
     const editor = await editorOnFixture('multi-2way-diff.txt');
     const conflicts = Conflict.all(editor, false);
 
@@ -90,7 +98,7 @@ describe('Conflict', () => {
     });
   });
 
-  it('parses 3-way diff markings', async () => {
+  it('parses 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
     const conflicts = Conflict.all(editor, false);
     assert.equal(conflicts.length, 1);
@@ -105,7 +113,7 @@ describe('Conflict', () => {
     });
   });
 
-  it('parses recursive 3-way diff markings', async () => {
+  it('parses recursive 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff-complex.txt');
     const conflicts = Conflict.all(editor, false);
     assert.equal(conflicts.length, 1);
@@ -121,7 +129,7 @@ describe('Conflict', () => {
     });
   });
 
-  it('flips "ours" and "theirs" sides when rebasing', async () => {
+  it('flips "ours" and "theirs" sides when rebasing', async function() {
     const editor = await editorOnFixture('rebase-2way-diff.txt');
     const conflicts = Conflict.all(editor, true);
 
@@ -137,17 +145,95 @@ describe('Conflict', () => {
     });
   });
 
-  it('is resilient to malformed 2-way diff markings', async () => {
+  it('is resilient to malformed 2-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-2way-diff.txt');
     const conflicts = Conflict.all(editor, true);
 
     assert.equal(conflicts.length, 0);
   });
 
-  it('is resilient to malformed 3-way diff markings', async () => {
+  it('is resilient to malformed 3-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-3way-diff.txt');
     const conflicts = Conflict.all(editor, true);
 
     assert.equal(conflicts.length, 0);
+  });
+
+  describe('counting conflicts', function() {
+    let readStream, countPromise;
+
+    beforeEach(function() {
+      readStream = new EventEmitter();
+      countPromise = Conflict.countFromStream(readStream);
+    });
+
+    it('counts conflicts from a streamed file', async function() {
+      readStream.emit('data', `
+before
+before
+<<<<<<< HEAD
+aaa
+=======
+bbb
+>>>>>>> master
+middle
+middle
+      `);
+
+      readStream.emit('data', `
+middle
+middle
+<<<<<<< HEAD
+aaa
+=======
+bbb
+>>>>>>> master
+end
+end
+      `);
+
+      readStream.emit('end');
+
+      assert.equal(await countPromise, 2);
+    });
+
+    it('counts conflicts that span stream chunks', async function() {
+      readStream.emit('data', `
+before
+before
+<<<<<<< HEAD
+aaa
+=======`);
+
+      readStream.emit('data', `
+bbb
+>>>>>>> master
+end
+end
+      `);
+
+      readStream.emit('end');
+
+      assert.equal(await countPromise, 1);
+    });
+
+    it('handles conflict markers broken across chunks', async function() {
+      readStream.emit('data', `
+before
+<<<`);
+
+      readStream.emit('data', `<<<< HEAD
+aaa
+=======
+bbb
+>>>>>>> master
+end
+end
+      `);
+
+      readStream.emit('end');
+
+      assert.equal(await countPromise, 1);
+    });
   });
 });
