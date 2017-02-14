@@ -60,6 +60,15 @@ atom-text-editor {
     background-color: @base-line-color;
   }
 
+  .github-ConflictModified {
+    background-color: @modified-line-color;
+    &.cursor-line { background-color: @modified-current-color; }
+  }
+
+  .github-ConflictModifiedBlock {
+    background-color: @modified-line-color;
+  }
+
   .github-ConflictTopBlock {
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
