@@ -496,7 +496,7 @@ describe('GitPanelController', function() {
       `;
 
       // partially stage contents in the newly added file
-      await repository.git.applyPatchToIndex(patchString);
+      await repository.git.applyPatch(patchString, {index: true});
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
 
