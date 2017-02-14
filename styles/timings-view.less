@@ -13,7 +13,7 @@
   }
 
   .waterfall-widget {
-    border-radius: 5px;
+    border-radius: @component-border-radius;
     border: 1px solid @pane-item-border-color;
     background-color: @pane-item-background-color;
     margin: 10px;
@@ -27,15 +27,24 @@
     display: flex;
     border-bottom: 1px solid @pane-item-border-color;
 
+    .collapse-toggle {
+      cursor: pointer;
+      margin-right: 2px;
+    }
+
     &-text {
       flex: 1;
     }
 
-    &-zoom {
-      flex-basis: 200px;
+    &-controls {
+      flex-basis: 250px;
       display: flex;
       align-items: center;
     }
+  }
+
+  .waterfall-export-button {
+    margin: 0 10px 3px 0;
   }
 
   .waterfall-container {
