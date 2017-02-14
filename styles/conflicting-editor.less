@@ -8,12 +8,15 @@ atom-text-editor {
 
   .github-ConflictOurs {
     background-color: @ours-line-color;
+
     &.cursor-line { background-color: @ours-current-color; }
   }
 
   .github-ConflictOursBanner {
     background-color: @ours-line-color;
-    span { color: lighten(@ours-line-color, 10%); };
+
+    &.cursor-line { background-color: @ours-current-color; }
+    &.github-ConflictUnmodifiedBanner span { color: lighten(@ours-line-color, 10%); };
   }
 
   .github-ConflictOursBlock {
@@ -22,7 +25,7 @@ atom-text-editor {
 
   .github-ConflictBlock {
     display: flex;
-    padding: 3px 15px 3px 10px;
+    padding: 4px 15px;
 
     .github-ResolutionControls {
       flex: 1;
@@ -39,7 +42,8 @@ atom-text-editor {
 
   .github-ConflictTheirsBanner {
     background-color: @theirs-line-color;
-    span { color: lighten(@theirs-line-color, 10%); };
+
+    &.github-ConflictUnmodifiedBanner span { color: lighten(@theirs-line-color, 10%); };
   }
 
   .github-ConflictTheirsBlock {
@@ -53,16 +57,17 @@ atom-text-editor {
 
   .github-ConflictBaseBanner {
     background-color: @base-line-color;
-    span { color: lighten(@base-line-color, 10%); }
+    &.github-ConflictUnmodifiedBanner span { color: lighten(@base-line-color, 10%); }
   }
 
   .github-ConflictBaseBlock {
     background-color: @base-line-color;
   }
 
-  .github-ConflictModified {
+  .github-ConflictModified, .github-ConflictModifiedBanner {
     background-color: @modified-line-color;
     &.cursor-line { background-color: @modified-current-color; }
+    &.github-ConflictUnmodifiedBanner span { color: lighten(@modified-line-color, 10%); };
   }
 
   .github-ConflictModifiedBlock {
@@ -72,30 +77,11 @@ atom-text-editor {
   .github-ConflictTopBlock {
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
-    border-bottom-style: double;
-    border-bottom-width: 2px;
-    border-bottom-color: #333;
-    margin-bottom: 2px;
-  }
-
-  .github-ConflictMiddleBlock {
-    border-top-style: double;
-    border-top-width: 2px;
-    border-top-color: #333;
-    margin-top: 2px;
-    border-bottom-style: double;
-    border-bottom-width: 2px;
-    border-bottom-color: #333;
-    margin-bottom: 2px;
   }
 
   .github-ConflictBottomBlock {
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
-    border-top-style: double;
-    border-top-width: 2px;
-    border-top-color: #333;
-    margin-top: 2px;
   }
 
   .github-ResolvedLines {
