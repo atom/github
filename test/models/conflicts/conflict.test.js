@@ -3,6 +3,7 @@ import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
 import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
+import {OURS, BASE, THEIRS} from '../../../lib/models/conflicts/source';
 
 describe('Conflict', function() {
   let atomEnv;
@@ -234,6 +235,46 @@ end
       readStream.emit('end');
 
       assert.equal(await countPromise, 1);
+    });
+  });
+
+  describe('change detection', function() {
+    let editor, conflict;
+
+    beforeEach(async function() {
+      editor = await editorOnFixture('single-2way-diff.txt');
+      conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    });
+
+    it('detects when a side has been modified', function() {
+      assert.isFalse(conflict.getSide(OURS).isBannerModified());
+      assert.isFalse(conflict.getSide(OURS).isModified());
+
+      editor.setCursorBufferPosition([3, 1]);
+      editor.insertText('nah');
+
+      assert.isFalse(conflict.getSide(OURS).isBannerModified());
+      assert.isTrue(conflict.getSide(OURS).isModified());
+    });
+
+    it('detects when a banner has been modified', function() {
+      assert.isFalse(conflict.getSide(OURS).isBannerModified());
+      assert.isFalse(conflict.getSide(OURS).isModified());
+
+      editor.setCursorBufferPosition([2, 1]);
+      editor.insertText('your problem now');
+
+      assert.isTrue(conflict.getSide(OURS).isBannerModified());
+      assert.isFalse(conflict.getSide(OURS).isModified());
+    });
+
+    it('detects when a separator has been modified', function() {
+      assert.isFalse(conflict.getSeparator().isModified());
+
+      editor.setCursorBufferPosition([4, 3]);
+      editor.insertText('wat');
+
+      assert.isTrue(conflict.getSeparator().isModified());
     });
   });
 });
