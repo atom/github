@@ -22,7 +22,7 @@ describe('ConflictController', function() {
     editor = await workspace.open(path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName));
 
-    const conflicts = Conflict.allFromEditor(editor, false);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
     conflict = conflicts[conflictIndex];
 
     app = <ConflictController workspace={workspace} editor={editor} conflict={conflict} />;

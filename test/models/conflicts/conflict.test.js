@@ -65,7 +65,7 @@ describe('Conflict', function() {
 
   it('parses 2-way diff markings', async function() {
     const editor = await editorOnFixture('single-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, false);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
 
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
@@ -79,7 +79,7 @@ describe('Conflict', function() {
 
   it('parses multiple 2-way diff markings', async function() {
     const editor = await editorOnFixture('multi-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, false);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
 
     assert.equal(conflicts.length, 2);
     assertConflictOnRows(conflicts[0], {
@@ -100,7 +100,7 @@ describe('Conflict', function() {
 
   it('parses 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, false);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
       ourBannerRow: 0,
@@ -115,7 +115,7 @@ describe('Conflict', function() {
 
   it('parses recursive 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff-complex.txt');
-    const conflicts = Conflict.allFromEditor(editor, false);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
     assert.equal(conflicts.length, 1);
 
     assertConflictOnRows(conflicts[0], {
@@ -131,7 +131,7 @@ describe('Conflict', function() {
 
   it('flips "ours" and "theirs" sides when rebasing', async function() {
     const editor = await editorOnFixture('rebase-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, true);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
 
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
@@ -147,14 +147,14 @@ describe('Conflict', function() {
 
   it('is resilient to malformed 2-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, true);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
 
     assert.equal(conflicts.length, 0);
   });
 
   it('is resilient to malformed 3-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-3way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, true);
+    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
 
     assert.equal(conflicts.length, 0);
   });
