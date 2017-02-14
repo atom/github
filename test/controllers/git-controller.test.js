@@ -541,7 +541,7 @@ describe('GitController', function() {
           await wrapper.instance().undoLastDiscard('sample.js');
           assert.equal(confirm.callCount, 1);
           const confirmArg = confirm.args[0][0];
-          assert.equal(confirmArg.message, 'Undo will result in conflicts.');
+          assert.match(confirmArg.message, /Undoing will result in conflicts/);
           assert.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
 
           // click 'Open in new buffer'
