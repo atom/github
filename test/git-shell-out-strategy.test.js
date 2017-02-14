@@ -711,7 +711,7 @@ describe('Git commands', function() {
     });
   });
 
-  describe('restoreBlob(filePath, sha)', () => {
+  describe('expandBlobToFile(absFilePath, sha)', () => {
     it('restores blob contents for sha to specified file path', async () => {
       const workingDirPath = await cloneRepository('three-files');
       const git = new GitShellOutStrategy(workingDirPath);
@@ -719,7 +719,7 @@ describe('Git commands', function() {
       fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
       const sha = await git.createBlob({filePath: 'a.txt'});
       fs.writeFileSync(absFilePath, 'modifications', 'utf8');
-      await git.restoreBlob(absFilePath, sha);
+      await git.expandBlobToFile(absFilePath, sha);
       assert.equal(fs.readFileSync(absFilePath), 'qux\nfoo\nbar\n');
     });
   });

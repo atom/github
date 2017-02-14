@@ -489,7 +489,7 @@ describe('GitController', function() {
         const editor = await workspace.open(absFilePath);
         editor.getBuffer().append('new line');
 
-        const restoreBlob = sinon.spy(repository, 'restoreBlob');
+        const expandBlobToFile = sinon.spy(repository, 'expandBlobToFile');
         sinon.stub(notificationManager, 'addError');
 
         await repository.refresh();
@@ -499,7 +499,7 @@ describe('GitController', function() {
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Cannot undo last discard.');
         assert.match(notificationArgs[1].description, /You have unsaved changes./);
-        assert.isFalse(restoreBlob.called);
+        assert.isFalse(expandBlobToFile.called);
       });
 
       describe('when file content has changed since last discard', () => {
@@ -562,7 +562,6 @@ describe('GitController', function() {
           assert.isTrue(contentsAfterMerge.includes('>>>>>>>'));
         });
       });
-
 
       it('clears the discard history if the last blob is no longer valid', async () => {
         // this would occur in the case of garbage collection cleaning out the blob
