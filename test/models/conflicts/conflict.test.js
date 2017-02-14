@@ -203,10 +203,10 @@ before
 before
 <<<<<<< HEAD
 aaa
-=======`);
+=======
+`);
 
-      readStream.emit('data', `
-bbb
+      readStream.emit('data', `bbb
 >>>>>>> master
 end
 end
