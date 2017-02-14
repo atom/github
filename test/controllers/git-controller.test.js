@@ -474,9 +474,9 @@ describe('GitController', function() {
         assert.notEqual(contents2, contents3);
 
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
+        await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
         await wrapper.instance().undoLastDiscard('sample.js');
-        assert.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
+        await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
       });
 
       it('does not undo if buffer is modified', async () => {
@@ -518,8 +518,7 @@ describe('GitController', function() {
           wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().undoLastDiscard('sample.js');
 
-          const contents3 = fs.readFileSync(absFilePath, 'utf8');
-          assert.equal(contents3, contents1 + change);
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
         });
 
         it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
@@ -542,7 +541,7 @@ describe('GitController', function() {
           assert.equal(confirm.callCount, 1);
           const confirmArg = confirm.args[0][0];
           assert.match(confirmArg.message, /Undoing will result in conflicts/);
-          assert.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
 
           // click 'Open in new buffer'
           confirm.returns(1);
@@ -557,9 +556,8 @@ describe('GitController', function() {
           confirm.returns(0);
           await wrapper.instance().undoLastDiscard('sample.js');
           assert.equal(confirm.callCount, 3);
-          const contentsAfterMerge = fs.readFileSync(absFilePath, 'utf8');
-          assert.isTrue(contentsAfterMerge.includes('<<<<<<<'));
-          assert.isTrue(contentsAfterMerge.includes('>>>>>>>'));
+          await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
+          await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
         });
       });
 
