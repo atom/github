@@ -17,7 +17,6 @@
     border: 1px solid @pane-item-border-color;
     background-color: @pane-item-background-color;
     margin: 10px;
-    overflow-y: auto;
   }
 
   .waterfall-header {
@@ -47,10 +46,14 @@
     margin: 0 10px 3px 0;
   }
 
+  .waterfall-scroller {
+    overflow: auto;
+  }
+
   .waterfall-container {
     position: relative;
-    flex: 1;
-    overflow: auto;
+    display: inline-block; // stretches to childs width
+    min-width: 100%;
   }
 
   .waterfall-time-marker {
@@ -72,12 +75,9 @@
   }
 
   .waterfall-row {
-    display: flex;
     position: relative;
     min-height: 15px;
     padding: 2px 0;
-    right: 0;
-    left: 0;
 
     &:nth-child(2n+1) {
       background-color: @app-background-color;
@@ -91,7 +91,8 @@
   .waterfall-row-label {
     position: relative;
     z-index: 2;
-    padding: 0 5px;
+    margin: 0 5px;
+    white-space: nowrap;
   }
 
   .waterfall-marker {
