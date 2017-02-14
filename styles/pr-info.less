@@ -10,6 +10,13 @@
   padding: @component-padding;
   overflow: auto;
   flex: 1;
+  border-top: 1px solid @base-border-color;
+  position: relative;
+
+  * {
+    user-select: all;
+    -webkit-user-select: all;
+  }
 
 
   // Badge and link ------------------------
@@ -82,6 +89,10 @@
     padding-top: @component-padding;
     border-top: 1px solid @base-border-color;
 
+    & > *:first-child {
+      margin-top: 0;
+    }
+
     a {
       color: @text-color-info;
     }
@@ -100,6 +111,10 @@
     ol {
       margin-left: -20px;
     }
+
+    pre > code {
+      white-space: pre;
+    }
   }
 
 
@@ -111,5 +126,17 @@
     .reaction-group {
       margin-right: @component-padding * 2;
     }
+  }
+
+
+  // Elements ------------------------
+
+  blockquote {
+    font-size: inherit;
+    padding-top: 0;
+    padding-left: @component-padding;
+    padding-bottom: 0;
+    color: @text-color-subtle;
+    border-left: 2px solid @text-color-subtle;
   }
 }
