@@ -18,6 +18,11 @@ function updateStatus {
 function checkForSchemaChanges {
   CTX="$TRAVIS_EVENT_TYPE"
 
+  # Consistency with other CI integration statuses
+  if [ "${CTX}" = "pull_request" ]; then
+    CTX="pr"
+  fi
+
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
   time npm install
   echo "Fetching schema..."

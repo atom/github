@@ -696,4 +696,27 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
   });
+
+  describe('maintaining discard history across repository instances', () => {
+    it('restores the history', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo1 = await buildRepository(workingDirPath);
+
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+
+      const isSafe = () => true;
+      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
+      });
+      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+      });
+      const repo1History = repo1.getUndoHistoryForPath('a.txt');
+
+      const repo2 = await buildRepository(workingDirPath);
+      const repo2History = repo2.getUndoHistoryForPath('a.txt');
+
+      assert.deepEqual(repo2History, repo1History);
+    });
+  });
 });
