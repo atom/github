@@ -3,6 +3,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import {OURS} from '../../lib/models/conflicts/source';
 import EditorConflictController from '../../lib/controllers/editor-conflict-controller';
 import ConflictController from '../../lib/controllers/conflict-controller';
 
@@ -181,6 +182,24 @@ describe('EditorConflictController', function() {
 
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
         'Actually it should be this\n\nText in between 1 and 2.');
+    });
+
+    it('reverts modified text within a conflict', function() {
+      const conflict = conflicts[1];
+      const range = conflict.ours.getMarker().getBufferRange();
+      editor.setTextInBufferRange(range, 'Actually it should be this\n');
+
+      editor.setCursorBufferPosition([14, 3]); // On "Actually it should be this"
+      commandRegistry.dispatch(editorView, 'github:revert-conflict-modifications');
+
+      assert.isFalse(conflict.getSide(OURS).isModified());
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
+        '<<<<<<< HEAD\n' +
+        'My middle changes\n' +
+        '=======\n' +
+        'Your middle changes\n' +
+        '>>>>>>> other-branch\n' +
+        '\nText in between 1 and 2.');
     });
 
     it('preserves a modified side banner', function() {
