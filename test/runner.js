@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
 // Give tests that rely on filesystem event delivery lots of breathing room.
-until.setDefaultTimeout(5000);
+until.setDefaultTimeout(3000);
 
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
