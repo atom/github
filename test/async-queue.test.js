@@ -31,7 +31,7 @@ class Task {
   }
 }
 
-describe.only('AsyncQueue', function() {
+describe('AsyncQueue', function() {
   it('runs items in parallel up to the set max', async function() {
     const queue = new AsyncQueue({parallelism: 3});
 
