@@ -173,6 +173,62 @@ describe('StagingView', function() {
 
       assert.lengthOf(mergeConflictsElement.getElementsByClassName('icon-check'), 1);
     });
+
+    it('shows "abort merge" button while there are unresolved conflicts', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        resolutionProgress,
+      });
+
+      const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
+      const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
+      assert.lengthOf(conflictButtons, 1);
+      assert.equal(conflictButtons[0].innerHTML, 'Abort Merge');
+    });
+
+    it('shows "stage all" button when all conflicts are resolved', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        resolutionProgress,
+      });
+
+      const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
+      const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
+      assert.lengthOf(conflictButtons, 1);
+      assert.equal(conflictButtons[0].innerHTML, 'Stage All');
+    });
   });
 
   describe('when the selection changes', function() {
