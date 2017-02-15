@@ -14,42 +14,6 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
  */
 
 describe('Git commands', function() {
-  describe('exec', function() {
-    it('serializes operations', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        promises.push(git.getHeadCommit().then(() => actualEvents.push(i)));
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-
-    it('runs operations after one fails', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        if (i === 5) {
-          promises.push(git.exec(['fake', 'command']).catch(() => actualEvents.push(i)));
-        } else {
-          promises.push(git.exec(['status']).then(() => actualEvents.push(i)));
-        }
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-  });
-
   describe('isGitRepository(directoryPath)', function() {
     it('returns true if the path passed is a valid repository, and false if not', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -650,8 +614,8 @@ describe('Git commands', function() {
         const execArgs = callArgs[0];
         assert.equal(execArgs[0], '-c');
         assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs[1]);
-        assert.isNotOk(callArgs[2]);
+        assert.isNotOk(callArgs[1].stdin);
+        assert.isNotOk(callArgs[1].useGitPromptServer);
       });
 
       it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
@@ -677,15 +641,15 @@ describe('Git commands', function() {
         const execArgs0 = callArgs0[0];
         assert.equal(execArgs0[0], '-c');
         assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs0[1]);
-        assert.isNotOk(callArgs0[2]);
+        assert.isNotOk(callArgs0[1].stdin);
+        assert.isNotOk(callArgs0[1].useGitPromptServer);
 
         const callArgs1 = execStub.getCall(callIndex + 1).args;
         const execArgs1 = callArgs1[0];
         assert.equal(execArgs1[0], '-c');
         assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs1[1]);
-        assert.isTrue(callArgs1[2]);
+        assert.isNotOk(callArgs1[1].stdin);
+        assert.isTrue(callArgs1[1].useGitPromptServer);
       });
     });
   });
