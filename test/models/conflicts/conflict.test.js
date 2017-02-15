@@ -3,7 +3,7 @@ import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
 import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
-import {OURS, BASE, THEIRS} from '../../../lib/models/conflicts/source';
+import {OURS} from '../../../lib/models/conflicts/source';
 
 describe('Conflict', function() {
   let atomEnv;
