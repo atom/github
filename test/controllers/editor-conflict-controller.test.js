@@ -245,6 +245,25 @@ describe('EditorConflictController', function() {
 
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
     });
+
+    it('dismisses a conflict for manual resolution', function() {
+      const dismissedConflict = conflicts[1];
+      assert.equal(resolutionProgress.getRemaining(editor.getPath()), 3);
+
+      editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
+      commandRegistry.dispatch(editorView, 'github:dismiss-conflict');
+
+      assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
+      assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
+        '<<<<<<< HEAD\n' +
+        'My middle changes\n' +
+        '=======\n' +
+        'Your middle changes\n' +
+        '>>>>>>> other-branch\n' +
+        '\nText in between 1 and 2.');
+      assert.lengthOf(wrapper.find(ConflictController), 2);
+      assert.isFalse(wrapper.find(ConflictController).someWhere(cc => cc.prop('conflict') === dismissedConflict));
+    });
   });
 
   describe('on a file with 3-way diff markers', function() {
