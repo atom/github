@@ -14,42 +14,6 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
  */
 
 describe('Git commands', function() {
-  describe('exec', function() {
-    it('serializes operations', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        promises.push(git.getHeadCommit().then(() => actualEvents.push(i)));
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-
-    it('runs operations after one fails', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        if (i === 5) {
-          promises.push(git.exec(['fake', 'command']).catch(() => actualEvents.push(i)));
-        } else {
-          promises.push(git.exec(['status']).then(() => actualEvents.push(i)));
-        }
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-  });
-
   describe('isGitRepository(directoryPath)', function() {
     it('returns true if the path passed is a valid repository, and false if not', async function() {
       const workingDirPath = await cloneRepository('three-files');
