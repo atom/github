@@ -3,7 +3,7 @@ import path from 'path';
 
 import Conflict from '../../../lib/models/conflicts/conflict';
 import {TOP, MIDDLE, BOTTOM} from '../../../lib/models/conflicts/position';
-import {OURS} from '../../../lib/models/conflicts/source';
+import {OURS, BASE, THEIRS} from '../../../lib/models/conflicts/source';
 
 describe('Conflict', function() {
   let atomEnv;
@@ -33,31 +33,31 @@ describe('Conflict', function() {
       return isRangeOnRows(range, row, row + 1, rangeName);
     };
 
-    const ourBannerRange = conflict.ours.banner.marker.getBufferRange();
+    const ourBannerRange = conflict.getSide(OURS).banner.marker.getBufferRange();
     isRangeOnRow(ourBannerRange, description.ourBannerRow, '"ours" banner');
 
-    const ourSideRange = conflict.ours.marker.getBufferRange();
+    const ourSideRange = conflict.getSide(OURS).marker.getBufferRange();
     isRangeOnRows(ourSideRange, description.ourSideRows[0], description.ourSideRows[1], '"ours"');
-    assert.strictEqual(conflict.ours.position, description.ourPosition || TOP, '"ours" in expected position');
+    assert.strictEqual(conflict.getSide(OURS).position, description.ourPosition || TOP, '"ours" in expected position');
 
-    const theirBannerRange = conflict.theirs.banner.marker.getBufferRange();
+    const theirBannerRange = conflict.getSide(THEIRS).banner.marker.getBufferRange();
     isRangeOnRow(theirBannerRange, description.theirBannerRow, '"theirs" banner');
 
-    const theirSideRange = conflict.theirs.marker.getBufferRange();
+    const theirSideRange = conflict.getSide(THEIRS).marker.getBufferRange();
     isRangeOnRows(theirSideRange, description.theirSideRows[0], description.theirSideRows[1], '"theirs"');
-    assert.strictEqual(conflict.theirs.position, description.theirPosition || BOTTOM, '"theirs" in expected position');
+    assert.strictEqual(conflict.getSide(THEIRS).position, description.theirPosition || BOTTOM, '"theirs" in expected position');
 
     if (description.baseBannerRow || description.baseSideRows) {
-      assert.isNotNull(conflict.base, "expected conflict's base side to be non-null");
+      assert.isNotNull(conflict.getSide(BASE), "expected conflict's base side to be non-null");
 
-      const baseBannerRange = conflict.base.banner.marker.getBufferRange();
+      const baseBannerRange = conflict.getSide(BASE).banner.marker.getBufferRange();
       isRangeOnRow(baseBannerRange, description.baseBannerRow, '"base" banner');
 
-      const baseSideRange = conflict.base.marker.getBufferRange();
+      const baseSideRange = conflict.getSide(BASE).marker.getBufferRange();
       isRangeOnRows(baseSideRange, description.baseSideRows[0], description.baseSideRows[1], '"base"');
-      assert.strictEqual(conflict.base.position, MIDDLE, '"base" in MIDDLE position');
+      assert.strictEqual(conflict.getSide(BASE).position, MIDDLE, '"base" in MIDDLE position');
     } else {
-      assert.isNull(conflict.base, "expected conflict's base side to be null");
+      assert.isUndefined(conflict.getSide(BASE), "expected conflict's base side to be undefined");
     }
 
     const separatorRange = conflict.separator.marker.getBufferRange();
