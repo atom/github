@@ -112,16 +112,16 @@ describe('GitPanelController', function() {
     await assert.isRejected(repository.git.merge('origin/branch'));
 
     const rp = ResolutionProgress.empty();
-    resolutionProgress.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
+    rp.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
 
     const controller = new GitPanelController({
       workspace, commandRegistry, repository, resolutionProgress: rp,
     });
     await controller.getLastModelDataRefreshPromise();
 
-    await assert.async.equal(resolutionProgress.getRemaining(path.join(workdirPath, 'modified-on-both-ours.txt')), 1);
-    assert.equal(resolutionProgress.getRemaining(path.join(workdirPath, 'modified-on-both-theirs.txt')), 1);
-    assert.equal(resolutionProgress.getRemaining(path.join(workdirPath, 'added-to-both.txt')), 5);
+    await assert.async.equal(rp.getRemaining(path.join(workdirPath, 'modified-on-both-ours.txt')), 1);
+    assert.equal(rp.getRemaining(path.join(workdirPath, 'modified-on-both-theirs.txt')), 1);
+    assert.equal(rp.getRemaining(path.join(workdirPath, 'added-to-both.txt')), 5);
   });
 
   describe('abortMerge()', function() {
