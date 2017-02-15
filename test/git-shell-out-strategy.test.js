@@ -614,8 +614,8 @@ describe('Git commands', function() {
         const execArgs = callArgs[0];
         assert.equal(execArgs[0], '-c');
         assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs[1]);
-        assert.isNotOk(callArgs[2]);
+        assert.isNotOk(callArgs[1].stdin);
+        assert.isNotOk(callArgs[1].useGitPromptServer);
       });
 
       it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
@@ -641,15 +641,15 @@ describe('Git commands', function() {
         const execArgs0 = callArgs0[0];
         assert.equal(execArgs0[0], '-c');
         assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs0[1]);
-        assert.isNotOk(callArgs0[2]);
+        assert.isNotOk(callArgs0[1].stdin);
+        assert.isNotOk(callArgs0[1].useGitPromptServer);
 
         const callArgs1 = execStub.getCall(callIndex + 1).args;
         const execArgs1 = callArgs1[0];
         assert.equal(execArgs1[0], '-c');
         assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs1[1]);
-        assert.isTrue(callArgs1[2]);
+        assert.isNotOk(callArgs1[1].stdin);
+        assert.isTrue(callArgs1[1].useGitPromptServer);
       });
     });
   });
