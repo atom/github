@@ -128,4 +128,21 @@ describe('AsyncQueue', function() {
     await assert.async.isTrue(tasks[4].started); // both can start since they are parallelizable
     assert.isTrue(tasks[5].started);
   });
+
+  it('continues to work when tasks throw synchronous errors', async function() {
+    const queue = new AsyncQueue({parallelism: 1});
+
+    const p1 = queue.push(() => {
+      throw new Error('error thrown from task 1');
+    });
+    const p2 = queue.push(() => {
+      return new Promise(res => res(2));
+    });
+
+    try {
+      await p1;
+      throw new Error('expected p1 to be rejectd');
+    } catch (err) {}
+    assert.equal(await p2, 2);
+  });
 });
