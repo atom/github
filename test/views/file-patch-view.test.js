@@ -326,7 +326,6 @@ describe('FilePatchView', function() {
 
         const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1], registerHunkView});
         const hunkView0 = hunkViews.get(hunk0);
-        const hunkView1 = hunkViews.get(hunk1);
 
         filePatchView.togglePatchSelectionMode();
         assert.equal(filePatchView.getPatchSelectionMode(), 'line');
