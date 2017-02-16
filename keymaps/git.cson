@@ -22,6 +22,8 @@
   'shift-tab': 'github:select-previous-hunk'
   'right': 'core:move-right'
   'o': 'github:open-file'
+  'cmd-backspace': 'github:discard-selected-lines'
+  'ctrl-backspace': 'github:discard-selected-lines'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'
