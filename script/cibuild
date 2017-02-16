@@ -19,7 +19,12 @@ function checkForSchemaChanges {
   CTX="$TRAVIS_EVENT_TYPE"
 
   # Only check schema changes on a push build
-  if [ "${CTX}" != "push" ] && [ "${CTX}" != "cron" ] && [ -n "${GITHUB_TOKEN}" ]
+  if [ "${CTX}" != "push" ] && [ "${CTX}" != "cron" ]
+  then
+    exit
+  fi
+
+  if [ -z "${GITHUB_TOKEN}" ]
   then
     exit
   fi
