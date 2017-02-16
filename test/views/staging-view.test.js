@@ -186,6 +186,7 @@ describe('StagingView', function() {
         unstagedChanges: [],
         stagedChanges: [],
         mergeConflicts,
+        isMerging: true,
         resolutionProgress: ResolutionProgress.empty(),
       });
 
@@ -220,6 +221,7 @@ describe('StagingView', function() {
         unstagedChanges: [],
         stagedChanges: [],
         mergeConflicts,
+        isMerging: true,
         resolutionProgress,
       });
 
@@ -250,6 +252,7 @@ describe('StagingView', function() {
         unstagedChanges: [],
         stagedChanges: [],
         mergeConflicts,
+        isMerging: true,
         resolutionProgress,
       });
 
