@@ -27,7 +27,6 @@ function checkForSchemaChanges {
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
   trap "updateStatus 'failure' $CTX 'Script failure' ; exit 1" ERR
   time npm install
-  brew install jq >/dev/null
 
   echo "Fetching schema..."
   time npm run fetch-schema
