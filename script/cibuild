@@ -44,7 +44,7 @@ function checkForSchemaChanges {
     # Search for an existing pull request
     PR_TITLE="GraphQL schema update"
     SEARCH_API_URL="https://api.github.com/search/issues"
-    SEARCH_QUERY="type:pr+state:open+user:atom+repo:github+in:title+'${PR_TITLE// /+}'"
+    SEARCH_QUERY="type:pr+state:open+repo:atom%2Fgithub+in:title+'${PR_TITLE// /+}'"
     RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "${SEARCH_API_URL}?q=${SEARCH_QUERY}" | jq .total_count)
     if [ "${RESPONSE}" != "0" ]
     then
