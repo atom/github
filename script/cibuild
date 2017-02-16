@@ -26,7 +26,7 @@ function checkForSchemaChanges {
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
   trap "updateStatus 'failure' $CTX 'Script failure' ; exit 1" ERR
   time npm install
-  brew install jq
+  brew install jq >/dev/null
 
   echo "Fetching schema..."
   time npm run fetch-schema
@@ -60,6 +60,7 @@ function checkForSchemaChanges {
     SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
     SCHEMA_BRANCH_NAME=auto-schema-update-${TRAVIS_BUILD_NUMBER:-0}
     git stash save 'schema change'
+    git fetch --depth=1 origin +refs/heads/master:refs/remotes/origin/master
     git checkout --no-track -B ${SCHEMA_BRANCH_NAME} origin/master
     git stash pop
 
