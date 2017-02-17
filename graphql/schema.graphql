@@ -188,6 +188,21 @@ type AssignedEvent implements Node, IssueEvent {
   type: IssueEventType!
 }
 
+# Represents an object which can create content. Typically a User or Bot.
+interface Author {
+  # A URL pointing to the author's public avatar.
+  avatarURL(
+    # The size of the resulting square image.
+    size: Int
+  ): String!
+
+  # The username of the author.
+  login: String!
+
+  # The path to this author.
+  path: URI!
+}
+
 # Represents a 'base_ref_force_pushed' event on a given pull request.
 type BaseRefForcePushedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -262,6 +277,25 @@ type Blob implements Node, GitObject {
   text: String
 }
 
+# A special type of user which takes actions on behalf of integrations.
+type Bot implements Node, Author, UniformResourceLocatable {
+  # A URL pointing to the owner's public avatar.
+  avatarURL(
+    # The size of the resulting square image.
+    size: Int
+  ): String!
+  id: ID!
+
+  # The username of the author.
+  login: String!
+
+  # The path to this resource.
+  path: URI!
+
+  # The URL to this resource.
+  url: URI!
+}
+
 # Represents a 'closed' event on a given issue or pull request.
 type ClosedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -286,8 +320,8 @@ type ClosedEvent implements Node, IssueEvent {
 
 # Represents a comment.
 interface Comment {
-  # The user who authored the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # The comment body as Markdown.
   body: String!
@@ -301,8 +335,8 @@ interface Comment {
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -454,8 +488,8 @@ input CommitAuthor {
 
 # Represents a comment on a given Commit.
 type CommitComment implements Node, Comment, Reactable, RepositoryNode {
-  # Identifies the user who created the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -475,8 +509,8 @@ type CommitComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -918,8 +952,8 @@ type Gist implements Node {
 
 # Represents a comment on an Gist.
 type GistComment implements Node, Comment {
-  # Identifies the author of the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -933,8 +967,8 @@ type GistComment implements Node, Comment {
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -1211,8 +1245,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
     before: String
   ): UserConnection!
 
-  # Identifies the author of the issue.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the body of the issue.
   body: String!
@@ -1247,8 +1281,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # A list of labels associated with the Issue or Pull Request.
@@ -1380,8 +1414,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
 
 # Represents a comment on an Issue.
 type IssueComment implements Node, Comment, Reactable, RepositoryNode {
-  # Identifies the author of the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -1398,8 +1432,8 @@ type IssueComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # Identifies the issue associated with the comment.
@@ -1624,8 +1658,8 @@ interface Issueish {
     before: String
   ): UserConnection!
 
-  # Identifies the author of the issue.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the body of the issue.
   body: String!
@@ -2663,8 +2697,8 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
     before: String
   ): UserConnection!
 
-  # The user associated with this pull request.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the base Ref associated with the pull request.
   baseRef: Ref
@@ -2720,8 +2754,8 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited this pull request's body.
-  editor: User
+  # The editor of this pull request's body.
+  editor: Author
 
   # Identifies the head Ref associated with the pull request.
   headRef: Ref
@@ -2910,8 +2944,8 @@ enum PullRequestPubSubTopic {
 
 # A review object for a given pull request.
 type PullRequestReview implements Node, Comment, RepositoryNode {
-  # Identifies the author associated with this pull request review.
-  author: User!
+  # The author of the comment.
+  author: Author
 
   # Identifies the pull request review body.
   body: String!
@@ -2949,8 +2983,8 @@ type PullRequestReview implements Node, Comment, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -2992,8 +3026,8 @@ type PullRequestReview implements Node, Comment, RepositoryNode {
 
 # A review comment associated with a given repository pull request.
 type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNode {
-  # The user associated with this review comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # The comment body of this review comment.
   body: String!
@@ -3019,8 +3053,8 @@ type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNod
   # The diff hunk to which the comment applies.
   diffHunk: String!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -4736,8 +4770,8 @@ type StatusContext implements Node {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
-  # The user that created this status context.
-  creator: User
+  # The author of this status context.
+  creator: Author
 
   # The description for this status context.
   description: String
@@ -5220,7 +5254,7 @@ type UpdateSubscriptionPayload {
 scalar URI
 
 # A user is an individual's account on GitHub that owns repositories and can make new content.
-type User implements Node, RepositoryOwner, UniformResourceLocatable {
+type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
   # A URL pointing to the user's public avatar.
   avatarURL(
     # The size of the resulting square image.
