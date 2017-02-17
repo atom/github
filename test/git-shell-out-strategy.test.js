@@ -128,6 +128,26 @@ describe('Git commands', function() {
     });
   });
 
+  describe('getHeadCommit()', function() {
+    it('gets the SHA and message of the most recent commit', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+
+      const commit = await git.getHeadCommit();
+      assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
+      assert.equal(commit.message, 'Initial commit');
+      assert.isFalse(commit.unbornRef);
+    });
+
+    it('notes when HEAD is an unborn ref', async function() {
+      const workingDirPath = await copyRepository('no-commits');
+      const git = new GitShellOutStrategy(workingDirPath);
+
+      const commit = await git.getHeadCommit();
+      assert.isTrue(commit.unbornRef);
+    });
+  });
+
   describe('diffFileStatus', function() {
     it('returns an object with working directory file diff status between relative to specified target commit', async function() {
       const workingDirPath = await cloneRepository('three-files');
