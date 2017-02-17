@@ -32,83 +32,34 @@ atom-text-editor {
   }
 
 
-  // Ours -------------------------
+  // Color variations -------------------------
 
-  .github-ConflictOurs {
-    background-color: @ours-line-color;
-    &.cursor-line { background-color: @ours-current-color !important; }
+  .generate-conflicts(@name, @color) {
+    .github-Conflict@{name} {
+      background-color: @color;
+      &.cursor-line { background-color: fadein(@color, 10%) !important; }
+    }
+
+    .github-Conflict@{name}Banner {
+      background-color: @color;
+      &.cursor-line { background-color: fadein(@color, 10%) !important; }
+      &.github-ConflictUnmodifiedBanner span { color: fade(@color, 66%) !important; };
+    }
+
+    .github-Conflict@{name}Block {
+      background-color: @color;
+    }
   }
 
-  .github-ConflictOursBanner {
-    background-color: @ours-line-color;
-
-    &.cursor-line { background-color: @ours-current-color !important; }
-    &.github-ConflictUnmodifiedBanner span { color: fade(@ours-line-color, 66%) !important; };
-  }
-
-  .github-ConflictOursBlock {
-    background-color: @ours-line-color;
-  }
-
-
-  // Theirs -------------------------
-
-  .github-ConflictTheirs {
-    background-color: @theirs-line-color;
-    &.cursor-line { background-color: @theirs-current-color !important; };
-  }
-
-  .github-ConflictTheirsBanner {
-    background-color: @theirs-line-color;
-
-    &.cursor-line { background-color: @theirs-current-color !important; };
-    &.github-ConflictUnmodifiedBanner span { color: fade(@theirs-line-color, 66%) !important; };
-  }
-
-  .github-ConflictTheirsBlock {
-    background-color: @theirs-line-color;
-  }
-
-
-  // Base -------------------------
-
-  .github-ConflictBase {
-    background-color: @base-line-color;
-    &.cursor-line { background-color: @base-current-color !important; }
-  }
-
-  .github-ConflictBaseBanner {
-    background-color: @base-line-color;
-    &.github-ConflictUnmodifiedBanner span { color: fade(@base-line-color, 66%) !important; };
-  }
-
-  .github-ConflictBaseBlock {
-    background-color: @base-line-color;
-  }
-
-
-  // Modified -------------------------
-
-  .github-ConflictModified {
-    background-color: @modified-line-color;
-    &.cursor-line { background-color: @modified-current-color !important; }
-  }
-
-  .github-ConflictModifiedBanner {
-    background-color: @modified-line-color;
-
-    &.cursor-line { background-color: @modified-current-color !important; }
-    &.github-ConflictUnmodifiedBanner span { color: fade(@modified-line-color, 100%) !important; }; // TODO: Improve contrast when yellow
-  }
-
-  .github-ConflictModifiedBlock {
-    background-color: @modified-line-color;
-  }
+  .generate-conflicts(Ours,     fade(@ui-site-color-1, 15%) );
+  .generate-conflicts(Theirs,   fade(@ui-site-color-2, 15%) );
+  .generate-conflicts(Base,     fade(@ui-site-color-3, 15%) );
+  .generate-conflicts(Modified, fade(@ui-site-color-5, 30%) ); // TODO: Replace ui-site-color since it's unpredictable
 
 
   // Resolved -------------------------
 
   .github-ResolvedLines {
-    background-color: @resolved-line-color;
+    background-color: @background-color-highlight;
   }
 }
