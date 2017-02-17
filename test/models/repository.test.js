@@ -705,12 +705,12 @@ describe('Repository', function() {
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
 
       const isSafe = () => true;
-      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
+      await repo1.storeBeforeAndAfterBlobs(['a.txt'], isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
-      });
-      await repo1.storeBeforeAndAfterBlobs('a.txt', isSafe, () => {
+      }, {partial: true});
+      await repo1.storeBeforeAndAfterBlobs(['a.txt'], isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
-      });
+      }, {partial: true});
       const repo1History = repo1.getPartialDiscardUndoHistoryForPath('a.txt');
 
       const repo2 = await buildRepository(workingDirPath);
