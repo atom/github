@@ -21,7 +21,7 @@ describe('CommitView', function() {
   it('displays the remaining characters limit based on which line is being edited', async function() {
     const view = new CommitView({
       commandRegistry, lastCommit,
-      stagedChangesExist: true, maximumCharacterLimit: 72, message: ''
+      stagedChangesExist: true, maximumCharacterLimit: 72, message: '',
     });
     assert.equal(view.refs.remainingCharacters.textContent, '72');
 
