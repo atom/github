@@ -30,6 +30,13 @@ function checkForSchemaChanges {
   fi
 
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
+
+  SCHEMA_BRANCH_NAME=auto-schema-update-${TRAVIS_BUILD_NUMBER:-0}
+
+  git checkout --no-track -B ${SCHEMA_BRANCH_NAME}
+  git fetch --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+  git merge origin/master
+
   trap "updateStatus 'failure' $CTX 'Script failure' ; exit 1" ERR
   time npm install
 
@@ -60,14 +67,9 @@ function checkForSchemaChanges {
       echo "no schema pull request exists yet"
     fi
 
-    # Move the updated schema to its own branch and create a new pull request
+    # Push this branch and create a pull request
     REPO=$(git config remote.origin.url)
     SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-    SCHEMA_BRANCH_NAME=auto-schema-update-${TRAVIS_BUILD_NUMBER:-0}
-    git stash save 'schema change'
-    git fetch --depth=1 origin +refs/heads/master:refs/remotes/origin/master
-    git checkout --no-track -B ${SCHEMA_BRANCH_NAME} origin/master
-    git stash pop
 
     git config user.name "Travis CI"
     git config user.email "atom-build@users.noreply.github.com"
