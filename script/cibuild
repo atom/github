@@ -33,7 +33,6 @@ function checkForSchemaChanges {
 
   SCHEMA_BRANCH_NAME=auto-schema-update-${TRAVIS_BUILD_NUMBER:-0}
 
-  git checkout --no-track -B ${SCHEMA_BRANCH_NAME}
   git fetch --depth=1 origin +refs/heads/master:refs/remotes/origin/master
   git merge origin/master
 
@@ -70,6 +69,11 @@ function checkForSchemaChanges {
     # Push this branch and create a pull request
     REPO=$(git config remote.origin.url)
     SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
+
+    # Move the updated schema to a new branch created from master, commit, and push.
+    git stash --all
+    git checkout --no-track -B ${SCHEMA_BRANCH_NAME} upstream/master
+    git stash pop
 
     git config user.name "Travis CI"
     git config user.email "atom-build@users.noreply.github.com"
