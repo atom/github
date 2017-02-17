@@ -45,7 +45,7 @@ export function copyRepository(repoName) {
   const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`);
   fs.copySync(repoPath, workingDirPath);
   fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'));
-  return workingDirPath;
+  return fs.realpathSync(workingDirPath);
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
