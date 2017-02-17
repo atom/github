@@ -72,7 +72,7 @@ function checkForSchemaChanges {
 
     # Move the updated schema to a new branch created from master, commit, and push.
     git stash --all
-    git checkout --no-track -B ${SCHEMA_BRANCH_NAME} upstream/master
+    git checkout --no-track -B ${SCHEMA_BRANCH_NAME} origin/master
     git stash pop
 
     git config user.name "Travis CI"
