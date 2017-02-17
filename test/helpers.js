@@ -37,6 +37,17 @@ export async function cloneRepository(repoName = 'three-files') {
   return copyCachedRepo(repoName);
 }
 
+/*
+ * Copy a fixture repository into a temporary working directory as-is, preserving working copy changes.
+ */
+export function copyRepository(repoName) {
+  const workingDirPath = temp.mkdirSync('git-fixture-');
+  const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`);
+  fs.copySync(repoPath, workingDirPath);
+  fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'));
+  return workingDirPath;
+}
+
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
   /* eslint-disable no-param-reassign */
   if (typeof repoName === 'object') {
