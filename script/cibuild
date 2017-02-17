@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function updateStatus {
   STATUS=$1
@@ -18,13 +18,21 @@ function updateStatus {
 function checkForSchemaChanges {
   CTX="$TRAVIS_EVENT_TYPE"
 
-  # Consistency with other CI integration statuses
-  if [ "${CTX}" = "pull_request" ]; then
-    CTX="pr"
+  # Only check schema changes on a push build
+  if [ "${CTX}" != "push" ] && [ "${CTX}" != "cron" ]
+  then
+    exit
+  fi
+
+  if [ -z "${GITHUB_TOKEN}" ]
+  then
+    exit
   fi
 
   updateStatus "pending" $CTX "Checking for GraphQL Schema Changes"
+  trap "updateStatus 'failure' $CTX 'Script failure' ; exit 1" ERR
   time npm install
+
   echo "Fetching schema..."
   time npm run fetch-schema
   sleep 2
@@ -34,13 +42,55 @@ function checkForSchemaChanges {
   git status > /dev/null
   if ! git diff-index HEAD --quiet -- graphql/schema.graphql
   then
-    updateStatus "failure" $CTX "GraphQL Schema out of date"
     echo "Schema is out of date:"
     echo
     git --no-pager diff -- graphql/schema.graphql
+
+    # Search for an existing pull request
+    PR_TITLE="GraphQL schema update"
+    SEARCH_API_URL="https://api.github.com/search/issues"
+    SEARCH_QUERY="type:pr+state:open+repo:atom%2Fgithub+in:title+'${PR_TITLE// /+}'"
+    RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "${SEARCH_API_URL}?q=${SEARCH_QUERY}" | jq .total_count)
+    if [ "${RESPONSE}" != "0" ]
+    then
+      echo "...but a pull request already exists"
+      updateStatus "success" $CTX "Schema pull request already exists"
+      exit 0
+    else
+      echo "no schema pull request exists yet"
+    fi
+
+    # Move the updated schema to its own branch and create a new pull request
+    REPO=$(git config remote.origin.url)
+    SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
+    SCHEMA_BRANCH_NAME=auto-schema-update-${TRAVIS_BUILD_NUMBER:-0}
+    git stash save 'schema change'
+    git fetch --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+    git checkout --no-track -B ${SCHEMA_BRANCH_NAME} origin/master
+    git stash pop
+
+    git config user.name "Travis CI"
+    git config user.email "atom-build@users.noreply.github.com"
+
+    git add graphql/schema.graphql graphql/schema.json
+    git commit -m 'automated GraphQL schema update'
+
+    git push -f ${SSH_REPO} ${SCHEMA_BRANCH_NAME}
+
+    TRAVIS_JOB_URL="https://travis-ci.com/atom/github/jobs/$TRAVIS_JOB_ID"
+    GH_API_URL="https://api.github.com/repos/atom/github/pulls"
+    curl -H "Authorization: token $GITHUB_TOKEN" ${GH_API_URL} --data "\
+{\
+  \"title\": \"${PR_TITLE}\",\
+  \"head\": \"${SCHEMA_BRANCH_NAME}\",\
+  \"base\": \"master\",\
+  \"body\": \"Automated schema update submitted by [a Travis build](${TRAVIS_JOB_URL}).\"\
+}"
+    echo "Pull request created."
+    updateStatus "success" $CTX "Schema update pull request created"
     exit
   fi
-  updateStatus "success" $CTX "GraphQL Schema up to date"
+  updateStatus "success" $CTX "Schema is already up to date"
   echo "Schema is up to date"
   exit
 }
@@ -118,7 +168,8 @@ function runTests {
   exit
 }
 
-if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]; then
+if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]
+then
   checkForSchemaChanges
 else
   runTests
