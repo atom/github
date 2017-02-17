@@ -363,26 +363,28 @@ describe('StagingView', function() {
     assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[2]]));
   });
 
-  // https://github.com/atom/github/issues/514
-  describe('mousedownOnItem', () => {
-    it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
-      const unstagedChanges = [
-        {filePath: 'a.txt', status: 'modified'},
-        {filePath: 'b.txt', status: 'modified'},
-        {filePath: 'c.txt', status: 'modified'},
-      ];
-      const didSelectFilePath = sinon.stub();
-      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
-      view.isFocused = sinon.stub().returns(true);
+  if (process.platform !== 'win32') {
+    // https://github.com/atom/github/issues/514
+    describe('mousedownOnItem', () => {
+      it('does not select item or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+        const unstagedChanges = [
+          {filePath: 'a.txt', status: 'modified'},
+          {filePath: 'b.txt', status: 'modified'},
+          {filePath: 'c.txt', status: 'modified'},
+        ];
+        const didSelectFilePath = sinon.stub();
+        const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
+        view.isFocused = sinon.stub().returns(true);
 
-      sinon.spy(view.selection, 'addOrSubtractSelection');
-      sinon.spy(view.selection, 'selectItem');
+        sinon.spy(view.selection, 'addOrSubtractSelection');
+        sinon.spy(view.selection, 'selectItem');
 
-      document.body.appendChild(view.element);
-      await view.mousedownOnItem({button: 0, ctrlKey: true}, unstagedChanges[0]);
-      assert.isFalse(view.selection.addOrSubtractSelection.called);
-      assert.isFalse(view.selection.selectItem.called);
-      assert.isFalse(view.mouseSelectionInProgress);
+        document.body.appendChild(view.element);
+        await view.mousedownOnItem({button: 0, ctrlKey: true}, unstagedChanges[0]);
+        assert.isFalse(view.selection.addOrSubtractSelection.called);
+        assert.isFalse(view.selection.selectItem.called);
+        assert.isFalse(view.mouseSelectionInProgress);
+      });
     });
-  });
+  }
 });

@@ -280,66 +280,68 @@ describe('FilePatchView', function() {
       assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines]));
     });
 
-    // https://github.com/atom/github/issues/514
-    describe('mousedownOnLine', () => {
-      it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
-        const hunk0 = new Hunk(1, 1, 2, 4, '', [
-          new HunkLine('line-1', 'added', -1, 1),
-          new HunkLine('line-2', 'added', -1, 2),
-          new HunkLine('line-3', 'added', -1, 3),
-        ]);
-        const hunkViews = new Map();
-        function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
+    if (process.platform !== 'win32') {
+      // https://github.com/atom/github/issues/514
+      describe('mousedownOnLine', () => {
+        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+          const hunk0 = new Hunk(1, 1, 2, 4, '', [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]);
+          const hunkViews = new Map();
+          function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-        const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0], registerHunkView});
-        const hunkView0 = hunkViews.get(hunk0);
+          const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0], registerHunkView});
+          const hunkView0 = hunkViews.get(hunk0);
 
-        filePatchView.togglePatchSelectionMode();
-        assert.equal(filePatchView.getPatchSelectionMode(), 'line');
+          filePatchView.togglePatchSelectionMode();
+          assert.equal(filePatchView.getPatchSelectionMode(), 'line');
 
-        sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
-        sinon.spy(filePatchView.selection, 'selectLine');
+          sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
+          sinon.spy(filePatchView.selection, 'selectLine');
 
-        await hunkView0.props.mousedownOnLine({button: 0, detail: 1, ctrlKey: true}, hunk0, hunk0.lines[2]);
-        assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
-        assert.isFalse(filePatchView.selection.selectLine.called);
-        assert.isFalse(filePatchView.mouseSelectionInProgress);
+          await hunkView0.props.mousedownOnLine({button: 0, detail: 1, ctrlKey: true}, hunk0, hunk0.lines[2]);
+          assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
+          assert.isFalse(filePatchView.selection.selectLine.called);
+          assert.isFalse(filePatchView.mouseSelectionInProgress);
+        });
       });
-    });
 
-    // https://github.com/atom/github/issues/514
-    describe('mousedownOnHeader', () => {
-      it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
-        const hunk0 = new Hunk(1, 1, 2, 4, '', [
-          new HunkLine('line-1', 'added', -1, 1),
-          new HunkLine('line-2', 'added', -1, 2),
-          new HunkLine('line-3', 'added', -1, 3),
-        ]);
-        const hunk1 = new Hunk(5, 7, 1, 4, '', [
-          new HunkLine('line-5', 'added', -1, 7),
-          new HunkLine('line-6', 'added', -1, 8),
-          new HunkLine('line-7', 'added', -1, 9),
-          new HunkLine('line-8', 'added', -1, 10),
-        ]);
-        const hunkViews = new Map();
-        function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
+      // https://github.com/atom/github/issues/514
+      describe('mousedownOnHeader', () => {
+        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+          const hunk0 = new Hunk(1, 1, 2, 4, '', [
+            new HunkLine('line-1', 'added', -1, 1),
+            new HunkLine('line-2', 'added', -1, 2),
+            new HunkLine('line-3', 'added', -1, 3),
+          ]);
+          const hunk1 = new Hunk(5, 7, 1, 4, '', [
+            new HunkLine('line-5', 'added', -1, 7),
+            new HunkLine('line-6', 'added', -1, 8),
+            new HunkLine('line-7', 'added', -1, 9),
+            new HunkLine('line-8', 'added', -1, 10),
+          ]);
+          const hunkViews = new Map();
+          function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-        const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1], registerHunkView});
-        const hunkView0 = hunkViews.get(hunk0);
+          const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1], registerHunkView});
+          const hunkView0 = hunkViews.get(hunk0);
 
-        filePatchView.togglePatchSelectionMode();
-        assert.equal(filePatchView.getPatchSelectionMode(), 'line');
+          filePatchView.togglePatchSelectionMode();
+          assert.equal(filePatchView.getPatchSelectionMode(), 'line');
 
-        sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
-        sinon.spy(filePatchView.selection, 'selectLine');
+          sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
+          sinon.spy(filePatchView.selection, 'selectLine');
 
-        // ctrl-click hunk line
-        await hunkView0.props.mousedownOnHeader({button: 0, detail: 1, ctrlKey: true}, hunk0);
-        assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
-        assert.isFalse(filePatchView.selection.selectLine.called);
-        assert.isFalse(filePatchView.mouseSelectionInProgress);
+          // ctrl-click hunk line
+          await hunkView0.props.mousedownOnHeader({button: 0, detail: 1, ctrlKey: true}, hunk0);
+          assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
+          assert.isFalse(filePatchView.selection.selectLine.called);
+          assert.isFalse(filePatchView.mouseSelectionInProgress);
+        });
       });
-    });
+    }
   });
 
   it('scrolls off-screen lines and hunks into view when they are selected', async function() {
