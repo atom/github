@@ -5,11 +5,13 @@ import until from 'test-until';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, lastCommit;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+
+    lastCommit = {sha: '1234abcd', message: 'commit message', unbornRef: false};
   });
 
   afterEach(function() {
@@ -17,7 +19,10 @@ describe('CommitView', function() {
   });
 
   it('displays the remaining characters limit based on which line is being edited', async function() {
-    const view = new CommitView({commandRegistry, stagedChangesExist: true, maximumCharacterLimit: 72, message: ''});
+    const view = new CommitView({
+      commandRegistry, lastCommit,
+      stagedChangesExist: true, maximumCharacterLimit: 72, message: ''
+    });
     assert.equal(view.refs.remainingCharacters.textContent, '72');
 
     await view.update({message: 'abcde fghij'});
@@ -64,7 +69,10 @@ describe('CommitView', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       const viewState = {};
-      view = new CommitView({repository, commandRegistry, stagedChangesExist: true, mergeConflictsExist: false, viewState});
+      view = new CommitView({
+        repository, commandRegistry, lastCommit,
+        stagedChangesExist: true, mergeConflictsExist: false, viewState,
+      });
       editor = view.refs.editor;
       commitButton = view.refs.commitButton;
 
@@ -107,7 +115,10 @@ describe('CommitView', function() {
       const prepareToCommit = () => Promise.resolve(prepareToCommitResolution);
 
       commit = sinon.spy();
-      view = new CommitView({commandRegistry, stagedChangesExist: true, prepareToCommit, commit, message: 'Something'});
+      view = new CommitView({
+        commandRegistry, lastCommit,
+        stagedChangesExist: true, prepareToCommit, commit, message: 'Something',
+      });
       sinon.spy(view, 'focus');
 
       editor = view.refs.editor;
@@ -158,20 +169,22 @@ describe('CommitView', function() {
   });
 
   it('shows the "Abort Merge" button when props.isMerging is true', async function() {
-    const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: false});
-    const {abortMergeButton} = view.refs;
-    assert.equal(abortMergeButton.style.display, 'none');
+    const view = new CommitView({commandRegistry, lastCommit, stagedChangesExist: true, isMerging: false});
+    assert.isUndefined(view.refs.abortMergeButton);
 
     await view.update({isMerging: true});
-    assert.equal(abortMergeButton.style.display, '');
+    assert.isDefined(view.refs.abortMergeButton);
 
     await view.update({isMerging: false});
-    assert.equal(abortMergeButton.style.display, 'none');
+    assert.isUndefined(view.refs.abortMergeButton);
   });
 
   it('calls props.abortMerge() when the "Abort Merge" button is clicked', function() {
     const abortMerge = sinon.spy(() => Promise.resolve());
-    const view = new CommitView({commandRegistry, stagedChangesExist: true, isMerging: true, abortMerge});
+    const view = new CommitView({
+      commandRegistry, lastCommit,
+      stagedChangesExist: true, isMerging: true, abortMerge,
+    });
     const {abortMergeButton} = view.refs;
     abortMergeButton.dispatchEvent(new MouseEvent('click'));
     assert(abortMerge.calledOnce);
@@ -180,7 +193,10 @@ describe('CommitView', function() {
   describe('amending', function() {
     it('calls props.setAmending() when the box is checked or unchecked', function() {
       const setAmending = sinon.spy();
-      const view = new CommitView({commandRegistry, stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending});
+      const view = new CommitView({
+        commandRegistry,
+        stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending,
+      });
       const {amend} = view.refs;
 
       amend.click();
