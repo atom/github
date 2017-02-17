@@ -2,30 +2,17 @@
 
 atom-text-editor {
   .github-ConflictSeparator {
-    background-color: @banner-line-color;
-    span { color: lighten(@banner-line-color, 10%); };
-  }
-
-  .github-ConflictOurs {
-    background-color: @ours-line-color;
-
-    &.cursor-line { background-color: @ours-current-color; }
-  }
-
-  .github-ConflictOursBanner {
-    background-color: @ours-line-color;
-
-    &.cursor-line { background-color: @ours-current-color; }
-    &.github-ConflictUnmodifiedBanner span { color: lighten(@ours-line-color, 10%); };
-  }
-
-  .github-ConflictOursBlock {
-    background-color: @ours-line-color;
+    span {
+      color: @syntax-invisible-character-color !important;
+    }
   }
 
   .github-ConflictBlock {
     display: flex;
-    padding: 4px 15px;
+    align-items: center;
+    padding: @component-padding / 2;
+    cursor: default;
+    color: fade(@syntax-text-color, 75%);
 
     .github-ResolutionControls {
       flex: 1;
@@ -39,44 +26,87 @@ atom-text-editor {
     }
   }
 
+  .github-SideDescription {
+    font-family: @font-family;
+    font-size: .9em;
+  }
+
+
+  // Ours -------------------------
+
+  .github-ConflictOurs {
+    background-color: @ours-line-color;
+    &.cursor-line { background-color: @ours-current-color !important; }
+  }
+
+  .github-ConflictOursBanner {
+    background-color: @ours-line-color;
+
+    &.cursor-line { background-color: @ours-current-color !important; }
+    &.github-ConflictUnmodifiedBanner span { color: fade(@ours-line-color, 66%) !important; };
+  }
+
+  .github-ConflictOursBlock {
+    background-color: @ours-line-color;
+  }
+
+
+  // Theirs -------------------------
+
   .github-ConflictTheirs {
     background-color: @theirs-line-color;
-    &.cursor-line { background-color: @theirs-current-color; };
+    &.cursor-line { background-color: @theirs-current-color !important; };
   }
 
   .github-ConflictTheirsBanner {
     background-color: @theirs-line-color;
 
-    &.github-ConflictUnmodifiedBanner span { color: lighten(@theirs-line-color, 10%); };
+    &.cursor-line { background-color: @theirs-current-color !important; };
+    &.github-ConflictUnmodifiedBanner span { color: fade(@theirs-line-color, 66%) !important; };
   }
 
   .github-ConflictTheirsBlock {
     background-color: @theirs-line-color;
   }
 
+
+  // Base -------------------------
+
   .github-ConflictBase {
     background-color: @base-line-color;
-    &.cursor-line { background-color: @base-current-color; }
+    &.cursor-line { background-color: @base-current-color !important; }
   }
 
   .github-ConflictBaseBanner {
     background-color: @base-line-color;
-    &.github-ConflictUnmodifiedBanner span { color: lighten(@base-line-color, 10%); }
+    &.github-ConflictUnmodifiedBanner span { color: fade(@base-line-color, 66%) !important; };
   }
 
   .github-ConflictBaseBlock {
     background-color: @base-line-color;
   }
 
-  .github-ConflictModified, .github-ConflictModifiedBanner {
+
+  // Modified -------------------------
+
+  .github-ConflictModified {
     background-color: @modified-line-color;
-    &.cursor-line { background-color: @modified-current-color; }
-    &.github-ConflictUnmodifiedBanner span { color: lighten(@modified-line-color, 10%); };
+    &.cursor-line { background-color: @modified-current-color !important; }
+  }
+
+  .github-ConflictModifiedBanner {
+    background-color: @modified-line-color;
+
+    &.cursor-line { background-color: @modified-current-color !important; }
+    &.github-ConflictUnmodifiedBanner span { color: fade(@modified-line-color, 100%) !important; }; // TODO: Improve contrast when yellow
   }
 
   .github-ConflictModifiedBlock {
     background-color: @modified-line-color;
   }
+
+
+  // Resolved -------------------------
 
   .github-ResolvedLines {
     background-color: @resolved-line-color;
