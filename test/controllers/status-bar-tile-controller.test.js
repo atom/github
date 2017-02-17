@@ -270,7 +270,6 @@ describe('StatusBarTileController', function() {
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
-        // QUESTION: why does etch.update(this) after this.inProgress = true cause this test to fail sometimes?
         await assert.async.equal(pushButton.textContent, 'Push ');
         await assert.async.equal(pullButton.textContent, 'Pull ');
       });
