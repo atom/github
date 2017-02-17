@@ -5,7 +5,7 @@ import mkdirp from 'mkdirp';
 
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
-import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {cloneRepository, copyRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -493,6 +493,13 @@ describe('Git commands', function() {
       assert.equal(await git.getCurrentBranch(), 'branch');
       await git.checkout('newBranch', {createNew: true});
       assert.equal(await git.getCurrentBranch(), 'newBranch');
+    });
+
+    it('returns the current branch name in a repository with no commits', async function() {
+      const workingDirPath = await copyRepository('no-commits');
+      const git = new GitShellOutStrategy(workingDirPath);
+
+      assert.equal(await git.getCurrentBranch(), 'master');
     });
   });
 
