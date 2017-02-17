@@ -189,5 +189,14 @@ describe('CommitView', function() {
       amend.click();
       assert.deepEqual(setAmending.args, [[true], [false]]);
     });
+
+    it('is hidden when HEAD is an unborn ref', function() {
+      const view = new CommitView({
+        commandRegistry,
+        stagedChangesExist: false,
+        lastCommit: {unbornRef: true},
+      });
+      assert.isUndefined(view.refs.amend);
+    });
   });
 });
