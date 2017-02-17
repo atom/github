@@ -168,7 +168,7 @@ function runTests {
   exit
 }
 
-if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ] || [ "$TRAVIS_EVENT_TYPE" = "cron" ]
+if [ "$TRAVIS_BUILD_JOB" = "schemacheck" ]
 then
   checkForSchemaChanges
 else
