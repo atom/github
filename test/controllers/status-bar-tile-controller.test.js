@@ -102,7 +102,7 @@ describe('StatusBarTileController', function() {
           list.onchange();
           await etch.getScheduler().getNextUpdatePromise();
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          await assert.async.equal(list.selectedOptions[0].value, 'branch');
           await assert.async.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Checkout aborted');
