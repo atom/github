@@ -1,178 +1,196 @@
 import {Emitter} from 'atom';
 import ModelObserver from '../../lib/models/model-observer';
 
+class Model {
+  constructor(a, b) {
+    this.a = a;
+    this.b = b;
+    this.emitter = new Emitter();
+
+    sinon.spy(this, 'fetchA');
+    sinon.spy(this, 'fetchB');
+  }
+
+  fetchA() {
+    this.fetchACallCount++;
+    return new Promise(res => res(this.a));
+  }
+
+  fetchB() {
+    this.fetchBCallCount++;
+    return new Promise(res => res(this.b));
+  }
+
+  onDidUpdate(cb) { return this.emitter.on('did-update', cb); }
+  didUpdate(cb) { return this.emitter.emit('did-update'); }
+  destroy() { this.emitter.dispose(); }
+}
+
 describe('ModelObserver', function() {
-  it('keeps asynchronously-queried model data in sync with the assigned active model', async function() {
-    const observer = new ModelObserver({fetchData: async model => {
-      return {
-        a: await model.fetchA(),
-        b: await model.fetchB(),
-      };
-    }});
+  let model1, model2, observer, fetchDataStub, didUpdateStub;
 
-    class Model {
-      constructor(a, b) {
-        this.a = a;
-        this.b = b;
-        this.fetchACallCount = 0;
-        this.fetchBCallCount = 0;
-        this.emitter = new Emitter();
-      }
-      onDidUpdate(didUpdate) {
-        return this.emitter.on('did-update', didUpdate);
-      }
-      emitDidUpdate() {
-        this.emitter.emit('did-update');
-      }
-      fetchA() {
-        this.fetchACallCount++;
-        return Promise.resolve(this.a);
-      }
-      fetchB() {
-        this.fetchBCallCount++;
-        return Promise.resolve(this.b);
-      }
-    }
+  beforeEach(function() {
+    model1 = new Model('a', 'b');
+    model2 = new Model('A', 'B');
+    didUpdateStub = sinon.stub();
+    fetchDataStub = sinon.spy(async model => ({a: await model.fetchA(), b: await model.fetchB()}));
+    observer = new ModelObserver({
+      fetchData: fetchDataStub,
+      didUpdate: didUpdateStub,
+    });
+  });
 
-    const model1 = new Model('a', 'b');
-    const model2 = new Model('A', 'B');
+  afterEach(function() {
+    model1.destroy();
+    model2.destroy();
+  });
 
-    assert.isNull(observer.getActiveModel());
-    assert.isNull(observer.getActiveModelData());
-
+  it('fetches data asynchronously when the active model is set', async function() {
     observer.setActiveModel(model1);
+    assert.equal(didUpdateStub.callCount, 1);
     assert.equal(observer.getActiveModel(), model1);
+    assert.isTrue(didUpdateStub.getCall(0).calledWith(model1));
     assert.isNull(observer.getActiveModelData());
 
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(observer.getActiveModel(), model1);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 1);
+    assert.equal(model1.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 2);
+    assert.isTrue(didUpdateStub.getCall(1).calledWith(model1));
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
     observer.setActiveModel(model2);
     assert.equal(observer.getActiveModel(), model2);
+    assert.equal(didUpdateStub.callCount, 3);
+    assert.isTrue(didUpdateStub.getCall(2).calledWith(model2));
     assert.isNull(observer.getActiveModelData());
 
-    // We unsubscribe from updates on the previous active model once we attempt to set a new one
-    model1.a = 'X';
-    model1.emitDidUpdate();
-    assert.equal(model1.fetchACallCount, 1);
-    assert.equal(model1.fetchBCallCount, 1);
-
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(observer.getActiveModel(), model2);
+    await observer.lastFetchDataPromise;
+    assert.equal(model2.fetchA.callCount, 1);
+    assert.equal(model2.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 4);
     assert.deepEqual(observer.getActiveModelData(), {a: 'A', b: 'B'});
 
-    // We re-query the current active model if it emits an update event
-    model2.a = 'Y';
-    model2.emitDidUpdate();
-    assert.equal(observer.getActiveModel(), model2);
-    assert.deepEqual(observer.getActiveModelData(), {a: 'A', b: 'B'});
-
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(observer.getActiveModel(), model2);
-    assert.deepEqual(observer.getActiveModelData(), {a: 'Y', b: 'B'});
-
-    await observer.setActiveModel(null); // does not blow up
+    observer.setActiveModel(null);
     assert.isNull(observer.getActiveModel());
     assert.isNull(observer.getActiveModelData());
   });
 
-  it('emits an update event when the model changes and when data is fetched', async function() {
-    let expectedActiveModelInUpdateCallback;
-    const didUpdate = () => {
-      assert.equal(observer.getActiveModel(), expectedActiveModelInUpdateCallback);
-      didUpdate.callCount++;
-    };
-    didUpdate.callCount = 0;
-
-    const observer = new ModelObserver({
-      fetchData: async model => {
-        return {a: await model.fetch()};
-      },
-      didUpdate,
-    });
-
-    class Model {
-      constructor() {
-        this.emitter = new Emitter();
-      }
-      onDidUpdate(didUpdateCallback) {
-        return this.emitter.on('did-update', didUpdateCallback);
-      }
-      emitDidUpdate() {
-        this.emitter.emit('did-update');
-      }
-      fetch() {
-        return Promise.resolve('a');
-      }
-    }
-
-    const model1 = new Model();
-    const model2 = new Model();
-
-    expectedActiveModelInUpdateCallback = model1;
+  it('fetches data asynchronously when the model is updated', async function() {
     observer.setActiveModel(model1);
-    assert.equal(didUpdate.callCount, 1);
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(didUpdate.callCount, 2);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 1);
+    assert.equal(model1.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 2);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    model1.emitDidUpdate();
-    assert.equal(didUpdate.callCount, 2);
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(didUpdate.callCount, 3);
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    model1.a = 'Ayy';
+    model1.b = 'Bee';
+    model1.didUpdate();
 
-    expectedActiveModelInUpdateCallback = model2;
-    observer.setActiveModel(model2);
-    assert.equal(didUpdate.callCount, 4);
-    await observer.getLastModelDataRefreshPromise();
-    assert.equal(didUpdate.callCount, 5);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 2);
+    assert.equal(model1.fetchB.callCount, 2);
+    assert.equal(didUpdateStub.callCount, 3);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'Ayy', b: 'Bee'});
   });
 
-  it('only assigns model data from the most recently initiated fetch', async function() {
-    const observer = new ModelObserver({fetchData: async model => {
-      return {a: await model.fetch()};
-    }});
+  it('enqueues a fetch if the model changes during a fetch', async function() {
+    observer.setActiveModel(model1);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 1);
+    assert.equal(model1.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 2);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    class Model {
-      constructor() {
-        this.emitter = new Emitter();
-      }
-      onDidUpdate(didUpdate) {
-        return this.emitter.on('did-update', didUpdate);
-      }
-      emitDidUpdate() {
-        this.emitter.emit('did-update');
-      }
-      fetch() {
-        return new Promise(resolve => {
-          this.resolveFetch = resolve;
-        });
-      }
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    fetchDataStub.reset();
+    didUpdateStub.reset();
+    // Update once...
+    model1.didUpdate();
+    // fetchData called immediately
+    assert.equal(fetchDataStub.callCount, 1);
+
+    // Update again on same tick
+    model1.didUpdate();
+    // second fetchData not yet called
+    assert.equal(fetchDataStub.callCount, 1);
+
+    assert.equal(didUpdateStub.callCount, 0);
+    await observer.lastFetchDataPromise;
+    assert.equal(didUpdateStub.callCount, 1);
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    // second fetchData started immediatelay after previous one ends
+    assert.equal(fetchDataStub.callCount, 2);
+
+    await observer.lastFetchDataPromise;
+    assert.equal(didUpdateStub.callCount, 2);
+  });
+
+  it('enqueues a at most one pending fetch', async function() {
+    observer.setActiveModel(model1);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 1);
+    assert.equal(model1.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 2);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
+
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    fetchDataStub.reset();
+    didUpdateStub.reset();
+    // Update once...
+    model1.didUpdate();
+    // fetchData called immediately
+    assert.equal(fetchDataStub.callCount, 1);
+
+    for (let i = 0; i < 10; i++) {
+      model1.didUpdate();
     }
 
-    const model1 = new Model();
-    const model2 = new Model();
+    // no updates triggered immediate fetches
+    assert.equal(fetchDataStub.callCount, 1);
 
-    // This is kinda complicated... basically, we're simulating the assignment
-    // of a *new* active model in the middle of a fetch caused by an update
-    // event on the *previous* active model. When the fetch on the previous
-    // active model finishes, we want to discard its result if it is no longer
-    // the most recently initiated fetch. This ensures that the active model
-    // data always belongs to the current active model.
-    const setModel1Promise = observer.setActiveModel(model1);
-    model1.resolveFetch('a');
-    await setModel1Promise;
+    assert.equal(didUpdateStub.callCount, 0);
+    await observer.lastFetchDataPromise;
+    assert.equal(didUpdateStub.callCount, 1);
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    // Second fetchData started immediatelay after previous one ends
+    assert.equal(fetchDataStub.callCount, 2);
 
-    model1.emitDidUpdate();
-    const model1RefreshPromise = observer.getLastModelDataRefreshPromise();
+    await observer.lastFetchDataPromise;
+    assert.equal(didUpdateStub.callCount, 2);
+    // None of the other 9 updates trigger, as they were essentially duplicates.
+    assert.equal(fetchDataStub.callCount, 2);
+  });
 
-    const setModel2Promise = observer.setActiveModel(model2);
-    model2.resolveFetch('b');
-    await setModel2Promise;
-    model1.resolveFetch('x');
+  it('clears any pending update and fetches immediately when the active model is set', async function() {
+    observer.setActiveModel(model1);
+    await observer.lastFetchDataPromise;
+    assert.equal(model1.fetchA.callCount, 1);
+    assert.equal(model1.fetchB.callCount, 1);
+    assert.equal(didUpdateStub.callCount, 2);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    await model1RefreshPromise;
-    assert.equal(observer.getActiveModel(), model2);
-    assert.deepEqual(observer.getActiveModelData(), {a: 'b'});
+    // TODO: ModelObserver shouldn't need to `await` the didChange callback
+    await new Promise(resolve => setImmediate(resolve));
+    fetchDataStub.reset();
+    didUpdateStub.reset();
+    // Update once...
+    model1.didUpdate();
+    // fetchData called immediately
+    assert.equal(fetchDataStub.callCount, 1);
+
+    observer.setActiveModel(model2);
+    // Model changed, so we fetch new data immediately
+    assert.equal(fetchDataStub.callCount, 2);
+    assert.isTrue(fetchDataStub.getCall(1).calledWith(model2));
   });
 });
