@@ -168,7 +168,6 @@ describe('StatusBarTileController', function() {
 
           branchMenuView.refs.editor.setText('master');
           await newBranchButton.onclick();
-          // assert.match(message.innerHTML, /branch.*already exists/);
           await assert.async.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot create branch');
