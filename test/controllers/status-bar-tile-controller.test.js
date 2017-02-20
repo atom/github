@@ -2,18 +2,18 @@ import fs from 'fs';
 import path from 'path';
 
 import etch from 'etch';
-import until from 'test-until';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 
 describe('StatusBarTileController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry;
+  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
+    notificationManager = atomEnvironment.notifications;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
   });
@@ -86,22 +86,27 @@ describe('StatusBarTileController', function() {
           await repository.checkout('branch');
           fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts');
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
-          const {list, message} = branchMenuView.refs;
+          const {list} = branchMenuView.refs;
 
           const branches = Array.from(list.options).map(option => option.value);
           assert.equal(await repository.getCurrentBranch(), 'branch');
           assert.equal(list.selectedOptions[0].value, 'branch');
 
+          sinon.stub(notificationManager, 'addError');
+
           list.selectedIndex = branches.indexOf('master');
           list.onchange();
           await etch.getScheduler().getNextUpdatePromise();
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
-          await until(() => message.innerHTML.match(/local changes.*would be overwritten/), 'error message displays');
+          await assert.async.equal(list.selectedOptions[0].value, 'branch');
+          await assert.async.isTrue(notificationManager.addError.called);
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Checkout aborted');
+          assert.match(notificationArgs[1].description, /Local changes to the following would be overwritten/);
         });
       });
 
@@ -146,11 +151,13 @@ describe('StatusBarTileController', function() {
 
           await repository.git.exec(['checkout', '-b', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+          const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
           await controller.getLastModelDataRefreshPromise();
 
           const branchMenuView = controller.branchMenuView;
-          const {list, newBranchButton, message} = branchMenuView.refs;
+          const {list, newBranchButton} = branchMenuView.refs;
+
+          sinon.stub(notificationManager, 'addError');
 
           const branches = Array.from(branchMenuView.refs.list.options).map(option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
@@ -161,7 +168,10 @@ describe('StatusBarTileController', function() {
 
           branchMenuView.refs.editor.setText('master');
           await newBranchButton.onclick();
-          assert.match(message.innerHTML, /branch.*already exists/);
+          await assert.async.isTrue(notificationManager.addError.called);
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Cannot create branch');
+          assert.match(notificationArgs[1].description, /already exists/);
 
           assert.equal(await repository.getCurrentBranch(), 'branch');
           assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'branch');
@@ -206,37 +216,6 @@ describe('StatusBarTileController', function() {
     });
 
     describe('the push/pull menu', function() {
-      it('disables the pull button when there are changed files', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepository(localRepoPath);
-
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
-
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pullButton} = pushPullMenuView.refs;
-        await repository.git.exec(['reset', '--hard', 'head~2']);
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-
-        assert.isFalse(pullButton.disabled);
-
-        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'a change\n');
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isTrue(pullButton.disabled);
-
-        await repository.stageFiles(['file.txt']);
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isTrue(pullButton.disabled);
-
-        await repository.commit('commit changes');
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isFalse(pullButton.disabled);
-      });
-
       it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
@@ -267,11 +246,13 @@ describe('StatusBarTileController', function() {
         await repository.git.exec(['reset', '--hard', 'head~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
+        const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
         await controller.getLastModelDataRefreshPromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
-        const {pushButton, pullButton, message} = pushPullMenuView.refs;
+        const {pushButton, pullButton} = pushPullMenuView.refs;
+
+        sinon.stub(notificationManager, 'addError');
 
         assert.equal(pushButton.textContent, 'Push (1)');
         assert.equal(pullButton.textContent, 'Pull (2)');
@@ -279,7 +260,10 @@ describe('StatusBarTileController', function() {
         pushButton.dispatchEvent(new MouseEvent('click'));
         await controller.getLastModelDataRefreshPromise();
 
-        await assert.async.match(message.innerHTML, /Push rejected/);
+        await assert.async.isTrue(notificationManager.addError.called);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Push rejected');
+        assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         repository.refresh();
