@@ -43,13 +43,15 @@ describe('StagingView', function() {
         const attemptFileStageOperation = sinon.spy();
         const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
 
-        view.clickOnItem({}, filePatches[1]);
+        view.mousedownOnItem({button: 0}, filePatches[1]);
+        view.mouseup();
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
 
         attemptFileStageOperation.reset();
         await view.update({unstagedChanges: [filePatches[0]], stagedChanges: [filePatches[1]], attemptFileStageOperation});
-        view.clickOnItem({}, filePatches[1]);
+        view.mousedownOnItem({button: 0}, filePatches[1]);
+        view.mouseup();
         view.confirmSelectedItems();
         assert.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
@@ -154,20 +156,17 @@ describe('StagingView', function() {
         view.focus();
         await view.selectNext();
         assert.isFalse(didSelectFilePath.calledWith(filePatches[1].filePath));
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath));
+        await assert.async.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath));
         await view.selectNext();
         assert.isFalse(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
+        await assert.async.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
 
         document.body.focus();
         assert.isFalse(view.isFocused());
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.equal(didSelectMergeConflictFile.callCount, 0);
+        await assert.async.isTrue(didSelectMergeConflictFile.callCount === 0);
 
         view.element.remove();
       });
@@ -264,7 +263,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", () => {
-      view.clickOnItem({}, stagedChanges[1]);
+      view.mousedownOnItem({button: 0}, stagedChanges[1]);
       view.mouseup();
       assertSelected(['staged-2.txt']);
 
@@ -344,4 +343,48 @@ describe('StagingView', function() {
       assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
     });
   });
+
+  // https://github.com/atom/github/issues/468
+  it('updates selection on mousedown', async () => {
+    const unstagedChanges = [
+      {filePath: 'a.txt', status: 'modified'},
+      {filePath: 'b.txt', status: 'modified'},
+      {filePath: 'c.txt', status: 'modified'},
+    ];
+    const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+    view.isFocused = sinon.stub().returns(true);
+
+    document.body.appendChild(view.element);
+    await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
+    view.mouseup();
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[0]]));
+
+    await view.mousedownOnItem({button: 0}, unstagedChanges[2]);
+    assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[2]]));
+  });
+
+  if (process.platform !== 'win32') {
+    // https://github.com/atom/github/issues/514
+    describe('mousedownOnItem', () => {
+      it('does not select item or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+        const unstagedChanges = [
+          {filePath: 'a.txt', status: 'modified'},
+          {filePath: 'b.txt', status: 'modified'},
+          {filePath: 'c.txt', status: 'modified'},
+        ];
+        const didSelectFilePath = sinon.stub();
+        const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
+        view.isFocused = sinon.stub().returns(true);
+
+        sinon.spy(view.selection, 'addOrSubtractSelection');
+        sinon.spy(view.selection, 'selectItem');
+
+        document.body.appendChild(view.element);
+        await view.mousedownOnItem({button: 0, ctrlKey: true}, unstagedChanges[0]);
+        assert.isFalse(view.selection.addOrSubtractSelection.called);
+        assert.isFalse(view.selection.selectItem.called);
+        assert.isFalse(view.mouseSelectionInProgress);
+      });
+    });
+  }
 });

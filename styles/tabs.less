@@ -1,0 +1,83 @@
+@import "variables";
+
+// General Styles
+.github-Tabs {
+  &-Panel {
+    &.active {
+      display: flex;
+    }
+
+    &.inactive {
+      display: none;
+    }
+  }
+}
+
+// App-specific styles
+.github-Tabs.sidebar-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .github-Tabs-NavigationContainer {
+    display: flex;
+    flex-direction: row;
+    padding: @component-padding;
+    border-bottom: 1px solid @panel-heading-border-color;
+
+    .github-Tabs-NavigationItem {
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+      background-color: @button-background-color;
+      color: contrast(@button-background-color, hsla(0,0%,0%,.6), hsla(0,0%,100%,.6));
+      border: 1px solid @button-border-color;
+      padding: .25em .5em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      & + .github-Tabs-NavigationItem {
+        border-left: none;
+      }
+
+      &.active {
+        background-color: @button-background-color-selected;
+        color: contrast(@button-background-color-selected, hsla(0,0%,0%,1), hsla(0,0%,100%,1));
+      }
+
+      &:first-child {
+        border-top-left-radius: @component-border-radius;
+        border-bottom-left-radius: @component-border-radius;
+      }
+
+      &:last-child {
+        border-top-right-radius: @component-border-radius;
+        border-bottom-right-radius: @component-border-radius;
+      }
+    }
+
+  }
+
+  &[data-tabs-count="1"] {
+    .github-Tabs-NavigationContainer {
+      display: none;
+    }
+  }
+
+  .github-Tabs-PanelContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .github-Tabs-Panel {
+    flex: 1;
+
+    &.active {
+    }
+
+    &.inactive {
+    }
+  }
+}

@@ -9,7 +9,7 @@ import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, githubPackage;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, githubPackage;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,7 +17,9 @@ describe('GithubPackage', function() {
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
-    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager);
+    config = atomEnv.config;
+    confirm = atomEnv.confirm.bind(atomEnv);
+    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager, config, confirm);
   });
 
   afterEach(async function() {
@@ -162,6 +164,17 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveRepository();
       assert.isNull(githubPackage.getActiveRepository());
+    });
+
+    it('defaults to a single repository even without an active pane item', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+      await githubPackage.activate();
+
+      await githubPackage.updateActiveRepository();
+
+      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
+      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
     });
 
     // Don't worry about this on Windows as it's not a common op

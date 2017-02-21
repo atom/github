@@ -9,14 +9,15 @@
 
   &-header {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    font-size: .9em;
     background-color: @panel-heading-background-color;
     border-bottom: 1px solid @panel-heading-border-color;
   }
 
   &-title {
     flex: 1;
-    font-size: .9em;
+    line-height: 2.4;
     padding: 0 @component-padding;
     color: @text-color-subtle;
     overflow: hidden;
@@ -26,12 +27,11 @@
   }
 
   &-stageButton {
-    margin: @component-padding / 2;
     line-height: 1;
     font-family: @font-family;
-    border-radius: @component-border-radius;
-    border: 1px solid @panel-heading-border-color;
-    background-color: @button-background-color;
+    border: none;
+    border-left: 1px solid @panel-heading-border-color;
+    background-color: transparent;
     cursor: default;
     &:hover  { background-color: @button-background-color-hover; }
     &:active { background-color: @panel-heading-border-color; }
@@ -73,6 +73,9 @@
 
 // Highlight hunk title
 .github-HunkView {
+  &.is-selected.is-hunkMode &-header {
+    background-color: @background-color-selected;
+  }
   &.is-selected.is-hunkMode &-title {
     color: @text-color-selected;
   }

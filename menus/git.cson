@@ -32,12 +32,15 @@
   ]
   '.github-UnstagedChanges': [
     {
-      'label': 'Discard Changes'
-      'command': 'github:discard-changes'
-    }
-    {
       'label': 'Stage'
       'command': 'core:confirm'
+    }
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Discard Changes'
+      'command': 'github:discard-changes-in-selected-file'
     }
   ]
   '.github-StagedChanges': [
@@ -56,5 +59,24 @@
     {
       'label': 'Open File'
       'command': 'github:open-file'
+    }
+  ]
+  '.github-FilePatchView.is-staged': [
+    {
+      'label': 'Unstage Selection'
+      'command': 'core:confirm'
+    }
+  ]
+  '.github-FilePatchView.is-unstaged': [
+    {
+      'label': 'Stage Selection'
+      'command': 'core:confirm'
+    }
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Discard Selection'
+      'command': 'github:discard-selected-lines'
     }
   ]

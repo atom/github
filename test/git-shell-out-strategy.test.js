@@ -14,42 +14,6 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
  */
 
 describe('Git commands', function() {
-  describe('exec', function() {
-    it('serializes operations', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        promises.push(git.getHeadCommit().then(() => actualEvents.push(i)));
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-
-    it('runs operations after one fails', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const git = new GitShellOutStrategy(workingDirPath);
-      const expectedEvents = [];
-      const actualEvents = [];
-      const promises = [];
-      for (let i = 0; i < 10; i++) {
-        expectedEvents.push(i);
-        if (i === 5) {
-          promises.push(git.exec(['fake', 'command']).catch(() => actualEvents.push(i)));
-        } else {
-          promises.push(git.exec(['status']).then(() => actualEvents.push(i)));
-        }
-      }
-
-      await Promise.all(promises);
-      assert.deepEqual(expectedEvents, actualEvents);
-    });
-  });
-
   describe('isGitRepository(directoryPath)', function() {
     it('returns true if the path passed is a valid repository, and false if not', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -96,6 +60,23 @@ describe('Git commands', function() {
       assert.deepEqual(stagedFiles, {
         'c.txt': 'deleted',
         'd.txt': 'added',
+      });
+      assert.deepEqual(unstagedFiles, {});
+      assert.deepEqual(mergeConflictFiles, {});
+    });
+
+    it('displays copied files as an added file', async function() {
+      // This repo is carefully constructed after much experimentation
+      // to cause git to detect `two.cc` as a copy of `one.cc`.
+      const workingDirPath = await cloneRepository('copied-file');
+      const git = new GitShellOutStrategy(workingDirPath);
+      // Undo the last commit, which is where we copied one.cc to two.cc
+      // and then emptied one.cc.
+      await git.exec(['reset', '--soft', 'head^']);
+      const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
+      assert.deepEqual(stagedFiles, {
+        'one.cc': 'modified',
+        'two.cc': 'added',
       });
       assert.deepEqual(unstagedFiles, {});
       assert.deepEqual(mergeConflictFiles, {});
@@ -392,6 +373,42 @@ describe('Git commands', function() {
     });
   });
 
+  describe('isPartiallyStaged(filePath)', () => {
+    it('returns true if specified file path is partially staged', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      await git.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
+      assert.isFalse(await git.isPartiallyStaged('a.txt'));
+      assert.isFalse(await git.isPartiallyStaged('b.txt'));
+      assert.isFalse(await git.isPartiallyStaged('c.txt'));
+      assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
+
+      // modified on both
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      // modified in working directory, added on index
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      // deleted in working directory, modified on index
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      // untracked in working directory, deleted on index
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+
+      assert.isTrue(await git.isPartiallyStaged('a.txt'));
+      assert.isTrue(await git.isPartiallyStaged('b.txt'));
+      assert.isTrue(await git.isPartiallyStaged('c.txt'));
+      assert.isTrue(await git.isPartiallyStaged('new-file.txt'));
+    });
+  });
+
   describe('isMerging', function() {
     it('returns true if `.git/MERGE_HEAD` exists', async function() {
       const workingDirPath = await cloneRepository('merge-conflict');
@@ -503,6 +520,40 @@ describe('Git commands', function() {
     });
   });
 
+  describe('getRemotes()', function() {
+    it('returns an array of remotes', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'set-url', 'origin', 'git@github.com:other/origin.git']);
+      await git.exec(['remote', 'add', 'upstream', 'git@github.com:my/upstream.git']);
+      await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, [
+        {name: 'origin', url: 'git@github.com:other/origin.git'},
+        {name: 'upstream', url: 'git@github.com:my/upstream.git'},
+        {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
+      ]);
+    });
+
+    it('returns an empty array when no remotes are set up', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      await git.exec(['remote', 'rm', 'origin']);
+      const remotes = await git.getRemotes();
+      assert.deepEqual(remotes, []);
+    });
+  });
+
+  describe('getConfig() and setConfig()', function() {
+    it('gets and sets configs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      assert.isNull(await git.getConfig('awesome.devs'));
+      await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
+      assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
+    });
+  });
+
   describe('commit(message, options) where amend option is true', function() {
     it('amends the last commit', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
@@ -563,12 +614,13 @@ describe('Git commands', function() {
         const execArgs = callArgs[0];
         assert.equal(execArgs[0], '-c');
         assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs[1]);
-        assert.isNotOk(callArgs[2]);
+        assert.isNotOk(callArgs[1].stdin);
+        assert.isNotOk(callArgs[1].useGitPromptServer);
       });
 
       it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
-        const gpgErr = new GitError('Mock GPG failure', 'stderr includes "gpg failed"');
+        const gpgErr = new GitError('Mock GPG failure');
+        gpgErr.stdErr = 'stderr includes "gpg failed"';
         gpgErr.code = 128;
 
         let callIndex = 0;
@@ -579,22 +631,70 @@ describe('Git commands', function() {
         execStub.onCall(callIndex).returns(Promise.reject(gpgErr));
         execStub.returns(Promise.resolve());
 
-        await op.action();
+        try {
+          await op.action();
+        } catch (err) {
+          assert.fail('expected op.action() not to throw the mock error');
+        }
 
         const callArgs0 = execStub.getCall(callIndex).args;
         const execArgs0 = callArgs0[0];
         assert.equal(execArgs0[0], '-c');
         assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs0[1]);
-        assert.isNotOk(callArgs0[2]);
+        assert.isNotOk(callArgs0[1].stdin);
+        assert.isNotOk(callArgs0[1].useGitPromptServer);
 
         const callArgs1 = execStub.getCall(callIndex + 1).args;
         const execArgs1 = callArgs1[0];
         assert.equal(execArgs1[0], '-c');
         assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-        assert.isNull(callArgs1[1]);
-        assert.isTrue(callArgs1[2]);
+        assert.isNotOk(callArgs1[1].stdin);
+        assert.isTrue(callArgs1[1].useGitPromptServer);
       });
+    });
+  });
+
+  describe('createBlob({filePath})', () => {
+    it('creates a blob for the file path specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob({filePath: 'a.txt'});
+      assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'qux\nfoo\nbar\n');
+    });
+
+    it('creates a blob for the stdin specified and returns its sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\n'});
+      assert.equal(sha, '257cc5642cb1a054f08cc83f2d943e56fd3ebe99');
+      const contents = await git.exec(['cat-file', '-p', sha]);
+      assert.equal(contents, 'foo\n');
+    });
+  });
+
+  describe('expandBlobToFile(absFilePath, sha)', () => {
+    it('restores blob contents for sha to specified file path', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const absFilePath = path.join(workingDirPath, 'a.txt');
+      fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+      const sha = await git.createBlob({filePath: 'a.txt'});
+      fs.writeFileSync(absFilePath, 'modifications', 'utf8');
+      await git.expandBlobToFile(absFilePath, sha);
+      assert.equal(fs.readFileSync(absFilePath), 'qux\nfoo\nbar\n');
+    });
+  });
+
+  describe('getBlobContents(sha)', () => {
+    it('returns blob contents for sha', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
+      const contents = await git.getBlobContents(sha);
+      assert.equal(contents, 'foo\nbar\nbaz\n');
     });
   });
 });

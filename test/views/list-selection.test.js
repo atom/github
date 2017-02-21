@@ -20,4 +20,16 @@ describe('ListSelection', function() {
       assertEqualSets(selection.getSelectedItems(), new Set(['a', 'b', 'c']));
     });
   });
+
+  describe('selectItem', () => {
+    // https://github.com/atom/github/issues/467
+    it('selects an item when there are no selections', () => {
+      const selection = new ListSelection({items: ['a', 'b', 'c']});
+      selection.addOrSubtractSelection('a');
+      selection.coalesce();
+      assert.equal(selection.getSelectedItems().size, 0);
+      selection.selectItem('a', true);
+      assert.equal(selection.getSelectedItems().size, 1);
+    });
+  });
 });
