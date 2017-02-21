@@ -438,7 +438,9 @@ describe('GitController', function() {
         editor.setText('modify contents');
         await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
         assert.isFalse(repository.applyPatchToWorkdir.called);
-        assert.deepEqual(notificationManager.addError.args[0], ['Cannot discard lines.', {description: `You have unsaved changes in ${state.filePath}.`}]);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Cannot discard lines.');
+        assert.match(notificationArgs[1].description, /You have unsaved changes in/);
       });
     });
 
