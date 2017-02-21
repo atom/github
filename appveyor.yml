@@ -37,5 +37,19 @@ on_failure:
         % { 7z a images.zip $_.FullName }
       Push-AppveyorArtifact images.zip
 
+  - ps: |-
+      $env:Path += ";C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x64\;"
+      $SymPath = "C:\build\symbols;SRV*c:\symbols*http://msdl.microsoft.com/download/symbols"
+
+      New-Item -Path C:\ -Name build -ItemType directory
+      New-Item -Path C:\build\ -Name symbols -ItemType directory
+      Get-ChildItem -Path ".\*.pdb" -Recurse | `
+        % { Copy-Item $_.FullName -Destination C:\build\symbols }
+
+      $Minidumps = Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp" -Recurse
+      foreach ($Minidump in $Minidumps) {
+        cdb -y $SymPath -z $Minidump -c '~*kn100;!analyze -v;q'
+      }
+
 test: off
 deploy: off
