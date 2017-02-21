@@ -74,6 +74,8 @@ describe('ModelObserver', function() {
     observer.setActiveModel(null);
     assert.isNull(observer.getActiveModel());
     assert.isNull(observer.getActiveModelData());
+    assert.equal(didUpdateStub.callCount, 5);
+    assert.isTrue(didUpdateStub.getCall(4).calledWith(null));
   });
 
   it('fetches data asynchronously when the model is updated', async function() {
@@ -131,7 +133,7 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
   });
 
-  it('enqueues a at most one pending fetch', async function() {
+  it('enqueues at most one pending fetch', async function() {
     observer.setActiveModel(model1);
     await observer.lastFetchDataPromise;
     assert.equal(model1.fetchA.callCount, 1);
@@ -185,10 +187,20 @@ describe('ModelObserver', function() {
     model1.didUpdate();
     // fetchData called immediately
     assert.equal(fetchDataStub.callCount, 1);
+    // Update again ...
+    model1.didUpdate();
+    const originalFetchPromise = observer.lastFetchDataPromise;
 
     observer.setActiveModel(model2);
     // Model changed, so we fetch new data immediately
     assert.equal(fetchDataStub.callCount, 2);
     assert.isTrue(fetchDataStub.getCall(1).calledWith(model2));
+    await originalFetchPromise;
+    // Original fetch data has been discarded as it is now stale
+    assert.isNull(observer.getActiveModelData());
+    await observer.lastFetchDataPromise;
+    // The previously pending fetch does not occur
+    assert.equal(fetchDataStub.callCount, 2);
+    assert.deepEqual(observer.getActiveModelData(), {a: 'A', b: 'B'});
   });
 });
