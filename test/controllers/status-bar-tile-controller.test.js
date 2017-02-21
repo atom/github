@@ -235,9 +235,9 @@ describe('StatusBarTileController', function() {
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
 
-        assert.isFalse(pullButton.disabled);
-        assert.isFalse(fetchButton.disabled);
-        assert.equal(message.textContent, '');
+        await assert.async.isFalse(pullButton.disabled);
+        await assert.async.isFalse(fetchButton.disabled);
+        await assert.async.equal(message.textContent, '');
       });
 
       it('displays an error message if push fails and allows force pushing if meta key is pressed', async function() {
@@ -262,8 +262,8 @@ describe('StatusBarTileController', function() {
 
         await assert.async.isTrue(notificationManager.addError.called);
         const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Push rejected');
-        assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
+        await assert.async.equal(notificationArgs[0], 'Push rejected');
+        await assert.async.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         repository.refresh();
