@@ -10,6 +10,7 @@ atom-text-editor {
   .github-ConflictBlock {
     display: flex;
     align-items: center;
+    margin-right: @component-padding;
     padding: @component-padding / 2;
     cursor: default;
     color: fade(@syntax-text-color, 75%);
@@ -31,23 +32,36 @@ atom-text-editor {
     font-size: .9em;
   }
 
+  .github-ConflictTopBlock {
+    margin-top: @component-padding;
+    border-top-left-radius: @component-border-radius * 2;
+    border-top-right-radius: @component-border-radius * 2;
+  }
+  .github-ConflictBottomBlock {
+    margin-bottom: @component-padding;
+    border-bottom-left-radius: @component-border-radius * 2;
+    border-bottom-right-radius: @component-border-radius * 2;
+  }
+
 
   // Color variations -------------------------
 
   .generate-conflicts(@name, @color) {
     .github-Conflict@{name} {
+      margin-right: @component-padding;
       background-color: @color;
       &.cursor-line { background-color: fadein(@color, 10%) !important; }
     }
 
     .github-Conflict@{name}Banner {
+      margin-right: @component-padding;
       background-color: @color;
       &.cursor-line { background-color: fadein(@color, 10%) !important; }
       &.github-ConflictUnmodifiedBanner span { color: fade(@color, 66%) !important; };
     }
 
     .github-Conflict@{name}Block {
-      background-color: @color;
+      background-color: fadein(@color, 20%);
     }
   }
 
