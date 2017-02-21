@@ -1,8 +1,11 @@
+import path from 'path';
 import StagingView from '../../lib/views/staging-view';
+import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
+  const workingDirectoryPath = '/not/real/';
   let atomEnv, commandRegistry;
 
   beforeEach(function() {
@@ -20,7 +23,12 @@ describe('StagingView', function() {
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: []});
+      const view = new StagingView({
+        commandRegistry,
+        workingDirectoryPath,
+        unstagedChanges: filePatches,
+        stagedChanges: [],
+      });
       const {refs} = view;
       function textContentOfChildren(element) {
         return Array.from(element.children).map(child => child.textContent);
@@ -41,7 +49,13 @@ describe('StagingView', function() {
           {filePath: 'b.txt', status: 'deleted'},
         ];
         const attemptFileStageOperation = sinon.spy();
-        const view = new StagingView({commandRegistry, unstagedChanges: filePatches, stagedChanges: [], attemptFileStageOperation});
+        const view = new StagingView({
+          commandRegistry,
+          workingDirectoryPath,
+          unstagedChanges: filePatches,
+          stagedChanges: [],
+          attemptFileStageOperation,
+        });
 
         view.mousedownOnItem({button: 0}, filePatches[1]);
         view.mouseup();
@@ -60,7 +74,12 @@ describe('StagingView', function() {
 
   describe('merge conflicts list', function() {
     it('is visible only when conflicted paths are passed', async function() {
-      const view = new StagingView({commandRegistry, unstagedChanges: [], stagedChanges: []});
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+      });
 
       assert.isUndefined(view.refs.mergeConflicts);
 
@@ -74,6 +93,154 @@ describe('StagingView', function() {
       }];
       await view.update({unstagedChanges: [], mergeConflicts, stagedChanges: []});
       assert.isDefined(view.refs.mergeConflicts);
+    });
+
+    it('shows "calculating" while calculating the number of conflicts', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {});
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        resolutionProgress,
+      });
+      const mergeConflictsElement = view.refs.mergeConflicts;
+
+      const remainingElements = mergeConflictsElement.getElementsByClassName('github-RemainingConflicts');
+      assert.lengthOf(remainingElements, 1);
+      const remainingElement = remainingElements[0];
+      assert.equal(remainingElement.innerHTML, 'calculating');
+    });
+
+    it('shows the number of remaining conflicts', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        resolutionProgress,
+      });
+      const mergeConflictsElement = view.refs.mergeConflicts;
+
+      const remainingElements = mergeConflictsElement.getElementsByClassName('github-RemainingConflicts');
+      assert.lengthOf(remainingElements, 1);
+      const remainingElement = remainingElements[0];
+      assert.equal(remainingElement.innerHTML, '10 conflicts remaining');
+    });
+
+    it('shows a checkmark when there are no remaining conflicts', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        resolutionProgress,
+      });
+      const mergeConflictsElement = view.refs.mergeConflicts;
+
+      assert.lengthOf(mergeConflictsElement.getElementsByClassName('icon-check'), 1);
+    });
+
+    it('disables the "stage all" button while there are unresolved conflicts', function() {
+      const mergeConflicts = [
+        {
+          filePath: 'conflicted-path-0.txt',
+          status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+        },
+        {
+          filePath: 'conflicted-path-1.txt',
+          status: {file: 'modified', ours: 'modified', theirs: 'modified'},
+        },
+      ];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path-0.txt')]: 2,
+          [path.join(workingDirectoryPath, 'conflicted-path-1.txt')]: 0,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        isMerging: true,
+        resolutionProgress,
+      });
+
+      const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
+      const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
+      assert.lengthOf(conflictButtons, 1);
+      const stageAllButton = Array.from(conflictButtons).find(element => element.innerHTML === 'Stage All');
+      assert.isDefined(stageAllButton);
+      assert.isTrue(stageAllButton.hasAttribute('disabled'));
+    });
+
+    it('enables the "stage all" button when all conflicts are resolved', function() {
+      const mergeConflicts = [{
+        filePath: 'conflicted-path',
+        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+      }];
+
+      const resolutionProgress = new ResolutionProgress('abcd1234', {
+        revision: 'abcd1234',
+        paths: {
+          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
+        },
+      });
+
+      const view = new StagingView({
+        workingDirectoryPath,
+        commandRegistry,
+        unstagedChanges: [],
+        stagedChanges: [],
+        mergeConflicts,
+        isMerging: true,
+        resolutionProgress,
+      });
+
+      const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
+      const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
+      assert.lengthOf(conflictButtons, 1);
+      const stageAllButton = Array.from(conflictButtons).find(element => element.innerHTML === 'Stage All');
+      assert.isDefined(stageAllButton);
+      assert.isFalse(stageAllButton.hasAttribute('disabled'));
     });
   });
 
@@ -101,7 +268,8 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
+          workingDirectoryPath, commandRegistry,
+          didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -147,7 +315,8 @@ describe('StagingView', function() {
         const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          commandRegistry, didSelectFilePath, didSelectMergeConflictFile,
+          workingDirectoryPath, commandRegistry,
+          didSelectFilePath, didSelectMergeConflictFile,
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
@@ -181,7 +350,10 @@ describe('StagingView', function() {
         {filePath: 'e.txt', status: 'modified'},
         {filePath: 'f.txt', status: 'modified'},
       ];
-      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+      const view = new StagingView({
+        workingDirectoryPath, commandRegistry,
+        unstagedChanges, stagedChanges: [],
+      });
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
@@ -213,7 +385,10 @@ describe('StagingView', function() {
         {filePath: 'c.txt', status: 'modified'},
       ];
       const didSelectFilePath = sinon.stub();
-      const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
+      const view = new StagingView({
+        workingDirectoryPath, commandRegistry, didSelectFilePath,
+        unstagedChanges, stagedChanges: [],
+      });
       view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
@@ -243,7 +418,10 @@ describe('StagingView', function() {
         {filePath: 'staged-1.txt', status: 'staged'},
         {filePath: 'staged-2.txt', status: 'staged'},
       ];
-      view = new StagingView({commandRegistry, unstagedChanges, stagedChanges, mergeConflicts});
+      view = new StagingView({
+        workingDirectoryPath, commandRegistry,
+        unstagedChanges, stagedChanges, mergeConflicts,
+      });
     });
 
     const assertSelected = expected => {
@@ -302,7 +480,8 @@ describe('StagingView', function() {
       didDiveIntoMergeConflictPath = sinon.spy();
 
       view = new StagingView({
-        commandRegistry, didDiveIntoFilePath, didDiveIntoMergeConflictPath,
+        commandRegistry, workingDirectoryPath,
+        didDiveIntoFilePath, didDiveIntoMergeConflictPath,
         unstagedChanges, stagedChanges: [], mergeConflicts,
       });
     });
@@ -351,7 +530,9 @@ describe('StagingView', function() {
       {filePath: 'b.txt', status: 'modified'},
       {filePath: 'c.txt', status: 'modified'},
     ];
-    const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: []});
+    const view = new StagingView({
+      workingDirectoryPath, commandRegistry, unstagedChanges, stagedChanges: [],
+    });
     view.isFocused = sinon.stub().returns(true);
 
     document.body.appendChild(view.element);
