@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import etch from 'etch';
+import until from 'test-until';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
@@ -232,10 +233,12 @@ describe('StatusBarTileController', function() {
         assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
 
         pushButton.dispatchEvent(new MouseEvent('click'));
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
 
-        assert.isFalse(pullButton.disabled);
+        await until(async () => {
+          repository.refresh();
+          await controller.getLastModelDataRefreshPromise();
+          return pullButton.disabled === false;
+        });
         assert.isFalse(fetchButton.disabled);
         assert.equal(message.textContent, '');
       });
