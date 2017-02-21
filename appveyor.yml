@@ -24,5 +24,18 @@ install:
 build_script:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
 
+on_failure:
+  - ps: |-
+      Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp" -Recurse | `
+        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
+      Get-ChildItem -Path ".\*.pdb" -Recurse | `
+        % { 7z a symbols.zip $_.FullName }
+      Push-AppveyorArtifact symbols.zip
+
+      Get-ChildItem -Path ".\*.node" -Recurse | `
+        % { 7z a images.zip $_.FullName }
+      Push-AppveyorArtifact images.zip
+
 test: off
 deploy: off
