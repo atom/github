@@ -265,8 +265,8 @@ describe('StatusBarTileController', function() {
 
         await assert.async.isTrue(notificationManager.addError.called);
         const notificationArgs = notificationManager.addError.args[0];
-        await assert.async.equal(notificationArgs[0], 'Push rejected');
-        await assert.async.match(notificationArgs[1].description, /Try pulling before pushing again/);
+        assert.equal(notificationArgs[0], 'Push rejected');
+        assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
         pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
         repository.refresh();
