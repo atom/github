@@ -586,7 +586,7 @@ describe('GitController', function() {
       });
 
       describe('when partial option is false', () => {
-        let unstagedFilePatch, repository, wrapper, pathA, pathB, pathC;
+        let repository, wrapper, pathA, pathB, pathC;
         beforeEach(async () => {
           const workdirPath = await cloneRepository('three-files');
           repository = await buildRepository(workdirPath);
