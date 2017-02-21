@@ -49,7 +49,7 @@ describe('EditorConflictController', function() {
     beforeEach(async function() {
       await useFixture('triple-2way-diff.txt');
 
-      conflicts = wrapper.state('conflicts');
+      conflicts = Array.from(wrapper.state('conflicts'));
     });
 
     it('creates a Conflict from each conflict marker', function() {
@@ -271,7 +271,7 @@ describe('EditorConflictController', function() {
 
     beforeEach(async function() {
       await useFixture('single-3way-diff.txt');
-      conflicts = wrapper.state('conflicts');
+      conflicts = Array.from(wrapper.state('conflicts'));
       conflict = conflicts[0];
     });
 
