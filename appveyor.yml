@@ -35,7 +35,7 @@ on_failure:
 
       Get-ChildItem -Path ".\*.node" -Recurse | `
         % { 7z a images.zip $_.FullName }
-      Push-AppveyorArtifact $_.FullName
+      Push-AppveyorArtifact images.zip
 
 test: off
 deploy: off
