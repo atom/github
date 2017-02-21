@@ -12,12 +12,10 @@ class Model {
   }
 
   fetchA() {
-    this.fetchACallCount++;
     return new Promise(res => res(this.a));
   }
 
   fetchB() {
-    this.fetchBCallCount++;
     return new Promise(res => res(this.b));
   }
 
