@@ -206,7 +206,7 @@ describe('StagingView', function() {
 
       const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
       const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
-      assert.lengthOf(conflictButtons, 2);
+      assert.lengthOf(conflictButtons, 1);
       const stageAllButton = Array.from(conflictButtons).find(element => element.innerHTML === 'Stage All');
       assert.isDefined(stageAllButton);
       assert.isTrue(stageAllButton.hasAttribute('disabled'));
@@ -237,7 +237,7 @@ describe('StagingView', function() {
 
       const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
       const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
-      assert.lengthOf(conflictButtons, 2);
+      assert.lengthOf(conflictButtons, 1);
       const stageAllButton = Array.from(conflictButtons).find(element => element.innerHTML === 'Stage All');
       assert.isDefined(stageAllButton);
       assert.isFalse(stageAllButton.hasAttribute('disabled'));
