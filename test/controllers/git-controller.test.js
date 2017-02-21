@@ -445,143 +445,337 @@ describe('GitController', function() {
     });
 
     describe('undoLastDiscard({partial, filePath})', () => {
-      let unstagedFilePatch, repository, absFilePath, wrapper;
-      beforeEach(async () => {
-        const workdirPath = await cloneRepository('multi-line-file');
-        repository = await buildRepository(workdirPath);
+      describe('when partial option is true', () => {
+        let unstagedFilePatch, repository, absFilePath, wrapper;
+        beforeEach(async () => {
+          const workdirPath = await cloneRepository('multi-line-file');
+          repository = await buildRepository(workdirPath);
 
-        absFilePath = path.join(workdirPath, 'sample.js');
-        fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
-        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          absFilePath = path.join(workdirPath, 'sample.js');
+          fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
+          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
 
-        app = React.cloneElement(app, {repository});
-        wrapper = shallow(app);
-        wrapper.setState({
-          filePath: 'sample.js',
-          filePatch: unstagedFilePatch,
-          stagingStatus: 'unstaged',
+          app = React.cloneElement(app, {repository});
+          wrapper = shallow(app);
+          wrapper.setState({
+            filePath: 'sample.js',
+            filePatch: unstagedFilePatch,
+            stagingStatus: 'unstaged',
+          });
         });
-      });
 
-      it('reverses last discard for file path', async () => {
-        const contents1 = fs.readFileSync(absFilePath, 'utf8');
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        const contents2 = fs.readFileSync(absFilePath, 'utf8');
-        assert.notEqual(contents1, contents2);
-        await repository.refresh();
-        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-        wrapper.setState({filePatch: unstagedFilePatch});
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
-        const contents3 = fs.readFileSync(absFilePath, 'utf8');
-        assert.notEqual(contents2, contents3);
+        it('reverses last discard for file path', async () => {
+          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+          await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          const contents2 = fs.readFileSync(absFilePath, 'utf8');
+          assert.notEqual(contents1, contents2);
+          await repository.refresh();
+          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          wrapper.setState({filePatch: unstagedFilePatch});
+          await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+          const contents3 = fs.readFileSync(absFilePath, 'utf8');
+          assert.notEqual(contents2, contents3);
 
-        await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-        await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
-        await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-        await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
-      });
+          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
+          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
+        });
 
-      it('does not undo if buffer is modified', async () => {
-        const contents1 = fs.readFileSync(absFilePath, 'utf8');
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        const contents2 = fs.readFileSync(absFilePath, 'utf8');
-        assert.notEqual(contents1, contents2);
-
-        // modify buffer
-        const editor = await workspace.open(absFilePath);
-        editor.getBuffer().append('new line');
-
-        const expandBlobToFile = sinon.spy(repository, 'expandBlobToFile');
-        sinon.stub(notificationManager, 'addError');
-
-        await repository.refresh();
-        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-        wrapper.setState({filePatch: unstagedFilePatch});
-        await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-        const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Cannot undo last discard.');
-        assert.match(notificationArgs[1].description, /You have unsaved changes./);
-        assert.isFalse(expandBlobToFile.called);
-      });
-
-      describe('when file content has changed since last discard', () => {
-        it('successfully undoes discard if changes do not conflict', async () => {
+        it('does not undo if buffer is modified', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
           await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
-          // change file contents on disk in non-conflicting way
-          const change = '\nchange file contents';
-          fs.writeFileSync(absFilePath, contents2 + change);
+          // modify buffer
+          const editor = await workspace.open(absFilePath);
+          editor.getBuffer().append('new line');
+
+          const expandBlobToFile = sinon.spy(repository, 'expandBlobToFile');
+          sinon.stub(notificationManager, 'addError');
 
           await repository.refresh();
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-
-          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Cannot undo last discard.');
+          assert.match(notificationArgs[1].description, /You have unsaved changes./);
+          assert.isFalse(expandBlobToFile.called);
         });
 
-        it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
-          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+        describe('when file content has changed since last discard', () => {
+          it('successfully undoes discard if changes do not conflict', async () => {
+            const contents1 = fs.readFileSync(absFilePath, 'utf8');
+            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            const contents2 = fs.readFileSync(absFilePath, 'utf8');
+            assert.notEqual(contents1, contents2);
+
+            // change file contents on disk in non-conflicting way
+            const change = '\nchange file contents';
+            fs.writeFileSync(absFilePath, contents2 + change);
+
+            await repository.refresh();
+            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+            wrapper.setState({filePatch: unstagedFilePatch});
+            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+
+            await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
+          });
+
+          it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+            const contents1 = fs.readFileSync(absFilePath, 'utf8');
+            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            const contents2 = fs.readFileSync(absFilePath, 'utf8');
+            assert.notEqual(contents1, contents2);
+
+            // change file contents on disk in a conflicting way
+            const change = '\nchange file contents';
+            fs.writeFileSync(absFilePath, change + contents2);
+
+            await repository.refresh();
+            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+            wrapper.setState({filePatch: unstagedFilePatch});
+
+            // click 'Cancel'
+            confirm.returns(2);
+            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            assert.equal(confirm.callCount, 1);
+            const confirmArg = confirm.args[0][0];
+            assert.match(confirmArg.message, /Undoing will result in conflicts/);
+            await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
+
+            // click 'Open in new buffer'
+            confirm.returns(1);
+            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            assert.equal(confirm.callCount, 2);
+            const activeEditor = workspace.getActiveTextEditor();
+            assert.match(activeEditor.getFileName(), /sample.js-/);
+            assert.isTrue(activeEditor.getText().includes('<<<<<<<'));
+            assert.isTrue(activeEditor.getText().includes('>>>>>>>'));
+
+            // click 'Proceed and resolve conflicts'
+            confirm.returns(0);
+            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            assert.equal(confirm.callCount, 3);
+            await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
+            await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
+          });
+        });
+
+        it('clears the discard history if the last blob is no longer valid', async () => {
+          // this would occur in the case of garbage collection cleaning out the blob
           await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-          const contents2 = fs.readFileSync(absFilePath, 'utf8');
-          assert.notEqual(contents1, contents2);
-
-          // change file contents on disk in a conflicting way
-          const change = '\nchange file contents';
-          fs.writeFileSync(absFilePath, change + contents2);
-
           await repository.refresh();
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
+          const {beforeSha} = await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
 
-          // click 'Cancel'
-          confirm.returns(2);
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-          assert.equal(confirm.callCount, 1);
-          const confirmArg = confirm.args[0][0];
-          assert.match(confirmArg.message, /Undoing will result in conflicts/);
-          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
+          // remove blob from git object store
+          fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
-          // click 'Open in new buffer'
-          confirm.returns(1);
+          sinon.stub(notificationManager, 'addError');
+          assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 2);
           await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-          assert.equal(confirm.callCount, 2);
-          const activeEditor = workspace.getActiveTextEditor();
-          assert.match(activeEditor.getFileName(), /sample.js-/);
-          assert.isTrue(activeEditor.getText().includes('<<<<<<<'));
-          assert.isTrue(activeEditor.getText().includes('>>>>>>>'));
-
-          // click 'Proceed and resolve conflicts'
-          confirm.returns(0);
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-          assert.equal(confirm.callCount, 3);
-          await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
-          await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Discard history has expired.');
+          assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
+          assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 0);
         });
       });
 
-      it('clears the discard history if the last blob is no longer valid', async () => {
-        // this would occur in the case of garbage collection cleaning out the blob
-        await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
-        await repository.refresh();
-        unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-        wrapper.setState({filePatch: unstagedFilePatch});
-        const {beforeSha} = await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+      describe('when partial option is false', () => {
+        let unstagedFilePatch, repository, wrapper, pathA, pathB, pathC;
+        beforeEach(async () => {
+          const workdirPath = await cloneRepository('three-files');
+          repository = await buildRepository(workdirPath);
 
-        // remove blob from git object store
-        fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
+          pathA = path.join(workdirPath, 'a.txt');
+          pathB = path.join(workdirPath, 'b.txt');
+          pathC = path.join(workdirPath, 'c.txt');
+          fs.writeFileSync(pathA, [1, 2, 3, 4, 5, 6, 7, 8, 9].join('\n'));
+          fs.writeFileSync(pathB, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].join('\n'));
+          fs.writeFileSync(pathC, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].join('\n'));
 
-        sinon.stub(notificationManager, 'addError');
-        assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 2);
-        await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
-        const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Discard history has expired.');
-        assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
-        assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 0);
+          app = React.cloneElement(app, {repository});
+          wrapper = shallow(app);
+        });
+
+        it('reverses last discard', async () => {
+          const contents1 = {
+            pathA: fs.readFileSync(pathA, 'utf8'),
+            pathB: fs.readFileSync(pathB, 'utf8'),
+            pathC: fs.readFileSync(pathC, 'utf8'),
+          };
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
+          const contents2 = {
+            pathA: fs.readFileSync(pathA, 'utf8'),
+            pathB: fs.readFileSync(pathB, 'utf8'),
+            pathC: fs.readFileSync(pathC, 'utf8'),
+          };
+          assert.notDeepEqual(contents1, contents2);
+
+          await wrapper.instance().discardWorkDirChangesForPaths(['c.txt']);
+          const contents3 = {
+            pathA: fs.readFileSync(pathA, 'utf8'),
+            pathB: fs.readFileSync(pathB, 'utf8'),
+            pathC: fs.readFileSync(pathC, 'utf8'),
+          };
+          assert.notDeepEqual(contents2, contents3);
+
+          await wrapper.instance().undoLastDiscard();
+          await assert.async.deepEqual({
+            pathA: fs.readFileSync(pathA, 'utf8'),
+            pathB: fs.readFileSync(pathB, 'utf8'),
+            pathC: fs.readFileSync(pathC, 'utf8'),
+          }, contents2);
+          await wrapper.instance().undoLastDiscard();
+          await assert.async.deepEqual({
+            pathA: fs.readFileSync(pathA, 'utf8'),
+            pathB: fs.readFileSync(pathB, 'utf8'),
+            pathC: fs.readFileSync(pathC, 'utf8'),
+          }, contents1);
+        });
+
+        it('does not undo if buffer is modified', async () => {
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+
+          // modify buffers
+          (await workspace.open(pathA)).getBuffer().append('stuff');
+          (await workspace.open(pathB)).getBuffer().append('other stuff');
+
+          const expandBlobToFile = sinon.spy(repository, 'expandBlobToFile');
+          sinon.stub(notificationManager, 'addError');
+
+          await wrapper.instance().undoLastDiscard();
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Cannot undo last discard.');
+          assert.match(notificationArgs[1].description, /You have unsaved changes./);
+          assert.match(notificationArgs[1].description, /a.txt/);
+          assert.match(notificationArgs[1].description, /b.txt/);
+          assert.notMatch(notificationArgs[1].description, /c.txt/);
+          assert.isFalse(expandBlobToFile.called);
+        });
+
+        describe('when file content has changed since last discard', () => {
+          it('successfully undoes discard if changes do not conflict', async () => {
+            await repository.git.exec(['commit', '-am', 'commit files lengthy enough that changes don\'t conflict']);
+
+            const originalContents = {
+              pathA: fs.readFileSync(pathA, 'utf8'),
+              pathB: fs.readFileSync(pathB, 'utf8'),
+              pathC: fs.readFileSync(pathC, 'utf8'),
+            };
+
+            // add change to beginning of files
+            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
+            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
+            fs.writeFileSync(pathC, 'change at beginning\n' + fs.readFileSync(pathC, 'utf8'));
+
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+
+            // change file contents on disk in non-conflicting way
+            fs.writeFileSync(pathA, fs.readFileSync(pathA, 'utf8') + 'change at end');
+            fs.writeFileSync(pathB, fs.readFileSync(pathB, 'utf8') + 'change at end');
+            fs.writeFileSync(pathC, fs.readFileSync(pathC, 'utf8') + 'change at end');
+
+            await wrapper.instance().undoLastDiscard();
+
+            await assert.async.deepEqual({
+              pathA: fs.readFileSync(pathA, 'utf8'),
+              pathB: fs.readFileSync(pathB, 'utf8'),
+              pathC: fs.readFileSync(pathC, 'utf8'),
+            }, {
+              pathA: 'change at beginning\n' + originalContents.pathA + 'change at end',
+              pathB: 'change at beginning\n' + originalContents.pathB + 'change at end',
+              pathC: 'change at beginning\n' + originalContents.pathC + 'change at end',
+            });
+          });
+
+          it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+            await repository.git.exec(['commit', '-am', 'commit files lengthy enough that changes don\'t conflict']);
+
+            // add change to beginning of files
+            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
+            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
+            fs.writeFileSync(pathC, 'change at beginning\n' + fs.readFileSync(pathC, 'utf8'));
+
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+
+            // two files are changed in a conflicting way
+            fs.writeFileSync(pathA, 'conflicting change\n' + fs.readFileSync(pathA, 'utf8'));
+            fs.writeFileSync(pathB, 'conflicting change\n' + fs.readFileSync(pathB, 'utf8'));
+            fs.writeFileSync(pathC, fs.readFileSync(pathC, 'utf8') + 'change at end');
+
+            const contentsAfterConflictingChange = {
+              pathA: fs.readFileSync(pathA, 'utf8'),
+              pathB: fs.readFileSync(pathB, 'utf8'),
+              pathC: fs.readFileSync(pathC, 'utf8'),
+            };
+
+            // click 'Cancel'
+            confirm.returns(2);
+            await wrapper.instance().undoLastDiscard();
+            assert.equal(confirm.callCount, 1);
+            const confirmArg = confirm.args[0][0];
+            assert.match(confirmArg.message, /Undoing will result in conflicts/);
+            await assert.async.deepEqual({
+              pathA: fs.readFileSync(pathA, 'utf8'),
+              pathB: fs.readFileSync(pathB, 'utf8'),
+              pathC: fs.readFileSync(pathC, 'utf8'),
+            }, contentsAfterConflictingChange);
+
+            // click 'Open in new editors'
+            confirm.returns(1);
+            await wrapper.instance().undoLastDiscard();
+            assert.equal(confirm.callCount, 2);
+            const editors = workspace.getTextEditors();
+            assert.equal(editors.length, 2);
+            assert.match(editors[0].getFileName(), /a.txt-/);
+            assert.isTrue(editors[0].getText().includes('<<<<<<<'));
+            assert.isTrue(editors[0].getText().includes('>>>>>>>'));
+            assert.match(editors[1].getFileName(), /b.txt-/);
+            assert.isTrue(editors[1].getText().includes('<<<<<<<'));
+            assert.isTrue(editors[1].getText().includes('>>>>>>>'));
+
+            // click 'Proceed and resolve conflicts'
+            confirm.returns(0);
+            await wrapper.instance().undoLastDiscard();
+            assert.equal(confirm.callCount, 3);
+            const contentsAfterUndo = {
+              pathA: fs.readFileSync(pathA, 'utf8'),
+              pathB: fs.readFileSync(pathB, 'utf8'),
+              pathC: fs.readFileSync(pathC, 'utf8'),
+            };
+            await assert.async.isTrue(contentsAfterUndo.pathA.includes('<<<<<<<'));
+            await assert.async.isTrue(contentsAfterUndo.pathA.includes('>>>>>>>'));
+            await assert.async.isTrue(contentsAfterUndo.pathB.includes('<<<<<<<'));
+            await assert.async.isTrue(contentsAfterUndo.pathB.includes('>>>>>>>'));
+            await assert.async.isFalse(contentsAfterUndo.pathC.includes('<<<<<<<'));
+            await assert.async.isFalse(contentsAfterUndo.pathC.includes('>>>>>>>'));
+          });
+        });
+
+        it('clears the discard history if the last blob is no longer valid', async () => {
+          // this would occur in the case of garbage collection cleaning out the blob
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
+          const snapshots = await wrapper.instance().discardWorkDirChangesForPaths(['c.txt']);
+          const {beforeSha} = snapshots['c.txt'];
+
+          // remove blob from git object store
+          fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
+
+          sinon.stub(notificationManager, 'addError');
+          assert.equal(repository.getFileDiscardUndoHistory().length, 2);
+          await wrapper.instance().undoLastDiscard();
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Discard history has expired.');
+          assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
+          assert.equal(repository.getFileDiscardUndoHistory().length, 0);
+        });
       });
     });
+
   });
 });
