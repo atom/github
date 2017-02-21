@@ -1,11 +1,13 @@
 @import "variables";
 
+@conflict-color-ours:     @ui-site-color-1;
+@conflict-color-theirs:   @ui-site-color-2;
+@conflict-color-base:     @ui-site-color-3;
+@conflict-color-modified: @ui-site-color-5; // TODO: Replace ui-site-color since it's unpredictable
+@conflict-color-resolved: @ui-site-color-4;
+
+
 atom-text-editor {
-  .github-ConflictSeparator {
-    span {
-      color: @syntax-invisible-character-color !important;
-    }
-  }
 
   .github-ConflictBlock {
     display: flex;
@@ -73,15 +75,26 @@ atom-text-editor {
     }
   }
 
-  .generate-conflicts(Ours,     fade(@ui-site-color-1, 15%) );
-  .generate-conflicts(Theirs,   fade(@ui-site-color-2, 15%) );
-  .generate-conflicts(Base,     fade(@ui-site-color-3, 15%) );
-  .generate-conflicts(Modified, fade(@ui-site-color-5, 30%) ); // TODO: Replace ui-site-color since it's unpredictable
+  .generate-conflicts(Ours,      fade(@conflict-color-ours, 15%) );
+  .generate-conflicts(Theirs,    fade(@conflict-color-theirs, 15%) );
+  .generate-conflicts(Base,      fade(@conflict-color-base, 15%) );
+  .generate-conflicts(Modified,  fade(@conflict-color-modified, 30%) );
 
+
+  // Separator -------------------------
+  // Uses same color as base
+
+  .github-ConflictSeparator {
+    margin-right: @component-padding;
+    background-color: fade(@conflict-color-base, 15%);
+    &.cursor-line { background-color: fade(@conflict-color-base, 25%) !important; }
+    span { color: fade(@conflict-color-base, 66%) !important; };
+  }
 
   // Resolved -------------------------
 
   .github-ResolvedLines {
-    background-color: @background-color-highlight;
+    background-color: fade(@conflict-color-resolved, 15%);
+    &.cursor-line { background-color: fade(@conflict-color-resolved, 25%) !important; }
   }
 }
