@@ -174,27 +174,6 @@ describe('StagingView', function() {
       assert.lengthOf(mergeConflictsElement.getElementsByClassName('icon-check'), 1);
     });
 
-    it('shows an "abort merge" button', function() {
-      const mergeConflicts = [{
-        filePath: 'conflicted-path',
-        status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
-      }];
-
-      const view = new StagingView({
-        workingDirectoryPath,
-        commandRegistry,
-        unstagedChanges: [],
-        stagedChanges: [],
-        mergeConflicts,
-        isMerging: true,
-        resolutionProgress: ResolutionProgress.empty(),
-      });
-
-      const conflictHeader = view.element.getElementsByClassName('github-MergeConflictPaths')[0];
-      const conflictButtons = conflictHeader.getElementsByClassName('github-StagingView-headerButton');
-      assert.isTrue(Array.from(conflictButtons).some(element => element.innerHTML === 'Abort Merge'));
-    });
-
     it('disables the "stage all" button while there are unresolved conflicts', function() {
       const mergeConflicts = [
         {
