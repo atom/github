@@ -1,3 +1,5 @@
+import fs from 'fs-extra';
+import temp from 'temp';
 import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
@@ -7,14 +9,38 @@ import {OURS, BASE, THEIRS} from '../../lib/models/conflicts/source';
 import EditorConflictController from '../../lib/controllers/editor-conflict-controller';
 import ConflictController from '../../lib/controllers/conflict-controller';
 
+const onlyTwoMarkers = `This is some text before the marking.
+
+More text.
+
+<<<<<<< HEAD
+My changes
+Multi-line even
+=======
+Your changes
+>>>>>>> other-branch
+
+In between.
+
+<<<<<<< HEAD
+More of my changes
+=======
+More of your changes
+>>>>>>> other-branch
+
+Stuff at the very end.`;
+
 describe('EditorConflictController', function() {
-  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView, resolutionProgress;
+  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView;
+  let resolutionProgress, refreshResolutionProgress;
+  let fixtureFile;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
 
+    refreshResolutionProgress = sinon.spy();
     resolutionProgress = ResolutionProgress.empty();
   });
 
@@ -23,8 +49,13 @@ describe('EditorConflictController', function() {
   });
 
   const useFixture = async function(fixtureName) {
-    editor = await workspace.open(path.join(
-      path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName));
+    const fixturePath = path.join(
+      path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName);
+    const tempDir = temp.mkdirSync('conflict-fixture-');
+    fixtureFile = path.join(tempDir, fixtureName);
+    fs.copySync(fixturePath, fixtureFile);
+
+    editor = await workspace.open(fixtureFile);
     editorView = atomEnv.views.getView(editor);
 
     app = (
@@ -33,6 +64,7 @@ describe('EditorConflictController', function() {
         commandRegistry={commandRegistry}
         editor={editor}
         resolutionProgress={resolutionProgress}
+        refreshResolutionProgress={refreshResolutionProgress}
         isRebase={false}
       />
     );
@@ -263,6 +295,23 @@ describe('EditorConflictController', function() {
         '\nText in between 1 and 2.');
       assert.lengthOf(wrapper.find(ConflictController), 2);
       assert.isFalse(wrapper.find(ConflictController).someWhere(cc => cc.prop('conflict') === dismissedConflict));
+    });
+
+    it('refreshes conflict markers on buffer reload', async function() {
+      fs.writeFileSync(fixtureFile, onlyTwoMarkers);
+
+      await assert.async.equal(wrapper.state('conflicts').size, 2);
+      assert.lengthOf(wrapper.find(ConflictController), 2);
+      assert.equal(resolutionProgress.getRemaining(fixtureFile), 2);
+    });
+
+    it('triggers an offline resolution progress refresh when the editor is closed', async function() {
+      editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+
+      editor.destroy();
+
+      await assert.async.isTrue(refreshResolutionProgress.calledWith(fixtureFile));
     });
   });
 
