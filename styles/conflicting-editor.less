@@ -61,7 +61,15 @@ atom-text-editor {
     }
 
     .github-Conflict@{name}Block {
+      color: contrast(@syntax-background-color, hsla(0,0%,0%,.66), hsla(0,0%,100%,.5));
       background-color: fadein(@color, 20%);
+
+      .btn {
+        color: white;
+        border-color: hsla(0,0%,0%,.15);
+        border: none;
+        background: fade(@color, 100%);
+      }
     }
   }
 
