@@ -28,10 +28,14 @@ on_failure:
   - ps: |-
       Get-ChildItem -Path "$($env:TEMP)\Atom Crashes\*.dmp" -Recurse | `
         % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
       Get-ChildItem -Path ".\*.pdb" -Recurse | `
-        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+        % { 7z a symbols.zip $_.FullName }
+      Push-AppveyorArtifact symbols.zip
+
       Get-ChildItem -Path ".\*.node" -Recurse | `
-        % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+        % { 7z a images.zip $_.FullName }
+      Push-AppveyorArtifact $_.FullName
 
 test: off
 deploy: off
