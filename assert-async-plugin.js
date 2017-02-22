@@ -1,6 +1,6 @@
 module.exports = function({types: t, template}) {
   const generator = template(`
-    UNTIL_FUNC(fail => {
+    UNTIL_FUNC(async fail => {
       try {
         ASSERT_CALL;
         return true;

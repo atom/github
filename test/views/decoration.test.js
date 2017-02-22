@@ -24,7 +24,7 @@ describe('Decoration', () => {
         marker={marker}
         type="line"
         position="head"
-        class="something"
+        className="something"
       />
     );
     mount(app);
@@ -98,7 +98,7 @@ describe('Decoration', () => {
         editor={editor}
         marker={marker}
         type="line"
-        class="whatever"
+        className="whatever"
       />
     );
     const wrapper = mount(app);
