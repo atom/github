@@ -730,7 +730,11 @@ describe('GitController', function() {
             confirm.returns(1);
             await wrapper.instance().undoLastDiscard();
             assert.equal(confirm.callCount, 2);
-            const editors = workspace.getTextEditors();
+            const editors = workspace.getTextEditors().sort((a, b) => {
+              const pathA = a.getFileName();
+              const pathB = b.getFileName();
+              if (pathA < pathB) { return -1; } else if (pathA > pathB) { return 1; } else { return 0; }
+            });
             assert.equal(editors.length, 2);
             assert.match(editors[0].getFileName(), /a.txt-/);
             assert.isTrue(editors[0].getText().includes('<<<<<<<'));
