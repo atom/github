@@ -606,11 +606,14 @@ function forStrategy(Strategy, callback) {
           await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
           const remotes = await git.getRemotes();
           // Note: nodegit returns remote names in alphabetical order
-          assert.deepEqual(remotes, [
-          {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
-          {name: 'origin', url: 'git@github.com:other/origin.git'},
-          {name: 'upstream', url: 'git@github.com:my/upstream.git'},
-          ]);
+          assert.equal(remotes.length, 3);
+          [
+            {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
+            {name: 'origin', url: 'git@github.com:other/origin.git'},
+            {name: 'upstream', url: 'git@github.com:my/upstream.git'},
+          ].forEach(remote => {
+            assert.include(remotes, remote);
+          });
         });
 
         it('returns an empty array when no remotes are set up', async function() {
