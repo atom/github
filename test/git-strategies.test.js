@@ -650,7 +650,6 @@ function forStrategy(Strategy, callback) {
       });
 
       forCommand('gpgExec').describe('GPG signing', () => {
-        console.log('yes', Strategy);
         let git;
 
         // eslint-disable-next-line jasmine/no-global-setup
@@ -675,7 +674,7 @@ function forStrategy(Strategy, callback) {
             progressiveTense: 'pulling',
             action: () => git.pull('some-branch'),
             configureStub: stub => {
-            // Stub the `git config` call to resolve the branch's upstream.
+              // Stub the `git config` call to resolve the branch's upstream.
               stub.onCall(0).returns(Promise.resolve('origin'));
               return 1;
             },
@@ -685,7 +684,6 @@ function forStrategy(Strategy, callback) {
         operations.forEach(op => {
           it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async () => {
             // if (op !== 'pulling') { return; }
-            console.log('========================');
             const execStub = sinon.stub(git, 'exec');
             let callIndex = 0;
             if (op.configureStub) {
@@ -695,7 +693,6 @@ function forStrategy(Strategy, callback) {
 
             await op.action();
 
-            console.log(execStub, callIndex, execStub.getCall(callIndex));
             const callArgs = execStub.getCall(callIndex).args;
             const execArgs = callArgs[0];
             assert.equal(execArgs[0], '-c');
