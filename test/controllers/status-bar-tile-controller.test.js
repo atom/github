@@ -29,6 +29,7 @@ describe('StatusBarTileController', function() {
 
       const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
 
       const branchView = controller.refs.branchView;
       assert.equal(branchView.element.textContent, 'master');
@@ -54,6 +55,7 @@ describe('StatusBarTileController', function() {
 
           const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
+          await etch.getScheduler().getNextUpdatePromise();
 
           const branchMenuView = controller.branchMenuView;
           const {list} = branchMenuView.refs;
@@ -88,6 +90,7 @@ describe('StatusBarTileController', function() {
 
           const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
+          await etch.getScheduler().getNextUpdatePromise();
 
           const branchMenuView = controller.branchMenuView;
           const {list, message} = branchMenuView.refs;
@@ -112,6 +115,7 @@ describe('StatusBarTileController', function() {
 
           const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
+          await etch.getScheduler().getNextUpdatePromise();
 
           const branchMenuView = controller.branchMenuView;
           const {list, newBranchButton} = branchMenuView.refs;
@@ -132,6 +136,7 @@ describe('StatusBarTileController', function() {
           await newBranchButton.onclick();
           repository.refresh();
           await controller.getLastModelDataRefreshPromise();
+          await etch.getScheduler().getNextUpdatePromise();
 
           assert.isUndefined(branchMenuView.refs.editor);
           assert.isDefined(branchMenuView.refs.list);
@@ -148,6 +153,7 @@ describe('StatusBarTileController', function() {
 
           const controller = new StatusBarTileController({workspace, repository, commandRegistry});
           await controller.getLastModelDataRefreshPromise();
+          await etch.getScheduler().getNextUpdatePromise();
 
           const branchMenuView = controller.branchMenuView;
           const {list, newBranchButton, message} = branchMenuView.refs;
@@ -177,6 +183,7 @@ describe('StatusBarTileController', function() {
 
       const controller = new StatusBarTileController({workspace, repository, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
 
       const pushPullView = controller.refs.pushPullView;
       const {aheadCount, behindCount} = pushPullView.refs;
@@ -186,12 +193,14 @@ describe('StatusBarTileController', function() {
       await repository.git.exec(['reset', '--hard', 'head~2']);
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
       assert.equal(aheadCount.textContent, '');
       assert.equal(behindCount.textContent, '2');
 
       await repository.git.commit('new local commit', {allowEmpty: true});
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
       assert.equal(aheadCount.textContent, '1');
       assert.equal(behindCount.textContent, '2');
 
@@ -212,6 +221,7 @@ describe('StatusBarTileController', function() {
 
         const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
         const {pullButton} = pushPullMenuView.refs;
@@ -224,16 +234,19 @@ describe('StatusBarTileController', function() {
         fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'a change\n');
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
         assert.isTrue(pullButton.disabled);
 
         await repository.stageFiles(['file.txt']);
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
         assert.isTrue(pullButton.disabled);
 
         await repository.commit('commit changes');
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
         assert.isFalse(pullButton.disabled);
       });
 
@@ -244,6 +257,7 @@ describe('StatusBarTileController', function() {
 
         const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
         const {pushButton, pullButton, fetchButton, message} = pushPullMenuView.refs;
@@ -255,6 +269,7 @@ describe('StatusBarTileController', function() {
         pushButton.dispatchEvent(new MouseEvent('click'));
         repository.refresh();
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
 
         assert.isFalse(pullButton.disabled);
         assert.isFalse(fetchButton.disabled);
@@ -269,6 +284,7 @@ describe('StatusBarTileController', function() {
 
         const controller = new StatusBarTileController({workspace, repository, commandRegistry});
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
 
         const pushPullMenuView = controller.pushPullMenuView;
         const {pushButton, pullButton, message} = pushPullMenuView.refs;
@@ -278,6 +294,7 @@ describe('StatusBarTileController', function() {
 
         pushButton.dispatchEvent(new MouseEvent('click'));
         await controller.getLastModelDataRefreshPromise();
+        await etch.getScheduler().getNextUpdatePromise();
 
         await assert.async.match(message.innerHTML, /Push rejected/);
 
@@ -357,6 +374,7 @@ describe('StatusBarTileController', function() {
       const toggleGitPanel = sinon.spy();
       const controller = new StatusBarTileController({workspace, repository, toggleGitPanel, commandRegistry});
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
 
       const changedFilesCountView = controller.refs.changedFilesCountView;
 
@@ -368,6 +386,7 @@ describe('StatusBarTileController', function() {
       await repository.stageFiles(['a.txt']);
       repository.refresh();
       await controller.getLastModelDataRefreshPromise();
+      await etch.getScheduler().getNextUpdatePromise();
 
       assert.equal(changedFilesCountView.element.textContent, '2 files');
 

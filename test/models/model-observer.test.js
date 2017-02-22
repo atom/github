@@ -57,8 +57,6 @@ describe('ModelObserver', function() {
     assert.isTrue(didUpdateStub.getCall(1).calledWith(model1));
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     observer.setActiveModel(model2);
     assert.equal(observer.getActiveModel(), model2);
     assert.equal(didUpdateStub.callCount, 3);
@@ -86,8 +84,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     model1.a = 'Ayy';
     model1.b = 'Bee';
     model1.didUpdate();
@@ -107,8 +103,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     fetchDataStub.reset();
     didUpdateStub.reset();
     // Update once...
@@ -124,8 +118,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 0);
     await observer.lastFetchDataPromise;
     assert.equal(didUpdateStub.callCount, 1);
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     // second fetchData started immediatelay after previous one ends
     assert.equal(fetchDataStub.callCount, 2);
 
@@ -141,8 +133,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     fetchDataStub.reset();
     didUpdateStub.reset();
     // Update once...
@@ -160,8 +150,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 0);
     await observer.lastFetchDataPromise;
     assert.equal(didUpdateStub.callCount, 1);
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     // Second fetchData started immediatelay after previous one ends
     assert.equal(fetchDataStub.callCount, 2);
 
@@ -179,8 +167,6 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    // TODO: ModelObserver shouldn't need to `await` the didChange callback
-    await new Promise(resolve => setImmediate(resolve));
     fetchDataStub.reset();
     didUpdateStub.reset();
     // Update once...
