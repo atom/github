@@ -21,71 +21,75 @@ function forStrategy(Strategy, callback) {
     return new Strategy(...args);
   };
 
-  function sdescribe(propertyUnderTest, description, suite, only = false) {
-    function createTestStrategyForPropertyUnderTest(...args) {
-      const compositeStrategy = CompositeGitStrategy.create(...args);
-      const originalStrategy = new Strategy(...args);
-      return new Proxy(compositeStrategy, {
-        get(target, name) {
-          if (name === propertyUnderTest) {
-            return originalStrategy[name];
-          } else {
-            return compositeStrategy[name];
-          }
-        },
+  function forCommand(propertyUnderTest) {
+    function specificDescribe(description, suite, only = false) {
+      function createTestStrategyForPropertyUnderTest(...args) {
+        const compositeStrategy = CompositeGitStrategy.create(...args);
+        const originalStrategy = new Strategy(...args);
+        return new Proxy(compositeStrategy, {
+          get(target, name) {
+            if (name === propertyUnderTest) {
+              return originalStrategy[name];
+            } else {
+              return compositeStrategy[name];
+            }
+          },
 
-        set(target, name, value) {
-          if (name === propertyUnderTest) {
-            originalStrategy[name] = value;
-          } else {
-            compositeStrategy[name] = value;
-          }
-        },
+          set(target, name, value) {
+            if (name === propertyUnderTest) {
+              originalStrategy[name] = value;
+            } else {
+              compositeStrategy[name] = value;
+            }
+          },
 
-        getOwnPropertyDescriptor(target, name) {
-          if (name === propertyUnderTest) {
-            return Reflect.getOwnPropertyDescriptor(originalStrategy, name);
-          } else {
-            return Reflect.getOwnPropertyDescriptor(compositeStrategy, name);
-          }
-        },
-      });
+          getOwnPropertyDescriptor(target, name) {
+            if (name === propertyUnderTest) {
+              return Reflect.getOwnPropertyDescriptor(originalStrategy, name);
+            } else {
+              return Reflect.getOwnPropertyDescriptor(compositeStrategy, name);
+            }
+          },
+        });
+      }
+
+      const describeMethod = only ? describe.only : describe;
+
+      if (Strategy.prototype[propertyUnderTest]) {
+        return describeMethod(description, function() {
+          let oldCreateTestStrategy;
+          // eslint-disable-next-line jasmine/no-global-setup
+          beforeEach(function() {
+            oldCreateTestStrategy = createTestStrategy;
+            createTestStrategy = createTestStrategyForPropertyUnderTest;
+          });
+          // eslint-disable-next-line jasmine/no-global-setup
+          afterEach(function() {
+            createTestStrategy = oldCreateTestStrategy;
+          });
+          suite();
+        });
+      } else {
+        return describeMethod(description, function() {
+          it('is not implemented', function() {});
+        });
+      }
     }
 
-    const describeMethod = only ? describe.only : describe;
+    specificDescribe.only = function(description, suite) {
+      return specificDescribe(description, suite, true);
+    };
 
-    if (Strategy.prototype[propertyUnderTest]) {
-      return describeMethod(description, function() {
-        let oldCreateTestStrategy;
-        // eslint-disable-next-line jasmine/no-global-setup
-        beforeEach(function() {
-          oldCreateTestStrategy = createTestStrategy;
-          createTestStrategy = createTestStrategyForPropertyUnderTest;
-        });
-        // eslint-disable-next-line jasmine/no-global-setup
-        afterEach(function() {
-          createTestStrategy = oldCreateTestStrategy;
-        });
-        suite();
-      });
-    } else {
-      return describeMethod(description, function() {
-        it('is not implemented');
-      });
-    }
+    return {describe: specificDescribe};
   }
 
-  sdescribe.only = function(propertyUnderTest, description, suite) {
-    return sdescribe(propertyUnderTest, description, suite, true);
-  };
-
-  callback(sdescribe);
+  return callback(forCommand);
 }
 
 [GitShellOutStrategy, NodeGitStrategy].forEach(function(Strategy) {
-  forStrategy(Strategy, function(sdescribe) {
+  forStrategy(Strategy, function(forCommand) {
     describe.only(`Git commands for ${Strategy.name}`, function() {
-      sdescribe('isGitRepository', 'isGitRepository(directoryPath)', function() {
+      forCommand('isGitRepository').describe('isGitRepository(directoryPath)', function() {
         it('returns true if the path passed is a valid repository, and false if not', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -96,7 +100,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getStatusesForChangedFiles', 'getStatusesForChangedFiles', function() {
+      forCommand('getStatusesForChangedFiles').describe('getStatusesForChangedFiles', function() {
         it('returns objects for staged and unstaged files, including status information', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -199,7 +203,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('diffFileStatus', 'diffFileStatus', function() {
+      forCommand('diffFileStatus').describe('diffFileStatus', function() {
         it('returns an object with working directory file diff status between relative to specified target commit', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -235,7 +239,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getUntrackedFiles', 'getUntrackedFiles', function() {
+      forCommand('getUntrackedFiles').describe('getUntrackedFiles', function() {
         it('returns an array of untracked file paths', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -267,7 +271,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getDiffForFilePath', 'getDiffForFilePath', function() {
+      forCommand('getDiffForFilePath').describe('getDiffForFilePath', function() {
         it('returns an empty array if there are no modified, added, or deleted files', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -444,7 +448,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('isPartiallyStaged', 'isPartiallyStaged(filePath)', () => {
+      forCommand('isPartiallyStaged').describe('isPartiallyStaged(filePath)', () => {
         it('returns true if specified file path is partially staged', async () => {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -480,7 +484,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('isMerging', 'isMerging', function() {
+      forCommand('isMerging').describe('isMerging', function() {
         it('returns true if `.git/MERGE_HEAD` exists', async function() {
           const workingDirPath = await cloneRepository('merge-conflict');
           const git = createTestStrategy(workingDirPath);
@@ -501,7 +505,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getAheadCount', 'getAheadCount(branchName) and getBehindCount(branchName)', function() {
+      forCommand('getAheadCount').describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
         it('returns the number of different commits on the branch vs the remote', async function() {
           const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
           const git = createTestStrategy(localRepoPath);
@@ -551,7 +555,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getCurrentBranch', 'getCurrentBranch() and checkout(branchName, {createNew})', function() {
+      forCommand('getCurrentBranch').describe('getCurrentBranch() and checkout(branchName, {createNew})', function() {
         it('returns the current branch name', async function() {
           const workingDirPath = await cloneRepository('merge-conflict');
           const git = createTestStrategy(workingDirPath);
@@ -567,7 +571,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getRemoteForBranch', 'getRemoteForBranch(branchName)', function() {
+      forCommand('getRemoteForBranch').describe('getRemoteForBranch(branchName)', function() {
         it('returns the name of the remote associated with the branch, and null if none exists', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -579,7 +583,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getBranches', 'getBranches()', function() {
+      forCommand('getBranches').describe('getBranches()', function() {
         it('returns an array of all branches', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -591,7 +595,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getRemotes', 'getRemotes()', function() {
+      forCommand('getRemotes').describe('getRemotes()', function() {
         it('returns an array of remotes', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -616,7 +620,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getConfig', 'getConfig() and setConfig()', function() {
+      forCommand('getConfig').describe('getConfig() and setConfig()', function() {
         it('gets and sets configs', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -626,7 +630,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('commit', 'commit(message, options) where amend option is true', function() {
+      forCommand('commit').describe('commit(message, options) where amend option is true', function() {
         it('amends the last commit', async function() {
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
@@ -640,7 +644,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('gpgExec', 'GPG signing', () => {
+      forCommand('gpgExec').describe('GPG signing', () => {
         console.log('yes', Strategy);
         let git;
 
@@ -731,7 +735,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('createBlob', 'createBlob({filePath})', () => {
+      forCommand('createBlob').describe('createBlob({filePath})', () => {
         it('creates a blob for the file path specified and returns its sha', async () => {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -752,7 +756,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('expandBlobToFile', 'expandBlobToFile(absFilePath, sha)', () => {
+      forCommand('expandBlobToFile').describe('expandBlobToFile(absFilePath, sha)', () => {
         it('restores blob contents for sha to specified file path', async () => {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
@@ -765,7 +769,7 @@ function forStrategy(Strategy, callback) {
         });
       });
 
-      sdescribe('getBlobContents', 'getBlobContents(sha)', () => {
+      forCommand('getBlobContents').describe('getBlobContents(sha)', () => {
         it('returns blob contents for sha', async () => {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
