@@ -1,8 +1,8 @@
 @import "variables";
 
-@conflict-color-ours:     @syntax-color-removed;
+@conflict-color-ours:     spin(@syntax-color-renamed, 80); // usually magenta/purple-ish
 @conflict-color-theirs:   @syntax-color-renamed;
-@conflict-color-base:     desaturate( mix(@syntax-color-removed, @syntax-color-renamed), 50% );
+@conflict-color-base:     desaturate( @syntax-color-renamed, 100% );
 @conflict-color-modified: @syntax-color-modified;
 @conflict-color-resolved: @syntax-color-added;
 
