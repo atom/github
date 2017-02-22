@@ -90,7 +90,7 @@ function forStrategy(Strategy, callback) {
 
 [GitShellOutStrategy, NodeGitStrategy].forEach(function(Strategy) {
   forStrategy(Strategy, function(forCommand) {
-    describe.only(`Git commands for ${Strategy.name}`, function() {
+    describe(`Git commands for ${Strategy.name}`, function() {
       forCommand('isGitRepository').describe('isGitRepository(directoryPath)', function() {
         it('returns true if the path passed is a valid repository, and false if not', async function() {
           const workingDirPath = await cloneRepository('three-files');
