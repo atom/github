@@ -28,7 +28,7 @@ function forStrategy(Strategy, callback) {
         const originalStrategy = new Strategy(...args);
         return new Proxy(compositeStrategy, {
           get(target, name) {
-            if (name === propertyUnderTest) {
+            if (name in originalStrategy) {
               return originalStrategy[name];
             } else {
               return compositeStrategy[name];
@@ -36,7 +36,7 @@ function forStrategy(Strategy, callback) {
           },
 
           set(target, name, value) {
-            if (name === propertyUnderTest) {
+            if (name in originalStrategy) {
               // eslint-disable-next-line no-return-assign
               return originalStrategy[name] = value;
             } else {
@@ -46,7 +46,7 @@ function forStrategy(Strategy, callback) {
           },
 
           getOwnPropertyDescriptor(target, name) {
-            if (name === propertyUnderTest) {
+            if (name in originalStrategy) {
               return Reflect.getOwnPropertyDescriptor(originalStrategy, name);
             } else {
               return Reflect.getOwnPropertyDescriptor(compositeStrategy, name);
