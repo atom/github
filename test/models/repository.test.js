@@ -703,20 +703,23 @@ describe('Repository', function() {
       const repo1 = await buildRepository(workingDirPath);
 
       fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'woohoo', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'yayeah', 'utf8');
 
       const isSafe = () => true;
       await repo1.storeBeforeAndAfterBlobs(['a.txt'], isSafe, () => {
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
-      }, {partial: true});
-      await repo1.storeBeforeAndAfterBlobs(['a.txt'], isSafe, () => {
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
-      }, {partial: true});
-      const repo1History = repo1.getPartialDiscardUndoHistoryForPath('a.txt');
+      }, 'a.txt');
+      await repo1.storeBeforeAndAfterBlobs(['b.txt', 'c.txt'], isSafe, () => {
+        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'woot', 'utf8');
+        fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'yup', 'utf8');
+      });
+      const repo1HistorySha = repo1.createDiscardHistoryBlob();
 
       const repo2 = await buildRepository(workingDirPath);
-      const repo2History = repo2.getPartialDiscardUndoHistoryForPath('a.txt');
+      const repo2HistorySha = repo2.createDiscardHistoryBlob();
 
-      assert.deepEqual(repo2History, repo1History);
+      assert.deepEqual(repo2HistorySha, repo1HistorySha);
     });
   });
 });

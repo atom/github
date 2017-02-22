@@ -444,8 +444,8 @@ describe('GitController', function() {
       });
     });
 
-    describe('undoLastDiscard({partial, filePath})', () => {
-      describe('when partial option is true', () => {
+    describe('undoLastDiscard(partialDiscardFilePath)', () => {
+      describe('when partialDiscardFilePath is not null', () => {
         let unstagedFilePatch, repository, absFilePath, wrapper;
         beforeEach(async () => {
           const workdirPath = await cloneRepository('multi-line-file');
@@ -476,9 +476,9 @@ describe('GitController', function() {
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          await wrapper.instance().undoLastDiscard('sample.js');
           await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          await wrapper.instance().undoLastDiscard('sample.js');
           await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
         });
 
@@ -498,7 +498,7 @@ describe('GitController', function() {
           await repository.refresh();
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          await wrapper.instance().undoLastDiscard('sample.js');
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot undo last discard.');
           assert.match(notificationArgs[1].description, /You have unsaved changes./);
@@ -519,7 +519,7 @@ describe('GitController', function() {
             await repository.refresh();
             unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
             wrapper.setState({filePatch: unstagedFilePatch});
-            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            await wrapper.instance().undoLastDiscard('sample.js');
 
             await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
           });
@@ -540,7 +540,7 @@ describe('GitController', function() {
 
             // click 'Cancel'
             confirm.returns(2);
-            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            await wrapper.instance().undoLastDiscard('sample.js');
             assert.equal(confirm.callCount, 1);
             const confirmArg = confirm.args[0][0];
             assert.match(confirmArg.message, /Undoing will result in conflicts/);
@@ -548,7 +548,7 @@ describe('GitController', function() {
 
             // click 'Open in new buffer'
             confirm.returns(1);
-            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            await wrapper.instance().undoLastDiscard('sample.js');
             assert.equal(confirm.callCount, 2);
             const activeEditor = workspace.getActiveTextEditor();
             assert.match(activeEditor.getFileName(), /sample.js-/);
@@ -557,7 +557,7 @@ describe('GitController', function() {
 
             // click 'Proceed and resolve conflicts'
             confirm.returns(0);
-            await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+            await wrapper.instance().undoLastDiscard('sample.js');
             assert.equal(confirm.callCount, 3);
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
@@ -576,12 +576,12 @@ describe('GitController', function() {
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
           sinon.stub(notificationManager, 'addError');
-          assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 2);
-          await wrapper.instance().undoLastDiscard({partial: true, filePath: 'sample.js'});
+          assert.equal(repository.getDiscardHistory('sample.js').length, 2);
+          await wrapper.instance().undoLastDiscard('sample.js');
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Discard history has expired.');
           assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
-          assert.equal(repository.getPartialDiscardUndoHistoryForPath('sample.js').length, 0);
+          assert.equal(repository.getDiscardHistory('sample.js').length, 0);
         });
       });
 
@@ -767,12 +767,12 @@ describe('GitController', function() {
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
           sinon.stub(notificationManager, 'addError');
-          assert.equal(repository.getFileDiscardUndoHistory().length, 2);
+          assert.equal(repository.getDiscardHistory().length, 2);
           await wrapper.instance().undoLastDiscard();
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Discard history has expired.');
           assert.match(notificationArgs[1].description, /Stale discard history has been deleted./);
-          assert.equal(repository.getFileDiscardUndoHistory().length, 0);
+          assert.equal(repository.getDiscardHistory().length, 0);
         });
       });
     });
