@@ -57,25 +57,19 @@ function forStrategy(Strategy, callback) {
 
       const describeMethod = only ? describe.only : describe;
 
-      if (Strategy.prototype[propertyUnderTest]) {
-        return describeMethod(description, function() {
-          let oldCreateTestStrategy;
-          // eslint-disable-next-line jasmine/no-global-setup
-          beforeEach(function() {
-            oldCreateTestStrategy = createTestStrategy;
-            createTestStrategy = createTestStrategyForPropertyUnderTest;
-          });
-          // eslint-disable-next-line jasmine/no-global-setup
-          afterEach(function() {
-            createTestStrategy = oldCreateTestStrategy;
-          });
-          suite();
+      return describeMethod(description, function() {
+        let oldCreateTestStrategy;
+        // eslint-disable-next-line jasmine/no-global-setup
+        beforeEach(function() {
+          oldCreateTestStrategy = createTestStrategy;
+          createTestStrategy = createTestStrategyForPropertyUnderTest;
         });
-      } else {
-        return describeMethod(description, function() {
-          it('is not implemented');
+        // eslint-disable-next-line jasmine/no-global-setup
+        afterEach(function() {
+          createTestStrategy = oldCreateTestStrategy;
         });
-      }
+        suite();
+      });
     }
 
     specificDescribe.only = function(description, suite) {
