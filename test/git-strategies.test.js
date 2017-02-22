@@ -143,12 +143,12 @@ function forStrategy(Strategy, callback) {
         });
 
         it('displays copied files as an added file', async function() {
-        // This repo is carefully constructed after much experimentation
-        // to cause git to detect `two.cc` as a copy of `one.cc`.
+          // This repo is carefully constructed after much experimentation
+          // to cause git to detect `two.cc` as a copy of `one.cc`.
           const workingDirPath = await cloneRepository('copied-file');
           const git = createTestStrategy(workingDirPath);
-        // Undo the last commit, which is where we copied one.cc to two.cc
-        // and then emptied one.cc.
+          // Undo the last commit, which is where we copied one.cc to two.cc
+          // and then emptied one.cc.
           await git.exec(['reset', '--soft', 'head^']);
           const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
           assert.deepEqual(stagedFiles, {
@@ -165,7 +165,7 @@ function forStrategy(Strategy, callback) {
           try {
             await git.merge('origin/branch');
           } catch (e) {
-          // expected
+            // expected
             if (!e.message.match(/CONFLICT/)) {
               throw new Error(`merge failed for wrong reason: ${e.message}`);
             }
@@ -496,7 +496,7 @@ function forStrategy(Strategy, callback) {
           try {
             await git.merge('origin/branch');
           } catch (e) {
-          // expect merge to have conflicts
+            // expect merge to have conflicts
           }
           isMerging = await git.isMerging();
           assert.isTrue(isMerging);
