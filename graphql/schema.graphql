@@ -188,16 +188,6 @@ type AssignedEvent implements Node, IssueEvent {
   type: IssueEventType!
 }
 
-# Specifies an author for filtering Git commits.
-input Author {
-  # ID of a User to filter by. If non-null, only commits authored by this user
-  # will be returned. This field takes precedence over emails.
-  id: ID
-
-  # Email addresses to filter by. Commits authored by any of the specified email addresses will be returned.
-  emails: [String!]
-}
-
 # Represents a 'base_ref_force_pushed' event on a given pull request.
 type BaseRefForcePushedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -234,7 +224,10 @@ type Blame {
 
 # Represents a range of information from a Git blame.
 type BlameRange {
-  # Identifies the recency of the change, from 1 (new) to 10 (old)
+  # Identifies the recency of the change, from 1 (new) to 10 (old). This is
+  # calculated as a 2-quantile and determines the length of distance between the
+  # median age of all the changes in the file and the recency of the current
+  # range's change.
   age: Int!
 
   # Identifies the line author
@@ -310,6 +303,7 @@ interface Comment {
 
   # The user who edited the comment.
   editor: User
+  id: ID!
 
   # The moment the editor made the last edit
   lastEditedAt: DateTime
@@ -398,7 +392,7 @@ type Commit implements Node, GitObject {
     path: String
 
     # If non-null, filters history to only show commits with matching authorship.
-    author: Author
+    author: CommitAuthor
 
     # Allows specifying a beginning time or date for fetching commits.
     since: GitTimestamp
@@ -446,6 +440,16 @@ type Commit implements Node, GitObject {
 
   # The websocket channel ID for live updates.
   websocket: String!
+}
+
+# Specifies an author for filtering Git commits.
+input CommitAuthor {
+  # ID of a User to filter by. If non-null, only commits authored by this user
+  # will be returned. This field takes precedence over emails.
+  id: ID
+
+  # Email addresses to filter by. Commits authored by any of the specified email addresses will be returned.
+  emails: [String!]
 }
 
 # Represents a comment on a given Commit.
@@ -693,7 +697,7 @@ type DeleteProjectPayload {
   # A unique identifier for the client performing the mutation.
   clientMutationId: String
 
-  # The repository the project was removed from.
+  # The repository or organization the project was removed from.
   owner: ProjectOwner!
 }
 
@@ -1123,8 +1127,11 @@ type HeadRefDeletedEvent implements Node, IssueEvent {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
-  # Identifies the ref associated with the `head_ref_deleted` event.
-  headRef: Ref!
+  # Identifies the Ref associated with the `head_ref_deleted` event.
+  headRef: Ref
+
+  # Identifies the name of the Ref associated with the `head_ref_deleted` event.
+  headRefName: String!
   id: ID!
 
   # Identifies the issue associated with the event.
@@ -1189,7 +1196,7 @@ scalar HTML
 
 # An Issue is a place to discuss ideas, enhancements, tasks, and bugs for a project.
 type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
-  # A list of Users assigned to the Issue.
+  # A list of Users assigned to the Issue or Pull Request.
   assignees(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1212,6 +1219,9 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
 
   # Identifies the body of the issue rendered to HTML.
   bodyHTML: HTML!
+
+  # Identifies the body of the issue rendered to text.
+  bodyText: String!
 
   # A list of comments associated with the Issue.
   comments(
@@ -1599,6 +1609,21 @@ enum IssueEventType {
 
 # Shared features of Issues and Pull Requests.
 interface Issueish {
+  # A list of Users assigned to the Issue or Pull Request.
+  assignees(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserConnection!
+
   # Identifies the author of the issue.
   author: User
 
@@ -1873,8 +1898,11 @@ type MergedEvent implements Node, IssueEvent {
   # Identifies the issue associated with the event.
   issue: Issue!
 
-  # Identifies the ref associated with the `merge` event.
-  mergeRef: Ref!
+  # Identifies the Ref associated with the `merge` event.
+  mergeRef: Ref
+
+  # Identifies the name of the Ref associated with the `merge` event.
+  mergeRefName: String!
 
   # Identifies the repository associated with the event.
   repository: Repository!
@@ -2620,6 +2648,21 @@ interface ProjectOwner {
 
 # A repository pull request.
 type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
+  # A list of Users assigned to the Issue or Pull Request.
+  assignees(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserConnection!
+
   # The user associated with this pull request.
   author: User
 
@@ -2634,6 +2677,9 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
 
   # Identifies the body of the pull request rendered to HTML.
   bodyHTML: HTML!
+
+  # Identifies the body of the pull request rendered to text.
+  bodyText: String!
 
   # A list of comments associated with the pull request.
   comments(
@@ -3715,7 +3761,7 @@ type ReopenedEvent implements Node, IssueEvent {
 }
 
 # A repository contains the content for a project.
-type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, UniformResourceLocatable, RepositoryInfo {
+type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLocatable, RepositoryInfo {
   # A list of commit comments associated with the repository.
   commitComments(
     # Returns the first _n_ elements from the list.
@@ -3734,11 +3780,17 @@ type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, Uni
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
+  # Identifies the primary key from the database.
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
   # The description of the repository.
   description: String
 
   # The description of the repository rendered to HTML.
   descriptionHTML: HTML!
+
+  # The number of kilobytes this repository occupies on disk.
+  diskUsage: Int!
 
   # A list of child repositories.
   forks(
@@ -4060,13 +4112,13 @@ type Repository implements Node, ProjectOwner, RepositoryInfo, Subscribable, Uni
   # Can the current viewer create new projects on this owner.
   viewerCanCreateProjects: Boolean!
 
-  # Check if the viewer is ability to change their subscription status.
+  # Check if the viewer is able to change their subscription status for the repository.
   viewerCanSubscribe: Boolean!
 
   # Returns a boolean indicating whether the viewing user has starred this repository.
   viewerHasStarred: Boolean!
 
-  # Identifies if the viewer is watching, not watching or ignoring.
+  # Identifies if the viewer is watching, not watching, or ignoring the repository.
   viewerSubscription: SubscriptionState!
 
   # A list of users watching the repository.
@@ -4094,7 +4146,7 @@ enum RepositoryCollaboratorAffiliation {
   OUTSIDE
 }
 
-# The connection type for Repository.
+# A list of repositories owned by the subject.
 type RepositoryConnection {
   # A list of edges.
   edges: [RepositoryEdge]
@@ -4107,6 +4159,9 @@ type RepositoryConnection {
 
   # Identifies the total count of items in the connection.
   totalCount: Int!
+
+  # The total size in kilobytes of all repositories in the connection.
+  totalDiskUsage: Int!
 }
 
 # An edge in a connection.
@@ -4389,6 +4444,9 @@ input RequestReviewsInput {
 
   # The Node IDs of the users to request.
   userIds: [ID!]!
+
+  # Add users to the set rather than replace.
+  union: Boolean
 }
 
 # Autogenerated return type of RequestReviews
@@ -4736,10 +4794,10 @@ type SubmitPullRequestReviewPayload {
 
 # Entities that can be subscribed to for web and email notifications.
 interface Subscribable {
-  # Check if the viewer is ability to change their subscription status.
+  # Check if the viewer is able to change their subscription status for the repository.
   viewerCanSubscribe: Boolean!
 
-  # Identifies if the viewer is watching, not watching or ignoring.
+  # Identifies if the viewer is watching, not watching, or ignoring the repository.
   viewerSubscription: SubscriptionState!
 }
 
@@ -4880,21 +4938,6 @@ interface Timeline {
     # Allows filtering timeline events by a `since` timestamp.
     since: String
   ): IssueTimelineConnection!
-}
-
-# Allows specifying the order in which topics are returned.
-input TopicOrder {
-  # The field to order topics by.
-  field: TopicOrderField!
-
-  # The ordering direction.
-  direction: OrderDirection!
-}
-
-# Properties by which topic connections can be ordered.
-enum TopicOrderField {
-  # Order topics by name
-  NAME
 }
 
 # Represents a Git tree.
@@ -5284,6 +5327,9 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
   # Whether or not this user is a GitHub employee.
   isEmployee: Boolean!
 
+  # Whether or not the user has marked themselves as for hire.
+  isHireable: Boolean!
+
   # Whether or not this user is a site administrator.
   isSiteAdmin: Boolean!
 
@@ -5298,6 +5344,12 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
 
   # The user's public profile name.
   name: String
+
+  # Find an organization by its login that the user belongs to.
+  organization(
+    # The login of the organization to find.
+    login: String!
+  ): Organization
 
   # A list of organizations the user belongs to.
   organizations(
@@ -5397,6 +5449,9 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
     # Order for connection
     orderBy: StarOrder
   ): StarredRepositoryConnection!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime!
 
   # The HTTP url for this user
   url: URI!

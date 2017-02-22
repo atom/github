@@ -487,7 +487,7 @@ describe('Repository', function() {
         assertDeepPropertyVals(mergeConflicts, expected);
       });
 
-      it('returns an empty arry if the repo has no merge conflicts', async function() {
+      it('returns an empty array if the repo has no merge conflicts', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const repo = await buildRepository(workingDirPath);
 
