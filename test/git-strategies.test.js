@@ -37,9 +37,11 @@ function forStrategy(Strategy, callback) {
 
           set(target, name, value) {
             if (name === propertyUnderTest) {
-              originalStrategy[name] = value;
+              // eslint-disable-next-line no-return-assign
+              return originalStrategy[name] = value;
             } else {
-              compositeStrategy[name] = value;
+              // eslint-disable-next-line no-return-assign
+              return compositeStrategy[name] = value;
             }
           },
 
