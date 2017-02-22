@@ -73,7 +73,7 @@ function forStrategy(Strategy, callback) {
         });
       } else {
         return describeMethod(description, function() {
-          it('is not implemented', function() {});
+          it('is not implemented');
         });
       }
     }
