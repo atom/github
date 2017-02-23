@@ -606,8 +606,6 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
           progressiveTense: 'pulling',
           action: () => git.pull('some-branch'),
           configureStub: (stub, gitStrategy) => {
-            // Stub the `git config` call to resolve the branch's upstream.
-            // stub.onCall(0).returns(Promise.resolve('origin'));
             sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
           },
         },
