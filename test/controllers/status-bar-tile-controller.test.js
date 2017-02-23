@@ -218,7 +218,7 @@ describe('StatusBarTileController', function() {
       assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
     });
 
-    it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async function() {
+    it('indicates the ahead and behind counts', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
@@ -251,26 +251,27 @@ describe('StatusBarTileController', function() {
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['checkout', '-b', 'new-branch']);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
-        await etch.getScheduler().getNextUpdatePromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pushButton, pullButton, fetchButton, message} = pushPullMenuView.refs;
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+        const message = tip.querySelector('.github-PushPullMenuView-message');
 
         assert.isTrue(pullButton.disabled);
-        assert.isTrue(fetchButton.disabled);
+        assert.isFalse(pushButton.disabled);
         assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
 
-        pushButton.dispatchEvent(new MouseEvent('click'));
+        pushButton.click();
         await until(async fail => {
           try {
             repository.refresh();
-            await controller.getLastModelDataRefreshPromise();
-            await etch.getScheduler().getNextUpdatePromise();
+            await wrapper.instance().refreshModelData();
 
             assert.isFalse(pullButton.disabled);
-            assert.isFalse(fetchButton.disabled);
+            assert.isFalse(pushButton.disabled);
             assert.equal(message.textContent, '');
             return true;
           } catch (err) {
@@ -285,30 +286,29 @@ describe('StatusBarTileController', function() {
         await repository.git.exec(['reset', '--hard', 'head~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
-        await controller.getLastModelDataRefreshPromise();
-        await etch.getScheduler().getNextUpdatePromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pushButton, pullButton} = pushPullMenuView.refs;
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
 
         sinon.stub(notificationManager, 'addError');
 
         assert.equal(pushButton.textContent, 'Push (1)');
         assert.equal(pullButton.textContent, 'Pull (2)');
 
-        pushButton.dispatchEvent(new MouseEvent('click'));
-        await controller.getLastModelDataRefreshPromise();
-        await etch.getScheduler().getNextUpdatePromise();
+        pushButton.click();
+        await wrapper.instance().refreshModelData();
 
         await assert.async.isTrue(notificationManager.addError.called);
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Push rejected');
         assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
-        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
+        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true, bubbles: true}));
+        await wrapper.instance().refreshModelData();
 
         await assert.async.equal(pushButton.textContent, 'Push ');
         await assert.async.equal(pullButton.textContent, 'Pull ');
