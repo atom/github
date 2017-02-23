@@ -5,7 +5,6 @@ import mkdirp from 'mkdirp';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
-import NodeGitStrategy from '../lib/nodegit-strategy';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 
@@ -16,8 +15,7 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
  */
 
 [
-  [NodeGitStrategy, GitShellOutStrategy],
-  [GitShellOutStrategy, NodeGitStrategy],
+  [GitShellOutStrategy],
 ].forEach(function(strategies) {
   const createTestStrategy = (...args) => {
     return CompositeGitStrategy.withStrategies(strategies)(...args);
