@@ -9,6 +9,7 @@ import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from 
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import PushPullView from '../../lib/views/push-pull-view';
+import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -380,25 +381,31 @@ describe('StatusBarTileController', function() {
       const repository = await buildRepository(workdirPath);
 
       const toggleGitPanel = sinon.spy();
-      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
 
-      const changedFilesCountView = controller.refs.changedFilesCountView;
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      await wrapper.instance().refreshModelData();
 
-      assert.equal(changedFilesCountView.element.textContent, '0 files');
+      assert.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '0 files');
 
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      repository.refresh();
+
       await repository.stageFiles(['a.txt']);
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
 
-      assert.equal(changedFilesCountView.element.textContent, '2 files');
+      await assert.async.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '2 files');
+    });
 
-      changedFilesCountView.element.click();
+    it('toggles the git panel when clicked', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      const toggleGitPanel = sinon.spy();
+
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      await wrapper.instance().refreshModelData();
+
+      wrapper.find(ChangedFilesCountView).simulate('click');
       assert(toggleGitPanel.calledOnce);
     });
   });
