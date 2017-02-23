@@ -697,4 +697,33 @@ describe('Git commands', function() {
       assert.equal(contents, 'foo\nbar\nbaz\n');
     });
   });
+
+  describe('merging files', () => {
+    describe('mergeFile(currentPath, basePath, otherPath, resultPath)', () => {
+      it('merges current/base/otherPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = new GitShellOutStrategy(workingDirPath);
+
+        // current and other paths are the same, so no conflicts
+        const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
+        assert.deepEqual(resultsWithoutConflict, {
+          filePath: 'a.txt',
+          resultPath: 'results-without-conflict.txt',
+          conflict: false,
+        });
+        assert.equal(fs.readFileSync('results-without-conflict.txt', 'utf8'), fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'));
+
+        // contents of current and other paths conflict
+        const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
+        assert.deepEqual(resultsWithConflict, {
+          filePath: 'a.txt',
+          resultPath: 'results-with-conflict.txt',
+          conflict: true,
+        });
+        const contents = fs.readFileSync('results-with-conflict.txt', 'utf8');
+        assert.isTrue(contents.includes('<<<<<<<'));
+        assert.isTrue(contents.includes('>>>>>>>'));
+      });
+    });
+  });
 });
