@@ -173,34 +173,30 @@ describe('StatusBarTileController', function() {
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
-
           await repository.git.exec(['checkout', '-b', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
-          await controller.getLastModelDataRefreshPromise();
-          await etch.getScheduler().getNextUpdatePromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list, newBranchButton} = branchMenuView.refs;
-
+          const tip = getTooltipNode(wrapper, BranchView);
           sinon.stub(notificationManager, 'addError');
 
-          const branches = Array.from(branchMenuView.refs.list.options).map(option => option.value);
+          const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
 
-          await newBranchButton.onclick();
+          tip.querySelector('button').click();
+          tip.querySelector('atom-text-editor').getModel().setText('master');
+          tip.querySelector('button').click();
 
-          branchMenuView.refs.editor.setText('master');
-          await newBranchButton.onclick();
           await assert.async.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot create branch');
           assert.match(notificationArgs[1].description, /already exists/);
 
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
         });
       });
     });
