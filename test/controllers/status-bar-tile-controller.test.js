@@ -110,25 +110,25 @@ describe('StatusBarTileController', function() {
           await repository.checkout('branch');
           fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts');
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry, notificationManager});
-          await controller.getLastModelDataRefreshPromise();
-          await etch.getScheduler().getNextUpdatePromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
 
-          list.selectedIndex = branches.indexOf('master');
-          list.onchange();
-          await etch.getScheduler().getNextUpdatePromise();
-          assert.equal(await repository.getCurrentBranch(), 'branch');
-          await assert.async.equal(list.selectedOptions[0].value, 'branch');
-          await assert.async.isTrue(notificationManager.addError.called);
+          selectOption(tip, 'master');
+          // Optimistic render
+          assert.equal(tip.querySelector('select').value, 'master');
+          await until(async () => {
+            await wrapper.instance().refreshModelData();
+            return tip.querySelector('select').value === 'branch';
+          });
+
+          assert.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Checkout aborted');
           assert.match(notificationArgs[1].description, /Local changes to the following would be overwritten/);
