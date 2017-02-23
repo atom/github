@@ -10,6 +10,8 @@ node_js:
 addons:
   apt:
     packages:
+      - clang-3.3
+      - build-essential
       - libgnome-keyring-dev
 
 env:
