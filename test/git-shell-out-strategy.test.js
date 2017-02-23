@@ -528,10 +528,11 @@ describe('Git commands', function() {
       await git.exec(['remote', 'add', 'upstream', 'git@github.com:my/upstream.git']);
       await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
       const remotes = await git.getRemotes();
+      // Note: nodegit returns remote names in alphabetical order
       assert.deepEqual(remotes, [
+        {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
         {name: 'origin', url: 'git@github.com:other/origin.git'},
         {name: 'upstream', url: 'git@github.com:my/upstream.git'},
-        {name: 'another.remote', url: 'git@github.com:another/upstream.git'},
       ]);
     });
 
