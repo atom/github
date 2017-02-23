@@ -20,4 +20,13 @@ describe('firstImplementer', function() {
     assert.equal(target.two, a.two);
     assert.equal(target.three, b.three);
   });
+
+  it('reports a combined prototype', function() {
+    const target = firstImplementer(a, b);
+    const proto = Object.getPrototypeOf(target);
+    const obj = Object.create(proto);
+    assert.equal(obj.one(), 'a-one');
+    assert.equal(obj.two(), 'a-two');
+    assert.equal(obj.three(), 'b-three');
+  });
 });
