@@ -55,22 +55,22 @@ describe('GithubPackage', function() {
       sinon.spy(githubPackage, 'rerender');
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      await until(() => githubPackage.getActiveRepository() === repository1);
-      assert.equal(githubPackage.rerender.callCount, 1);
+      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
+      await assert.async.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
-      await until(() => githubPackage.getActiveRepository() === null);
-      assert.equal(githubPackage.rerender.callCount, 2);
+      await assert.async.isNull(githubPackage.getActiveRepository());
+      await assert.async.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
-      await until(() => githubPackage.getActiveRepository() === repository2);
-      assert.equal(githubPackage.rerender.callCount, 3);
+      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository2);
+      await assert.async.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await until(() => githubPackage.getActiveRepository() === null);
-      assert.equal(githubPackage.rerender.callCount, 4);
+      await assert.async.isNull(githubPackage.getActiveRepository());
+      await assert.async.equal(githubPackage.rerender.callCount, 4);
     });
 
     it('destroys all the repositories associated with the removed project folders', async function() {
@@ -79,6 +79,7 @@ describe('GithubPackage', function() {
       const workdirPath3 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
       await githubPackage.activate();
+      await githubPackage.getInitialModelsPromise();
 
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
@@ -121,7 +122,7 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe('updateActiveRepository()', function() {
+  describe('updateActiveModels()', function() {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
@@ -133,36 +134,36 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await workspace.open(path.join(workdirPath2, 'b.txt'));
 
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.isNotNull(githubPackage.getActiveRepository());
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
       assert.isNull(githubPackage.getActiveRepository());
     });
 
@@ -171,10 +172,54 @@ describe('GithubPackage', function() {
       project.setPaths([workdirPath]);
       await githubPackage.activate();
 
-      await githubPackage.updateActiveRepository();
+      await githubPackage.updateActiveModels();
 
       const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
+    });
+
+    it('updates the active resolution progress', async function() {
+      // Repository with a merge conflict, repository without a merge conflict, path without a repository
+      const workdirMergeConflict = await cloneRepository('merge-conflict');
+      const workdirNoConflict = await cloneRepository('three-files');
+      const nonRepositoryPath = temp.mkdirSync();
+      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
+
+      project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
+      await githubPackage.activate();
+      await githubPackage.getInitialModelsPromise();
+
+      // Open a file in the merge conflict repository.
+      await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-ours.txt'));
+      await githubPackage.updateActiveModels();
+
+      const resolutionMergeConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
+
+      // Record some resolution progress to recall later
+      resolutionMergeConflict.reportMarkerCount('modified-on-both-ours.txt', 3);
+
+      // Open a file in the non-merge conflict repository.
+      await workspace.open(path.join(workdirNoConflict, 'b.txt'));
+      await githubPackage.updateActiveModels();
+
+      const resolutionNoConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirNoConflict);
+      await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionNoConflict);
+      assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
+
+      // Open a file in the workdir with no repository.
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
+      await githubPackage.updateActiveModels();
+
+      await assert.isNull(githubPackage.getActiveResolutionProgress());
+
+      // Re-open a file in the merge conflict repository.
+      await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-theirs.txt'));
+      await githubPackage.updateActiveModels();
+
+      await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
+      assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
+      assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
     });
 
     // Don't worry about this on Windows as it's not a common op
@@ -188,7 +233,7 @@ describe('GithubPackage', function() {
 
         await workspace.open(path.join(symlinkPath, 'a.txt'));
 
-        await githubPackage.updateActiveRepository();
+        await githubPackage.updateActiveModels();
         assert.isOk(githubPackage.getActiveRepository());
       });
     }
@@ -259,6 +304,40 @@ describe('GithubPackage', function() {
       const dirs = [path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')].map(p => new Directory(p));
       sinon.stub(project, 'getDirectories').returns(dirs);
       assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
+    });
+  });
+
+  describe('serialized state', function() {
+    it('restores nonempty resolution progress', async function() {
+      const workdirMergeConflict = await cloneRepository('merge-conflict');
+      const workdirNoConflict = await cloneRepository('three-files');
+
+      project.setPaths([workdirMergeConflict, workdirNoConflict]);
+      await githubPackage.activate();
+      await githubPackage.getInitialModelsPromise();
+
+      // Record some state to recover later.
+      const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
+
+      const payload = githubPackage.serialize();
+
+      // Use a little guilty knowledge of the payload structure to ensure that the workdir without resolution
+      // progress isn't serialized with the rest of the package state.
+      assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
+      assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
+
+      const githubPackage1 = new GithubPackage(workspace, project, commandRegistry, notificationManager, config);
+      await githubPackage1.activate(payload);
+      await githubPackage1.getInitialModelsPromise();
+
+      const resolutionMergeConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      const resolutionNoConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirNoConflict);
+
+      assert.isFalse(resolutionMergeConflict1.isEmpty());
+      assert.equal(resolutionMergeConflict1.getRemaining('modified-on-both-ours.txt'), 3);
+
+      assert.isTrue(resolutionNoConflict1.isEmpty());
     });
   });
 });
