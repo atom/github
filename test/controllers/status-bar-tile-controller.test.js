@@ -140,36 +140,34 @@ describe('StatusBarTileController', function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
-          await etch.getScheduler().getNextUpdatePromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list, newBranchButton} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
+          const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
           assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
 
-          assert.isDefined(branchMenuView.refs.list);
-          assert.isUndefined(branchMenuView.refs.editor);
-          newBranchButton.click();
-          await etch.getScheduler().getNextUpdatePromise();
-          assert.isUndefined(branchMenuView.refs.list);
-          assert.isDefined(branchMenuView.refs.editor);
+          tip.querySelector('button').click();
 
-          branchMenuView.refs.editor.setText('new-branch');
-          await newBranchButton.onclick();
-          repository.refresh();
-          await controller.getLastModelDataRefreshPromise();
-          await etch.getScheduler().getNextUpdatePromise();
+          assert.lengthOf(tip.querySelectorAll('select'), 0);
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
 
-          assert.isUndefined(branchMenuView.refs.editor);
-          assert.isDefined(branchMenuView.refs.list);
+          tip.querySelector('atom-text-editor').getModel().setText('new-branch');
+          tip.querySelector('button').click();
 
+          await until(async () => {
+            await wrapper.instance().refreshModelData();
+            return tip.querySelectorAll('select').length === 1;
+          });
+
+          assert.equal(tip.querySelector('select').value, 'new-branch');
           assert.equal(await repository.getCurrentBranch(), 'new-branch');
-          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'new-branch');
+
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
+          assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
         it('displays an error message if branch already exists', async function() {
