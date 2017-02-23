@@ -331,7 +331,9 @@ describe('GithubPackage', function() {
       assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
       assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
 
-      const githubPackage1 = new GithubPackage(workspace, project, commandRegistry, notificationManager, config);
+      const githubPackage1 = new GithubPackage(
+        workspace, project, commandRegistry, notificationManager, tooltips, config, confirm,
+      );
       await githubPackage1.activate(payload);
       await githubPackage1.getInitialModelsPromise();
 
