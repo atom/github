@@ -1,22 +1,36 @@
 import fs from 'fs';
 import path from 'path';
 
-import etch from 'etch';
+import React from 'react';
 import until from 'test-until';
+import {mount} from 'enzyme';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
+import BranchView from '../../lib/views/branch-view';
 
 describe('StatusBarTileController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
+  let atomEnvironment;
+  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips;
+  let component;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
+    tooltips = atomEnvironment.tooltips;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
+
+    component = (
+      <StatusBarTileController
+        workspace={workspace}
+        commandRegistry={commandRegistry}
+        notificationManager={notificationManager}
+        tooltips={tooltips}
+      />
+    );
   });
 
   afterEach(function() {
@@ -24,28 +38,34 @@ describe('StatusBarTileController', function() {
   });
 
   describe('branches', function() {
-    it('indicates the current branch and toggles visibility of the branch menu when clicked', async function() {
+    it('indicates the current branch', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
 
-      const branchView = controller.refs.branchView;
-      assert.equal(branchView.element.textContent, 'master');
-
-      // FIXME: Remove this guard when 1.13 is on stable.
-      if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-        branchView.element.click();
-        assert.isDefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-        branchView.element.click();
-        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-      }
+      assert.equal(wrapper.find(BranchView).prop('branchName'), 'master');
     });
 
+    function getTooltipNode(wrapper, selector) {
+      const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
+      assert.lengthOf(ts, 1);
+      ts[0].show();
+      return ts[0].getTooltipElement();
+    }
+
     describe('the branch menu', function() {
+      function selectOption(tip, value) {
+        const selects = Array.from(tip.getElementsByTagName('select'));
+        assert.lengthOf(selects, 1);
+        const select = selects[0];
+        select.value = value;
+
+        const event = new Event('change', {bubbles: true, cancelable: true});
+        select.dispatchEvent(event);
+      }
+
       describe('checking out an existing branch', function() {
         it('can check out existing branches with no conflicts', async function() {
           const workdirPath = await cloneRepository('three-files');
@@ -54,27 +74,26 @@ describe('StatusBarTileController', function() {
           // create branch called 'branch'
           await repository.git.exec(['branch', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
-          await etch.getScheduler().getNextUpdatePromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
+          const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
-          assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
 
-          list.selectedIndex = branches.indexOf('branch');
-          list.onchange();
+          assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
+
+          selectOption(tip, 'branch');
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          await wrapper.instance().refreshModelData();
+          await assert.async.equal(tip.querySelector('select').value, 'branch');
 
-          list.selectedIndex = branches.indexOf('master');
-          list.onchange();
+          selectOption(tip, 'master');
           assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
+          await wrapper.instance().refreshModelData();
+          await assert.async.equal(tip.querySelector('select').value, 'master');
         });
 
         it('displays an error message if checkout fails', async function() {
