@@ -27,7 +27,7 @@ notifications:
 
 install:
   - npm install -g npm
-  - 'if [ "${TRAVIS_BUILD_JOB}" = "schemacheck" ]; then brew install jq; fi'
+  - 'if [ "${TRAVIS_BUILD_JOB}" = "schemacheck" ] && [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew install jq; fi'
 
 script:
   - ./script/cibuild
