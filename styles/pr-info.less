@@ -89,6 +89,10 @@
     padding-top: @component-padding;
     border-top: 1px solid @base-border-color;
 
+    & > *:first-child {
+      margin-top: 0;
+    }
+
     a {
       color: @text-color-info;
     }
@@ -122,5 +126,17 @@
     .reaction-group {
       margin-right: @component-padding * 2;
     }
+  }
+
+
+  // Elements ------------------------
+
+  blockquote {
+    font-size: inherit;
+    padding-top: 0;
+    padding-left: @component-padding;
+    padding-bottom: 0;
+    color: @text-color-subtle;
+    border-left: 2px solid @text-color-subtle;
   }
 }
