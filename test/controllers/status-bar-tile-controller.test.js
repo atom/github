@@ -320,8 +320,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'fetch');
 
@@ -334,8 +334,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'pull');
 
@@ -348,8 +348,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
@@ -362,8 +362,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
