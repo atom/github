@@ -23,7 +23,9 @@
           "package.json",
           ".babelrc",
           "assert-async-plugin.js",
-          "assert-messages-plugin.js"
+          "assert-messages-plugin.js",
+          "graphql/schema.graphql",
+          "graphql/relay-babel-plugin.js"
         ]
       }
     }
