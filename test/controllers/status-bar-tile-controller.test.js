@@ -8,6 +8,7 @@ import {mount} from 'enzyme';
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
+import PushPullView from '../../lib/views/push-pull-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -37,6 +38,13 @@ describe('StatusBarTileController', function() {
     atomEnvironment.destroy();
   });
 
+  function getTooltipNode(wrapper, selector) {
+    const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
+    assert.lengthOf(ts, 1);
+    ts[0].show();
+    return ts[0].getTooltipElement();
+  }
+
   describe('branches', function() {
     it('indicates the current branch', async function() {
       const workdirPath = await cloneRepository('three-files');
@@ -47,13 +55,6 @@ describe('StatusBarTileController', function() {
 
       assert.equal(wrapper.find(BranchView).prop('branchName'), 'master');
     });
-
-    function getTooltipNode(wrapper, selector) {
-      const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
-      assert.lengthOf(ts, 1);
-      ts[0].show();
-      return ts[0].getTooltipElement();
-    }
 
     describe('the branch menu', function() {
       function selectOption(tip, value) {
@@ -203,41 +204,45 @@ describe('StatusBarTileController', function() {
   });
 
   describe('pushing and pulling', function() {
+    it('shows and hides the PushPullView', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+      const repository = await buildRepository(localRepoPath);
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
+
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
+      wrapper.find(PushPullView).node.element.click();
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 1);
+      wrapper.find(PushPullView).node.element.click();
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
+    });
+
     it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
-      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
 
-      const pushPullView = controller.refs.pushPullView;
-      const {aheadCount, behindCount} = pushPullView.refs;
-      assert.equal(aheadCount.textContent, '');
-      assert.equal(behindCount.textContent, '');
+      const tip = getTooltipNode(wrapper, PushPullView);
+
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
       await repository.git.exec(['reset', '--hard', 'head~2']);
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(aheadCount.textContent, '');
-      assert.equal(behindCount.textContent, '2');
+      await wrapper.instance().refreshModelData();
+
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
       await repository.git.commit('new local commit', {allowEmpty: true});
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(aheadCount.textContent, '1');
-      assert.equal(behindCount.textContent, '2');
+      await wrapper.instance().refreshModelData();
 
-      // FIXME: Remove this guard when 1.13 is on stable.
-      if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-        pushPullView.element.click();
-        assert.isDefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-        pushPullView.element.click();
-        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-      }
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push (1)');
     });
 
     describe('the push/pull menu', function() {
