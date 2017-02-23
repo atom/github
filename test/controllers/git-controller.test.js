@@ -717,7 +717,7 @@ describe('GitController', function() {
             // click 'Cancel'
             confirm.returns(2);
             await wrapper.instance().undoLastDiscard();
-            assert.equal(confirm.callCount, 1);
+            await assert.async.equal(confirm.callCount, 1);
             const confirmArg = confirm.args[0][0];
             assert.match(confirmArg.message, /Undoing will result in conflicts/);
             await assert.async.deepEqual({
