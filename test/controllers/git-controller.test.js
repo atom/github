@@ -731,9 +731,9 @@ describe('GitController', function() {
             await wrapper.instance().undoLastDiscard();
             assert.equal(confirm.callCount, 2);
             const editors = workspace.getTextEditors().sort((a, b) => {
-              const pathA = a.getFileName();
-              const pathB = b.getFileName();
-              if (pathA < pathB) { return -1; } else if (pathA > pathB) { return 1; } else { return 0; }
+              const pA = a.getFileName();
+              const pB = b.getFileName();
+              if (pA < pB) { return -1; } else if (pA > pB) { return 1; } else { return 0; }
             });
             assert.equal(editors.length, 2);
             assert.match(editors[0].getFileName(), /a.txt-/);
