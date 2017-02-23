@@ -605,10 +605,10 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
           verbalNoun: 'pull',
           progressiveTense: 'pulling',
           action: () => git.pull('some-branch'),
-          configureStub: (stub, git) => {
+          configureStub: (stub, gitStrategy) => {
             // Stub the `git config` call to resolve the branch's upstream.
             // stub.onCall(0).returns(Promise.resolve('origin'));
-            sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
+            sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
           },
         },
       ];
