@@ -87,13 +87,15 @@ describe('StatusBarTileController', function() {
 
           selectOption(tip, 'branch');
           assert.equal(await repository.getCurrentBranch(), 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
           await wrapper.instance().refreshModelData();
-          await assert.async.equal(tip.querySelector('select').value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
           assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
           await wrapper.instance().refreshModelData();
-          await assert.async.equal(tip.querySelector('select').value, 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
         });
 
         it('displays an error message if checkout fails', async function() {
