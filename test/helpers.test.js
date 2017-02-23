@@ -29,4 +29,27 @@ describe('firstImplementer', function() {
     assert.equal(obj.two(), 'a-two');
     assert.equal(obj.three(), 'b-three');
   });
+
+  it('sets properties that exist on an implementer on that implementer, and ones that do not on the target', function() {
+    const target = firstImplementer(a, b);
+    target.one = () => 'new-one';
+    assert.equal(a.one(), 'new-one');
+    target.three = () => 'new-three';
+    assert.notOk(a.three);
+    assert.equal(b.three(), 'new-three');
+    target.four = () => 'four! ah ah ah';
+    assert.notOk(a.four);
+    assert.notOk(b.four);
+    assert.equal(target.four(), 'four! ah ah ah');
+  });
+
+  it('correctly reports getOwnPropertyDescriptor', function() {
+    const target = firstImplementer(a, b);
+    const descOne = Object.getOwnPropertyDescriptor(target, 'one');
+    assert.equal(descOne.value, a.one);
+    const descThree = Object.getOwnPropertyDescriptor(target, 'three');
+    assert.equal(descThree.value, b.three);
+    const descTarget = Object.getOwnPropertyDescriptor(target, '__implementations');
+    assert.deepEqual(descTarget.value, [a, b]);
+  });
 });
