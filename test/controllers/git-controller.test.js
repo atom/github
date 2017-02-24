@@ -693,7 +693,7 @@ describe('GitController', function() {
             });
           });
 
-          it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+          it('prompts user to continue if conflicts arise and proceeds based on user input, updating index to reflect files under conflict', async () => {
             await repository.git.exec(['commit', '-am', 'commit files lengthy enough that changes don\'t conflict']);
 
             // add change to beginning of files
@@ -758,6 +758,8 @@ describe('GitController', function() {
             await assert.async.isTrue(contentsAfterUndo.pathB.includes('>>>>>>>'));
             await assert.async.isFalse(contentsAfterUndo.pathC.includes('<<<<<<<'));
             await assert.async.isFalse(contentsAfterUndo.pathC.includes('>>>>>>>'));
+            const unmergedFiles = Object.keys(await repository.git.diffFileStatus({diffFilter: 'unmerged'}));
+            assert.deepEqual(unmergedFiles, ['a.txt', 'b.txt']);
           });
         });
 
