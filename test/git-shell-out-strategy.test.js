@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import mkdirp from 'mkdirp';
+import dedent from 'dedent-js';
 
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
@@ -737,6 +738,28 @@ describe('Git commands', function() {
         const contents = fs.readFileSync('results-with-conflict.txt', 'utf8');
         assert.isTrue(contents.includes('<<<<<<<'));
         assert.isTrue(contents.includes('>>>>>>>'));
+      });
+    });
+
+    describe('udpateIndex(filePath, commonSha, oursSha, theirsSha)', () => {
+      it('updates the index to have the appropriate shas, retaining the original file mode', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = new GitShellOutStrategy(workingDirPath);
+        const absFilePath = path.join(workingDirPath, 'a.txt');
+        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        await git.exec(['update-index', '--chmod=+x', 'a.txt']);
+
+        const commonSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
+        const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
+        const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
+        await git.updateIndex('a.txt', commonSha, oursSha, theirsSha);
+
+        const index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+        assert.equal(index.trim(), dedent`
+          100755 ${commonSha} 1\ta.txt
+          100755 ${oursSha} 2\ta.txt
+          100755 ${theirsSha} 3\ta.txt
+        `);
       });
     });
   });
