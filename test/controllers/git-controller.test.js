@@ -791,7 +791,8 @@ describe('GitController', function() {
             await assert.async.isTrue(contentsAfterUndo.pathB.includes('>>>>>>>'));
             await assert.async.isFalse(contentsAfterUndo.pathC.includes('<<<<<<<'));
             await assert.async.isFalse(contentsAfterUndo.pathC.includes('>>>>>>>'));
-            const unmergedFiles = Object.keys(await repository.git.diffFileStatus({diffFilter: 'unmerged'}));
+            let unmergedFiles = await repository.git.exec(['diff', '--name-status', '--diff-filter=U']);
+            unmergedFiles = unmergedFiles.trim().split('\n').map(line => line.split('\t')[1]);
             assert.deepEqual(unmergedFiles, ['a.txt', 'b.txt']);
           });
         });
