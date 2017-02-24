@@ -619,10 +619,22 @@ describe('GitController', function() {
       });
 
       describe('when partialDiscardFilePath is falsey', () => {
-        let repository, wrapper, pathA, pathB, pathC;
+        let repository, wrapper, pathA, pathB, pathC, getFileContents;
         beforeEach(async () => {
           const workdirPath = await cloneRepository('three-files');
           repository = await buildRepository(workdirPath);
+
+          getFileContents = filePath => {
+            try {
+              return fs.readFileSync(filePath, 'utf8');
+            } catch (e) {
+              if (e.code === 'ENOENT') {
+                return null;
+              } else {
+                throw e;
+              }
+            }
+          };
 
           pathA = path.join(workdirPath, 'a.txt');
           pathB = path.join(workdirPath, 'b.txt');
@@ -635,39 +647,39 @@ describe('GitController', function() {
           wrapper = shallow(app);
         });
 
-        it('reverses last discard', async () => {
+        it('reverses last discard if there are no conflicts', async () => {
           const contents1 = {
-            pathA: fs.readFileSync(pathA, 'utf8'),
-            pathB: fs.readFileSync(pathB, 'utf8'),
-            pathC: fs.readFileSync(pathC, 'utf8'),
+            pathA: getFileContents(pathA),
+            pathB: getFileContents(pathB),
+            pathC: getFileContents(pathC),
           };
           await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
           const contents2 = {
-            pathA: fs.readFileSync(pathA, 'utf8'),
-            pathB: fs.readFileSync(pathB, 'utf8'),
-            pathC: fs.readFileSync(pathC, 'utf8'),
+            pathA: getFileContents(pathA),
+            pathB: getFileContents(pathB),
+            pathC: getFileContents(pathC),
           };
           assert.notDeepEqual(contents1, contents2);
 
           await wrapper.instance().discardWorkDirChangesForPaths(['c.txt']);
           const contents3 = {
-            pathA: fs.readFileSync(pathA, 'utf8'),
-            pathB: fs.readFileSync(pathB, 'utf8'),
-            pathC: fs.readFileSync(pathC, 'utf8'),
+            pathA: getFileContents(pathA),
+            pathB: getFileContents(pathB),
+            pathC: getFileContents(pathC),
           };
           assert.notDeepEqual(contents2, contents3);
 
           await wrapper.instance().undoLastDiscard();
           await assert.async.deepEqual({
-            pathA: fs.readFileSync(pathA, 'utf8'),
-            pathB: fs.readFileSync(pathB, 'utf8'),
-            pathC: fs.readFileSync(pathC, 'utf8'),
+            pathA: getFileContents(pathA),
+            pathB: getFileContents(pathB),
+            pathC: getFileContents(pathC),
           }, contents2);
           await wrapper.instance().undoLastDiscard();
           await assert.async.deepEqual({
-            pathA: fs.readFileSync(pathA, 'utf8'),
-            pathB: fs.readFileSync(pathB, 'utf8'),
-            pathC: fs.readFileSync(pathC, 'utf8'),
+            pathA: getFileContents(pathA),
+            pathB: getFileContents(pathB),
+            pathC: getFileContents(pathC),
           }, contents1);
         });
 
@@ -696,9 +708,9 @@ describe('GitController', function() {
             await repository.git.exec(['commit', '-am', 'commit files lengthy enough that changes don\'t conflict']);
 
             const originalContents = {
-              pathA: fs.readFileSync(pathA, 'utf8'),
-              pathB: fs.readFileSync(pathB, 'utf8'),
-              pathC: fs.readFileSync(pathC, 'utf8'),
+              pathA: getFileContents(pathA),
+              pathB: getFileContents(pathB),
+              pathC: getFileContents(pathC),
             };
 
             // add change to beginning of files
@@ -716,9 +728,9 @@ describe('GitController', function() {
             await wrapper.instance().undoLastDiscard();
 
             await assert.async.deepEqual({
-              pathA: fs.readFileSync(pathA, 'utf8'),
-              pathB: fs.readFileSync(pathB, 'utf8'),
-              pathC: fs.readFileSync(pathC, 'utf8'),
+              pathA: getFileContents(pathA),
+              pathB: getFileContents(pathB),
+              pathC: getFileContents(pathC),
             }, {
               pathA: 'change at beginning\n' + originalContents.pathA + 'change at end',
               pathB: 'change at beginning\n' + originalContents.pathB + 'change at end',
@@ -742,9 +754,9 @@ describe('GitController', function() {
             fs.writeFileSync(pathC, fs.readFileSync(pathC, 'utf8') + 'change at end');
 
             const contentsAfterConflictingChange = {
-              pathA: fs.readFileSync(pathA, 'utf8'),
-              pathB: fs.readFileSync(pathB, 'utf8'),
-              pathC: fs.readFileSync(pathC, 'utf8'),
+              pathA: getFileContents(pathA),
+              pathB: getFileContents(pathB),
+              pathC: getFileContents(pathC),
             };
 
             // click 'Cancel'
@@ -754,9 +766,9 @@ describe('GitController', function() {
             const confirmArg = confirm.args[0][0];
             assert.match(confirmArg.message, /Undoing will result in conflicts/);
             await assert.async.deepEqual({
-              pathA: fs.readFileSync(pathA, 'utf8'),
-              pathB: fs.readFileSync(pathB, 'utf8'),
-              pathC: fs.readFileSync(pathC, 'utf8'),
+              pathA: getFileContents(pathA),
+              pathB: getFileContents(pathB),
+              pathC: getFileContents(pathC),
             }, contentsAfterConflictingChange);
 
             // click 'Open in new editors'
@@ -781,9 +793,9 @@ describe('GitController', function() {
             await wrapper.instance().undoLastDiscard();
             assert.equal(confirm.callCount, 3);
             const contentsAfterUndo = {
-              pathA: fs.readFileSync(pathA, 'utf8'),
-              pathB: fs.readFileSync(pathB, 'utf8'),
-              pathC: fs.readFileSync(pathC, 'utf8'),
+              pathA: getFileContents(pathA),
+              pathB: getFileContents(pathB),
+              pathC: getFileContents(pathC),
             };
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('<<<<<<<'));
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('>>>>>>>'));
