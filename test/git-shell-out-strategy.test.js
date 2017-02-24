@@ -698,6 +698,20 @@ describe('Git commands', function() {
     });
   });
 
+  describe('getFileMode(filePath)', () => {
+    it('returns the file mode of the specified file', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = new GitShellOutStrategy(workingDirPath);
+      const absFilePath = path.join(workingDirPath, 'a.txt');
+      fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+
+      assert.equal(await git.getFileMode('a.txt'), '100644');
+
+      await git.exec(['update-index', '--chmod=+x', 'a.txt']);
+      assert.equal(await git.getFileMode('a.txt'), '100755');
+    });
+  });
+
   describe('merging files', () => {
     describe('mergeFile(currentPath, basePath, otherPath, resultPath)', () => {
       it('merges current/base/otherPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
