@@ -55,6 +55,19 @@ describe('StatusBarTileController', function() {
       await wrapper.instance().refreshModelData();
 
       assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master');
+      assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 0);
+    });
+
+    it('styles a detached HEAD differently', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+      await repository.checkout('HEAD~2');
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
+
+      assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master~2');
+      assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 1);
     });
 
     describe('the branch menu', function() {
