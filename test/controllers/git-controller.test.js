@@ -444,6 +444,38 @@ describe('GitController', function() {
       });
     });
 
+    describe('discardWorkDirChangesForPaths(filePaths)', () => {
+      it('only discards changes in files if all buffers are unmodified, otherwise notifies user', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'do\n');
+        fs.writeFileSync(path.join(workdirPath, 'b.txt'), 'ray\n');
+        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'me\n');
+
+        const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = shallow(app);
+
+        sinon.stub(repository, 'discardWorkDirChangesForPaths');
+        sinon.stub(notificationManager, 'addError');
+        // unmodified buffer
+        await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+        assert.isTrue(repository.discardWorkDirChangesForPaths.calledOnce);
+        assert.isFalse(notificationManager.addError.called);
+
+        // modified buffer
+        repository.discardWorkDirChangesForPaths.reset();
+        editor.setText('modify contents');
+        await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+        assert.isFalse(repository.discardWorkDirChangesForPaths.called);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Cannot discard changes in selected files.');
+        assert.match(notificationArgs[1].description, /You have unsaved changes in.*a\.txt/);
+      });
+    });
+
     describe('undoLastDiscard(partialDiscardFilePath)', () => {
       describe('when partialDiscardFilePath is not null', () => {
         let unstagedFilePatch, repository, absFilePath, wrapper;
