@@ -6,7 +6,7 @@ import mkdirp from 'mkdirp';
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
-import {cloneRepository, copyRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -139,7 +139,7 @@ import {cloneRepository, copyRepository, assertDeepPropertyVals, setUpLocalAndRe
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
-        const git = new GitShellOutStrategy(workingDirPath);
+        const git = createTestStrategy(workingDirPath);
 
         const commit = await git.getHeadCommit();
         assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
@@ -148,8 +148,8 @@ import {cloneRepository, copyRepository, assertDeepPropertyVals, setUpLocalAndRe
       });
 
       it('notes when HEAD is an unborn ref', async function() {
-        const workingDirPath = await copyRepository('no-commits');
-        const git = new GitShellOutStrategy(workingDirPath);
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
 
         const commit = await git.getHeadCommit();
         assert.isTrue(commit.unbornRef);
@@ -525,8 +525,8 @@ import {cloneRepository, copyRepository, assertDeepPropertyVals, setUpLocalAndRe
     });
 
     it('returns the current branch name in a repository with no commits', async function() {
-      const workingDirPath = await copyRepository('no-commits');
-      const git = new GitShellOutStrategy(workingDirPath);
+      const workingDirPath = await initRepository();
+      const git = createTestStrategy(workingDirPath);
 
       assert.equal(await git.getCurrentBranch(), 'master');
     });

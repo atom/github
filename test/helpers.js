@@ -38,13 +38,12 @@ export async function cloneRepository(repoName = 'three-files') {
 }
 
 /*
- * Copy a fixture repository into a temporary working directory as-is, preserving working copy changes.
+ * Initialize an empty repository at a temporary path.
  */
-export function copyRepository(repoName) {
+export async function initRepository(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
-  const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`);
-  fs.copySync(repoPath, workingDirPath);
-  fs.renameSync(path.join(workingDirPath, 'dot-git'), path.join(workingDirPath, '.git'));
+  const git = new GitShellOutStrategy(workingDirPath);
+  await git.exec(['init']);
   return fs.realpathSync(workingDirPath);
 }
 
