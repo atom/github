@@ -617,7 +617,7 @@ describe('GitController', function() {
         });
       });
 
-      describe('when partial option is false', () => {
+      describe('when partialDiscardFilePath is falsey', () => {
         let repository, wrapper, pathA, pathB, pathC;
         beforeEach(async () => {
           const workdirPath = await cloneRepository('three-files');
