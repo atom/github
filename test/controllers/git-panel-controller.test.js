@@ -32,7 +32,7 @@ describe('GitTabController', function() {
     atom.confirm.restore && atom.confirm.restore();
   });
 
-  it('displays loading message in GitPanelView while data is being fetched', async function() {
+  it('displays loading message in GitTabView while data is being fetched', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
@@ -54,7 +54,7 @@ describe('GitTabController', function() {
     await assert.async.isDefined(controller.refs.gitPanel.refs.commitViewController);
   });
 
-  it('keeps the state of the GitPanelView in sync with the assigned repository', async function() {
+  it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
@@ -66,7 +66,7 @@ describe('GitTabController', function() {
       repository: null,
     });
 
-    // Renders empty GitPanelView when there is no active repository
+    // Renders empty GitTabView when there is no active repository
     assert.isDefined(controller.refs.gitPanel);
     assert.isNull(controller.getActiveRepository());
     assert.isDefined(controller.refs.gitPanel.refs.noRepoMessage);
