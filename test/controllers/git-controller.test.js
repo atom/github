@@ -814,6 +814,5 @@ describe('GitController', function() {
         });
       });
     });
-
   });
 });
