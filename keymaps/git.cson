@@ -11,6 +11,10 @@
   'shift-tab': 'core:focus-previous'
   'o': 'github:open-file'
 
+'.github-StagingView .github-UnstagedChanges .github-FilePatchListView':
+  'cmd-backspace': 'github:discard-changes-in-selected-files'
+  'ctrl-backspace': 'github:discard-changes-in-selected-files'
+
 '.github-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'github:commit'
   'ctrl-enter': 'github:commit'

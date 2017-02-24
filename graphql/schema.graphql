@@ -5345,6 +5345,12 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
   # The user's public profile name.
   name: String
 
+  # Find an organization by its login that the user belongs to.
+  organization(
+    # The login of the organization to find.
+    login: String!
+  ): Organization
+
   # A list of organizations the user belongs to.
   organizations(
     # Returns the first _n_ elements from the list.

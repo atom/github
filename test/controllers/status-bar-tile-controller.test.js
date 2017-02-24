@@ -1,49 +1,73 @@
 import fs from 'fs';
 import path from 'path';
 
-import etch from 'etch';
+import React from 'react';
 import until from 'test-until';
+import {mount} from 'enzyme';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
+import BranchView from '../../lib/views/branch-view';
+import PushPullView from '../../lib/views/push-pull-view';
+import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
 describe('StatusBarTileController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry;
+  let atomEnvironment;
+  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips;
+  let component;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
+    notificationManager = atomEnvironment.notifications;
+    tooltips = atomEnvironment.tooltips;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
+
+    component = (
+      <StatusBarTileController
+        workspace={workspace}
+        commandRegistry={commandRegistry}
+        notificationManager={notificationManager}
+        tooltips={tooltips}
+      />
+    );
   });
 
   afterEach(function() {
     atomEnvironment.destroy();
   });
 
+  function getTooltipNode(wrapper, selector) {
+    const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
+    assert.lengthOf(ts, 1);
+    ts[0].show();
+    return ts[0].getTooltipElement();
+  }
+
   describe('branches', function() {
-    it('indicates the current branch and toggles visibility of the branch menu when clicked', async function() {
+    it('indicates the current branch', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
 
-      const branchView = controller.refs.branchView;
-      assert.equal(branchView.element.textContent, 'master');
-
-      // FIXME: Remove this guard when 1.13 is on stable.
-      if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-        branchView.element.click();
-        assert.isDefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-        branchView.element.click();
-        assert.isUndefined(document.querySelectorAll('.github-BranchMenuView')[0]);
-      }
+      assert.equal(wrapper.find(BranchView).prop('branchName'), 'master');
     });
 
     describe('the branch menu', function() {
+      function selectOption(tip, value) {
+        const selects = Array.from(tip.getElementsByTagName('select'));
+        assert.lengthOf(selects, 1);
+        const select = selects[0];
+        select.value = value;
+
+        const event = new Event('change', {bubbles: true, cancelable: true});
+        select.dispatchEvent(event);
+      }
+
       describe('checking out an existing branch', function() {
         it('can check out existing branches with no conflicts', async function() {
           const workdirPath = await cloneRepository('three-files');
@@ -52,26 +76,28 @@ describe('StatusBarTileController', function() {
           // create branch called 'branch'
           await repository.git.exec(['branch', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
+          const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
-          assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
 
-          list.selectedIndex = branches.indexOf('branch');
-          list.onchange();
+          assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
+
+          selectOption(tip, 'branch');
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
+          await wrapper.instance().refreshModelData();
+          assert.equal(tip.querySelector('select').value, 'branch');
 
-          list.selectedIndex = branches.indexOf('master');
-          list.onchange();
+          selectOption(tip, 'master');
           assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
+          await wrapper.instance().refreshModelData();
+          assert.equal(tip.querySelector('select').value, 'master');
         });
 
         it('displays an error message if checkout fails', async function() {
@@ -86,22 +112,28 @@ describe('StatusBarTileController', function() {
           await repository.checkout('branch');
           fs.writeFileSync(path.join(localRepoPath, 'a.txt'), 'a change that conflicts');
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list, message} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
 
-          list.selectedIndex = branches.indexOf('master');
-          list.onchange();
-          await etch.getScheduler().getNextUpdatePromise();
-          assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
-          await until(() => message.innerHTML.match(/local changes.*would be overwritten/), 'error message displays');
+          sinon.stub(notificationManager, 'addError');
+
+          selectOption(tip, 'master');
+          // Optimistic render
+          assert.equal(tip.querySelector('select').value, 'master');
+          await until(async () => {
+            await wrapper.instance().refreshModelData();
+            return tip.querySelector('select').value === 'branch';
+          });
+
+          assert.isTrue(notificationManager.addError.called);
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Checkout aborted');
+          assert.match(notificationArgs[1].description, /Local changes to the following would be overwritten/);
         });
       });
 
@@ -110,155 +142,143 @@ describe('StatusBarTileController', function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list, newBranchButton} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
 
-          const branches = Array.from(list.options).map(option => option.value);
+          const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
           assert.equal(await repository.getCurrentBranch(), 'master');
-          assert.equal(list.selectedOptions[0].value, 'master');
+          assert.equal(tip.querySelector('select').value, 'master');
 
-          assert.isDefined(branchMenuView.refs.list);
-          assert.isUndefined(branchMenuView.refs.editor);
-          newBranchButton.click();
-          await etch.getScheduler().getNextUpdatePromise();
-          assert.isUndefined(branchMenuView.refs.list);
-          assert.isDefined(branchMenuView.refs.editor);
+          tip.querySelector('button').click();
 
-          branchMenuView.refs.editor.setText('new-branch');
-          await newBranchButton.onclick();
-          repository.refresh();
-          await controller.getLastModelDataRefreshPromise();
+          assert.lengthOf(tip.querySelectorAll('select'), 0);
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
 
-          assert.isUndefined(branchMenuView.refs.editor);
-          assert.isDefined(branchMenuView.refs.list);
+          tip.querySelector('atom-text-editor').getModel().setText('new-branch');
+          tip.querySelector('button').click();
 
+          await until(async () => {
+            await wrapper.instance().refreshModelData();
+            return tip.querySelectorAll('select').length === 1;
+          });
+
+          assert.equal(tip.querySelector('select').value, 'new-branch');
           assert.equal(await repository.getCurrentBranch(), 'new-branch');
-          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'new-branch');
+
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
+          assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
-
           await repository.git.exec(['checkout', '-b', 'branch']);
 
-          const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-          await controller.getLastModelDataRefreshPromise();
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-          const branchMenuView = controller.branchMenuView;
-          const {list, newBranchButton, message} = branchMenuView.refs;
+          const tip = getTooltipNode(wrapper, BranchView);
+          sinon.stub(notificationManager, 'addError');
 
-          const branches = Array.from(branchMenuView.refs.list.options).map(option => option.value);
+          const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
 
-          await newBranchButton.onclick();
+          tip.querySelector('button').click();
+          tip.querySelector('atom-text-editor').getModel().setText('master');
+          tip.querySelector('button').click();
 
-          branchMenuView.refs.editor.setText('master');
-          await newBranchButton.onclick();
-          assert.match(message.innerHTML, /branch.*already exists/);
+          await assert.async.isTrue(notificationManager.addError.called);
+          const notificationArgs = notificationManager.addError.args[0];
+          assert.equal(notificationArgs[0], 'Cannot create branch');
+          assert.match(notificationArgs[1].description, /already exists/);
 
           assert.equal(await repository.getCurrentBranch(), 'branch');
-          assert.equal(branchMenuView.refs.list.selectedOptions[0].value, 'branch');
+          assert.equal(tip.querySelector('select').value, 'branch');
         });
       });
     });
   });
 
   describe('pushing and pulling', function() {
-    it('indicates the ahead and behind counts and toggles visibility of the push pull menu when clicked', async function() {
+    it('shows and hides the PushPullView', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       const repository = await buildRepository(localRepoPath);
 
-      const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
 
-      const pushPullView = controller.refs.pushPullView;
-      const {aheadCount, behindCount} = pushPullView.refs;
-      assert.equal(aheadCount.textContent, '');
-      assert.equal(behindCount.textContent, '');
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
+      wrapper.find(PushPullView).node.element.click();
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 1);
+      wrapper.find(PushPullView).node.element.click();
+      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
+    });
+
+    it('indicates the ahead and behind counts', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+      const repository = await buildRepository(localRepoPath);
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
+
+      const tip = getTooltipNode(wrapper, PushPullView);
+
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
       await repository.git.exec(['reset', '--hard', 'head~2']);
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      assert.equal(aheadCount.textContent, '');
-      assert.equal(behindCount.textContent, '2');
+      await wrapper.instance().refreshModelData();
+
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
       await repository.git.commit('new local commit', {allowEmpty: true});
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      assert.equal(aheadCount.textContent, '1');
-      assert.equal(behindCount.textContent, '2');
+      await wrapper.instance().refreshModelData();
 
-      // FIXME: Remove this guard when 1.13 is on stable.
-      if (parseFloat(atom.getVersion() >= 1.13)) {
-        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-        pushPullView.element.click();
-        assert.isDefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-        pushPullView.element.click();
-        assert.isUndefined(document.querySelectorAll('.github-PushPullMenuView')[0]);
-      }
+      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
+      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push (1)');
     });
 
     describe('the push/pull menu', function() {
-      it('disables the pull button when there are changed files', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepository(localRepoPath);
-
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
-
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pullButton} = pushPullMenuView.refs;
-        await repository.git.exec(['reset', '--hard', 'head~2']);
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-
-        assert.isFalse(pullButton.disabled);
-
-        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'a change\n');
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isTrue(pullButton.disabled);
-
-        await repository.stageFiles(['file.txt']);
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isTrue(pullButton.disabled);
-
-        await repository.commit('commit changes');
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
-        assert.isFalse(pullButton.disabled);
-      });
-
       it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['checkout', '-b', 'new-branch']);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pushButton, pullButton, fetchButton, message} = pushPullMenuView.refs;
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+        const message = tip.querySelector('.github-PushPullMenuView-message');
 
         assert.isTrue(pullButton.disabled);
-        assert.isTrue(fetchButton.disabled);
+        assert.isFalse(pushButton.disabled);
         assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
 
-        pushButton.dispatchEvent(new MouseEvent('click'));
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
+        pushButton.click();
+        await until(async fail => {
+          try {
+            repository.refresh();
+            await wrapper.instance().refreshModelData();
 
-        assert.isFalse(pullButton.disabled);
-        assert.isFalse(fetchButton.disabled);
-        assert.equal(message.textContent, '');
+            assert.isFalse(pullButton.disabled);
+            assert.isFalse(pushButton.disabled);
+            assert.equal(message.textContent, '');
+            return true;
+          } catch (err) {
+            return fail(err);
+          }
+        });
       });
 
       it('displays an error message if push fails and allows force pushing if meta key is pressed', async function() {
@@ -267,23 +287,29 @@ describe('StatusBarTileController', function() {
         await repository.git.exec(['reset', '--hard', 'head~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
-        const pushPullMenuView = controller.pushPullMenuView;
-        const {pushButton, pullButton, message} = pushPullMenuView.refs;
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+
+        sinon.stub(notificationManager, 'addError');
 
         assert.equal(pushButton.textContent, 'Push (1)');
         assert.equal(pullButton.textContent, 'Pull (2)');
 
-        pushButton.dispatchEvent(new MouseEvent('click'));
-        await controller.getLastModelDataRefreshPromise();
+        pushButton.click();
+        await wrapper.instance().refreshModelData();
 
-        await assert.async.match(message.innerHTML, /Push rejected/);
+        await assert.async.isTrue(notificationManager.addError.called);
+        const notificationArgs = notificationManager.addError.args[0];
+        assert.equal(notificationArgs[0], 'Push rejected');
+        assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
-        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true}));
-        repository.refresh();
-        await controller.getLastModelDataRefreshPromise();
+        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true, bubbles: true}));
+        await wrapper.instance().refreshModelData();
 
         await assert.async.equal(pushButton.textContent, 'Push ');
         await assert.async.equal(pullButton.textContent, 'Pull ');
@@ -295,8 +321,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'fetch');
 
@@ -309,8 +335,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'pull');
 
@@ -323,8 +349,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
@@ -337,8 +363,8 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const controller = new StatusBarTileController({workspace, repository, commandRegistry});
-        await controller.getLastModelDataRefreshPromise();
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
@@ -355,23 +381,31 @@ describe('StatusBarTileController', function() {
       const repository = await buildRepository(workdirPath);
 
       const toggleGitPanel = sinon.spy();
-      const controller = new StatusBarTileController({workspace, repository, toggleGitPanel, commandRegistry});
-      await controller.getLastModelDataRefreshPromise();
 
-      const changedFilesCountView = controller.refs.changedFilesCountView;
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      await wrapper.instance().refreshModelData();
 
-      assert.equal(changedFilesCountView.element.textContent, '0 files');
+      assert.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '0 files');
 
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      repository.refresh();
+
       await repository.stageFiles(['a.txt']);
       repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
 
-      assert.equal(changedFilesCountView.element.textContent, '2 files');
+      await assert.async.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '2 files');
+    });
 
-      changedFilesCountView.element.click();
+    it('toggles the git panel when clicked', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      const toggleGitPanel = sinon.spy();
+
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      await wrapper.instance().refreshModelData();
+
+      wrapper.find(ChangedFilesCountView).simulate('click');
       assert(toggleGitPanel.calledOnce);
     });
   });

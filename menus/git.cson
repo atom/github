@@ -40,7 +40,7 @@
     }
     {
       'label': 'Discard Changes'
-      'command': 'github:discard-changes-in-selected-file'
+      'command': 'github:discard-changes-in-selected-files'
     }
   ]
   '.github-StagedChanges': [
@@ -53,6 +53,17 @@
     {
       'label': 'Stage'
       'command': 'core:confirm'
+    },
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Resolve File As Ours'
+      'command': 'github:resolve-file-as-ours'
+    },
+    {
+      'label': 'Resolve File As Theirs'
+      'command': 'github:resolve-file-as-theirs'
     }
   ]
   '.github-FilePatchView': [
