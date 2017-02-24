@@ -55,7 +55,7 @@ This package is currently :construction: under heavy development. :construction:
 
 - [x] Stage files/hunks/lines
 - [x] Unstage files/hunks/lines
-- [ ] Discard changed files/hunks/lines
+- [x] Discard changed files/hunks/lines
 - [x] Create commits
 - [x] Amend last commit
 - [x] Sign commits
@@ -63,11 +63,11 @@ This package is currently :construction: under heavy development. :construction:
 - [x] Create new branches
 - [x] Push/pull/fetch
 - [x] Abort merges
-- [ ] Resolve merge conflicts via special UI ([#385](https://github.com/atom/github/pull/385))
+- [x] Resolve merge conflicts via special UI
 
 **GitHub**
 
-- [ ] Show current PR details
+- [x] Show current PR details
 - [ ] Open a new PR
 - [ ] Show PR comments inline in the editor
 - [ ] Edit PRs
