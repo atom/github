@@ -522,13 +522,21 @@ import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRe
         await git.checkout('newBranch', {createNew: true});
         assert.equal(await git.getCurrentBranch(), 'newBranch');
       });
-    });
 
-    it('returns the current branch name in a repository with no commits', async function() {
-      const workingDirPath = await initRepository();
-      const git = createTestStrategy(workingDirPath);
+      it('returns the current branch name in a repository with no commits', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
 
-      assert.equal(await git.getCurrentBranch(), 'master');
+        assert.equal(await git.getCurrentBranch(), 'master');
+      });
+
+      it('returns a reasonable default in a repository with a detached HEAD', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.exec(['checkout', 'HEAD^']);
+
+        assert.equal(await git.getCurrentBranch(), 'master~1');
+      });
     });
 
     describe('getRemoteForBranch(branchName)', function() {
