@@ -398,6 +398,7 @@ describe('StagingView', function() {
       view.mouseup();
       assertEqualSets(view.selection.getSelectedItems(), new Set(unstagedChanges.slice(0, 2)));
       assert.equal(view.props.didSelectFilePath.callCount, 0);
+      view.element.remove();
     });
   });
 
@@ -542,6 +543,7 @@ describe('StagingView', function() {
 
     await view.mousedownOnItem({button: 0}, unstagedChanges[2]);
     assertEqualSets(view.selection.getSelectedItems(), new Set([unstagedChanges[2]]));
+    view.element.remove();
   });
 
   if (process.platform !== 'win32') {
@@ -565,6 +567,7 @@ describe('StagingView', function() {
         assert.isFalse(view.selection.addOrSubtractSelection.called);
         assert.isFalse(view.selection.selectItem.called);
         assert.isFalse(view.mouseSelectionInProgress);
+        view.element.remove();
       });
     });
   }
