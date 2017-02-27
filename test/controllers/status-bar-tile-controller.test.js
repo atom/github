@@ -214,6 +214,23 @@ describe('StatusBarTileController', function() {
           assert.equal(tip.querySelector('select').value, 'branch');
         });
       });
+
+      describe('with a detached HEAD', function() {
+        it('includes the current describe output as a disabled option', async function() {
+          const workdirPath = await cloneRepository('multiple-commits');
+          const repository = await buildRepository(workdirPath);
+          await repository.checkout('HEAD~2');
+
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
+
+          const tip = getTooltipNode(wrapper, BranchView);
+          assert.equal(tip.querySelector('select').value, 'detached');
+          const option = tip.querySelector('option[value="detached"]');
+          assert.equal(option.textContent, 'master~2');
+          assert.isTrue(option.disabled);
+        });
+      });
     });
   });
 
