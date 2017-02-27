@@ -619,7 +619,7 @@ describe('GitController', function() {
       });
 
       describe('when partialDiscardFilePath is falsey', () => {
-        let repository, workdirPath, wrapper, pathA, pathB, pathDeleted, getFileContents;
+        let repository, workdirPath, wrapper, pathA, pathB, pathDeleted, pathAdded, getFileContents;
         beforeEach(async () => {
           workdirPath = await cloneRepository('three-files');
           repository = await buildRepository(workdirPath);
@@ -639,8 +639,10 @@ describe('GitController', function() {
           pathA = path.join(workdirPath, 'a.txt');
           pathB = path.join(workdirPath, 'b.txt');
           pathDeleted = path.join(workdirPath, 'c.txt');
+          pathAdded = path.join(workdirPath, 'added-file.txt');
           fs.writeFileSync(pathA, [1, 2, 3, 4, 5, 6, 7, 8, 9].join('\n'));
           fs.writeFileSync(pathB, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].join('\n'));
+          fs.writeFileSync(pathAdded, ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'].join('\n'));
           fs.unlinkSync(pathDeleted);
 
           app = React.cloneElement(app, {repository});
@@ -652,20 +654,23 @@ describe('GitController', function() {
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
             pathDeleted: getFileContents(pathDeleted),
+            pathAdded: getFileContents(pathAdded),
           };
           await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
           const contents2 = {
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
             pathDeleted: getFileContents(pathDeleted),
+            pathAdded: getFileContents(pathAdded),
           };
           assert.notDeepEqual(contents1, contents2);
 
-          await wrapper.instance().discardWorkDirChangesForPaths(['c.txt']);
+          await wrapper.instance().discardWorkDirChangesForPaths(['c.txt', 'added-file.txt']);
           const contents3 = {
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
             pathDeleted: getFileContents(pathDeleted),
+            pathAdded: getFileContents(pathAdded),
           };
           assert.notDeepEqual(contents2, contents3);
 
@@ -674,21 +679,25 @@ describe('GitController', function() {
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
             pathDeleted: getFileContents(pathDeleted),
+            pathAdded: getFileContents(pathAdded),
           }, contents2);
           await wrapper.instance().undoLastDiscard();
           await assert.async.deepEqual({
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
             pathDeleted: getFileContents(pathDeleted),
+            pathAdded: getFileContents(pathAdded),
           }, contents1);
         });
 
         it('does not undo if buffer is modified', async () => {
-          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt']);
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt', 'added-file.txt']);
 
           // modify buffers
           (await workspace.open(pathA)).getBuffer().append('stuff');
           (await workspace.open(pathB)).getBuffer().append('other stuff');
+          (await workspace.open(pathDeleted)).getBuffer().append('this stuff');
+          (await workspace.open(pathAdded)).getBuffer().append('that stuff');
 
           const expandBlobToFile = sinon.spy(repository, 'expandBlobToFile');
           sinon.stub(notificationManager, 'addError');
@@ -699,7 +708,8 @@ describe('GitController', function() {
           assert.match(notificationArgs[1].description, /You have unsaved changes./);
           assert.match(notificationArgs[1].description, /a.txt/);
           assert.match(notificationArgs[1].description, /b.txt/);
-          assert.notMatch(notificationArgs[1].description, /c.txt/);
+          assert.match(notificationArgs[1].description, /c.txt/);
+          assert.match(notificationArgs[1].description, /added-file.txt/);
           assert.isFalse(expandBlobToFile.called);
         });
 
@@ -714,14 +724,17 @@ describe('GitController', function() {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
+              pathAdded: getFileContents(pathAdded),
             };
 
+            pathAdded = path.join(workdirPath, 'another-added-file.txt');
             // add change to beginning of files
             fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
             fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
             fs.unlinkSync(pathDeleted);
+            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
 
-            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change file contents on disk in non-conflicting way
             fs.writeFileSync(pathA, fs.readFileSync(pathA, 'utf8') + 'change at end');
@@ -733,10 +746,12 @@ describe('GitController', function() {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
+              pathAdded: getFileContents(pathAdded),
             }, {
               pathA: 'change at beginning\n' + originalContents.pathA + 'change at end',
               pathB: 'change at beginning\n' + originalContents.pathB + 'change at end',
               pathDeleted: null,
+              pathAdded: originalContents.pathAdded,
             });
           });
 
@@ -746,21 +761,25 @@ describe('GitController', function() {
             await repository.git.exec(['add', '.']);
             await repository.git.exec(['commit', '-m', 'commit files lengthy enough that changes don\'t conflict']);
 
+            pathAdded = path.join(workdirPath, 'another-added-file.txt');
             fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
             fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
             fs.unlinkSync(pathDeleted);
+            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
 
-            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt']);
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change files in a conflicting way
             fs.writeFileSync(pathA, 'conflicting change\n' + fs.readFileSync(pathA, 'utf8'));
             fs.writeFileSync(pathB, 'conflicting change\n' + fs.readFileSync(pathB, 'utf8'));
             fs.writeFileSync(pathDeleted, 'conflicting change\n');
+            fs.writeFileSync(pathAdded, 'conflicting change\n');
 
             const contentsAfterConflictingChange = {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
+              pathAdded: getFileContents(pathAdded),
             };
 
             // click 'Cancel'
@@ -773,6 +792,7 @@ describe('GitController', function() {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
+              pathAdded: getFileContents(pathAdded),
             }, contentsAfterConflictingChange);
 
             // click 'Open in new editors'
@@ -785,16 +805,24 @@ describe('GitController', function() {
               if (pA < pB) { return -1; } else if (pA > pB) { return 1; } else { return 0; }
             });
             assert.equal(editors.length, 3);
+
             assert.match(editors[0].getFileName(), /a.txt-/);
             assert.isTrue(editors[0].getText().includes('<<<<<<<'));
             assert.isTrue(editors[0].getText().includes('>>>>>>>'));
-            assert.match(editors[1].getFileName(), /b.txt-/);
-            assert.isTrue(editors[1].getText().includes('<<<<<<<'));
-            assert.isTrue(editors[1].getText().includes('>>>>>>>'));
-            assert.match(editors[2].getFileName(), /deleted-file.txt-/);
+
+            assert.match(editors[1].getFileName(), /another-added-file.txt-/);
+            // no merge markers since 'ours' version is a deleted file
+            assert.isFalse(editors[1].getText().includes('>>>>>>>'));
+            assert.isFalse(editors[1].getText().includes('>>>>>>>'));
+
+            assert.match(editors[2].getFileName(), /b.txt-/);
+            assert.isTrue(editors[2].getText().includes('<<<<<<<'));
+            assert.isTrue(editors[2].getText().includes('>>>>>>>'));
+
+            assert.match(editors[3].getFileName(), /deleted-file.txt-/);
             // no merge markers since 'theirs' version is a deleted file
-            assert.isFalse(editors[2].getText().includes('<<<<<<<'));
-            assert.isFalse(editors[2].getText().includes('>>>>>>>'));
+            assert.isFalse(editors[3].getText().includes('<<<<<<<'));
+            assert.isFalse(editors[3].getText().includes('>>>>>>>'));
 
             // click 'Proceed and resolve conflicts'
             confirm.returns(0);
@@ -804,6 +832,7 @@ describe('GitController', function() {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
+              pathAdded: getFileContents(pathAdded),
             };
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('<<<<<<<'));
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('>>>>>>>'));
@@ -811,9 +840,11 @@ describe('GitController', function() {
             await assert.async.isTrue(contentsAfterUndo.pathB.includes('>>>>>>>'));
             await assert.async.isFalse(contentsAfterUndo.pathDeleted.includes('<<<<<<<'));
             await assert.async.isFalse(contentsAfterUndo.pathDeleted.includes('>>>>>>>'));
+            await assert.async.isFalse(contentsAfterUndo.pathAdded.includes('<<<<<<<'));
+            await assert.async.isFalse(contentsAfterUndo.pathAdded.includes('>>>>>>>'));
             let unmergedFiles = await repository.git.exec(['diff', '--name-status', '--diff-filter=U']);
-            unmergedFiles = unmergedFiles.trim().split('\n').map(line => line.split('\t')[1]);
-            assert.deepEqual(unmergedFiles, ['a.txt', 'b.txt', 'deleted-file.txt']);
+            unmergedFiles = unmergedFiles.trim().split('\n').map(line => line.split('\t')[1]).sort();
+            assert.deepEqual(unmergedFiles, ['a.txt', 'another-added-file.txt', 'b.txt', 'deleted-file.txt']);
           });
         });
 
