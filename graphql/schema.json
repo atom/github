@@ -3870,6 +3870,22 @@
               "deprecationReason": null
             },
             {
+              "name": "isCampusExpert",
+              "description": "Whether or not this user is a participant in the GitHub Campus Experts Program.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "isDeveloperProgramMember",
               "description": "Whether or not this user is a GitHub Developer Program member.",
               "args": [],
@@ -19111,12 +19127,6 @@
             {
               "name": "BILLING_MANAGER",
               "description": "The user is invited to be a billing manager of the organization.",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "HIRING_MANAGER",
-              "description": "The user is invited to be a hiring manager of the organization.",
               "isDeprecated": false,
               "deprecationReason": null
             },
