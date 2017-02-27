@@ -344,6 +344,33 @@ describe('StatusBarTileController', function() {
         await assert.async.equal(pushButton.textContent, 'Push ');
         await assert.async.equal(pullButton.textContent, 'Pull ');
       });
+
+      describe('with a detached HEAD', function() {
+        let wrapper;
+
+        beforeEach(async function() {
+          const workdirPath = await cloneRepository('multiple-commits');
+          const repository = await buildRepository(workdirPath);
+          await repository.checkout('HEAD~2');
+
+          wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
+        });
+
+        it('disables the fetch, pull, and push buttons', function() {
+          const tip = getTooltipNode(wrapper, PushPullView);
+
+          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-pull').disabled);
+          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-push').disabled);
+        });
+
+        it('displays an appropriate explanation', function() {
+          const tip = getTooltipNode(wrapper, PushPullView);
+
+          const message = tip.querySelector('.github-PushPullMenuView-message');
+          assert.match(message.textContent, /not on a branch/);
+        });
+      });
     });
 
     describe('fetch and pull commands', function() {
