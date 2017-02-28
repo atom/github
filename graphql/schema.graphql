@@ -188,6 +188,21 @@ type AssignedEvent implements Node, IssueEvent {
   type: IssueEventType!
 }
 
+# Represents an object which can create content. Typically a User or Bot.
+interface Author {
+  # A URL pointing to the author's public avatar.
+  avatarURL(
+    # The size of the resulting square image.
+    size: Int
+  ): String!
+
+  # The username of the author.
+  login: String!
+
+  # The path to this author.
+  path: URI!
+}
+
 # Represents a 'base_ref_force_pushed' event on a given pull request.
 type BaseRefForcePushedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -262,6 +277,25 @@ type Blob implements Node, GitObject {
   text: String
 }
 
+# A special type of user which takes actions on behalf of integrations.
+type Bot implements Node, Author, UniformResourceLocatable {
+  # A URL pointing to the owner's public avatar.
+  avatarURL(
+    # The size of the resulting square image.
+    size: Int
+  ): String!
+  id: ID!
+
+  # The username of the author.
+  login: String!
+
+  # The path to this resource.
+  path: URI!
+
+  # The URL to this resource.
+  url: URI!
+}
+
 # Represents a 'closed' event on a given issue or pull request.
 type ClosedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -286,8 +320,8 @@ type ClosedEvent implements Node, IssueEvent {
 
 # Represents a comment.
 interface Comment {
-  # The user who authored the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # The comment body as Markdown.
   body: String!
@@ -301,8 +335,8 @@ interface Comment {
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -454,8 +488,8 @@ input CommitAuthor {
 
 # Represents a comment on a given Commit.
 type CommitComment implements Node, Comment, Reactable, RepositoryNode {
-  # Identifies the user who created the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -475,8 +509,8 @@ type CommitComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -894,6 +928,36 @@ input DraftPullRequestReviewComment {
   body: String!
 }
 
+# The connection type for User.
+type FollowerConnection {
+  # A list of edges.
+  edges: [UserEdge]
+
+  # A list of nodes.
+  nodes: [User]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# The connection type for User.
+type FollowingConnection {
+  # A list of edges.
+  edges: [UserEdge]
+
+  # A list of nodes.
+  nodes: [User]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
 # A Gist.
 type Gist implements Node {
   # Identifies the date and time when the object was created.
@@ -918,8 +982,8 @@ type Gist implements Node {
 
 # Represents a comment on an Gist.
 type GistComment implements Node, Comment {
-  # Identifies the author of the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -933,8 +997,8 @@ type GistComment implements Node, Comment {
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -1211,8 +1275,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
     before: String
   ): UserConnection!
 
-  # Identifies the author of the issue.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the body of the issue.
   body: String!
@@ -1247,8 +1311,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # A list of labels associated with the Issue or Pull Request.
@@ -1380,8 +1444,8 @@ type Issue implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeli
 
 # Represents a comment on an Issue.
 type IssueComment implements Node, Comment, Reactable, RepositoryNode {
-  # Identifies the author of the comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # Identifies the comment body.
   body: String!
@@ -1398,8 +1462,8 @@ type IssueComment implements Node, Comment, Reactable, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # Identifies the issue associated with the comment.
@@ -1624,8 +1688,8 @@ interface Issueish {
     before: String
   ): UserConnection!
 
-  # Identifies the author of the issue.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the body of the issue.
   body: String!
@@ -2425,6 +2489,9 @@ type Project implements Node {
   # The HTTP path for this project
   path: URI!
 
+  # Whether the project is open or closed.
+  state: ProjectState!
+
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime!
 
@@ -2646,6 +2713,88 @@ interface ProjectOwner {
   viewerCanCreateProjects: Boolean!
 }
 
+# State of the project; either 'open' or 'closed'
+enum ProjectState {
+  # The project is open.
+  OPEN
+
+  # The project is closed.
+  CLOSED
+}
+
+# A repository protected branch.
+type ProtectedBranch implements Node {
+  # Check if authorizing actors for pushing is turned on.
+  authorizedActorsOnly: Boolean!
+
+  # Check if authorizing dismissers is turned on.
+  authorizedDismissalActorsOnly: Boolean!
+
+  # Check to see what level deletion blocking is being enforced.
+  blockDeletionsEnforcementLevel: Int!
+
+  # Check to see what level force pushing is being enfored.
+  blockForcePushesEnforcementLevel: Int!
+
+  # The creator of this protected branch.
+  creator: User!
+  id: ID!
+
+  # Identifies the name of the protected branch.
+  name: String!
+
+  # Check to see what level reviews are being enforced.
+  pullRequestReviewsEnforcementLevel: Int!
+
+  # The repository associated with this protected branch.
+  repository: Repository!
+
+  # Check to see what level merge statuses are being enforced.
+  requiredStatusChecksEnforcementLevel: Int!
+
+  # A list review dismissal allowances for this protected branch.
+  reviewDismissalAllowances(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ReviewDismissalAllowanceConnection!
+
+  # Check if required status checks is turned on.
+  strictRequiredStatusChecksPolicy: Boolean!
+}
+
+# The connection type for ProtectedBranch.
+type ProtectedBranchConnection {
+  # A list of edges.
+  edges: [ProtectedBranchEdge]
+
+  # A list of nodes.
+  nodes: [ProtectedBranch]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type ProtectedBranchEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: ProtectedBranch
+}
+
 # A repository pull request.
 type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
   # A list of Users assigned to the Issue or Pull Request.
@@ -2663,8 +2812,8 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
     before: String
   ): UserConnection!
 
-  # The user associated with this pull request.
-  author: User
+  # The author of the issue or pull request.
+  author: Author
 
   # Identifies the base Ref associated with the pull request.
   baseRef: Ref
@@ -2720,8 +2869,8 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited this pull request's body.
-  editor: User
+  # The editor of this pull request's body.
+  editor: Author
 
   # Identifies the head Ref associated with the pull request.
   headRef: Ref
@@ -2910,8 +3059,8 @@ enum PullRequestPubSubTopic {
 
 # A review object for a given pull request.
 type PullRequestReview implements Node, Comment, RepositoryNode {
-  # Identifies the author associated with this pull request review.
-  author: User!
+  # The author of the comment.
+  author: Author
 
   # Identifies the pull request review body.
   body: String!
@@ -2949,8 +3098,8 @@ type PullRequestReview implements Node, Comment, RepositoryNode {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -2992,8 +3141,8 @@ type PullRequestReview implements Node, Comment, RepositoryNode {
 
 # A review comment associated with a given repository pull request.
 type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNode {
-  # The user associated with this review comment.
-  author: User
+  # The author of the comment.
+  author: Author
 
   # The comment body of this review comment.
   body: String!
@@ -3019,8 +3168,8 @@ type PullRequestReviewComment implements Node, Comment, Reactable, RepositoryNod
   # The diff hunk to which the comment applies.
   diffHunk: String!
 
-  # The user who edited the comment.
-  editor: User
+  # The editor of the comment.
+  editor: Author
   id: ID!
 
   # The moment the editor made the last edit
@@ -4006,6 +4155,21 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   # The HTTP url listing repository's projects
   projectsUrl: URI!
 
+  # A list of protected branches that are on this repository.
+  protectedBranches(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ProtectedBranchConnection!
+
   # Returns a single pull request from the current repository by number.
   pullRequest(
     # The number for the pull request to be returned.
@@ -4461,6 +4625,43 @@ type RequestReviewsPayload {
   requestedReviewersEdge: UserEdge!
 }
 
+# A team or user who as the ability to dismiss a review on a protected branch.
+type ReviewDismissalAllowance implements Node {
+  # The actor that can dismiss.
+  actor: ReviewDismissalAllowanceActor
+  id: ID!
+
+  # Identifies the protected branch associated with the allowed user or team.
+  protectedBranch: ProtectedBranch!
+}
+
+# Types that can be an actor.
+union ReviewDismissalAllowanceActor = User | Team
+
+# The connection type for ReviewDismissalAllowance.
+type ReviewDismissalAllowanceConnection {
+  # A list of edges.
+  edges: [ReviewDismissalAllowanceEdge]
+
+  # A list of nodes.
+  nodes: [ReviewDismissalAllowance]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type ReviewDismissalAllowanceEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: ReviewDismissalAllowance
+}
+
 # Represents a 'review_dismissed' event on a given issue or pull request.
 type ReviewDismissedEvent implements Node, IssueEvent {
   # Identifies the actor (user) associated with the event.
@@ -4736,8 +4937,8 @@ type StatusContext implements Node {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
-  # The user that created this status context.
-  creator: User
+  # The author of this status context.
+  creator: Author
 
   # The description for this status context.
   description: String
@@ -5142,6 +5343,9 @@ input UpdateProjectInput {
 
   # The description of project.
   body: String
+
+  # Whether the project is open or closed.
+  state: ProjectState
 }
 
 # Autogenerated return type of UpdateProject
@@ -5220,7 +5424,7 @@ type UpdateSubscriptionPayload {
 scalar URI
 
 # A user is an individual's account on GitHub that owns repositories and can make new content.
-type User implements Node, RepositoryOwner, UniformResourceLocatable {
+type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
   # A URL pointing to the user's public avatar.
   avatarURL(
     # The size of the resulting square image.
@@ -5276,7 +5480,7 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
-  ): UserConnection!
+  ): FollowerConnection!
 
   # A list of users the given user is following.
   following(
@@ -5291,7 +5495,7 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
-  ): UserConnection!
+  ): FollowingConnection!
 
   # Find gist by repo name.
   gist(
@@ -5397,6 +5601,18 @@ type User implements Node, RepositoryOwner, UniformResourceLocatable {
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
+
+    # A list of states to filter the pull requests by.
+    states: [PullRequestState!]
+
+    # A list of label names to filter the pull requests by.
+    labels: [String!]
+
+    # The head ref name to filter the pull requests by.
+    headRefName: String
+
+    # The base ref name to filter the pull requests by.
+    baseRefName: String
   ): PullRequestConnection!
 
   # A list of repositories that the user owns.

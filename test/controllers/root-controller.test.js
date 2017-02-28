@@ -6,9 +6,9 @@ import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 
-import GitController from '../../lib/controllers/git-controller';
+import RootController from '../../lib/controllers/root-controller';
 
-describe('GitController', function() {
+describe('RootController', function() {
   let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
 
   beforeEach(function() {
@@ -21,7 +21,7 @@ describe('GitController', function() {
     confirm = sinon.stub(atomEnv, 'confirm');
 
     app = (
-      <GitController
+      <RootController
         workspace={workspace}
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
