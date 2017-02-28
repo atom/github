@@ -50,7 +50,7 @@ describe('GithubPackage', function() {
     it('updates the active repository and project path', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
@@ -134,7 +134,7 @@ describe('GithubPackage', function() {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       await githubPackage.activate();
@@ -198,7 +198,7 @@ describe('GithubPackage', function() {
       // Repository with a merge conflict, repository without a merge conflict, path without a repository
       const workdirMergeConflict = await cloneRepository('merge-conflict');
       const workdirNoConflict = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
 
       project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
@@ -242,7 +242,7 @@ describe('GithubPackage', function() {
     if (process.platform !== 'win32') {
       it('handles symlinked project paths', async () => {
         const workdirPath = await cloneRepository('three-files');
-        const symlinkPath = temp.mkdirSync() + '-symlink';
+        const symlinkPath = fs.realpathSync(temp.mkdirSync()) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
         await githubPackage.activate();
