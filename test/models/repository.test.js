@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import dedent from 'dedent-js';
+import temp from 'temp';
 
 import Repository from '../../lib/models/repository';
 
@@ -36,6 +37,15 @@ describe('Repository', function() {
 
       assert.deepEqual(Repository.githubInfoFromRemote('git@gitlab.com:atom/github.git'), notARepo);
       assert.deepEqual(Repository.githubInfoFromRemote('atom/github'), notARepo);
+    });
+  });
+
+  describe('init', function() {
+    it('creates a repository in the given dir and returns the repository', async function() {
+      const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const repo = await Repository.init(soonToBeRepositoryPath);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), soonToBeRepositoryPath);
     });
   });
 
