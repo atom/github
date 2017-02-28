@@ -6,7 +6,7 @@ import mkdirp from 'mkdirp';
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
-import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -133,6 +133,26 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
             file: 'added',
           },
         });
+      });
+    });
+
+    describe('getHeadCommit()', function() {
+      it('gets the SHA and message of the most recent commit', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const commit = await git.getHeadCommit();
+        assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
+        assert.equal(commit.message, 'Initial commit');
+        assert.isFalse(commit.unbornRef);
+      });
+
+      it('notes when HEAD is an unborn ref', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        const commit = await git.getHeadCommit();
+        assert.isTrue(commit.unbornRef);
       });
     });
 
@@ -492,15 +512,30 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
       it('returns the current branch name', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        assert.equal(await git.getCurrentBranch(), 'master');
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'master', isDetached: false});
         await git.checkout('branch');
-        assert.equal(await git.getCurrentBranch(), 'branch');
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'branch', isDetached: false});
 
         // newBranch does not yet exist
         await assert.isRejected(git.checkout('newBranch'));
-        assert.equal(await git.getCurrentBranch(), 'branch');
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'branch', isDetached: false});
         await git.checkout('newBranch', {createNew: true});
-        assert.equal(await git.getCurrentBranch(), 'newBranch');
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'newBranch', isDetached: false});
+      });
+
+      it('returns the current branch name in a repository with no commits', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'master', isDetached: false});
+      });
+
+      it('returns a reasonable default in a repository with a detached HEAD', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.exec(['checkout', 'HEAD^']);
+
+        assert.deepEqual(await git.getCurrentBranch(), {name: 'master~1', isDetached: true});
       });
     });
 

@@ -9,13 +9,15 @@ import {cloneRepository, buildRepository} from '../helpers';
 import RootController from '../../lib/controllers/root-controller';
 
 describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, confirm, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+    tooltips = atomEnv.tooltips;
+
     confirm = sinon.stub(atomEnv, 'confirm');
 
     app = (
@@ -23,6 +25,7 @@ describe('RootController', function() {
         workspace={workspace}
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
+        tooltips={tooltips}
         confirm={confirm}
       />
     );
