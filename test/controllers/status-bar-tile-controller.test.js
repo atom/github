@@ -311,7 +311,7 @@ describe('StatusBarTileController', function() {
         });
       });
 
-      it.only('displays an error message if push fails and allows force pushing if meta/ctrl key is pressed', async function() {
+      it('displays an error message if push fails and allows force pushing if meta/ctrl key is pressed', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['reset', '--hard', 'head~2']);
