@@ -308,6 +308,23 @@ describe('GithubPackage', function() {
     });
   });
 
+  describe('#createRepositoryForProjectPath', function() {
+    it('creates and sets a repository for the given project path', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
+      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
+      await githubPackage.activate();
+
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
+      await assert.async.isNull(githubPackage.getActiveRepository());
+      await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
+      assert.isOk(githubPackage.getActiveRepository());
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(nonRepositoryPath));
+    });
+  });
+
   describe('#projectPathForItemPath', function() {
     it('does not error when the path is falsy (e.g. new unsaved file)', function() {
       sinon.stub(project, 'getDirectories').returns([new Directory('path')]);
