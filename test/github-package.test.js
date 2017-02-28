@@ -47,7 +47,7 @@ describe('GithubPackage', function() {
   });
 
   describe('changing the project paths', function() {
-    it('updates the active repository', async function() {
+    it('updates the active repository and project path', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = temp.mkdirSync();
@@ -60,20 +60,24 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       await assert.async.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       await assert.async.isNull(githubPackage.getActiveRepository());
       await assert.async.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository2);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       await assert.async.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await assert.async.isNull(githubPackage.getActiveRepository());
+      await assert.async.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
       await assert.async.equal(githubPackage.rerender.callCount, 4);
     });
 
@@ -140,34 +144,42 @@ describe('GithubPackage', function() {
 
       await githubPackage.updateActiveModels();
       assert.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
     });
 
