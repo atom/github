@@ -4,7 +4,7 @@ import dedent from 'dedent-js';
 
 import StyleCalculator from '../../lib/models/style-calculator';
 
-describe.only('StyleCalculator', function(done) {
+describe('StyleCalculator', function(done) {
   it('updates a stylesheet based on configuration', function() {
     const configChangeCallbacks = {};
 
