@@ -1,18 +1,37 @@
-os:
-- osx
-- linux
-
 language: node_js
-
 node_js:
-  - '6.9.4'
+- '6.9.4'
+
+matrix:
+  include:
+  - os: linux
+    env:
+    - ATOM_CHANNEL=stable
+
+  - os: linux
+    env:
+    - ATOM_CHANNEL=beta
+
+  - os: osx
+    env:
+    - TRAVIS_BUILD_JOB=schemacheck
+
+  - os: osx
+    env:
+    - TRAVIS_BUILD_JOB=runtests
+    - ATOM_CHANNEL=stable
+
+  - os: osx
+    env:
+    - TRAVIS_BUILD_JOB=runtests
+    - ATOM_CHANNEL=beta
 
 addons:
   apt:
     packages:
-      - clang-3.3
-      - build-essential
-      - libgnome-keyring-dev
+    - clang-3.3
+    - build-essential
+    - libgnome-keyring-dev
 
 env:
   global:
@@ -20,10 +39,7 @@ env:
     - npm_config_clang=1
     - CC=clang
     - CXX=clang++
-  matrix:
-    - TRAVIS_BUILD_JOB=schemacheck
-    - TRAVIS_BUILD_JOB=runtests ATOM_CHANNEL=stable ATOM_GITHUB_FS_EVENT_LOG=1
-    # - TRAVIS_BUILD_JOB=runtests ATOM_CHANNEL=beta ATOM_GITHUB_FS_EVENT_LOG=1
+    - ATOM_GITHUB_FS_EVENT_LOG=1
 
 notifications:
   email:
@@ -36,8 +52,8 @@ notifications:
       secure: "cm17gjkIkp4cGPy5PTolNJlCGecqU0VptbEvv1HjqkrOnwPJibK9H8DVjmN4Xx3HTRPjlRIEOE/CmadFcJ0+jIsvId47AnrEOOWVQwAEWNpxDWd0zvVr0/TdKOm+9pPFo16I/1OtLT8keCs0WyoVfzC+p56dhSw+KR8I+0Zbwv/BVH/BYn3LsiCzNS/vp4bajcqLmq+23hderskpEHaX9HpbhYNy6nm3haZBYimvdSKkQdW7eSmwU5JZ6hdhUH5sqmIq5mRV1jppREQ86UF0CupSmZGPtvRK/EGEiCETB5vD7aSx9kPaxQ5P5YNG+Kq5mHNzj/k0ZrhMjdH6xoeSMjdW3Hn0gqc/zhy0qY/LeBSwVJFFq8Xy2K1SIDKYX/X5Jmo/ZIrJmN+p45+JHY5gxmtu1ckteeFtKpJye4WPmeYAGpmJDTgtLdGV6XWZGWXdMTBbOGcLsNtZrx5aCueuhiiOb6zFgydhMR63WBharkz39ABQIA3RVHwPmpe+HhJbM4+eijA2WPbTJxFxjBw+mwlakag0RfuERutRjmUI++JBdbB7xzEet1Cfyk1p833xYG3YlXZV+BHUzt6/0OFaIQYcqpryjtFS10GVQbeFdNbxhNig6MKQ8cirpra6JQafRUuTmBAxIP/ZmglF8h0ZwT8lMnNgTHa/QhdALmVNYBk="
 
 install:
-  - npm install -g npm
-  - 'if [ "${TRAVIS_BUILD_JOB}" = "schemacheck" ] && [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew install jq; fi'
+- npm install -g npm
+- 'if [ "${TRAVIS_BUILD_JOB}" = "schemacheck" ] && [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew install jq; fi'
 
 script:
-  - ./script/cibuild
+- ./script/cibuild
