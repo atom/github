@@ -3,6 +3,10 @@ node_js: '6.9.4'
 sudo: false
 os: osx
 
+branches:
+  only:
+  - master
+
 matrix:
   include:
   - os: linux
