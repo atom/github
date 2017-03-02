@@ -63,7 +63,7 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await remoteGit.clone(baseRepoPath, {bare: true});
 
   // create local repo with one fewer commit
-  if (options.remoteAhead) { await baseGit.exec(['reset', 'head~']); }
+  if (options.remoteAhead) { await baseGit.exec(['reset', 'HEAD~']); }
   const localRepoPath = temp.mkdirSync('git-local-fixture-');
   const localGit = new GitShellOutStrategy(localRepoPath);
   await localGit.clone(baseRepoPath);

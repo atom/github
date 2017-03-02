@@ -261,7 +261,7 @@ describe('StatusBarTileController', function() {
       assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull');
       assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
-      await repository.git.exec(['reset', '--hard', 'head~2']);
+      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
       repository.refresh();
       await wrapper.instance().refreshModelData();
 
@@ -314,7 +314,7 @@ describe('StatusBarTileController', function() {
       it('displays an error message if push fails and allows force pushing if meta key is pressed', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
-        await repository.git.exec(['reset', '--hard', 'head~2']);
+        await repository.git.exec(['reset', '--hard', 'HEAD~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
         const wrapper = mount(React.cloneElement(component, {repository}));

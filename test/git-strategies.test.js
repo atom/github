@@ -80,7 +80,7 @@ import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRe
         const git = createTestStrategy(workingDirPath);
         // Undo the last commit, which is where we copied one.cc to two.cc
         // and then emptied one.cc.
-        await git.exec(['reset', '--soft', 'head^']);
+        await git.exec(['reset', '--soft', 'HEAD^']);
         const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
         assert.deepEqual(stagedFiles, {
           'one.cc': 'modified',
