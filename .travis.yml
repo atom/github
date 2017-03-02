@@ -1,13 +1,20 @@
 language: node_js
-node_js:
-- '6.9.4'
+node_js: '6.9.4'
+sudo: false
 
 matrix:
   include:
   - os: linux
+    dist: trusty
     env:
     - TRAVIS_BUILD_JOB=runtests
     - ATOM_CHANNEL=stable
+    addons:
+      apt:
+        packages:
+        - clang-3.3
+        - build-essential
+        - libgnome-keyring-dev
 
   - os: osx
     env:
@@ -18,15 +25,9 @@ matrix:
     - TRAVIS_BUILD_JOB=runtests
     - ATOM_CHANNEL=stable
 
-dist: trusty
-sudo: false
-
-addons:
-  apt:
-    packages:
-    - clang-3.3
-    - build-essential
-    - libgnome-keyring-dev
+  # Exclude the default build
+  exclude:
+  - language: node_js
 
 env:
   global:
