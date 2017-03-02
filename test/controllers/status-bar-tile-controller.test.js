@@ -341,7 +341,7 @@ describe('StatusBarTileController', function() {
         await wrapper.instance().refreshModelData();
         // This rigmarole is to get around a bug where dispatching a `KeyboardEvent` does not work.
         // Note that this causes an error from down in Atom's internals; fixing the error
-        // makes the devent dispatch fail. -_-
+        // makes the event dispatch fail. -_-
         const event = new Event('keydown', {bubbles: true});
         event.key = 'a';
         event.keyCode = 65;
