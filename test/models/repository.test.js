@@ -40,42 +40,10 @@ describe('Repository', function() {
     });
   });
 
-  describe.only('repository state', function() {
-    it('transitions from loading to open on a workdir with a git repository', async function() {
-      const workdirPath = await cloneRepository('three-files');
-
-      const loading = Repository.forPath(workdirPath);
-      assert.isTrue(loading.isLoading());
-      assert.isFalse(loading.isOpen());
-      assert.isFalse(loading.isAbsent());
-
-      const loaded = await loading.open();
-      assert.isFalse(loaded.isLoading());
-      assert.isTrue(loaded.isOpen());
-      assert.isFalse(loaded.isAbsent());
-    });
-
-    it('transitions from loading to absent on a workdir without a git repository', async function() {
-      const repositorylessPath = fs.realpathSync(temp.mkdirSync());
-
-      const loading = Repository.forPath(repositorylessPath);
-      assert.isTrue(loading.isLoading());
-      assert.isFalse(loading.isOpen());
-      assert.isFalse(loading.isAbsent());
-
-      const absent = await loading.open();
-      assert.isFalse(absent.isLoading());
-      assert.isFalse(absent.isOpen());
-      assert.isTrue(absent.isAbsent());
-    });
-  });
-
   describe('init', function() {
     it('creates a repository in the given dir and returns the repository', async function() {
       const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
-      const nullRepo = await Repository.open(soonToBeRepositoryPath);
-
-      const repo = nullRepo.init(soonToBeRepositoryPath);
+      const repo = await Repository.init(soonToBeRepositoryPath);
       assert.isTrue(await repo.isGitRepository());
       assert.equal(repo.getWorkingDirectoryPath(), soonToBeRepositoryPath);
     });
