@@ -9,11 +9,6 @@ matrix:
     - TRAVIS_BUILD_JOB=runtests
     - ATOM_CHANNEL=stable
 
-  - os: linux
-    env:
-    - TRAVIS_BUILD_JOB=runtests
-    - ATOM_CHANNEL=beta
-
   - os: osx
     env:
     - TRAVIS_BUILD_JOB=schemacheck
@@ -22,11 +17,6 @@ matrix:
     env:
     - TRAVIS_BUILD_JOB=runtests
     - ATOM_CHANNEL=stable
-
-  - os: osx
-    env:
-    - TRAVIS_BUILD_JOB=runtests
-    - ATOM_CHANNEL=beta
 
 dist: trusty
 sudo: false
