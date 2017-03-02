@@ -17,11 +17,27 @@
   -webkit-user-select: none;
   cursor: default;
 
-  &.is-loading,
-  &.no-repository {
+  &.is-loading, &.no-repository {
     padding: @component-padding * 3;
     text-align: center;
-    color: @text-color-subtle;
+  }
+
+  &.is-loading {
     font-style: italic;
+    color: @text-color-subtle;
+  }
+
+  &.no-repository {
+    display: flex;
+    justify-content: center;
+    font-size: 1.25em;
+
+    > * {
+      margin: @component-padding 0;
+    }
+
+    .git-logo-path {
+      fill: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+    }
   }
 }

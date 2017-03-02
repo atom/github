@@ -6,23 +6,26 @@ import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 
-import GitController from '../../lib/controllers/git-controller';
+import RootController from '../../lib/controllers/root-controller';
 
-describe('GitController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, confirm, app;
+describe('RootController', function() {
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+    tooltips = atomEnv.tooltips;
+
     confirm = sinon.stub(atomEnv, 'confirm');
 
     app = (
-      <GitController
+      <RootController
         workspace={workspace}
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
+        tooltips={tooltips}
         confirm={confirm}
       />
     );
@@ -262,9 +265,9 @@ describe('GitController', function() {
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.find('StatusBarTileController').prop('toggleGitPanel')();
+      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      wrapper.find('StatusBarTileController').prop('toggleGitPanel')();
+      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isFalse(wrapper.find('Panel').prop('visible'));
     });
   });

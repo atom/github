@@ -2,11 +2,13 @@ import CommitViewController from '../../lib/controllers/commit-view-controller';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, commandRegistry;
+  let atomEnvironment, commandRegistry, lastCommit;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     commandRegistry = atomEnvironment.commands;
+
+    lastCommit = {sha: 'a1e23fd45', message: 'last commit message', unbornRef: false};
   });
 
   afterEach(function() {
@@ -18,7 +20,7 @@ describe('CommitViewController', function() {
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
-    const controller = new CommitViewController({commandRegistry, repository: repository1});
+    const controller = new CommitViewController({commandRegistry, lastCommit, repository: repository1});
 
     assert.equal(controller.regularCommitMessage, '');
     assert.equal(controller.amendingCommitMessage, '');
@@ -36,13 +38,12 @@ describe('CommitViewController', function() {
   });
 
   describe('the passed commit message', function() {
-    let controller, commitView, lastCommit;
+    let controller, commitView;
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({commandRegistry, repository});
+      controller = new CommitViewController({commandRegistry, lastCommit, repository});
       commitView = controller.refs.commitView;
-      lastCommit = {sha: 'a1e23fd45', message: 'last commit message'};
     });
 
     it('is set to the regularCommitMessage in the default case', async function() {

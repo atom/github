@@ -9,7 +9,8 @@ import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, githubPackage;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips;
+  let githubPackage;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,9 +18,12 @@ describe('GithubPackage', function() {
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
+    tooltips = atomEnv.tooltips;
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
-    githubPackage = new GithubPackage(workspace, project, commandRegistry, notificationManager, config, confirm);
+    githubPackage = new GithubPackage(
+      workspace, project, commandRegistry, notificationManager, tooltips, config, confirm,
+    );
   });
 
   afterEach(async function() {
@@ -43,10 +47,10 @@ describe('GithubPackage', function() {
   });
 
   describe('changing the project paths', function() {
-    it('updates the active repository', async function() {
+    it('updates the active repository and project path', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
@@ -56,20 +60,24 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       await assert.async.equal(githubPackage.rerender.callCount, 1);
 
       // Remove repository for open file
       project.setPaths([workdirPath2, nonRepositoryPath]);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       await assert.async.isNull(githubPackage.getActiveRepository());
       await assert.async.equal(githubPackage.rerender.callCount, 2);
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository2);
+      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       await assert.async.equal(githubPackage.rerender.callCount, 3);
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await assert.async.isNull(githubPackage.getActiveRepository());
+      await assert.async.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
       await assert.async.equal(githubPackage.rerender.callCount, 4);
     });
 
@@ -126,7 +134,7 @@ describe('GithubPackage', function() {
     it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       await githubPackage.activate();
@@ -136,34 +144,42 @@ describe('GithubPackage', function() {
 
       await githubPackage.updateActiveModels();
       assert.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       await githubPackage.updateActiveModels();
+      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await githubPackage.updateActiveModels();
+      assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
     });
 
@@ -182,7 +198,7 @@ describe('GithubPackage', function() {
       // Repository with a merge conflict, repository without a merge conflict, path without a repository
       const workdirMergeConflict = await cloneRepository('merge-conflict');
       const workdirNoConflict = await cloneRepository('three-files');
-      const nonRepositoryPath = temp.mkdirSync();
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
 
       project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
@@ -226,7 +242,7 @@ describe('GithubPackage', function() {
     if (process.platform !== 'win32') {
       it('handles symlinked project paths', async () => {
         const workdirPath = await cloneRepository('three-files');
-        const symlinkPath = temp.mkdirSync() + '-symlink';
+        const symlinkPath = fs.realpathSync(temp.mkdirSync()) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
         await githubPackage.activate();
@@ -292,6 +308,23 @@ describe('GithubPackage', function() {
     });
   });
 
+  describe('#createRepositoryForProjectPath', function() {
+    it('creates and sets a repository for the given project path', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
+      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
+      await githubPackage.activate();
+
+      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
+      await assert.async.isNull(githubPackage.getActiveRepository());
+      await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
+      assert.isOk(githubPackage.getActiveRepository());
+      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(nonRepositoryPath));
+    });
+  });
+
   describe('#projectPathForItemPath', function() {
     it('does not error when the path is falsy (e.g. new unsaved file)', function() {
       sinon.stub(project, 'getDirectories').returns([new Directory('path')]);
@@ -327,7 +360,9 @@ describe('GithubPackage', function() {
       assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
       assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
 
-      const githubPackage1 = new GithubPackage(workspace, project, commandRegistry, notificationManager, config, confirm);
+      const githubPackage1 = new GithubPackage(
+        workspace, project, commandRegistry, notificationManager, tooltips, config, confirm,
+      );
       await githubPackage1.activate(payload);
       await githubPackage1.getInitialModelsPromise();
 
