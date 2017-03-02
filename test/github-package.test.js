@@ -280,6 +280,10 @@ describe('GithubPackage', function() {
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 1', async function() {
+      if (process.platform === 'linux') {
+        this.skip();
+      }
+
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
       await assert.async.isTrue(repository1.refresh.called);
@@ -287,6 +291,10 @@ describe('GithubPackage', function() {
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 2', async function() {
+      if (process.platform === 'linux') {
+        this.skip();
+      }
+
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
       await assert.async.isTrue(repository2.refresh.called);
