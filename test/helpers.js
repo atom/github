@@ -37,6 +37,16 @@ export async function cloneRepository(repoName = 'three-files') {
   return copyCachedRepo(repoName);
 }
 
+/*
+ * Initialize an empty repository at a temporary path.
+ */
+export async function initRepository(repoName) {
+  const workingDirPath = temp.mkdirSync('git-fixture-');
+  const git = new GitShellOutStrategy(workingDirPath);
+  await git.exec(['init']);
+  return fs.realpathSync(workingDirPath);
+}
+
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
   /* eslint-disable no-param-reassign */
   if (typeof repoName === 'object') {
@@ -53,7 +63,7 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await remoteGit.clone(baseRepoPath, {bare: true});
 
   // create local repo with one fewer commit
-  if (options.remoteAhead) { await baseGit.exec(['reset', 'head~']); }
+  if (options.remoteAhead) { await baseGit.exec(['reset', 'HEAD~']); }
   const localRepoPath = temp.mkdirSync('git-local-fixture-');
   const localGit = new GitShellOutStrategy(localRepoPath);
   await localGit.clone(baseRepoPath);

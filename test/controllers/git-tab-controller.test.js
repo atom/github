@@ -5,13 +5,13 @@ import etch from 'etch';
 import dedent from 'dedent-js';
 import until from 'test-until';
 
-import GitPanelController from '../../lib/controllers/git-panel-controller';
+import GitTabController from '../../lib/controllers/git-tab-controller';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import {AbortMergeError, CommitError} from '../../lib/models/repository';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
-describe('GitPanelController', function() {
+describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
   let resolutionProgress, refreshResolutionProgress;
 
@@ -32,12 +32,12 @@ describe('GitPanelController', function() {
     atom.confirm.restore && atom.confirm.restore();
   });
 
-  it('displays loading message in GitPanelView while data is being fetched', async function() {
+  it('displays loading message in GitTabView while data is being fetched', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-    const controller = new GitPanelController({
+    const controller = new GitTabController({
       workspace, commandRegistry, repository,
       resolutionProgress, refreshResolutionProgress,
     });
@@ -54,19 +54,19 @@ describe('GitPanelController', function() {
     await assert.async.isDefined(controller.refs.gitPanel.refs.commitViewController);
   });
 
-  it('keeps the state of the GitPanelView in sync with the assigned repository', async function() {
+  it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'));
-    const controller = new GitPanelController({
+    const controller = new GitTabController({
       workspace, commandRegistry, resolutionProgress, refreshResolutionProgress,
       repository: null,
     });
 
-    // Renders empty GitPanelView when there is no active repository
+    // Renders empty GitTabView when there is no active repository
     assert.isDefined(controller.refs.gitPanel);
     assert.isNull(controller.getActiveRepository());
     assert.isDefined(controller.refs.gitPanel.refs.noRepoMessage);
@@ -94,7 +94,7 @@ describe('GitPanelController', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const ensureGitPanel = () => Promise.resolve(false);
-    const controller = new GitPanelController({
+    const controller = new GitTabController({
       workspace, commandRegistry, repository, didChangeAmending, ensureGitPanel,
       resolutionProgress, refreshResolutionProgress,
       isAmending: false,
@@ -123,7 +123,7 @@ describe('GitPanelController', function() {
     const rp = ResolutionProgress.empty();
     rp.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
 
-    const controller = new GitPanelController({
+    const controller = new GitTabController({
       workspace, commandRegistry, repository, resolutionProgress: rp, refreshResolutionProgress,
     });
     await controller.getLastModelDataRefreshPromise();
@@ -142,7 +142,7 @@ describe('GitPanelController', function() {
         throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
       });
 
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, notificationManager, repository,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -160,7 +160,7 @@ describe('GitPanelController', function() {
         .then(() => { throw new Error('Expected merge to throw an error'); })
         .catch(() => true);
 
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -188,7 +188,7 @@ describe('GitPanelController', function() {
       const repository = await buildRepository(workdirPath);
 
       const ensureGitPanel = () => Promise.resolve(true);
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, ensureGitPanel,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -201,7 +201,7 @@ describe('GitPanelController', function() {
       const repository = await buildRepository(workdirPath);
 
       const ensureGitPanel = () => Promise.resolve(false);
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, ensureGitPanel,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -219,7 +219,7 @@ describe('GitPanelController', function() {
         throw new CommitError('ECONFLICT');
       });
 
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, notificationManager, repository,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -233,7 +233,7 @@ describe('GitPanelController', function() {
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'commit', () => Promise.resolve());
       const didChangeAmending = sinon.stub();
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, didChangeAmending,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -252,7 +252,7 @@ describe('GitPanelController', function() {
     fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
     repository.refresh();
 
-    const controller = new GitPanelController({
+    const controller = new GitTabController({
       workspace, commandRegistry, repository,
       resolutionProgress, refreshResolutionProgress,
     });
@@ -314,7 +314,7 @@ describe('GitPanelController', function() {
 
         const didChangeAmending = () => {};
 
-        controller = new GitPanelController({
+        controller = new GitTabController({
           workspace, commandRegistry, repository,
           resolutionProgress, refreshResolutionProgress,
           didChangeAmending,
@@ -384,7 +384,7 @@ describe('GitPanelController', function() {
         const prepareToCommit = () => Promise.resolve(true);
         const ensureGitPanel = () => Promise.resolve(false);
 
-        controller = new GitPanelController({
+        controller = new GitTabController({
           workspace, commandRegistry, repository, didChangeAmending, prepareToCommit, ensureGitPanel,
           resolutionProgress, refreshResolutionProgress,
         });
@@ -424,7 +424,7 @@ describe('GitPanelController', function() {
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       const ensureGitPanel = () => Promise.resolve(false);
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, ensureGitPanel, didChangeAmending: sinon.stub(),
         resolutionProgress, refreshResolutionProgress,
       });
@@ -469,7 +469,7 @@ describe('GitPanelController', function() {
         // expected
       }
 
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository,
         resolutionProgress, refreshResolutionProgress,
       });
@@ -529,7 +529,7 @@ describe('GitPanelController', function() {
       const repository = await buildRepository(workdirPath);
       fs.unlinkSync(path.join(workdirPath, 'a.txt'));
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();
@@ -560,7 +560,7 @@ describe('GitPanelController', function() {
       const repository = await buildRepository(workdirPath);
       fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
 
-      const controller = new GitPanelController({
+      const controller = new GitTabController({
         workspace, commandRegistry, repository, resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();

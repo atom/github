@@ -8,14 +8,14 @@ chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
 // Give tests that rely on filesystem event delivery lots of breathing room.
-until.setDefaultTimeout(3000);
+until.setDefaultTimeout(parseInt(process.env.UNTIL_TIMEOUT || '3000', 10));
 
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
   reporter: process.env.MOCHA_REPORTER || 'spec',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
-  mocha.timeout(5000);
+  mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
   if (process.env.APPVEYOR_API_URL) {
     mocha.reporter(require('mocha-appveyor-reporter'));
   }

@@ -72,6 +72,16 @@ describe('FilePatchController', function() {
     assert.isTrue(didSurfaceFile.calledWith('a.txt', 'unstaged'));
   });
 
+  it('ignores being passed a null repository', async function() {
+    const workdirPath = await cloneRepository('multi-line-file');
+    const repository = await buildRepository(workdirPath);
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
+    const controller = new FilePatchController({commandRegistry, filePatch, repository, stagingStatus: 'unstaged'});
+    assert.equal(controller.getRepository(), repository);
+    controller.update({repository: null});
+    assert.equal(controller.getRepository(), repository);
+  });
+
   describe('integration tests', function() {
     it('stages and unstages hunks when the stage button is clicked on hunk views with no individual lines selected', async function() {
       const workdirPath = await cloneRepository('multi-line-file');

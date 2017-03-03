@@ -6,25 +6,26 @@ import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 
-import GitController from '../../lib/controllers/git-controller';
+import RootController from '../../lib/controllers/root-controller';
 
-describe('GitController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, confirm, tooltips, app;
+describe('RootController', function() {
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
-    confirm = sinon.stub(atomEnv, 'confirm');
     tooltips = atomEnv.tooltips;
+
+    confirm = sinon.stub(atomEnv, 'confirm');
     app = (
-      <GitController
+      <RootController
         workspace={workspace}
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
-        confirm={confirm}
         tooltips={tooltips}
+        confirm={confirm}
       />
     );
   });

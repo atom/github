@@ -54,7 +54,20 @@ describe('StatusBarTileController', function() {
       const wrapper = mount(React.cloneElement(component, {repository}));
       await wrapper.instance().refreshModelData();
 
-      assert.equal(wrapper.find(BranchView).prop('branchName'), 'master');
+      assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master');
+      assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 0);
+    });
+
+    it('styles a detached HEAD differently', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+      await repository.checkout('HEAD~2');
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
+
+      assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master~2');
+      assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 1);
     });
 
     describe('the branch menu', function() {
@@ -84,17 +97,17 @@ describe('StatusBarTileController', function() {
           const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
 
-          assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'master');
 
           selectOption(tip, 'branch');
-          assert.equal(await repository.getCurrentBranch(), 'branch');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'branch');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
-          assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'master');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'master');
@@ -117,7 +130,7 @@ describe('StatusBarTileController', function() {
 
           const tip = getTooltipNode(wrapper, BranchView);
 
-          assert.equal(await repository.getCurrentBranch(), 'branch');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
@@ -149,7 +162,7 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
-          assert.equal(await repository.getCurrentBranch(), 'master');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'master');
 
           tip.querySelector('button').click();
@@ -166,7 +179,7 @@ describe('StatusBarTileController', function() {
           });
 
           assert.equal(tip.querySelector('select').value, 'new-branch');
-          assert.equal(await repository.getCurrentBranch(), 'new-branch');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'new-branch', isDetached: false});
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
           assert.lengthOf(tip.querySelectorAll('select'), 1);
@@ -185,7 +198,7 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
-          assert.equal(await repository.getCurrentBranch(), 'branch');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'branch');
 
           tip.querySelector('button').click();
@@ -197,8 +210,25 @@ describe('StatusBarTileController', function() {
           assert.equal(notificationArgs[0], 'Cannot create branch');
           assert.match(notificationArgs[1].description, /already exists/);
 
-          assert.equal(await repository.getCurrentBranch(), 'branch');
+          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
           assert.equal(tip.querySelector('select').value, 'branch');
+        });
+      });
+
+      describe('with a detached HEAD', function() {
+        it('includes the current describe output as a disabled option', async function() {
+          const workdirPath = await cloneRepository('multiple-commits');
+          const repository = await buildRepository(workdirPath);
+          await repository.checkout('HEAD~2');
+
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
+
+          const tip = getTooltipNode(wrapper, BranchView);
+          assert.equal(tip.querySelector('select').value, 'detached');
+          const option = tip.querySelector('option[value="detached"]');
+          assert.equal(option.textContent, 'master~2');
+          assert.isTrue(option.disabled);
         });
       });
     });
@@ -231,7 +261,7 @@ describe('StatusBarTileController', function() {
       assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull');
       assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
 
-      await repository.git.exec(['reset', '--hard', 'head~2']);
+      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
       repository.refresh();
       await wrapper.instance().refreshModelData();
 
@@ -281,10 +311,10 @@ describe('StatusBarTileController', function() {
         });
       });
 
-      it('displays an error message if push fails and allows force pushing if meta key is pressed', async function() {
+      it('displays an error message if push fails and allows force pushing if meta/ctrl key is pressed', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
-        await repository.git.exec(['reset', '--hard', 'head~2']);
+        await repository.git.exec(['reset', '--hard', 'HEAD~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
         const wrapper = mount(React.cloneElement(component, {repository}));
@@ -297,8 +327,8 @@ describe('StatusBarTileController', function() {
 
         sinon.stub(notificationManager, 'addError');
 
-        assert.equal(pushButton.textContent, 'Push (1)');
-        assert.equal(pullButton.textContent, 'Pull (2)');
+        assert.equal(pushButton.textContent.trim(), 'Push (1)');
+        assert.equal(pullButton.textContent.trim(), 'Pull (2)');
 
         pushButton.click();
         await wrapper.instance().refreshModelData();
@@ -308,11 +338,46 @@ describe('StatusBarTileController', function() {
         assert.equal(notificationArgs[0], 'Push rejected');
         assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
-        pushButton.dispatchEvent(new MouseEvent('click', {metaKey: true, bubbles: true}));
         await wrapper.instance().refreshModelData();
+        // This rigmarole is to get around a bug where dispatching a `KeyboardEvent` does not work.
+        // Note that this causes an error from down in Atom's internals; fixing the error
+        // makes the event dispatch fail. -_-
+        const event = new Event('keydown', {bubbles: true});
+        event.key = 'a';
+        event.keyCode = 65;
+        event.ctrlKey = true;
+        document.dispatchEvent(event);
 
-        await assert.async.equal(pushButton.textContent, 'Push ');
-        await assert.async.equal(pullButton.textContent, 'Pull ');
+        await assert.async.equal(pushButton.textContent.trim(), 'Force Push (1)');
+        await assert.async.equal(pullButton.textContent.trim(), 'Pull (2)');
+        wrapper.unmount();
+      });
+
+      describe('with a detached HEAD', function() {
+        let wrapper;
+
+        beforeEach(async function() {
+          const workdirPath = await cloneRepository('multiple-commits');
+          const repository = await buildRepository(workdirPath);
+          await repository.checkout('HEAD~2');
+
+          wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
+        });
+
+        it('disables the fetch, pull, and push buttons', function() {
+          const tip = getTooltipNode(wrapper, PushPullView);
+
+          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-pull').disabled);
+          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-push').disabled);
+        });
+
+        it('displays an appropriate explanation', function() {
+          const tip = getTooltipNode(wrapper, PushPullView);
+
+          const message = tip.querySelector('.github-PushPullMenuView-message');
+          assert.match(message.textContent, /not on a branch/);
+        });
       });
     });
 

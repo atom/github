@@ -3,6 +3,7 @@ import path from 'path';
 import until from 'test-until';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {writeFile} from '../../lib/helpers';
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 
@@ -42,9 +43,9 @@ describe('WorkspaceChangeObserver', function() {
     changeObserver.onDidChange(changeSpy);
     await changeObserver.start();
 
-    const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
-    editor.setText('change');
+    await writeFile(path.join(workdirPath, 'a.txt'), 'change');
     await repository.stageFiles(['a.txt']);
+
     await assert.async.isTrue(changeSpy.called);
   });
 
