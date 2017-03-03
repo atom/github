@@ -720,19 +720,20 @@ describe('GitController', function() {
             await repository.git.exec(['add', '.']);
             await repository.git.exec(['commit', '-m', 'commit files lengthy enough that changes don\'t conflict']);
 
-            const originalContents = {
+            pathAdded = path.join(workdirPath, 'another-added-file.txt');
+
+            // change files
+            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
+            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
+            fs.unlinkSync(pathDeleted);
+            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
+
+            const contentsBeforeDiscard = {
               pathA: getFileContents(pathA),
               pathB: getFileContents(pathB),
               pathDeleted: getFileContents(pathDeleted),
               pathAdded: getFileContents(pathAdded),
             };
-
-            pathAdded = path.join(workdirPath, 'another-added-file.txt');
-            // add change to beginning of files
-            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
-            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
-            fs.unlinkSync(pathDeleted);
-            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
 
             await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
@@ -748,10 +749,10 @@ describe('GitController', function() {
               pathDeleted: getFileContents(pathDeleted),
               pathAdded: getFileContents(pathAdded),
             }, {
-              pathA: 'change at beginning\n' + originalContents.pathA + 'change at end',
-              pathB: 'change at beginning\n' + originalContents.pathB + 'change at end',
-              pathDeleted: null,
-              pathAdded: originalContents.pathAdded,
+              pathA: contentsBeforeDiscard.pathA + 'change at end',
+              pathB: contentsBeforeDiscard.pathB + 'change at end',
+              pathDeleted: contentsBeforeDiscard.pathDeleted,
+              pathAdded: contentsBeforeDiscard.pathAdded,
             });
           });
 
@@ -804,7 +805,7 @@ describe('GitController', function() {
               const pB = b.getFileName();
               if (pA < pB) { return -1; } else if (pA > pB) { return 1; } else { return 0; }
             });
-            assert.equal(editors.length, 3);
+            assert.equal(editors.length, 4);
 
             assert.match(editors[0].getFileName(), /a.txt-/);
             assert.isTrue(editors[0].getText().includes('<<<<<<<'));
@@ -812,8 +813,8 @@ describe('GitController', function() {
 
             assert.match(editors[1].getFileName(), /another-added-file.txt-/);
             // no merge markers since 'ours' version is a deleted file
-            assert.isFalse(editors[1].getText().includes('>>>>>>>'));
-            assert.isFalse(editors[1].getText().includes('>>>>>>>'));
+            assert.isTrue(editors[1].getText().includes('<<<<<<<'));
+            assert.isTrue(editors[1].getText().includes('>>>>>>>'));
 
             assert.match(editors[2].getFileName(), /b.txt-/);
             assert.isTrue(editors[2].getText().includes('<<<<<<<'));
@@ -840,8 +841,8 @@ describe('GitController', function() {
             await assert.async.isTrue(contentsAfterUndo.pathB.includes('>>>>>>>'));
             await assert.async.isFalse(contentsAfterUndo.pathDeleted.includes('<<<<<<<'));
             await assert.async.isFalse(contentsAfterUndo.pathDeleted.includes('>>>>>>>'));
-            await assert.async.isFalse(contentsAfterUndo.pathAdded.includes('<<<<<<<'));
-            await assert.async.isFalse(contentsAfterUndo.pathAdded.includes('>>>>>>>'));
+            await assert.async.isTrue(contentsAfterUndo.pathAdded.includes('<<<<<<<'));
+            await assert.async.isTrue(contentsAfterUndo.pathAdded.includes('>>>>>>>'));
             let unmergedFiles = await repository.git.exec(['diff', '--name-status', '--diff-filter=U']);
             unmergedFiles = unmergedFiles.trim().split('\n').map(line => line.split('\t')[1]).sort();
             assert.deepEqual(unmergedFiles, ['a.txt', 'another-added-file.txt', 'b.txt', 'deleted-file.txt']);
