@@ -79,10 +79,13 @@
 // -----------------------------------------
 
 .github-StagingView-group.is-focused .is-selected {
-  background: @background-color-highlight;
-  color: @text-color-highlight;
+  // is selected
+  color: @text-color-selected;
+  background: @background-color-selected;
+
+  // also has focus
   .github-StagingView:focus & {
-    background: @background-color-selected;
-    color: @text-color-selected;
+    color: contrast(@button-background-color-selected);
+    background: @button-background-color-selected;
   }
 }

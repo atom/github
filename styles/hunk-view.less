@@ -71,26 +71,11 @@
 // States
 // -------------------------------
 
-// Highlight hunk title
-.github-HunkView {
-  &.is-selected.is-hunkMode &-header {
-    background-color: @background-color-selected;
-  }
-  &.is-selected.is-hunkMode &-title {
-    color: @text-color-selected;
-  }
-  &-title:hover {
-    color: @text-color-highlight;
-  }
+.github-HunkView-title:hover {
+  color: @text-color-highlight;
 }
 
 .github-HunkView-line {
-
-  &.is-selected .github-HunkView-lineNumber {
-    color: fade(@text-color-selected, 50%);
-    background-color: @background-color-selected;
-  }
-
   // mixin
   .hunk-line-mixin(@fg; @bg) {
     &:hover {
@@ -113,5 +98,14 @@
   &.is-added {
     .hunk-line-mixin(@text-color-success, @background-color-success);
   }
+}
 
+// focus colors
+.github-FilePatchView:focus {
+  .github-HunkView.is-selected.is-hunkMode .github-HunkView-title,
+  .github-HunkView.is-selected.is-hunkMode .github-HunkView-header,
+  .github-HunkView-line.is-selected .github-HunkView-lineNumber {
+    color: contrast(@button-background-color-selected);
+    background: @button-background-color-selected;
+  }
 }
