@@ -9,7 +9,7 @@ import {cloneRepository} from './helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
   let githubPackage;
 
   beforeEach(function() {
@@ -21,8 +21,9 @@ describe('GithubPackage', function() {
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
+    styles = atomEnv.styles;
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, config, confirm,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
     );
   });
 
@@ -369,7 +370,7 @@ describe('GithubPackage', function() {
       assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
 
       const githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, config, confirm,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
       );
       await githubPackage1.activate(payload);
       await githubPackage1.getInitialModelsPromise();
