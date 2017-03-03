@@ -787,7 +787,7 @@ import {fsStat} from '../lib/helpers';
           `);
         });
 
-        it('handles the case when oursSha or theirsSha is null', async () => {
+        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async () => {
           const workingDirPath = await cloneRepository('three-files');
           const git = new GitShellOutStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -811,6 +811,14 @@ import {fsStat} from '../lib/helpers';
           assert.equal(index.trim(), dedent`
             100755 ${commonBaseSha} 1\ta.txt
             100755 ${oursSha} 2\ta.txt
+          `);
+
+          await git.updateIndex('a.txt', null, oursSha, theirsSha);
+
+          index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+          assert.equal(index.trim(), dedent`
+            100755 ${oursSha} 2\ta.txt
+            100755 ${theirsSha} 3\ta.txt
           `);
         });
       });
