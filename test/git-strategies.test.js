@@ -748,7 +748,7 @@ import {fsStat} from '../lib/helpers';
     describe('getFileMode(filePath)', () => {
       it('returns the file mode of the specified file', async () => {
         const workingDirPath = await cloneRepository('three-files');
-        const git = new GitShellOutStrategy(workingDirPath);
+        const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
         fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
 
@@ -760,7 +760,7 @@ import {fsStat} from '../lib/helpers';
 
       it('returns the file mode for untracked files', async () => {
         const workingDirPath = await cloneRepository('three-files');
-        const git = new GitShellOutStrategy(workingDirPath);
+        const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
         fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
         const regularMode = await fsStat(absFilePath).mode;
@@ -777,7 +777,7 @@ import {fsStat} from '../lib/helpers';
       describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', () => {
         it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
           const workingDirPath = await cloneRepository('three-files');
-          const git = new GitShellOutStrategy(workingDirPath);
+          const git = createTestStrategy(workingDirPath);
 
           // current and other paths are the same, so no conflicts
           const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
@@ -804,7 +804,7 @@ import {fsStat} from '../lib/helpers';
       describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', () => {
         it('updates the index to have the appropriate shas, retaining the original file mode', async () => {
           const workingDirPath = await cloneRepository('three-files');
-          const git = new GitShellOutStrategy(workingDirPath);
+          const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
           fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
           await git.exec(['update-index', '--chmod=+x', 'a.txt']);
@@ -824,7 +824,7 @@ import {fsStat} from '../lib/helpers';
 
         it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async () => {
           const workingDirPath = await cloneRepository('three-files');
-          const git = new GitShellOutStrategy(workingDirPath);
+          const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
           fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
           await git.exec(['update-index', '--chmod=+x', 'a.txt']);
