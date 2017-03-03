@@ -672,9 +672,10 @@ describe('Repository', function() {
       const repo = await buildRepository(workingDirPath);
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'b.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'hello there', 'utf8');
       const unstagedChanges = await repo.getUnstagedChanges();
 
-      assert.equal(unstagedChanges.length, 2);
+      assert.equal(unstagedChanges.length, 3);
       await repo.discardWorkDirChangesForPaths(unstagedChanges.map(c => c.filePath));
       repo.refresh();
       assert.deepEqual(await repo.getUnstagedChanges(), []);
