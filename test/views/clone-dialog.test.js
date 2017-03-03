@@ -52,6 +52,14 @@ describe('CloneDialog', function() {
 
       assert.equal(wrapper.instance().getProjectPath(), '/somewhere/else/');
     });
+
+    it('does update the project path if it was modified automatically', function() {
+      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/atom1.git');
+      assert.equal(wrapper.instance().getProjectPath(), '/home/me/codes/atom1');
+
+      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/atom2.git');
+      assert.equal(wrapper.instance().getProjectPath(), '/home/me/codes/atom2');
+    });
   });
 
   describe('clone button enablement', function() {
