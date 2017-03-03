@@ -9,7 +9,8 @@ import {cloneRepository, buildRepository} from '../helpers';
 import RootController from '../../lib/controllers/root-controller';
 
 describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
+  let workspaceElement;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,6 +18,9 @@ describe('RootController', function() {
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
+    config = atomEnv.config;
+
+    workspaceElement = atomEnv.views.getView(workspace);
 
     confirm = sinon.stub(atomEnv, 'confirm');
 
@@ -26,6 +30,7 @@ describe('RootController', function() {
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
         tooltips={tooltips}
+        config={config}
         confirm={confirm}
       />
     );
@@ -337,6 +342,42 @@ describe('RootController', function() {
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
       assert.isTrue(workspace.getActivePane().activate.called);
+    });
+  });
+
+  describe('github:clone', function() {
+    let wrapper, cloneRepositoryForProjectPath;
+
+    beforeEach(function() {
+      cloneRepositoryForProjectPath = sinon.stub();
+
+      app = React.cloneElement(app, {cloneRepositoryForProjectPath});
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal clone panel', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
+    });
+
+    it('triggers the clone callback on accept', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+
+      assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
+    });
+
+    it('dismisses the clone panel on cancel', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      dialog.prop('didCancel')();
+
+      assert.lengthOf(wrapper.find('CloneDialog'), 0);
+      assert.isFalse(cloneRepositoryForProjectPath.called);
     });
   });
 
