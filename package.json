@@ -110,6 +110,7 @@
     }
   },
   "deserializers": {
-    "GitTimingsView": "createGitTimingsView"
+    "GitTimingsView": "createGitTimingsView",
+    "PrPaneItemController": "createPrPaneItem"
   }
 }
