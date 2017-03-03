@@ -769,7 +769,8 @@ import {fsStat} from '../lib/helpers';
         assert.equal(await git.getFileMode('new-file.txt'), '100644');
 
         fs.chmodSync(absFilePath, executableMode);
-        assert.equal(await git.getFileMode('new-file.txt'), '100755');
+        const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+        assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
       });
     });
 
