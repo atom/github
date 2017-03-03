@@ -638,7 +638,7 @@ describe('RootController', function() {
           };
 
           pathA = path.join(workdirPath, 'a.txt');
-          pathB = path.join(workdirPath, 'b.txt');
+          pathB = path.join(workdirPath, 'subdir-1', 'b.txt');
           pathDeleted = path.join(workdirPath, 'c.txt');
           pathAdded = path.join(workdirPath, 'added-file.txt');
           fs.writeFileSync(pathA, [1, 2, 3, 4, 5, 6, 7, 8, 9].join('\n'));
@@ -657,7 +657,7 @@ describe('RootController', function() {
             pathDeleted: getFileContents(pathDeleted),
             pathAdded: getFileContents(pathAdded),
           };
-          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt']);
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt']);
           const contents2 = {
             pathA: getFileContents(pathA),
             pathB: getFileContents(pathB),
@@ -692,7 +692,7 @@ describe('RootController', function() {
         });
 
         it('does not undo if buffer is modified', async () => {
-          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'c.txt', 'added-file.txt']);
+          await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt', 'c.txt', 'added-file.txt']);
 
           // modify buffers
           (await workspace.open(pathA)).getBuffer().append('stuff');
@@ -708,7 +708,7 @@ describe('RootController', function() {
           assert.equal(notificationArgs[0], 'Cannot undo last discard.');
           assert.match(notificationArgs[1].description, /You have unsaved changes./);
           assert.match(notificationArgs[1].description, /a.txt/);
-          assert.match(notificationArgs[1].description, /b.txt/);
+          assert.match(notificationArgs[1].description, /subdir-1\/b.txt/);
           assert.match(notificationArgs[1].description, /c.txt/);
           assert.match(notificationArgs[1].description, /added-file.txt/);
           assert.isFalse(expandBlobToFile.called);
@@ -736,7 +736,7 @@ describe('RootController', function() {
               pathAdded: getFileContents(pathAdded),
             };
 
-            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt', 'another-added-file.txt']);
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change file contents on disk in non-conflicting way
             fs.writeFileSync(pathA, fs.readFileSync(pathA, 'utf8') + 'change at end');
@@ -769,7 +769,7 @@ describe('RootController', function() {
             fs.unlinkSync(pathDeleted);
             fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
 
-            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'b.txt', 'deleted-file.txt', 'another-added-file.txt']);
+            await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change files in a conflicting way
             fs.writeFileSync(pathA, 'conflicting change\n' + fs.readFileSync(pathA, 'utf8'));
@@ -846,15 +846,15 @@ describe('RootController', function() {
             await assert.async.isTrue(contentsAfterUndo.pathAdded.includes('>>>>>>>'));
             let unmergedFiles = await repository.git.exec(['diff', '--name-status', '--diff-filter=U']);
             unmergedFiles = unmergedFiles.trim().split('\n').map(line => line.split('\t')[1]).sort();
-            assert.deepEqual(unmergedFiles, ['a.txt', 'another-added-file.txt', 'b.txt', 'deleted-file.txt']);
+            assert.deepEqual(unmergedFiles, ['a.txt', 'another-added-file.txt', 'deleted-file.txt', 'subdir-1/b.txt']);
           });
         });
 
         it('clears the discard history if the last blob is no longer valid', async () => {
           // this would occur in the case of garbage collection cleaning out the blob
           await wrapper.instance().discardWorkDirChangesForPaths(['a.txt']);
-          const snapshots = await wrapper.instance().discardWorkDirChangesForPaths(['b.txt']);
-          const {beforeSha} = snapshots['b.txt'];
+          const snapshots = await wrapper.instance().discardWorkDirChangesForPaths(['subdir-1/b.txt']);
+          const {beforeSha} = snapshots['subdir-1/b.txt'];
 
           // remove blob from git object store
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
