@@ -812,7 +812,7 @@ import {fsStat} from '../lib/helpers';
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
           const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
           const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
-          await git.updateIndex('a.txt', commonBaseSha, oursSha, theirsSha);
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, theirsSha);
 
           const index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
           assert.equal(index.trim(), dedent`
@@ -832,7 +832,7 @@ import {fsStat} from '../lib/helpers';
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
           const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
           const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
-          await git.updateIndex('a.txt', commonBaseSha, null, theirsSha);
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, null, theirsSha);
 
           let index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
           assert.equal(index.trim(), dedent`
@@ -840,7 +840,7 @@ import {fsStat} from '../lib/helpers';
             100755 ${theirsSha} 3\ta.txt
           `);
 
-          await git.updateIndex('a.txt', commonBaseSha, oursSha, null);
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, null);
 
           index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
           assert.equal(index.trim(), dedent`
@@ -848,7 +848,7 @@ import {fsStat} from '../lib/helpers';
             100755 ${oursSha} 2\ta.txt
           `);
 
-          await git.updateIndex('a.txt', null, oursSha, theirsSha);
+          await git.writeMergeConflictToIndex('a.txt', null, oursSha, theirsSha);
 
           index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
           assert.equal(index.trim(), dedent`
