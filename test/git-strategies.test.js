@@ -764,7 +764,7 @@ import {fsStat} from '../lib/helpers';
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
         fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
         const regularMode = await fsStat(absFilePath).mode;
-        const executableMode = regularMode | fs.constants.S_IXUSR;
+        const executableMode = regularMode | fs.constants.S_IXUSR; // eslint-disable-line no-bitwise
 
         assert.equal(await git.getFileMode('new-file.txt'), '100644');
 
