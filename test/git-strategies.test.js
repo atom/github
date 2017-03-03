@@ -8,6 +8,7 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {fsStat} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -720,6 +721,20 @@ import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories
 
         await git.exec(['update-index', '--chmod=+x', 'a.txt']);
         assert.equal(await git.getFileMode('a.txt'), '100755');
+      });
+
+      it('returns the file mode for untracked files', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = new GitShellOutStrategy(workingDirPath);
+        const absFilePath = path.join(workingDirPath, 'new-file.txt');
+        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        const regularMode = await fsStat(absFilePath).mode;
+        const executableMode = regularMode | fs.constants.S_IXUSR;
+
+        assert.equal(await git.getFileMode('new-file.txt'), '100644');
+
+        fs.chmodSync(absFilePath, executableMode);
+        assert.equal(await git.getFileMode('new-file.txt'), '100755');
       });
     });
 
