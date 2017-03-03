@@ -2284,6 +2284,9 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
 
     # Query to search projects by, currently only searching by name.
     search: String
+
+    # A list of states to filter the projects by.
+    states: [ProjectState!]
   ): ProjectConnection!
 
   # The HTTP path listing organization's projects
@@ -2335,6 +2338,18 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
+
+    # If non-null, filters teams according to privacy
+    privacy: TeamPrivacy
+
+    # If non-null, filters teams according to whether the viewer is an admin or member on team
+    role: TeamRole
+
+    # If non-null, filters teams with query on team name and team slug
+    query: String
+
+    # Ordering options for teams returned from the connection
+    orderBy: TeamOrder
   ): TeamConnection!
 
   # The HTTP url for this user
@@ -2422,9 +2437,6 @@ enum OrganizationInvitationRole {
   # The user is invited to be a billing manager of the organization.
   BILLING_MANAGER
 
-  # The user is invited to be a hiring manager of the organization.
-  HIRING_MANAGER
-
   # The user's previous role will be reinstated.
   REINSTATE
 }
@@ -2451,6 +2463,9 @@ type Project implements Node {
 
   # The projects description body rendered to HTML.
   bodyHTML: HTML!
+
+  # Identifities the date and time when the project was closed.
+  closedAt: DateTime
 
   # List of columns in the project
   columns(
@@ -2701,6 +2716,9 @@ interface ProjectOwner {
 
     # Query to search projects by, currently only searching by name.
     search: String
+
+    # A list of states to filter the projects by.
+    states: [ProjectState!]
   ): ProjectConnection!
 
   # The HTTP path listing owners projects
@@ -2877,6 +2895,12 @@ type PullRequest implements Node, Comment, Issueish, Reactable, RepositoryNode, 
 
   # Identifies the name of the head Ref associated with the pull request, even if the ref has been deleted.
   headRefName: String!
+
+  # The repository associated with this pull request's head Ref.
+  headRepository: Repository
+
+  # The owner of the repository associated with this pull request's head Ref.
+  headRepositoryOwner: RepositoryOwner!
   id: ID!
 
   # A list of labels associated with the Issue or Pull Request.
@@ -3932,6 +3956,9 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
+  # The Ref associated with the repository's default branch.
+  defaultBranchRef: Ref
+
   # The description of the repository.
   description: String
 
@@ -4147,6 +4174,9 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
 
     # Query to search projects by, currently only searching by name.
     search: String
+
+    # A list of states to filter the projects by.
+    states: [ProjectState!]
   ): ProjectConnection!
 
   # The HTTP path listing repository's projects
@@ -4342,6 +4372,9 @@ interface RepositoryInfo {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
+  # The Ref associated with the repository's default branch.
+  defaultBranchRef: Ref
+
   # The description of the repository.
   description: String
 
@@ -4415,6 +4448,9 @@ type RepositoryInvitation implements Node {
 type RepositoryInvitationRepository implements RepositoryInfo {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
+
+  # The Ref associated with the repository's default branch.
+  defaultBranchRef: Ref
 
   # The description of the repository.
   description: String
@@ -5057,9 +5093,15 @@ type Tag implements Node, GitObject {
 }
 
 # A team of users in an organization.
-type Team implements Node {
+type Team implements Node, UniformResourceLocatable {
   # The description of the team.
   description: String
+
+  # The HTTP path for editing this team
+  editTeamPath: URI!
+
+  # The HTTP url for editing this team
+  editTeamUrl: URI!
   id: ID!
 
   # A list of pending invitations for users to this team
@@ -5080,11 +5122,29 @@ type Team implements Node {
   # The name of the team.
   name: String!
 
+  # The path to this resource.
+  path: URI!
+
   # The level of privacy the team has.
   privacy: TeamPrivacy!
 
   # The slug corresponding to the team.
   slug: String!
+
+  # The HTTP path for this team
+  teamPath: URI!
+
+  # The HTTP path for this team's repositories
+  teamRepositoriesPath: URI!
+
+  # The HTTP url for this team's repositories
+  teamRepositoriesUrl: URI!
+
+  # The HTTP url for this team
+  teamUrl: URI!
+
+  # The URL to this resource.
+  url: URI!
 }
 
 # The connection type for Team.
@@ -5111,6 +5171,21 @@ type TeamEdge {
   node: Team
 }
 
+# Ways in which team connections can be ordered.
+input TeamOrder {
+  # The field in which to order nodes by.
+  field: TeamOrderField!
+
+  # The direction in which to order nodes.
+  direction: OrderDirection!
+}
+
+# Properties by which team connections can be ordered.
+enum TeamOrderField {
+  # Allows ordering a list of teams by name.
+  NAME
+}
+
 # The possible team privacy values.
 enum TeamPrivacy {
   # A secret team can only be seen by its members.
@@ -5118,6 +5193,15 @@ enum TeamPrivacy {
 
   # A visible team can be seen and @mentioned by every member of the organization.
   VISIBLE
+}
+
+# The role of a user on a team.
+enum TeamRole {
+  # User has admin rights on the team.
+  ADMIN
+
+  # User is a member of the team.
+  MEMBER
 }
 
 # Represents all of the events visible to a user from an Issue or PullRequest timeline.
@@ -5524,6 +5608,9 @@ type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
 
   # Whether or not this user is a participant in the GitHub Security Bug Bounty.
   isBountyHunter: Boolean!
+
+  # Whether or not this user is a participant in the GitHub Campus Experts Program.
+  isCampusExpert: Boolean!
 
   # Whether or not this user is a GitHub Developer Program member.
   isDeveloperProgramMember: Boolean!
