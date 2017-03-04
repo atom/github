@@ -264,9 +264,9 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isFalse(wrapper.find('Panel').prop('visible'));
     });
   });

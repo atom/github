@@ -3,7 +3,7 @@ import {Emitter} from 'atom';
 import React from 'react';
 import {mount} from 'enzyme';
 
-import ObserveModel from '../../lib/decorators/observe-model';
+import ObserveModelDecorator from '../../lib/decorators/observe-model';
 
 class TestModel {
   constructor(data) {
@@ -29,7 +29,7 @@ class TestModel {
   }
 }
 
-@ObserveModel({
+@ObserveModelDecorator({
   getModel: props => props.testModel,
   fetchData: model => model.getData(),
 })
@@ -39,13 +39,13 @@ class TestComponent extends React.Component {
   }
 }
 
-describe('ObserveModel', function() {
+describe('ObserveModelDecorator', function() {
   it('wraps a component, re-rendering with specified props when it changes', async function() {
     const model = new TestModel({one: 1, two: 2});
     const app = <TestComponent testModel={model} />;
     const wrapper = mount(app);
 
-    assert.isTrue(wrapper.is('ObserveModel(TestComponent)'));
+    assert.isTrue(wrapper.is('ObserveModelDecorator(TestComponent)'));
 
     await assert.async.equal(wrapper.find('TestComponent').prop('one'), 1);
     await assert.async.equal(wrapper.find('TestComponent').prop('two'), 2);
