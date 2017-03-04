@@ -1,0 +1,33 @@
+@import "variables";
+
+@github-clone-spacing: @component-padding / 2;
+
+.github-Clone {
+
+  &Inputs {
+    display: flex;
+    flex-direction: column;
+    padding: @github-clone-spacing;
+  }
+
+  &Label {
+    flex: 1;
+    margin: @github-clone-spacing;
+    line-height: 2;
+  }
+
+  atom-text-editor[mini].editor {
+    margin: 0;
+  }
+
+  &Buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: @github-clone-spacing;
+
+    .btn {
+      margin: @github-clone-spacing;
+    }
+  }
+
+}
