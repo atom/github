@@ -3,14 +3,15 @@ import PrPaneItemController from '../../lib/controllers/pr-pane-item-controller'
 describe('PrPaneItemController', function() {
   describe('opener', function() {
     const paneItem = Symbol('paneItem');
+    const Controller = PrPaneItemController.getWrappedComponentClass();
     beforeEach(function() {
-      sinon.stub(PrPaneItemController, 'create').returns(paneItem);
+      sinon.stub(Controller, 'create').returns(paneItem);
     });
 
     it('returns an item given a valid PR URL', function() {
-      const item = PrPaneItemController.opener('atom-github://pull-request/api.github.com/atom/github/123');
-      assert.deepEqual(PrPaneItemController.create.getCall(0).args[0], {
-        host: 'api.github.com',
+      const item = Controller.opener('atom-github://pull-request/https://api.github.com/atom/github/123');
+      assert.deepEqual(Controller.create.getCall(0).args[0], {
+        host: 'https://api.github.com',
         owner: 'atom',
         repo: 'github',
         prNumber: 123,
@@ -19,13 +20,13 @@ describe('PrPaneItemController', function() {
     });
 
     [
-      ['returns null if a segment is missing', 'atom-github://pull-request/atom/github/123'],
-      ['returns null if the PR number is not a number', 'atom-github://pull-request/api.github.com/atom/github/asdf'],
-      ['returns null if the host is not pull-request', 'atom-github://pr/api.github.com/atom/github/123'],
-      ['returns null if the protocol is not atom-github', 'github://pull-request/api.github.com/atom/github/123'],
+      ['returns null if a segment is missing', 'atom-github://pull-request/https://api.github.com/atom/123'],
+      ['returns null if the PR number is not a number', 'atom-github://pull-request/https://api.github.com/atom/github/asdf'],
+      ['returns null if the host is not pull-request', 'atom-github://pr/https://api.github.com/atom/github/123'],
+      ['returns null if the protocol is not atom-github', 'github://pull-request/https://api.github.com/atom/github/123'],
     ].forEach(([description, uri]) => {
       it(description, function() {
-        const item = PrPaneItemController.opener(uri);
+        const item = Controller.opener(uri);
         assert.isNull(item);
       });
     });
