@@ -1,4 +1,4 @@
-import {exec} from 'child_process';
+import {execFile} from 'child_process';
 
 import semver from 'semver';
 
@@ -22,17 +22,18 @@ if (process.platform !== 'win32' && semver.satisfies(atomVersion, requiredVersio
 
       let err, stdout;
       await new Promise((resolve, reject) => {
-        const command = `"${electron}" "${helper}" "${socket}" "What... is your favorite color?"`;
-        exec(command, {
-          env: {
-            ELECTRON_RUN_AS_NODE: 1,
-            ELECTRON_NO_ATTACH_CONSOLE: 1,
-          },
-        }, (_err, _stdout, _stderr) => {
-          err = _err;
-          stdout = _stdout;
-          resolve();
-        });
+        execFile(electron,
+          [helper, socket, 'What... is your favorite color?'],
+          {
+            env: {
+              ELECTRON_RUN_AS_NODE: 1,
+              ELECTRON_NO_ATTACH_CONSOLE: 1,
+            },
+          }, (_err, _stdout, _stderr) => {
+            err = _err;
+            stdout = _stdout;
+            resolve();
+          });
       });
 
       assert.ifError(err);
