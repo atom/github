@@ -6,7 +6,7 @@ import CloneDialog from '../../lib/views/clone-dialog';
 
 describe('CloneDialog', function() {
   let atomEnv, config, commandRegistry;
-  let wrapper, didAccept, didCancel;
+  let app, wrapper, didAccept, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,7 +17,7 @@ describe('CloneDialog', function() {
     didAccept = sinon.stub();
     didCancel = sinon.stub();
 
-    const app = (
+    app = (
       <CloneDialog
         config={config}
         commandRegistry={commandRegistry}
@@ -100,5 +100,21 @@ describe('CloneDialog', function() {
   it('calls the cancellation callback', function() {
     wrapper.find('button.github-CancelButton').simulate('click');
     assert.isTrue(didCancel.called);
+  });
+
+  describe('in progress', function() {
+    beforeEach(function() {
+      app = React.cloneElement(app, {inProgress: true});
+      wrapper = mount(app);
+    });
+
+    it('conceals the text editors and buttons', function() {
+      assert.lengthOf(wrapper.find('atom-text-editor'), 0);
+      assert.lengthOf(wrapper.find('.btn'), 0);
+    });
+
+    it('displays the progress spinner', function() {
+      assert.lengthOf(wrapper.find('.loading'), 1);
+    });
   });
 });

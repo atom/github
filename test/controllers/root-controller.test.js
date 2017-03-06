@@ -346,10 +346,12 @@ describe('RootController', function() {
   });
 
   describe('github:clone', function() {
-    let wrapper, cloneRepositoryForProjectPath;
+    let wrapper, cloneRepositoryForProjectPath, resolveClone;
 
     beforeEach(function() {
-      cloneRepositoryForProjectPath = sinon.stub();
+      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise(resolve => {
+        resolveClone = resolve;
+      }));
 
       app = React.cloneElement(app, {cloneRepositoryForProjectPath});
       wrapper = shallow(app);
@@ -366,8 +368,25 @@ describe('RootController', function() {
 
       const dialog = wrapper.find('CloneDialog');
       dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      resolveClone();
 
       assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
+    });
+
+    it('marks the clone dialog as in progress during clone', async function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      assert.isFalse(dialog.prop('inProgress'));
+
+      const acceptPromise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+
+      assert.isTrue(wrapper.find('CloneDialog').prop('inProgress'));
+
+      resolveClone();
+      await acceptPromise;
+
+      assert.isFalse(wrapper.find('CloneDialog').exists());
     });
 
     it('dismisses the clone panel on cancel', function() {
