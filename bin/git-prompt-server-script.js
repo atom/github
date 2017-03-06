@@ -41,8 +41,16 @@ function get() {
 
   rl.on('line', line => {
     if (line.length !== 0) {
-      const [key, ...value] = line.split('=');
-      query[key] = value.join('=').replace(/\n$/, '');
+      const ind = line.indexOf('=');
+      if (ind === -1) {
+        process.stderr.write(`Unable to parse credential line: ${line}`);
+        process.exit(1);
+      }
+
+      const key = line.substring(0, ind);
+      const value = line.substring(ind + 1).replace(/\n$/, '');
+
+      query[key] = value;
     } else {
       // All input received.
       dialog(query).then(reply => {
