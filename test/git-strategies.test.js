@@ -2,11 +2,13 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import mkdirp from 'mkdirp';
+import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {fsStat} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -740,6 +742,121 @@ import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRe
         const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
         const contents = await git.getBlobContents(sha);
         assert.equal(contents, 'foo\nbar\nbaz\n');
+      });
+    });
+
+    describe('getFileMode(filePath)', () => {
+      it('returns the file mode of the specified file', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        const absFilePath = path.join(workingDirPath, 'a.txt');
+        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+
+        assert.equal(await git.getFileMode('a.txt'), '100644');
+
+        await git.exec(['update-index', '--chmod=+x', 'a.txt']);
+        assert.equal(await git.getFileMode('a.txt'), '100755');
+      });
+
+      it('returns the file mode for untracked files', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        const absFilePath = path.join(workingDirPath, 'new-file.txt');
+        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        const regularMode = await fsStat(absFilePath).mode;
+        const executableMode = regularMode | fs.constants.S_IXUSR; // eslint-disable-line no-bitwise
+
+        assert.equal(await git.getFileMode('new-file.txt'), '100644');
+
+        fs.chmodSync(absFilePath, executableMode);
+        const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+        assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
+      });
+    });
+
+    describe('merging files', () => {
+      describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', () => {
+        it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+
+          // current and other paths are the same, so no conflicts
+          const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
+          assert.deepEqual(resultsWithoutConflict, {
+            filePath: 'a.txt',
+            resultPath: 'results-without-conflict.txt',
+            conflict: false,
+          });
+          assert.equal(fs.readFileSync('results-without-conflict.txt', 'utf8'), fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'));
+
+          // contents of current and other paths conflict
+          const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
+          assert.deepEqual(resultsWithConflict, {
+            filePath: 'a.txt',
+            resultPath: 'results-with-conflict.txt',
+            conflict: true,
+          });
+          const contents = fs.readFileSync('results-with-conflict.txt', 'utf8');
+          assert.isTrue(contents.includes('<<<<<<<'));
+          assert.isTrue(contents.includes('>>>>>>>'));
+        });
+      });
+
+      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', () => {
+        it('updates the index to have the appropriate shas, retaining the original file mode', async () => {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          const absFilePath = path.join(workingDirPath, 'a.txt');
+          fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+          await git.exec(['update-index', '--chmod=+x', 'a.txt']);
+
+          const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
+          const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
+          const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, theirsSha);
+
+          const index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+          assert.equal(index.trim(), dedent`
+            100755 ${commonBaseSha} 1\ta.txt
+            100755 ${oursSha} 2\ta.txt
+            100755 ${theirsSha} 3\ta.txt
+          `);
+        });
+
+        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async () => {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          const absFilePath = path.join(workingDirPath, 'a.txt');
+          fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+          await git.exec(['update-index', '--chmod=+x', 'a.txt']);
+
+          const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
+          const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
+          const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, null, theirsSha);
+
+          let index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+          assert.equal(index.trim(), dedent`
+            100755 ${commonBaseSha} 1\ta.txt
+            100755 ${theirsSha} 3\ta.txt
+          `);
+
+          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, null);
+
+          index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+          assert.equal(index.trim(), dedent`
+            100755 ${commonBaseSha} 1\ta.txt
+            100755 ${oursSha} 2\ta.txt
+          `);
+
+          await git.writeMergeConflictToIndex('a.txt', null, oursSha, theirsSha);
+
+          index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
+          assert.equal(index.trim(), dedent`
+            100755 ${oursSha} 2\ta.txt
+            100755 ${theirsSha} 3\ta.txt
+          `);
+        });
       });
     });
   });

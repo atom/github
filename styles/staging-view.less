@@ -72,3 +72,20 @@
     overflow-x: auto;
   }
 }
+
+
+//
+// States
+// -----------------------------------------
+
+.github-StagingView-group.is-focused .is-selected {
+  // is selected
+  color: @text-color-selected;
+  background: @background-color-selected;
+
+  // also has focus
+  .github-StagingView:focus & {
+    color: contrast(@button-background-color-selected);
+    background: @button-background-color-selected;
+  }
+}
