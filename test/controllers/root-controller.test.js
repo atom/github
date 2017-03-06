@@ -5,6 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {GitError} from '../../lib/git-shell-out-strategy';
 
 import RootController from '../../lib/controllers/root-controller';
 
@@ -346,11 +347,12 @@ describe('RootController', function() {
   });
 
   describe('github:clone', function() {
-    let wrapper, cloneRepositoryForProjectPath, resolveClone;
+    let wrapper, cloneRepositoryForProjectPath, resolveClone, rejectClone;
 
     beforeEach(function() {
-      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise(resolve => {
+      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
         resolveClone = resolve;
+        rejectClone = reject;
       }));
 
       app = React.cloneElement(app, {cloneRepositoryForProjectPath});
@@ -387,6 +389,27 @@ describe('RootController', function() {
       await acceptPromise;
 
       assert.isFalse(wrapper.find('CloneDialog').exists());
+    });
+
+    it('creates a notification if the clone fails', async function() {
+      sinon.stub(notificationManager, 'addError');
+
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      assert.isFalse(dialog.prop('inProgress'));
+
+      const acceptPromise = dialog.prop('didAccept')('git@github.com:nope/nope.git', '/home/me/github');
+      const err = new GitError('git clone exited with status 1');
+      err.stdErr = 'this is stderr';
+      rejectClone(err);
+      await acceptPromise;
+
+      assert.isFalse(wrapper.find('CloneDialog').exists());
+      assert.isTrue(notificationManager.addError.calledWith(
+        'Unable to clone git@github.com:nope/nope.git',
+        sinon.match({detail: sinon.match(/this is stderr/)}),
+      ));
     });
 
     it('dismisses the clone panel on cancel', function() {
