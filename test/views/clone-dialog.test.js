@@ -4,12 +4,13 @@ import {mount} from 'enzyme';
 import CloneDialog from '../../lib/views/clone-dialog';
 
 describe('CloneDialog', function() {
-  let atomEnv, config;
+  let atomEnv, config, commandRegistry;
   let wrapper, didAccept, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     config = atomEnv.config;
+    commandRegistry = atomEnv.commands;
     sinon.stub(config, 'get').returns('/home/me/codes');
 
     didAccept = sinon.stub();
@@ -18,6 +19,7 @@ describe('CloneDialog', function() {
     const app = (
       <CloneDialog
         config={config}
+        commandRegistry={commandRegistry}
         didAccept={didAccept}
         didCancel={didCancel}
       />
