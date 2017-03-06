@@ -7,15 +7,18 @@ describe('GitPromptServer', function() {
     this.timeout(10000);
 
     const server = new GitPromptServer();
-    const {helper, socket, electron} = await server.start(question => {
-      assert.equal(question, 'What... is your favorite color?\u0000');
-      return 'Green. I mean blue! AAAhhhh...';
+    const {helper, socket, electron} = await server.start(query => {
+      assert.equal(query, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      return {
+        username: 'old-man-from-scene-24',
+        password: 'Green. I mean blue! AAAhhhh...',
+      };
     });
 
     let err, stdout;
     await new Promise((resolve, reject) => {
-      execFile(electron,
-        [helper, socket, 'What... is your favorite color?'],
+      const child = execFile(electron,
+        [helper, socket, 'get'],
         {
           env: {
             ELECTRON_RUN_AS_NODE: 1,
@@ -26,10 +29,16 @@ describe('GitPromptServer', function() {
           stdout = _stdout;
           resolve();
         });
+
+      child.stdin.write('protocol=https\n');
+      child.stdin.write('host=what-is-your-favorite-color.com\n');
+      child.stdin.end('\n');
     });
 
     assert.ifError(err);
-    assert.equal(stdout, 'Green. I mean blue! AAAhhhh...\n');
+    assert.equal(stdout,
+      'protocol=https\nhost=what-is-your-favorite-color.com\n' +
+      'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n');
 
     await server.terminate();
   });
