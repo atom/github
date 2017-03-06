@@ -58,6 +58,16 @@ describe('Repository', function() {
       assert.isTrue(await repo.isGitRepository());
       assert.equal(repo.getWorkingDirectoryPath(), destDir);
     });
+
+    it('clones a repository when the directory does not exist yet', async function() {
+      const upstreamPath = await cloneRepository('three-files');
+      const parentDir = fs.realpathSync(temp.mkdirSync());
+      const destDir = path.join(parentDir, 'subdir');
+
+      const repo = await Repository.clone(upstreamPath, destDir);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
   });
 
   describe('staging and unstaging files', function() {
