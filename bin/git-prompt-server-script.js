@@ -10,6 +10,12 @@ function dialog(query) {
     query.auth = query.username;
   }
   const prompt = 'Please enter your credentials for ' + url.format(query);
+  const requested = ['password'];
+  if (!query.username) {
+    requested.push('username');
+  }
+
+  const payload = {prompt, requested};
 
   return new Promise((resolve, reject) => {
     const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
@@ -26,44 +32,46 @@ function dialog(query) {
         }
       });
 
-      socket.end(prompt, 'utf8');
+      socket.end(JSON.stringify(payload), 'utf8');
     });
     socket.setEncoding('utf8');
   });
 }
 
 function get() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-  });
+  const rl = readline.createInterface({input: process.stdin});
 
   const query = {};
 
   rl.on('line', line => {
-    if (line.length !== 0) {
-      const ind = line.indexOf('=');
-      if (ind === -1) {
-        process.stderr.write(`Unable to parse credential line: ${line}`);
-        process.exit(1);
-      }
-
-      const key = line.substring(0, ind);
-      const value = line.substring(ind + 1).replace(/\n$/, '');
-
-      query[key] = value;
-    } else {
-      // All input received.
-      dialog(query).then(reply => {
-        ['protocol', 'host', 'username', 'password'].forEach(k => {
-          const value = reply[k] !== undefined ? reply[k] : query[k];
-          process.stdout.write(`${k}=${value}\n`);
-        });
-        process.exit(0);
-      }).catch(err => {
-        process.stderr.write(`Unable to prompt through Atom:\n${err.stack}`);
-        process.exit(1);
-      });
+    if (line.length === 0) {
+      return;
     }
+
+    const ind = line.indexOf('=');
+    if (ind === -1) {
+      process.stderr.write(`Unable to parse credential line: ${line}`);
+      process.exit(1);
+    }
+
+    const key = line.substring(0, ind);
+    const value = line.substring(ind + 1).replace(/\n$/, '');
+
+    query[key] = value;
+  });
+
+  rl.on('close', () => {
+    // All input received.
+    dialog(query).then(reply => {
+      ['protocol', 'host', 'username', 'password'].forEach(k => {
+        const value = reply[k] !== undefined ? reply[k] : query[k];
+        process.stdout.write(`${k}=${value}\n`);
+      });
+      process.exit(0);
+    }).catch(err => {
+      process.stderr.write(`Unable to prompt through Atom:\n${err.stack}`);
+      process.exit(1);
+    });
   });
 }
 

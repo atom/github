@@ -8,7 +8,8 @@ describe('GitPromptServer', function() {
 
     const server = new GitPromptServer();
     const {helper, socket, electron} = await server.start(query => {
-      assert.equal(query, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      assert.equal(query.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      assert.deepEqual(query.requested, ['password', 'username']);
       return {
         username: 'old-man-from-scene-24',
         password: 'Green. I mean blue! AAAhhhh...',
