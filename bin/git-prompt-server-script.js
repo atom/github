@@ -10,12 +10,9 @@ function dialog(query) {
     query.auth = query.username;
   }
   const prompt = 'Please enter your credentials for ' + url.format(query);
-  const requested = ['password'];
-  if (!query.username) {
-    requested.push('username');
-  }
+  const includeUsername = !query.username;
 
-  const payload = {prompt, requested};
+  const payload = {prompt, includeUsername};
 
   return new Promise((resolve, reject) => {
     const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
