@@ -422,6 +422,48 @@ describe('RootController', function() {
     });
   });
 
+  describe('promptForCredentials()', function() {
+    let wrapper;
+
+    beforeEach(function() {
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal credentials dialog', function() {
+      wrapper.instance().promptForCredentials({
+        prompt: 'Password plz',
+        includeUsername: true,
+      });
+
+      const dialog = wrapper.find('Panel').find({location: 'modal'}).find('CredentialDialog');
+      assert.isTrue(dialog.exists());
+      assert.equal(dialog.prop('prompt'), 'Password plz');
+      assert.isTrue(dialog.prop('includeUsername'));
+    });
+
+    it('resolves the promise with credentials on accept', async function() {
+      const credentialPromise = wrapper.instance().promptForCredentials({
+        prompt: 'Speak "friend" and enter',
+        includeUsername: false,
+      });
+
+      wrapper.find('CredentialDialog').prop('onSubmit')({password: 'friend'});
+      assert.deepEqual(await credentialPromise, {password: 'friend'});
+      assert.isFalse(wrapper.find('CredentialDialog').exists());
+    });
+
+    it('rejects the promise on cancel', async function() {
+      const credentialPromise = wrapper.instance().promptForCredentials({
+        prompt: 'Enter the square root of 1244313452349528345',
+        includeUsername: false,
+      });
+
+      wrapper.find('CredentialDialog').prop('onCancel')();
+      await assert.isRejected(credentialPromise);
+      assert.isFalse(wrapper.find('CredentialDialog').exists());
+    });
+  });
+
   describe('ensureGitPanel()', function() {
     let wrapper;
 
