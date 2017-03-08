@@ -1,0 +1,52 @@
+@import "variables";
+
+@github-clone-spacing: @component-padding / 2;
+
+.github-Clone {
+
+  &Inputs {
+    display: flex;
+    flex-direction: column;
+    padding: @github-clone-spacing;
+  }
+
+  &Label {
+    flex: 1;
+    margin: @github-clone-spacing;
+    line-height: 2;
+  }
+
+  atom-text-editor[mini].editor {
+    margin: 0;
+  }
+
+  &Buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: @github-clone-spacing;
+
+    // Switch button order on Windows
+    .platform-win32 & {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
+
+    .btn {
+      margin: @github-clone-spacing;
+    }
+  }
+
+  &Spinner {
+    display: flex;
+    align-items: center;
+
+    .loading {
+      margin: @component-padding;
+    }
+
+    .github-CloneMessage {
+      text-align: center;
+      flex: 1;
+    }
+  }
+}
