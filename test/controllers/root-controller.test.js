@@ -5,11 +5,13 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {GitError} from '../../lib/git-shell-out-strategy';
 
 import RootController from '../../lib/controllers/root-controller';
 
 describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, confirm, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
+  let workspaceElement;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,6 +19,9 @@ describe('RootController', function() {
     commandRegistry = atomEnv.commands;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
+    config = atomEnv.config;
+
+    workspaceElement = atomEnv.views.getView(workspace);
 
     confirm = sinon.stub(atomEnv, 'confirm');
     app = (
@@ -25,6 +30,7 @@ describe('RootController', function() {
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
         tooltips={tooltips}
+        config={config}
         confirm={confirm}
       />
     );
@@ -336,6 +342,83 @@ describe('RootController', function() {
       assert.isTrue(wrapper.find('Panel').prop('visible'));
       assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
       assert.isTrue(workspace.getActivePane().activate.called);
+    });
+  });
+
+  describe('github:clone', function() {
+    let wrapper, cloneRepositoryForProjectPath, resolveClone, rejectClone;
+
+    beforeEach(function() {
+      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
+        resolveClone = resolve;
+        rejectClone = reject;
+      }));
+
+      app = React.cloneElement(app, {cloneRepositoryForProjectPath});
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal clone panel', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
+    });
+
+    it('triggers the clone callback on accept', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      resolveClone();
+
+      assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
+    });
+
+    it('marks the clone dialog as in progress during clone', async function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      assert.isFalse(dialog.prop('inProgress'));
+
+      const acceptPromise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+
+      assert.isTrue(wrapper.find('CloneDialog').prop('inProgress'));
+
+      resolveClone();
+      await acceptPromise;
+
+      assert.isFalse(wrapper.find('CloneDialog').exists());
+    });
+
+    it('creates a notification if the clone fails', async function() {
+      sinon.stub(notificationManager, 'addError');
+
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      assert.isFalse(dialog.prop('inProgress'));
+
+      const acceptPromise = dialog.prop('didAccept')('git@github.com:nope/nope.git', '/home/me/github');
+      const err = new GitError('git clone exited with status 1');
+      err.stdErr = 'this is stderr';
+      rejectClone(err);
+      await acceptPromise;
+
+      assert.isFalse(wrapper.find('CloneDialog').exists());
+      assert.isTrue(notificationManager.addError.calledWith(
+        'Unable to clone git@github.com:nope/nope.git',
+        sinon.match({detail: sinon.match(/this is stderr/)}),
+      ));
+    });
+
+    it('dismisses the clone panel on cancel', function() {
+      commandRegistry.dispatch(workspaceElement, 'github:clone');
+
+      const dialog = wrapper.find('CloneDialog');
+      dialog.prop('didCancel')();
+
+      assert.lengthOf(wrapper.find('CloneDialog'), 0);
+      assert.isFalse(cloneRepositoryForProjectPath.called);
     });
   });
 

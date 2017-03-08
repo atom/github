@@ -49,6 +49,27 @@ describe('Repository', function() {
     });
   });
 
+  describe('clone', function() {
+    it('clones a repository from a URL to a directory and returns the repository', async function() {
+      const upstreamPath = await cloneRepository('three-files');
+      const destDir = fs.realpathSync(temp.mkdirSync());
+
+      const repo = await Repository.clone(upstreamPath, destDir);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
+
+    it('clones a repository when the directory does not exist yet', async function() {
+      const upstreamPath = await cloneRepository('three-files');
+      const parentDir = fs.realpathSync(temp.mkdirSync());
+      const destDir = path.join(parentDir, 'subdir');
+
+      const repo = await Repository.clone(upstreamPath, destDir);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
+  });
+
   describe('staging and unstaging files', function() {
     it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');

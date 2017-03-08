@@ -32,3 +32,6 @@
 '.github-Prompt-input':
   'enter': 'core:confirm'
   'esc': 'tool-panel:unfocus'
+
+'.github-Clone':
+  'shift-tab': 'core:focus-previous'
