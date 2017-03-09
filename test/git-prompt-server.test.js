@@ -3,6 +3,11 @@ import {execFile} from 'child_process';
 import GitPromptServer from '../lib/git-prompt-server';
 
 describe('GitPromptServer', function() {
+  const electronEnv = {
+    ELECTRON_RUN_AS_NODE: '1',
+    ELECTRON_NO_ATTACH_CONSOLE: '1',
+  };
+
   describe('credential helper', function() {
     it('prompts for user input and writes JSON to stdout', async function() {
       this.timeout(10000);
@@ -20,15 +25,8 @@ describe('GitPromptServer', function() {
       let err, stdout;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          credentialHelper.launcher,
-          ['get'],
-          {
-            env: {
-              ATOM_GITHUB_ELECTRON_PATH: electron,
-              ATOM_GITHUB_SOCK_PATH: socket,
-              ATOM_GITHUB_CREDENTIAL_PATH: credentialHelper.script,
-            },
-          },
+          electron, [credentialHelper.script, socket, 'get'],
+          {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
@@ -66,15 +64,8 @@ describe('GitPromptServer', function() {
       let err, stdout;
       await new Promise((resolve, reject) => {
         execFile(
-          askPass.launcher,
-          ['Please enter your password for "updog"'],
-          {
-            env: {
-              ATOM_GITHUB_ELECTRON_PATH: electron,
-              ATOM_GITHUB_SOCK_PATH: socket,
-              ATOM_GITHUB_ASKPASS_PATH: askPass.script,
-            },
-          },
+          electron, [askPass.script, socket, 'Please enter your password for "updog"'],
+          {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
