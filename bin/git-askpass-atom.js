@@ -3,7 +3,7 @@ const net = require('net');
 const sockPath = process.argv[2];
 const prompt = process.argv[3];
 
-// process.stderr.write(`git-askpass-atom.js: ${prompt}\n`);
+process.stderr.write(`git-askpass-atom.js called: ${prompt}\n`);
 
 const payload = {prompt, includeUsername: false};
 
@@ -13,6 +13,7 @@ const socket = net.connect(sockPath, () => {
   socket.on('data', data => parts.push(data));
   socket.on('end', () => {
     try {
+      process.stderr.write(`About to parse:\n${parts.join()}\n`);
       const replyDocument = JSON.parse(parts.join());
       process.stdout.write(replyDocument.password);
       process.exit(0);
