@@ -5,8 +5,6 @@ const url = require('url');
 const sockPath = process.argv[2];
 const action = process.argv[3];
 
-process.stderr.write(`git-prompt-server-script.js: ${action}\n`);
-
 function dialog(query) {
   if (query.username) {
     query.auth = query.username;
@@ -37,7 +35,6 @@ function dialog(query) {
 }
 
 function get() {
-  process.stderr.write('git-prompt-server-script.js: get() called\n');
   const rl = readline.createInterface({input: process.stdin});
 
   const query = {};
@@ -56,14 +53,10 @@ function get() {
     const key = line.substring(0, ind);
     const value = line.substring(ind + 1).replace(/\n$/, '');
 
-    process.stderr.write(`git-prompt-server-script.js: key = ${key} value = ${value}\n`);
-
     query[key] = value;
   });
 
   rl.on('close', () => {
-    process.stderr.write('git-prompt-server-script.js: full query = ' + require('util').inspect(query) + '\n\n');
-
     // All input received.
     dialog(query).then(reply => {
       ['protocol', 'host', 'username', 'password'].forEach(k => {
