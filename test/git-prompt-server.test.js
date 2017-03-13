@@ -7,6 +7,7 @@ describe('GitPromptServer', function() {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
     ATOM_GITHUB_DUGITE_PATH: require.resolve('git-kitchen-sink'),
+    GIT_TRACE: 'true',
   };
 
   describe('credential helper', function() {
