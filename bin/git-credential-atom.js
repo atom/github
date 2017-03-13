@@ -59,7 +59,6 @@ function fill(query) {
       GIT_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS || '',
       SSH_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS || '',
       GIT_CONFIG_PARAMETERS: '', // Only you can prevent forkbombs
-      PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
     };
 
     const stdin = Object.keys(query).map(k => `${k}=${query[k]}\n`).join('') + '\n';
@@ -70,7 +69,6 @@ function fill(query) {
     args.push('credential', 'fill');
 
     log('attempting to use user-configured credential helpers');
-    log(`PATH = ${env.PATH}`);
     log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
     log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
     log(`arguments = ${args.join(' ')}`);
