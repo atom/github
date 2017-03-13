@@ -10,7 +10,7 @@ describe('GitPromptServer', function() {
   };
 
   describe('credential helper', function() {
-    it('prompts for user input and writes JSON to stdout', async function() {
+    it('prompts for user input and writes collected credentials to stdout', async function() {
       this.timeout(10000);
 
       const server = new GitPromptServer();
