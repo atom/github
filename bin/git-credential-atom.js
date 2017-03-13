@@ -2,9 +2,6 @@ const net = require('net');
 const readline = require('readline');
 const url = require('url');
 const {execFile} = require('child_process');
-
-process.stderr.write(`dugite path: ${process.env.ATOM_GITHUB_DUGITE_PATH}`);
-
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
