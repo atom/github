@@ -1,0 +1,118 @@
+@import 'variables';
+
+@avatar-size: 20px;
+
+.github-PrTimeline {
+  display: flex;
+  flex-direction: column;
+  margin-top: @component-padding;
+  border-top: 1px solid @base-border-color;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  .author-avatar {
+    width: @avatar-size;
+    height: @avatar-size;
+    margin-right: 5px;
+  }
+
+  .pre-timeline-item-icon {
+    color: @text-color-subtle;
+    vertical-align: -webkit-baseline-middle;
+  }
+
+  .commit {
+    display: flex;
+    align-items: center;
+    padding: 0 @component-padding;
+    margin-bottom: @component-padding/2;
+
+    &:first-child {
+      padding-top: @component-padding;
+    }
+
+    & + .issue {
+      margin-top: @component-padding/2;
+    }
+
+    .author-avatar {
+      flex-basis: @avatar-size;
+    }
+
+    .commit-message-headline {
+      flex: 1;
+      max-height: @avatar-size;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .commit-sha {
+      text-align: right;
+      font-family: monospace;
+      margin-left: 5px;
+    }
+  }
+
+  .merged-event {
+    display: flex;
+
+    > * {
+      display: inline-block;
+    }
+
+    .author-avatar {
+      flex-basis: @avatar-size;
+    }
+
+    .username {
+      font-weight: bold;
+    }
+
+    .sha {
+      font-family: monospace;
+    }
+
+    .merge-ref {
+      background-color: @gh-background-color-light-blue;
+      color: @gh-background-color-blue;
+      margin: 2px;
+    }
+
+    .commit-message-headline {
+      flex: 1;
+      max-height: @avatar-size;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .commit-sha {
+      text-align: right;
+      font-family: monospace;
+    }
+  }
+
+  .issue {
+    padding: @component-padding;
+    border-top: 1px solid @base-border-color;
+
+    .comment-message-header {
+      color: @text-color-subtle;
+    }
+
+    .comment-message-body {
+      margin: 5px 0 0 20px;
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      pre > code {
+        white-space: pre;
+      }
+    }
+  }
+}
