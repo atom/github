@@ -131,7 +131,7 @@ function dialog(query) {
           });
 
           log('Atom reply parsed');
-          resolve(lines.join('') + '\n');
+          resolve(lines.join('') + 'quit=true\n');
         } catch (e) {
           log(`Unable to parse reply from Atom:\n${e.stack}`);
           reject(e);
@@ -179,7 +179,8 @@ function get() {
     }).catch(err => {
       process.stderr.write(`Unable to prompt through Atom:\n${err.stack}`);
       log('failure');
-      process.exit(1);
+      process.stdout.write('quit=true\n\n');
+      process.exit(0);
     });
   });
 }

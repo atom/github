@@ -51,7 +51,8 @@ describe('GitPromptServer', function() {
       assert.ifError(err);
       assert.equal(stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n\n');
+        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
+        'quit=true\n');
 
       await server.terminate();
     });
