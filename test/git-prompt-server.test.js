@@ -11,6 +11,7 @@ describe('GitPromptServer', function() {
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     GIT_TRACE: 'true',
+    GIT_TERMINAL_PROMPT: '0',
   };
 
   describe('credential helper', function() {
