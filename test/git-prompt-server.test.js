@@ -6,6 +6,7 @@ describe('GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
+    ATOM_GITHUB_DUGITE_PATH: require.resolve('git-kitchen-sink'),
   };
 
   describe('credential helper', function() {
@@ -42,7 +43,7 @@ describe('GitPromptServer', function() {
       assert.ifError(err);
       assert.equal(stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n');
+        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n\n');
 
       await server.terminate();
     });

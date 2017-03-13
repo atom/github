@@ -23,6 +23,6 @@ const socket = net.connect(sockPath, () => {
     }
   });
 
-  socket.end(JSON.stringify(payload), 'utf8');
+  socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
 });
 socket.setEncoding('utf8');

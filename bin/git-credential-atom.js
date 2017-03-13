@@ -82,13 +82,13 @@ function dialog(query) {
   const payload = {prompt, includeUsername};
 
   return new Promise((resolve, reject) => {
-    const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
+    const socket = net.connect(sockPath, () => {
       const parts = [];
 
       socket.on('data', data => parts.push(data));
       socket.on('end', () => {
         try {
-          const reply = JSON.parse(parts.join());
+          const reply = JSON.parse(parts.join(''));
 
           const lines = [];
           ['protocol', 'host', 'username', 'password'].forEach(k => {
@@ -102,7 +102,7 @@ function dialog(query) {
         }
       });
 
-      socket.end(JSON.stringify(payload), 'utf8');
+      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
     });
     socket.setEncoding('utf8');
   });
