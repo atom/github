@@ -7,7 +7,7 @@ unset GIT_CONFIG_PARAMETERS
 GPG_PROGRAM=$(git config gpg.program || echo 'gpg')
 PASSPHRASE_ARG=
 
-if [ -n "${ATOM_GITHUB_CREDENTIAL_HELPER_SCRIPT_PATH:-}" ] && [ -n "${GIT_ASKPASS:-}" ]; then
+if [ -n "${ATOM_GITHUB_ASKPASS_PATH:-}" ] && [ -n "${GIT_ASKPASS:-}" ]; then
   SIGNING_KEY=$(git config user.signingkey)
   if [ -n "${SIGNING_KEY}" ]; then
     PROMPT="Please enter the passphrase for the GPG key '${SIGNING_KEY}'."
