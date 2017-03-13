@@ -1,0 +1,114 @@
+@import 'variables';
+
+.github-PrPaneItem {
+  padding: @component-padding;
+  overflow: auto;
+  flex: 1;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+
+  // Badge and link ------------------------
+  .pr-badge-and-link {
+    display: flex;
+    align-items: center;
+    margin-bottom: @component-padding;
+  }
+  .pr-badge {
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin-right: @component-padding;
+    font-weight: bold;
+    text-transform: capitalize;
+    border-radius: @component-border-radius;
+
+    .icon {
+      vertical-align: middle;
+    }
+
+    &.open {
+      color: contrast(@gh-background-color-green, black, white, 50%);
+      background-color: @gh-background-color-green;
+    }
+
+    &.closed {
+      color: contrast(@gh-background-color-red, black, white, 50%);
+      background-color: @gh-background-color-red;
+    }
+
+    &.merged {
+      color: contrast(@gh-background-color-purple, black, white, 50%);
+      background-color: @gh-background-color-purple;
+    }
+  }
+
+  .pr-link a {
+    color: @text-color-subtle;
+  }
+
+
+  // Avatar and title ------------------------
+
+  .pr-avatar-and-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: @component-padding;
+  }
+
+  .author-avatar-link {
+    margin-right: @component-padding;
+    align-self: flex-start;
+  }
+
+  .author-avatar {
+    max-height: 32px;
+    border-radius: @component-border-radius;
+  }
+
+  .pr-title {
+    margin: 0;
+    line-height: 1.2;
+    color: @text-color-highlight;
+  }
+
+
+  // Body ------------------------
+
+  .pr-body {
+    padding-top: @component-padding;
+    border-top: 1px solid @base-border-color;
+
+    a {
+      color: @text-color-info;
+    }
+
+    hr {
+      margin-top: 5px;
+      margin-bottom: 5px;
+      border-top: 1px solid @text-color;
+      width: 100%
+    }
+
+    ul {
+      margin-left: -10px;
+    }
+
+    ol {
+      margin-left: -20px;
+    }
+  }
+
+
+  // Reactions ------------------------
+
+  .reactions {
+    border-top: 1px solid @base-border-color;
+    padding-top: @component-padding;
+    .reaction-group {
+      margin-right: @component-padding * 2;
+    }
+  }
+}
