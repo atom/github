@@ -131,7 +131,6 @@ function dialog(query) {
           });
 
           log('Atom reply parsed');
-
           resolve(lines.join('') + '\n');
         } catch (e) {
           log(`Unable to parse reply from Atom:\n${e.stack}`);

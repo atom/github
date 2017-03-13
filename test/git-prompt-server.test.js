@@ -32,6 +32,13 @@ describe('GitPromptServer', function() {
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
+
+            /* eslint-disable no-console */
+            console.log(`err:\n${err ? err.stack : 'none'}\n`);
+            console.log(`stdout:\n${_stdout}\n`);
+            console.log(`stderr:\n${_stderr}\n`);
+            /* eslint-enable no-console */
+
             resolve();
           },
         );
@@ -71,6 +78,13 @@ describe('GitPromptServer', function() {
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
+
+            /* eslint-disable no-console */
+            console.log(`err:\n${err ? err.stack : 'none'}\n`);
+            console.log(`stdout:\n${_stdout}\n`);
+            console.log(`stderr:\n${_stderr}\n`);
+            /* eslint-enable no-console */
+
             resolve();
           },
         );
