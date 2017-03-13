@@ -32,16 +32,11 @@ describe('GitPromptServer', function() {
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
-
-            /* eslint-disable no-console */
-            console.log(`err:\n${err ? err.stack : 'none'}\n`);
-            console.log(`stdout:\n${_stdout}\n`);
-            console.log(`stderr:\n${_stderr}\n`);
-            /* eslint-enable no-console */
-
             resolve();
           },
         );
+
+        child.stderr.on('data', console.log); // eslint-disable-line no-console
 
         child.stdin.write('protocol=https\n');
         child.stdin.write('host=what-is-your-favorite-color.com\n');
@@ -73,22 +68,17 @@ describe('GitPromptServer', function() {
 
       let err, stdout;
       await new Promise((resolve, reject) => {
-        execFile(
+        const child = execFile(
           electron, [askPass.script, socket, 'Please enter your password for "updog"'],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
-
-            /* eslint-disable no-console */
-            console.log(`err:\n${err ? err.stack : 'none'}\n`);
-            console.log(`stdout:\n${_stdout}\n`);
-            console.log(`stderr:\n${_stderr}\n`);
-            /* eslint-enable no-console */
-
             resolve();
           },
         );
+
+        child.stderr.on('data', console.log); // eslint-disable-line no-console
       });
 
       assert.ifError(err);
