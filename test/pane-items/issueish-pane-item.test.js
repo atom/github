@@ -1,15 +1,15 @@
-import PrPaneItemController from '../../lib/controllers/pr-pane-item-controller';
+import IssueishPaneItem from '../../lib/pane-items/issueish-pane-item';
 
 describe('PrPaneItemController', function() {
   describe('opener', function() {
     const paneItem = Symbol('paneItem');
     beforeEach(function() {
-      sinon.stub(PrPaneItemController, 'create').returns(paneItem);
+      sinon.stub(IssueishPaneItem, 'create').returns(paneItem);
     });
 
     it('returns an item given a valid PR URL', function() {
-      const item = PrPaneItemController.opener('atom-github://pull-request/https://api.github.com/atom/github/123');
-      assert.deepEqual(PrPaneItemController.create.getCall(0).args[0], {
+      const item = IssueishPaneItem.opener('atom-github://pull-request/https://api.github.com/atom/github/123');
+      assert.deepEqual(IssueishPaneItem.create.getCall(0).args[0], {
         host: 'https://api.github.com',
         owner: 'atom',
         repo: 'github',
@@ -25,7 +25,7 @@ describe('PrPaneItemController', function() {
       ['returns null if the protocol is not atom-github', 'github://pull-request/https://api.github.com/atom/github/123'],
     ].forEach(([description, uri]) => {
       it(description, function() {
-        const item = PrPaneItemController.opener(uri);
+        const item = IssueishPaneItem.opener(uri);
         assert.isNull(item);
       });
     });
