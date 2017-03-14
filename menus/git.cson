@@ -97,6 +97,10 @@
       'command': 'github:open-link-in-new-tab'
     }
     {
+      'label': 'Open in This Tab'
+      'command': 'github:open-link-in-this-tab'
+    }
+    {
       'label': 'Open in Browser'
       'command': 'github:open-link-in-browser'
     }
