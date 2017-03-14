@@ -112,6 +112,6 @@
   },
   "deserializers": {
     "GitTimingsView": "createGitTimingsView",
-    "PrPaneItemController": "createPrPaneItem"
+    "IssueishPaneItemController": "createIssueishPaneItem"
   }
 }
