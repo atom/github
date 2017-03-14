@@ -91,3 +91,13 @@
       'command': 'github:discard-selected-lines'
     }
   ]
+  '.github-DotComMarkdownHtml .issue-link': [
+    {
+      'label': 'Open in New Tab'
+      'command': 'github:open-link-in-new-tab'
+    }
+    {
+      'label': 'Open in Browser'
+      'command': 'github:open-link-in-browser'
+    }
+  ]
