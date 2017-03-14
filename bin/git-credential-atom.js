@@ -79,7 +79,7 @@ function withAllHelpers(query, subAction) {
     log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
     log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
     log(`arguments = ${args.join(' ')}`);
-    log(`stdin =\n${stdin}`);
+    log(`stdin =\n${stdin.replace(/password=[^\n]+/, '******')}`);
 
     return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
   });
@@ -115,7 +115,7 @@ function parse() {
 
       const key = line.substring(0, ind);
       const value = line.substring(ind + 1).replace(/\n$/, '');
-      log(`parsed from stdin: [${key}] = [${value}]`);
+      log(`parsed from stdin: [${key}] = [${key === 'password' ? '******' : value}]`);
 
       query[key] = value;
     });
@@ -140,9 +140,9 @@ function fromOtherHelpers(query) {
   return withAllHelpers(query, 'fill')
   .then(({stdout, stderr, exitCode}) => {
     if (exitCode !== 0) {
-      log(`user-configured credential helpers failed with exit code ${exitCode}. this is ok`);
       log(`stdout:\n${stdout}`);
       log(`stderr:\n${stderr}`);
+      log(`user-configured credential helpers failed with exit code ${exitCode}. this is ok`);
 
       throw new Error('git-credential fill failed');
     }
