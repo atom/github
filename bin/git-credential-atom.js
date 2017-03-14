@@ -56,6 +56,36 @@ function systemCredentialHelpers() {
 }
 
 /*
+ * Dispatch a `git credential` subcommand to all configured credential helpers. Return a Promise that
+ * resolves with the exit status, stdout, and stderr of the subcommand.
+ */
+function withAllHelpers(query, subAction) {
+  return systemCredentialHelpers()
+  .then(systemHelpers => {
+    const env = {
+      GIT_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS || '',
+      SSH_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS || '',
+      GIT_CONFIG_PARAMETERS: '', // Only you can prevent forkbombs
+    };
+
+    const stdin = Object.keys(query).map(k => `${k}=${query[k]}\n`).join('') + '\n';
+    const stdinEncoding = 'utf8';
+
+    const args = [];
+    systemHelpers.forEach(helper => args.push('-c', `credential.helper=${helper}`));
+    args.push('credential', subAction);
+
+    log(`attempting to run ${subAction} with user-configured credential helpers`);
+    log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
+    log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
+    log(`arguments = ${args.join(' ')}`);
+    log(`stdin =\n${stdin}`);
+
+    return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
+  });
+}
+
+/*
  * Parse `key=value` lines from stdin until EOF or the first blank line.
  */
 function parse() {
@@ -107,29 +137,7 @@ function parse() {
  * hooray! Report the results to stdout. Otherwise, reject the promise and collect credentials through Atom.
  */
 function fromOtherHelpers(query) {
-  return systemCredentialHelpers()
-  .then(systemHelpers => {
-    const env = {
-      GIT_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS || '',
-      SSH_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS || '',
-      GIT_CONFIG_PARAMETERS: '', // Only you can prevent forkbombs
-    };
-
-    const stdin = Object.keys(query).map(k => `${k}=${query[k]}\n`).join('') + '\n';
-    const stdinEncoding = 'utf8';
-
-    const args = [];
-    systemHelpers.forEach(helper => args.push('-c', `credential.helper=${helper}`));
-    args.push('credential', 'fill');
-
-    log('attempting to use user-configured credential helpers');
-    log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
-    log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
-    log(`arguments = ${args.join(' ')}`);
-    log(`stdin =\n${stdin}`);
-
-    return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
-  })
+  return withAllHelpers(query, 'fill')
   .then(({stdout, stderr, exitCode}) => {
     if (exitCode !== 0) {
       log(`user-configured credential helpers failed with exit code ${exitCode}. this is ok`);
@@ -235,6 +243,18 @@ function get() {
     });
 }
 
+function store() {
+  parse()
+    .then(query => withAllHelpers(query, 'approve'))
+    .then(() => process.exit(0), () => process.exit(1));
+}
+
+function erase() {
+  parse()
+    .then(query => withAllHelpers(query, 'reject'))
+    .then(() => process.exit(0), () => process.exit(1));
+}
+
 log(`working directory = ${workdirPath}`);
 log(`socket path = ${sockPath}`);
 log(`action = ${action}`);
@@ -243,7 +263,14 @@ switch (action) {
   case 'get':
     get();
     break;
+  case 'store':
+    store();
+    break;
+  case 'erase':
+    erase();
+    break;
   default:
+    log(`Unrecognized command: ${action}`);
     process.exit(0);
     break;
 }
