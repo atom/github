@@ -2,6 +2,7 @@ import {execFile} from 'child_process';
 import path from 'path';
 
 import GitPromptServer from '../lib/git-prompt-server';
+import {fileExists} from '../lib/helpers';
 
 describe('GitPromptServer', function() {
   const electronEnv = {
@@ -15,37 +16,56 @@ describe('GitPromptServer', function() {
   };
 
   describe('credential helper', function() {
-    it('prompts for user input and writes collected credentials to stdout', async function() {
-      this.timeout(10000);
+    let server;
 
-      const server = new GitPromptServer();
-      const {credentialHelper, socket, electron} = await server.start(query => {
-        assert.equal(query.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
-        assert.isTrue(query.includeUsername);
-        return {
-          username: 'old-man-from-scene-24',
-          password: 'Green. I mean blue! AAAhhhh...',
-        };
-      });
+    beforeEach(function() {
+      server = new GitPromptServer();
+    });
 
-      let err, stdout;
+    async function runCredentialScript(command, queryHandler, processHandler) {
+      const {credentialHelper, socket, electron} = await server.start(queryHandler);
+
+      let err, stdout, stderr;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          electron, [credentialHelper.script, socket, 'get'],
+          electron, [credentialHelper.script, socket, command],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
             stdout = _stdout;
+            stderr = _stderr;
             resolve();
           },
         );
 
         child.stderr.on('data', console.log); // eslint-disable-line no-console
 
+        processHandler(child);
+      });
+
+      return {err, stdout, stderr};
+    }
+
+    it('prompts for user input and writes collected credentials to stdout', async function() {
+      this.timeout(10000);
+
+      function queryHandler(query) {
+        assert.equal(query.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+        assert.isTrue(query.includeUsername);
+        return {
+          username: 'old-man-from-scene-24',
+          password: 'Green. I mean blue! AAAhhhh...',
+          remember: false,
+        };
+      }
+
+      function processHandler(child) {
         child.stdin.write('protocol=https\n');
         child.stdin.write('host=what-is-your-favorite-color.com\n');
         child.stdin.end('\n');
-      });
+      }
+
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
 
       assert.ifError(err);
       assert.equal(stdout,
@@ -53,6 +73,58 @@ describe('GitPromptServer', function() {
         'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
         'quit=true\n');
 
+      assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
+    });
+
+    it('parses input without the terminating blank line', async function() {
+      this.timeout(10000);
+
+      function queryHandler(query) {
+        return {
+          username: 'old-man-from-scene-24',
+          password: 'Green. I mean blue! AAAhhhh...',
+          remember: false,
+        };
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.end();
+      }
+
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+
+      assert.ifError(err);
+      assert.equal(stdout,
+        'protocol=https\nhost=what-is-your-favorite-color.com\n' +
+        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
+        'quit=true\n');
+    });
+
+    it('creates a flag file if remember is set to true', async function() {
+      this.timeout(10000);
+
+      function queryHandler(query) {
+        return {
+          username: 'old-man-from-scene-24',
+          password: 'Green. I mean blue! AAAhhhh...',
+          remember: true,
+        };
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.end('\n');
+      }
+
+      const {err} = await runCredentialScript('get', queryHandler, processHandler);
+      assert.ifError(err);
+      assert.isTrue(await fileExists(path.join(server.tmpFolderPath, 'remember')));
+    });
+
+    afterEach(async function() {
       await server.terminate();
     });
   });

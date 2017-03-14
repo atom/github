@@ -1,6 +1,8 @@
 const net = require('net');
 const readline = require('readline');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 const {execFile} = require('child_process');
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 
@@ -9,6 +11,11 @@ const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const sockPath = process.argv[2];
 const action = process.argv[3];
 
+const rememberFile = path.join(__dirname, 'remember');
+
+/*
+ * Emit diagnostic messages to stderr if GIT_TRACE is set to a non-empty value.
+ */
 function log(message) {
   if (!diagnosticsEnabled) {
     return;
@@ -49,10 +56,57 @@ function systemCredentialHelpers() {
 }
 
 /*
+ * Parse `key=value` lines from stdin until EOF or the first blank line.
+ */
+function parse() {
+  return new Promise((resolve, reject) => {
+    const rl = readline.createInterface({input: process.stdin});
+
+    let resolved = false;
+    const query = {};
+
+    rl.on('line', line => {
+      if (resolved) {
+        return;
+      }
+
+      if (line.length === 0) {
+        log('all input received: blank line received');
+        resolved = true;
+        resolve(query);
+        return;
+      }
+
+      const ind = line.indexOf('=');
+      if (ind === -1) {
+        reject(new Error(`Unable to parse credential line: ${line}`));
+        return;
+      }
+
+      const key = line.substring(0, ind);
+      const value = line.substring(ind + 1).replace(/\n$/, '');
+      log(`parsed from stdin: [${key}] = [${value}]`);
+
+      query[key] = value;
+    });
+
+    rl.on('close', () => {
+      if (resolved) {
+        return;
+      }
+
+      log('all input received: EOF from stdin');
+      resolved = true;
+      resolve(query);
+    });
+  });
+}
+
+/*
  * Attempt to use user-configured credential handlers through the normal git channels. If they actually work,
  * hooray! Report the results to stdout. Otherwise, reject the promise and collect credentials through Atom.
  */
-function fill(query) {
+function fromOtherHelpers(query) {
   return systemCredentialHelpers()
   .then(systemHelpers => {
     const env = {
@@ -97,6 +151,16 @@ function fill(query) {
   });
 }
 
+/*
+ * This is a placeholder for eventual support of storage of credentials in an OS keychain.
+ */
+function fromKeytar(query) {
+  return Promise.reject(new Error('Not implemented'));
+}
+
+/*
+ * Request a dialog in Atom by writing a null-delimited JSON query to the socket we were given.
+ */
 function dialog(query) {
   if (query.username) {
     query.auth = query.username;
@@ -122,14 +186,22 @@ function dialog(query) {
         try {
           const reply = JSON.parse(parts.join(''));
 
-          const lines = [];
-          ['protocol', 'host', 'username', 'password'].forEach(k => {
-            const value = reply[k] !== undefined ? reply[k] : query[k];
-            lines.push(`${k}=${value}\n`);
-          });
+          const writeReply = function() {
+            const lines = [];
+            ['protocol', 'host', 'username', 'password'].forEach(k => {
+              const value = reply[k] !== undefined ? reply[k] : query[k];
+              lines.push(`${k}=${value}\n`);
+            });
 
-          log('Atom reply parsed');
-          resolve(lines.join('') + 'quit=true\n');
+            log('Atom reply parsed');
+            resolve(lines.join('') + 'quit=true\n');
+          };
+
+          if (reply.remember) {
+            fs.writeFile(rememberFile, writeReply);
+          } else {
+            writeReply();
+          }
         } catch (e) {
           log(`Unable to parse reply from Atom:\n${e.stack}`);
           reject(e);
@@ -145,42 +217,22 @@ function dialog(query) {
 }
 
 function get() {
-  const rl = readline.createInterface({input: process.stdin});
-
-  const query = {};
-
-  rl.on('line', line => {
-    if (line.length === 0) {
-      return;
-    }
-
-    const ind = line.indexOf('=');
-    if (ind === -1) {
-      process.stderr.write(`Unable to parse credential line: ${line}`);
-      process.exit(1);
-    }
-
-    const key = line.substring(0, ind);
-    const value = line.substring(ind + 1).replace(/\n$/, '');
-    log(`parsed from stdin: [${key}] = [${value}]`);
-
-    query[key] = value;
-  });
-
-  rl.on('close', () => {
-    log('all input received');
-
-    fill(query).catch(() => dialog(query)).then(reply => {
+  parse()
+    .then(query => {
+      return fromOtherHelpers(query)
+        .catch(() => fromKeytar(query))
+        .catch(() => dialog(query));
+    })
+    .then(reply => {
       process.stdout.write(reply);
       log('success');
       process.exit(0);
-    }).catch(err => {
+    }, err => {
       process.stderr.write(`Unable to prompt through Atom:\n${err.stack}`);
       log('failure');
       process.stdout.write('quit=true\n\n');
       process.exit(0);
     });
-  });
 }
 
 log(`working directory = ${workdirPath}`);
