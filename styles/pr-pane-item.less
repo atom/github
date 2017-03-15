@@ -1,16 +1,18 @@
 @import 'variables';
 
+@spacing: @component-padding * 3;
+
 .github-PrPaneItem {
-  padding: @component-padding;
+  padding: @spacing;
   overflow: auto;
-  flex: 1;
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-
-  border-top: 1px solid @base-border-color;
+  font-size: 1.2em;
+  line-height: 1.5;
+  background-color: @base-background-color;
 
   * {
     user-select: all;
@@ -76,6 +78,8 @@
 
   .issueish-title {
     margin: 0;
+    font-size: 1.5em;
+    font-weight: 500;
     line-height: 1.2;
     color: @text-color-highlight;
   }
@@ -121,10 +125,15 @@
   // Reactions ------------------------
 
   .reactions {
-    border-top: 1px solid @base-border-color;
+    width: fit-content;
+    margin-top: @component-padding * 2;
     padding-top: @component-padding;
+    border-top: 1px solid @base-border-color;
     .reaction-group {
-      margin-right: @component-padding * 2;
+      margin: @component-padding;
+    }
+    &:empty {
+      padding-top: 0;
     }
   }
 

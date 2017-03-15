@@ -3,14 +3,15 @@
 @avatar-size: 20px;
 
 .github-PrTimeline {
-  display: flex;
-  flex-direction: column;
-  margin-top: @component-padding;
-  border-top: 1px solid @base-border-color;
+  margin-top: @component-padding * 3;
+  border-top: 1px solid mix(@text-color, @base-background-color, 15%);
 
-  position: absolute;
-  left: 0;
-  right: 0;
+  // all items
+  & > * {
+    margin: 0 @component-padding * 2;
+    padding: @component-padding*2 0;
+    border-bottom: 1px solid mix(@text-color, @base-background-color, 15%);
+  }
 
   .author-avatar {
     width: @avatar-size;
@@ -19,8 +20,10 @@
   }
 
   .pre-timeline-item-icon {
+    position: absolute;
+    margin-left: -25px;
+    margin-top: 2px;
     color: @text-color-subtle;
-    vertical-align: -webkit-baseline-middle;
   }
 
   .commit {
@@ -96,15 +99,16 @@
   }
 
   .issue {
-    padding: @component-padding;
-    border-top: 1px solid @base-border-color;
 
+    .info-row {
+      margin-bottom: @component-padding;
+    }
     .comment-message-header {
+      font-size: .9em;
       color: @text-color-subtle;
     }
 
     .comment-message-body {
-      margin: 5px 0 0 20px;
 
       p:last-child {
         margin-bottom: 0;
