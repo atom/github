@@ -1,4 +1,4 @@
-import IssueishPaneItem from '../../lib/pane-items/issueish-pane-item';
+import IssueishPaneItem from '../../lib/atom-items/issueish-pane-item';
 
 describe('IssueishPaneItem', function() {
   describe('opener', function() {
