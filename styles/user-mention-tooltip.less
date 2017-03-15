@@ -1,0 +1,28 @@
+.github-UserMentionTooltip {
+  display: flex;
+  min-width: 250px;
+  min-height: 90px;
+
+  &-avatar {
+    flex-basis: 50px;
+    padding-right: 10px;
+
+    > img {
+      max-width: 85px;
+    }
+  }
+
+  &-info {
+    flex: 1;
+    text-align: left;
+    line-height: 1.5;
+
+    > div {
+      white-space: nowrap;
+
+      span:not(.icon), strong {
+        vertical-align: text-bottom;
+      }
+    }
+  }
+}
