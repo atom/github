@@ -43,6 +43,10 @@
       padding-top: @component-padding;
     }
 
+    &:only-child {
+      margin-left: -@component-padding;
+    }
+
     & + .issue {
       margin-top: @component-padding/2;
     }
@@ -52,6 +56,7 @@
     }
 
     .commit-message-headline {
+      font-size: .9em;
       flex: 1;
       max-height: @avatar-size;
       overflow: hidden;
@@ -63,44 +68,29 @@
       text-align: right;
       font-family: monospace;
       margin-left: 5px;
+      font-size: .85em;
+      color: @text-color-subtle;
     }
   }
 
   .merged-event {
     display: flex;
+    margin-top: -1px; // cover top border
+    margin-left: @component-padding * -3;
+    margin-right: @component-padding * -3;
+    padding-left: @component-padding * 5;
+    color: mix(@gh-background-color-purple, @text-color-subtle, 50%);
+    border: 1px double mix(@gh-background-color-purple, @base-background-color, 24%);
+    border-width: 1px 0;
+    background-color: mix(@gh-background-color-purple, @base-background-color, 12%);
 
-    > * {
-      display: inline-block;
-    }
-
-    .author-avatar {
-      flex-basis: @avatar-size;
-    }
-
-    .username {
+    .username,
+    .merge-ref {
       font-weight: bold;
+      color: @text-color-highlight;
     }
 
     .sha {
-      font-family: monospace;
-    }
-
-    .merge-ref {
-      background-color: @gh-background-color-light-blue;
-      color: @gh-background-color-blue;
-      margin: 2px;
-    }
-
-    .commit-message-headline {
-      flex: 1;
-      max-height: @avatar-size;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .commit-sha {
-      text-align: right;
       font-family: monospace;
     }
   }
@@ -115,7 +105,7 @@
       color: @text-color-subtle;
     }
 
-    .comment-message-body {
+    .github-DotComMarkdownHtml {
 
       p:last-child {
         margin-bottom: 0;
