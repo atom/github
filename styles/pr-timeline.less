@@ -26,11 +26,18 @@
     color: @text-color-subtle;
   }
 
+  .commits {
+    .info-row {
+      margin-bottom: @component-padding;
+    }
+  }
+
   .commit {
     display: flex;
     align-items: center;
     padding: 0 @component-padding;
-    margin-bottom: @component-padding/2;
+    margin-left: @component-padding * 2;
+    padding-bottom: @component-padding * 0.66;
 
     &:first-child {
       padding-top: @component-padding;
