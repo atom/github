@@ -13,6 +13,7 @@
   padding: @component-padding * 2;
   overflow: auto;
   flex: 1;
+  cursor: default;
 
   // Badge and link ------------------------
   .pr-badge-and-link {
@@ -56,6 +57,7 @@
 
   .pr-link a {
     color: @text-color-subtle;
+    word-break: break-all;
   }
 
 
@@ -116,6 +118,7 @@
   // All "items" ------------------------
 
   .meta-info,
+  .conversation,
   .commit-count,
   .file-count,
   .reactions,
