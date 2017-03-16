@@ -33,5 +33,8 @@
   'enter': 'core:confirm'
   'esc': 'tool-panel:unfocus'
 
-'.github-Clone':
+'.github-Dialog':
   'shift-tab': 'core:focus-previous'
+
+'.github-Dialog input':
+  'enter': 'core:confirm'

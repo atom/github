@@ -105,6 +105,11 @@
       "type": "number",
       "default": 300,
       "description": "How long to wait before showing a diff view after navigating to an entry with the keyboard"
+    },
+    "gitDiagnostics": {
+      "type": "boolean",
+      "default": false,
+      "description": "Write detailed diagnostic information about git operations to the console"
     }
   },
   "deserializers": {
