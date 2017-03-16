@@ -15,6 +15,11 @@
   flex: 1;
   cursor: default;
 
+
+  .icon {
+    vertical-align: middle;
+  }
+
   // Badge and link ------------------------
   .pr-badge-and-link {
     display: flex;
@@ -34,10 +39,6 @@
     font-weight: bold;
     text-transform: capitalize;
     border-radius: @component-border-radius;
-
-    .icon {
-      vertical-align: middle;
-    }
 
     &.open {
       color: contrast(@gh-background-color-green, black, white, 50%);
@@ -85,17 +86,26 @@
     color: @text-color-highlight;
   }
 
+  // Status ------------------------
+
   .merge-status,
   .build-status {
     line-height: 2;
   }
-
   .merge-status.success {
     .icon { color: @text-color-success; }
   }
-
   .build-status.pending {
     .icon { color: @text-color-warning; }
+  }
+
+  // Info ------------------------
+
+  .count-number {
+    margin-left: .25em;
+    font-size: 1.1em;
+    font-weight: 600;
+    line-height: 1;
   }
 
   .label {
