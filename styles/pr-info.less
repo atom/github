@@ -10,7 +10,7 @@
 }
 
 .github-PrInfo {
-  padding: @component-padding;
+  padding: @component-padding * 2;
   overflow: auto;
   flex: 1;
 
@@ -18,7 +18,7 @@
   .pr-badge-and-link {
     display: flex;
     align-items: center;
-    margin-bottom: @component-padding;
+    margin-bottom: @component-padding * 2;
 
     .browser-link {
       display: inline-block;
@@ -83,26 +83,17 @@
     color: @text-color-highlight;
   }
 
-  .meta-info {
-    padding-left: @component-padding;
-    margin-left: @avatar-size;
+  .merge-status,
+  .build-status {
+    line-height: 2;
   }
 
-  .merge-and-build-status, .commit-and-file-count {
-    display: flex;
-    margin: 0 @component-padding @component-padding 0;
+  .merge-status.success {
+    .icon { color: @text-color-success; }
+  }
 
-    > div {
-      flex: 1;
-
-      &.success {
-        .icon { color: @text-color-success; }
-      }
-
-      &.pending {
-        .icon { color: @text-color-warning; }
-      }
-    }
+  .build-status.pending {
+    .icon { color: @text-color-warning; }
   }
 
   .label {
@@ -118,10 +109,19 @@
   // Reactions ------------------------
 
   .reactions {
-    border-top: 1px solid @base-border-color;
-    padding: @component-padding 0;
     .reaction-group {
       margin-right: @component-padding * 2;
     }
+  }
+
+  // All "items" ------------------------
+
+  .meta-info,
+  .commit-count,
+  .file-count,
+  .reactions,
+  .labels {
+    border-top: 1px solid @base-border-color;
+    padding: @component-padding 0;
   }
 }
