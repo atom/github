@@ -1,0 +1,47 @@
+@import 'variables';
+
+.github-IssueishTooltip {
+  min-width: 250px;
+  max-width: 300px;
+  min-height: 90px;
+  text-align: left;
+
+  .issueish-badge-and-link {
+    padding-bottom: @component-padding;
+  }
+
+  .issueish-badge {
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin-right: @component-padding;
+    font-weight: bold;
+    text-transform: capitalize;
+    border-radius: @component-border-radius;
+
+    &.open {
+      color: contrast(@gh-background-color-green, black, white, 50%);
+      background-color: @gh-background-color-green;
+    }
+
+    &.closed {
+      color: contrast(@gh-background-color-red, black, white, 50%);
+      background-color: @gh-background-color-red;
+    }
+
+    &.merged {
+      color: contrast(@gh-background-color-purple, black, white, 50%);
+      background-color: @gh-background-color-purple;
+    }
+  }
+
+  .issueish-title {
+    margin: 0;
+    padding-bottom: @component-padding;
+    line-height: 1.2;
+    display: inline-block;
+  }
+
+  .author-avatar {
+    margin-right: 10px;
+  }
+}
