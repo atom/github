@@ -5,20 +5,15 @@
   border-top: 1px solid @base-border-color;
   flex: 0 0 auto;
 
-  &-editor {
+  &-editor atom-text-editor {
     height: 100px;
+    font-size: @font-size;
     border: 1px solid @input-border-color;
     border-radius: @component-border-radius;
-    overflow: auto;
     padding: @component-padding / 2;
     background-color: @syntax-background-color;
-
-    atom-text-editor {
-      height: 100%;
-      font-size: @font-size;
-      .cursor-line {
-        background-color: transparent;
-      }
+    .cursor-line.cursor-line.cursor-line {
+      background-color: transparent;
     }
   }
 
