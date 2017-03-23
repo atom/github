@@ -1,89 +1,126 @@
+import React from 'react';
+import {shallow} from 'enzyme';
+
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import HunkView from '../../lib/views/hunk-view';
 
 describe('HunkView', function() {
-  it('renders the hunk header and its lines', async function() {
-    const hunk1 = new Hunk(5, 5, 2, 1, 'function fn {', [
+  let component, mousedownOnHeader, mousedownOnLine, mousemoveOnLine, contextMenuOnItem, didClickStageButton;
+
+  beforeEach(function() {
+    const onlyLine = new HunkLine('only', 'added', 1, 1);
+    const emptyHunk = new Hunk(1, 1, 1, 1, 'heading', [
+      onlyLine,
+    ]);
+
+    mousedownOnHeader = sinon.spy();
+    mousedownOnLine = sinon.spy();
+    mousemoveOnLine = sinon.spy();
+    contextMenuOnItem = sinon.spy();
+    didClickStageButton = sinon.spy();
+
+    component = (
+      <HunkView
+        hunk={emptyHunk}
+        headHunk={emptyHunk}
+        headLine={onlyLine}
+        isSelected={false}
+        selectedLines={new Set()}
+        hunkSelectionMode={false}
+        stageButtonLabel=""
+        mousedownOnHeader={mousedownOnHeader}
+        mousedownOnLine={mousedownOnLine}
+        mousemoveOnLine={mousemoveOnLine}
+        contextMenuOnItem={contextMenuOnItem}
+        didClickStageButton={didClickStageButton}
+      />
+    );
+  });
+
+  it('renders the hunk header and its lines', function() {
+    const hunk0 = new Hunk(5, 5, 2, 1, 'function fn {', [
       new HunkLine('line-1', 'unchanged', 5, 5),
       new HunkLine('line-2', 'deleted', 6, -1),
       new HunkLine('line-3', 'deleted', 7, -1),
       new HunkLine('line-4', 'added', -1, 6),
     ]);
-    const view = new HunkView({hunk: hunk1, selectedLines: new Set()});
-    const element = view.element;
-    // eslint-disable-next-line prefer-const
-    let [line1, line2, line3, line4] = Array.from(element.querySelectorAll('.github-HunkView-line'));
 
-    assert.equal(view.refs.header.textContent.trim(), `${hunk1.getHeader().trim()} ${hunk1.getSectionHeading().trim()}`);
+    const wrapper = shallow(React.cloneElement(component, {hunk: hunk0}));
+
+    assert.equal(
+      wrapper.find('.github-HunkView-header').render().text().trim(),
+      `${hunk0.getHeader().trim()} ${hunk0.getSectionHeading().trim()}`,
+    );
+
+    const lines0 = wrapper.find('LineView');
     assertHunkLineElementEqual(
-      line1,
+      lines0.at(0),
       {oldLineNumber: '5', newLineNumber: '5', origin: ' ', content: 'line-1', isSelected: false},
     );
     assertHunkLineElementEqual(
-      line2,
+      lines0.at(1),
       {oldLineNumber: '6', newLineNumber: ' ', origin: '-', content: 'line-2', isSelected: false},
     );
     assertHunkLineElementEqual(
-      line3,
+      lines0.at(2),
       {oldLineNumber: '7', newLineNumber: ' ', origin: '-', content: 'line-3', isSelected: false},
     );
     assertHunkLineElementEqual(
-      line4,
+      lines0.at(3),
       {oldLineNumber: ' ', newLineNumber: '6', origin: '+', content: 'line-4', isSelected: false},
     );
 
-    const hunk2 = new Hunk(8, 8, 1, 1, 'function fn2 {', [
+    const hunk1 = new Hunk(8, 8, 1, 1, 'function fn2 {', [
       new HunkLine('line-1', 'deleted', 8, -1),
       new HunkLine('line-2', 'added', -1, 8),
     ]);
-    const lines = Array.from(element.querySelectorAll('.github-HunkView-line'));
-    line1 = lines[0];
-    line2 = lines[1];
+    wrapper.setProps({hunk: hunk1});
 
-    await view.update({hunk: hunk2, selectedLines: new Set()});
+    assert.equal(
+      wrapper.find('.github-HunkView-header').render().text().trim(),
+      `${hunk1.getHeader().trim()} ${hunk1.getSectionHeading().trim()}`,
+    );
 
-    assert.equal(view.refs.header.textContent.trim(), `${hunk2.getHeader().trim()} ${hunk2.getSectionHeading().trim()}`);
+    const lines1 = wrapper.find('LineView');
     assertHunkLineElementEqual(
-      line1,
+      lines1.at(0),
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1', isSelected: false},
     );
     assertHunkLineElementEqual(
-      line2,
+      lines1.at(1),
       {oldLineNumber: ' ', newLineNumber: '8', origin: '+', content: 'line-2', isSelected: false},
     );
 
-    await view.update({hunk: hunk2, selectedLines: new Set([hunk2.getLines()[1]])});
+    wrapper.setProps({
+      selectedLines: new Set([hunk1.getLines()[1]]),
+    });
+
+    const lines2 = wrapper.find('LineView');
     assertHunkLineElementEqual(
-      line1,
+      lines2.at(0),
       {oldLineNumber: '8', newLineNumber: ' ', origin: '-', content: 'line-1', isSelected: false},
     );
     assertHunkLineElementEqual(
-      line2,
+      lines2.at(1),
       {oldLineNumber: ' ', newLineNumber: '8', origin: '+', content: 'line-2', isSelected: true},
     );
   });
 
-  it('adds the is-selected class based on the isSelected property', async function() {
-    const hunk = new Hunk(5, 5, 2, 1, '', []);
-    const view = new HunkView({hunk, selectedLines: new Set(), isSelected: true});
-    assert(view.element.classList.contains('is-selected'));
+  it('adds the is-selected class based on the isSelected property', function() {
+    const wrapper = shallow(React.cloneElement(component, {isSelected: true}));
+    assert.isTrue(wrapper.find('.github-HunkView').hasClass('is-selected'));
 
-    await view.update({hunk, selectedLines: new Set(), isSelected: false});
-    assert(!view.element.classList.contains('is-selected'));
+    wrapper.setProps({isSelected: false});
+
+    assert.isFalse(wrapper.find('.github-HunkView').hasClass('is-selected'));
   });
 
-  it('calls the didClickStageButton handler when the staging button is clicked', async function() {
-    const hunk = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'unchanged', 5, 5)]);
-    const didClickStageButton1 = sinon.spy();
-    const view = new HunkView({hunk, selectedLines: new Set(), didClickStageButton: didClickStageButton1});
-    view.refs.stageButton.dispatchEvent(new MouseEvent('click'));
-    assert(didClickStageButton1.calledOnce);
+  it('calls the didClickStageButton handler when the staging button is clicked', function() {
+    const wrapper = shallow(component);
 
-    const didClickStageButton2 = sinon.spy();
-    await view.update({didClickStageButton: didClickStageButton2, hunk, selectedLines: new Set()});
-    view.refs.stageButton.dispatchEvent(new MouseEvent('click'));
-    assert(didClickStageButton2.calledOnce);
+    wrapper.find('.github-HunkView-stageButton').simulate('click');
+    assert.isTrue(didClickStageButton.called);
   });
 
   describe('line selection', function() {
@@ -96,33 +133,33 @@ describe('HunkView', function() {
         new HunkLine('line-5', 'deleted', 1234, 1234),
       ]);
 
-      const mousedownOnLine = sinon.spy();
-      const mousemoveOnLine = sinon.spy();
       // selectLine callback not called when selectionEnabled = false
-      const view = new HunkView({hunk, selectedLines: new Set(), mousedownOnLine, mousemoveOnLine, selectionEnabled: false});
-      const element = view.element;
-      const lineElements = Array.from(element.querySelectorAll('.github-HunkView-line'));
-      const mousedownEvent = new MouseEvent('mousedown');
-      lineElements[0].dispatchEvent(mousedownEvent);
-      assert.deepEqual(mousedownOnLine.args[0], [mousedownEvent, hunk, hunk.lines[0]]);
+      const wrapper = shallow(React.cloneElement(component, {hunk, selectionEnabled: false}));
+      const lineDivAt = index => wrapper.find('LineView').at(index).shallow().find('.github-HunkView-line');
 
-      const mousemoveEvent = new MouseEvent('mousemove');
-      lineElements[1].dispatchEvent(mousemoveEvent);
-      assert.deepEqual(mousemoveOnLine.args[0], [mousemoveEvent, hunk, hunk.lines[1]]);
+      const payload0 = {};
+      lineDivAt(0).simulate('mousedown', payload0);
+      assert.isTrue(mousedownOnLine.calledWith(payload0, hunk, hunk.lines[0]));
+
+      const payload1 = {};
+      lineDivAt(1).simulate('mousemove', payload1);
+      assert.isTrue(mousemoveOnLine.calledWith(payload1, hunk, hunk.lines[1]));
 
       // we don't call handler with redundant events
-      assert.equal(mousemoveOnLine.args.length, 1);
-      lineElements[1].dispatchEvent(new MouseEvent('mousemove'));
-      assert.equal(mousemoveOnLine.args.length, 1);
-      lineElements[2].dispatchEvent(new MouseEvent('mousemove'));
-      assert.equal(mousemoveOnLine.args.length, 2);
+      assert.equal(mousemoveOnLine.callCount, 1);
+      lineDivAt(1).simulate('mousemove');
+      assert.equal(mousemoveOnLine.callCount, 1);
+      lineDivAt(2).simulate('mousemove');
+      assert.equal(mousemoveOnLine.callCount, 2);
     });
   });
 });
 
-function assertHunkLineElementEqual(lineElement, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
-  assert.equal(lineElement.querySelector('.github-HunkView-lineNumber.is-old').textContent, oldLineNumber);
-  assert.equal(lineElement.querySelector('.github-HunkView-lineNumber.is-new').textContent, newLineNumber);
-  assert.equal(lineElement.querySelector('.github-HunkView-lineContent').textContent, origin + content);
-  assert.equal(lineElement.classList.contains('is-selected'), isSelected);
+function assertHunkLineElementEqual(lineWrapper, {oldLineNumber, newLineNumber, origin, content, isSelected}) {
+  const subWrapper = lineWrapper.shallow();
+
+  assert.equal(subWrapper.find('.github-HunkView-lineNumber.is-old').render().text(), oldLineNumber);
+  assert.equal(subWrapper.find('.github-HunkView-lineNumber.is-new').render().text(), newLineNumber);
+  assert.equal(subWrapper.find('.github-HunkView-lineContent').render().text(), origin + content);
+  assert.equal(subWrapper.find('.github-HunkView-line').hasClass('is-selected'), isSelected);
 }
