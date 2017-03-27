@@ -1,3 +1,6 @@
+import React from 'react';
+import {shallow, mount} from 'enzyme';
+
 import fs from 'fs';
 import path from 'path';
 
@@ -8,14 +11,43 @@ import FilePatch from '../../lib/models/file-patch';
 import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
+import EventWatcher from '../../lib/event-watcher';
 
 describe('FilePatchController', function() {
   let atomEnv, commandRegistry, workspace;
+  let component, eventWatcher;
+  let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
     workspace = atomEnv.workspace;
+
+    eventWatcher = new EventWatcher();
+
+    discardLines = sinon.spy();
+    didSurfaceFile = sinon.spy();
+    didDiveIntoFilePath = sinon.spy();
+    quietlySelectItem = sinon.spy();
+    undoLastDiscard = sinon.spy();
+
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
+
+    component = (
+      <FilePatchController
+        commandRegistry={commandRegistry}
+        filePatch={filePatch}
+        stagingStatus="unstaged"
+        isPartiallyStaged={false}
+        isAmending={false}
+        eventWatcher={eventWatcher}
+        discardLines={discardLines}
+        didSurfaceFile={didSurfaceFile}
+        didDiveIntoFilePath={didDiveIntoFilePath}
+        quietlySelectItem={quietlySelectItem}
+        undoLastDiscard={undoLastDiscard}
+      />
+    );
   });
 
   afterEach(function() {
@@ -24,51 +56,72 @@ describe('FilePatchController', function() {
 
   it('bases its tab title on the staging status', function() {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
-    const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged'});
-    assert.equal(controller.getTitle(), 'Unstaged Changes: a.txt');
+
+    const wrapper = shallow(React.cloneElement(component, {
+      filePatch: filePatch1,
+      stagingStatus: 'unstaged',
+    }));
+
+    assert.equal(wrapper.instance().getTitle(), 'Unstaged Changes: a.txt');
 
     const changeHandler = sinon.spy();
-    controller.onDidChangeTitle(changeHandler);
+    wrapper.instance().onDidChangeTitle(changeHandler);
 
-    controller.update({filePatch: filePatch1, stagingStatus: 'staged'});
-    assert.equal(controller.getTitle(), 'Staged Changes: a.txt');
-    assert.deepEqual(changeHandler.args, [[controller.getTitle()]]);
+    wrapper.setProps({stagingStatus: 'staged'});
+
+    const actualTitle = wrapper.instance().getTitle();
+    assert.equal(actualTitle, 'Staged Changes: a.txt');
+    assert.isTrue(changeHandler.calledWith(actualTitle));
   });
 
-  it('renders FilePatchView only if FilePatch has hunks', async function() {
+  it('renders FilePatchView only if FilePatch has hunks', function() {
     const emptyFilePatch = new FilePatch('a.txt', 'a.txt', 'modified', []);
-    const controller = new FilePatchController({commandRegistry, filePatch: emptyFilePatch}); // eslint-disable-line no-new
-    assert.isUndefined(controller.refs.filePatchView);
+
+    const wrapper = mount(React.cloneElement(component, {
+      filePatch: emptyFilePatch,
+    }));
+
+    assert.isFalse(wrapper.find('FilePatchView').exists());
 
     const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]);
-    await controller.update({filePatch});
-    assert.isDefined(controller.refs.filePatchView);
+
+    wrapper.setProps({filePatch});
+    assert.isTrue(wrapper.find('FilePatchView').exists());
   });
 
-  it('updates when a new FilePatch is passed', async function() {
+  it('updates when a new FilePatch is passed', function() {
     const hunk1 = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
     const hunk2 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-5', 'deleted', 8, -1)]);
-    const hunkViewsByHunk = new Map();
-    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2]);
-    const controller = new FilePatchController({commandRegistry, filePatch, registerHunkView: (hunk, ctrl) => hunkViewsByHunk.set(hunk, ctrl)}); // eslint-disable-line no-new
-    assert(hunkViewsByHunk.get(hunk1) != null);
-    assert(hunkViewsByHunk.get(hunk2) != null);
+    const filePatch0 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk2]);
 
-    hunkViewsByHunk.clear();
+    const wrapper = shallow(React.cloneElement(component, {
+      filePatch: filePatch0,
+    }));
+
+    const view0 = wrapper.find('FilePatchView').shallow();
+    assert.isTrue(view0.find({hunk: hunk1}).exists());
+    assert.isTrue(view0.find({hunk: hunk2}).exists());
+
     const hunk3 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-10', 'modified', 10, 10)]);
-    await controller.update({filePatch: new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk3])});
-    assert(hunkViewsByHunk.get(hunk1) != null);
-    assert(hunkViewsByHunk.get(hunk2) == null);
-    assert(hunkViewsByHunk.get(hunk3) != null);
+    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1, hunk3]);
+
+    wrapper.setProps({filePatch: filePatch1});
+
+    const view1 = wrapper.find('FilePatchView').shallow();
+    assert.isTrue(view1.find({hunk: hunk1}).exists());
+    assert.isTrue(view1.find({hunk: hunk3}).exists());
+    assert.isFalse(view1.find({hunk: hunk2}).exists());
   });
 
   it('invokes a didSurfaceFile callback with the current file path', function() {
-    const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
-    const didSurfaceFile = sinon.spy();
-    const controller = new FilePatchController({commandRegistry, filePatch: filePatch1, stagingStatus: 'unstaged', didSurfaceFile});
+    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
+    const wrapper = mount(React.cloneElement(component, {
+      filePatch,
+      stagingStatus: 'unstaged',
+    }));
 
-    commandRegistry.dispatch(controller.refs.filePatchView.element, 'core:move-right');
+    commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-right');
     assert.isTrue(didSurfaceFile.calledWith('a.txt', 'unstaged'));
   });
 
@@ -76,10 +129,16 @@ describe('FilePatchController', function() {
     const workdirPath = await cloneRepository('multi-line-file');
     const repository = await buildRepository(workdirPath);
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
-    const controller = new FilePatchController({commandRegistry, filePatch, repository, stagingStatus: 'unstaged'});
-    assert.equal(controller.getRepository(), repository);
-    controller.update({repository: null});
-    assert.equal(controller.getRepository(), repository);
+
+    const wrapper = shallow(React.cloneElement(component, {
+      filePatch,
+      repository,
+    }));
+
+    assert.equal(wrapper.instance().props.repository, repository);
+    // This is mostly ensuring that the render here doesn't throw.
+    wrapper.setProps({repository: null});
+    assert.isNull(wrapper.instance().props.repository);
   });
 
   describe('integration tests', function() {
@@ -96,17 +155,25 @@ describe('FilePatchController', function() {
       );
       unstagedLines.splice(11, 2, 'this is a modified line');
       fs.writeFileSync(filePath, unstagedLines.join('\n'));
+
       const unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
 
-      const hunkViewsByHunk = new Map();
-      function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch: unstagedFilePatch,
+        stagingStatus: 'unstaged',
+        repository,
+      }));
 
-      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
-      const view = controller.refs.filePatchView;
-      await view.selectNext();
-      const hunkToStage = hunkViewsByHunk.get(unstagedFilePatch.getHunks()[0]);
-      assert.notDeepEqual(view.selectedHunk, unstagedFilePatch.getHunks()[0]);
-      await hunkToStage.props.didClickStageButton();
+      // selectNext()
+      commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-down');
+
+      const hunkView0 = wrapper.find('HunkView').at(0);
+      assert.isFalse(hunkView0.prop('isSelected'));
+
+      const opPromise0 = eventWatcher.getStageOperationPromise();
+      hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise0;
+
       const expectedStagedLines = originalLines.slice();
       expectedStagedLines.splice(1, 1,
         'this is a modified line',
@@ -115,9 +182,19 @@ describe('FilePatchController', function() {
       );
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'));
 
+      const updatePromise0 = eventWatcher.getPatchChangedPromise();
       const stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true});
-      await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView});
-      await hunkViewsByHunk.get(stagedFilePatch.getHunks()[0]).props.didClickStageButton();
+      wrapper.setProps({
+        filePatch: stagedFilePatch,
+        stagingStatus: 'staged',
+      });
+      await updatePromise0;
+
+      const hunkView1 = wrapper.find('HunkView').at(0);
+      const opPromise1 = eventWatcher.getStageOperationPromise();
+      hunkView1.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise1;
+
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
     });
 
@@ -136,74 +213,97 @@ describe('FilePatchController', function() {
       );
       unstagedLines.splice(11, 2, 'this is a modified line');
       fs.writeFileSync(filePath, unstagedLines.join('\n'));
-      let unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-      const hunkViewsByHunk = new Map();
-      function registerHunkView(hunk, view) { hunkViewsByHunk.set(hunk, view); }
+      const unstagedFilePatch0 = await repository.getFilePatchForPath('sample.js');
 
       // stage a subset of lines from first hunk
-      const controller = new FilePatchController({commandRegistry, filePatch: unstagedFilePatch, repository, stagingStatus: 'unstaged', registerHunkView});
-      const view = controller.refs.filePatchView;
-      let hunk = unstagedFilePatch.getHunks()[0];
-      let lines = hunk.getLines();
-      let hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({button: 0, detail: 1}, hunk, lines[1]);
-      hunkView.props.mousemoveOnLine({}, hunk, lines[3]);
-      view.mouseup();
-      await hunkView.props.didClickStageButton();
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch: unstagedFilePatch0,
+        stagingStatus: 'unstaged',
+        repository,
+      }));
+
+      const opPromise0 = eventWatcher.getStageOperationPromise();
+      const hunkView0 = wrapper.find('HunkView').at(0);
+      hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+      hunkView0.find('LineView').at(3).simulate('mousemove', {});
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise0;
+
       repository.refresh();
-      let expectedLines = originalLines.slice();
-      expectedLines.splice(1, 1,
+      const expectedLines0 = originalLines.slice();
+      expectedLines0.splice(1, 1,
         'this is a modified line',
         'this is a new line',
       );
-      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'));
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
 
       // stage remaining lines in hunk
-      unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-      await controller.update({filePatch: unstagedFilePatch});
-      hunk = unstagedFilePatch.getHunks()[0];
-      hunkView = hunkViewsByHunk.get(hunk);
-      await hunkView.props.didClickStageButton();
+      const updatePromise1 = eventWatcher.getPatchChangedPromise();
+      const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
+      wrapper.setProps({filePatch: unstagedFilePatch1});
+      await updatePromise1;
+
+      const opPromise1 = eventWatcher.getStageOperationPromise();
+      wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise1;
+
       repository.refresh();
-      expectedLines = originalLines.slice();
-      expectedLines.splice(1, 1,
+      const expectedLines1 = originalLines.slice();
+      expectedLines1.splice(1, 1,
         'this is a modified line',
         'this is a new line',
         'this is another new line',
       );
-      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'));
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines1.join('\n'));
 
       // unstage a subset of lines from the first hunk
-      let stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true});
-      await controller.update({filePatch: stagedFilePatch, repository, stagingStatus: 'staged', registerHunkView});
-      hunk = stagedFilePatch.getHunks()[0];
-      lines = hunk.getLines();
-      hunkView = hunkViewsByHunk.get(hunk);
-      hunkView.props.mousedownOnLine({button: 0, detail: 1}, hunk, lines[1]);
-      view.mouseup();
-      hunkView.props.mousedownOnLine({button: 0, detail: 1, metaKey: true}, hunk, lines[2]);
-      view.mouseup();
+      const updatePromise2 = eventWatcher.getPatchChangedPromise();
+      const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
+      wrapper.setProps({
+        filePatch: stagedFilePatch2,
+        stagingStatus: 'staged',
+      });
+      await updatePromise2;
 
-      await hunkView.props.didClickStageButton();
+      const hunkView2 = wrapper.find('HunkView').at(0);
+      hunkView2.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      hunkView2.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1, metaKey: true});
+      window.dispatchEvent(new MouseEvent('mouseup'));
+
+      const opPromise2 = eventWatcher.getStageOperationPromise();
+      hunkView2.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise2;
+
       repository.refresh();
-      expectedLines = originalLines.slice();
-      expectedLines.splice(2, 0,
+      const expectedLines2 = originalLines.slice();
+      expectedLines2.splice(2, 0,
         'this is a new line',
         'this is another new line',
       );
-      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines.join('\n'));
+      assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
 
       // unstage the rest of the hunk
-      stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true});
-      await controller.update({filePatch: stagedFilePatch});
-      await view.togglePatchSelectionMode();
-      await hunkView.props.didClickStageButton();
+      const updatePromise3 = eventWatcher.getPatchChangedPromise();
+      const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
+      wrapper.setProps({
+        filePatch: stagedFilePatch3,
+      });
+      await updatePromise3;
+
+      commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      const opPromise3 = eventWatcher.getStageOperationPromise();
+      wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise3;
+
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
     });
 
     // https://github.com/atom/github/issues/417
     describe('when unstaging the last lines/hunks from a file', function() {
-      it('removes added files from index when last hunk is unstaged', async () => {
+      it('removes added files from index when last hunk is unstaged', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
         const filePath = path.join(workdirPath, 'new-file.txt');
@@ -212,17 +312,21 @@ describe('FilePatchController', function() {
         await repository.stageFiles(['new-file.txt']);
         const stagedFilePatch = await repository.getFilePatchForPath('new-file.txt', {staged: true});
 
-        const controller = new FilePatchController({commandRegistry, filePatch: stagedFilePatch, repository, stagingStatus: 'staged'});
-        const view = controller.refs.filePatchView;
-        const hunk = stagedFilePatch.getHunks()[0];
+        const wrapper = mount(React.cloneElement(component, {
+          filePatch: stagedFilePatch,
+          stagingStatus: 'staged',
+          repository,
+        }));
 
-        const {stageOperationPromise} = view.didClickStageButtonForHunk(hunk);
-        await stageOperationPromise;
+        const opPromise = eventWatcher.getStageOperationPromise();
+        wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
+        await opPromise;
+
         const stagedChanges = await repository.getStagedChanges();
         assert.equal(stagedChanges.length, 0);
       });
 
-      it('removes added files from index when last lines are unstaged', async () => {
+      it('removes added files from index when last lines are unstaged', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
         const filePath = path.join(workdirPath, 'new-file.txt');
@@ -231,17 +335,22 @@ describe('FilePatchController', function() {
         await repository.stageFiles(['new-file.txt']);
         const stagedFilePatch = await repository.getFilePatchForPath('new-file.txt', {staged: true});
 
-        const controller = new FilePatchController({commandRegistry, filePatch: stagedFilePatch, repository, stagingStatus: 'staged'});
-        const view = controller.refs.filePatchView;
-        const hunk = stagedFilePatch.getHunks()[0];
+        const wrapper = mount(React.cloneElement(component, {
+          filePatch: stagedFilePatch,
+          stagingStatus: 'staged',
+          repository,
+        }));
 
-        view.togglePatchSelectionMode();
-        view.selectAll();
+        const viewNode = wrapper.find('FilePatchView').getDOMNode();
+        commandRegistry.dispatch(viewNode, 'github:toggle-patch-selection-mode');
+        commandRegistry.dispatch(viewNode, 'core:select-all');
 
-        const {stageOperationPromise} = view.didClickStageButtonForHunk(hunk);
-        await stageOperationPromise;
+        const opPromise = eventWatcher.getStageOperationPromise();
+        wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
+        await opPromise;
+
         const stagedChanges = await repository.getStagedChanges();
-        assert.equal(stagedChanges.length, 0);
+        assert.lengthOf(stagedChanges, 0);
       });
     });
 
