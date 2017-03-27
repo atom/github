@@ -25,10 +25,20 @@ describe('EventWatcher', function() {
     const payload = {};
     watcher.resolvePromise('testing', payload);
 
-    const result0 = await promise0;
-    const result1 = await promise1;
-    assert.strictEqual(result0, payload);
-    assert.strictEqual(result1, payload);
+    assert.strictEqual(await promise0, payload);
+    assert.strictEqual(await promise1, payload);
+  });
+
+  it('creates new Promises for repeated events', async function() {
+    const promise0 = watcher.getPromise('testing');
+
+    watcher.resolvePromise('testing', 0);
+    assert.equal(await promise0, 0);
+
+    const promise1 = watcher.getPromise('testing');
+
+    watcher.resolvePromise('testing', 1);
+    assert.equal(await promise1, 1);
   });
 
   it('"resolves" an event that has no Promise', function() {
