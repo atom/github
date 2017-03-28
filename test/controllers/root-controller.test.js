@@ -2,9 +2,10 @@ import path from 'path';
 import fs from 'fs';
 
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {writeFile} from '../../lib/helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -992,6 +993,22 @@ describe('RootController', function() {
           assert.equal(repository.getDiscardHistory().length, 0);
         });
       });
+    });
+  });
+
+  describe('integration tests', function() {
+    it('mounts the FilePatchController as a PaneItem', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+
+      const filePath = path.join(workdirPath, 'a.txt');
+      await writeFile(filePath, 'wut\n');
+      await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged');
+
+      const paneItem = workspace.getActivePaneItem();
+      assert.isDefined(paneItem);
+      assert.equal(paneItem.getTitle(), 'Unstaged Changes: a.txt');
     });
   });
 });
