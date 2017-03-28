@@ -105,7 +105,7 @@ describe('RootController', function() {
       const state = {
         filePath: 'path',
         filePatch: {getPath: () => 'path.txt'},
-        stagingStatus: 'stagingStatus',
+        stagingStatus: 'unstaged',
       };
       wrapper.setState(state);
       assert.equal(wrapper.find('FilePatchController').length, 1);
@@ -145,7 +145,6 @@ describe('RootController', function() {
         wrapper.find('PaneItem').prop('onDidCloseItem')();
         assert.isNull(wrapper.state('filePath'));
         assert.isNull(wrapper.state('filePatch'));
-        assert.isNull(wrapper.state('stagingStatus'));
 
         const activate = sinon.stub();
         wrapper.instance().filePatchControllerPane = {activate};
