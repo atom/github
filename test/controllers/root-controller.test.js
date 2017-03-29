@@ -226,11 +226,16 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       const focusFilePatch = sinon.spy();
-      wrapper.instance().filePatchController = {
-        getWrappedComponent: () => {
-          return {focus: focusFilePatch};
-        },
+      const activate = sinon.spy();
+
+      const mockPane = {
+        getPaneItem: () => mockPane,
+        getElement: () => mockPane,
+        querySelector: () => mockPane,
+        focus: focusFilePatch,
+        activate,
       };
+      wrapper.instance().filePatchControllerPane = mockPane;
 
       await wrapper.instance().diveIntoFilePatchForPath('a.txt', 'unstaged');
 
@@ -239,6 +244,7 @@ describe('RootController', function() {
       assert.equal(wrapper.state('stagingStatus'), 'unstaged');
 
       assert.isTrue(focusFilePatch.called);
+      assert.isTrue(activate.called);
     });
   });
 
