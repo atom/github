@@ -626,6 +626,7 @@ import {fsStat} from '../lib/helpers';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
       });
 
       const operations = [
@@ -643,9 +644,6 @@ import {fsStat} from '../lib/helpers';
           command: 'pull',
           progressiveTense: 'pulling',
           action: () => git.pull('some-branch'),
-          configureStub: gitStrategy => {
-            sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
-          },
         },
       ];
 
@@ -653,7 +651,7 @@ import {fsStat} from '../lib/helpers';
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'exec');
           if (op.configureStub) {
-            op.configureStub(execStub, git);
+            op.configureStub(git);
           }
           execStub.returns(Promise.resolve());
 
@@ -703,15 +701,15 @@ import {fsStat} from '../lib/helpers';
     });
 
     describe('the built-in credential helper', function() {
-      let git, originalEnv, promptCancel;
+      let git, originalEnv;
 
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath, {
-          prompt: new Promise((resolve, reject) => {
-            promptCancel = reject;
-          }),
+          prompt: Promise.resolve(''),
         });
+
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
 
         originalEnv = {};
         ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
@@ -723,8 +721,25 @@ import {fsStat} from '../lib/helpers';
         Object.keys(originalEnv).forEach(varName => {
           process.env[varName] = originalEnv[varName];
         });
-        promptCancel();
       });
+
+      const operations = [
+        {
+          command: 'fetch',
+          progressiveTense: 'fetching',
+          action: () => git.fetch('some-branch'),
+        },
+        {
+          command: 'pull',
+          progressiveTense: 'pulling',
+          action: () => git.pull('some-branch'),
+        },
+        {
+          command: 'push',
+          progressiveTense: 'pushing',
+          action: () => git.push('some-branch'),
+        },
+      ];
 
       operations.forEach(op => {
         it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
@@ -734,29 +749,20 @@ import {fsStat} from '../lib/helpers';
             op.configureStub(git);
           }
 
+
           delete process.env.DISPLAY;
           process.env.GIT_ASKPASS = '/some/git-askpass.sh';
           process.env.SSH_ASKPASS = '/some/ssh-askpass.sh';
           process.env.GIT_SSH_COMMAND = '/original/ssh-command';
-          const [args, workingDir, options] = execStub.getCall(0).args;
 
-          // Ensure the event subscription to clean up the prompt server is called
-          options.processCallback({
-            on: () => {},
-            stdin: {
-              on: () => {},
-            },
-          });
+          await op.action();
+
+          const [args, workingDir, options] = execStub.getCall(0).args;
 
           assert.equal(workingDir, git.workingDir);
 
-          // Preserved environment variables for subprocesses
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
-
           // Used by https remotes
-          assertGitConfigSetting(args, op.command, 'credential\\.helper', '.*git-credential-atom\\.sh');
+          assertGitConfigSetting(args, op.command, 'credential.helper', '.*git-credential-atom\\.sh');
 
           // Used by SSH remotes
           assert.match(options.env.DISPLAY, /^.+$/);
@@ -765,11 +771,16 @@ import {fsStat} from '../lib/helpers';
           if (process.platform === 'linux') {
             assert.match(options.env.GIT_SSH_COMMAND, /linux-ssh-wrapper\.sh$/);
           }
+
+          // Preserved environment variables for subprocesses
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
         });
       });
     });
 
-    describe('createBlob({filePath})', function () {
+    describe('createBlob({filePath})', function() {
       it('creates a blob for the file path specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
@@ -938,7 +949,9 @@ function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$'
   const commandIndex = args.indexOf(command);
   assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
 
-  const valueRx = new RegExp(`^${settingName}=${valuePattern}`);
+  const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
+
+  const valueRx = new RegExp(`^${settingNamePattern}=${valuePattern}`);
 
   for (let i = 0; i < commandIndex; i++) {
     if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
@@ -946,5 +959,5 @@ function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$'
     }
   }
 
-  assert.fail(`Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+  assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
 }
