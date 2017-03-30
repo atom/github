@@ -687,7 +687,7 @@ describe('Repository', function() {
     });
   });
 
-  describe('discardWorkDirChangesForPaths()', () => {
+  describe('discardWorkDirChangesForPaths()', function() {
     it('can discard working directory changes in modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
@@ -729,8 +729,8 @@ describe('Repository', function() {
     });
   });
 
-  describe('maintaining discard history across repository instances', () => {
-    it('restores the history', async () => {
+  describe('maintaining discard history across repository instances', function() {
+    it('restores the history', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo1 = await buildRepository(workingDirPath);
 
