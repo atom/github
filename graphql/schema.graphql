@@ -2422,9 +2422,6 @@ enum OrganizationInvitationRole {
   # The user is invited to be a billing manager of the organization.
   BILLING_MANAGER
 
-  # The user is invited to be a hiring manager of the organization.
-  HIRING_MANAGER
-
   # The user's previous role will be reinstated.
   REINSTATE
 }
@@ -5524,6 +5521,9 @@ type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
 
   # Whether or not this user is a participant in the GitHub Security Bug Bounty.
   isBountyHunter: Boolean!
+
+  # Whether or not this user is a participant in the GitHub Campus Experts Program.
+  isCampusExpert: Boolean!
 
   # Whether or not this user is a GitHub Developer Program member.
   isDeveloperProgramMember: Boolean!
