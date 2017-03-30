@@ -404,8 +404,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('isPartiallyStaged(filePath)', () => {
-      it('returns true if specified file path is partially staged', async () => {
+    describe('isPartiallyStaged(filePath)', function() {
+      it('returns true if specified file path is partially staged', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
@@ -619,11 +619,11 @@ import {fsStat} from '../lib/helpers';
     });
 
     // Only needs to be tested on strategies that actually implement gpgExec
-    describe('GPG signing', () => {
+    describe('GPG signing', function() {
       let git;
 
       // eslint-disable-next-line jasmine/no-global-setup
-      beforeEach(async () => {
+      beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
       });
@@ -650,7 +650,7 @@ import {fsStat} from '../lib/helpers';
       ];
 
       operations.forEach(op => {
-        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async () => {
+        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'exec');
           if (op.configureStub) {
             op.configureStub(execStub, git);
@@ -667,7 +667,7 @@ import {fsStat} from '../lib/helpers';
           assert.isNotOk(callArgs[1].useGitPromptServer);
         });
 
-        it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async () => {
+        it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
           const gpgErr = new GitError('Mock GPG failure');
           gpgErr.stdErr = 'stderr includes "gpg failed"';
           gpgErr.code = 128;
@@ -769,8 +769,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('createBlob({filePath})', () => {
-      it('creates a blob for the file path specified and returns its sha', async () => {
+    describe('createBlob({filePath})', function () {
+      it('creates a blob for the file path specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -780,7 +780,7 @@ import {fsStat} from '../lib/helpers';
         assert.equal(contents, 'qux\nfoo\nbar\n');
       });
 
-      it('creates a blob for the stdin specified and returns its sha', async () => {
+      it('creates a blob for the stdin specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const sha = await git.createBlob({stdin: 'foo\n'});
@@ -790,8 +790,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('expandBlobToFile(absFilePath, sha)', () => {
-      it('restores blob contents for sha to specified file path', async () => {
+    describe('expandBlobToFile(absFilePath, sha)', function() {
+      it('restores blob contents for sha to specified file path', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -803,8 +803,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('getBlobContents(sha)', () => {
-      it('returns blob contents for sha', async () => {
+    describe('getBlobContents(sha)', function() {
+      it('returns blob contents for sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
@@ -813,8 +813,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('getFileMode(filePath)', () => {
-      it('returns the file mode of the specified file', async () => {
+    describe('getFileMode(filePath)', function() {
+      it('returns the file mode of the specified file', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -826,7 +826,7 @@ import {fsStat} from '../lib/helpers';
         assert.equal(await git.getFileMode('a.txt'), '100755');
       });
 
-      it('returns the file mode for untracked files', async () => {
+      it('returns the file mode for untracked files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
@@ -842,9 +842,9 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('merging files', () => {
-      describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', () => {
-        it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
+    describe('merging files', function() {
+      describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', function() {
+        it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
 
@@ -874,8 +874,8 @@ import {fsStat} from '../lib/helpers';
         });
       });
 
-      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', () => {
-        it('updates the index to have the appropriate shas, retaining the original file mode', async () => {
+      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', function() {
+        it('updates the index to have the appropriate shas, retaining the original file mode', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -895,7 +895,7 @@ import {fsStat} from '../lib/helpers';
           `);
         });
 
-        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async () => {
+        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
