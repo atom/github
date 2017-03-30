@@ -34,6 +34,10 @@ class TestModel {
   fetchData: model => model.getData(),
 })
 class TestComponent extends React.Component {
+  static testMethod() {
+    return 'Hi!';
+  }
+
   render() {
     return null;
   }
@@ -66,5 +70,9 @@ describe('ObserveModelDecorator', function() {
     await assert.async.equal(wrapper.find('TestComponent').prop('one'), 1);
     await assert.async.equal(wrapper.find('TestComponent').prop('two'), 2);
     await assert.async.equal(wrapper.find('TestComponent').prop('testModel'), model2);
+  });
+
+  it('hosts static methods', function() {
+    assert.equal(TestComponent.testMethod(), 'Hi!');
   });
 });
