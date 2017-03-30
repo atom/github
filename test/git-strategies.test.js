@@ -5,7 +5,7 @@ import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import {GitProcess} from 'git-kitchen-sink';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
