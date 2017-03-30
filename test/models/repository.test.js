@@ -49,6 +49,27 @@ describe('Repository', function() {
     });
   });
 
+  describe('clone', function() {
+    it('clones a repository from a URL to a directory and returns the repository', async function() {
+      const upstreamPath = await cloneRepository('three-files');
+      const destDir = fs.realpathSync(temp.mkdirSync());
+
+      const repo = await Repository.clone(upstreamPath, destDir);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
+
+    it('clones a repository when the directory does not exist yet', async function() {
+      const upstreamPath = await cloneRepository('three-files');
+      const parentDir = fs.realpathSync(temp.mkdirSync());
+      const destDir = path.join(parentDir, 'subdir');
+
+      const repo = await Repository.clone(upstreamPath, destDir);
+      assert.isTrue(await repo.isGitRepository());
+      assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
+  });
+
   describe('staging and unstaging files', function() {
     it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -666,7 +687,7 @@ describe('Repository', function() {
     });
   });
 
-  describe('discardWorkDirChangesForPaths()', () => {
+  describe('discardWorkDirChangesForPaths()', function() {
     it('can discard working directory changes in modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = await buildRepository(workingDirPath);
@@ -708,8 +729,8 @@ describe('Repository', function() {
     });
   });
 
-  describe('maintaining discard history across repository instances', () => {
-    it('restores the history', async () => {
+  describe('maintaining discard history across repository instances', function() {
+    it('restores the history', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo1 = await buildRepository(workingDirPath);
 
@@ -731,6 +752,18 @@ describe('Repository', function() {
       const repo2HistorySha = repo2.createDiscardHistoryBlob();
 
       assert.deepEqual(repo2HistorySha, repo1HistorySha);
+    });
+
+    it('is resilient to missing history blobs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo1 = await buildRepository(workingDirPath);
+      await repo1.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      // Should not throw
+      await repo1.updateDiscardHistory();
+
+      // Also should not throw
+      await buildRepository(workingDirPath);
     });
   });
 });

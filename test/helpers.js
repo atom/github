@@ -29,8 +29,9 @@ export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
     const cachedPath = temp.mkdirSync('git-fixture-cache-');
     const git = new GitShellOutStrategy(cachedPath);
-    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'));
+    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
+    await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -60,21 +61,22 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   // create remote bare repo with all commits
   const remoteRepoPath = temp.mkdirSync('git-remote-fixture-');
   const remoteGit = new GitShellOutStrategy(remoteRepoPath);
-  await remoteGit.clone(baseRepoPath, {bare: true});
+  await remoteGit.clone(baseRepoPath, {noLocal: true, bare: true});
 
   // create local repo with one fewer commit
   if (options.remoteAhead) { await baseGit.exec(['reset', 'HEAD~']); }
   const localRepoPath = temp.mkdirSync('git-local-fixture-');
   const localGit = new GitShellOutStrategy(localRepoPath);
-  await localGit.clone(baseRepoPath);
+  await localGit.clone(baseRepoPath, {noLocal: true});
   await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath]);
+  await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
 export async function getHeadCommitOnRemote(remotePath) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   const git = new GitShellOutStrategy(workingDirPath);
-  await git.clone(remotePath);
+  await git.clone(remotePath, {noLocal: true});
   return git.getHeadCommit();
 }
 

@@ -52,4 +52,9 @@ describe('firstImplementer', function() {
     const descTarget = Object.getOwnPropertyDescriptor(target, '__implementations');
     assert.deepEqual(descTarget.value, [a, b]);
   });
+
+  it('provides an accessor for all implementers', function() {
+    const target = firstImplementer(a, b);
+    assert.deepEqual(target.getImplementers(), [a, b]);
+  });
 });
