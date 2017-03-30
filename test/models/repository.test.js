@@ -753,5 +753,17 @@ describe('Repository', function() {
 
       assert.deepEqual(repo2HistorySha, repo1HistorySha);
     });
+
+    it('is resilient to missing history blobs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo1 = await buildRepository(workingDirPath);
+      await repo1.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      // Should not throw
+      await repo1.updateDiscardHistory();
+
+      // Also should not throw
+      await buildRepository(workingDirPath);
+    });
   });
 });
