@@ -780,6 +780,10 @@ import {fsStat} from '../lib/helpers';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
 
+          const aPath = path.join(workingDirPath, 'a.txt');
+          const withoutConflictPath = path.join(workingDirPath, 'results-without-conflict.txt');
+          const withConflictPath = path.join(workingDirPath, 'results-with-conflict.txt');
+
           // current and other paths are the same, so no conflicts
           const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
           assert.deepEqual(resultsWithoutConflict, {
@@ -787,7 +791,7 @@ import {fsStat} from '../lib/helpers';
             resultPath: 'results-without-conflict.txt',
             conflict: false,
           });
-          assert.equal(fs.readFileSync('results-without-conflict.txt', 'utf8'), fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'));
+          assert.equal(fs.readFileSync(withoutConflictPath, 'utf8'), fs.readFileSync(aPath, 'utf8'));
 
           // contents of current and other paths conflict
           const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
@@ -796,7 +800,7 @@ import {fsStat} from '../lib/helpers';
             resultPath: 'results-with-conflict.txt',
             conflict: true,
           });
-          const contents = fs.readFileSync('results-with-conflict.txt', 'utf8');
+          const contents = fs.readFileSync(withConflictPath, 'utf8');
           assert.isTrue(contents.includes('<<<<<<<'));
           assert.isTrue(contents.includes('>>>>>>>'));
         });
