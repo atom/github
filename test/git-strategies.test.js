@@ -6,6 +6,7 @@ import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
+import {GitProcess} from 'git-kitchen-sink';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {fsStat} from '../lib/helpers';
@@ -629,20 +630,20 @@ import {fsStat} from '../lib/helpers';
 
       const operations = [
         {
-          verbalNoun: 'commit',
+          command: 'commit',
           progressiveTense: 'committing',
           action: () => git.commit('message'),
         },
         {
-          verbalNoun: 'merge',
+          command: 'merge',
           progressiveTense: 'merging',
           action: () => git.merge('some-branch'),
         },
         {
-          verbalNoun: 'pull',
+          command: 'pull',
           progressiveTense: 'pulling',
           action: () => git.pull('some-branch'),
-          configureStub: (stub, gitStrategy) => {
+          configureStub: gitStrategy => {
             sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
           },
         },
@@ -666,7 +667,7 @@ import {fsStat} from '../lib/helpers';
           assert.isNotOk(callArgs[1].useGitPromptServer);
         });
 
-        it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
+        it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async () => {
           const gpgErr = new GitError('Mock GPG failure');
           gpgErr.stdErr = 'stderr includes "gpg failed"';
           gpgErr.code = 128;
@@ -697,6 +698,73 @@ import {fsStat} from '../lib/helpers';
           assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
           assert.isNotOk(callArgs1[1].stdin);
           assert.isTrue(callArgs1[1].useGitPromptServer);
+        });
+      });
+    });
+
+    describe('the built-in credential helper', function() {
+      let git, originalEnv, promptCancel;
+
+      beforeEach(async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        git = createTestStrategy(workingDirPath, {
+          prompt: new Promise((resolve, reject) => {
+            promptCancel = reject;
+          }),
+        });
+
+        originalEnv = {};
+        ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
+          originalEnv[varName] = process.env[varName];
+        });
+      });
+
+      afterEach(function() {
+        Object.keys(originalEnv).forEach(varName => {
+          process.env[varName] = originalEnv[varName];
+        });
+        promptCancel();
+      });
+
+      operations.forEach(op => {
+        it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          if (op.configureStub) {
+            op.configureStub(git);
+          }
+
+          delete process.env.DISPLAY;
+          process.env.GIT_ASKPASS = '/some/git-askpass.sh';
+          process.env.SSH_ASKPASS = '/some/ssh-askpass.sh';
+          process.env.GIT_SSH_COMMAND = '/original/ssh-command';
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          // Ensure the event subscription to clean up the prompt server is called
+          options.processCallback({
+            on: () => {},
+            stdin: {
+              on: () => {},
+            },
+          });
+
+          assert.equal(workingDir, git.workingDir);
+
+          // Preserved environment variables for subprocesses
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
+
+          // Used by https remotes
+          assertGitConfigSetting(args, op.command, 'credential\\.helper', '.*git-credential-atom\\.sh');
+
+          // Used by SSH remotes
+          assert.match(options.env.DISPLAY, /^.+$/);
+          assert.match(options.env.SSH_ASKPASS, /git-askpass-atom\.sh$/);
+          assert.match(options.env.GIT_ASKPASS, /git-askpass-atom\.sh$/);
+          if (process.platform === 'linux') {
+            assert.match(options.env.GIT_SSH_COMMAND, /linux-ssh-wrapper\.sh$/);
+          }
         });
       });
     });
@@ -865,3 +933,18 @@ import {fsStat} from '../lib/helpers';
     });
   });
 });
+
+function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$') {
+  const commandIndex = args.indexOf(command);
+  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
+
+  const valueRx = new RegExp(`^${settingName}=${valuePattern}`);
+
+  for (let i = 0; i < commandIndex; i++) {
+    if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
+      return;
+    }
+  }
+
+  assert.fail(`Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+}
