@@ -633,70 +633,62 @@ import {fsStat} from '../lib/helpers';
         {
           command: 'commit',
           progressiveTense: 'committing',
+          usesPromptServerAlready: false,
           action: () => git.commit('message'),
         },
         {
           command: 'merge',
           progressiveTense: 'merging',
+          usesPromptServerAlready: false,
           action: () => git.merge('some-branch'),
         },
         {
           command: 'pull',
           progressiveTense: 'pulling',
+          usesPromptServerAlready: true,
           action: () => git.pull('some-branch'),
         },
       ];
 
       operations.forEach(op => {
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(git);
-          }
-          execStub.returns(Promise.resolve());
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
           await op.action();
 
-          const callArgs = execStub.getCall(0).args;
-          const execArgs = callArgs[0];
-          assert.equal(execArgs[0], '-c');
-          assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs[1].stdin);
-          assert.isNotOk(callArgs[1].useGitPromptServer);
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+
+          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+          assert.equal(workingDir, git.workingDir);
         });
 
-        it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
-          const gpgErr = new GitError('Mock GPG failure');
-          gpgErr.stdErr = 'stderr includes "gpg failed"';
-          gpgErr.code = 128;
+        if (!op.usesPromptServerAlready) {
+          it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
+            const execStub = sinon.stub(GitProcess, 'exec');
+            execStub.onCall(0).returns(Promise.resolve({
+              stdout: '',
+              stderr: 'stderr includes "gpg failed"',
+              exitCode: 128,
+            }));
+            execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(execStub, git);
-          }
-          execStub.onCall(0).returns(Promise.reject(gpgErr));
-          execStub.returns(Promise.resolve());
-
-          try {
+            // Should not throw
             await op.action();
-          } catch (err) {
-            assert.fail('expected op.action() not to throw the mock error');
-          }
 
-          const callArgs0 = execStub.getCall(0).args;
-          const execArgs0 = callArgs0[0];
-          assert.equal(execArgs0[0], '-c');
-          assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs0[1].stdin);
-          assert.isNotOk(callArgs0[1].useGitPromptServer);
+            const [args0, workingDir0, options0] = execStub.getCall(0).args;
+            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+            assert.equal(workingDir0, git.workingDir);
 
-          const callArgs1 = execStub.getCall(0 + 1).args;
-          const execArgs1 = callArgs1[0];
-          assert.equal(execArgs1[0], '-c');
-          assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs1[1].stdin);
-          assert.isTrue(callArgs1[1].useGitPromptServer);
-        });
+            const [args1, workingDir1, options1] = execStub.getCall(1).args;
+            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
+            assert.equal(workingDir1, git.workingDir);
+          });
+        }
       });
     });
 
