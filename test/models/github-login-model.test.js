@@ -20,7 +20,7 @@ describe.only('GithubLoginModel', function() {
     } else {
       // eslint-disable-next-line no-console
       console.warn(
-        `Skipping tests for ${Strategy} as they are not supported on this platform (maybe your Atom is unsigned?)`,
+        `Skipping tests for ${Strategy.name} as they are not supported on this platform (or maybe your Atom is unsigned?)`,
       );
     }
   });
