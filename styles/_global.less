@@ -1,0 +1,22 @@
+@import "variables";
+
+// Styles for things that are sprinkled throuout various places
+// TODO: Some refactoring wouldn't hurt
+
+// vertical align the text with the icon
+.github-Tabs,
+.github-PrPaneItem,
+.tooltip {
+  .badge .icon:before {
+    vertical-align: text-top;
+  }
+}
+
+// indent task lists
+.github-DotComMarkdownHtml .task-list-item {
+  list-style: none;
+  .task-list-item-checkbox {
+    position: absolute;
+    margin-left: -20px;
+  }
+}
