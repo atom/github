@@ -32,3 +32,9 @@
 '.github-Prompt-input':
   'enter': 'core:confirm'
   'esc': 'tool-panel:unfocus'
+
+'.github-Dialog':
+  'shift-tab': 'core:focus-previous'
+
+'.github-Dialog input':
+  'enter': 'core:confirm'

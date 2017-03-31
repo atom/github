@@ -1,0 +1,55 @@
+@import "variables";
+
+@github-dialog-spacing: @component-padding / 2;
+
+.github-Dialog {
+
+  &Prompt {
+    margin: @component-padding;
+    text-align: center;
+    font-size: 1.2em;
+  }
+
+  &Inputs {
+    display: flex;
+    flex-direction: column;
+    padding: @github-dialog-spacing;
+  }
+
+  &Label {
+    flex: 1;
+    margin: @github-dialog-spacing;
+    line-height: 2;
+  }
+
+  &Buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding: @github-dialog-spacing;
+
+    // Switch button order on Windows
+    .platform-win32 & {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
+
+    .btn {
+      margin: @github-dialog-spacing;
+    }
+  }
+
+  &Spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: @component-padding;
+
+    .loading {
+      margin: @component-padding;
+    }
+  }
+
+  atom-text-editor[mini].editor {
+    margin: 0;
+  }
+}
