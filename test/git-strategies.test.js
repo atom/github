@@ -5,7 +5,8 @@ import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import {GitProcess} from 'git-kitchen-sink';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {fsStat} from '../lib/helpers';
@@ -403,8 +404,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('isPartiallyStaged(filePath)', () => {
-      it('returns true if specified file path is partially staged', async () => {
+    describe('isPartiallyStaged(filePath)', function() {
+      it('returns true if specified file path is partially staged', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
@@ -618,91 +619,161 @@ import {fsStat} from '../lib/helpers';
     });
 
     // Only needs to be tested on strategies that actually implement gpgExec
-    describe('GPG signing', () => {
+    describe('GPG signing', function() {
       let git;
 
       // eslint-disable-next-line jasmine/no-global-setup
-      beforeEach(async () => {
+      beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
       });
 
       const operations = [
         {
-          verbalNoun: 'commit',
+          command: 'commit',
           progressiveTense: 'committing',
+          usesPromptServerAlready: false,
           action: () => git.commit('message'),
         },
         {
-          verbalNoun: 'merge',
+          command: 'merge',
           progressiveTense: 'merging',
+          usesPromptServerAlready: false,
           action: () => git.merge('some-branch'),
         },
         {
-          verbalNoun: 'pull',
+          command: 'pull',
           progressiveTense: 'pulling',
+          usesPromptServerAlready: true,
           action: () => git.pull('some-branch'),
-          configureStub: (stub, gitStrategy) => {
-            sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
-          },
         },
       ];
 
       operations.forEach(op => {
-        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async () => {
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(execStub, git);
-          }
-          execStub.returns(Promise.resolve());
+        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
           await op.action();
 
-          const callArgs = execStub.getCall(0).args;
-          const execArgs = callArgs[0];
-          assert.equal(execArgs[0], '-c');
-          assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs[1].stdin);
-          assert.isNotOk(callArgs[1].useGitPromptServer);
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+
+          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+          assert.equal(workingDir, git.workingDir);
         });
 
-        it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async () => {
-          const gpgErr = new GitError('Mock GPG failure');
-          gpgErr.stdErr = 'stderr includes "gpg failed"';
-          gpgErr.code = 128;
+        if (!op.usesPromptServerAlready) {
+          it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
+            const execStub = sinon.stub(GitProcess, 'exec');
+            execStub.onCall(0).returns(Promise.resolve({
+              stdout: '',
+              stderr: 'stderr includes "gpg failed"',
+              exitCode: 128,
+            }));
+            execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(execStub, git);
-          }
-          execStub.onCall(0).returns(Promise.reject(gpgErr));
-          execStub.returns(Promise.resolve());
-
-          try {
+            // Should not throw
             await op.action();
-          } catch (err) {
-            assert.fail('expected op.action() not to throw the mock error');
+
+            const [args0, workingDir0, options0] = execStub.getCall(0).args;
+            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+            assert.equal(workingDir0, git.workingDir);
+
+            const [args1, workingDir1, options1] = execStub.getCall(1).args;
+            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
+            assert.equal(workingDir1, git.workingDir);
+          });
+        }
+      });
+    });
+
+    describe('the built-in credential helper', function() {
+      let git, originalEnv;
+
+      beforeEach(async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        git = createTestStrategy(workingDirPath, {
+          prompt: Promise.resolve(''),
+        });
+
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
+
+        originalEnv = {};
+        ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
+          originalEnv[varName] = process.env[varName];
+        });
+      });
+
+      afterEach(function() {
+        Object.keys(originalEnv).forEach(varName => {
+          process.env[varName] = originalEnv[varName];
+        });
+      });
+
+      const operations = [
+        {
+          command: 'fetch',
+          progressiveTense: 'fetching',
+          action: () => git.fetch('some-branch'),
+        },
+        {
+          command: 'pull',
+          progressiveTense: 'pulling',
+          action: () => git.pull('some-branch'),
+        },
+        {
+          command: 'push',
+          progressiveTense: 'pushing',
+          action: () => git.push('some-branch'),
+        },
+      ];
+
+      operations.forEach(op => {
+        it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          if (op.configureStub) {
+            op.configureStub(git);
           }
 
-          const callArgs0 = execStub.getCall(0).args;
-          const execArgs0 = callArgs0[0];
-          assert.equal(execArgs0[0], '-c');
-          assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs0[1].stdin);
-          assert.isNotOk(callArgs0[1].useGitPromptServer);
 
-          const callArgs1 = execStub.getCall(0 + 1).args;
-          const execArgs1 = callArgs1[0];
-          assert.equal(execArgs1[0], '-c');
-          assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs1[1].stdin);
-          assert.isTrue(callArgs1[1].useGitPromptServer);
+          delete process.env.DISPLAY;
+          process.env.GIT_ASKPASS = '/some/git-askpass.sh';
+          process.env.SSH_ASKPASS = '/some/ssh-askpass.sh';
+          process.env.GIT_SSH_COMMAND = '/original/ssh-command';
+
+          await op.action();
+
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          assert.equal(workingDir, git.workingDir);
+
+          // Used by https remotes
+          assertGitConfigSetting(args, op.command, 'credential.helper', '.*git-credential-atom\\.sh');
+
+          // Used by SSH remotes
+          assert.match(options.env.DISPLAY, /^.+$/);
+          assert.match(options.env.SSH_ASKPASS, /git-askpass-atom\.sh$/);
+          assert.match(options.env.GIT_ASKPASS, /git-askpass-atom\.sh$/);
+          if (process.platform === 'linux') {
+            assert.match(options.env.GIT_SSH_COMMAND, /linux-ssh-wrapper\.sh$/);
+          }
+
+          // Preserved environment variables for subprocesses
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
         });
       });
     });
 
-    describe('createBlob({filePath})', () => {
-      it('creates a blob for the file path specified and returns its sha', async () => {
+    describe('createBlob({filePath})', function() {
+      it('creates a blob for the file path specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
@@ -712,7 +783,7 @@ import {fsStat} from '../lib/helpers';
         assert.equal(contents, 'qux\nfoo\nbar\n');
       });
 
-      it('creates a blob for the stdin specified and returns its sha', async () => {
+      it('creates a blob for the stdin specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const sha = await git.createBlob({stdin: 'foo\n'});
@@ -722,8 +793,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('expandBlobToFile(absFilePath, sha)', () => {
-      it('restores blob contents for sha to specified file path', async () => {
+    describe('expandBlobToFile(absFilePath, sha)', function() {
+      it('restores blob contents for sha to specified file path', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -735,8 +806,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('getBlobContents(sha)', () => {
-      it('returns blob contents for sha', async () => {
+    describe('getBlobContents(sha)', function() {
+      it('returns blob contents for sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const sha = await git.createBlob({stdin: 'foo\nbar\nbaz\n'});
@@ -745,8 +816,8 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('getFileMode(filePath)', () => {
-      it('returns the file mode of the specified file', async () => {
+    describe('getFileMode(filePath)', function() {
+      it('returns the file mode of the specified file', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -758,7 +829,7 @@ import {fsStat} from '../lib/helpers';
         assert.equal(await git.getFileMode('a.txt'), '100755');
       });
 
-      it('returns the file mode for untracked files', async () => {
+      it('returns the file mode for untracked files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
@@ -774,11 +845,15 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('merging files', () => {
-      describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', () => {
-        it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async () => {
+    describe('merging files', function() {
+      describe('mergeFile(oursPath, commonBasePath, theirsPath, resultPath)', function() {
+        it('merges ours/base/theirsPaths and writes to resultPath, returning {filePath, resultPath, conflicts}', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
+
+          const aPath = path.join(workingDirPath, 'a.txt');
+          const withoutConflictPath = path.join(workingDirPath, 'results-without-conflict.txt');
+          const withConflictPath = path.join(workingDirPath, 'results-with-conflict.txt');
 
           // current and other paths are the same, so no conflicts
           const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
@@ -787,7 +862,7 @@ import {fsStat} from '../lib/helpers';
             resultPath: 'results-without-conflict.txt',
             conflict: false,
           });
-          assert.equal(fs.readFileSync('results-without-conflict.txt', 'utf8'), fs.readFileSync(path.join(workingDirPath, 'a.txt'), 'utf8'));
+          assert.equal(fs.readFileSync(withoutConflictPath, 'utf8'), fs.readFileSync(aPath, 'utf8'));
 
           // contents of current and other paths conflict
           const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
@@ -796,14 +871,14 @@ import {fsStat} from '../lib/helpers';
             resultPath: 'results-with-conflict.txt',
             conflict: true,
           });
-          const contents = fs.readFileSync('results-with-conflict.txt', 'utf8');
+          const contents = fs.readFileSync(withConflictPath, 'utf8');
           assert.isTrue(contents.includes('<<<<<<<'));
           assert.isTrue(contents.includes('>>>>>>>'));
         });
       });
 
-      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', () => {
-        it('updates the index to have the appropriate shas, retaining the original file mode', async () => {
+      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', function() {
+        it('updates the index to have the appropriate shas, retaining the original file mode', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -823,7 +898,7 @@ import {fsStat} from '../lib/helpers';
           `);
         });
 
-        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async () => {
+        it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
@@ -861,3 +936,20 @@ import {fsStat} from '../lib/helpers';
     });
   });
 });
+
+function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$') {
+  const commandIndex = args.indexOf(command);
+  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
+
+  const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
+
+  const valueRx = new RegExp(`^${settingNamePattern}=${valuePattern}`);
+
+  for (let i = 0; i < commandIndex; i++) {
+    if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
+      return;
+    }
+  }
+
+  assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+}

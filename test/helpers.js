@@ -31,6 +31,7 @@ export async function cloneRepository(repoName = 'three-files') {
     const git = new GitShellOutStrategy(cachedPath);
     await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
+    await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -68,6 +69,7 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   const localGit = new GitShellOutStrategy(localRepoPath);
   await localGit.clone(baseRepoPath, {noLocal: true});
   await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath]);
+  await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
