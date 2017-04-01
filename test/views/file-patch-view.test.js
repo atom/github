@@ -1,3 +1,6 @@
+import React from 'react';
+import {shallow, mount} from 'enzyme';
+
 import FilePatchView from '../../lib/views/file-patch-view';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
@@ -5,11 +8,39 @@ import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, component;
+  let attemptLineStageOperation, attemptHunkStageOperation, discardLines, undoLastDiscard, openCurrentFile;
+  let didSurfaceFile, didDiveIntoCorrespondingFilePatch;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+
+    attemptLineStageOperation = sinon.spy();
+    attemptHunkStageOperation = sinon.spy();
+    discardLines = sinon.spy();
+    undoLastDiscard = sinon.spy();
+    openCurrentFile = sinon.spy();
+    didSurfaceFile = sinon.spy();
+    didDiveIntoCorrespondingFilePatch = sinon.spy();
+
+    component = (
+      <FilePatchView
+        commandRegistry={commandRegistry}
+        filePath="filename.js"
+        hunks={[]}
+        stagingStatus="unstaged"
+        isPartiallyStaged={false}
+        hasUndoHistory={false}
+        attemptLineStageOperation={attemptLineStageOperation}
+        attemptHunkStageOperation={attemptHunkStageOperation}
+        discardLines={discardLines}
+        undoLastDiscard={undoLastDiscard}
+        openCurrentFile={openCurrentFile}
+        didSurfaceFile={didSurfaceFile}
+        didDiveIntoCorrespondingFilePatch={didDiveIntoCorrespondingFilePatch}
+      />
+    );
   });
 
   afterEach(function() {
@@ -17,7 +48,7 @@ describe('FilePatchView', function() {
   });
 
   describe('mouse selection', () => {
-    it('allows lines and hunks to be selected via mouse drag', async function() {
+    it('allows lines and hunks to be selected via mouse drag', function() {
       const hunks = [
         new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
@@ -32,158 +63,175 @@ describe('FilePatchView', function() {
           new HunkLine('line-8', 'added', -1, 10),
         ]),
       ];
-      const hunkViews = new Map();
-      function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks, registerHunkView});
-      const hunkView0 = hunkViews.get(hunks[0]);
-      const hunkView1 = hunkViews.get(hunks[1]);
+      const wrapper = shallow(React.cloneElement(component, {hunks}));
+      const getHunkView = index => wrapper.find({hunk: hunks[index]});
 
       // drag a selection
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-      await hunkViews.get(hunks[1]).props.mousemoveOnLine({}, hunks[1], hunks[1].lines[1]);
-      await filePatchView.mouseup();
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
+      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
+      wrapper.instance().mouseup();
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
 
       // start a new selection, drag it across an existing selection
-      await hunkView1.props.mousedownOnLine({button: 0, detail: 1, metaKey: true}, hunks[1], hunks[1].lines[3]);
-      await hunkView0.props.mousemoveOnLine({}, hunks[0], hunks[0].lines[0]);
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[2]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
+      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunks[1], hunks[1].lines[3]);
+      getHunkView(0).prop('mousemoveOnLine')({}, hunks[0], hunks[0].lines[0]);
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
 
       // drag back down without releasing mouse; the other selection remains intact
-      await hunkView1.props.mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
-      assert(hunkView0.props.isSelected);
-      assert(!hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
-      assert(!hunkView1.props.selectedLines.has(hunks[1].lines[2]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
+      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[3]);
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      assert.isFalse(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
 
       // drag back up so selections are adjacent, then release the mouse. selections should merge.
-      await hunkView1.props.mousemoveOnLine({}, hunks[1], hunks[1].lines[2]);
-      await filePatchView.mouseup();
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[2]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
+      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[2]);
+      wrapper.instance().mouseup();
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
 
       // we detect merged selections based on the head here
-      await filePatchView.selectToNext();
-      assert(!hunkView0.props.isSelected);
-      assert(!hunkView0.props.selectedLines.has(hunks[0].lines[2]));
+      wrapper.instance().selectToNext();
+
+      assert.isFalse(getHunkView(0).prop('isSelected'));
+      assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
 
       // double-clicking clears the existing selection and starts hunk-wise selection
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 2}, hunks[0], hunks[0].lines[2]);
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(!hunkView1.props.isSelected);
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 2}, hunks[0], hunks[0].lines[2]);
 
-      await hunkView1.props.mousemoveOnLine({}, hunks[1], hunks[1].lines[1]);
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[2]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isFalse(getHunkView(1).prop('isSelected'));
+
+      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
 
       // clicking the header clears the existing selection and starts hunk-wise selection
-      await hunkView0.props.mousedownOnHeader({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(!hunkView1.props.isSelected);
+      getHunkView(0).prop('mousedownOnHeader')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
 
-      await hunkView1.props.mousemoveOnLine({}, hunks[1], hunks[1].lines[1]);
-      assert(hunkView0.props.isSelected);
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[1]));
-      assert(hunkView0.props.selectedLines.has(hunks[0].lines[2]));
-      assert(hunkView1.props.isSelected);
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[1]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[2]));
-      assert(hunkView1.props.selectedLines.has(hunks[1].lines[3]));
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isFalse(getHunkView(1).prop('isSelected'));
+
+      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
+
+      assert.isTrue(getHunkView(0).prop('isSelected'));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
+      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+      assert.isTrue(getHunkView(1).prop('isSelected'));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
+      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
     });
 
-    it('allows lines and hunks to be selected via cmd-clicking', async () => {
+    it('allows lines and hunks to be selected via cmd-clicking', function() {
       const hunk0 = new Hunk(1, 1, 2, 4, '', [
-        new HunkLine('line-1', 'added', -1, 1),
-        new HunkLine('line-2', 'added', -1, 2),
-        new HunkLine('line-3', 'added', -1, 3),
+        new HunkLine('line-0', 'added', -1, 1),
+        new HunkLine('line-1', 'added', -1, 2),
+        new HunkLine('line-2', 'added', -1, 3),
       ]);
       const hunk1 = new Hunk(5, 7, 1, 4, '', [
-        new HunkLine('line-5', 'added', -1, 7),
-        new HunkLine('line-6', 'added', -1, 8),
-        new HunkLine('line-7', 'added', -1, 9),
-        new HunkLine('line-8', 'added', -1, 10),
+        new HunkLine('line-3', 'added', -1, 7),
+        new HunkLine('line-4', 'added', -1, 8),
+        new HunkLine('line-5', 'added', -1, 9),
+        new HunkLine('line-6', 'added', -1, 10),
       ]);
-      const hunkViews = new Map();
-      function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1], registerHunkView});
-      const hunkView0 = hunkViews.get(hunk0);
-      const hunkView1 = hunkViews.get(hunk1);
+      const wrapper = shallow(React.cloneElement(component, {
+        hunks: [hunk0, hunk1],
+      }));
+      const getHunkView = index => wrapper.find({hunk: [hunk0, hunk1][index]});
 
       // in line selection mode, cmd-click line
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      assert.equal(filePatchView.getPatchSelectionMode(), 'line');
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
-      await hunkView1.props.mousedownOnLine({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2], hunk1.lines[2]]));
-      await hunkView1.props.mousedownOnLine({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+
+      assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
+
+      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2], hunk1.lines[2]]));
+
+      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
 
       // in line selection mode, cmd-click hunk header for separate hunk
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      assert.equal(filePatchView.getPatchSelectionMode(), 'line');
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
-      await hunkView1.props.mousedownOnHeader({button: 0, metaKey: true});
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2], ...hunk1.lines]));
-      await hunkView1.props.mousedownOnHeader({button: 0, metaKey: true});
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+
+      assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, metaKey: true});
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2], ...hunk1.lines]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, metaKey: true});
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
 
       // in hunk selection mode, cmd-click line for separate hunk
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      filePatchView.togglePatchSelectionMode();
-      assert.equal(filePatchView.getPatchSelectionMode(), 'hunk');
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set(hunk0.lines));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+      wrapper.instance().togglePatchSelectionMode();
+
+      assert.equal(wrapper.instance().getPatchSelectionMode(), 'hunk');
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines));
 
       // in hunk selection mode, cmd-click hunk header for separate hunk
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      filePatchView.togglePatchSelectionMode();
-      assert.equal(filePatchView.getPatchSelectionMode(), 'hunk');
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set(hunk0.lines));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+      wrapper.instance().togglePatchSelectionMode();
+
+      assert.equal(wrapper.instance().getPatchSelectionMode(), 'hunk');
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines));
     });
 
-    it('allows lines and hunks to be selected via shift-clicking', async () => {
+    it('allows lines and hunks to be selected via shift-clicking', () => {
       const hunk0 = new Hunk(1, 1, 2, 4, '', [
         new HunkLine('line-1', 'unchanged', 1, 1, 0),
         new HunkLine('line-2', 'added', -1, 2, 1),
@@ -201,116 +249,135 @@ describe('FilePatchView', function() {
         new HunkLine('line-17', 'added', -1, 19, 9),
         new HunkLine('line-18', 'added', -1, 20, 10),
       ]);
-      const hunkViews = new Map();
-      function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
+      const hunks = [hunk0, hunk1, hunk2];
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1, hunk2], registerHunkView});
-      const hunkView0 = hunkViews.get(hunk0);
-      const hunkView1 = hunkViews.get(hunk1);
-      const hunkView2 = hunkViews.get(hunk2);
+      const wrapper = shallow(React.cloneElement(component, {hunks}));
+      const getHunkView = index => wrapper.find({hunk: hunks[index]});
 
       // in line selection mode, shift-click line in separate hunk that comes after selected line
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
-      await hunkView2.props.mousedownOnLine({button: 0, detail: 1, shiftKey: true}, hunk2, hunk2.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
-      await hunkView1.props.mousedownOnLine({button: 0, detail: 1, shiftKey: true}, hunk1, hunk1.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines.slice(0, 3)]));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
+
+      getHunkView(2).prop('mousedownOnLine')({button: 0, detail: 1, shiftKey: true}, hunk2, hunk2.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
+
+      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, shiftKey: true}, hunk1, hunk1.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines.slice(0, 3)]));
 
       // in line selection mode, shift-click hunk header for separate hunk that comes after selected line
-      await hunkView0.props.mousedownOnLine({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk0.lines[2]]));
-      await hunkView2.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk2);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines]));
-      await hunkView1.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk1);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines]));
+      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
+
+      getHunkView(2).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk2);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines]));
 
       // in line selection mode, shift-click hunk header for separate hunk that comes before selected line
-      await hunkView2.props.mousedownOnLine({button: 0, detail: 1}, hunk2, hunk2.lines[2]);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([hunk2.lines[2]]));
-      await hunkView0.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk0);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
-      await hunkView1.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk1);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
+      getHunkView(2).prop('mousedownOnLine')({button: 0, detail: 1}, hunk2, hunk2.lines[2]);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk2.lines[2]]));
+
+      getHunkView(0).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk0);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
 
       // in hunk selection mode, shift-click hunk header for separate hunk that comes after selected line
-      await hunkView0.props.mousedownOnHeader({button: 0}, hunk0);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set(hunk0.lines.slice(1)));
-      await hunkView2.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk2);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
-      await hunkView1.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk1);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines]));
+      getHunkView(0).prop('mousedownOnHeader')({button: 0}, hunk0);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines.slice(1)));
+
+      getHunkView(2).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk2);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines]));
 
       // in hunk selection mode, shift-click hunk header for separate hunk that comes before selected line
-      await hunkView2.props.mousedownOnHeader({button: 0}, hunk2);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set(hunk2.lines));
-      await hunkView0.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk0);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
-      await hunkView1.props.mousedownOnHeader({button: 0, shiftKey: true}, hunk1);
-      await filePatchView.mouseup();
-      assertEqualSets(filePatchView.getSelectedHunks(), new Set([hunk1, hunk2]));
-      assertEqualSets(filePatchView.getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines]));
+      getHunkView(2).prop('mousedownOnHeader')({button: 0}, hunk2);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk2.lines));
+
+      getHunkView(0).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk0);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
+
+      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
+      wrapper.instance().mouseup();
+
+      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk1, hunk2]));
+      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines]));
     });
 
     if (process.platform !== 'win32') {
       // https://github.com/atom/github/issues/514
-      describe('mousedownOnLine', () => {
-        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+      describe('mousedownOnLine', function() {
+        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', function() {
           const hunk0 = new Hunk(1, 1, 2, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
             new HunkLine('line-3', 'added', -1, 3),
           ]);
-          const hunkViews = new Map();
-          function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-          const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0], registerHunkView});
-          const hunkView0 = hunkViews.get(hunk0);
+          const wrapper = shallow(React.cloneElement(component, {hunks: [hunk0]}));
 
-          filePatchView.togglePatchSelectionMode();
-          assert.equal(filePatchView.getPatchSelectionMode(), 'line');
+          wrapper.instance().togglePatchSelectionMode();
+          assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
 
-          sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
-          sinon.spy(filePatchView.selection, 'selectLine');
+          sinon.spy(wrapper.state('selection'), 'addOrSubtractLineSelection');
+          sinon.spy(wrapper.state('selection'), 'selectLine');
 
-          await hunkView0.props.mousedownOnLine({button: 0, detail: 1, ctrlKey: true}, hunk0, hunk0.lines[2]);
-          assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
-          assert.isFalse(filePatchView.selection.selectLine.called);
-          assert.isFalse(filePatchView.mouseSelectionInProgress);
+          wrapper.find('HunkView').prop('mousedownOnLine')({button: 0, detail: 1, ctrlKey: true}, hunk0, hunk0.lines[2]);
+          assert.isFalse(wrapper.state('selection').addOrSubtractLineSelection.called);
+          assert.isFalse(wrapper.state('selection').selectLine.called);
+          assert.isFalse(wrapper.instance().mouseSelectionInProgress);
         });
       });
 
       // https://github.com/atom/github/issues/514
-      describe('mousedownOnHeader', () => {
-        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', async () => {
+      describe('mousedownOnHeader', function() {
+        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', function() {
           const hunk0 = new Hunk(1, 1, 2, 4, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
@@ -322,23 +389,21 @@ describe('FilePatchView', function() {
             new HunkLine('line-7', 'added', -1, 9),
             new HunkLine('line-8', 'added', -1, 10),
           ]);
-          const hunkViews = new Map();
-          function registerHunkView(hunk, view) { hunkViews.set(hunk, view); }
 
-          const filePatchView = new FilePatchView({commandRegistry, hunks: [hunk0, hunk1], registerHunkView});
-          const hunkView0 = hunkViews.get(hunk0);
+          const wrapper = shallow(React.cloneElement(component, {hunks: [hunk0, hunk1]}));
 
-          filePatchView.togglePatchSelectionMode();
-          assert.equal(filePatchView.getPatchSelectionMode(), 'line');
+          wrapper.instance().togglePatchSelectionMode();
+          assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
 
-          sinon.spy(filePatchView.selection, 'addOrSubtractLineSelection');
-          sinon.spy(filePatchView.selection, 'selectLine');
+          sinon.spy(wrapper.state('selection'), 'addOrSubtractLineSelection');
+          sinon.spy(wrapper.state('selection'), 'selectLine');
 
           // ctrl-click hunk line
-          await hunkView0.props.mousedownOnHeader({button: 0, detail: 1, ctrlKey: true}, hunk0);
-          assert.isFalse(filePatchView.selection.addOrSubtractLineSelection.called);
-          assert.isFalse(filePatchView.selection.selectLine.called);
-          assert.isFalse(filePatchView.mouseSelectionInProgress);
+          wrapper.find({hunk: hunk0}).prop('mousedownOnHeader')({button: 0, detail: 1, ctrlKey: true}, hunk0);
+
+          assert.isFalse(wrapper.state('selection').addOrSubtractLineSelection.called);
+          assert.isFalse(wrapper.state('selection').selectLine.called);
+          assert.isFalse(wrapper.instance().mouseSelectionInProgress);
         });
       });
     }
@@ -359,42 +424,50 @@ describe('FilePatchView', function() {
         new HunkLine('line-8', 'added', -1, 10),
       ]),
     ];
-    const filePatchView = new FilePatchView({commandRegistry, hunks});
-    document.body.appendChild(filePatchView.element);
-    filePatchView.element.style.overflow = 'scroll';
-    filePatchView.element.style.height = '100px';
 
-    filePatchView.togglePatchSelectionMode();
-    filePatchView.selectNext();
-    await new Promise(resolve => filePatchView.element.addEventListener('scroll', resolve));
-    assert.isAbove(filePatchView.element.scrollTop, 0);
-    const initScrollTop = filePatchView.element.scrollTop;
+    const root = document.createElement('div');
+    root.style.overflow = 'scroll';
+    root.style.height = '100px';
+    document.body.appendChild(root);
 
-    filePatchView.togglePatchSelectionMode();
-    filePatchView.selectNext();
-    await new Promise(resolve => filePatchView.element.addEventListener('scroll', resolve));
-    assert.isAbove(filePatchView.element.scrollTop, initScrollTop);
+    const wrapper = mount(React.cloneElement(component, {hunks}), {attachTo: root});
 
-    filePatchView.element.remove();
+    wrapper.instance().togglePatchSelectionMode();
+    wrapper.instance().selectNext();
+    await new Promise(resolve => root.addEventListener('scroll', resolve));
+    assert.isAbove(root.scrollTop, 0);
+    const initScrollTop = root.scrollTop;
+
+    wrapper.instance().togglePatchSelectionMode();
+    wrapper.instance().selectNext();
+    await new Promise(resolve => root.addEventListener('scroll', resolve));
+    assert.isAbove(root.scrollTop, initScrollTop);
+
+    root.remove();
   });
 
-  it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', async function() {
+  it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', function() {
     const hunk = new Hunk(1, 1, 1, 2, '', [new HunkLine('line-1', 'added', -1, 1)]);
-    let hunkView;
-    function registerHunkView(_hunk, view) { hunkView = view; }
-    const view = new FilePatchView({commandRegistry, hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
-    assert.equal(hunkView.props.stageButtonLabel, 'Stage Hunk');
-    await view.update({commandRegistry, hunks: [hunk], stagingStatus: 'staged', registerHunkView});
-    assert.equal(hunkView.props.stageButtonLabel, 'Unstage Hunk');
-    await view.togglePatchSelectionMode();
-    assert.equal(hunkView.props.stageButtonLabel, 'Unstage Selection');
-    await view.update({commandRegistry, hunks: [hunk], stagingStatus: 'unstaged', registerHunkView});
-    assert.equal(hunkView.props.stageButtonLabel, 'Stage Selection');
+
+    const wrapper = shallow(React.cloneElement(component, {
+      hunks: [hunk],
+      stagingStatus: 'unstaged',
+    }));
+
+    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Stage Hunk');
+    wrapper.setProps({stagingStatus: 'staged'});
+    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Hunk');
+
+    wrapper.instance().togglePatchSelectionMode();
+
+    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Selection');
+    wrapper.setProps({stagingStatus: 'unstaged'});
+    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Stage Selection');
   });
 
   describe('didClickStageButtonForHunk', function() {
     // ref: https://github.com/atom/github/issues/339
-    it('selects the next hunk after staging', async function() {
+    it('selects the next hunk after staging', function() {
       const hunks = [
         new Hunk(1, 1, 2, 4, '', [
           new HunkLine('line-1', 'unchanged', 1, 1),
@@ -416,10 +489,15 @@ describe('FilePatchView', function() {
         ]),
       ];
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks, stagingStatus: 'unstaged', attemptHunkStageOperation: sinon.stub()});
-      filePatchView.didClickStageButtonForHunk(hunks[2]);
-      await filePatchView.update({hunks: hunks.filter(h => h !== hunks[2])});
-      assertEqualSets(filePatchView.selection.getSelectedHunks(), new Set([hunks[1]]));
+      const wrapper = shallow(React.cloneElement(component, {
+        hunks,
+        stagingStatus: 'unstaged',
+      }));
+
+      wrapper.find({hunk: hunks[2]}).prop('didClickStageButton')();
+      wrapper.setProps({hunks: hunks.filter(h => h !== hunks[2])});
+
+      assertEqualSets(wrapper.state('selection').getSelectedHunks(), new Set([hunks[1]]));
     });
   });
 
@@ -431,19 +509,17 @@ describe('FilePatchView', function() {
           new HunkLine('line-2', 'added', -1, 2),
         ]),
       ];
-      const didSurfaceFile = sinon.spy();
 
-      const filePatchView = new FilePatchView({commandRegistry, hunks, didSurfaceFile});
-
-      commandRegistry.dispatch(filePatchView.element, 'core:move-right');
+      const wrapper = mount(React.cloneElement(component, {hunks}));
+      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-right');
 
       assert.equal(didSurfaceFile.callCount, 1);
     });
   });
 
-  describe('openFile', () => {
-    describe('when the selected line is an added line', () => {
-      it('calls this.props.openCurrentFile with the first selected line\'s new line number', async () => {
+  describe('openFile', function() {
+    describe('when the selected line is an added line', function() {
+      it('calls this.props.openCurrentFile with the first selected line\'s new line number', function() {
         const hunks = [
           new Hunk(1, 1, 2, 4, '', [
             new HunkLine('line-1', 'unchanged', 1, 1),
@@ -454,19 +530,19 @@ describe('FilePatchView', function() {
           ]),
         ];
 
-        const openCurrentFile = sinon.stub();
-        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-        await filePatchView.mousemoveOnLine({}, hunks[0], hunks[0].lines[3]);
-        await filePatchView.mouseup();
+        const wrapper = shallow(React.cloneElement(component, {hunks}));
 
-        filePatchView.openFile();
-        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 3}]);
+        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
+        wrapper.instance().mousemoveOnLine({}, hunks[0], hunks[0].lines[3]);
+        wrapper.instance().mouseup();
+
+        wrapper.instance().openFile();
+        assert.isTrue(openCurrentFile.calledWith({lineNumber: 3}));
       });
     });
 
-    describe('when the selected line is a deleted line in a non-empty file', () => {
-      it('calls this.props.openCurrentFile with the new start row of the first selected hunk', async () => {
+    describe('when the selected line is a deleted line in a non-empty file', function() {
+      it('calls this.props.openCurrentFile with the new start row of the first selected hunk', function() {
         const hunks = [
           new Hunk(1, 1, 2, 4, '', [
             new HunkLine('line-1', 'unchanged', 1, 1),
@@ -483,19 +559,19 @@ describe('FilePatchView', function() {
           ]),
         ];
 
-        const openCurrentFile = sinon.stub();
-        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({button: 0, detail: 1}, hunks[1], hunks[1].lines[2]);
-        await filePatchView.mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
-        await filePatchView.mouseup();
+        const wrapper = shallow(React.cloneElement(component, {hunks}));
 
-        filePatchView.openFile();
-        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 17}]);
+        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[1], hunks[1].lines[2]);
+        wrapper.instance().mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
+        wrapper.instance().mouseup();
+
+        wrapper.instance().openFile();
+        assert.isTrue(openCurrentFile.calledWith({lineNumber: 17}));
       });
     });
 
-    describe('when the selected line is a deleted line in an empty file', () => {
-      it('calls this.props.openCurrentFile with a line number of 0', async () => {
+    describe('when the selected line is a deleted line in an empty file', function() {
+      it('calls this.props.openCurrentFile with a line number of 0', function() {
         const hunks = [
           new Hunk(1, 0, 4, 0, '', [
             new HunkLine('line-5', 'deleted', 1, -1),
@@ -505,13 +581,13 @@ describe('FilePatchView', function() {
           ]),
         ];
 
-        const openCurrentFile = sinon.stub();
-        const filePatchView = new FilePatchView({commandRegistry, hunks, openCurrentFile});
-        filePatchView.mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-        await filePatchView.mouseup();
+        const wrapper = shallow(React.cloneElement(component, {hunks}));
 
-        filePatchView.openFile();
-        assert.deepEqual(openCurrentFile.args[0], [{lineNumber: 0}]);
+        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
+        wrapper.instance().mouseup();
+
+        wrapper.instance().openFile();
+        assert.isTrue(openCurrentFile.calledWith({lineNumber: 0}));
       });
     });
   });
