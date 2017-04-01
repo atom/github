@@ -32,6 +32,37 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
+  // Create a Promise that will resolve successfully when all models for all expected working directories have been
+  // initialized.
+  function untilModelsReady(workdirs, models = ['respository', 'changeObserver', 'resolutionProgress'], pkg = githubPackage) {
+    const modelPromiseGetters = models.map(modelName => {
+      return `get${modelName[0].toUpperCase() + modelName.slice(1)}ForWorkdirPath`;
+    });
+
+    const modelReadyForWorkdir = (getter, workdir) => new Promise(resolve => {
+      const attempt = () => {
+        pkg[getter](workdir).then(result => {
+          if (result === null) {
+            setTimeout(attempt, 100);
+          } else {
+            resolve();
+          }
+        });
+      };
+      attempt();
+    });
+
+    const readyPromises = [];
+    for (let i = 0; i < workdirs.length; i++) {
+      const workdir = workdirs[i];
+      for (let j = 0; j < modelPromiseGetters.length; j++) {
+        const getter = modelPromiseGetters[j];
+        readyPromises.push(modelReadyForWorkdir(getter, workdir));
+      }
+    }
+    return Promise.all(readyPromises);
+  }
+
   describe('activate()', function() {
     it('updates the active repository', async function() {
       await githubPackage.activate();
@@ -88,7 +119,8 @@ describe('GithubPackage', function() {
       const workdirPath3 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
       await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
+
+      await untilModelsReady([workdirPath1, workdirPath2, workdirPath3], ['repository']);
 
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
@@ -204,7 +236,7 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
       await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
+      await untilModelsReady([workdirMergeConflict, workdirNoConflict], ['resolutionProgress']);
 
       // Open a file in the merge conflict repository.
       await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-ours.txt'));
@@ -241,12 +273,13 @@ describe('GithubPackage', function() {
 
     // Don't worry about this on Windows as it's not a common op
     if (process.platform !== 'win32') {
-      it('handles symlinked project paths', async () => {
+      it('handles symlinked project paths', async function() {
         const workdirPath = await cloneRepository('three-files');
         const symlinkPath = fs.realpathSync(temp.mkdirSync()) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
         await githubPackage.activate();
+        await untilModelsReady([workdirPath], ['repository']);
 
         await workspace.open(path.join(symlinkPath, 'a.txt'));
 
@@ -269,7 +302,24 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      await githubPackage.getInitialWatchersStartedPromise();
+
+      // Wait for all change observers to be present.
+      const changeObserverForWorkdir = workdirPath => new Promise(resolve => {
+        const attempt = () => {
+          githubPackage.getChangeObserverForWorkdirPath(workdirPath).then(result => {
+            if (result === null) {
+              setTimeout(attempt, 100);
+            } else {
+              resolve();
+            }
+          });
+        };
+        attempt();
+      });
+      await Promise.all(
+        [workdirPath1, workdirPath2].map(workdirPath => changeObserverForWorkdir(workdirPath)),
+      );
+
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
       sinon.stub(atomGitRepository2, 'refreshStatus');
@@ -356,7 +406,7 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirMergeConflict, workdirNoConflict]);
       await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
+      await untilModelsReady([workdirMergeConflict, workdirNoConflict], ['resolutionProgress']);
 
       // Record some state to recover later.
       const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
@@ -373,7 +423,7 @@ describe('GithubPackage', function() {
         workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
       );
       await githubPackage1.activate(payload);
-      await githubPackage1.getInitialModelsPromise();
+      await untilModelsReady([workdirMergeConflict, workdirNoConflict], ['resolutionProgress'], githubPackage1);
 
       const resolutionMergeConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirMergeConflict);
       const resolutionNoConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirNoConflict);
