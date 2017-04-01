@@ -59,15 +59,15 @@ describe('FilePatchSelection', function() {
       const hunks = [
         new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
-          new HunkLine('line-2', 'added', -1, 2), //
+          new HunkLine('line-2', 'added', -1, 2),
           new HunkLine('line-3', 'unchanged', 1, 3),
         ]),
         new Hunk(5, 7, 5, 4, '', [
           new HunkLine('line-4', 'unchanged', 5, 7),
-          new HunkLine('line-5', 'deleted', 6, -1), //
+          new HunkLine('line-5', 'deleted', 6, -1),
           new HunkLine('line-6', 'deleted', 7, -1),
-          new HunkLine('line-7', 'added', -1, 8), //
-          new HunkLine('line-8', 'added', -1, 9), //
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
           new HunkLine('line-9', 'added', -1, 10),
           new HunkLine('line-10', 'deleted', 8, -1),
           new HunkLine('line-11', 'deleted', 9, -1),
