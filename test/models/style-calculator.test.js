@@ -1,4 +1,4 @@
-import {Disposable} from 'atom';
+import {Disposable} from 'event-kit';
 
 import dedent from 'dedent-js';
 

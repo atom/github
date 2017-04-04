@@ -47,6 +47,7 @@
     "core-decorators": "^0.15.0",
     "diff": "2.2.2",
     "etch": "0.8.0",
+    "event-kit": "^2.2.0",
     "fs-extra": "^1.0.0",
     "git-kitchen-sink": "1.17.0",
     "graphql": "^0.8.2",

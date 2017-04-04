@@ -2,7 +2,7 @@ import React from 'react';
 
 import PaneItem from '../../lib/views/pane-item';
 
-import {Emitter} from 'atom';
+import {Emitter} from 'event-kit';
 
 import {createRenderer} from '../helpers';
 

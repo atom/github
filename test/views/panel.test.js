@@ -2,7 +2,7 @@ import React from 'react';
 
 import Panel from '../../lib/views/panel';
 
-import {Emitter} from 'atom';
+import {Emitter} from 'event-kit';
 
 import {createRenderer} from '../helpers';
 
