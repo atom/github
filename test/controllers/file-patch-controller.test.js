@@ -169,7 +169,7 @@ describe('FilePatchController', function() {
       const hunkView0 = wrapper.find('HunkView').at(0);
       assert.isFalse(hunkView0.prop('isSelected'));
 
-      const opPromise0 = eventWatcher.getStageOperationPromise();
+      const opPromise0 = eventWatcher.getFinishStageOperationPromise();
       hunkView0.find('button.github-HunkView-stageButton').simulate('click');
       await opPromise0;
 
@@ -181,7 +181,7 @@ describe('FilePatchController', function() {
       );
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedStagedLines.join('\n'));
 
-      const updatePromise0 = eventWatcher.getPatchChangedPromise();
+      const updatePromise0 = eventWatcher.getChangePatchPromise();
       const stagedFilePatch = await repository.getFilePatchForPath('sample.js', {staged: true});
       wrapper.setProps({
         filePatch: stagedFilePatch,
@@ -190,7 +190,7 @@ describe('FilePatchController', function() {
       await updatePromise0;
 
       const hunkView1 = wrapper.find('HunkView').at(0);
-      const opPromise1 = eventWatcher.getStageOperationPromise();
+      const opPromise1 = eventWatcher.getFinishStageOperationPromise();
       hunkView1.find('button.github-HunkView-stageButton').simulate('click');
       await opPromise1;
 
@@ -221,7 +221,7 @@ describe('FilePatchController', function() {
         repository,
       }));
 
-      const opPromise0 = eventWatcher.getStageOperationPromise();
+      const opPromise0 = eventWatcher.getFinishStageOperationPromise();
       const hunkView0 = wrapper.find('HunkView').at(0);
       hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
       hunkView0.find('LineView').at(3).simulate('mousemove', {});
@@ -238,12 +238,12 @@ describe('FilePatchController', function() {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
 
       // stage remaining lines in hunk
-      const updatePromise1 = eventWatcher.getPatchChangedPromise();
+      const updatePromise1 = eventWatcher.getChangePatchPromise();
       const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
       wrapper.setProps({filePatch: unstagedFilePatch1});
       await updatePromise1;
 
-      const opPromise1 = eventWatcher.getStageOperationPromise();
+      const opPromise1 = eventWatcher.getFinishStageOperationPromise();
       wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
       await opPromise1;
 
@@ -257,7 +257,7 @@ describe('FilePatchController', function() {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines1.join('\n'));
 
       // unstage a subset of lines from the first hunk
-      const updatePromise2 = eventWatcher.getPatchChangedPromise();
+      const updatePromise2 = eventWatcher.getChangePatchPromise();
       const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
       wrapper.setProps({
         filePatch: stagedFilePatch2,
@@ -271,7 +271,7 @@ describe('FilePatchController', function() {
       hunkView2.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1, metaKey: true});
       window.dispatchEvent(new MouseEvent('mouseup'));
 
-      const opPromise2 = eventWatcher.getStageOperationPromise();
+      const opPromise2 = eventWatcher.getFinishStageOperationPromise();
       hunkView2.find('button.github-HunkView-stageButton').simulate('click');
       await opPromise2;
 
@@ -284,7 +284,7 @@ describe('FilePatchController', function() {
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
 
       // unstage the rest of the hunk
-      const updatePromise3 = eventWatcher.getPatchChangedPromise();
+      const updatePromise3 = eventWatcher.getChangePatchPromise();
       const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
       wrapper.setProps({
         filePatch: stagedFilePatch3,
@@ -293,7 +293,7 @@ describe('FilePatchController', function() {
 
       commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
 
-      const opPromise3 = eventWatcher.getStageOperationPromise();
+      const opPromise3 = eventWatcher.getFinishStageOperationPromise();
       wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
       await opPromise3;
 
@@ -317,7 +317,7 @@ describe('FilePatchController', function() {
           repository,
         }));
 
-        const opPromise = eventWatcher.getStageOperationPromise();
+        const opPromise = eventWatcher.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise;
 
@@ -344,7 +344,7 @@ describe('FilePatchController', function() {
         commandRegistry.dispatch(viewNode, 'github:toggle-patch-selection-mode');
         commandRegistry.dispatch(viewNode, 'core:select-all');
 
-        const opPromise = eventWatcher.getStageOperationPromise();
+        const opPromise = eventWatcher.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise;
 
@@ -384,7 +384,7 @@ describe('FilePatchController', function() {
 
         // stage lines in rapid succession
         // second stage action is a no-op since the first staging operation is in flight
-        const line1StagingPromise = eventWatcher.getStageOperationPromise();
+        const line1StagingPromise = eventWatcher.getFinishStageOperationPromise();
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
         await line1StagingPromise;
@@ -399,7 +399,7 @@ describe('FilePatchController', function() {
         let actualLines = await repository.readFileFromIndex('sample.js');
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
-        const line1PatchPromise = eventWatcher.getPatchChangedPromise();
+        const line1PatchPromise = eventWatcher.getChangePatchPromise();
         wrapper.setProps({filePatch: modifiedFilePatch});
         await line1PatchPromise;
 
@@ -407,7 +407,7 @@ describe('FilePatchController', function() {
         hunkView1.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
 
-        const line2StagingPromise = eventWatcher.getStageOperationPromise();
+        const line2StagingPromise = eventWatcher.getFinishStageOperationPromise();
         hunkView1.find('.github-HunkView-stageButton').simulate('click');
         await line2StagingPromise;
 
@@ -446,12 +446,12 @@ describe('FilePatchController', function() {
 
         // ensure staging the same hunk twice does not cause issues
         // second stage action is a no-op since the first staging operation is in flight
-        const hunk1StagingPromise = eventWatcher.getStageOperationPromise();
+        const hunk1StagingPromise = eventWatcher.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('.github-HunkView-stageButton').simulate('click');
         wrapper.find('HunkView').at(0).find('.github-HunkView-stageButton').simulate('click');
         await hunk1StagingPromise;
 
-        const patchPromise0 = eventWatcher.getPatchChangedPromise();
+        const patchPromise0 = eventWatcher.getChangePatchPromise();
         repository.refresh(); // clear the cached file patches
         const modifiedFilePatch = await repository.getFilePatchForPath('sample.js');
         wrapper.setProps({filePatch: modifiedFilePatch});
@@ -466,7 +466,7 @@ describe('FilePatchController', function() {
         let actualLines = await repository.readFileFromIndex('sample.js');
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
-        const hunk2StagingPromise = eventWatcher.getStageOperationPromise();
+        const hunk2StagingPromise = eventWatcher.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('.github-HunkView-stageButton').simulate('click');
         await hunk2StagingPromise;
 

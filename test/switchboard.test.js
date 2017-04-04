@@ -1,60 +1,73 @@
 import Switchboard from '../lib/switchboard';
 
-describe('Switchboard', function() {
-  let watcher;
+describe.only('Switchboard', function() {
+  let switchboard;
 
   beforeEach(function() {
-    watcher = new Switchboard();
+    switchboard = new Switchboard();
   });
 
-  it('creates and resolves a Promise for an event', async function() {
-    const promise = watcher.getPromise('testing');
+  describe('events', function() {
+    let sub;
 
-    const payload = {};
-    watcher.resolvePromise('testing', payload);
+    afterEach(function() {
+      sub && sub.dispose();
+    });
 
-    const result = await promise;
-    assert.strictEqual(result, payload);
+    it('synchronously broadcasts events', function() {
+      let observed = 0;
+      sub = switchboard.onDid('test', () => observed++);
+
+      assert.equal(observed, 0);
+      switchboard.did('test');
+      assert.equal(observed, 1);
+    });
   });
 
-  it('supports multiple consumers of the same Promise', async function() {
-    const promise0 = watcher.getPromise('testing');
-    const promise1 = watcher.getPromise('testing');
-    assert.strictEqual(promise0, promise1);
+  describe('promises', function() {
+    it('creates and resolves a Promise for an event', async function() {
+      const promise = switchboard.getPromise('testing');
 
-    const payload = {};
-    watcher.resolvePromise('testing', payload);
+      const payload = {};
+      switchboard.did('testing', payload);
 
-    assert.strictEqual(await promise0, payload);
-    assert.strictEqual(await promise1, payload);
+      const result = await promise;
+      assert.strictEqual(result, payload);
+    });
+
+    it('supports multiple consumers of the same Promise', async function() {
+      const promise0 = switchboard.getPromise('testing');
+      const promise1 = switchboard.getPromise('testing');
+      assert.strictEqual(promise0, promise1);
+
+      const payload = {};
+      switchboard.did('testing', payload);
+
+      assert.strictEqual(await promise0, payload);
+      assert.strictEqual(await promise1, payload);
+    });
+
+    it('creates new Promises for repeated events', async function() {
+      const promise0 = switchboard.getPromise('testing');
+
+      switchboard.did('testing', 0);
+      assert.equal(await promise0, 0);
+
+      const promise1 = switchboard.getPromise('testing');
+
+      switchboard.did('testing', 1);
+      assert.equal(await promise1, 1);
+    });
+
+    it('"resolves" an event that has no Promise', function() {
+      switchboard.did('anybody-there', {});
+    });
   });
 
-  it('creates new Promises for repeated events', async function() {
-    const promise0 = watcher.getPromise('testing');
-
-    watcher.resolvePromise('testing', 0);
-    assert.equal(await promise0, 0);
-
-    const promise1 = watcher.getPromise('testing');
-
-    watcher.resolvePromise('testing', 1);
-    assert.equal(await promise1, 1);
-  });
-
-  it('"resolves" an event that has no Promise', function() {
-    watcher.resolvePromise('anybody-there', {});
-  });
-
-  it('rejects a Promise with an error', async function() {
-    const promise = watcher.getPromise('testing');
-
-    watcher.rejectPromise('testing', new Error('oh shit'));
-    await assert.isRejected(promise, /oh shit/);
-  });
-
-  describe('function pairs', function() {
+  // Ensure that all of the `didXyz`, `onDidXyz`, and `getXyzPromise` method triplets are aligned correctly.
+  describe('function triplets', function() {
     const baseNames = Object.getOwnPropertyNames(Switchboard.prototype)
-      .map(methodName => /^get(.+)Promise$/.exec(methodName))
+      .map(methodName => /^did(.+)$/.exec(methodName))
       .filter(match => match !== null)
       .map(match => match[1]);
     let functionPairs;
@@ -63,8 +76,9 @@ describe('Switchboard', function() {
       functionPairs = baseNames.map(baseName => {
         return {
           baseName,
-          getter: watcher[`get${baseName}Promise`].bind(watcher),
-          resolver: watcher[`resolve${baseName}Promise`].bind(watcher),
+          subscriber: switchboard[`onDid${baseName}`].bind(switchboard),
+          getter: switchboard[`get${baseName}Promise`].bind(switchboard),
+          resolver: switchboard[`did${baseName}`].bind(switchboard),
         };
       });
     });
