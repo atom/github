@@ -9,7 +9,7 @@ import FilePatch from '../../lib/models/file-patch';
 import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
-import EventWatcher from '../../lib/event-watcher';
+import Switchboard from '../../lib/switchboard';
 
 describe('FilePatchController', function() {
   let atomEnv, commandRegistry;
@@ -20,7 +20,7 @@ describe('FilePatchController', function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
 
-    eventWatcher = new EventWatcher();
+    eventWatcher = new Switchboard();
 
     discardLines = sinon.spy();
     didSurfaceFile = sinon.spy();

@@ -1,10 +1,10 @@
-import EventWatcher from '../lib/event-watcher';
+import Switchboard from '../lib/switchboard';
 
-describe('EventWatcher', function() {
+describe('Switchboard', function() {
   let watcher;
 
   beforeEach(function() {
-    watcher = new EventWatcher();
+    watcher = new Switchboard();
   });
 
   it('creates and resolves a Promise for an event', async function() {
@@ -53,7 +53,7 @@ describe('EventWatcher', function() {
   });
 
   describe('function pairs', function() {
-    const baseNames = Object.getOwnPropertyNames(EventWatcher.prototype)
+    const baseNames = Object.getOwnPropertyNames(Switchboard.prototype)
       .map(methodName => /^get(.+)Promise$/.exec(methodName))
       .filter(match => match !== null)
       .map(match => match[1]);
