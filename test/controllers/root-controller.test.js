@@ -3,6 +3,7 @@ import fs from 'fs';
 
 import React from 'react';
 import {shallow, mount} from 'enzyme';
+import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import {writeFile} from '../../lib/helpers';
@@ -689,7 +690,7 @@ describe('RootController', function() {
             await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
           });
 
-          it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+          it.only('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
             await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
@@ -726,6 +727,29 @@ describe('RootController', function() {
             assert.equal(confirm.callCount, 3);
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
+
+            // index is updated accordingly
+            const diff = await repository.git.exec(['diff', '--', 'sample.js']);
+            assert.equal(diff, dedent`
+              diff --cc sample.js
+              index 5c084c0,86e041d..0000000
+              --- a/sample.js
+              +++ b/sample.js
+              @@@ -1,6 -1,3 +1,12 @@@
+              ++<<<<<<< current
+               +
+               +change file contentsvar quicksort = function () {
+               +  var sort = function(items) {
+              ++||||||| after discard
+              ++var quicksort = function () {
+              ++  var sort = function(items) {
+              ++=======
+              ++>>>>>>> before discard
+                foo
+                bar
+                baz
+
+            `);
           });
         });
 
