@@ -1,7 +1,7 @@
 import {CompositeDisposable} from 'atom'; // FIXME import from event-kit
 import Switchboard from '../lib/switchboard';
 
-describe.only('Switchboard', function() {
+describe('Switchboard', function() {
   let switchboard;
 
   beforeEach(function() {
