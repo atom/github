@@ -1,3 +1,4 @@
+import {CompositeDisposable} from 'atom'; // FIXME import from event-kit
 import Switchboard from '../lib/switchboard';
 
 describe.only('Switchboard', function() {
@@ -70,10 +71,10 @@ describe.only('Switchboard', function() {
       .map(methodName => /^did(.+)$/.exec(methodName))
       .filter(match => match !== null)
       .map(match => match[1]);
-    let functionPairs;
+    let functionTriples;
 
     beforeEach(function() {
-      functionPairs = baseNames.map(baseName => {
+      functionTriples = baseNames.map(baseName => {
         return {
           baseName,
           subscriber: switchboard[`onDid${baseName}`].bind(switchboard),
@@ -92,23 +93,31 @@ describe.only('Switchboard', function() {
         let positiveResolver = null;
         const negativeResolvers = [];
 
-        for (let i = 0; i < functionPairs.length; i++) {
-          const functionPair = functionPairs[i];
+        const subscriptions = new CompositeDisposable();
 
-          if (functionPair.baseName === baseName) {
-            const positivePromise = functionPair.getter().then(payload => {
+        for (let i = 0; i < functionTriples.length; i++) {
+          const functionTriple = functionTriples[i];
+
+          if (functionTriple.baseName === baseName) {
+            const positivePromise = functionTriple.getter().then(payload => {
               positiveResults.push(payload);
             });
             allPromises.push(positivePromise);
 
-            positiveResolver = functionPair.resolver;
+            positiveResolver = functionTriple.resolver;
+
+            const positiveSubscription = functionTriple.subscriber(payload => positiveResults.push(payload));
+            subscriptions.add(positiveSubscription);
           } else {
-            const negativePromise = functionPair.getter().then(payload => {
+            const negativePromise = functionTriple.getter().then(payload => {
               negativeResults.push(payload);
             });
             allPromises.push(negativePromise);
 
-            negativeResolvers.push(functionPair.resolver);
+            negativeResolvers.push(functionTriple.resolver);
+
+            const negativeSubscription = functionTriple.subscriber(payload => negativeResults.push(payload));
+            subscriptions.add(negativeSubscription);
           }
         }
 
@@ -118,10 +127,12 @@ describe.only('Switchboard', function() {
 
         await Promise.all(allPromises);
 
-        assert.lengthOf(positiveResults, 1);
+        subscriptions.dispose();
+
+        assert.lengthOf(positiveResults, 2);
         assert.isTrue(positiveResults.every(result => result === 'yes'));
 
-        assert.lengthOf(negativeResults, baseNames.length - 1);
+        assert.lengthOf(negativeResults, (baseNames.length - 1) * 2);
         assert.isTrue(negativeResults.every(result => result === 'no'));
       });
     });
