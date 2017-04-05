@@ -1,0 +1,30 @@
+@import 'variables';
+
+.github-UserMentionTooltip {
+  display: flex;
+  min-width: 250px;
+  min-height: 90px;
+
+  &-avatar {
+    flex-basis: 50px;
+    padding-right: @component-padding;
+
+    > img {
+      max-width: 90px;
+      border-radius: @component-border-radius / 2;
+    }
+  }
+
+  &-info {
+    flex: 1;
+    text-align: left;
+    line-height: 1.6;
+
+    > div {
+      white-space: nowrap;
+    }
+    .icon {
+      vertical-align: middle;
+    }
+  }
+}

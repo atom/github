@@ -2,9 +2,10 @@ import path from 'path';
 import fs from 'fs';
 
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {writeFile} from '../../lib/helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -105,7 +106,7 @@ describe('RootController', function() {
       const state = {
         filePath: 'path',
         filePatch: {getPath: () => 'path.txt'},
-        stagingStatus: 'stagingStatus',
+        stagingStatus: 'unstaged',
       };
       wrapper.setState(state);
       assert.equal(wrapper.find('FilePatchController').length, 1);
@@ -145,7 +146,6 @@ describe('RootController', function() {
         wrapper.find('PaneItem').prop('onDidCloseItem')();
         assert.isNull(wrapper.state('filePath'));
         assert.isNull(wrapper.state('filePatch'));
-        assert.isNull(wrapper.state('stagingStatus'));
 
         const activate = sinon.stub();
         wrapper.instance().filePatchControllerPane = {activate};
@@ -226,11 +226,16 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       const focusFilePatch = sinon.spy();
-      wrapper.instance().filePatchController = {
-        getWrappedComponent: () => {
-          return {focus: focusFilePatch};
-        },
+      const activate = sinon.spy();
+
+      const mockPane = {
+        getPaneItem: () => mockPane,
+        getElement: () => mockPane,
+        querySelector: () => mockPane,
+        focus: focusFilePatch,
+        activate,
       };
+      wrapper.instance().filePatchControllerPane = mockPane;
 
       await wrapper.instance().diveIntoFilePatchForPath('a.txt', 'unstaged');
 
@@ -239,6 +244,7 @@ describe('RootController', function() {
       assert.equal(wrapper.state('stagingStatus'), 'unstaged');
 
       assert.isTrue(focusFilePatch.called);
+      assert.isTrue(activate.called);
     });
   });
 
@@ -270,9 +276,9 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModel(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
       assert.isFalse(wrapper.find('Panel').prop('visible'));
     });
   });
@@ -993,6 +999,22 @@ describe('RootController', function() {
           assert.equal(repository.getDiscardHistory().length, 0);
         });
       });
+    });
+  });
+
+  describe('integration tests', function() {
+    it('mounts the FilePatchController as a PaneItem', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+
+      const filePath = path.join(workdirPath, 'a.txt');
+      await writeFile(filePath, 'wut\n');
+      await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged');
+
+      const paneItem = workspace.getActivePaneItem();
+      assert.isDefined(paneItem);
+      assert.equal(paneItem.getTitle(), 'Unstaged Changes: a.txt');
     });
   });
 });

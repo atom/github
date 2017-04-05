@@ -5,7 +5,8 @@ import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy, {GitError} from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import {GitProcess} from 'git-kitchen-sink';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {fsStat} from '../lib/helpers';
@@ -625,78 +626,148 @@ import {fsStat} from '../lib/helpers';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
       });
 
       const operations = [
         {
-          verbalNoun: 'commit',
+          command: 'commit',
           progressiveTense: 'committing',
+          usesPromptServerAlready: false,
           action: () => git.commit('message'),
         },
         {
-          verbalNoun: 'merge',
+          command: 'merge',
           progressiveTense: 'merging',
+          usesPromptServerAlready: false,
           action: () => git.merge('some-branch'),
         },
         {
-          verbalNoun: 'pull',
+          command: 'pull',
           progressiveTense: 'pulling',
+          usesPromptServerAlready: true,
           action: () => git.pull('some-branch'),
-          configureStub: (stub, gitStrategy) => {
-            sinon.stub(gitStrategy, 'getRemoteForBranch').returns(Promise.resolve('origin'));
-          },
         },
       ];
 
       operations.forEach(op => {
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(execStub, git);
-          }
-          execStub.returns(Promise.resolve());
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
           await op.action();
 
-          const callArgs = execStub.getCall(0).args;
-          const execArgs = callArgs[0];
-          assert.equal(execArgs[0], '-c');
-          assert.match(execArgs[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs[1].stdin);
-          assert.isNotOk(callArgs[1].useGitPromptServer);
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+
+          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+          assert.equal(workingDir, git.workingDir);
         });
 
-        it(`retries a ${op.verbalNoun} with a GitPromptServer when GPG signing fails`, async function() {
-          const gpgErr = new GitError('Mock GPG failure');
-          gpgErr.stdErr = 'stderr includes "gpg failed"';
-          gpgErr.code = 128;
+        if (!op.usesPromptServerAlready) {
+          it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
+            const execStub = sinon.stub(GitProcess, 'exec');
+            execStub.onCall(0).returns(Promise.resolve({
+              stdout: '',
+              stderr: 'stderr includes "gpg failed"',
+              exitCode: 128,
+            }));
+            execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
-          const execStub = sinon.stub(git, 'exec');
-          if (op.configureStub) {
-            op.configureStub(execStub, git);
-          }
-          execStub.onCall(0).returns(Promise.reject(gpgErr));
-          execStub.returns(Promise.resolve());
-
-          try {
+            // Should not throw
             await op.action();
-          } catch (err) {
-            assert.fail('expected op.action() not to throw the mock error');
+
+            const [args0, workingDir0, options0] = execStub.getCall(0).args;
+            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+            assert.equal(workingDir0, git.workingDir);
+
+            const [args1, workingDir1, options1] = execStub.getCall(1).args;
+            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
+            assert.equal(workingDir1, git.workingDir);
+          });
+        }
+      });
+    });
+
+    describe('the built-in credential helper', function() {
+      let git, originalEnv;
+
+      beforeEach(async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        git = createTestStrategy(workingDirPath, {
+          prompt: Promise.resolve(''),
+        });
+
+        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
+
+        originalEnv = {};
+        ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
+          originalEnv[varName] = process.env[varName];
+        });
+      });
+
+      afterEach(function() {
+        Object.keys(originalEnv).forEach(varName => {
+          process.env[varName] = originalEnv[varName];
+        });
+      });
+
+      const operations = [
+        {
+          command: 'fetch',
+          progressiveTense: 'fetching',
+          action: () => git.fetch('some-branch'),
+        },
+        {
+          command: 'pull',
+          progressiveTense: 'pulling',
+          action: () => git.pull('some-branch'),
+        },
+        {
+          command: 'push',
+          progressiveTense: 'pushing',
+          action: () => git.push('some-branch'),
+        },
+      ];
+
+      operations.forEach(op => {
+        it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
+          const execStub = sinon.stub(GitProcess, 'exec');
+          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          if (op.configureStub) {
+            op.configureStub(git);
           }
 
-          const callArgs0 = execStub.getCall(0).args;
-          const execArgs0 = callArgs0[0];
-          assert.equal(execArgs0[0], '-c');
-          assert.match(execArgs0[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs0[1].stdin);
-          assert.isNotOk(callArgs0[1].useGitPromptServer);
 
-          const callArgs1 = execStub.getCall(0 + 1).args;
-          const execArgs1 = callArgs1[0];
-          assert.equal(execArgs1[0], '-c');
-          assert.match(execArgs1[1], /^gpg\.program=.*gpg-no-tty\.sh$/);
-          assert.isNotOk(callArgs1[1].stdin);
-          assert.isTrue(callArgs1[1].useGitPromptServer);
+          delete process.env.DISPLAY;
+          process.env.GIT_ASKPASS = '/some/git-askpass.sh';
+          process.env.SSH_ASKPASS = '/some/ssh-askpass.sh';
+          process.env.GIT_SSH_COMMAND = '/original/ssh-command';
+
+          await op.action();
+
+          const [args, workingDir, options] = execStub.getCall(0).args;
+
+          assert.equal(workingDir, git.workingDir);
+
+          // Used by https remotes
+          assertGitConfigSetting(args, op.command, 'credential.helper', '.*git-credential-atom\\.sh');
+
+          // Used by SSH remotes
+          assert.match(options.env.DISPLAY, /^.+$/);
+          assert.match(options.env.SSH_ASKPASS, /git-askpass-atom\.sh$/);
+          assert.match(options.env.GIT_ASKPASS, /git-askpass-atom\.sh$/);
+          if (process.platform === 'linux') {
+            assert.match(options.env.GIT_SSH_COMMAND, /linux-ssh-wrapper\.sh$/);
+          }
+
+          // Preserved environment variables for subprocesses
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
+          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
         });
       });
     });
@@ -865,3 +936,20 @@ import {fsStat} from '../lib/helpers';
     });
   });
 });
+
+function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$') {
+  const commandIndex = args.indexOf(command);
+  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
+
+  const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
+
+  const valueRx = new RegExp(`^${settingNamePattern}=${valuePattern}`);
+
+  for (let i = 0; i < commandIndex; i++) {
+    if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
+      return;
+    }
+  }
+
+  assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+}

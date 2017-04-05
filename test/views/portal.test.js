@@ -17,16 +17,33 @@ class Component extends React.Component {
 }
 
 describe('Portal', function() {
+  let renderer;
+
+  beforeEach(function() {
+    renderer = createRenderer();
+  });
+
   it('renders a subtree into a different dom node', function() {
-    const renderer = createRenderer();
     renderer.render(<Portal><Component text="hello" /></Portal>);
-    assert.equal(renderer.instance.getElement().textContent, 'hello');
-    assert.equal(renderer.instance.getRenderedSubtree().getText(), 'hello');
+    assert.strictEqual(renderer.instance.getElement().textContent, 'hello');
+    assert.strictEqual(renderer.instance.getRenderedSubtree().getText(), 'hello');
     const oldSubtree = renderer.instance.getRenderedSubtree();
+
     renderer.render(<Portal><Component text="world" /></Portal>);
-    assert.equal(renderer.lastInstance, renderer.instance);
-    assert.equal(oldSubtree, renderer.instance.getRenderedSubtree());
-    assert.equal(renderer.instance.getElement().textContent, 'world');
-    assert.equal(renderer.instance.getRenderedSubtree().getText(), 'world');
+    assert.strictEqual(renderer.lastInstance, renderer.instance);
+    assert.strictEqual(oldSubtree, renderer.instance.getRenderedSubtree());
+    assert.strictEqual(renderer.instance.getElement().textContent, 'world');
+    assert.strictEqual(renderer.instance.getRenderedSubtree().getText(), 'world');
+  });
+
+  it('constructs a view facade that delegates methods to the root DOM node and component instance', function() {
+    renderer.render(<Portal><Component text="yo" /></Portal>);
+
+    const view = renderer.instance.getView();
+
+    assert.strictEqual(view.getElement().textContent, 'yo');
+    assert.strictEqual(view.getText(), 'yo');
+    assert.strictEqual(view.getPortal(), renderer.instance);
+    assert.strictEqual(view.getInstance().getText(), 'yo');
   });
 });

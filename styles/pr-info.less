@@ -1,5 +1,8 @@
 @import 'variables';
 
+@label-padding: @component-padding / 2;
+@avatar-size: 32px;
+
 .github-RemotePrController {
   flex: 1;
   display: flex;
@@ -7,17 +10,28 @@
 }
 
 .github-PrInfo {
-  padding: @component-padding;
+  padding: @component-padding * 2;
   overflow: auto;
   flex: 1;
+  cursor: default;
 
+
+  .icon {
+    vertical-align: middle;
+  }
 
   // Badge and link ------------------------
   .pr-badge-and-link {
     display: flex;
     align-items: center;
-    margin-bottom: @component-padding;
+    margin-bottom: @component-padding * 2;
+
+    .browser-link {
+      display: inline-block;
+      margin-left: 0.5em;
+    }
   }
+
   .pr-badge {
     align-self: flex-start;
     flex-shrink: 0;
@@ -25,10 +39,6 @@
     font-weight: bold;
     text-transform: capitalize;
     border-radius: @component-border-radius;
-
-    .icon {
-      vertical-align: middle;
-    }
 
     &.open {
       color: contrast(@gh-background-color-green, black, white, 50%);
@@ -48,6 +58,7 @@
 
   .pr-link a {
     color: @text-color-subtle;
+    word-break: break-all;
   }
 
 
@@ -65,7 +76,7 @@
   }
 
   .author-avatar {
-    max-height: 32px;
+    max-height: @avatar-size;
     border-radius: @component-border-radius;
   }
 
@@ -75,41 +86,54 @@
     color: @text-color-highlight;
   }
 
+  // Status ------------------------
 
-  // Body ------------------------
+  .merge-status,
+  .build-status {
+    line-height: 2;
+  }
+  .merge-status.success {
+    .icon { color: @text-color-success; }
+  }
+  .build-status.pending {
+    .icon { color: @text-color-warning; }
+  }
 
-  .pr-body {
-    padding-top: @component-padding;
-    border-top: 1px solid @base-border-color;
+  // Info ------------------------
 
-    a {
-      color: @text-color-info;
-    }
+  .count-number {
+    margin-left: .25em;
+    font-size: 1.1em;
+    font-weight: 600;
+    line-height: 1;
+  }
 
-    hr {
-      margin-top: 5px;
-      margin-bottom: 5px;
-      border-top: 1px solid @text-color;
-      width: 100%
-    }
-
-    ul {
-      margin-left: -10px;
-    }
-
-    ol {
-      margin-left: -20px;
-    }
+  .label {
+    padding: 0 @label-padding;
+    margin: 0 @label-padding @label-padding 0;
+    border-radius: @component-border-radius;
+    line-height: 2em;
+    display: inline-block;
   }
 
 
   // Reactions ------------------------
 
   .reactions {
-    border-top: 1px solid @base-border-color;
-    padding-top: @component-padding;
     .reaction-group {
       margin-right: @component-padding * 2;
     }
+  }
+
+  // All "items" ------------------------
+
+  .meta-info,
+  .conversation,
+  .commit-count,
+  .file-count,
+  .reactions,
+  .labels {
+    border-top: 1px solid @base-border-color;
+    padding: @component-padding 0;
   }
 }
