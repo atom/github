@@ -690,7 +690,7 @@ describe('RootController', function() {
             await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
           });
 
-          it.only('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+          it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
             await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
