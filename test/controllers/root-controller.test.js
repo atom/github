@@ -691,6 +691,8 @@ describe('RootController', function() {
           });
 
           it.only('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
+            await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
+
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
             await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
@@ -729,7 +731,6 @@ describe('RootController', function() {
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
 
             // index is updated accordingly
-            await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
             const diff = await repository.git.exec(['diff', '--', 'sample.js']);
             assert.equal(diff, dedent`
               diff --cc sample.js
