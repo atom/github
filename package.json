@@ -31,8 +31,7 @@
     }
   ],
   "dependencies": {
-    "atom-babel6-transpiler": "0.0.3",
-    "babel-core": "^6.21.0",
+    "atom-babel6-transpiler": "1.1.1",
     "babel-generator": "^6.21.0",
     "babel-plugin-transform-async-to-generator": "^6.16.0",
     "babel-plugin-transform-class-properties": "^6.19.0",
