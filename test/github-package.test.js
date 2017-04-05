@@ -176,43 +176,43 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       await workspace.open(path.join(workdirPath2, 'b.txt'));
 
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.isNotNull(githubPackage.getActiveRepository());
       assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
 
       await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
 
       project.removePath(workdirPath2);
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       project.removePath(workdirPath1);
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
 
       await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
       assert.isNull(githubPackage.getActiveProjectPath());
       assert.isNull(githubPackage.getActiveRepository());
     });
@@ -222,7 +222,7 @@ describe('GithubPackage', function() {
       project.setPaths([workdirPath]);
       await githubPackage.activate();
 
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
 
       const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
@@ -241,7 +241,7 @@ describe('GithubPackage', function() {
 
       // Open a file in the merge conflict repository.
       await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-ours.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
 
       const resolutionMergeConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
       await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
@@ -251,7 +251,7 @@ describe('GithubPackage', function() {
 
       // Open a file in the non-merge conflict repository.
       await workspace.open(path.join(workdirNoConflict, 'b.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
 
       const resolutionNoConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirNoConflict);
       await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionNoConflict);
@@ -259,13 +259,13 @@ describe('GithubPackage', function() {
 
       // Open a file in the workdir with no repository.
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
 
       await assert.isNull(githubPackage.getActiveResolutionProgress());
 
       // Re-open a file in the merge conflict repository.
       await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-theirs.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveModelUpdate();
 
       await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
       assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
@@ -284,7 +284,7 @@ describe('GithubPackage', function() {
 
         await workspace.open(path.join(symlinkPath, 'a.txt'));
 
-        await githubPackage.updateActiveModels();
+        await githubPackage.scheduleActiveModelUpdate();
         assert.isOk(githubPackage.getActiveRepository());
       });
     }
