@@ -107,7 +107,6 @@ describe('GithubPackage', function() {
       await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath2);
       await assert.async.equal(githubPackage.rerender.callCount, 3);
 
-      console.log('--- About to open c.txt ---');
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await assert.async.isNull(githubPackage.getActiveRepository());
       await assert.async.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
