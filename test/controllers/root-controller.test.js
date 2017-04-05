@@ -729,6 +729,7 @@ describe('RootController', function() {
             await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
 
             // index is updated accordingly
+            await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
             const diff = await repository.git.exec(['diff', '--', 'sample.js']);
             assert.equal(diff, dedent`
               diff --cc sample.js
