@@ -1,9 +1,9 @@
 import GithubLoginModel, {KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy, UNAUTHENTICATED} from '../../lib/models/github-login-model';
 
 describe('GithubLoginModel', function() {
-  [KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy].forEach(function(Strategy) {
-    if (Strategy.isValid()) {
-      describe(Strategy.name, function() {
+  [null, KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy].forEach(function(Strategy) {
+    if (!Strategy || Strategy.isValid()) {
+      describe((Strategy && Strategy.name) || 'default strategy', function() {
         it('manages passwords', async function() {
           const loginModel = new GithubLoginModel(Strategy);
           const callback = sinon.stub();
