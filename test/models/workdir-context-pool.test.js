@@ -4,19 +4,26 @@ import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
 describe('WorkdirContextPool', function() {
-  let atomEnv, workspace, pool;
+  let pool;
+  let mockWindow, mockWorkspace, mockResolutionProgressState;
 
   beforeEach(function() {
-    atomEnv = global.buildAtomEnvironment();
-    workspace = atomEnv.workspace;
+    mockWindow = {
+      addEventListener: sinon.spy(),
+      removeEventListener: sinon.spy(),
+    };
+
+    mockWorkspace = {
+      observeTextEditors: sinon.spy(),
+    };
+
+    mockResolutionProgressState = {};
 
     pool = new WorkdirContextPool({
-      window, workspace,
+      window: mockWindow,
+      workspace: mockWorkspace,
+      resolutionProgressByPath: mockResolutionProgressState,
     });
-  });
-
-  afterEach(function() {
-    atomEnv.destroy();
   });
 
   describe('add', function() {
@@ -63,6 +70,19 @@ describe('WorkdirContextPool', function() {
 
       const repo = await context.getRepositoryPromise();
       assert.isNotNull(repo);
+    });
+
+    it('passes appropriate serialized state to the resolution progress', async function() {
+      mockResolutionProgressState[workingDirectory] = {
+        revision: '66d11860af6d28eb38349ef83de475597cb0e8b4',
+        paths: {'a.txt': 12},
+      };
+
+      pool.add(workingDirectory);
+
+      const resolutionProgress = await pool.getContext(workingDirectory).getResolutionProgressPromise();
+      assert.isNotNull(resolutionProgress);
+      assert.equal(resolutionProgress.getRemaining('a.txt'), 12);
     });
   });
 
@@ -129,6 +149,8 @@ describe('WorkdirContextPool', function() {
       assert.isTrue(context0.isDestroyed());
       assert.isFalse(context1.isDestroyed());
     });
+
+    it('passes appropriate serialized state to any created resolution progresses');
   });
 
   describe('getContext', function() {
