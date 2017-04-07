@@ -28,12 +28,12 @@ describe('WorkdirContextPool', function() {
 
     it('adds a WorkdirContext for a new working directory', function() {
       assert.equal(pool.size(), 0);
-      assert.isUndefined(pool.getContext(workingDirectory));
+      assert.isFalse(pool.getContext(workingDirectory).isPresent());
 
       pool.add(workingDirectory);
 
       assert.equal(pool.size(), 1);
-      assert.isDefined(pool.getContext(workingDirectory));
+      assert.isTrue(pool.getContext(workingDirectory).isPresent());
     });
 
     it('optionally provides a preinitialized repository', async function() {
@@ -50,7 +50,7 @@ describe('WorkdirContextPool', function() {
       assert.equal(pool.size(), 1);
 
       const context = pool.getContext(workingDirectory);
-      assert.isDefined(context);
+      assert.isTrue(context.isPresent());
 
       pool.add(workingDirectory);
       assert.equal(pool.size(), 1);
@@ -79,7 +79,7 @@ describe('WorkdirContextPool', function() {
     it('removes a WorkdirContext for an existing working directory', function() {
       assert.equal(pool.size(), 1);
       pool.remove(existingDirectory);
-      assert.isUndefined(pool.getContext(existingDirectory));
+      assert.isFalse(pool.getContext(existingDirectory).isPresent());
       assert.equal(pool.size(), 0);
     });
 
@@ -122,9 +122,34 @@ describe('WorkdirContextPool', function() {
 
       assert.equal(pool.size(), 2);
 
+      assert.isFalse(pool.getContext(dir0).isPresent());
+      assert.isTrue(pool.getContext(dir1).isPresent());
+      assert.isTrue(pool.getContext(dir2).isPresent());
+
       assert.isTrue(context0.isDestroyed());
       assert.isFalse(context1.isDestroyed());
-      assert.isDefined(pool.getContext(dir2));
+    });
+  });
+
+  describe('getContext', function() {
+    let dir;
+
+    beforeEach(async function() {
+      dir = await cloneRepository('three-files');
+      pool.add(dir);
+    });
+
+    it('returns a context by directory', async function() {
+      const context = pool.getContext(dir);
+      assert.isTrue(context.isPresent());
+
+      const repo = await context.getRepositoryPromise();
+      assert.strictEqual(dir, repo.getWorkingDirectoryPath());
+    });
+
+    it('returns a null context when missing', function() {
+      const context = pool.getContext('/nope');
+      assert.isFalse(context.isPresent());
     });
   });
 });

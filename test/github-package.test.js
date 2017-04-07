@@ -64,17 +64,94 @@ describe('GithubPackage', function() {
   }
 
   describe('activate()', function() {
-    it('updates the active repository', async function() {
-      await githubPackage.activate();
+    it('uses models from preexisting projects', async function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       project.setPaths([workdirPath1, workdirPath2]);
-      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
-      fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8');
 
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      await until(() => githubPackage.getActiveRepository() === repository);
+      await githubPackage.activate();
+
+      await assert.async.isNotNull(await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
+      await assert.async.isNotNull(await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
+      assert.isNull(githubPackage.getActiveRepository());
+    });
+
+    it('uses an active model from a single preexisting project', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+
+      await githubPackage.activate();
+
+      await assert.async.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(
+        await githubPackage.getActiveRepository().getWorkingDirectoryPath(),
+        workdirPath,
+      );
+    });
+
+    it('uses an active model from a preexisting active pane item', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      project.setPaths([workdirPath1, workdirPath2]);
+      await workspace.open(path.join(workdirPath2, 'a.txt'));
+
+      await githubPackage.activate();
+
+      await assert.async.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(
+        await githubPackage.getActiveRepository().getWorkingDirectoryPath(),
+        workdirPath2,
+      );
+    });
+
+    it('uses an active model from serialized state', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      const workdirPath3 = await cloneRepository('three-files');
+      project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+
+      await githubPackage.activate({
+        activeRepositoryPath: workdirPath2,
+      });
+
+      await assert.async.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(
+        await githubPackage.getActiveRepository().getWorkingDirectoryPath(),
+        workdirPath2,
+      );
+    });
+
+    it('prefers the active model from an active pane item to serialized state', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      project.setPaths([workdirPath1, workdirPath2]);
+      await workspace.open(path.join(workdirPath2, 'b.txt'));
+
+      await githubPackage.activate({
+        activeRepositoryPath: workdirPath1,
+      });
+
+      await assert.async.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(
+        await githubPackage.getActiveRepository().getWorkingDirectoryPath(),
+        workdirPath2,
+      );
+    });
+
+    it('prefers the active model from a single project to serialized state', async function() {
+      const workdirPath1 = await cloneRepository('three-files');
+      const workdirPath2 = await cloneRepository('three-files');
+      project.setPaths([workdirPath1]);
+
+      await githubPackage.activate({
+        activeRepositoryPath: workdirPath2,
+      });
+
+      await assert.async.isNotNull(githubPackage.getActiveRepository());
+      assert.equal(
+        await githubPackage.getActiveRepository().getWorkingDirectoryPath(),
+        workdirPath1,
+      );
     });
   });
 
