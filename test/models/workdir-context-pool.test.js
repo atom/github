@@ -174,4 +174,27 @@ describe('WorkdirContextPool', function() {
       assert.isFalse(context.isPresent());
     });
   });
+
+  describe('clear', function() {
+    it('removes all resident contexts', async function() {
+      const [dir0, dir1, dir2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+
+      pool.add(dir0);
+      pool.add(dir1);
+      pool.add(dir2);
+
+      assert.equal(pool.size(), 3);
+
+      pool.clear();
+
+      assert.equal(pool.size(), 0);
+      assert.isFalse(pool.getContext(dir0).isPresent());
+      assert.isFalse(pool.getContext(dir1).isPresent());
+      assert.isFalse(pool.getContext(dir2).isPresent());
+    });
+  });
 });
