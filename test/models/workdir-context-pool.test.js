@@ -3,20 +3,27 @@ import {cloneRepository} from '../helpers';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
-describe.only('WorkdirContextPool', function() {
-  let atomEnv, workspace, pool;
+describe('WorkdirContextPool', function() {
+  let pool;
+  let mockWindow, mockWorkspace, mockResolutionProgressState;
 
   beforeEach(function() {
-    atomEnv = global.buildAtomEnvironment();
-    workspace = atomEnv.workspace;
+    mockWindow = {
+      addEventListener: sinon.spy(),
+      removeEventListener: sinon.spy(),
+    };
+
+    mockWorkspace = {
+      observeTextEditors: sinon.spy(),
+    };
+
+    mockResolutionProgressState = {};
 
     pool = new WorkdirContextPool({
-      window, workspace,
+      window: mockWindow,
+      workspace: mockWorkspace,
+      resolutionProgressByPath: mockResolutionProgressState,
     });
-  });
-
-  afterEach(function() {
-    atomEnv.destroy();
   });
 
   describe('add', function() {
@@ -63,6 +70,19 @@ describe.only('WorkdirContextPool', function() {
 
       const repo = await context.getRepositoryPromise();
       assert.isNotNull(repo);
+    });
+
+    it('passes appropriate serialized state to the resolution progress', async function() {
+      mockResolutionProgressState[workingDirectory] = {
+        revision: '66d11860af6d28eb38349ef83de475597cb0e8b4',
+        paths: {'a.txt': 12},
+      };
+
+      pool.add(workingDirectory);
+
+      const resolutionProgress = await pool.getContext(workingDirectory).getResolutionProgressPromise();
+      assert.isNotNull(resolutionProgress);
+      assert.equal(resolutionProgress.getRemaining('a.txt'), 12);
     });
   });
 
@@ -122,13 +142,15 @@ describe.only('WorkdirContextPool', function() {
 
       assert.equal(pool.size(), 2);
 
-      assert.isFalse(pool.getContext(dir0).isDefined());
-      assert.isTrue(pool.getContext(dir1).isDefined());
-      assert.isTrue(pool.getContext(dir2).isDefined());
+      assert.isFalse(pool.getContext(dir0).isPresent());
+      assert.isTrue(pool.getContext(dir1).isPresent());
+      assert.isTrue(pool.getContext(dir2).isPresent());
 
       assert.isTrue(context0.isDestroyed());
       assert.isFalse(context1.isDestroyed());
     });
+
+    it('passes appropriate serialized state to any created resolution progresses');
   });
 
   describe('getContext', function() {
@@ -148,8 +170,31 @@ describe.only('WorkdirContextPool', function() {
     });
 
     it('returns a null context when missing', function() {
-      const context = pool.getContext(dir);
-      assert.False(context.isPresent());
+      const context = pool.getContext('/nope');
+      assert.isFalse(context.isPresent());
+    });
+  });
+
+  describe('clear', function() {
+    it('removes all resident contexts', async function() {
+      const [dir0, dir1, dir2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+
+      pool.add(dir0);
+      pool.add(dir1);
+      pool.add(dir2);
+
+      assert.equal(pool.size(), 3);
+
+      pool.clear();
+
+      assert.equal(pool.size(), 0);
+      assert.isFalse(pool.getContext(dir0).isPresent());
+      assert.isFalse(pool.getContext(dir1).isPresent());
+      assert.isFalse(pool.getContext(dir2).isPresent());
     });
   });
 });

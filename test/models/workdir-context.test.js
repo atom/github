@@ -7,10 +7,22 @@ import Repository from '../../lib/models/repository';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
+  let mockWindow, mockWorkspace, mockPromptCallback;
 
   beforeEach(async function() {
     workingDirectory = await cloneRepository('three-files');
     subs = new CompositeDisposable();
+
+    mockWindow = {
+      addEventListener: sinon.spy(),
+      removeEventListener: sinon.spy(),
+    };
+
+    mockWorkspace = {
+      observeTextEditors: sinon.spy(),
+    };
+
+    mockPromptCallback = query => 'reply';
   });
 
   afterEach(async function() {
@@ -20,7 +32,11 @@ describe('WorkdirContext', function() {
 
   describe('without an initial Repository', function() {
     beforeEach(function() {
-      context = new WorkdirContext(workingDirectory);
+      context = new WorkdirContext(workingDirectory, {
+        window: mockWindow,
+        workspace: mockWorkspace,
+        promptCallback: mockPromptCallback,
+      });
     });
 
     it('returns null for each synchronous model', function() {
@@ -58,6 +74,15 @@ describe('WorkdirContext', function() {
       const observer = context.getChangeObserver();
       assert.isNotNull(observer);
       assert.strictEqual(observer, await observerPromise);
+    });
+
+    it('configures the repository with a prompt callback', async function() {
+      await context.create();
+
+      const repo = context.getRepository();
+      for (const strategy of repo.git.getImplementers()) {
+        assert.strictEqual(strategy.prompt, mockPromptCallback);
+      }
     });
 
     it('refreshes the repository on any filesystem change', async function() {
