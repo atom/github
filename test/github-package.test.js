@@ -472,6 +472,8 @@ describe('GithubPackage', function() {
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await assert.async.isNull(githubPackage.getActiveRepository());
       await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
+      await contextPool.getContext(nonRepositoryPath).getRepositoryPromise();
+
       assert.isOk(githubPackage.getActiveRepository());
       assert.strictEqual(
         githubPackage.getActiveRepository(),
