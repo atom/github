@@ -1,4 +1,4 @@
-import {Emitter} from 'atom';
+import {Emitter} from 'event-kit';
 
 import React from 'react';
 import {mount} from 'enzyme';

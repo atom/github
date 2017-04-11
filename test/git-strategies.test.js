@@ -6,7 +6,7 @@ import dedent from 'dedent-js';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
-import {GitProcess} from 'git-kitchen-sink';
+import {GitProcess} from 'dugite';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {fsStat} from '../lib/helpers';

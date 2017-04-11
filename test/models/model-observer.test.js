@@ -1,4 +1,4 @@
-import {Emitter} from 'atom';
+import {Emitter} from 'event-kit';
 import ModelObserver from '../../lib/models/model-observer';
 
 class Model {

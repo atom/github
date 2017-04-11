@@ -8,7 +8,7 @@ describe('GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
-    ATOM_GITHUB_DUGITE_PATH: require.resolve('git-kitchen-sink'),
+    ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     GIT_TRACE: 'true',
