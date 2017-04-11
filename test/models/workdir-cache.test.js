@@ -60,6 +60,52 @@ describe('WorkdirCache', function() {
     assert.isFalse(cache.walkToRoot.called);
   });
 
+  it('removes cached entries for all subdirectories of an entry', async function() {
+    const [dir0, dir1] = await Promise.all([
+      cloneRepository('three-files'),
+      cloneRepository('three-files'),
+    ]);
+
+    const pathsToCheck = [
+      dir0,
+      path.join(dir0, 'a.txt'),
+      path.join(dir0, 'subdir-1'),
+      path.join(dir0, 'subdir-1', 'b.txt'),
+      dir1,
+    ];
+    const expectedWorkdirs = [
+      dir0, dir0, dir0, dir0, dir1,
+    ];
+
+    // Prime the cache
+    const initial = await Promise.all(
+      pathsToCheck.map(input => cache.find(input)),
+    );
+    assert.deepEqual(initial, expectedWorkdirs);
+
+    // Re-lookup and hit the cache
+    sinon.spy(cache, 'walkToRoot');
+    const relookup = await Promise.all(
+      pathsToCheck.map(input => cache.find(input)),
+    );
+    assert.deepEqual(relookup, expectedWorkdirs);
+    assert.equal(cache.walkToRoot.callCount, 0);
+
+    // Clear dir0
+    await cache.invalidate(dir0);
+
+    // Re-lookup and hit the cache once
+    const after = await Promise.all(
+      pathsToCheck.map(input => cache.find(input)),
+    );
+    assert.deepEqual(after, expectedWorkdirs);
+    assert.isTrue(cache.walkToRoot.calledWith(dir0));
+    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'a.txt')));
+    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'subdir-1')));
+    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'subdir-1', 'b.txt')));
+    assert.isFalse(cache.walkToRoot.calledWith(dir1));
+  });
+
   it('clears the cache when the maximum size is exceeded', async function() {
     const dirs = await Promise.all(
       Array(6).fill(null, 0, 6).map(() => cloneRepository('three-files')),
