@@ -252,8 +252,7 @@ describe('GithubPackage', function() {
 
       await workspace.open(path.join(workdirPath2, 'c.txt'));
 
-      await untilRepositories(workdirPath1, workdirPath2);
-      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      await assert.async.equal(githubPackage.getActiveWorkdir(), workdirPath2);
     });
 
     it('removes a context if not in a project', async function() {
