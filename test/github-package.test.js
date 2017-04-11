@@ -411,7 +411,12 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      await untilRepositories(workdirPath1, workdirPath2);
+      await until('change observers have started', async () => {
+        const observers = await Promise.all([workdirPath1, workdirPath2].map(workdir => {
+          return contextPool.getContext(workdir).getChangeObserverPromise();
+        }));
+        return observers.every(observer => observer && observer.started);
+      });
 
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
