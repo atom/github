@@ -149,7 +149,12 @@ describe('WorkdirContext', function() {
 
     beforeEach(async function() {
       repository = await Repository.open(workingDirectory);
-      context = new WorkdirContext(workingDirectory, {repository});
+      context = new WorkdirContext(workingDirectory, {
+        repository,
+        window: mockWindow,
+        workspace: mockWorkspace,
+        promptCallback: mockPromptCallback,
+      });
     });
 
     it('returns the repository synchrounsly', function() {
