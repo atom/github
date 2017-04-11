@@ -5,7 +5,7 @@ import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
 describe('WorkdirContextPool', function() {
   let pool;
-  let mockWindow, mockWorkspace, mockResolutionProgressState;
+  let mockWindow, mockWorkspace;
 
   beforeEach(function() {
     mockWindow = {
@@ -17,12 +17,9 @@ describe('WorkdirContextPool', function() {
       observeTextEditors: sinon.spy(),
     };
 
-    mockResolutionProgressState = {};
-
     pool = new WorkdirContextPool({
       window: mockWindow,
       workspace: mockWorkspace,
-      resolutionProgressByPath: mockResolutionProgressState,
     });
   });
 
@@ -73,12 +70,14 @@ describe('WorkdirContextPool', function() {
     });
 
     it('passes appropriate serialized state to the resolution progress', async function() {
-      mockResolutionProgressState[workingDirectory] = {
-        revision: '66d11860af6d28eb38349ef83de475597cb0e8b4',
-        paths: {'a.txt': 12},
+      const resolutionProgressByPath = {
+        [workingDirectory]: {
+          revision: '66d11860af6d28eb38349ef83de475597cb0e8b4',
+          paths: {'a.txt': 12},
+        },
       };
 
-      pool.add(workingDirectory);
+      pool.add(workingDirectory, {resolutionProgressByPath});
 
       const resolutionProgress = await pool.getContext(workingDirectory).getResolutionProgressPromise();
       assert.isNotNull(resolutionProgress);
