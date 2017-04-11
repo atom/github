@@ -1,4 +1,6 @@
-import {cloneRepository} from '../helpers';
+import temp from 'temp';
+
+import {cloneRepository, buildRepository} from '../helpers';
 
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
@@ -82,6 +84,55 @@ describe('WorkdirContextPool', function() {
       const resolutionProgress = await pool.getContext(workingDirectory).getResolutionProgressPromise();
       assert.isNotNull(resolutionProgress);
       assert.equal(resolutionProgress.getRemaining('a.txt'), 12);
+    });
+  });
+
+  describe('replace', function() {
+    it('adds a WorkdirContext if one is absent', function() {
+      const directory = temp.mkdirSync();
+
+      assert.equal(pool.size(), 0);
+      assert.isFalse(pool.getContext(directory).isPresent());
+
+      pool.replace(directory);
+
+      assert.equal(pool.size(), 1);
+      assert.isTrue(pool.getContext(directory).isPresent());
+    });
+
+    it('removes an existing WorkdirContext if one is present', async function() {
+      const directory = await cloneRepository('three-files');
+
+      pool.add(directory);
+      assert.equal(pool.size(), 1);
+      assert.isTrue(pool.getContext(directory).isPresent());
+      const original = await pool.getContext(directory).getRepositoryPromise();
+
+      pool.replace(directory);
+      assert.equal(pool.size(), 1);
+      assert.isTrue(pool.getContext(directory).isPresent());
+      const replaced = await pool.getContext(directory).getRepositoryPromise();
+
+      assert.notStrictEqual(original, replaced);
+    });
+
+    it('passes a Repository to the created WorkdirContext', async function() {
+      const directory = await cloneRepository('three-files');
+
+      pool.add(directory);
+      assert.equal(pool.size(), 1);
+      assert.isTrue(pool.getContext(directory).isPresent());
+      const original = await pool.getContext(directory).getRepositoryPromise();
+
+      const replacement = await buildRepository(directory);
+
+      pool.replace(directory, {repository: replacement});
+      assert.equal(pool.size(), 1);
+      assert.isTrue(pool.getContext(directory).isPresent());
+      const replaced = await pool.getContext(directory).getRepositoryPromise();
+
+      assert.notStrictEqual(original, replaced);
+      assert.strictEqual(replacement, replaced);
     });
   });
 
