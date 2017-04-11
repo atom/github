@@ -1,4 +1,4 @@
-import {CompositeDisposable} from 'event-kit';
+import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository} from '../helpers';
 
@@ -19,7 +19,7 @@ describe('WorkdirContext', function() {
     };
 
     mockWorkspace = {
-      observeTextEditors: sinon.spy(),
+      observeTextEditors: sinon.stub().returns(new Disposable()),
     };
 
     mockPromptCallback = query => 'reply';
