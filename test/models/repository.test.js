@@ -499,17 +499,27 @@ describe('Repository', function() {
   });
 
   describe('getRemoteForBranch(branchName)', function() {
-    it('returns the remote name associated to the supplied branch name, null if none exists', async function() {
+    it('returns the remote associated to the supplied branch name', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = new Repository(localRepoPath);
       await localRepo.getLoadPromise();
 
-      assert.equal(await localRepo.getRemoteForBranch('master'), 'origin');
+      const remote0 = await localRepo.getRemoteForBranch('master');
+      assert.isTrue(remote0.isPresent());
+      assert.equal(remote0.getName(), 'origin');
+
       await localRepo.git.exec(['remote', 'rename', 'origin', 'foo']);
-      assert.equal(await localRepo.getRemoteForBranch('master'), 'foo');
+      localRepo.refresh();
+
+      const remote1 = await localRepo.getRemoteForBranch('master');
+      assert.isTrue(remote1.isPresent());
+      assert.equal(remote1.getName(), 'foo');
 
       await localRepo.git.exec(['remote', 'rm', 'foo']);
-      assert.isNull(await localRepo.getRemoteForBranch('master'));
+      localRepo.refresh();
+
+      const remote2 = await localRepo.getRemoteForBranch('master');
+      assert.isFalse(remote2.isPresent());
     });
   });
 
@@ -719,8 +729,8 @@ describe('Repository', function() {
 
           assert.equal(await repo.isMerging(), true);
           try {
-            await assert.isRejected(repo.abortMerge(), /^git merge --abort/);
-            assert(false);
+            await repo.abortMerge();
+            assert.fail(null, null, 'repo.abortMerge() unexepctedly succeeded');
           } catch (e) {
             assert.match(e.command, /^git merge --abort/);
           }
