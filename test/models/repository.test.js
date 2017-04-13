@@ -83,7 +83,7 @@ describe('Repository', function() {
       const destDir = fs.realpathSync(temp.mkdirSync());
 
       const repo = new Repository(destDir);
-      const clonePromise = repo.clone(upstreamPath, destDir);
+      const clonePromise = repo.clone(upstreamPath);
       assert.isTrue(repo.isLoading());
       await clonePromise;
       assert.isTrue(repo.isPresent());
