@@ -468,7 +468,7 @@ import {fsStat} from '../lib/helpers';
         await git.exec(['config', 'push.default', 'upstream']);
         assert.equal(await git.getBehindCount('master'), 0);
         assert.equal(await git.getAheadCount('master'), 0);
-        await git.fetch('master');
+        await git.fetch('origin', 'master');
         assert.equal(await git.getBehindCount('master'), 1);
         assert.equal(await git.getAheadCount('master'), 0);
         await git.commit('new commit', {allowEmpty: true});
@@ -646,7 +646,7 @@ import {fsStat} from '../lib/helpers';
           command: 'pull',
           progressiveTense: 'pulling',
           usesPromptServerAlready: true,
-          action: () => git.pull('some-branch'),
+          action: () => git.pull('origin', 'some-branch'),
         },
       ];
 
@@ -719,17 +719,17 @@ import {fsStat} from '../lib/helpers';
         {
           command: 'fetch',
           progressiveTense: 'fetching',
-          action: () => git.fetch('some-branch'),
+          action: () => git.fetch('origin', 'some-branch'),
         },
         {
           command: 'pull',
           progressiveTense: 'pulling',
-          action: () => git.pull('some-branch'),
+          action: () => git.pull('origin', 'some-branch'),
         },
         {
           command: 'push',
           progressiveTense: 'pushing',
-          action: () => git.push('some-branch'),
+          action: () => git.push('origin', 'some-branch'),
         },
       ];
 
