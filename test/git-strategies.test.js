@@ -542,18 +542,6 @@ import {fsStat} from '../lib/helpers';
       });
     });
 
-    describe('getRemoteForBranch(branchName)', function() {
-      it('returns the name of the remote associated with the branch, and null if none exists', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        assert.equal(await git.getRemoteForBranch('master'), 'origin');
-        await git.exec(['remote', 'rename', 'origin', 'foo']);
-        assert.equal(await git.getRemoteForBranch('master'), 'foo');
-        await git.exec(['remote', 'rm', 'foo']);
-        assert.isNull(await git.getRemoteForBranch('master'));
-      });
-    });
-
     describe('getBranches()', function() {
       it('returns an array of all branches', async function() {
         const workingDirPath = await cloneRepository('three-files');
@@ -626,7 +614,6 @@ import {fsStat} from '../lib/helpers';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
-        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
       });
 
       const operations = [
@@ -700,8 +687,6 @@ import {fsStat} from '../lib/helpers';
         git = createTestStrategy(workingDirPath, {
           prompt: Promise.resolve(''),
         });
-
-        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
 
         originalEnv = {};
         ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
