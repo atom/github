@@ -90,7 +90,6 @@
     "mkdirp": "^0.5.1",
     "mocha": "^3.2.0",
     "mocha-appveyor-reporter": "^0.3.0",
-    "react-addons-test-utils": "^15.5.1",
     "react-test-renderer": "^15.5.4",
     "simulant": "^0.2.2",
     "sinon": "2.0.0-pre.4",
