@@ -74,3 +74,8 @@ This package is currently :construction: under heavy development. :construction:
 - [ ] Create/edit PR comments
 - [ ] Perform GitHub.com code reviews from within Atom
 - [ ] Merge/close PRs
+
+
+## License
+
+GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
