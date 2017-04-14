@@ -38,6 +38,12 @@ export async function cloneRepository(repoName = 'three-files') {
   return copyCachedRepo(repoName);
 }
 
+export async function sha(directory) {
+  const git = new GitShellOutStrategy(directory);
+  const head = await git.getHeadCommit();
+  return head.sha;
+}
+
 /*
  * Initialize an empty repository at a temporary path.
  */
