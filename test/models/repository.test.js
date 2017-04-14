@@ -27,38 +27,6 @@ describe('Repository', function() {
     assert.lengthOf(missing, 0);
   });
 
-  describe('githubInfoFromRemote', function() {
-    it('returns info about a GitHub repo based on the remote URL', function() {
-      const atomRepo = {
-        githubRepo: true,
-        owner: 'atom',
-        name: 'github',
-      };
-
-      const notARepo = {
-        githubRepo: false,
-        owner: null,
-        name: null,
-      };
-
-      const remotes = [
-        'git@github.com:atom/github.git',
-        'https://github.com/atom/github.git',
-        'https://git:pass@github.com/atom/github.git',
-        'ssh+https://github.com/atom/github.git',
-        'git://github.com/atom/github',
-        'ssh://git@github.com:atom/github.git',
-      ];
-
-      for (const remote of remotes) {
-        assert.deepEqual(Repository.githubInfoFromRemote(remote), atomRepo);
-      }
-
-      assert.deepEqual(Repository.githubInfoFromRemote('git@gitlab.com:atom/github.git'), notARepo);
-      assert.deepEqual(Repository.githubInfoFromRemote('atom/github'), notARepo);
-    });
-  });
-
   describe('init', function() {
     it('creates a repository in the given dir and returns the repository', async function() {
       const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
