@@ -23,7 +23,7 @@ describe('GitTabController', function() {
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
-    resolutionProgress = ResolutionProgress.empty();
+    resolutionProgress = new ResolutionProgress();
     refreshResolutionProgress = sinon.spy();
   });
 
@@ -120,7 +120,7 @@ describe('GitTabController', function() {
     const repository = await buildRepository(workdirPath);
     await assert.isRejected(repository.git.merge('origin/branch'));
 
-    const rp = ResolutionProgress.empty();
+    const rp = new ResolutionProgress();
     rp.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
 
     const controller = new GitTabController({
