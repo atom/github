@@ -86,8 +86,10 @@ export async function getHeadCommitOnRemote(remotePath) {
   return git.getHeadCommit();
 }
 
-export function buildRepository(workingDirPath) {
-  return Repository.open(workingDirPath);
+export async function buildRepository(workingDirPath) {
+  const repository = new Repository(workingDirPath);
+  await repository.getLoadPromise();
+  return repository;
 }
 
 export function assertDeepPropertyVals(actual, expected) {
