@@ -41,3 +41,23 @@
     }
   }
 }
+
+atom-dock.bottom {
+  .github-Panel {
+    flex-direction: row;
+  }
+  .github-StagingView {
+    flex-direction: row;
+    flex: 2;
+  }
+  .github-StagedChanges {
+    border-left: 1px solid @base-border-color;
+    border-right: 1px solid @base-border-color;
+  }
+  .github-StagingView-group:first-child .github-StagingView-header {
+    border-top: 1px solid @base-border-color;
+  }
+  .github-CommitView {
+    flex: 1;
+  }
+}
