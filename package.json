@@ -142,6 +142,8 @@
   },
   "deserializers": {
     "GitTimingsView": "createGitTimingsView",
-    "IssueishPaneItem": "createIssueishPaneItem"
+    "IssueishPaneItem": "createIssueishPaneItem",
+    "GitTabControllerStub": "createGitTabControllerStub",
+    "GithubTabControllerStub": "createGithubTabControllerStub"
   }
 }
