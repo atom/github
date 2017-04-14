@@ -2,6 +2,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
 import until from 'test-until';
 
+import Commit from '../../lib/models/commit';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
@@ -11,7 +12,7 @@ describe('CommitView', function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
 
-    lastCommit = {sha: '1234abcd', message: 'commit message', unbornRef: false};
+    lastCommit = new Commit('1234abcd', 'commit message');
   });
 
   afterEach(function() {
@@ -192,10 +193,12 @@ describe('CommitView', function() {
 
   describe('amending', function() {
     it('calls props.setAmending() when the box is checked or unchecked', function() {
+      const previousCommit = new Commit('111', "previous commit's message");
+
       const setAmending = sinon.spy();
       const view = new CommitView({
         commandRegistry,
-        stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending,
+        stagedChangesExist: false, lastCommit: previousCommit, setAmending,
       });
       const {amend} = view.refs;
 
@@ -210,7 +213,7 @@ describe('CommitView', function() {
       const view = new CommitView({
         commandRegistry,
         stagedChangesExist: false,
-        lastCommit: {unbornRef: true},
+        lastCommit: Commit.createUnborn(),
       });
       assert.isUndefined(view.refs.amend);
     });

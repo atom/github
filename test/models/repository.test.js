@@ -275,7 +275,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      assert.equal((await repo.getLastCommit()).message, 'Initial commit');
+      assert.equal((await repo.getLastCommit()).getMessage(), 'Initial commit');
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
@@ -283,7 +283,7 @@ describe('Repository', function() {
       repo.refresh();
       await repo.applyPatchToIndex(unstagedPatch1);
       await repo.commit('Commit 1');
-      assert.equal((await repo.getLastCommit()).message, 'Commit 1');
+      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 1');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       const unstagedChanges = await repo.getUnstagedChanges();
@@ -292,7 +292,7 @@ describe('Repository', function() {
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
       await repo.applyPatchToIndex(unstagedPatch2);
       await repo.commit('Commit 2');
-      assert.equal((await repo.getLastCommit()).message, 'Commit 2');
+      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 2');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       assert.deepEqual(await repo.getUnstagedChanges(), []);
@@ -334,7 +334,7 @@ describe('Repository', function() {
       }
 
       assert.equal(await repository.isMerging(), true);
-      assert.equal((await repository.getLastCommit()).toString(), mergeBase.toString());
+      assert.equal((await repository.getLastCommit()).getSha(), mergeBase.getSha());
     });
 
     it('wraps the commit message body at 72 characters', async function() {
@@ -350,7 +350,7 @@ describe('Repository', function() {
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
       ].join('\n'));
 
-      const message = (await repo.getLastCommit()).message;
+      const message = (await repo.getLastCommit()).getMessage();
       assert.deepEqual(message.split('\n'), [
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
         '',
@@ -374,7 +374,7 @@ describe('Repository', function() {
         '#  other stuff',
       ].join('\n'));
 
-      assert.deepEqual((await repo.getLastCommit()).message, 'Make a commit');
+      assert.deepEqual((await repo.getLastCommit()).getMessage(), 'Make a commit');
     });
   });
 

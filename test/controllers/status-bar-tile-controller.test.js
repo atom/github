@@ -97,17 +97,23 @@ describe('StatusBarTileController', function() {
           const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'master');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
 
           selectOption(tip, 'branch');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'branch');
+          assert.isFalse(branch1.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          const branch2 = await repository.getCurrentBranch();
+          assert.equal(branch2.getName(), 'master');
+          assert.isFalse(branch2.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'master');
@@ -130,7 +136,9 @@ describe('StatusBarTileController', function() {
 
           const tip = getTooltipNode(wrapper, BranchView);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'branch');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
@@ -162,7 +170,9 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'master');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
 
           tip.querySelector('button').click();
@@ -179,7 +189,9 @@ describe('StatusBarTileController', function() {
           });
 
           assert.equal(tip.querySelector('select').value, 'new-branch');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'new-branch', isDetached: false});
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'new-branch');
+          assert.isFalse(branch1.isDetached());
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
           assert.lengthOf(tip.querySelectorAll('select'), 1);
@@ -198,7 +210,9 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'branch');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
           tip.querySelector('button').click();
@@ -210,7 +224,9 @@ describe('StatusBarTileController', function() {
           assert.equal(notificationArgs[0], 'Cannot create branch');
           assert.match(notificationArgs[1].description, /already exists/);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'branch');
+          assert.isFalse(branch1.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
         });
       });

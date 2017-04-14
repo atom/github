@@ -456,7 +456,7 @@ describe('GitTabController', function() {
       await commitView.commit();
       await controller.getLastModelDataRefreshPromise();
 
-      assert.equal((await repository.getLastCommit()).message, 'Make it so');
+      assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });
 
     it('can stage merge conflict files', async function() {
