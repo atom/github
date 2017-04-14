@@ -27,6 +27,25 @@ describe('Repository', function() {
     assert.lengthOf(missing, 0);
   });
 
+  describe('initial states', function() {
+    let repository;
+
+    afterEach(async function() {
+      repository && await repository.destroy();
+    });
+
+    it('begins in the Loading state with a working directory', async function() {
+      const workdir = await cloneRepository('three-files');
+      repository = new Repository(workdir);
+      assert.isTrue(repository.isInState('Loading'));
+    });
+
+    it('begins in the Absent state with .absent()', function() {
+      repository = Repository.absent();
+      assert.isTrue(repository.isInState('Absent'));
+    });
+  });
+
   describe('init', function() {
     it('creates a repository in the given dir and returns the repository', async function() {
       const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
