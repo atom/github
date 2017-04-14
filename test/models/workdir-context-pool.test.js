@@ -1,6 +1,6 @@
 import temp from 'temp';
 
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, sha} from '../helpers';
 
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
@@ -42,8 +42,8 @@ describe('WorkdirContextPool', function() {
       assert.isTrue(pool.getContext(workingDirectory).isPresent());
     });
 
-    it('optionally provides a preinitialized repository', async function() {
-      const existingRepo = await Repository.open(workingDirectory);
+    it('optionally provides a preinitialized repository', function() {
+      const existingRepo = new Repository(workingDirectory);
 
       pool.add(workingDirectory, {repository: existingRepo});
 
@@ -65,24 +65,27 @@ describe('WorkdirContextPool', function() {
     it('begins but does not await the asynchronous initialization process', async function() {
       pool.add(workingDirectory);
       const context = pool.getContext(workingDirectory);
-      assert.isNull(context.getRepository());
+      assert.isTrue(context.getRepository().isLoading());
+      assert.isTrue(context.getResolutionProgress().isEmpty());
+      assert.isFalse(context.getChangeObserver().isStarted());
 
-      const repo = await context.getRepositoryPromise();
-      assert.isNotNull(repo);
+      await context.getRepositoryStatePromise('Present');
+      assert.isTrue(context.getRepository().isPresent());
     });
 
     it('passes appropriate serialized state to the resolution progress', async function() {
       const resolutionProgressByPath = {
         [workingDirectory]: {
-          revision: '66d11860af6d28eb38349ef83de475597cb0e8b4',
+          revision: await sha(workingDirectory),
           paths: {'a.txt': 12},
         },
       };
 
       pool.add(workingDirectory, {resolutionProgressByPath});
+      const context = pool.getContext(workingDirectory);
+      await context.getRepositoryStatePromise('Present');
 
-      const resolutionProgress = await pool.getContext(workingDirectory).getResolutionProgressPromise();
-      assert.isNotNull(resolutionProgress);
+      const resolutionProgress = context.getResolutionProgress();
       assert.equal(resolutionProgress.getRemaining('a.txt'), 12);
     });
   });
@@ -105,13 +108,14 @@ describe('WorkdirContextPool', function() {
 
       pool.add(directory);
       assert.equal(pool.size(), 1);
-      assert.isTrue(pool.getContext(directory).isPresent());
-      const original = await pool.getContext(directory).getRepositoryPromise();
+      const context = pool.getContext(directory);
+      assert.isTrue(context.isPresent());
+      const original = context.getRepository();
 
       pool.replace(directory);
       assert.equal(pool.size(), 1);
       assert.isTrue(pool.getContext(directory).isPresent());
-      const replaced = await pool.getContext(directory).getRepositoryPromise();
+      const replaced = pool.getContext(directory).getRepository();
 
       assert.notStrictEqual(original, replaced);
     });
@@ -122,14 +126,14 @@ describe('WorkdirContextPool', function() {
       pool.add(directory);
       assert.equal(pool.size(), 1);
       assert.isTrue(pool.getContext(directory).isPresent());
-      const original = await pool.getContext(directory).getRepositoryPromise();
+      const original = pool.getContext(directory).getRepository();
 
       const replacement = await buildRepository(directory);
 
       pool.replace(directory, {repository: replacement});
       assert.equal(pool.size(), 1);
       assert.isTrue(pool.getContext(directory).isPresent());
-      const replaced = await pool.getContext(directory).getRepositoryPromise();
+      const replaced = pool.getContext(directory).getRepository();
 
       assert.notStrictEqual(original, replaced);
       assert.strictEqual(replacement, replaced);
@@ -159,8 +163,8 @@ describe('WorkdirContextPool', function() {
       assert.equal(pool.size(), 1);
     });
 
-    it('begins but does not await the termination process', async function() {
-      const repo = await existingContext.getRepositoryPromise();
+    it('begins but does not await the termination process', function() {
+      const repo = existingContext.getRepository();
       sinon.spy(repo, 'destroy');
 
       assert.isFalse(existingContext.isDestroyed());
@@ -199,8 +203,6 @@ describe('WorkdirContextPool', function() {
       assert.isTrue(context0.isDestroyed());
       assert.isFalse(context1.isDestroyed());
     });
-
-    it('passes appropriate serialized state to any created resolution progresses');
   });
 
   describe('getContext', function() {
@@ -211,11 +213,11 @@ describe('WorkdirContextPool', function() {
       pool.add(dir);
     });
 
-    it('returns a context by directory', async function() {
+    it('returns a context by directory', function() {
       const context = pool.getContext(dir);
       assert.isTrue(context.isPresent());
 
-      const repo = await context.getRepositoryPromise();
+      const repo = context.getRepository();
       assert.strictEqual(dir, repo.getWorkingDirectoryPath());
     });
 
