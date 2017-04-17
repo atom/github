@@ -8,6 +8,7 @@ import sinon from 'sinon';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import RendererProcessManager from '../lib/renderer-process-manager';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -159,5 +160,6 @@ beforeEach(function() {
 afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
+  RendererProcessManager.reset();
   global.sinon.restore();
 });
