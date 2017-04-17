@@ -33,6 +33,12 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
+  function contextUpdateAfter(chunk) {
+    const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+    chunk();
+    return updatePromise;
+  }
+
   describe('activate()', function() {
     it('uses models from preexisting projects', async function() {
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
@@ -279,8 +285,7 @@ describe('GithubPackage', function() {
 
       assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
 
-      workspace.open(path.join(workdirPath2, 'c.txt'));
-      await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'c.txt')));
 
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
@@ -293,12 +298,12 @@ describe('GithubPackage', function() {
       ]);
       project.setPaths([workdirPath1]);
       await githubPackage.activate();
-
-      workspace.open(path.join(workdirPath2, 'c.txt'));
       await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
 
-      workspace.getActivePane().destroyActiveItem();
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'c.txt')));
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
 
+      await contextUpdateAfter(() => workspace.getActivePane().destroyActiveItem());
       assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
     });
   });
@@ -325,12 +330,13 @@ describe('GithubPackage', function() {
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
     });
 
-    it('uses an empty context when the active item is not in a git repository', async function() {
+    it('uses an absent context when the active item is not in a git repository', async function() {
       const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
       const workdir = await cloneRepository('three-files');
       project.setPaths([nonRepositoryPath, workdir]);
       await writeFile(path.join(nonRepositoryPath, 'a.txt'), 'stuff');
-      await workspace.open(path.join(nonRepositoryPath, 'a.txt'));
+
+      workspace.open(path.join(nonRepositoryPath, 'a.txt'));
 
       await githubPackage.scheduleActiveContextUpdate();
 
@@ -351,14 +357,16 @@ describe('GithubPackage', function() {
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
     });
 
-    it('uses a null context with a single open project without a git workdir', async function() {
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+    it('uses an empty context with a single open project without a git workdir', async function() {
+      const nonRepositoryPath = await getTempDir();
       project.setPaths([nonRepositoryPath]);
 
       await githubPackage.scheduleActiveContextUpdate();
+      await githubPackage.getActiveRepository().getLoadPromise();
 
-      assert.isFalse(contextPool.getContext(nonRepositoryPath).isPresent());
+      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
       assert.isTrue(githubPackage.getActiveRepository().isEmpty());
+      assert.isFalse(githubPackage.getActiveRepository().isAbsent());
     });
 
     it('activates a saved context state', async function() {
@@ -504,6 +512,7 @@ describe('GithubPackage', function() {
 
       await githubPackage.activate();
       await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+      await githubPackage.getActiveRepository().getLoadPromise();
 
       assert.isTrue(githubPackage.getActiveRepository().isEmpty());
       assert.isFalse(githubPackage.getActiveRepository().isAbsent());
