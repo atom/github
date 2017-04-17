@@ -1,4 +1,4 @@
-import {CompositeDisposable, Emitter} from 'event-kit';
+import {Emitter} from 'event-kit';
 
 import StubItem from '../../lib/atom-items/stub-item';
 
