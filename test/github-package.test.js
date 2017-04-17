@@ -252,13 +252,17 @@ describe('GithubPackage', function() {
         cloneRepository('three-files'),
       ]);
       project.setPaths([workdirPath1, workdirPath2]);
+
       await githubPackage.activate();
+      await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+
       const repository2 = contextPool.getContext(workdirPath2).getRepository();
 
       assert.isTrue(githubPackage.getActiveRepository().isAbsent());
 
+      const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
       workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+      await updatePromise;
 
       assert.strictEqual(githubPackage.getActiveRepository(), repository2);
     });
