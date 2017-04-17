@@ -1,0 +1,125 @@
+import {CompositeDisposable, Emitter} from 'event-kit';
+
+import StubItem from '../../lib/atom-items/stub-item';
+
+class RealItem {
+  constructor() {
+    this.emitter = new Emitter();
+    this.subscriptions = new CompositeDisposable();
+  }
+
+  getTitle() { return 'real-title'; }
+  getIconName() { return 'real-icon-name'; }
+  getOne() { return 1; }
+
+  onDidChangeTitle(cb) { return this.emitter.on('did-change-title', cb); }
+  onDidChangeIcon(cb) { return this.emitter.on('did-change-icon', cb); }
+  onDidDestroy(cb) { return this.emitter.on('did-destroy', cb); }
+
+  destroy() {
+    this.emitter.emit('did-destroy');
+    this.emitter.dispose();
+    this.subscriptions.dispose();
+  }
+}
+
+describe('StubItem', function() {
+  let stub;
+
+  beforeEach(function() {
+    stub = StubItem.create('selector', {
+      title: 'stub-title',
+      iconName: 'stub-icon-name',
+    });
+  });
+
+  afterEach(function() {
+    stub.destroy();
+  });
+
+  describe('#getBySelector', function() {
+    it('allows getting the stub by its selector', function() {
+      assert.equal(StubItem.getBySelector('selector'), stub);
+    });
+  });
+
+  describe('#getElementBySelector', function() {
+    it('fetches the element of a stub by its selector', function() {
+      assert.equal(StubItem.getElementBySelector('selector'), stub.getElement());
+    });
+  });
+
+  describe('#setRealItem', function() {
+    let realItem;
+
+    beforeEach(function() {
+      realItem = new RealItem();
+    });
+
+    afterEach(function() {
+      realItem.destroy();
+    });
+
+    it('sets the real item', function() {
+      assert.isNull(stub.getRealItem());
+      stub.setRealItem(realItem);
+      assert.equal(realItem, stub.getRealItem());
+    });
+
+    it('emits a title change immediately', function() {
+      const cb = sinon.stub();
+      stub.onDidChangeTitle(cb);
+      stub.setRealItem(realItem);
+      assert.equal(cb.callCount, 1);
+    });
+
+    it('emits an icon change immediately', function() {
+      const cb = sinon.stub();
+      stub.onDidChangeIcon(cb);
+      stub.setRealItem(realItem);
+      assert.equal(cb.callCount, 1);
+    });
+
+    describe('method forwarding', function() {
+      it('forwards getTitle and getIconName', function() {
+        assert.equal(stub.getTitle(), 'stub-title');
+        assert.equal(stub.getIconName(), 'stub-icon-name');
+        stub.setRealItem(realItem);
+        assert.equal(stub.getTitle(), 'real-title');
+        assert.equal(stub.getIconName(), 'real-icon-name');
+      });
+
+      it('forwards random methods', function() {
+        stub.setRealItem(realItem);
+        assert.equal(stub.getOne(), 1);
+      });
+
+      it('allows getting the stub', function() {
+        assert.equal(stub._getStub().getTitle(), stub.getTitle());
+      });
+    });
+
+    describe('event forwarding', function() {
+      it('forwards onDidChangeTitle, onDidChangeIcon, and onDidDestroy', function() {
+        const didChangeTitle = sinon.stub();
+        const didChangeIcon = sinon.stub();
+        const didDestroy = sinon.stub();
+
+        stub.onDidChangeTitle(didChangeTitle);
+        stub.onDidChangeIcon(didChangeIcon);
+        stub.onDidDestroy(didDestroy);
+
+        stub.setRealItem(realItem);
+        didChangeTitle.reset();
+        didChangeIcon.reset();
+
+        realItem.emitter.emit('did-change-title');
+        assert.equal(didChangeTitle.callCount, 1);
+        realItem.emitter.emit('did-change-icon');
+        assert.equal(didChangeIcon.callCount, 1);
+        realItem.emitter.emit('did-destroy');
+        assert.equal(didDestroy.callCount, 1);
+      });
+    });
+  });
+});
