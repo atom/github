@@ -5,7 +5,6 @@ import StubItem from '../../lib/atom-items/stub-item';
 class RealItem {
   constructor() {
     this.emitter = new Emitter();
-    this.subscriptions = new CompositeDisposable();
   }
 
   getTitle() { return 'real-title'; }
@@ -20,7 +19,6 @@ class RealItem {
   destroy() {
     this.emitter.emit('did-destroy');
     this.emitter.dispose();
-    this.subscriptions.dispose();
   }
 }
 
@@ -64,7 +62,7 @@ describe('StubItem', function() {
     it('sets the real item', function() {
       assert.isNull(stub.getRealItem());
       stub.setRealItem(realItem);
-      assert.equal(realItem, stub.getRealItem());
+      assert.equal(stub.getRealItem(), realItem);
     });
 
     it('emits a title change immediately', function() {
