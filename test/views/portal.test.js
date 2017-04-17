@@ -36,6 +36,25 @@ describe('Portal', function() {
     assert.strictEqual(renderer.instance.getRenderedSubtree().getText(), 'world');
   });
 
+  it('fetches an existing DOM node if getDOMNode() is passed', function() {
+    let el = null;
+    const getNode = function() {
+      if (!el) {
+        el = document.createElement('div');
+      }
+
+      return el;
+    };
+
+    renderer.render(
+      <Portal getDOMNode={getNode}>
+        <Component text="hello" />
+      </Portal>,
+    );
+
+    assert.equal(el.textContent, 'hello');
+  });
+
   it('constructs a view facade that delegates methods to the root DOM node and component instance', function() {
     renderer.render(<Portal><Component text="yo" /></Portal>);
 
