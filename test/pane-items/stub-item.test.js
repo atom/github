@@ -11,6 +11,7 @@ class RealItem {
   getTitle() { return 'real-title'; }
   getIconName() { return 'real-icon-name'; }
   getOne() { return 1; }
+  getElement() { return 'real-element'; }
 
   onDidChangeTitle(cb) { return this.emitter.on('did-change-title', cb); }
   onDidChangeIcon(cb) { return this.emitter.on('did-change-icon', cb); }
@@ -92,6 +93,11 @@ describe('StubItem', function() {
       it('forwards random methods', function() {
         stub.setRealItem(realItem);
         assert.equal(stub.getOne(), 1);
+      });
+
+      it('does not forward getElement', function() {
+        stub.setRealItem(realItem);
+        assert.notEqual(stub.getElement(), realItem.getElement());
       });
 
       it('allows getting the stub', function() {
