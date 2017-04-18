@@ -42,15 +42,6 @@ describe('WorkdirContextPool', function() {
       assert.isTrue(pool.getContext(workingDirectory).isPresent());
     });
 
-    it('optionally provides a preinitialized repository', function() {
-      const existingRepo = new Repository(workingDirectory);
-
-      pool.add(workingDirectory, {repository: existingRepo});
-
-      const addedRepo = pool.getContext(workingDirectory).getRepository();
-      assert.strictEqual(addedRepo, existingRepo);
-    });
-
     it('is a no-op if the working directory already has a context', function() {
       pool.add(workingDirectory);
       assert.equal(pool.size(), 1);
@@ -118,25 +109,6 @@ describe('WorkdirContextPool', function() {
       const replaced = pool.getContext(directory).getRepository();
 
       assert.notStrictEqual(original, replaced);
-    });
-
-    it('passes a Repository to the created WorkdirContext', async function() {
-      const directory = await cloneRepository('three-files');
-
-      pool.add(directory);
-      assert.equal(pool.size(), 1);
-      assert.isTrue(pool.getContext(directory).isPresent());
-      const original = pool.getContext(directory).getRepository();
-
-      const replacement = await buildRepository(directory);
-
-      pool.replace(directory, {repository: replacement});
-      assert.equal(pool.size(), 1);
-      assert.isTrue(pool.getContext(directory).isPresent());
-      const replaced = pool.getContext(directory).getRepository();
-
-      assert.notStrictEqual(original, replaced);
-      assert.strictEqual(replacement, replaced);
     });
   });
 
