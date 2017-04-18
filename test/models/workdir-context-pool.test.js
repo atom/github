@@ -1,8 +1,7 @@
 import temp from 'temp';
 
-import {cloneRepository, buildRepository, sha} from '../helpers';
+import {cloneRepository, sha} from '../helpers';
 
-import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
 describe('WorkdirContextPool', function() {
