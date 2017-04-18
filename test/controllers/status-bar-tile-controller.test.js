@@ -465,9 +465,9 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const toggleGitPanel = sinon.spy();
+      const toggleGitTab = sinon.spy();
 
-      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitTab}));
       await wrapper.instance().refreshModelData();
 
       assert.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '0 files');
@@ -485,13 +485,13 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const toggleGitPanel = sinon.spy();
+      const toggleGitTab = sinon.spy();
 
-      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitTab}));
       await wrapper.instance().refreshModelData();
 
       wrapper.find(ChangedFilesCountView).simulate('click');
-      assert(toggleGitPanel.calledOnce);
+      assert(toggleGitTab.calledOnce);
     });
   });
 });

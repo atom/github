@@ -276,7 +276,7 @@ describe('RootController', function() {
     });
   });
 
-  describe('when the StatusBarTileController calls toggleGitPanel', function() {
+  describe('when the StatusBarTileController calls toggleGitTab', function() {
     it('toggles the git panel', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
@@ -285,14 +285,14 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitTab')();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitPanel')();
+      wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitTab')();
       assert.isFalse(wrapper.find('Panel').prop('visible'));
     });
   });
 
-  describe('toggleGitPanel()', function() {
+  describe('toggleGitTab()', function() {
     it('toggles the visibility of the Git panel', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
@@ -301,14 +301,14 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      wrapper.instance().toggleGitPanel();
+      wrapper.instance().toggleGitTab();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      wrapper.instance().toggleGitPanel();
+      wrapper.instance().toggleGitTab();
       assert.isFalse(wrapper.find('Panel').prop('visible'));
     });
   });
 
-  describe('toggleGitPanelFocus()', function() {
+  describe('toggleGitTabFocus()', function() {
     let wrapper;
 
     beforeEach(async function() {
@@ -318,44 +318,44 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository});
       wrapper = shallow(app);
 
-      sinon.stub(wrapper.instance(), 'focusGitPanel');
+      sinon.stub(wrapper.instance(), 'focusGitTab');
       sinon.spy(workspace.getActivePane(), 'activate');
     });
 
     it('opens and focuses the Git panel when it is initially closed', function() {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
+      sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
 
-      wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitTabFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.equal(wrapper.instance().focusGitTab.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
     it('focuses the Git panel when it is already open, but blurred', function() {
-      wrapper.instance().toggleGitPanel();
-      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(false);
+      wrapper.instance().toggleGitTab();
+      sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
 
-      wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitTabFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      assert.equal(wrapper.instance().focusGitPanel.callCount, 1);
+      assert.equal(wrapper.instance().focusGitTab.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
 
     it('blurs the Git panel when it is already open and focused', function() {
-      wrapper.instance().toggleGitPanel();
-      sinon.stub(wrapper.instance(), 'gitPanelHasFocus').returns(true);
+      wrapper.instance().toggleGitTab();
+      sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(true);
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
 
-      wrapper.instance().toggleGitPanelFocus();
+      wrapper.instance().toggleGitTabFocus();
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      assert.equal(wrapper.instance().focusGitPanel.callCount, 0);
+      assert.equal(wrapper.instance().focusGitTab.callCount, 0);
       assert.isTrue(workspace.getActivePane().activate.called);
     });
   });
@@ -479,7 +479,7 @@ describe('RootController', function() {
     });
   });
 
-  describe('ensureGitPanel()', function() {
+  describe('ensureGitTab()', function() {
     let wrapper;
 
     beforeEach(async function() {
@@ -492,13 +492,13 @@ describe('RootController', function() {
 
     it('opens the Git panel when it is initially closed', async function() {
       assert.isFalse(wrapper.find('Panel').prop('visible'));
-      assert.isTrue(await wrapper.instance().ensureGitPanel());
+      assert.isTrue(await wrapper.instance().ensureGitTab());
     });
 
     it('does nothing when the Git panel is already open', async function() {
-      wrapper.instance().toggleGitPanel();
+      wrapper.instance().toggleGitTab();
       assert.isTrue(wrapper.find('Panel').prop('visible'));
-      assert.isFalse(await wrapper.instance().ensureGitPanel());
+      assert.isFalse(await wrapper.instance().ensureGitTab());
       assert.isTrue(wrapper.find('Panel').prop('visible'));
     });
   });
