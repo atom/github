@@ -2,7 +2,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
 import until from 'test-until';
 
-import Commit from '../../lib/models/commit';
+import Commit, {nullCommit} from '../../lib/models/commit';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
@@ -17,6 +17,28 @@ describe('CommitView', function() {
 
   afterEach(function() {
     atomEnv.destroy();
+  });
+
+  describe('when the repo is loading', function() {
+    let view;
+
+    beforeEach(function() {
+      view = new CommitView({
+        commandRegistry, lastCommit: nullCommit,
+        stagedChangesExist: false, maximumCharacterLimit: 72, message: '',
+      });
+    });
+
+    it("doesn't show the amend checkbox", function() {
+      assert.isUndefined(view.refs.amend);
+    });
+
+    it('disables the commit button', async function() {
+      view.refs.editor.setText('even with text');
+      await view.update({});
+
+      assert.isTrue(view.refs.commitButton.disabled);
+    });
   });
 
   it('displays the remaining characters limit based on which line is being edited', async function() {
