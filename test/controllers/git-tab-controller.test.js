@@ -8,7 +8,7 @@ import until from 'test-until';
 import GitTabController from '../../lib/controllers/git-tab-controller';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {AbortMergeError, CommitError} from '../../lib/models/repository';
+import Repository, {AbortMergeError, CommitError} from '../../lib/models/repository';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 describe('GitTabController', function() {
@@ -59,16 +59,17 @@ describe('GitTabController', function() {
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
+
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'));
     const controller = new GitTabController({
       workspace, commandRegistry, resolutionProgress, refreshResolutionProgress,
-      repository: null,
+      repository: Repository.absent(),
     });
 
     // Renders empty GitTabView when there is no active repository
     assert.isDefined(controller.refs.gitPanel);
-    assert.isNull(controller.getActiveRepository());
+    assert.isTrue(controller.getActiveRepository().isAbsent());
     assert.isDefined(controller.refs.gitPanel.refs.noRepoMessage);
 
     // Fetches data when a new repository is assigned
@@ -156,9 +157,7 @@ describe('GitTabController', function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
-      await repository.git.merge('origin/branch')
-        .then(() => { throw new Error('Expected merge to throw an error'); })
-        .catch(() => true);
+      await assert.isRejected(repository.git.merge('origin/branch'));
 
       const controller = new GitTabController({
         workspace, commandRegistry, repository,
@@ -433,28 +432,26 @@ describe('GitTabController', function() {
       const stagingView = controller.refs.gitPanel.refs.stagingView;
       const commitView = controller.refs.gitPanel.refs.commitViewController.refs.commitView;
 
-      assert.equal(stagingView.props.unstagedChanges.length, 2);
-      assert.equal(stagingView.props.stagedChanges.length, 0);
-      await stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      await stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(stagingView.props.unstagedChanges.length, 0);
-      assert.equal(stagingView.props.stagedChanges.length, 2);
-      await stagingView.dblclickOnItem({}, stagingView.props.stagedChanges[1]).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(stagingView.props.unstagedChanges.length, 1);
-      assert.equal(stagingView.props.stagedChanges.length, 1);
+      assert.lengthOf(stagingView.props.unstagedChanges, 2);
+      assert.lengthOf(stagingView.props.stagedChanges, 0);
+
+      stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]);
+
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
+      assert.lengthOf(stagingView.props.stagedChanges, 1);
+
+      stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]);
+
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 0);
+      assert.lengthOf(stagingView.props.stagedChanges, 2);
+
+      stagingView.dblclickOnItem({}, stagingView.props.stagedChanges[1]);
+
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
+      assert.lengthOf(stagingView.props.stagedChanges, 1);
 
       commitView.refs.editor.setText('Make it so');
       await commitView.commit();
-      await controller.getLastModelDataRefreshPromise();
 
       assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });
@@ -463,65 +460,52 @@ describe('GitTabController', function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
-      try {
-        await repository.git.merge('origin/branch');
-      } catch (e) {
-        // expected
-      }
+      await assert.isRejected(repository.git.merge('origin/branch'));
 
       const controller = new GitTabController({
         workspace, commandRegistry, repository,
         resolutionProgress, refreshResolutionProgress,
       });
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-
+      await assert.async.isDefined(controller.refs.gitPanel.refs.stagingView);
       const stagingView = controller.refs.gitPanel.refs.stagingView;
+
       assert.equal(stagingView.props.mergeConflicts.length, 5);
       assert.equal(stagingView.props.stagedChanges.length, 0);
 
       const conflict1 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-ours.txt')[0];
       const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.filePath), 'utf8');
-      assert(contentsWithMarkers.includes('>>>>>>>'));
-      assert(contentsWithMarkers.includes('<<<<<<<'));
+      assert.include(contentsWithMarkers, '>>>>>>>');
+      assert.include(contentsWithMarkers, '<<<<<<<');
 
       let choice;
-      sinon.stub(atom, 'confirm', () => {
-        return choice;
-      });
+      sinon.stub(atom, 'confirm', () => choice);
 
       // click Cancel
       choice = 1;
-      await stagingView.dblclickOnItem({}, conflict1).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(atom.confirm.calledOnce, true);
-      assert.equal(stagingView.props.mergeConflicts.length, 5);
-      assert.equal(stagingView.props.stagedChanges.length, 0);
+      await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
+
+      await assert.async.lengthOf(stagingView.props.mergeConflicts, 5);
+      assert.lengthOf(stagingView.props.stagedChanges, 0);
+      assert.isTrue(atom.confirm.calledOnce);
 
       // click Stage
       choice = 0;
       atom.confirm.reset();
-      await stagingView.dblclickOnItem({}, conflict1).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(atom.confirm.calledOnce, true);
-      assert.equal(stagingView.props.mergeConflicts.length, 4);
-      assert.equal(stagingView.props.stagedChanges.length, 1);
+      await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
+
+      await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
+      assert.lengthOf(stagingView.props.stagedChanges, 1);
+      assert.isTrue(atom.confirm.calledOnce);
 
       // clear merge markers
       const conflict2 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-theirs.txt')[0];
       atom.confirm.reset();
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
-      await stagingView.dblclickOnItem({}, conflict2).stageOperationPromise;
-      repository.refresh();
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.equal(atom.confirm.called, false);
-      assert.equal(stagingView.props.mergeConflicts.length, 3);
-      assert.equal(stagingView.props.stagedChanges.length, 2);
+      stagingView.dblclickOnItem({}, conflict2);
+
+      await assert.async.lengthOf(stagingView.props.mergeConflicts, 3);
+      assert.lengthOf(stagingView.props.stagedChanges, 2);
+      assert.isFalse(atom.confirm.called);
     });
 
     it('avoids conflicts with pending file staging operations', async function() {
@@ -532,11 +516,11 @@ describe('GitTabController', function() {
       const controller = new GitTabController({
         workspace, commandRegistry, repository, resolutionProgress, refreshResolutionProgress,
       });
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
+
+      await assert.async.isDefined(controller.refs.gitPanel.refs.stagingView);
       const stagingView = controller.refs.gitPanel.refs.stagingView;
 
-      assert.equal(stagingView.props.unstagedChanges.length, 2);
+      assert.lengthOf(stagingView.props.unstagedChanges, 2);
 
       // ensure staging the same file twice does not cause issues
       // second stage action is a no-op since the first staging operation is in flight
@@ -544,15 +528,15 @@ describe('GitTabController', function() {
       stagingView.confirmSelectedItems();
 
       await file1StagingPromises.stageOperationPromise;
-      repository.refresh();
       await file1StagingPromises.selectionUpdatePromise;
-      assert.equal(stagingView.props.unstagedChanges.length, 1);
+
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
 
       const file2StagingPromises = stagingView.confirmSelectedItems();
       await file2StagingPromises.stageOperationPromise;
-      repository.refresh();
       await file2StagingPromises.selectionUpdatePromise;
-      assert.equal(stagingView.props.unstagedChanges.length, 0);
+
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 0);
     });
 
     it('updates file status and paths when changed', async function() {
