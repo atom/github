@@ -103,6 +103,8 @@ describe('StatusBarTileController', function() {
           assert.equal(tip.querySelector('select').value, 'master');
 
           selectOption(tip, 'branch');
+          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+
           const branch1 = await repository.getCurrentBranch();
           assert.equal(branch1.getName(), 'branch');
           assert.isFalse(branch1.isDetached());
@@ -111,6 +113,8 @@ describe('StatusBarTileController', function() {
           assert.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
+          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+
           const branch2 = await repository.getCurrentBranch();
           assert.equal(branch2.getName(), 'master');
           assert.isFalse(branch2.isDetached());
