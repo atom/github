@@ -110,7 +110,7 @@ describe('WorkdirContext', function() {
     await observer.start();
 
     await context.destroy();
-    assert.isFalse(observer.isStarted());
+    await assert.async.isFalse(observer.isStarted());
   });
 
   it('can be destroyed twice', async function() {
