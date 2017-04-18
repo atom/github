@@ -41,6 +41,7 @@ describe('RootController', function() {
         confirm={confirm}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
+        useLegacyPanels={true}
       />
     );
   });
