@@ -32,26 +32,28 @@ describe('GitTabController', function() {
     atom.confirm.restore && atom.confirm.restore();
   });
 
-  it('displays loading message in GitTabView while data is being fetched', async function() {
+  it('displays a loading message in GitTabView while data is being fetched', async function() {
     const workdirPath = await cloneRepository('three-files');
-    const repository = await buildRepository(workdirPath);
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath, 'b.txt'));
+    const repository = new Repository(workdirPath);
+    assert.isTrue(repository.isLoading());
+
     const controller = new GitTabController({
       workspace, commandRegistry, repository,
       resolutionProgress, refreshResolutionProgress,
     });
 
-    assert.equal(controller.getActiveRepository(), repository);
-    assert.isDefined(controller.refs.gitTab.refs.repoLoadingMessage);
-    assert.isUndefined(controller.refs.gitTab.refs.stagingView);
-    assert.isUndefined(controller.refs.gitTab.refs.commitView);
+    assert.strictEqual(controller.getActiveRepository(), repository);
+    assert.isTrue(controller.element.classList.contains('is-loading'));
+    assert.lengthOf(controller.element.querySelectorAll('.github-StagingView'), 1);
+    assert.lengthOf(controller.element.querySelectorAll('.github-CommitView'), 1);
 
-    await controller.getLastModelDataRefreshPromise();
-    assert.equal(controller.getActiveRepository(), repository);
-    await assert.async.isUndefined(controller.refs.gitTab.refs.repoLoadingMessage);
-    await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
-    await assert.async.isDefined(controller.refs.gitTab.refs.commitViewController);
+    await repository.getLoadPromise();
+
+    await assert.async.isFalse(controller.element.classList.contains('is-loading'));
+    assert.lengthOf(controller.element.querySelectorAll('.github-StagingView'), 1);
+    assert.lengthOf(controller.element.querySelectorAll('.github-CommitView'), 1);
   });
 
   it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
