@@ -639,13 +639,13 @@ describe('RootController', function() {
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
-          // const contents3 = fs.readFileSync(absFilePath, 'utf8');
-          // assert.notEqual(contents2, contents3);
-          //
-          // await wrapper.instance().undoLastDiscard('sample.js');
-          // await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
-          // await wrapper.instance().undoLastDiscard('sample.js');
-          // await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
+          const contents3 = fs.readFileSync(absFilePath, 'utf8');
+          assert.notEqual(contents2, contents3);
+
+          await wrapper.instance().undoLastDiscard('sample.js');
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
+          await wrapper.instance().undoLastDiscard('sample.js');
+          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
         });
 
         it('does not undo if buffer is modified', async () => {
