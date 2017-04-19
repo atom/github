@@ -82,7 +82,13 @@ export async function getHeadCommitOnRemote(remotePath) {
 }
 
 export function buildRepository(workingDirPath) {
-  return Repository.open(workingDirPath);
+  const repository = Repository.open(workingDirPath);
+  // eslint-disable-next-line jasmine/no-global-setup
+  afterEach(async () => {
+    const repo = await repository;
+    repo && repo.destroy();
+  });
+  return repository;
 }
 
 export function assertDeepPropertyVals(actual, expected) {
