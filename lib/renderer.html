@@ -3,9 +3,19 @@
   <head>
     <meta charset="utf-8">
     <title></title>
-    <script src="/Users/kuychaco/github/github/lib/renderer.js"></script>
+    <script type="text/javascript">
+      const qs = require('querystring')
+      const jsPath = qs.parse(window.location.search.substr(1)).js
+      require(jsPath)
+      // const script = document.createElement('script')
+      // script.setAttribute('src', jsPath)
+      // document.head.appendChild(script)
+    </script>
   </head>
   <body>
-    <h1>HIIII</h1>
+    <h1>GitHub Package Git Execution Window</h1>
+    <p>
+      Hi there! This renderer window is used by the GitHub pacakge to execute Git commands in the background.
+    </p>
   </body>
 </html>
