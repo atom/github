@@ -2,7 +2,7 @@ import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository, sha} from '../helpers';
 
-import WorkdirContext from '../../lib/models/workdir-context';
+import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
@@ -121,5 +121,14 @@ describe('WorkdirContext', function() {
 
     await context.destroy();
     assert.isTrue(context.isDestroyed());
+  });
+
+  it('exports a singleton containing a Repository in the absent state', function() {
+    assert.isTrue(absentWorkdirContext.getRepository().isAbsent());
+  });
+
+  it('can be constructed containing a Repository in an undetermined state', function() {
+    const undetermined = WorkdirContext.undetermined();
+    assert.isTrue(undetermined.getRepository().isLoading());
   });
 });
