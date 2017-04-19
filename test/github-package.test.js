@@ -64,24 +64,27 @@ describe('GithubPackage', function() {
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
       await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
-      await assert.async.equal(githubPackage.rerender.callCount, 1);
+      await assert.async.isAbove(githubPackage.rerender.callCount, 0);
 
       // Remove repository for open file
+      githubPackage.rerender.reset();
       project.setPaths([workdirPath2, nonRepositoryPath]);
       await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
       await assert.async.isNull(githubPackage.getActiveRepository());
-      await assert.async.equal(githubPackage.rerender.callCount, 2);
+      await assert.async.isAbove(githubPackage.rerender.callCount, 0);
 
+      githubPackage.rerender.reset();
       await workspace.open(path.join(workdirPath2, 'b.txt'));
       const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository2);
       await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath2);
-      await assert.async.equal(githubPackage.rerender.callCount, 3);
+      await assert.async.isAbove(githubPackage.rerender.callCount, 0);
 
+      githubPackage.rerender.reset();
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
       await assert.async.isNull(githubPackage.getActiveRepository());
       await assert.async.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
-      await assert.async.equal(githubPackage.rerender.callCount, 4);
+      await assert.async.isAbove(githubPackage.rerender.callCount, 0);
     });
 
     it('destroys all the repositories associated with the removed project folders', async function() {
