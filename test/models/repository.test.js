@@ -7,7 +7,7 @@ import Repository from '../../lib/models/repository';
 
 import {cloneRepository, buildRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
 
-describe('Repository', function() {
+describe.only('Repository', function() {
   describe('githubInfoFromRemote', function() {
     it('returns info about a GitHub repo based on the remote URL', function() {
       const atomRepo = {
@@ -391,7 +391,9 @@ describe('Repository', function() {
   });
 
   describe('push()', function() {
-    it('sends commits to the remote and updates ', async function() {
+    global.results = '';
+    it.only('sends commits to the remote and updates ', async function() {
+      console.error('TEST 1');
       const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories();
       const localRepo = await buildRepository(localRepoPath);
 
@@ -403,7 +405,10 @@ describe('Repository', function() {
       await localRepo.commit('fourth commit', {allowEmpty: true});
       await localRepo.commit('fifth commit', {allowEmpty: true});
       localHead = await localRepo.git.getCommit('master');
+      console.debug(localRepoPath);
       localRemoteHead = await localRepo.git.getCommit('origin/master');
+      console.log(localRemoteHead);
+      // debugger;
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.notDeepEqual(localHead, remoteHead);
       assert.equal(remoteHead.message, 'third commit');
@@ -420,7 +425,8 @@ describe('Repository', function() {
   });
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
-    it('returns the number of commits ahead and behind the remote', async function() {
+    it.only('returns the number of commits ahead and behind the remote', async function() {
+      console.error('TEST 2');
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
 

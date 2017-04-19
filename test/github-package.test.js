@@ -52,12 +52,14 @@ describe('GithubPackage', function() {
       const workdirPath1 = await cloneRepository('three-files');
       const workdirPath2 = await cloneRepository('three-files');
       const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      sinon.spy(githubPackage, 'rerender');
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
       await githubPackage.activate();
+      await assert.async.equal(githubPackage.rerender.callCount, 1);
 
-      sinon.spy(githubPackage, 'rerender');
+      githubPackage.rerender.reset();
       await workspace.open(path.join(workdirPath1, 'a.txt'));
       const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
       await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
