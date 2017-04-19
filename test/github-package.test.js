@@ -40,6 +40,13 @@ describe('GithubPackage', function() {
   }
 
   describe('activate()', function() {
+    it('begins with an undetermined repository context', async function() {
+      await githubPackage.activate();
+      await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+    });
+
     it('uses models from preexisting projects', async function() {
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
         cloneRepository('three-files'),
@@ -55,7 +62,7 @@ describe('GithubPackage', function() {
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
-      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
     it('uses an active model from a single preexisting project', async function() {
