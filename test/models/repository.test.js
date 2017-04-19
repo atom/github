@@ -391,7 +391,6 @@ describe('Repository', function() {
   });
 
   describe('push()', function() {
-    global.results = '';
     it('sends commits to the remote and updates ', async function() {
       const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories();
       const localRepo = await buildRepository(localRepoPath);
@@ -403,13 +402,8 @@ describe('Repository', function() {
 
       await localRepo.commit('fourth commit', {allowEmpty: true});
       await localRepo.commit('fifth commit', {allowEmpty: true});
-      console.groupCollapsed('paths');
       localHead = await localRepo.git.getCommit('master');
-      console.debug(localRepoPath);
       localRemoteHead = await localRepo.git.getCommit('origin/master');
-      console.log(localRemoteHead);
-      console.groupEnd('paths');
-      // debugger;
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.notDeepEqual(localHead, remoteHead);
       assert.equal(remoteHead.message, 'third commit');
@@ -427,7 +421,6 @@ describe('Repository', function() {
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
     it('returns the number of commits ahead and behind the remote', async function() {
-      console.error('TEST 2');
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = await buildRepository(localRepoPath);
 
