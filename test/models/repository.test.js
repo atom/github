@@ -55,9 +55,7 @@ describe('Repository', function() {
       await repo.getLoadPromise();
       assert.isTrue(repo.isEmpty());
 
-      const initPromise = repo.init();
-      assert.isTrue(repo.isLoading());
-      await initPromise;
+      await repo.init();
 
       assert.isTrue(repo.isPresent());
       assert.equal(repo.getWorkingDirectoryPath(), soonToBeRepositoryPath);
