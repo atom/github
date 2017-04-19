@@ -652,22 +652,21 @@ import {fsStat} from '../lib/helpers';
 
       operations.forEach(op => {
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
-          const execStub = sinon.stub(GitProcess, 'exec');
+          const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
 
           await op.action();
 
-          const [args, workingDir, options] = execStub.getCall(0).args;
+          const [args, options] = execStub.getCall(0).args;
 
           assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
 
           assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
-          assert.equal(workingDir, git.workingDir);
         });
 
         if (!op.usesPromptServerAlready) {
           it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
-            const execStub = sinon.stub(GitProcess, 'exec');
+            const execStub = sinon.stub(git, 'executeGitCommand');
             execStub.onCall(0).returns(Promise.resolve({
               stdout: '',
               stderr: 'stderr includes "gpg failed"',
@@ -678,15 +677,13 @@ import {fsStat} from '../lib/helpers';
             // Should not throw
             await op.action();
 
-            const [args0, workingDir0, options0] = execStub.getCall(0).args;
+            const [args0, options0] = execStub.getCall(0).args;
             assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
             assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
-            assert.equal(workingDir0, git.workingDir);
 
-            const [args1, workingDir1, options1] = execStub.getCall(1).args;
+            const [args1, options1] = execStub.getCall(1).args;
             assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
             assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
-            assert.equal(workingDir1, git.workingDir);
           });
         }
       });
@@ -735,7 +732,7 @@ import {fsStat} from '../lib/helpers';
 
       operations.forEach(op => {
         it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
-          const execStub = sinon.stub(GitProcess, 'exec');
+          const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
           if (op.configureStub) {
             op.configureStub(git);
@@ -749,9 +746,7 @@ import {fsStat} from '../lib/helpers';
 
           await op.action();
 
-          const [args, workingDir, options] = execStub.getCall(0).args;
-
-          assert.equal(workingDir, git.workingDir);
+          const [args, options] = execStub.getCall(0).args;
 
           // Used by https remotes
           assertGitConfigSetting(args, op.command, 'credential.helper', '.*git-credential-atom\\.sh');
