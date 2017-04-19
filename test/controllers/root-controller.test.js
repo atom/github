@@ -630,7 +630,7 @@ describe('RootController', function() {
           });
         });
 
-        xit('reverses last discard for file path', async () => {
+        it('reverses last discard for file path', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
           await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
