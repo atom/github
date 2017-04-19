@@ -129,6 +129,6 @@ describe('WorkdirContext', function() {
 
   it('can be constructed containing a Repository in an undetermined state', function() {
     const undetermined = WorkdirContext.undetermined();
-    assert.isTrue(undetermined.getRepository().isLoading());
+    assert.isTrue(undetermined.getRepository().isUndetermined());
   });
 });
