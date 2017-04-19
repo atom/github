@@ -166,6 +166,12 @@ beforeEach(function() {
 afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
-  RendererProcessManager.reset();
   global.sinon.restore();
+});
+
+// eslint-disable-next-line jasmine/no-global-setup
+afterAll(() => {
+  if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
+    RendererProcessManager.reset();
+  }
 });
