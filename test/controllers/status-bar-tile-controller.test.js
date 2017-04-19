@@ -6,6 +6,8 @@ import until from 'test-until';
 import {mount} from 'enzyme';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {getTempDir} from '../../lib/helpers';
+import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import PushPullView from '../../lib/views/push-pull-view';
@@ -492,6 +494,22 @@ describe('StatusBarTileController', function() {
 
       wrapper.find(ChangedFilesCountView).simulate('click');
       assert(toggleGitTab.calledOnce);
+    });
+  });
+
+  describe('while the repository is not present', function() {
+    it('does not display the branch or push-pull tiles', async function() {
+      const workdirPath = await getTempDir();
+      const repository = new Repository(workdirPath);
+      assert.isFalse(repository.isPresent());
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+
+      assert.isFalse(wrapper.find('BranchView').exists());
+      assert.isFalse(wrapper.find('BranchMenuView').exists());
+      assert.isFalse(wrapper.find('PushPullView').exists());
+      assert.isFalse(wrapper.find('PushPullMenuView').exists());
+      assert.isTrue(wrapper.find('ChangedFilesCountView').exists());
     });
   });
 });
