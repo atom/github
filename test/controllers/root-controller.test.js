@@ -35,12 +35,45 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         useLegacyPanels={true}
+        firstRun={false}
       />
     );
   });
 
   afterEach(function() {
     atomEnv.destroy();
+  });
+
+  describe('initial panel visibility', function() {
+    it('is not visible when the saved state indicates they were not visible last run', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app);
+
+      assert.isFalse(wrapper.find('Panel').prop('visible'));
+    });
+
+    it('is visible when the saved state indicates they were visible last run', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository, savedState: {gitPanelActive: true, githubPanelActive: true}});
+      const wrapper = shallow(app);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+    });
+
+    it('is always visible when the lastRun prop is true', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository, firstRun: true});
+      const wrapper = shallow(app);
+
+      assert.isTrue(wrapper.find('Panel').prop('visible'));
+    });
   });
 
   describe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', function() {
