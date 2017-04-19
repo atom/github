@@ -360,6 +360,83 @@ describe('RootController', function() {
     });
   });
 
+  describe('initializeRepo', function() {
+    let createRepositoryForProjectPath, resolveInit, rejectInit;
+
+    beforeEach(function() {
+      createRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
+        resolveInit = resolve;
+        rejectInit = reject;
+      }));
+    });
+
+    it('initializes the current working directory if there is one', function() {
+      app = React.cloneElement(app, {
+        createRepositoryForProjectPath,
+        activeWorkingDirectory: '/some/workdir',
+      });
+      const wrapper = shallow(app);
+
+      wrapper.instance().initializeRepo();
+      resolveInit();
+
+      assert.isTrue(createRepositoryForProjectPath.calledWith('/some/workdir'));
+    });
+
+    it('renders the modal init panel', function() {
+      app = React.cloneElement(app, {createRepositoryForProjectPath});
+      const wrapper = shallow(app);
+
+      wrapper.instance().initializeRepo();
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('InitDialog'), 1);
+    });
+
+    it('triggers the init callback on accept', function() {
+      app = React.cloneElement(app, {createRepositoryForProjectPath});
+      const wrapper = shallow(app);
+
+      wrapper.instance().initializeRepo();
+      const dialog = wrapper.find('InitDialog');
+      dialog.prop('didAccept')('/a/path');
+      resolveInit();
+
+      assert.isTrue(createRepositoryForProjectPath.calledWith('/a/path'));
+    });
+
+    it('dismisses the init callback on cancel', function() {
+      app = React.cloneElement(app, {createRepositoryForProjectPath});
+      const wrapper = shallow(app);
+
+      wrapper.instance().initializeRepo();
+      const dialog = wrapper.find('InitDialog');
+      dialog.prop('didCancel')();
+
+      assert.isFalse(wrapper.find('InitDialog').exists());
+    });
+
+    it('creates a notification if the init fails', async function() {
+      sinon.stub(notificationManager, 'addError');
+
+      app = React.cloneElement(app, {createRepositoryForProjectPath});
+      const wrapper = shallow(app);
+
+      wrapper.instance().initializeRepo();
+      const dialog = wrapper.find('InitDialog');
+      const acceptPromise = dialog.prop('didAccept')('/a/path');
+      const err = new GitError('git init exited with status 1');
+      err.stdErr = 'this is stderr';
+      rejectInit(err);
+      await acceptPromise;
+
+      assert.isFalse(wrapper.find('InitDialog').exists());
+      assert.isTrue(notificationManager.addError.calledWith(
+        'Unable to initialize git repository in /a/path',
+        sinon.match({detail: sinon.match(/this is stderr/)}),
+      ));
+    });
+  });
+
   describe('github:clone', function() {
     let wrapper, cloneRepositoryForProjectPath, resolveClone, rejectClone;
 
