@@ -170,7 +170,7 @@ afterEach(function() {
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
-afterAll(() => {
+after(() => {
   if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
     RendererProcessManager.reset();
   }
