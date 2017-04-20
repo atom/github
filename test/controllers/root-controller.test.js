@@ -66,7 +66,7 @@ describe('RootController', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, savedState: {gitPanelActive: true, githubPanelActive: true}});
+      app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubPanelActive: true}});
       const wrapper = shallow(app);
 
       assert.isTrue(wrapper.find('Panel').prop('visible'));
