@@ -9,6 +9,7 @@ import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
+  let getLoadSettings;
   let githubPackage, contextPool;
 
   beforeEach(function() {
@@ -21,8 +22,10 @@ describe('GithubPackage', function() {
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
+    getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
     );
 
     contextPool = githubPackage.getContextPool();
@@ -38,6 +41,80 @@ describe('GithubPackage', function() {
     chunk();
     return updatePromise;
   }
+
+  describe('construction', function() {
+    let githubPackage1;
+
+    afterEach(async function() {
+      if (githubPackage1) {
+        await githubPackage1.deactivate();
+      }
+    });
+
+    async function constructWith(projectPaths, initialLocations) {
+      const realProjectPaths = await Promise.all(
+        projectPaths.map(projectPath => getTempDir(projectPath)),
+      );
+
+      project.setPaths(realProjectPaths);
+      const getLoadSettings1 = () => ({
+        locationsToOpen: initialLocations.map(location => ({pathToOpen: location})),
+      });
+
+      githubPackage1 = new GithubPackage(
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings1,
+      );
+    }
+
+    function assertAbsentLike() {
+      const repository = githubPackage1.getActiveRepository();
+      assert.isTrue(repository.isUndetermined());
+      assert.isFalse(repository.showGitTabLoading());
+      assert.isTrue(repository.showGitTabInit());
+    }
+
+    function assertLoadingLike() {
+      const repository = githubPackage1.getActiveRepository();
+      assert.isTrue(repository.isUndetermined());
+      assert.isTrue(repository.showGitTabLoading());
+      assert.isFalse(repository.showGitTabInit());
+    }
+
+    it('with no projects or initial locations begins with an absent-like undetermined context', async function() {
+      await constructWith([], []);
+      assertAbsentLike();
+    });
+
+    it('with one existing project begins with a loading-like undetermined context', async function() {
+      await constructWith(['one'], []);
+      assertLoadingLike();
+    });
+
+    it('with several existing projects begins with an absent-like undetermined context', async function() {
+      await constructWith(['one', 'two'], []);
+      assertAbsentLike();
+    });
+
+    it('with no projects but one initial location begins with a loading-like undetermined context', async function() {
+      await constructWith([], ['one']);
+      assertLoadingLike();
+    });
+
+    it('with no projects and several initial locations begins with an absent-like undetermined context', async function() {
+      await constructWith([], ['one', 'two']);
+      assertAbsentLike();
+    });
+
+    it('with one project and initial locations begins with a loading-like undetermined context', async function() {
+      await constructWith(['one'], ['two', 'three']);
+      assertLoadingLike();
+    });
+
+    it('with several projects and an initial location begins with an absent-like undetermined context', async function() {
+      await constructWith(['one', 'two'], ['three']);
+      assertAbsentLike();
+    });
+  });
 
   describe('activate()', function() {
     it('begins with an undetermined repository context', async function() {
@@ -270,12 +347,9 @@ describe('GithubPackage', function() {
       await githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
 
       const repository2 = contextPool.getContext(workdirPath2).getRepository();
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
 
-      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
-
-      const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
-      workspace.open(path.join(workdirPath2, 'b.txt'));
-      await updatePromise;
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'b.txt')));
 
       assert.strictEqual(githubPackage.getActiveRepository(), repository2);
     });
@@ -560,7 +634,7 @@ describe('GithubPackage', function() {
       assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
 
       const githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
       );
       await githubPackage1.activate(payload);
       await githubPackage1.scheduleActiveContextUpdate();
