@@ -4,7 +4,7 @@ import dedent from 'dedent-js';
 import temp from 'temp';
 import util from 'util';
 
-import Repository from '../../lib/models/repository';
+import Repository, {ABSENTLIKE, LOADINGLIKE} from '../../lib/models/repository';
 import {expectedDelegates} from '../../lib/models/repository-states';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
@@ -43,6 +43,20 @@ describe('Repository', function() {
     it('begins in the Absent state with .absent()', function() {
       repository = Repository.absent();
       assert.isTrue(repository.isInState('Absent'));
+    });
+
+    it('begins in an absentlike Undetermined state with .undetermined(ABSENTLIKE)', function() {
+      repository = Repository.undetermined(ABSENTLIKE);
+      assert.isTrue(repository.isInState('Undetermined'));
+      assert.isFalse(repository.showGitTabLoading());
+      assert.isTrue(repository.showGitTabInit());
+    });
+
+    it('begins in a loadinglike Undetermined state with .undetermined(LOADINGLIKE)', function() {
+      repository = Repository.undetermined(LOADINGLIKE);
+      assert.isTrue(repository.isInState('Undetermined'));
+      assert.isTrue(repository.showGitTabLoading());
+      assert.isFalse(repository.showGitTabInit());
     });
   });
 
