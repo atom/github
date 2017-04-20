@@ -51,15 +51,13 @@ describe('GithubPackage', function() {
       }
     });
 
-    async function constructWith(projectPaths, initialLocations) {
+    async function constructWith(projectPaths, initialPaths) {
       const realProjectPaths = await Promise.all(
         projectPaths.map(projectPath => getTempDir(projectPath)),
       );
 
       project.setPaths(realProjectPaths);
-      const getLoadSettings1 = () => ({
-        locationsToOpen: initialLocations.map(location => ({pathToOpen: location})),
-      });
+      const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage(
         workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings1,
@@ -80,7 +78,7 @@ describe('GithubPackage', function() {
       assert.isFalse(repository.showGitTabInit());
     }
 
-    it('with no projects or initial locations begins with an absent-like undetermined context', async function() {
+    it('with no projects or initial paths begins with an absent-like undetermined context', async function() {
       await constructWith([], []);
       assertAbsentLike();
     });
@@ -95,22 +93,22 @@ describe('GithubPackage', function() {
       assertAbsentLike();
     });
 
-    it('with no projects but one initial location begins with a loading-like undetermined context', async function() {
+    it('with no projects but one initial path begins with a loading-like undetermined context', async function() {
       await constructWith([], ['one']);
       assertLoadingLike();
     });
 
-    it('with no projects and several initial locations begins with an absent-like undetermined context', async function() {
+    it('with no projects and several initial paths begins with an absent-like undetermined context', async function() {
       await constructWith([], ['one', 'two']);
       assertAbsentLike();
     });
 
-    it('with one project and initial locations begins with a loading-like undetermined context', async function() {
+    it('with one project and initial paths begins with a loading-like undetermined context', async function() {
       await constructWith(['one'], ['two', 'three']);
       assertLoadingLike();
     });
 
-    it('with several projects and an initial location begins with an absent-like undetermined context', async function() {
+    it('with several projects and an initial path begins with an absent-like undetermined context', async function() {
       await constructWith(['one', 'two'], ['three']);
       assertAbsentLike();
     });
