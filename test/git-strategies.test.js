@@ -468,7 +468,7 @@ import {fsStat} from '../lib/helpers';
         await git.exec(['config', 'push.default', 'upstream']);
         assert.equal(await git.getBehindCount('master'), 0);
         assert.equal(await git.getAheadCount('master'), 0);
-        await git.fetch('master');
+        await git.fetch('origin', 'master');
         assert.equal(await git.getBehindCount('master'), 1);
         assert.equal(await git.getAheadCount('master'), 0);
         await git.commit('new commit', {allowEmpty: true});
@@ -539,18 +539,6 @@ import {fsStat} from '../lib/helpers';
         await git.exec(['checkout', 'HEAD^']);
 
         assert.deepEqual(await git.getCurrentBranch(), {name: 'master~1', isDetached: true});
-      });
-    });
-
-    describe('getRemoteForBranch(branchName)', function() {
-      it('returns the name of the remote associated with the branch, and null if none exists', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        assert.equal(await git.getRemoteForBranch('master'), 'origin');
-        await git.exec(['remote', 'rename', 'origin', 'foo']);
-        assert.equal(await git.getRemoteForBranch('master'), 'foo');
-        await git.exec(['remote', 'rm', 'foo']);
-        assert.isNull(await git.getRemoteForBranch('master'));
       });
     });
 
@@ -626,7 +614,6 @@ import {fsStat} from '../lib/helpers';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
-        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
       });
 
       const operations = [
@@ -646,7 +633,7 @@ import {fsStat} from '../lib/helpers';
           command: 'pull',
           progressiveTense: 'pulling',
           usesPromptServerAlready: true,
-          action: () => git.pull('some-branch'),
+          action: () => git.pull('origin', 'some-branch'),
         },
       ];
 
@@ -701,8 +688,6 @@ import {fsStat} from '../lib/helpers';
           prompt: Promise.resolve(''),
         });
 
-        sinon.stub(git, 'getRemoteForBranch').returns(Promise.resolve('origin'));
-
         originalEnv = {};
         ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
           originalEnv[varName] = process.env[varName];
@@ -719,17 +704,17 @@ import {fsStat} from '../lib/helpers';
         {
           command: 'fetch',
           progressiveTense: 'fetching',
-          action: () => git.fetch('some-branch'),
+          action: () => git.fetch('origin', 'some-branch'),
         },
         {
           command: 'pull',
           progressiveTense: 'pulling',
-          action: () => git.pull('some-branch'),
+          action: () => git.pull('origin', 'some-branch'),
         },
         {
           command: 'push',
           progressiveTense: 'pushing',
-          action: () => git.push('some-branch'),
+          action: () => git.push('origin', 'some-branch'),
         },
       ];
 
