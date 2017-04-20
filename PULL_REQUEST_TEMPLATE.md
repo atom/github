@@ -1,3 +1,5 @@
+**Please be sure to read the [contributor's guide to the GitHub package](https://github.com/atom/github/blob/master/CONTRIBUTING.md) before submitting any pull requests.**
+
 ### Requirements
 
 * Filling out the template is required. Any pull request that does not include enough information to be reviewed in a timely manner may be closed at the maintainers' discretion.
