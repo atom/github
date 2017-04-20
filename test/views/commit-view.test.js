@@ -2,6 +2,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import etch from 'etch';
 import until from 'test-until';
 
+import Commit, {nullCommit} from '../../lib/models/commit';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
@@ -11,11 +12,33 @@ describe('CommitView', function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
 
-    lastCommit = {sha: '1234abcd', message: 'commit message', unbornRef: false};
+    lastCommit = new Commit('1234abcd', 'commit message');
   });
 
   afterEach(function() {
     atomEnv.destroy();
+  });
+
+  describe('when the repo is loading', function() {
+    let view;
+
+    beforeEach(function() {
+      view = new CommitView({
+        commandRegistry, lastCommit: nullCommit,
+        stagedChangesExist: false, maximumCharacterLimit: 72, message: '',
+      });
+    });
+
+    it("doesn't show the amend checkbox", function() {
+      assert.isUndefined(view.refs.amend);
+    });
+
+    it('disables the commit button', async function() {
+      view.refs.editor.setText('even with text');
+      await view.update({});
+
+      assert.isTrue(view.refs.commitButton.disabled);
+    });
   });
 
   it('displays the remaining characters limit based on which line is being edited', async function() {
@@ -192,10 +215,12 @@ describe('CommitView', function() {
 
   describe('amending', function() {
     it('calls props.setAmending() when the box is checked or unchecked', function() {
+      const previousCommit = new Commit('111', "previous commit's message");
+
       const setAmending = sinon.spy();
       const view = new CommitView({
         commandRegistry,
-        stagedChangesExist: false, lastCommit: {message: 'previous commit\'s message'}, setAmending,
+        stagedChangesExist: false, lastCommit: previousCommit, setAmending,
       });
       const {amend} = view.refs;
 
@@ -210,7 +235,7 @@ describe('CommitView', function() {
       const view = new CommitView({
         commandRegistry,
         stagedChangesExist: false,
-        lastCommit: {unbornRef: true},
+        lastCommit: Commit.createUnborn(),
       });
       assert.isUndefined(view.refs.amend);
     });

@@ -41,7 +41,7 @@ describe('EditorConflictController', function() {
     commandRegistry = atomEnv.commands;
 
     refreshResolutionProgress = sinon.spy();
-    resolutionProgress = ResolutionProgress.empty();
+    resolutionProgress = new ResolutionProgress();
   });
 
   afterEach(function() {

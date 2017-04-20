@@ -101,7 +101,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {});
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.load('abcd1234', {});
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -125,7 +126,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.load('abcd1234', {
         revision: 'abcd1234',
         paths: {
           [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
@@ -154,7 +156,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.load('abcd1234', {
         revision: 'abcd1234',
         paths: {
           [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
@@ -186,7 +189,8 @@ describe('StagingView', function() {
         },
       ];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.load('abcd1234', {
         revision: 'abcd1234',
         paths: {
           [path.join(workingDirectoryPath, 'conflicted-path-0.txt')]: 2,
@@ -218,7 +222,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.load('abcd1234', {
         revision: 'abcd1234',
         paths: {
           [path.join(workingDirectoryPath, 'conflicted-path')]: 0,

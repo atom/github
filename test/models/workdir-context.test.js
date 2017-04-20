@@ -1,28 +1,42 @@
 import {CompositeDisposable, Disposable} from 'event-kit';
 
-import {cloneRepository} from '../helpers';
+import {cloneRepository, sha} from '../helpers';
 
-import WorkdirContext from '../../lib/models/workdir-context';
-import Repository from '../../lib/models/repository';
+import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
-  let mockWindow, mockWorkspace, mockPromptCallback;
+  let mockPromptCallback;
 
   beforeEach(async function() {
     workingDirectory = await cloneRepository('three-files');
     subs = new CompositeDisposable();
 
-    mockWindow = {
+    const mockWindow = {
       addEventListener: sinon.spy(),
       removeEventListener: sinon.spy(),
     };
 
-    mockWorkspace = {
+    const mockWorkspace = {
       observeTextEditors: sinon.stub().returns(new Disposable()),
     };
 
+    const mockSavedResolutionProgress = {
+      revision: await sha(workingDirectory),
+      paths: {
+        'a.txt': 2,
+        'b.txt': 3,
+      },
+    };
+
     mockPromptCallback = query => 'reply';
+
+    context = new WorkdirContext(workingDirectory, {
+      window: mockWindow,
+      workspace: mockWorkspace,
+      promptCallback: mockPromptCallback,
+      savedResolutionProgress: mockSavedResolutionProgress,
+    });
   });
 
   afterEach(async function() {
@@ -30,155 +44,100 @@ describe('WorkdirContext', function() {
     subs.dispose();
   });
 
-  describe('without an initial Repository', function() {
-    beforeEach(function() {
-      context = new WorkdirContext(workingDirectory, {
-        window: mockWindow,
-        workspace: mockWorkspace,
-        promptCallback: mockPromptCallback,
-      });
-    });
-
-    it('returns null for each synchronous model', function() {
-      assert.isNull(context.getRepository());
-      assert.isNull(context.getResolutionProgress());
-      assert.isNull(context.getChangeObserver());
-    });
-
-    it('populates the repository on create()', async function() {
-      const repoPromise = context.getRepositoryPromise();
-
-      await context.create();
-
-      const repo = context.getRepository();
-      assert.isNotNull(repo);
-      assert.equal(repo.getWorkingDirectoryPath(), workingDirectory);
-      assert.strictEqual(repo, await repoPromise);
-    });
-
-    it('populates the resolution progress on create()', async function() {
-      const progressPromise = context.getResolutionProgressPromise();
-
-      await context.create();
-
-      const progress = context.getResolutionProgress();
-      assert.isNotNull(progress);
-      assert.strictEqual(progress, await progressPromise);
-    });
-
-    it('populates the change observer on create()', async function() {
-      const observerPromise = context.getChangeObserverPromise();
-
-      await context.create();
-
-      const observer = context.getChangeObserver();
-      assert.isNotNull(observer);
-      assert.strictEqual(observer, await observerPromise);
-    });
-
-    it('configures the repository with a prompt callback', async function() {
-      await context.create();
-
-      const repo = context.getRepository();
-      for (const strategy of repo.git.getImplementers()) {
-        assert.strictEqual(strategy.prompt, mockPromptCallback);
-      }
-    });
-
-    it('refreshes the repository on any filesystem change', async function() {
-      await context.create();
-
-      const repo = context.getRepository();
-      sinon.spy(repo, 'refresh');
-
-      const observer = context.getChangeObserver();
-      observer.emitter.emit('did-change');
-
-      assert.isTrue(repo.refresh.called);
-    });
-
-    it('emits an event on workdir or head change', async function() {
-      const listener = sinon.spy();
-      subs.add(context.onDidChangeWorkdirOrHead(listener));
-
-      await context.create();
-
-      context.getChangeObserver().emitter.emit('did-change-workdir-or-head');
-      assert.isTrue(listener.called);
-    });
-
-    it('can be destroyed before create()', async function() {
-      await context.destroy();
-      assert.isTrue(context.isDestroyed());
-
-      await context.create();
-      assert.isTrue(context.isDestroyed());
-    });
-
-    it('destroys the repository on destroy()', async function() {
-      await context.create();
-      const repo = context.getRepository();
-      sinon.spy(repo, 'destroy');
-
-      await context.destroy();
-      assert.isTrue(repo.destroy.called);
-    });
-
-    it('stops the change observer on destroy()', async function() {
-      await context.create();
-      const observer = context.getChangeObserver();
-      await observer.start();
-
-      sinon.spy(observer, 'destroy');
-
-      await context.destroy();
-      assert.isTrue(observer.destroy.called);
-    });
-
-    it('can be destroyed twice', async function() {
-      await context.create();
-      assert.isFalse(context.isDestroyed());
-
-      await context.destroy();
-      assert.isTrue(context.isDestroyed());
-    });
+  it('returns synchronous models in their initial states', function() {
+    assert.isTrue(context.getRepository().isLoading());
+    assert.isTrue(context.getResolutionProgress().isEmpty());
+    assert.isFalse(context.getChangeObserver().isStarted());
   });
 
-  describe('with an initial Repository', function() {
-    let repository;
+  it('updates the resolution progress once the repository loads', async function() {
+    const progress = context.getResolutionProgress();
 
-    beforeEach(async function() {
-      repository = await Repository.open(workingDirectory);
-      context = new WorkdirContext(workingDirectory, {
-        repository,
-        window: mockWindow,
-        workspace: mockWorkspace,
-        promptCallback: mockPromptCallback,
-      });
-    });
+    await context.getRepositoryStatePromise('Present');
 
-    it('returns the repository synchrounsly', function() {
-      assert.strictEqual(repository, context.getRepository());
-    });
+    assert.isFalse(progress.isEmpty());
+    assert.equal(progress.getRemaining('a.txt'), 2);
+    assert.equal(progress.getRemaining('b.txt'), 3);
+  });
 
-    it('populates the resolution progress on create()', async function() {
-      const progressPromise = context.getResolutionProgressPromise();
+  it('starts the change observer after the repository loads', async function() {
+    const observer = context.getChangeObserver();
+    await context.getObserverStartedPromise();
+    assert.isTrue(observer.isStarted());
+  });
 
-      await context.create();
+  it('configures the repository with a prompt callback', async function() {
+    const repo = context.getRepository();
+    await repo.getLoadPromise();
 
-      const progress = context.getResolutionProgress();
-      assert.isNotNull(progress);
-      assert.strictEqual(progress, await progressPromise);
-    });
+    for (const strategy of repo.git.getImplementers()) {
+      assert.strictEqual(strategy.prompt, mockPromptCallback);
+    }
+  });
 
-    it('populates the change observer on create()', async function() {
-      const observerPromise = context.getChangeObserverPromise();
+  it('notifies the repository on any filesystem change', async function() {
+    const repo = context.getRepository();
+    await context.getRepositoryStatePromise('Present');
 
-      await context.create();
+    sinon.spy(repo, 'observeFilesystemChange');
 
-      const observer = context.getChangeObserver();
-      assert.isNotNull(observer);
-      assert.strictEqual(observer, await observerPromise);
-    });
+    const payload = {};
+    context.getChangeObserver().didChange(payload);
+
+    assert.isTrue(repo.observeFilesystemChange.calledWith(payload));
+  });
+
+  it('re-emits an event on workdir or head change', async function() {
+    const listener = sinon.spy();
+    subs.add(context.onDidChangeWorkdirOrHead(listener));
+
+    await context.getRepositoryStatePromise('Present');
+
+    context.getChangeObserver().didChangeWorkdirOrHead();
+    assert.isTrue(listener.called);
+  });
+
+  it('destroys the repository on destroy()', async function() {
+    await context.getRepositoryStatePromise('Present');
+    const repo = context.getRepository();
+
+    await context.destroy();
+    assert.isTrue(repo.isDestroyed());
+  });
+
+  it('stops the change observer on destroy()', async function() {
+    const observer = context.getChangeObserver();
+    await observer.start();
+
+    await context.destroy();
+    await assert.async.isFalse(observer.isStarted());
+  });
+
+  it('can be destroyed twice', async function() {
+    assert.isFalse(context.isDestroyed());
+
+    await context.destroy();
+    assert.isTrue(context.isDestroyed());
+
+    await context.destroy();
+    assert.isTrue(context.isDestroyed());
+  });
+
+  it('exports a singleton containing a Repository in the absent state', function() {
+    assert.isTrue(absentWorkdirContext.getRepository().isAbsent());
+  });
+
+  it('can be constructed containing an undetermined Repository that acts absent', function() {
+    const undetermined = WorkdirContext.guess({});
+    assert.isTrue(undetermined.getRepository().isUndetermined());
+    assert.isFalse(undetermined.getRepository().showGitTabLoading());
+    assert.isTrue(undetermined.getRepository().showGitTabInit());
+  });
+
+  it("can be constructed containing an undetermined Repository that acts like it's loading", function() {
+    const undetermined = WorkdirContext.guess({projectPathCount: 1});
+    assert.isTrue(undetermined.getRepository().isUndetermined());
+    assert.isTrue(undetermined.getRepository().showGitTabLoading());
+    assert.isFalse(undetermined.getRepository().showGitTabInit());
   });
 });
