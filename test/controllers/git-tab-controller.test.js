@@ -471,7 +471,7 @@ describe('GitTabController', function() {
       await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
       const stagingView = controller.refs.gitTab.refs.stagingView;
 
-      assert.equal(stagingView.props.mergeConflicts.length, 5);
+      await assert.async.equal(stagingView.props.mergeConflicts.length, 5);
       assert.equal(stagingView.props.stagedChanges.length, 0);
 
       const conflict1 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-ours.txt')[0];
@@ -522,7 +522,7 @@ describe('GitTabController', function() {
       await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
       const stagingView = controller.refs.gitTab.refs.stagingView;
 
-      assert.lengthOf(stagingView.props.unstagedChanges, 2);
+      await assert.async.lengthOf(stagingView.props.unstagedChanges, 2);
 
       // ensure staging the same file twice does not cause issues
       // second stage action is a no-op since the first staging operation is in flight
