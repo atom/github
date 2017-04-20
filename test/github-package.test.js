@@ -331,6 +331,24 @@ describe('GithubPackage', function() {
       assert.isFalse(contextPool.getContext(workdirPath3).isPresent());
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
     });
+
+    it('returns to an absent context when the last project folder is removed', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isTrue(githubPackage.getActiveRepository().isLoading());
+
+      await contextUpdateAfter(() => project.setPaths([]));
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
+    });
+
+    it('does not transition away from an absent guess when no project folders are present', async function() {
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsentGuess());
+    });
   });
 
   describe('when the active pane item changes', function() {
