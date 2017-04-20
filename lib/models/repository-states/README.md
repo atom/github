@@ -6,6 +6,6 @@ This directory contains the various states that a `Repository` model can assume.
 
 Here's the current state transition diagram:
 
-![state transition diagram](./repo-states.svg)
+![state transition diagram](./repo-states.png)
 
 Only the initial states (`Absent`, `AbsentGuess`, `Loading`, and `LoadingGuess`) are exported from the directory module.
