@@ -187,7 +187,7 @@ describe('GithubPackage', function() {
     it('defaults to a single repository even without an active pane item', async function() {
       const workdirPath = await cloneRepository('three-files');
       project.setPaths([workdirPath]);
-      await githubPackage.activate();
+      await githubPackage.activate({firstRun: false});
 
       await githubPackage.updateActiveModels();
 
