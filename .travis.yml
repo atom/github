@@ -19,7 +19,9 @@ matrix:
         packages:
         - clang-3.3
         - build-essential
-        - libgnome-keyring-dev
+        - gnome-keyring
+        - libsecret-1-dev
+        - python-gnomekeyring
 
 env:
   global:
@@ -48,6 +50,15 @@ notifications:
 install:
 - npm install -g npm
 - 'if [ "${TRAVIS_BUILD_JOB}" = "schemacheck" ] && [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew install jq; fi'
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login); fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start); fi
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      dbus-launch /usr/bin/python -c \
+        "import gnomekeyring;gnomekeyring.create_sync('login', '');"
+    fi
 
 script:
 - ./script/cibuild
