@@ -4,7 +4,7 @@ import dedent from 'dedent-js';
 import temp from 'temp';
 import util from 'util';
 
-import Repository, {ABSENTLIKE, LOADINGLIKE} from '../../lib/models/repository';
+import Repository from '../../lib/models/repository';
 import {expectedDelegates} from '../../lib/models/repository-states';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
@@ -45,16 +45,16 @@ describe('Repository', function() {
       assert.isTrue(repository.isInState('Absent'));
     });
 
-    it('begins in an absentlike Undetermined state with .undetermined(ABSENTLIKE)', function() {
-      repository = Repository.undetermined(ABSENTLIKE);
-      assert.isTrue(repository.isInState('Undetermined'));
+    it('begins in an AbsentGuess state with .absentGuess()', function() {
+      repository = Repository.absentGuess();
+      assert.isTrue(repository.isInState('AbsentGuess'));
       assert.isFalse(repository.showGitTabLoading());
       assert.isTrue(repository.showGitTabInit());
     });
 
-    it('begins in a loadinglike Undetermined state with .undetermined(LOADINGLIKE)', function() {
-      repository = Repository.undetermined(LOADINGLIKE);
-      assert.isTrue(repository.isInState('Undetermined'));
+    it('begins in a LoadingGuess state with .guess()', function() {
+      repository = Repository.loadingGuess();
+      assert.isTrue(repository.isInState('LoadingGuess'));
       assert.isTrue(repository.showGitTabLoading());
       assert.isFalse(repository.showGitTabInit());
     });

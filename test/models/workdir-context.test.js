@@ -2,7 +2,7 @@ import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository, sha} from '../helpers';
 
-import WorkdirContext, {absentWorkdirContext, ABSENTLIKE, LOADINGLIKE} from '../../lib/models/workdir-context';
+import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
@@ -128,14 +128,14 @@ describe('WorkdirContext', function() {
   });
 
   it('can be constructed containing an undetermined Repository that acts absent', function() {
-    const undetermined = WorkdirContext.undetermined(ABSENTLIKE);
+    const undetermined = WorkdirContext.guess({});
     assert.isTrue(undetermined.getRepository().isUndetermined());
     assert.isFalse(undetermined.getRepository().showGitTabLoading());
     assert.isTrue(undetermined.getRepository().showGitTabInit());
   });
 
   it("can be constructed containing an undetermined Repository that acts like it's loading", function() {
-    const undetermined = WorkdirContext.undetermined(LOADINGLIKE);
+    const undetermined = WorkdirContext.guess({projectPathCount: 1});
     assert.isTrue(undetermined.getRepository().isUndetermined());
     assert.isTrue(undetermined.getRepository().showGitTabLoading());
     assert.isFalse(undetermined.getRepository().showGitTabInit());
