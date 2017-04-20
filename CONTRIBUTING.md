@@ -1,13 +1,20 @@
 # Contributing to the Atom GitHub Package
 
-For general contributing information, see the [Atom contributing guide](https://github.com/atom/atom/blob/master/CONTRIBUTING.md); however, contributing to the GitHub package differs from contributing to other core Atom packages a little at the current time.
+For general contributing information, see the [Atom contributing guide](https://github.com/atom/atom/blob/master/CONTRIBUTING.md); however, right now, contributing to the GitHub package differs from contributing to other core Atom packages in some ways.
 
-In particular, the GitHub package is under heavy development by a portion of the core Atom team, and there is currently a clear vision for short- to medium-term features and enhancements. That doesn't mean we won't merge pull requests or fix other issues, but it *does* mean that you should consider discussing things with us first so that you don't spend time implementing things in a way that differs from the patterns we want to establish or build a feature that we're already working on.
+In particular, the GitHub package is under constant development by a portion of the core Atom team, and there is currently a clear vision for short- to medium-term features and enhancements. That doesn't mean we won't merge pull requests or fix other issues, but it *does* mean that you should consider discussing things with us first so that you don't spend time implementing things in a way that differs from the patterns we want to establish or build a feature that we're already working on.
+
+Feel free to [open an issue](https://github.com/atom/github/issues) if you want to discuss anything with us. If you're curious what we're working on and will be working on in the near future, you can take a look at [our short-term roadmap](https://github.com/atom/github/projects/8).
+
 ## Technical Contribution Tips
+
+### React and Etch
+
+Early in the project's life, we used [Etch](https://github.com/atom/etch) to manage DOM updates via a virtual-DOM mechanism very similar to React. Eventually we migrated to using [React](https://facebook.github.io/react/) itself. During the transition, we implemented a React component called `EtchWrapper` to allow us to render Etch components from within React; however, all new UI work should be done using React, and we are working to migrate all existing UI components to fully use React.
 
 ### Updating the GraphQL Schema
 
-This package uses [Relay](https://github.com/facebook/relay) for its GitHub integration. There's a source-level transform that depends on having a local copy of the GraphQL schema available. If you need to update the local schema to the latest version, run
+This project uses [Relay](https://github.com/facebook/relay) for its GitHub integration. There's a source-level transform that depends on having a local copy of the GraphQL schema available. If you need to update the local schema to the latest version, run
 
 ```bash
 GITHUB_TOKEN=abcdef0123456789 npm run fetch-schema
