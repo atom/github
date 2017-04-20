@@ -337,7 +337,7 @@ describe('GithubPackage', function() {
       project.setPaths([workdirPath]);
       await contextUpdateAfter(() => githubPackage.activate());
 
-      assert.isTrue(githubPackage.getActiveRepository().isLoading());
+      assert.isTrue(githubPackage.getActiveRepository().isLoading() || githubPackage.getActiveRepository().isPresent());
 
       await contextUpdateAfter(() => project.setPaths([]));
 
