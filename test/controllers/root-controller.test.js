@@ -34,6 +34,7 @@ describe('RootController', function() {
         tooltips={tooltips}
         config={config}
         confirm={confirm}
+        useLegacyPanels={true}
       />
     );
   });
