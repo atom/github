@@ -1,4 +1,4 @@
-This directory contains the various states that a `Repository` model can assume. Each state subclasses [`State`](./state), which provides each state with:
+This directory contains the various states that a `Repository` model can assume. Each state subclasses [`State`](./state.js), which provides each state with:
 
 * Trivial implementations of the state-dependent Repository functionality that return "empty" results where possible; Promises that resolve to empty arrays, null-object `Remote` or `Branch` implementations, `false`. This allows the UI components to freely query the current Repository for data regardless of whether an actual git repository exists or not.
 * Action and transition methods that throw exceptions or reject Promises.
