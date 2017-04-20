@@ -19,7 +19,7 @@ matrix:
         packages:
         - clang-3.3
         - build-essential
-        - libgnome-keyring-dev
+        - libsecret-1-dev
 
 env:
   global:
