@@ -9,6 +9,8 @@ import FilePatch from '../../lib/models/file-patch';
 import FilePatchController from '../../lib/controllers/file-patch-controller';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
+import Repository from '../../lib/models/repository';
+import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import Switchboard from '../../lib/switchboard';
 
 describe('FilePatchController', function() {
@@ -30,10 +32,14 @@ describe('FilePatchController', function() {
     openFiles = sinon.spy();
 
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
+    const repository = Repository.absent();
+    const resolutionProgress = new ResolutionProgress();
 
     component = (
       <FilePatchController
         commandRegistry={commandRegistry}
+        repository={repository}
+        resolutionProgress={resolutionProgress}
         filePatch={filePatch}
         stagingStatus="unstaged"
         isPartiallyStaged={false}
@@ -122,22 +128,6 @@ describe('FilePatchController', function() {
 
     commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-right');
     assert.isTrue(didSurfaceFile.calledWith('a.txt', 'unstaged'));
-  });
-
-  it('ignores being passed a null repository', async function() {
-    const workdirPath = await cloneRepository('multi-line-file');
-    const repository = await buildRepository(workdirPath);
-    const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
-
-    const wrapper = shallow(React.cloneElement(component, {
-      filePatch,
-      repository,
-    }));
-
-    assert.equal(wrapper.instance().props.repository, repository);
-    // This is mostly ensuring that the render here doesn't throw.
-    wrapper.setProps({repository: null});
-    assert.isNull(wrapper.instance().props.repository);
   });
 
   describe('integration tests', function() {

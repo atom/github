@@ -1,6 +1,6 @@
 '.workspace':
-  'ctrl-9': 'github:toggle-git-panel'
-  'ctrl-(': 'github:toggle-git-panel-focus' # ctrl-shift-9
+  'ctrl-9': 'github:toggle-git-tab'
+  'ctrl-(': 'github:toggle-git-tab-focus' # ctrl-shift-9
 
 '.github-Panel':
   'cmd-enter': 'github:commit'

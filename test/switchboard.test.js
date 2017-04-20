@@ -1,4 +1,4 @@
-import {CompositeDisposable} from 'atom'; // FIXME import from event-kit
+import {CompositeDisposable} from 'event-kit';
 import Switchboard from '../lib/switchboard';
 
 describe('Switchboard', function() {
