@@ -433,7 +433,7 @@ describe('GithubPackage', function() {
       project.setPaths([nonRepositoryPath, workdir]);
       await writeFile(path.join(nonRepositoryPath, 'a.txt'), 'stuff');
 
-      workspace.open(path.join(nonRepositoryPath, 'a.txt'));
+      await workspace.open(path.join(nonRepositoryPath, 'a.txt'));
 
       await githubPackage.scheduleActiveContextUpdate();
 
