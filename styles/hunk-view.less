@@ -39,7 +39,7 @@
   }
 
   &-line {
-    display:flex;
+    display: table-row;
     line-height: 1.5em;
     color: @hunk-fg-color;
     &.is-unchanged {
@@ -48,7 +48,8 @@
   }
 
   &-lineNumber {
-    flex: 0 0 3em; // TODO: Make width dynamic, currently capped at 3 chars
+    display: table-cell;
+    min-width: 3em;
     overflow: hidden;
     padding: 0 .5em;
     text-align: right;
@@ -62,7 +63,7 @@
   }
 
   &-lineContent {
-    flex: 1;
+    display: table-cell;
     padding: 0 .5em 0 3ch; // indent 3 characters
     text-indent: -2ch; // remove indentation for the +/-
     white-space: pre-wrap;
