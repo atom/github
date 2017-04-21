@@ -8,7 +8,7 @@ import sinon from 'sinon';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
-import RendererProcessManager from '../lib/renderer-process-manager';
+import WorkerManager from '../lib/worker-manager';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -172,6 +172,6 @@ afterEach(function() {
 // eslint-disable-next-line jasmine/no-global-setup
 after(() => {
   if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
-    RendererProcessManager.reset();
+    WorkerManager.reset();
   }
 });
