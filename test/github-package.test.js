@@ -129,7 +129,7 @@ describe('GithubPackage', function() {
       ]);
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
 
-      await contextUpdateAfter((() => githubPackage.activate());
+      await contextUpdateAfter(() => githubPackage.activate());
 
       assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
@@ -142,7 +142,7 @@ describe('GithubPackage', function() {
       const workdirPath = await cloneRepository('three-files');
       project.setPaths([workdirPath]);
 
-      await contextUpdateAfter((() => githubPackage.activate());
+      await contextUpdateAfter(() => githubPackage.activate());
 
       const context = contextPool.getContext(workdirPath);
       assert.isTrue(context.isPresent());
