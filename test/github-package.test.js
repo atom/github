@@ -410,6 +410,7 @@ describe('GithubPackage', function() {
     beforeEach(function() {
       // Necessary since we skip activate()
       githubPackage.savedState = {};
+      githubPackage.useLegacyPanels = !workspace.getLeftDock;
     });
 
     it('prefers the context of the active pane item', async function() {
