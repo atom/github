@@ -339,7 +339,7 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe.only('when the active pane item changes', function() {
+  describe('when the active pane item changes', function() {
     it('becomes the active context', async function() {
       const [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
