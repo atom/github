@@ -50,7 +50,7 @@ import RootController from '../../lib/controllers/root-controller';
           confirm={confirm}
           repository={absentRepository}
           resolutionProgress={emptyResolutionProgress}
-          useLegacyPanels={useLegacyPanels}
+          useLegacyPanels={useLegacyPanels || !workspace.getLeftDock}
           firstRun={false}
         />
       );
