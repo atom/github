@@ -28,6 +28,10 @@ describe('GithubPackage', function() {
       workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
     );
 
+    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
+      callback && setTimeout(callback);
+    });
+
     contextPool = githubPackage.getContextPool();
   });
 
@@ -627,6 +631,10 @@ describe('GithubPackage', function() {
   });
 
   describe('serialized state', function() {
+    beforeEach(function() {
+      githubPackage.rerender.restore();
+    });
+
     function resolutionProgressFrom(pkg, workdir) {
       return pkg.getContextPool().getContext(workdir).getResolutionProgress();
     }
