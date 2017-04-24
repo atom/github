@@ -56,7 +56,7 @@ describe('RootController', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository});
+      app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubPanelActive: false}});
       const wrapper = shallow(app);
 
       assert.isFalse(wrapper.find('Panel').prop('visible'));
@@ -72,7 +72,7 @@ describe('RootController', function() {
       assert.isTrue(wrapper.find('Panel').prop('visible'));
     });
 
-    it('is always visible when the lastRun prop is true', async function() {
+    it('is always visible when the firstRun prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
