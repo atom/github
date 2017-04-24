@@ -6,6 +6,8 @@ import until from 'test-until';
 import {mount} from 'enzyme';
 
 import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {getTempDir} from '../../lib/helpers';
+import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import PushPullView from '../../lib/views/push-pull-view';
@@ -97,17 +99,27 @@ describe('StatusBarTileController', function() {
           const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'master');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
 
           selectOption(tip, 'branch');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'branch');
+          assert.isFalse(branch1.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+
+          const branch2 = await repository.getCurrentBranch();
+          assert.equal(branch2.getName(), 'master');
+          assert.isFalse(branch2.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
           await wrapper.instance().refreshModelData();
           assert.equal(tip.querySelector('select').value, 'master');
@@ -130,7 +142,9 @@ describe('StatusBarTileController', function() {
 
           const tip = getTooltipNode(wrapper, BranchView);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'branch');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
@@ -162,7 +176,9 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'master', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'master');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'master');
 
           tip.querySelector('button').click();
@@ -179,7 +195,9 @@ describe('StatusBarTileController', function() {
           });
 
           assert.equal(tip.querySelector('select').value, 'new-branch');
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'new-branch', isDetached: false});
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'new-branch');
+          assert.isFalse(branch1.isDetached());
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
           assert.lengthOf(tip.querySelectorAll('select'), 1);
@@ -198,7 +216,9 @@ describe('StatusBarTileController', function() {
 
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch0 = await repository.getCurrentBranch();
+          assert.equal(branch0.getName(), 'branch');
+          assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
           tip.querySelector('button').click();
@@ -210,7 +230,9 @@ describe('StatusBarTileController', function() {
           assert.equal(notificationArgs[0], 'Cannot create branch');
           assert.match(notificationArgs[1].description, /already exists/);
 
-          assert.deepEqual(await repository.getCurrentBranch(), {name: 'branch', isDetached: false});
+          const branch1 = await repository.getCurrentBranch();
+          assert.equal(branch1.getName(), 'branch');
+          assert.isFalse(branch1.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
         });
       });
@@ -445,9 +467,9 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const toggleGitPanel = sinon.spy();
+      const toggleGitTab = sinon.spy();
 
-      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitTab}));
       await wrapper.instance().refreshModelData();
 
       assert.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '0 files');
@@ -465,13 +487,29 @@ describe('StatusBarTileController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      const toggleGitPanel = sinon.spy();
+      const toggleGitTab = sinon.spy();
 
-      const wrapper = mount(React.cloneElement(component, {repository, toggleGitPanel}));
+      const wrapper = mount(React.cloneElement(component, {repository, toggleGitTab}));
       await wrapper.instance().refreshModelData();
 
       wrapper.find(ChangedFilesCountView).simulate('click');
-      assert(toggleGitPanel.calledOnce);
+      assert(toggleGitTab.calledOnce);
+    });
+  });
+
+  describe('while the repository is not present', function() {
+    it('does not display the branch or push-pull tiles', async function() {
+      const workdirPath = await getTempDir();
+      const repository = new Repository(workdirPath);
+      assert.isFalse(repository.isPresent());
+
+      const wrapper = mount(React.cloneElement(component, {repository}));
+
+      assert.isFalse(wrapper.find('BranchView').exists());
+      assert.isFalse(wrapper.find('BranchMenuView').exists());
+      assert.isFalse(wrapper.find('PushPullView').exists());
+      assert.isFalse(wrapper.find('PushPullMenuView').exists());
+      assert.isTrue(wrapper.find('ChangedFilesCountView').exists());
     });
   });
 });

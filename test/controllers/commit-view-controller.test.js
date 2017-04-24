@@ -1,3 +1,5 @@
+import Commit from '../../lib/models/commit';
+
 import CommitViewController from '../../lib/controllers/commit-view-controller';
 import {cloneRepository, buildRepository} from '../helpers';
 
@@ -8,7 +10,7 @@ describe('CommitViewController', function() {
     atomEnvironment = global.buildAtomEnvironment();
     commandRegistry = atomEnvironment.commands;
 
-    lastCommit = {sha: 'a1e23fd45', message: 'last commit message', unbornRef: false};
+    lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
 
   afterEach(function() {

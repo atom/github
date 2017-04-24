@@ -52,7 +52,7 @@
     "fs-extra": "^2.1.2",
     "graphql": "^0.9.3",
     "hoist-non-react-statics": "^1.2.0",
-    "keytar": "^3.0.2",
+    "keytar": "^4.0.0",
     "lodash.memoize": "^4.1.2",
     "moment": "^2.17.1",
     "multi-list-selection": "^0.1.1",
@@ -64,6 +64,7 @@
     "react-dom": "^15.5.4",
     "react-relay": "^0.10.0",
     "recursive-readdir": "^2.0.0",
+    "temp": "^0.8.3",
     "tree-kill": "^1.1.0",
     "what-the-diff": "^0.3.0",
     "yubikiri": "1.0.0"
@@ -93,7 +94,6 @@
     "react-test-renderer": "^15.5.4",
     "simulant": "^0.2.2",
     "sinon": "^2.1.0",
-    "temp": "^0.8.3",
     "test-until": "^1.1.1"
   },
   "consumedServices": {

@@ -1,16 +1,16 @@
-import {Directory} from 'atom';
-
 import fs from 'fs';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
 
 import {cloneRepository} from './helpers';
+import {writeFile, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
-  let githubPackage;
+  let getLoadSettings;
+  let githubPackage, contextPool;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -22,9 +22,17 @@ describe('GithubPackage', function() {
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
+    getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
     );
+
+    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
+      callback && setTimeout(callback);
+    });
+
+    contextPool = githubPackage.getContextPool();
   });
 
   afterEach(async function() {
@@ -32,170 +40,197 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
+  function contextUpdateAfter(chunk) {
+    const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+    chunk();
+    return updatePromise;
+  }
+
+  describe('construction', function() {
+    let githubPackage1;
+
+    afterEach(async function() {
+      if (githubPackage1) {
+        await githubPackage1.deactivate();
+      }
+    });
+
+    async function constructWith(projectPaths, initialPaths) {
+      const realProjectPaths = await Promise.all(
+        projectPaths.map(projectPath => getTempDir(projectPath)),
+      );
+
+      project.setPaths(realProjectPaths);
+      const getLoadSettings1 = () => ({initialPaths});
+
+      githubPackage1 = new GithubPackage(
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings1,
+      );
+    }
+
+    function assertAbsentLike() {
+      const repository = githubPackage1.getActiveRepository();
+      assert.isTrue(repository.isUndetermined());
+      assert.isFalse(repository.showGitTabLoading());
+      assert.isTrue(repository.showGitTabInit());
+    }
+
+    function assertLoadingLike() {
+      const repository = githubPackage1.getActiveRepository();
+      assert.isTrue(repository.isUndetermined());
+      assert.isTrue(repository.showGitTabLoading());
+      assert.isFalse(repository.showGitTabInit());
+    }
+
+    it('with no projects or initial paths begins with an absent-like undetermined context', async function() {
+      await constructWith([], []);
+      assertAbsentLike();
+    });
+
+    it('with one existing project begins with a loading-like undetermined context', async function() {
+      await constructWith(['one'], []);
+      assertLoadingLike();
+    });
+
+    it('with several existing projects begins with an absent-like undetermined context', async function() {
+      await constructWith(['one', 'two'], []);
+      assertAbsentLike();
+    });
+
+    it('with no projects but one initial path begins with a loading-like undetermined context', async function() {
+      await constructWith([], ['one']);
+      assertLoadingLike();
+    });
+
+    it('with no projects and several initial paths begins with an absent-like undetermined context', async function() {
+      await constructWith([], ['one', 'two']);
+      assertAbsentLike();
+    });
+
+    it('with one project and initial paths begins with a loading-like undetermined context', async function() {
+      await constructWith(['one'], ['two', 'three']);
+      assertLoadingLike();
+    });
+
+    it('with several projects and an initial path begins with an absent-like undetermined context', async function() {
+      await constructWith(['one', 'two'], ['three']);
+      assertAbsentLike();
+    });
+  });
+
   describe('activate()', function() {
-    it('updates the active repository', async function() {
-      await githubPackage.activate();
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      project.setPaths([workdirPath1, workdirPath2]);
-      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
-      fs.writeFileSync(path.join(workdirPath1, 'b.txt'), 'change 2', 'utf8');
+    it('begins with an undetermined repository context', async function() {
+      await contextUpdateAfter(() => githubPackage.activate());
 
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      await until(() => githubPackage.getActiveRepository() === repository);
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
-  });
 
-  describe('changing the project paths', function() {
-    it('updates the active repository and project path', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
-      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
+    it('uses models from preexisting projects', async function() {
+      const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        getTempDir(),
+      ]);
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
-      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
-      await githubPackage.activate();
 
-      sinon.spy(githubPackage, 'rerender');
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository1);
-      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
-      await assert.async.equal(githubPackage.rerender.callCount, 1);
+      await contextUpdateAfter(() => githubPackage.activate());
 
-      // Remove repository for open file
-      project.setPaths([workdirPath2, nonRepositoryPath]);
-      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath1);
-      await assert.async.isNull(githubPackage.getActiveRepository());
-      await assert.async.equal(githubPackage.rerender.callCount, 2);
+      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
-      await workspace.open(path.join(workdirPath2, 'b.txt'));
-      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
-      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository2);
-      await assert.async.equal(githubPackage.getActiveProjectPath(), workdirPath2);
-      await assert.async.equal(githubPackage.rerender.callCount, 3);
-
-      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await assert.async.isNull(githubPackage.getActiveRepository());
-      await assert.async.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
-      await assert.async.equal(githubPackage.rerender.callCount, 4);
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
-    it('destroys all the repositories associated with the removed project folders', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      const workdirPath3 = await cloneRepository('three-files');
-      project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
-      await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
-
-      const repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      const repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
-      const repository3 = await githubPackage.getRepositoryForWorkdirPath(workdirPath3);
-      assert.isOk(repository1);
-      assert.isOk(repository2);
-      assert.isOk(repository3);
-
-      sinon.stub(repository1, 'destroy');
-      sinon.stub(repository2, 'destroy');
-      sinon.stub(repository3, 'destroy');
-
-      project.removePath(workdirPath1);
-      project.removePath(workdirPath3);
-
-      await until(() => repository1.destroy.callCount === 1, 'repository1 is destroyed');
-      await until(() => repository3.destroy.callCount === 1, 'repository3 is destroyed');
-      assert.equal(repository2.destroy.callCount, 0);
-      assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository1.getWorkingDirectoryPath()), repository1);
-      assert.notEqual(await githubPackage.getRepositoryForWorkdirPath(repository3.getWorkingDirectoryPath()), repository3);
-      assert.equal(await githubPackage.getRepositoryForWorkdirPath(repository2.getWorkingDirectoryPath()), repository2);
-    });
-  });
-
-  describe('didChangeActivePaneItem()', function() {
-    it('updates the active repository', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      project.setPaths([workdirPath1, workdirPath2]);
-      fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'change 1', 'utf8');
-      fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'change 2', 'utf8');
-
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      githubPackage.didChangeActivePaneItem();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
-
-      await workspace.open(path.join(workdirPath2, 'b.txt'));
-      githubPackage.didChangeActivePaneItem();
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
-    });
-  });
-
-  describe('updateActiveModels()', function() {
-    it('updates the active repository based on the active item, setting it to null when the active item is not in a project repository', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
-      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
-      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
-      await githubPackage.activate();
-
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await workspace.open(path.join(workdirPath2, 'b.txt'));
-
-      await githubPackage.updateActiveModels();
-      assert.isNotNull(githubPackage.getActiveRepository());
-      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
-
-      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveModels();
-      assert.equal(githubPackage.getActiveProjectPath(), nonRepositoryPath);
-      assert.isNull(githubPackage.getActiveRepository());
-
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveModels();
-      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
-
-      workspace.getActivePane().activateItem({}); // such as when find & replace results pane is focused
-      await githubPackage.updateActiveModels();
-      assert.equal(githubPackage.getActiveProjectPath(), workdirPath1);
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath1));
-
-      await workspace.open(path.join(workdirPath2, 'b.txt'));
-      await githubPackage.updateActiveModels();
-      assert.equal(githubPackage.getActiveProjectPath(), workdirPath2);
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(workdirPath2));
-
-      project.removePath(workdirPath2);
-      await githubPackage.updateActiveModels();
-      assert.isNull(githubPackage.getActiveProjectPath());
-      assert.isNull(githubPackage.getActiveRepository());
-
-      project.removePath(workdirPath1);
-      await githubPackage.updateActiveModels();
-      assert.isNull(githubPackage.getActiveProjectPath());
-      assert.isNull(githubPackage.getActiveRepository());
-
-      await workspace.open(path.join(workdirPath1, 'a.txt'));
-      await githubPackage.updateActiveModels();
-      assert.isNull(githubPackage.getActiveProjectPath());
-      assert.isNull(githubPackage.getActiveRepository());
-    });
-
-    it('defaults to a single repository even without an active pane item', async function() {
+    it('uses an active model from a single preexisting project', async function() {
       const workdirPath = await cloneRepository('three-files');
       project.setPaths([workdirPath]);
-      await githubPackage.activate();
 
-      await githubPackage.updateActiveModels();
+      await contextUpdateAfter(() => githubPackage.activate());
 
-      const repository = await githubPackage.getRepositoryForWorkdirPath(workdirPath);
-      await assert.async.strictEqual(githubPackage.getActiveRepository(), repository);
+      const context = contextPool.getContext(workdirPath);
+      assert.isTrue(context.isPresent());
+
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
     });
 
-    it('updates the active resolution progress', async function() {
+    it('uses an active model from a preexisting active pane item', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
+      await workspace.open(path.join(workdirPath2, 'a.txt'));
+
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      const context = contextPool.getContext(workdirPath2);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+    });
+
+    it('uses an active model from serialized state', async function() {
+      const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+
+      await contextUpdateAfter(() => githubPackage.activate({
+        activeRepositoryPath: workdirPath2,
+        firstRun: false,
+      }));
+
+      const context = contextPool.getContext(workdirPath2);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+    });
+
+    it('prefers the active model from an active pane item to serialized state', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
+      await workspace.open(path.join(workdirPath2, 'b.txt'));
+
+      await contextUpdateAfter(() => githubPackage.activate({
+        activeRepositoryPath: workdirPath1,
+      }));
+
+      const context = contextPool.getContext(workdirPath2);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+    });
+
+    it('prefers the active model from a single project to serialized state', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1]);
+
+      await contextUpdateAfter(() => githubPackage.activate({
+        activeRepositoryPath: workdirPath2,
+      }));
+
+      const context = contextPool.getContext(workdirPath1);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+    });
+
+    it('restores the active resolution progress', async function() {
       // Repository with a merge conflict, repository without a merge conflict, path without a repository
       const workdirMergeConflict = await cloneRepository('merge-conflict');
       const workdirNoConflict = await cloneRepository('three-files');
@@ -203,14 +238,13 @@ describe('GithubPackage', function() {
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
 
       project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
-      await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
+      await contextUpdateAfter(() => githubPackage.activate());
 
       // Open a file in the merge conflict repository.
       await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-ours.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveContextUpdate();
 
-      const resolutionMergeConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
+      const resolutionMergeConflict = contextPool.getContext(workdirMergeConflict).getResolutionProgress();
       await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
 
       // Record some resolution progress to recall later
@@ -218,40 +252,275 @@ describe('GithubPackage', function() {
 
       // Open a file in the non-merge conflict repository.
       await workspace.open(path.join(workdirNoConflict, 'b.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveContextUpdate();
 
-      const resolutionNoConflict = await githubPackage.getResolutionProgressForWorkdirPath(workdirNoConflict);
-      await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionNoConflict);
+      const resolutionNoConflict = contextPool.getContext(workdirNoConflict).getResolutionProgress();
+      assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionNoConflict);
       assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
 
       // Open a file in the workdir with no repository.
       await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveContextUpdate();
 
-      await assert.isNull(githubPackage.getActiveResolutionProgress());
+      assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
 
       // Re-open a file in the merge conflict repository.
       await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-theirs.txt'));
-      await githubPackage.updateActiveModels();
+      await githubPackage.scheduleActiveContextUpdate();
 
-      await assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
+      assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
       assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
       assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
+    });
+  });
+
+  describe('when the project paths change', function() {
+    it('adds new workdirs to the pool', async function() {
+      const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+
+      project.setPaths([workdirPath1, workdirPath2]);
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+      assert.isFalse(contextPool.getContext(workdirPath3).isPresent());
+
+      await contextUpdateAfter(() => project.setPaths([workdirPath1, workdirPath2, workdirPath3]));
+
+      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath3).isPresent());
+    });
+
+    it('destroys contexts associated with the removed project folders', async function() {
+      const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      const [repository1, repository2, repository3] = [workdirPath1, workdirPath2, workdirPath3].map(workdir => {
+        return contextPool.getContext(workdir).getRepository();
+      });
+
+      sinon.stub(repository1, 'destroy');
+      sinon.stub(repository2, 'destroy');
+      sinon.stub(repository3, 'destroy');
+
+      await contextUpdateAfter(() => project.removePath(workdirPath1));
+      await contextUpdateAfter(() => project.removePath(workdirPath3));
+
+      assert.equal(repository1.destroy.callCount, 1);
+      assert.equal(repository3.destroy.callCount, 1);
+      assert.isFalse(repository2.destroy.called);
+
+      assert.isFalse(contextPool.getContext(workdirPath1).isPresent());
+      assert.isFalse(contextPool.getContext(workdirPath3).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+    });
+
+    it('returns to an absent context when the last project folder is removed', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isTrue(githubPackage.getActiveRepository().isLoading() || githubPackage.getActiveRepository().isPresent());
+
+      await contextUpdateAfter(() => project.setPaths([]));
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
+    });
+
+    it('does not transition away from an absent guess when no project folders are present', async function() {
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsentGuess());
+    });
+  });
+
+  describe('when the active pane item changes', function() {
+    it('becomes the active context', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
+
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      const repository2 = contextPool.getContext(workdirPath2).getRepository();
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'b.txt')));
+
+      assert.strictEqual(githubPackage.getActiveRepository(), repository2);
+    });
+
+    it('adds a new context if not in a project', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1]);
+
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
+
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'c.txt')));
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+    });
+
+    it('removes a context if not in a project', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1]);
+      await contextUpdateAfter(() => githubPackage.activate());
+
+      await contextUpdateAfter(() => workspace.open(path.join(workdirPath2, 'c.txt')));
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+
+      await contextUpdateAfter(() => workspace.getActivePane().destroyActiveItem());
+      assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
+    });
+  });
+
+  describe('scheduleActiveContextUpdate()', function() {
+    beforeEach(function() {
+      // Necessary since we skip activate()
+      githubPackage.savedState = {};
+      githubPackage.useLegacyPanels = !workspace.getLeftDock;
+    });
+
+    it('prefers the context of the active pane item', async function() {
+      const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1]);
+      await workspace.open(path.join(workdirPath2, 'a.txt'));
+
+      await githubPackage.scheduleActiveContextUpdate({
+        activeRepositoryPath: workdirPath3,
+      });
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+    });
+
+    it('uses an absent context when the active item is not in a git repository', async function() {
+      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const workdir = await cloneRepository('three-files');
+      project.setPaths([nonRepositoryPath, workdir]);
+      await writeFile(path.join(nonRepositoryPath, 'a.txt'), 'stuff');
+
+      await workspace.open(path.join(nonRepositoryPath, 'a.txt'));
+
+      await githubPackage.scheduleActiveContextUpdate();
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
+    });
+
+    it('uses the context of a single open project', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1]);
+
+      await githubPackage.scheduleActiveContextUpdate({
+        activeRepositoryPath: workdirPath2,
+      });
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+    });
+
+    it('uses an empty context with a single open project without a git workdir', async function() {
+      const nonRepositoryPath = await getTempDir();
+      project.setPaths([nonRepositoryPath]);
+
+      await githubPackage.scheduleActiveContextUpdate();
+      await githubPackage.getActiveRepository().getLoadPromise();
+
+      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
+      assert.isTrue(githubPackage.getActiveRepository().isEmpty());
+      assert.isFalse(githubPackage.getActiveRepository().isAbsent());
+    });
+
+    it('activates a saved context state', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
+
+      await githubPackage.scheduleActiveContextUpdate({
+        activeRepositoryPath: workdirPath2,
+      });
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+    });
+
+    it('falls back to keeping the context the same', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
+
+      contextPool.set([workdirPath1, workdirPath2]);
+      githubPackage.setActiveContext(contextPool.getContext(workdirPath1));
+
+      await githubPackage.scheduleActiveContextUpdate();
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+    });
+
+    it('discovers a context from an open subdirectory', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const projectPath = path.join(workdirPath, 'subdir-1');
+      project.setPaths([projectPath]);
+
+      await githubPackage.scheduleActiveContextUpdate();
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+    });
+
+    it('reverts to an empty context if the active repository is destroyed', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
+
+      await githubPackage.scheduleActiveContextUpdate();
+
+      assert.isTrue(contextPool.getContext(workdirPath).isPresent());
+      const repository = contextPool.getContext(workdirPath).getRepository();
+
+      repository.destroy();
+
+      assert.isTrue(githubPackage.getActiveRepository().isAbsent());
     });
 
     // Don't worry about this on Windows as it's not a common op
     if (process.platform !== 'win32') {
-      it('handles symlinked project paths', async () => {
+      it('handles symlinked project paths', async function() {
         const workdirPath = await cloneRepository('three-files');
         const symlinkPath = fs.realpathSync(temp.mkdirSync()) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
-        await githubPackage.activate();
-
         await workspace.open(path.join(symlinkPath, 'a.txt'));
 
-        await githubPackage.updateActiveModels();
-        assert.isOk(githubPackage.getActiveRepository());
+        await githubPackage.scheduleActiveContextUpdate();
+        await assert.async.isOk(githubPackage.getActiveRepository());
       });
     }
   });
@@ -261,21 +530,28 @@ describe('GithubPackage', function() {
     let workdirPath2, atomGitRepository2, repository2;
 
     beforeEach(async function() {
-      workdirPath1 = await cloneRepository('three-files');
-      workdirPath2 = await cloneRepository('three-files');
+      [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
 
       fs.writeFileSync(path.join(workdirPath1, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
       fs.writeFileSync(path.join(workdirPath2, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      await githubPackage.getInitialWatchersStartedPromise();
+      await until('change observers have started', () => {
+        return [workdirPath1, workdirPath2].every(workdir => {
+          return contextPool.getContext(workdir).getChangeObserver().isStarted();
+        });
+      });
+
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
       sinon.stub(atomGitRepository2, 'refreshStatus');
 
-      repository1 = await githubPackage.getRepositoryForWorkdirPath(workdirPath1);
-      repository2 = await githubPackage.getRepositoryForWorkdirPath(workdirPath2);
+      repository1 = contextPool.getContext(workdirPath1).getRepository();
+      repository2 = contextPool.getContext(workdirPath2).getRepository();
       sinon.stub(repository1, 'refresh');
       sinon.stub(repository2, 'refresh');
     });
@@ -317,71 +593,24 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe('#createRepositoryForProjectPath', function() {
+  describe('createRepositoryForProjectPath()', function() {
     it('creates and sets a repository for the given project path', async function() {
-      const workdirPath1 = await cloneRepository('three-files');
-      const workdirPath2 = await cloneRepository('three-files');
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
-      fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
-      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
-      await githubPackage.activate();
+      const nonRepositoryPath = await getTempDir();
+      project.setPaths([nonRepositoryPath]);
 
-      await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
-      await assert.async.isNull(githubPackage.getActiveRepository());
+      await contextUpdateAfter(() => githubPackage.activate());
+      await githubPackage.getActiveRepository().getLoadPromise();
+
+      assert.isTrue(githubPackage.getActiveRepository().isEmpty());
+      assert.isFalse(githubPackage.getActiveRepository().isAbsent());
+
       await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
-      assert.isOk(githubPackage.getActiveRepository());
-      assert.equal(githubPackage.getActiveRepository(), await githubPackage.getRepositoryForWorkdirPath(nonRepositoryPath));
-    });
-  });
 
-  describe('#projectPathForItemPath', function() {
-    it('does not error when the path is falsy (e.g. new unsaved file)', function() {
-      sinon.stub(project, 'getDirectories').returns([new Directory('path')]);
-      assert.doesNotThrow(() => {
-        githubPackage.projectPathForItemPath(null);
-      });
-    });
-
-    it('returns the correct path when the item path starts with the project path but the item path is not in the project', function() {
-      const dirs = [path.join('path', 'to', 'my'), path.join('path', 'to', 'my-project')].map(p => new Directory(p));
-      sinon.stub(project, 'getDirectories').returns(dirs);
-      assert.equal(githubPackage.projectPathForItemPath(path.join('path', 'to', 'my-project', 'file.txt')), path.join('path', 'to', 'my-project'));
-    });
-  });
-
-  describe('serialized state', function() {
-    it('restores nonempty resolution progress', async function() {
-      const workdirMergeConflict = await cloneRepository('merge-conflict');
-      const workdirNoConflict = await cloneRepository('three-files');
-
-      project.setPaths([workdirMergeConflict, workdirNoConflict]);
-      await githubPackage.activate();
-      await githubPackage.getInitialModelsPromise();
-
-      // Record some state to recover later.
-      const resolutionMergeConflict0 = await githubPackage.getResolutionProgressForWorkdirPath(workdirMergeConflict);
-      resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
-
-      const payload = githubPackage.serialize();
-
-      // Use a little guilty knowledge of the payload structure to ensure that the workdir without resolution
-      // progress isn't serialized with the rest of the package state.
-      assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
-      assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
-
-      const githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+      assert.isTrue(githubPackage.getActiveRepository().isPresent());
+      assert.strictEqual(
+        githubPackage.getActiveRepository(),
+        await contextPool.getContext(nonRepositoryPath).getRepository(),
       );
-      await githubPackage1.activate(payload);
-      await githubPackage1.getInitialModelsPromise();
-
-      const resolutionMergeConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirMergeConflict);
-      const resolutionNoConflict1 = await githubPackage1.getResolutionProgressForWorkdirPath(workdirNoConflict);
-
-      assert.isFalse(resolutionMergeConflict1.isEmpty());
-      assert.equal(resolutionMergeConflict1.getRemaining('modified-on-both-ours.txt'), 3);
-
-      assert.isTrue(resolutionNoConflict1.isEmpty());
     });
   });
 });

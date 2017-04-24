@@ -2,9 +2,9 @@ import GithubLoginModel, {KeytarStrategy, SecurityBinaryStrategy, InMemoryStrate
 
 describe('GithubLoginModel', function() {
   [null, KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy].forEach(function(Strategy) {
-    if (!Strategy || Strategy.isValid()) {
-      describe((Strategy && Strategy.name) || 'default strategy', function() {
-        it('manages passwords', async function() {
+    describe((Strategy && Strategy.name) || 'default strategy', function() {
+      it('manages passwords', async function() {
+        if (!Strategy || await Strategy.isValid()) {
           const loginModel = new GithubLoginModel(Strategy);
           const callback = sinon.stub();
           loginModel.onDidUpdate(callback);
@@ -15,13 +15,11 @@ describe('GithubLoginModel', function() {
           assert.equal(await loginModel.getToken('test-account'), TOKEN);
           await loginModel.removeToken('test-account');
           assert.equal(await loginModel.getToken('test-account'), UNAUTHENTICATED);
-        });
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn(`Skipping tests for ${Strategy.name} as they are not supported on this platform (or maybe your Atom is unsigned?)`);
+        }
       });
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Skipping tests for ${Strategy.name} as they are not supported on this platform (or maybe your Atom is unsigned?)`,
-      );
-    }
+    });
   });
 });
