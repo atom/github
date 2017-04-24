@@ -15,36 +15,6 @@ describe('ResolutionProgress', function() {
     assert.equal(progress.getRemaining('path/to/file.txt'), 3);
   });
 
-  describe('serialization', function() {
-    let payload;
-
-    beforeEach(function() {
-      const progress0 = new ResolutionProgress();
-      progress0.load('1234abcd', {});
-      progress0.reportMarkerCount('path/to/file0.txt', 3);
-      progress0.reportMarkerCount('path/to/file1.txt', 4);
-
-      payload = progress0.serialize();
-    });
-
-    it('restores data from the same revision', function() {
-      const progress1 = new ResolutionProgress();
-      progress1.load('1234abcd', payload);
-      assert.equal(progress1.getRemaining('path/to/file0.txt'), 3);
-      assert.equal(progress1.getRemaining('path/to/file1.txt'), 4);
-      assert.isFalse(progress1.isEmpty());
-    });
-
-    it('restores an empty object for a different revision', function() {
-      const progress2 = new ResolutionProgress();
-      progress2.load('abcd1234', payload);
-
-      assert.isUndefined(progress2.getRemaining('path/to/file0.txt'));
-      assert.isUndefined(progress2.getRemaining('path/to/file1.txt'));
-      assert.isTrue(progress2.isEmpty());
-    });
-  });
-
   describe('onDidUpdate', function() {
     let progress, didUpdateSpy;
 
