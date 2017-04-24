@@ -3,13 +3,11 @@ import ResolutionProgress from '../../../lib/models/conflicts/resolution-progres
 describe('ResolutionProgress', function() {
   it('reports undefined for any path that has not reported progress yet', function() {
     const progress = new ResolutionProgress();
-    progress.load('1234abcd', {});
     assert.isUndefined(progress.getRemaining('path/to/file.txt'));
   });
 
   it('accepts reports of unresolved conflict counts', function() {
     const progress = new ResolutionProgress();
-    progress.load('1234abcd', {});
     progress.reportMarkerCount('path/to/file.txt', 3);
 
     assert.equal(progress.getRemaining('path/to/file.txt'), 3);
@@ -20,7 +18,6 @@ describe('ResolutionProgress', function() {
 
     beforeEach(function() {
       progress = new ResolutionProgress();
-      progress.load('1234abcd', {});
       progress.reportMarkerCount('path/file0.txt', 4);
 
       didUpdateSpy = sinon.spy();
