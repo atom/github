@@ -230,6 +230,10 @@ describe('Repository', function() {
       repo.refresh();
       assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), []);
     });
+
+    it('selectively invalidates the cache on stage');
+
+    it('selectively invalidates the cache on unstage');
   });
 
   describe('getFilePatchForPath', function() {
@@ -264,6 +268,8 @@ describe('Repository', function() {
       assert.notEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
       assert.deepEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
     });
+
+    it('uses cached data if available');
   });
 
   describe('applyPatchToIndex', function() {
@@ -298,6 +304,8 @@ describe('Repository', function() {
       assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
       assert.deepEqual(stagedChanges, []);
     });
+
+    it('selectively invalidates the cache');
   });
 
   describe('commit', function() {
@@ -407,6 +415,10 @@ describe('Repository', function() {
 
       assert.deepEqual((await repo.getLastCommit()).getMessage(), 'Make a commit');
     });
+
+    it('clears the stored resolution progress');
+
+    it('selectively invalidates the cache');
   });
 
   describe('fetch(branchName)', function() {
@@ -427,6 +439,8 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'third commit');
       assert.equal(localHead.message, 'second commit');
     });
+
+    it('selectively invalidates the cache');
   });
 
   describe('pull()', function() {
@@ -447,6 +461,8 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'third commit');
       assert.equal(localHead.message, 'third commit');
     });
+
+    it('selectively invalidates the cache');
   });
 
   describe('push()', function() {
@@ -477,6 +493,8 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'fifth commit');
       assert.deepEqual(remoteHead, localRemoteHead);
     });
+
+    it('selectively invalidates the cache');
   });
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
@@ -495,6 +513,8 @@ describe('Repository', function() {
       assert.equal(await localRepo.getBehindCount('master'), 1);
       assert.equal(await localRepo.getAheadCount('master'), 2);
     });
+
+    it('uses cached data if available');
   });
 
   describe('getRemoteForBranch(branchName)', function() {
@@ -520,6 +540,8 @@ describe('Repository', function() {
       const remote2 = await localRepo.getRemoteForBranch('master');
       assert.isFalse(remote2.isPresent());
     });
+
+    it('uses cached data if available');
   });
 
   describe('merge conflicts', function() {
@@ -592,6 +614,8 @@ describe('Repository', function() {
         const mergeConflicts = await repo.getMergeConflicts();
         assert.deepEqual(mergeConflicts, []);
       });
+
+      it('uses cached data if available');
     });
 
     describe('stageFiles([path])', function() {
@@ -738,6 +762,10 @@ describe('Repository', function() {
           assert.deepEqual(await repo.getUnstagedChanges(), unstagedChanges);
         });
       });
+
+      it('clears the stored resolution progress');
+
+      it('selectively invalidates the cache');
     });
   });
 
@@ -787,6 +815,8 @@ describe('Repository', function() {
       repo.refresh();
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
+
+    it('selectively invalidates the cache');
   });
 
   describe('maintaining discard history across repository instances', function() {
