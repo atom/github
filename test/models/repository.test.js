@@ -9,7 +9,15 @@ import {expectedDelegates} from '../../lib/models/repository-states';
 
 import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
 
+const PRIMER = Symbol('cachePrimer');
+
 describe('Repository', function() {
+  function primeCache(repo, ...keys) {
+    for (const key of keys) {
+      repo.state.cache.getOrSet(key, () => Promise.resolve(PRIMER));
+    }
+  }
+
   it('delegates all state methods', function() {
     const missing = expectedDelegates.filter(delegateName => {
       return Repository.prototype[delegateName] === undefined;
@@ -231,7 +239,52 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), []);
     });
 
-    it('selectively invalidates the cache on stage');
+    it('selectively invalidates the cache on stage', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const changedFileName = path.join('subdir-1', 'a.txt');
+      const unchangedFileName = 'b.txt';
+      fs.writeFileSync(path.join(workingDirPath, changedFileName), 'wat', 'utf8');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      primeCache(repo,
+        'changed-files',
+        `is-partially-staged:${changedFileName}`,
+        `file-patch:u:${changedFileName}`, `file-patch:s:${changedFileName}`,
+        `index:${changedFileName}`,
+        `is-partially-staged:${unchangedFileName}`,
+        `file-patch:u:${unchangedFileName}`, `file-patch:s:${unchangedFileName}`,
+        `index:${unchangedFileName}`,
+        'last-commit', 'branches', 'current-branch', 'remotes', 'ahead-count:master', 'behind-count:master',
+      );
+
+      await repo.stageFiles([changedFileName]);
+
+      const uninvalidated = await Promise.all([
+        repo.isPartiallyStaged(unchangedFileName),
+        repo.getFilePatchForPath(unchangedFileName),
+        repo.getFilePatchForPath(unchangedFileName, {staged: true}),
+        repo.readFileFromIndex(unchangedFileName),
+        repo.getLastCommit(),
+        repo.getBranches(),
+        repo.getCurrentBranch(),
+        repo.getRemotes(),
+        repo.getAheadCount('master'),
+        repo.getBehindCount('master'),
+      ]);
+
+      assert.isTrue(uninvalidated.every(result => result === PRIMER));
+
+      const invalidated = await Promise.all([
+        repo.getStatusesForChangedFiles(),
+        repo.isPartiallyStaged(changedFileName),
+        repo.getFilePatchForPath(changedFileName),
+        repo.getFilePatchForPath(changedFileName, {staged: true}),
+        repo.readFileFromIndex(changedFileName),
+      ]);
+
+      assert.isTrue(invalidated.every(result => result !== PRIMER));
+    });
 
     it('selectively invalidates the cache on unstage');
   });
