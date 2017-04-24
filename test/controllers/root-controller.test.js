@@ -19,10 +19,10 @@ import RootController from '../../lib/controllers/root-controller';
     let workspaceElement;
 
     function isGitPaneDisplayed(wrapper) {
-      if (workspace.getLeftDock && !useLegacyPanels) {
-        return wrapper.find('DockItem').exists();
-      } else {
+      if (useLegacyPanels || !workspace.getLeftDock) {
         return wrapper.find('Panel').prop('visible');
+      } else {
+        return wrapper.find('DockItem').exists();
       }
     }
 
