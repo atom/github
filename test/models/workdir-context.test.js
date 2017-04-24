@@ -1,6 +1,6 @@
 import {CompositeDisposable, Disposable} from 'event-kit';
 
-import {cloneRepository, sha} from '../helpers';
+import {cloneRepository} from '../helpers';
 
 import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
 
@@ -21,21 +21,12 @@ describe('WorkdirContext', function() {
       observeTextEditors: sinon.stub().returns(new Disposable()),
     };
 
-    const mockSavedResolutionProgress = {
-      revision: await sha(workingDirectory),
-      paths: {
-        'a.txt': 2,
-        'b.txt': 3,
-      },
-    };
-
     mockPromptCallback = query => 'reply';
 
     context = new WorkdirContext(workingDirectory, {
       window: mockWindow,
       workspace: mockWorkspace,
       promptCallback: mockPromptCallback,
-      savedResolutionProgress: mockSavedResolutionProgress,
     });
   });
 
@@ -48,16 +39,6 @@ describe('WorkdirContext', function() {
     assert.isTrue(context.getRepository().isLoading());
     assert.isTrue(context.getResolutionProgress().isEmpty());
     assert.isFalse(context.getChangeObserver().isStarted());
-  });
-
-  it('updates the resolution progress once the repository loads', async function() {
-    const progress = context.getResolutionProgress();
-
-    await context.getRepositoryStatePromise('Present');
-
-    assert.isFalse(progress.isEmpty());
-    assert.equal(progress.getRemaining('a.txt'), 2);
-    assert.equal(progress.getRemaining('b.txt'), 3);
   });
 
   it('starts the change observer after the repository loads', async function() {

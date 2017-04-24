@@ -1,6 +1,6 @@
 import temp from 'temp';
 
-import {cloneRepository, sha} from '../helpers';
+import {cloneRepository} from '../helpers';
 
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
@@ -61,22 +61,6 @@ describe('WorkdirContextPool', function() {
 
       await context.getRepositoryStatePromise('Present');
       assert.isTrue(context.getRepository().isPresent());
-    });
-
-    it('passes appropriate serialized state to the resolution progress', async function() {
-      const resolutionProgressByPath = {
-        [workingDirectory]: {
-          revision: await sha(workingDirectory),
-          paths: {'a.txt': 12},
-        },
-      };
-
-      pool.add(workingDirectory, {resolutionProgressByPath});
-      const context = pool.getContext(workingDirectory);
-      await context.getRepositoryStatePromise('Present');
-
-      const resolutionProgress = context.getResolutionProgress();
-      assert.equal(resolutionProgress.getRemaining('a.txt'), 12);
     });
   });
 
