@@ -1,6 +1,6 @@
 import temp from 'temp';
 
-import {cloneRepository, sha} from '../helpers';
+import {cloneRepository} from '../helpers';
 
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 
