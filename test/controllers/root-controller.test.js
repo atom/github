@@ -13,9 +13,18 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
 
-describe('RootController', function() {
+const useLegacyPanels = true;
+describe.only(`RootController with useLegacyPanels set to ${useLegacyPanels}`, function() {
   let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
   let workspaceElement;
+
+  function isGitPaneDisplayed(wrapper) {
+    if (workspace.getLeftDock && !useLegacyPanels) {
+      return wrapper.find('DockItem').exists();
+    } else {
+      return wrapper.find('Panel').prop('visible');
+    }
+  }
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -41,7 +50,7 @@ describe('RootController', function() {
         confirm={confirm}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
-        useLegacyPanels={true}
+        useLegacyPanels={useLegacyPanels}
         firstRun={false}
       />
     );
@@ -59,7 +68,7 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubPanelActive: false}});
       const wrapper = shallow(app);
 
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
     });
 
     it('is visible when the saved state indicates they were visible last run', async function() {
@@ -69,7 +78,7 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubPanelActive: true}});
       const wrapper = shallow(app);
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
     });
 
     it('is always visible when the firstRun prop is true', async function() {
@@ -79,7 +88,7 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository, firstRun: true});
       const wrapper = shallow(app);
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
     });
   });
 
@@ -317,11 +326,11 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app);
 
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
       wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitTab')();
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       wrapper.find('ObserveModelDecorator(StatusBarTileController)').prop('toggleGitTab')();
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
     });
   });
 
@@ -333,11 +342,11 @@ describe('RootController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app);
 
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
       wrapper.instance().toggleGitTab();
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       wrapper.instance().toggleGitTab();
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
     });
   });
 
@@ -356,12 +365,12 @@ describe('RootController', function() {
     });
 
     it('opens and focuses the Git panel when it is initially closed', function() {
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
       sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
 
       wrapper.instance().toggleGitTabFocus();
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       assert.equal(wrapper.instance().focusGitTab.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
@@ -370,11 +379,11 @@ describe('RootController', function() {
       wrapper.instance().toggleGitTab();
       sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
 
       wrapper.instance().toggleGitTabFocus();
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       assert.equal(wrapper.instance().focusGitTab.callCount, 1);
       assert.isFalse(workspace.getActivePane().activate.called);
     });
@@ -383,11 +392,11 @@ describe('RootController', function() {
       wrapper.instance().toggleGitTab();
       sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(true);
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
 
       wrapper.instance().toggleGitTabFocus();
 
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       assert.equal(wrapper.instance().focusGitTab.callCount, 0);
       assert.isTrue(workspace.getActivePane().activate.called);
     });
@@ -601,15 +610,15 @@ describe('RootController', function() {
     });
 
     it('opens the Git panel when it is initially closed', async function() {
-      assert.isFalse(wrapper.find('Panel').prop('visible'));
+      assert.isFalse(isGitPaneDisplayed(wrapper));
       assert.isTrue(await wrapper.instance().ensureGitTab());
     });
 
     it('does nothing when the Git panel is already open', async function() {
       wrapper.instance().toggleGitTab();
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
       assert.isFalse(await wrapper.instance().ensureGitTab());
-      assert.isTrue(wrapper.find('Panel').prop('visible'));
+      assert.isTrue(isGitPaneDisplayed(wrapper));
     });
   });
 
