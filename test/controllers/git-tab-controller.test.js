@@ -140,7 +140,7 @@ describe('GitTabController', function() {
     it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'abortMerge', async () => {
+      sinon.stub(repository, 'abortMerge').callsFake(async () => {
         await Promise.resolve();
         throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
       });
@@ -215,7 +215,7 @@ describe('GitTabController', function() {
     it('shows an error notification when committing throws an ECONFLICT exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'commit', async () => {
+      sinon.stub(repository, 'commit').callsFake(async () => {
         await Promise.resolve();
         throw new CommitError('ECONFLICT');
       });
@@ -232,7 +232,7 @@ describe('GitTabController', function() {
     it('sets amending to false', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'commit', () => Promise.resolve());
+      sinon.stub(repository, 'commit').callsFake(() => Promise.resolve());
       const didChangeAmending = sinon.stub();
       const controller = new GitTabController({
         workspace, commandRegistry, repository, didChangeAmending,
@@ -284,9 +284,9 @@ describe('GitTabController', function() {
       commitView = commitViewController.refs.commitView;
       focusElement = stagingView;
 
-      sinon.stub(commitView, 'focus', () => { focusElement = commitView; });
-      sinon.stub(commitView, 'isFocused', () => focusElement === commitView);
-      sinon.stub(stagingView, 'focus', () => { focusElement = stagingView; });
+      sinon.stub(commitView, 'focus').callsFake(() => { focusElement = commitView; });
+      sinon.stub(commitView, 'isFocused').callsFake(() => focusElement === commitView);
+      sinon.stub(stagingView, 'focus').callsFake(() => { focusElement = stagingView; });
     };
 
     const assertSelected = paths => {
@@ -479,11 +479,9 @@ describe('GitTabController', function() {
       assert.include(contentsWithMarkers, '>>>>>>>');
       assert.include(contentsWithMarkers, '<<<<<<<');
 
-      let choice;
-      sinon.stub(atom, 'confirm', () => choice);
-
+      sinon.stub(atom, 'confirm');
       // click Cancel
-      choice = 1;
+      atom.confirm.returns(1);
       await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
 
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 5);
@@ -491,8 +489,8 @@ describe('GitTabController', function() {
       assert.isTrue(atom.confirm.calledOnce);
 
       // click Stage
-      choice = 0;
       atom.confirm.reset();
+      atom.confirm.returns(0);
       await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
 
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);

@@ -28,6 +28,10 @@ describe('GithubPackage', function() {
       workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
     );
 
+    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
+      callback && setTimeout(callback);
+    });
+
     contextPool = githubPackage.getContextPool();
   });
 
@@ -179,6 +183,7 @@ describe('GithubPackage', function() {
 
       await contextUpdateAfter(() => githubPackage.activate({
         activeRepositoryPath: workdirPath2,
+        firstRun: false,
       }));
 
       const context = contextPool.getContext(workdirPath2);
@@ -394,6 +399,7 @@ describe('GithubPackage', function() {
     beforeEach(function() {
       // Necessary since we skip activate()
       githubPackage.savedState = {};
+      githubPackage.useLegacyPanels = !workspace.getLeftDock;
     });
 
     it('prefers the context of the active pane item', async function() {
