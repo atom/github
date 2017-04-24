@@ -11,7 +11,7 @@
     "fetch-schema": "node script/fetch-schema"
   },
   "engines": {
-    "atom": ">=1.13.0"
+    "atom": ">=1.18.0"
   },
   "atomTestRunner": "./test/runner",
   "atomTranspilers": [
