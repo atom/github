@@ -102,7 +102,6 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {});
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -127,12 +126,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 10);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -157,12 +151,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -190,13 +179,8 @@ describe('StagingView', function() {
       ];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path-0.txt')]: 2,
-          [path.join(workingDirectoryPath, 'conflicted-path-1.txt')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-0.txt'), 2);
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-1.txt'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -223,12 +207,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
