@@ -1,9 +1,17 @@
 import WorkerManager, {Operation} from '../lib/worker-manager';
 
 describe('WorkerManager', function() {
+  let workerManager;
+  beforeEach(() => {
+    workerManager = new WorkerManager();
+  });
+
+  afterEach(() => {
+    workerManager.destroy(true);
+  });
+
   describe('when a worker process crashes', function() {
     it('creates a new worker process (with the same operation count limit) and executes remaining operations', async function() {
-      const workerManager = WorkerManager.getInstance();
       workerManager.createNewWorker({operationCountLimit: 40});
       sinon.stub(Operation.prototype, 'complete');
 
@@ -29,7 +37,6 @@ describe('WorkerManager', function() {
 
   describe('when a worker process is sick', function() {
     it('creates a new worker with a new operation count limit that is based on the limit and completed operation count of the last worker', function() {
-      const workerManager = WorkerManager.getInstance();
 
       function createSickWorker(operationCountLimit, completedOperationCount) {
         const sickWorker = workerManager.getActiveWorker();
@@ -66,7 +73,6 @@ describe('WorkerManager', function() {
 
     describe('when the sick process crashes', function() {
       it('completes remaining operations in existing active process', function() {
-        const workerManager = WorkerManager.getInstance();
         const sickWorker = workerManager.getActiveWorker();
 
         sinon.stub(Operation.prototype, 'complete');
