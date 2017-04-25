@@ -7,7 +7,7 @@ import {cloneRepository} from './helpers';
 import {writeFile, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
-describe.only('GithubPackage', function() {
+describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
   let getLoadSettings;
   let githubPackage, contextPool;
