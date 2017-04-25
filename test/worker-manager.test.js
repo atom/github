@@ -28,4 +28,42 @@ describe('WorkerManager', function() {
       assert.deepEqual(worker2.getRemainingOperations(), worker1OperationsInFlight);
     });
   });
+
+  describe('when a worker process is sick', function() {
+    it('creates a new worker with a new operation count limit that is based on the limit and completed operation count of the last worker', function() {
+      const workerManager = WorkerManager.getInstance();
+
+      function createSickWorker(operationCountLimit, completedOperationCount) {
+        const sickWorker = workerManager.getActiveWorker();
+        sinon.stub(sickWorker, 'getOperationCountLimit').returns(operationCountLimit);
+        sinon.stub(sickWorker, 'getCompletedOperationCount').returns(completedOperationCount);
+        return sickWorker;
+      }
+
+      // when the last worker operation count limit was greater than or equal to the completed operation count
+      // this means that the average spawn time for the first operationCountLimit operations was already higher than the threshold
+      // the system is likely just slow, so we should increase the operationCountLimit so next time we do more operations before creating a new process
+      const sickWorker1 = createSickWorker(10, 9);
+      workerManager.onSick(sickWorker1);
+      assert.notEqual(sickWorker1, workerManager.getActiveWorker());
+      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 20);
+
+      const sickWorker2 = createSickWorker(50, 50);
+      workerManager.onSick(sickWorker2);
+      assert.notEqual(sickWorker2, workerManager.getActiveWorker());
+      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 100);
+
+      const sickWorker3 = createSickWorker(100, 100);
+      workerManager.onSick(sickWorker3);
+      assert.notEqual(sickWorker3, workerManager.getActiveWorker());
+      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 100);
+
+      // when the last worker operation count limit was less than the completed operation count
+      // this means that the system is performing better and we can drop the operationCountLimit back down to the base limit
+      const sickWorker4 = createSickWorker(100, 150);
+      workerManager.onSick(sickWorker4);
+      assert.notEqual(sickWorker4, workerManager.getActiveWorker());
+      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 10);
+    });
+  });
 });
