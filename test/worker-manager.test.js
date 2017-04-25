@@ -135,18 +135,30 @@ describe('WorkerManager', function() {
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
 
+      const script = `
+      const ipc = require('electron').ipcRenderer;
+      ipc.on('${Worker.channelName}', function() {
+        const args = Array.prototype.slice.apply(arguments)
+        args.shift();
+
+        args.unshift('${Worker.channelName}');
+        args.unshift(${remote.getCurrentWebContents().id})
+        ipc.sendTo.apply(ipc, args);
+      });
+      `;
+
+      await new Promise(resolve => browserWindow.webContents.executeJavaScript(script, resolve));
+
+      workerManager.destroy(true);
       workerManager = new WorkerManager();
 
-      const managerPid = await new Promise(resolve => {
-        browserWindow.webContents.executeJavaScript('process.pid', resolve);
-      });
-
       const worker1 = workerManager.getActiveWorker();
+      await worker1.getReadyPromise();
       workerManager.onSick(worker1);
       const worker2 = workerManager.getActiveWorker();
+      await worker2.getReadyPromise();
 
-      process.kill(managerPid, 'SIGKILL');
-      await assert.async.isFalse(isProcessAlive(managerPid));
+      browserWindow.destroy();
       await assert.async.isFalse(isProcessAlive(worker1.getPid()));
       await assert.async.isFalse(isProcessAlive(worker2.getPid()));
     });
