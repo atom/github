@@ -133,6 +133,7 @@ describe('WorkerManager', function() {
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
 
+      workerManager.destroy(true);
       workerManager = new WorkerManager();
 
       const managerPid = await new Promise(resolve => {
