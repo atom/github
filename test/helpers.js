@@ -192,6 +192,6 @@ afterEach(function() {
 // eslint-disable-next-line jasmine/no-global-setup
 after(() => {
   if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
-    WorkerManager.reset();
+    WorkerManager.reset(true);
   }
 });
