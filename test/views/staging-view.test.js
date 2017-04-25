@@ -101,7 +101,7 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {});
+      const resolutionProgress = new ResolutionProgress();
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -125,12 +125,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
-        },
-      });
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 10);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -154,12 +150,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -186,13 +178,9 @@ describe('StagingView', function() {
         },
       ];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path-0.txt')]: 2,
-          [path.join(workingDirectoryPath, 'conflicted-path-1.txt')]: 0,
-        },
-      });
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-0.txt'), 2);
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-1.txt'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -218,12 +206,8 @@ describe('StagingView', function() {
         status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
       }];
 
-      const resolutionProgress = new ResolutionProgress('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      const resolutionProgress = new ResolutionProgress();
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
