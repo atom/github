@@ -3,11 +3,17 @@ import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
 import util from 'util';
+import compareSets from 'compare-sets';
+import isEqual from 'lodash.isequal';
 
 import Repository from '../../lib/models/repository';
 import {expectedDelegates} from '../../lib/models/repository-states';
 
-import {cloneRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote, assertEqualSortedArraysByKey} from '../helpers';
+import {
+  cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey,
+} from '../helpers';
+import {writeFile} from '../../lib/helpers';
 
 const PRIMER = Symbol('cachePrimer');
 
@@ -512,8 +518,6 @@ describe('Repository', function() {
     });
 
     it('clears the stored resolution progress');
-
-    it('selectively invalidates the cache');
   });
 
   describe('fetch(branchName)', function() {
@@ -534,8 +538,6 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'third commit');
       assert.equal(localHead.message, 'second commit');
     });
-
-    it('selectively invalidates the cache');
   });
 
   describe('pull()', function() {
@@ -556,8 +558,6 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'third commit');
       assert.equal(localHead.message, 'third commit');
     });
-
-    it('selectively invalidates the cache');
   });
 
   describe('push()', function() {
@@ -588,8 +588,6 @@ describe('Repository', function() {
       assert.equal(remoteHead.message, 'fifth commit');
       assert.deepEqual(remoteHead, localRemoteHead);
     });
-
-    it('selectively invalidates the cache');
   });
 
   describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
@@ -608,8 +606,6 @@ describe('Repository', function() {
       assert.equal(await localRepo.getBehindCount('master'), 1);
       assert.equal(await localRepo.getAheadCount('master'), 2);
     });
-
-    it('uses cached data if available');
   });
 
   describe('getRemoteForBranch(branchName)', function() {
@@ -635,8 +631,6 @@ describe('Repository', function() {
       const remote2 = await localRepo.getRemoteForBranch('master');
       assert.isFalse(remote2.isPresent());
     });
-
-    it('uses cached data if available');
   });
 
   describe('merge conflicts', function() {
@@ -709,8 +703,6 @@ describe('Repository', function() {
         const mergeConflicts = await repo.getMergeConflicts();
         assert.deepEqual(mergeConflicts, []);
       });
-
-      it('uses cached data if available');
     });
 
     describe('stageFiles([path])', function() {
@@ -857,10 +849,6 @@ describe('Repository', function() {
           assert.deepEqual(await repo.getUnstagedChanges(), unstagedChanges);
         });
       });
-
-      it('clears the stored resolution progress');
-
-      it('selectively invalidates the cache');
     });
   });
 
@@ -910,8 +898,6 @@ describe('Repository', function() {
       repo.refresh();
       assert.deepEqual(await repo.getUnstagedChanges(), []);
     });
-
-    it('selectively invalidates the cache');
   });
 
   describe('maintaining discard history across repository instances', function() {
@@ -953,6 +939,196 @@ describe('Repository', function() {
       // Also should not throw
       const repo2 = new Repository(workingDirPath);
       await repo2.getLoadPromise();
+    });
+  });
+
+  describe('cache invalidation', function() {
+    const getCacheReaderMethods = options => {
+      const repository = options.repository;
+      const calls = new Map();
+
+      calls.set('getStatusesForChangedFiles', () => repository.getStatusesForChangedFiles());
+      calls.set('getStagedChangesSinceParentCommit', () => repository.getStagedChangesSinceParentCommit());
+      calls.set('getLastCommit', () => repository.getLastCommit());
+      calls.set('getBranches', () => repository.getBranches());
+      calls.set('getCurrentBranch', () => repository.getCurrentBranch());
+      calls.set('getRemotes', () => repository.getRemotes());
+
+      const withFile = (fileName, description) => {
+        calls.set(`isPartiallyStaged ${description}`, () => repository.isPartiallyStaged(fileName));
+        calls.set(
+          `getFilePatchForPath {unstaged} ${description}`,
+          () => repository.getFilePatchForPath(fileName, {staged: false}),
+        );
+        calls.set(
+          `getFilePatchForPath {staged} ${description}`,
+          () => repository.getFilePatchForPath(fileName, {staged: true}),
+        );
+        calls.set(
+          `getFilePatchForPath {staged, amending} ${description}`,
+          () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
+        );
+        calls.set(`readFileFromIndex ${description}`, () => repository.readFileFromIndex(fileName));
+      };
+
+      if (options.changedFile) {
+        withFile(options.changedFile, 'changed');
+      }
+      if (options.unchangedFile) {
+        withFile(options.unchangedFile, 'unchanged');
+      }
+
+      const withBranch = (branchName, description) => {
+        calls.set(`getAheadCount ${description}`, () => repository.getAheadCount(branchName));
+        calls.set(`getBehindCount ${description}`, () => repository.getBehindCount(branchName));
+      };
+
+      if (options.changedBranch) {
+        withBranch(options.changedBranch);
+      }
+      if (options.unchangedBranch) {
+        withBranch(options.unchangedBranch);
+      }
+
+      if (options.changedConfig) {
+        calls.set('getConfig changed', () => repository.getConfig(options.changedConfig));
+        calls.set('getConfig {local} changed', () => repository.getConfig(options.changedConfig, {local: true}));
+      }
+      if (options.unchangedConfig) {
+        calls.set('getConfig unchanged', () => repository.getConfig(options.unchangedConfig));
+        calls.set('getConfig {local} unchanged', () => repository.getConfig(options.unchangedConfig, {local: true}));
+      }
+
+      return calls;
+    };
+
+    /**
+     * Ensure that the correct cache keys are invalidated by a Repository operation.
+     */
+    async function assertCorrectInvalidation(options, operation) {
+      const methods = getCacheReaderMethods(options);
+
+      const record = () => {
+        const results = new Map();
+        return Promise.all(
+          Array.from(methods, ([name, call]) => {
+            return call().then(result => results.set(name, result));
+          }),
+        ).then(() => results);
+      };
+
+      const changedKeys = (mapA, mapB, identity) => {
+        assert.sameMembers(Array.from(mapA.keys()), Array.from(mapB.keys()));
+
+        const compareValues = (valueA, valueB) => {
+          if (identity) {
+            return valueA === valueB;
+          } else {
+            return isEqual(valueA, valueB);
+          }
+        };
+
+        const results = new Set();
+        for (const key of mapA.keys()) {
+          const valueA = mapA.get(key);
+          const valueB = mapB.get(key);
+
+          if (!compareValues(valueA, valueB)) {
+            results.add(key);
+          }
+        }
+        return results;
+      };
+
+      const before = await record();
+      await operation();
+      const cached = await record();
+
+      options.repository.state.cache.clear();
+      const after = await record();
+
+      const expected = changedKeys(before, after, false);
+      const actual = changedKeys(before, cached, true);
+      const {added, removed} = compareSets(expected, actual);
+
+      /* eslint-disable no-console */
+      if (added.size > 0) {
+        console.log('These cached method results were invalidated, but should not have been:');
+
+        for (const key of added) {
+          console.log(` ${key}:`);
+          console.log('  before:', before.get(key));
+          console.log('  cached:', cached.get(key));
+          console.log('   after:', after.get(key));
+        }
+      }
+
+      if (removed.size > 0) {
+        console.log('These cached method results should have been invalidated, but were not:');
+        for (const key of removed) {
+          console.log(` ${key}:`);
+          console.log('  before:', before.get(key));
+          console.log('  cached:', cached.get(key));
+          console.log('   after:', after.get(key));
+        }
+      }
+      /* eslint-enable no-console */
+
+      assert.isTrue(added.size === 0 && removed.size === 0, 'invalidated different method results');
+    }
+
+    describe('from method calls', function() {
+      it('when staging files', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'a.txt';
+        const unchangedFile = 'b.txt';
+
+        await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+          await repository.stageFiles([changedFile]);
+        });
+      });
+
+      it('when unstaging files');
+      it('when staging files from a parent commit');
+      it('when applying a patch to the index');
+      it('when applying a patch to the working directory');
+      it('when committing');
+      it('when merging');
+      it('when aborting a merge');
+      it('when checking out a side');
+      it('when writing a merge conflict to the index');
+      it('when checking out a revision');
+      it('when checking out paths');
+      it('when fetching');
+      it('when pulling');
+      it('when pushing');
+      it('when setting a config option');
+      it('when discarding working directory changes');
+    });
+
+    describe('from filesystem events', function() {
+      it('when staging files');
+      it('when unstaging files');
+      it('when staging files from a parent commit');
+      it('when applying a patch to the index');
+      it('when applying a patch to the working directory');
+      it('when committing');
+      it('when merging');
+      it('when aborting a merge');
+      it('when checking out a side');
+      it('when writing a merge conflict to the index');
+      it('when checking out a revision');
+      it('when checking out paths');
+      it('when fetching');
+      it('when pulling');
+      it('when pushing');
+      it('when setting a config option');
+      it('when discarding working directory changes');
     });
   });
 });
