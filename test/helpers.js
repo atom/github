@@ -158,6 +158,9 @@ export function createRenderer() {
 }
 
 export function isProcessAlive(pid) {
+  if (typeof pid !== 'number') {
+    throw new Error(`PID must be a number. Got ${pid}`);
+  }
   let alive = true;
   try {
     return process.kill(pid, 0);
