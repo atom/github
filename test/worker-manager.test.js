@@ -1,5 +1,3 @@
-import sinon from 'sinon';
-
 import WorkerManager, {Operation} from '../lib/worker-manager';
 
 describe('WorkerManager', function() {
