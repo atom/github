@@ -17,7 +17,7 @@ describe('WorkerManager', function() {
   describe('when a worker process crashes', function() {
     it('creates a new worker process (with the same operation count limit) and executes remaining operations', async function() {
       workerManager.createNewWorker({operationCountLimit: 40});
-      sinon.stub(Operation.prototype, 'complete');
+      sinon.stub(Operation.prototype, 'execute');
 
       const worker1 = workerManager.getActiveWorker();
       await worker1.getReadyPromise();
@@ -79,7 +79,7 @@ describe('WorkerManager', function() {
       it('completes remaining operations in existing active process', function() {
         const sickWorker = workerManager.getActiveWorker();
 
-        sinon.stub(Operation.prototype, 'complete');
+        sinon.stub(Operation.prototype, 'execute');
         workerManager.request();
         workerManager.request();
         workerManager.request();
@@ -103,7 +103,7 @@ describe('WorkerManager', function() {
     it('destroys the renderer processes created after they have completed their operations', async function() {
       const worker1 = workerManager.getActiveWorker();
 
-      sinon.stub(Operation.prototype, 'complete');
+      sinon.stub(Operation.prototype, 'execute');
       workerManager.request();
       workerManager.request();
       workerManager.request();
