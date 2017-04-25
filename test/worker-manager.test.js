@@ -102,6 +102,7 @@ describe('WorkerManager', function() {
   describe('destroy', function() {
     it('destroys the renderer processes created after they have completed their operations', async function() {
       const worker1 = workerManager.getActiveWorker();
+      await worker1.getReadyPromise();
 
       sinon.stub(Operation.prototype, 'execute');
       workerManager.request();
@@ -112,18 +113,19 @@ describe('WorkerManager', function() {
 
       workerManager.onSick(worker1);
       const worker2 = workerManager.getActiveWorker();
+      await worker2.getReadyPromise();
       workerManager.request();
       workerManager.request();
       const worker2Operations = worker2.getRemainingOperations();
       assert.equal(worker2Operations.length, 2);
 
       workerManager.destroy();
-      assert.isFalse(isProcessAlive(worker1.getPid()));
-      assert.isFalse(isProcessAlive(worker2.getPid()));
+      assert.isTrue(isProcessAlive(worker1.getPid()));
+      assert.isTrue(isProcessAlive(worker2.getPid()));
 
       [...worker1Operations, ...worker2Operations].forEach(operation => operation.complete());
-      await assert.async.isTrue(isProcessAlive(worker1.getPid()));
-      await assert.async.isTrue(isProcessAlive(worker2.getPid()));
+      await assert.async.isFalse(isProcessAlive(worker1.getPid()));
+      await assert.async.isFalse(isProcessAlive(worker2.getPid()));
     });
   });
 
