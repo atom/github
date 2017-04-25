@@ -39,6 +39,7 @@
     padding: 0 @component-padding;
     font-weight: normal;
     border-left: 1px solid @panel-heading-border-color;
+    white-space: nowrap;
     background: none;
     cursor: default;
 
@@ -54,6 +55,11 @@
       margin-right: 0;
       font-size: 1em;
       text-align: left;
+    }
+
+    &--fullWidth {
+      border-left: none;
+      border-bottom: 1px solid @panel-heading-border-color;
     }
   }
 

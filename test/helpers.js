@@ -39,6 +39,12 @@ export async function cloneRepository(repoName = 'three-files') {
   return copyCachedRepo(repoName);
 }
 
+export async function sha(directory) {
+  const git = new GitShellOutStrategy(directory);
+  const head = await git.getHeadCommit();
+  return head.sha;
+}
+
 /*
  * Initialize an empty repository at a temporary path.
  */
@@ -81,8 +87,9 @@ export async function getHeadCommitOnRemote(remotePath) {
   return git.getHeadCommit();
 }
 
-export function buildRepository(workingDirPath) {
-  const repository = Repository.open(workingDirPath);
+export async function buildRepository(workingDirPath) {
+  const repository = new Repository(workingDirPath);
+  await repository.getLoadPromise();
   // eslint-disable-next-line jasmine/no-global-setup
   afterEach(async () => {
     const repo = await repository;
