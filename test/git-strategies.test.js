@@ -3,9 +3,11 @@ import path from 'path';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
+import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {fsStat} from '../lib/helpers';
@@ -911,6 +913,37 @@ import {fsStat} from '../lib/helpers';
             100755 ${theirsSha} 3\ta.txt
           `);
         });
+      });
+    });
+
+    describe('executeGitCommand', function() {
+      it('shells out in process until WorkerManager instance is ready', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        const workerManager = WorkerManager.getInstance();
+        sinon.stub(workerManager, 'isReady');
+        sinon.stub(GitProcess, 'exec');
+        sinon.stub(workerManager, 'request');
+
+        workerManager.isReady.returns(false);
+        git.executeGitCommand();
+        assert.equal(GitProcess.exec.callCount, 1);
+        assert.equal(workerManager.request.callCount, 0);
+
+        workerManager.isReady.returns(true);
+        git.executeGitCommand();
+        assert.equal(GitProcess.exec.callCount, 1);
+        assert.equal(workerManager.request.callCount, 1);
+
+        workerManager.isReady.returns(false);
+        git.executeGitCommand();
+        assert.equal(GitProcess.exec.callCount, 2);
+        assert.equal(workerManager.request.callCount, 1);
+
+        workerManager.isReady.returns(true);
+        git.executeGitCommand();
+        assert.equal(GitProcess.exec.callCount, 2);
+        assert.equal(workerManager.request.callCount, 2);
       });
     });
   });
