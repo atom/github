@@ -94,4 +94,43 @@ describe('WorkerManager', function() {
       });
     });
   });
+
+  describe('destroy', function() {
+    it('destroys the renderer processes created after they have completed their operations', async function() {
+      function stillAlive(pid) {
+        // are you still there?
+        let alive = true;
+        try {
+          return process.kill(pid, 0);
+        } catch (e) {
+          alive = false;
+        }
+        return alive;
+      }
+
+      const worker1 = workerManager.getActiveWorker();
+
+      sinon.stub(Operation.prototype, 'complete');
+      workerManager.request();
+      workerManager.request();
+      workerManager.request();
+      const worker1Operations = worker1.getRemainingOperations();
+      assert.equal(worker1Operations.length, 3);
+
+      workerManager.onSick(worker1);
+      const worker2 = workerManager.getActiveWorker();
+      workerManager.request();
+      workerManager.request();
+      const worker2Operations = worker2.getRemainingOperations();
+      assert.equal(worker2Operations.length, 2);
+
+      workerManager.destroy();
+      assert.isFalse(stillAlive(worker1.getPid()));
+      assert.isFalse(stillAlive(worker2.getPid()));
+
+      [...worker1Operations, ...worker2Operations].forEach(operation => operation.complete());
+      await assert.async.isTrue(stillAlive(worker1.getPid()));
+      await assert.async.isTrue(stillAlive(worker2.getPid()));
+    });
+  });
 });
