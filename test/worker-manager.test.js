@@ -65,5 +65,29 @@ describe('WorkerManager', function() {
       assert.notEqual(sickWorker4, workerManager.getActiveWorker());
       assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 10);
     });
+
+    describe('when the sick process crashes', function() {
+      it('completes remaining operations in existing active process', function() {
+        const workerManager = WorkerManager.getInstance();
+        const sickWorker = workerManager.getActiveWorker();
+
+        sinon.stub(Operation.prototype, 'complete');
+        workerManager.request();
+        workerManager.request();
+        workerManager.request();
+
+        const operationsInFlight = sickWorker.getRemainingOperations();
+        assert.equal(operationsInFlight.length, 3);
+
+        workerManager.onSick(sickWorker);
+        assert.notEqual(sickWorker, workerManager.getActiveWorker());
+        const newWorker = workerManager.getActiveWorker();
+        assert.equal(newWorker.getRemainingOperations(), 0);
+
+        workerManager.onCrashed(sickWorker);
+        assert.equal(workerManager.getActiveWorker(), newWorker);
+        assert.equal(newWorker.getRemainingOperations().length, 3);
+      });
+    });
   });
 });
