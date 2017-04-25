@@ -157,6 +157,16 @@ export function createRenderer() {
   return renderer;
 }
 
+export function isProcessAlive(pid) {
+  let alive = true;
+  try {
+    return process.kill(pid, 0);
+  } catch (e) {
+    alive = false;
+  }
+  return alive;
+}
+
 // eslint-disable-next-line jasmine/no-global-setup
 beforeEach(function() {
   global.sinon = sinon.sandbox.create();
