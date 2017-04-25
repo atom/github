@@ -14,6 +14,19 @@ describe('WorkerManager', function() {
     workerManager.destroy(true);
   });
 
+  describe('isReady()', function() {
+    it('returns true if its worker is ready', async function() {
+      assert.isFalse(workerManager.isReady());
+      await workerManager.getReadyPromise();
+      assert.isTrue(workerManager.isReady());
+
+      workerManager.onSick(workerManager.getActiveWorker());
+      assert.isFalse(workerManager.isReady());
+      await workerManager.getReadyPromise();
+      assert.isTrue(workerManager.isReady());
+    });
+  });
+
   describe('when a worker process crashes', function() {
     it('creates a new worker process (with the same operation count limit) and executes remaining operations', async function() {
       workerManager.createNewWorker({operationCountLimit: 40});
