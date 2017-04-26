@@ -860,7 +860,6 @@ describe('Repository', function() {
       calls.set('getRemotes', () => repository.getRemotes());
 
       const withFile = (fileName, description) => {
-        calls.set(`isPartiallyStaged ${description}`, () => repository.isPartiallyStaged(fileName));
         calls.set(
           `getFilePatchForPath {unstaged} ${description}`,
           () => repository.getFilePatchForPath(fileName, {staged: false}),
