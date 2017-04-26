@@ -1159,9 +1159,53 @@ describe('Repository', function() {
         });
       });
 
-      it('when fetching');
-      it('when pulling');
-      it('when pushing');
+      it('when fetching', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = new Repository(localRepoPath);
+        await repository.getLoadPromise();
+
+        await repository.commit('wat', {allowEmpty: true});
+        await repository.commit('huh', {allowEmpty: true});
+
+        await assertCorrectInvalidation({repository}, async () => {
+          await repository.fetch('master');
+        });
+      });
+
+      it('when pulling', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+        const repository = new Repository(localRepoPath);
+        await repository.getLoadPromise();
+
+        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await repository.stageFiles(['new-file.txt']);
+        await repository.commit('wat');
+
+        const expected = [
+          'getStatusesForChangedFiles',
+          'readFileFromIndex new-file.txt',
+        ];
+        const files = ['new-file.txt', 'file.txt'];
+        await assertCorrectInvalidation({repository, files, expected}, async () => {
+          await repository.pull('master');
+        });
+      });
+
+      it('when pushing', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const repository = new Repository(localRepoPath);
+        await repository.getLoadPromise();
+
+        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await repository.stageFiles(['new-file.txt']);
+        await repository.commit('wat');
+
+        const files = ['new-file.txt', 'file.txt'];
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.push('master');
+        });
+      });
+
       it('when setting a config option');
       it('when discarding working directory changes');
     });
