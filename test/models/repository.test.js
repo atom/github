@@ -943,7 +943,7 @@ describe('Repository', function() {
   });
 
   describe('cache invalidation', function() {
-    const getCacheReaderMethods = options => {
+    function getCacheReaderMethods(options) {
       const repository = options.repository;
       const calls = new Map();
 
@@ -1000,7 +1000,7 @@ describe('Repository', function() {
       }
 
       return calls;
-    };
+    }
 
     /**
      * Ensure that the correct cache keys are invalidated by a Repository operation.
