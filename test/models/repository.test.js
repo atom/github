@@ -1102,14 +1102,131 @@ describe('Repository', function() {
         });
       });
 
-      it('when unstaging files');
-      it('when staging files from a parent commit');
-      it('when applying a patch to the index');
-      it('when applying a patch to the working directory');
-      it('when committing');
-      it('when merging');
-      it('when aborting a merge');
-      it('when checking out a side');
+      it('when unstaging files', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'a.txt';
+        const unchangedFile = 'b.txt';
+
+        await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
+        await repository.stageFiles([changedFile]);
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+          await repository.unstageFiles([changedFile]);
+        });
+      });
+
+      it('when staging files from a parent commit', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'a.txt';
+        const unchangedFile = 'b.txt';
+
+        await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
+        await repository.stageFiles([changedFile]);
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+          await repository.stageFilesFromParentCommit([changedFile]);
+        });
+      });
+
+      it('when applying a patch to the index', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'a.txt';
+        const unchangedFile = 'b.txt';
+
+        await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\n');
+        const patch = await repository.getFilePatchForPath(changedFile);
+        await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\nfoo-2\n');
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+          await repository.applyPatchToIndex(patch);
+        });
+      });
+
+      it('when applying a patch to the working directory', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'a.txt';
+        const unchangedFile = 'b.txt';
+
+        await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\n');
+        const patch = (await repository.getFilePatchForPath(changedFile)).getUnstagePatch();
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+          await repository.applyPatchToWorkdir(patch);
+        });
+      });
+
+      it('when committing', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'b.txt';
+        await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\nfoo-2\n');
+        await repository.stageFiles([changedFile]);
+
+        await assertCorrectInvalidation({repository, changedFile}, async () => {
+          await repository.commit('message');
+        });
+      });
+
+      it('when merging', async function() {
+        const workdir = await cloneRepository('merge-conflict');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const changedFile = 'modified-on-both-ours.txt';
+
+        // Needs to be invalidated when the commit succeeds
+        const expected = ['getLastCommit'];
+
+        await assertCorrectInvalidation({repository, changedFile, expected}, async () => {
+          await assert.isRejected(repository.merge('origin/branch'));
+        });
+      });
+
+      it('when aborting a merge', async function() {
+        const workdir = await cloneRepository('merge-conflict');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+        await assert.isRejected(repository.merge('origin/branch'));
+
+        const changedFile = 'modified-on-both-ours.txt';
+
+        await assertCorrectInvalidation({repository, changedFile}, async () => {
+          await repository.abortMerge();
+        });
+      });
+
+      it('when checking out a side', async function() {
+        const workdir = await cloneRepository('merge-conflict');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+        await assert.isRejected(repository.merge('origin/branch'));
+
+        const changedFile = 'modified-on-both-ours.txt';
+        const unchangedFile = 'modified-on-both-theirs.txt';
+
+        const expected = [
+          'readFileFromIndex changed', // This is actually an error.
+        ];
+
+        await assertCorrectInvalidation({repository, changedFile, unchangedFile, expected}, async () => {
+          await repository.checkoutSide('ours', [changedFile]);
+        });
+      });
+
       it('when writing a merge conflict to the index');
       it('when checking out a revision');
       it('when checking out paths');
