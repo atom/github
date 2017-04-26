@@ -1054,6 +1054,12 @@ describe('Repository', function() {
       const actual = changedKeys(before, cached, true);
       const {added, removed} = compareSets(expected, actual);
 
+      if (options.expected) {
+        for (const opName of options.expected) {
+          added.delete(opName);
+        }
+      }
+
       /* eslint-disable no-console */
       if (added.size > 0) {
         console.log('These cached method results were invalidated, but should not have been:');
