@@ -1010,48 +1010,51 @@ describe('Repository', function() {
 
       const record = () => {
         const results = new Map();
-        return Promise.all(
-          Array.from(methods, ([name, call]) => {
-            return call().then(
-              result => results.set(name, result),
-              err => results.set(name, err),
-            );
-          }),
-        ).then(() => results);
-      };
-
-      const changedKeys = (mapA, mapB, identity) => {
-        assert.sameMembers(Array.from(mapA.keys()), Array.from(mapB.keys()));
-
-        const compareValues = (valueA, valueB) => {
-          if (identity) {
-            return valueA === valueB;
-          } else {
-            return isEqual(valueA, valueB);
-          }
-        };
-
-        const results = new Set();
-        for (const key of mapA.keys()) {
-          const valueA = mapA.get(key);
-          const valueB = mapB.get(key);
-
-          if (!compareValues(valueA, valueB)) {
-            results.add(key);
-          }
+        for (const [name, call] of methods) {
+          results.set(name, call());
         }
         return results;
       };
 
-      const before = await record();
+      const invalidatedKeys = (mapA, mapB) => {
+        const allKeys = Array.from(mapA.keys());
+        assert.sameMembers(allKeys, Array.from(mapB.keys()));
+
+        return new Set(
+          allKeys.filter(key => mapA.get(key) !== mapB.get(key)),
+        );
+      };
+
+      const changedKeys = async (mapA, mapB) => {
+        const allKeys = Array.from(mapA.keys());
+        assert.sameMembers(allKeys, Array.from(mapB.keys()));
+
+        const syncResults = await Promise.all(
+          allKeys.map(async key => {
+            return {
+              key,
+              aSync: await mapA.get(key).catch(e => e),
+              bSync: await mapB.get(key).catch(e => e),
+            };
+          }),
+        );
+
+        return new Set(
+          syncResults
+            .filter(({aSync, bSync}) => !isEqual(aSync, bSync))
+            .map(({key}) => key),
+        );
+      };
+
+      const before = record();
       await operation();
-      const cached = await record();
+      const cached = record();
 
       options.repository.state.cache.clear();
       const after = await record();
 
-      const expected = changedKeys(before, after, false);
-      const actual = changedKeys(before, cached, true);
+      const expected = await changedKeys(before, after);
+      const actual = invalidatedKeys(before, cached);
       const {added, removed} = compareSets(expected, actual);
 
       if (options.expected) {
