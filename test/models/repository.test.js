@@ -1012,7 +1012,10 @@ describe('Repository', function() {
         const results = new Map();
         return Promise.all(
           Array.from(methods, ([name, call]) => {
-            return call().then(result => results.set(name, result));
+            return call().then(
+              result => results.set(name, result),
+              err => results.set(name, err),
+            );
           }),
         ).then(() => results);
       };
