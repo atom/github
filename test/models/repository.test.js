@@ -908,6 +908,9 @@ describe('Repository', function() {
      */
     async function assertCorrectInvalidation(options, operation) {
       const methods = getCacheReaderMethods(options);
+      for (const opName of (options.skip || [])) {
+        methods.delete(opName);
+      }
 
       const record = () => {
         const results = new Map();
