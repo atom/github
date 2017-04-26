@@ -859,27 +859,24 @@ describe('Repository', function() {
       calls.set('getCurrentBranch', () => repository.getCurrentBranch());
       calls.set('getRemotes', () => repository.getRemotes());
 
-      const withFile = (fileName, description) => {
+      const withFile = fileName => {
         calls.set(
-          `getFilePatchForPath {unstaged} ${description}`,
+          `getFilePatchForPath {unstaged} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: false}),
         );
         calls.set(
-          `getFilePatchForPath {staged} ${description}`,
+          `getFilePatchForPath {staged} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: true}),
         );
         calls.set(
-          `getFilePatchForPath {staged, amending} ${description}`,
+          `getFilePatchForPath {staged, amending} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
         );
-        calls.set(`readFileFromIndex ${description}`, () => repository.readFileFromIndex(fileName));
+        calls.set(`readFileFromIndex ${fileName}`, () => repository.readFileFromIndex(fileName));
       };
 
-      if (options.changedFile) {
-        withFile(options.changedFile, 'changed');
-      }
-      if (options.unchangedFile) {
-        withFile(options.unchangedFile, 'unchanged');
+      for (const fileName of (options.files || [])) {
+        withFile(fileName);
       }
 
       const withBranch = (branchName, description) => {
@@ -1004,7 +1001,8 @@ describe('Repository', function() {
 
         await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
 
-        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+        const files = [changedFile, unchangedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.stageFiles([changedFile]);
         });
       });
@@ -1020,7 +1018,8 @@ describe('Repository', function() {
         await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
         await repository.stageFiles([changedFile]);
 
-        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+        const files = [changedFile, unchangedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.unstageFiles([changedFile]);
         });
       });
@@ -1036,7 +1035,8 @@ describe('Repository', function() {
         await writeFile(path.join(workdir, changedFile), 'bar\nbaz\n');
         await repository.stageFiles([changedFile]);
 
-        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+        const files = [changedFile, unchangedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.stageFilesFromParentCommit([changedFile]);
         });
       });
@@ -1053,7 +1053,8 @@ describe('Repository', function() {
         const patch = await repository.getFilePatchForPath(changedFile);
         await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\nfoo-2\n');
 
-        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+        const files = [changedFile, unchangedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.applyPatchToIndex(patch);
         });
       });
@@ -1069,7 +1070,8 @@ describe('Repository', function() {
         await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\n');
         const patch = (await repository.getFilePatchForPath(changedFile)).getUnstagePatch();
 
-        await assertCorrectInvalidation({repository, changedFile, unchangedFile}, async () => {
+        const files = [changedFile, unchangedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.applyPatchToWorkdir(patch);
         });
       });
@@ -1083,7 +1085,8 @@ describe('Repository', function() {
         await writeFile(path.join(workdir, changedFile), 'foo\nfoo-1\nfoo-2\n');
         await repository.stageFiles([changedFile]);
 
-        await assertCorrectInvalidation({repository, changedFile}, async () => {
+        const files = [changedFile];
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.commit('message');
         });
       });
