@@ -1282,7 +1282,7 @@ describe('Repository', function() {
 
         const files = ['a.txt'];
         await observer.start();
-        await assertCorrectInvalidation({repository, files, verbose: true}, async () => {
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.git.stageFiles(['a.txt']);
           await expectEvents('index');
         });
