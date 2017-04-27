@@ -983,7 +983,7 @@ describe('Repository', function() {
       if (options.strict) {
         assert.isTrue(added.size === 0 && removed.size === 0, 'invalidated different method results');
       } else {
-        assert.isTrue(removed.size === 0, 'bzzzt, overzealous invalidation detected');
+        assert.isTrue(removed.size === 0, 'bzzzt, inadequate cache busting detected');
       }
     }
 
