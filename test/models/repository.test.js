@@ -958,7 +958,7 @@ describe('Repository', function() {
       }
 
       /* eslint-disable no-console */
-      if (added.size > 0) {
+      if (added.size > 0 && (options.strict || options.verbose)) {
         console.log('These cached method results were invalidated, but should not have been:');
 
         for (const key of added) {
@@ -980,7 +980,11 @@ describe('Repository', function() {
       }
       /* eslint-enable no-console */
 
-      assert.isTrue(added.size === 0 && removed.size === 0, 'invalidated different method results');
+      if (options.strict) {
+        assert.isTrue(added.size === 0 && removed.size === 0, 'invalidated different method results');
+      } else {
+        assert.isTrue(removed.size === 0, 'bzzzt, overzealous invalidation detected');
+      }
     }
 
     describe('from method calls', function() {
