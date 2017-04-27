@@ -891,13 +891,9 @@ describe('Repository', function() {
         withBranch(options.unchangedBranch);
       }
 
-      if (options.changedConfig) {
-        calls.set('getConfig changed', () => repository.getConfig(options.changedConfig));
-        calls.set('getConfig {local} changed', () => repository.getConfig(options.changedConfig, {local: true}));
-      }
-      if (options.unchangedConfig) {
-        calls.set('getConfig unchanged', () => repository.getConfig(options.unchangedConfig));
-        calls.set('getConfig {local} unchanged', () => repository.getConfig(options.unchangedConfig, {local: true}));
+      for (const optionName of (options.optionNames || [])) {
+        calls.set(`getConfig ${optionName}`, () => repository.getConfig(optionName));
+        calls.set(`getConfig {local} ${optionName}`, () => repository.getConfig(optionName, {local: true}));
       }
 
       return calls;
