@@ -1261,6 +1261,7 @@ describe('Repository', function() {
       function expectEvents(...fileNames) {
         return new Promise((resolve, reject) => {
           eventCallback = () => {
+            console.log(require('util').inspect({fileNames, observedEvents}, { depth: null }));
             const observedFileNames = new Set(observedEvents.map(event => event.file || event.newFile));
             if (fileNames.every(fileName => observedFileNames.has(fileName))) {
               resolve();
