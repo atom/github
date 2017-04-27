@@ -1232,11 +1232,11 @@ describe('Repository', function() {
       let workdir, sub;
       let observedEvents, eventCallback;
 
-      async function wireUpObserver(fixtureName = 'multi-commits-files') {
+      async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
         observedEvents = [];
         eventCallback = () => {};
 
-        workdir = await cloneRepository(fixtureName);
+        workdir = existingWorkdir || await cloneRepository(fixtureName);
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
