@@ -1202,8 +1202,32 @@ describe('Repository', function() {
         });
       });
 
-      it('when setting a config option');
-      it('when discarding working directory changes');
+      it('when setting a config option', async function() {
+        const workdir = await cloneRepository('three-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const optionNames = ['core.editor', 'color.ui'];
+        await assertCorrectInvalidation({repository, optionNames}, async () => {
+          await repository.setConfig('core.editor', 'atom --wait #obvs');
+        });
+      });
+
+      it('when discarding working directory changes', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        await Promise.all([
+          writeFile(path.join(workdir, 'a.txt'), 'aaa\n'),
+          writeFile(path.join(workdir, 'c.txt'), 'baz\n'),
+        ]);
+
+        const files = ['a.txt', 'b.txt', 'c.txt'];
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.discardWorkDirChangesForPaths(['a.txt', 'c.txt']);
+        });
+      });
     });
 
     describe('from filesystem events', function() {
