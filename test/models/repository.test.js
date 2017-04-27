@@ -1288,22 +1288,200 @@ describe('Repository', function() {
         });
       });
 
-      it('when unstaging files');
-      it('when staging files from a parent commit');
-      it('when applying a patch to the index');
-      it('when applying a patch to the working directory');
-      it('when committing');
-      it('when merging');
-      it('when aborting a merge');
-      it('when checking out a side');
+      it('when unstaging files', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await repository.git.stageFiles(['a.txt']);
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.unstageFiles(['a.txt']);
+          await expectEvents('index');
+        });
+      });
+
+      it('when staging files from a parent commit', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.unstageFiles(['a.txt'], 'HEAD~');
+          await expectEvents('index');
+        });
+      });
+
+      it('when applying a patch to the index', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        const patch = await repository.getFilePatchForPath('a.txt');
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.applyPatch(patch.getHeaderString() + patch.toString(), {index: true});
+          await expectEvents('index');
+        });
+      });
+
+      it('when applying a patch to the working directory', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.applyPatch(patch.getHeaderString() + patch.toString());
+          await expectEvents('a.txt');
+        });
+      });
+
+      it('when committing', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await repository.stageFiles(['a.txt']);
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.commit('boop your snoot');
+          await expectEvents('index', 'master');
+        });
+      });
+
+      it('when merging', async function() {
+        const {repository, observer} = await wireUpObserver('merge-conflict');
+
+        const skip = [
+          'readFileFromIndex modified-on-both-ours.txt',
+        ];
+        const files = ['modified-on-both-ours.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents('index', 'modified-on-both-ours.txt', 'MERGE_HEAD');
+        });
+      });
+
+      it('when aborting a merge', async function() {
+        const {repository, observer} = await wireUpObserver('merge-conflict');
+        await assert.isRejected(repository.merge('origin/branch'));
+
+        const skip = [
+          'readFileFromIndex modified-on-both-ours.txt',
+        ];
+        const files = ['modified-on-both-ours.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
+          await repository.git.abortMerge();
+          await expectEvents('index', 'modified-on-both-ours.txt', 'MERGE_HEAD', 'HEAD');
+        });
+      });
+
       it('when writing a merge conflict to the index');
-      it('when checking out a revision');
-      it('when checking out paths');
-      it('when fetching');
-      it('when pulling');
-      it('when pushing');
-      it('when setting a config option');
-      it('when discarding working directory changes');
+
+      it('when checking out a revision', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        const skip = [
+          'getFilePatchForPath {staged, amending} b.txt',
+        ];
+        const files = ['b.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
+          await repository.git.checkout('HEAD^');
+          await expectEvents('index', 'HEAD', 'b.txt', 'c.txt');
+        });
+      });
+
+      it('when checking out paths', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        const files = ['b.txt', 'c.txt'];
+
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.checkoutFiles(['b.txt'], 'HEAD^');
+          await expectEvents('b.txt', 'index');
+        });
+      });
+
+      it('when fetching', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+
+        await repository.commit('wat', {allowEmpty: true});
+        await repository.commit('huh', {allowEmpty: true});
+
+        await observer.start();
+        await assertCorrectInvalidation({repository}, async () => {
+          await repository.git.fetch('origin', 'master');
+          await expectEvents('master');
+        });
+      });
+
+      it('when pulling', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+
+        await writeFile(path.join(localRepoPath, 'file.txt'), 'one\n');
+        await repository.stageFiles(['file.txt']);
+        await repository.commit('wat');
+
+        const skip = [
+          'readFileFromIndex file.txt',
+        ];
+        const files = ['file.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
+          await assert.isRejected(repository.git.pull('origin', 'master'));
+          await expectEvents('file.txt', 'master', 'MERGE_HEAD', 'index');
+        });
+      });
+
+      it('when pushing', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+
+        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await repository.stageFiles(['new-file.txt']);
+        await repository.commit('wat');
+
+        const files = ['new-file.txt', 'file.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await repository.git.push('origin', 'master');
+          await expectEvents('master');
+        });
+      });
+
+      it('when setting a config option', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        const optionNames = ['core.editor', 'color.ui'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, optionNames}, async () => {
+          await repository.git.setConfig('core.editor', 'ed # :trollface:');
+          await expectEvents('config');
+        });
+      });
+
+      it('when changing files in the working directory', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await observer.start();
+        const files = ['b.txt'];
+        await assertCorrectInvalidation({repository, files}, async () => {
+          await writeFile(path.join(workdir, 'b.txt'), 'new contents\n');
+          expectEvents('b.txt');
+        });
+      });
     });
   });
 });
