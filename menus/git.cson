@@ -3,8 +3,12 @@
     'label': 'View'
     'submenu': [
       {
-        'label': 'Toggle Git Panel'
+        'label': 'Toggle Git Tab'
         'command': 'github:toggle-git-tab'
+      }
+      {
+        'label': 'Toggle GitHub Tab'
+        'command': 'github:toggle-github-tab'
       }
     ]
   }
@@ -15,8 +19,12 @@
         'label': 'GitHub',
         'submenu': [
           {
-            'label': 'Toggle'
+            'label': 'Toggle Git Tab'
             'command': 'github:toggle-git-tab'
+          }
+          {
+            'label': 'Toggle GitHub Tab'
+            'command': 'github:toggle-github-tab'
           }
         ]
       }
