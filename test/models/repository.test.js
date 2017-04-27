@@ -1267,6 +1267,10 @@ describe('Repository', function() {
               resolve();
             }
           };
+
+          if (observedEvents.length > 0) {
+            eventCallback();
+          }
         });
       }
 
