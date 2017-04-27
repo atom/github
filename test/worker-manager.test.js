@@ -38,7 +38,7 @@ describe('WorkerManager', function() {
       workerManager.request();
       workerManager.request();
       const worker1OperationsInFlight = worker1.getRemainingOperations();
-      assert.equal(worker1OperationsInFlight.length, 3);
+      assert.lengthOf(worker1OperationsInFlight, 3);
 
       const worker1Pid = worker1.getPid();
       process.kill(worker1Pid, 'SIGKILL');
