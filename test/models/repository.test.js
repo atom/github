@@ -1250,8 +1250,6 @@ describe('Repository', function() {
         );
 
         sub.add(observer.onDidChange(events => {
-          console.log(require('util').inspect(events));
-
           repository.observeFilesystemChange(events);
           observedEvents.push(...events);
           eventCallback();
