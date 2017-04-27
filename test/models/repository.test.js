@@ -5,9 +5,11 @@ import temp from 'temp';
 import util from 'util';
 import compareSets from 'compare-sets';
 import isEqual from 'lodash.isequal';
+import {CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../../lib/models/repository';
 import {expectedDelegates} from '../../lib/models/repository-states';
+import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
@@ -1223,7 +1225,65 @@ describe('Repository', function() {
     });
 
     describe('from filesystem events', function() {
-      it('when staging files');
+      let workdir, sub;
+      let observedEvents, eventCallback;
+
+      async function wireUpObserver(fixtureName = 'multi-commits-files') {
+        observedEvents = [];
+        eventCallback = () => {};
+
+        workdir = await cloneRepository(fixtureName);
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const observer = new FileSystemChangeObserver(repository);
+
+        sub = new CompositeDisposable(
+          new Disposable(async () => {
+            await observer.destroy();
+            repository.destroy();
+          }),
+        );
+
+        sub.add(observer.onDidChange(events => {
+          console.log(require('util').inspect(events));
+
+          repository.observeFilesystemChange(events);
+          observedEvents.push(...events);
+          eventCallback();
+        }));
+
+        return {repository, observer};
+      }
+
+      function expectEvents(...fileNames) {
+        return new Promise((resolve, reject) => {
+          eventCallback = () => {
+            const observedFileNames = new Set(observedEvents.map(event => event.file || event.newFile));
+            if (fileNames.every(fileName => observedFileNames.has(fileName))) {
+              resolve();
+            }
+          };
+        });
+      }
+
+      afterEach(function() {
+        sub && sub.dispose();
+      });
+
+      it('when staging files', async function() {
+        const {repository, observer} = await wireUpObserver();
+
+        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+
+        const files = ['a.txt'];
+        await observer.start();
+        await assertCorrectInvalidation({repository, files, verbose: true}, async () => {
+          await repository.git.stageFiles(['a.txt']);
+          await expectEvents('index');
+        });
+      });
+
       it('when unstaging files');
       it('when staging files from a parent commit');
       it('when applying a patch to the index');
