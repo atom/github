@@ -28,6 +28,10 @@ describe('GithubPackage', function() {
       workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
     );
 
+    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
+      callback && setTimeout(callback);
+    });
+
     contextPool = githubPackage.getContextPool();
   });
 
@@ -179,6 +183,7 @@ describe('GithubPackage', function() {
 
       await contextUpdateAfter(() => githubPackage.activate({
         activeRepositoryPath: workdirPath2,
+        firstRun: false,
       }));
 
       const context = contextPool.getContext(workdirPath2);
@@ -394,6 +399,7 @@ describe('GithubPackage', function() {
     beforeEach(function() {
       // Necessary since we skip activate()
       githubPackage.savedState = {};
+      githubPackage.useLegacyPanels = !workspace.getLeftDock;
     });
 
     it('prefers the context of the active pane item', async function() {
@@ -605,47 +611,6 @@ describe('GithubPackage', function() {
         githubPackage.getActiveRepository(),
         await contextPool.getContext(nonRepositoryPath).getRepository(),
       );
-    });
-  });
-
-  describe('serialized state', function() {
-    function resolutionProgressFrom(pkg, workdir) {
-      return pkg.getContextPool().getContext(workdir).getResolutionProgress();
-    }
-
-    it('restores nonempty resolution progress', async function() {
-      const workdirMergeConflict = await cloneRepository('merge-conflict');
-      const workdirNoConflict = await cloneRepository('three-files');
-
-      project.setPaths([workdirMergeConflict, workdirNoConflict]);
-      await githubPackage.activate();
-      await githubPackage.scheduleActiveContextUpdate();
-
-      // Record some state to recover later.
-      const resolutionMergeConflict0 = resolutionProgressFrom(githubPackage, workdirMergeConflict);
-      await assert.async.isTrue(resolutionMergeConflict0.loaded);
-      resolutionMergeConflict0.reportMarkerCount('modified-on-both-ours.txt', 3);
-
-      const payload = githubPackage.serialize();
-
-      // Use a little guilty knowledge of the payload structure to ensure that the workdir without resolution
-      // progress isn't serialized with the rest of the package state.
-      assert.isDefined(payload.resolutionProgressByPath[workdirMergeConflict]);
-      assert.isUndefined(payload.resolutionProgressByPath[workdirNoConflict]);
-
-      const githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
-      );
-      await githubPackage1.activate(payload);
-      await githubPackage1.scheduleActiveContextUpdate();
-
-      const resolutionMergeConflict1 = resolutionProgressFrom(githubPackage1, workdirMergeConflict);
-      const resolutionNoConflict1 = resolutionProgressFrom(githubPackage1, workdirNoConflict);
-
-      await assert.async.isFalse(resolutionMergeConflict1.isEmpty());
-      assert.equal(resolutionMergeConflict1.getRemaining('modified-on-both-ours.txt'), 3);
-
-      assert.isTrue(resolutionNoConflict1.isEmpty());
     });
   });
 });

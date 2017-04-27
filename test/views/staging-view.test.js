@@ -102,7 +102,6 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {});
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -127,12 +126,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 10,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 10);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -157,12 +151,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -190,13 +179,8 @@ describe('StagingView', function() {
       ];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path-0.txt')]: 2,
-          [path.join(workingDirectoryPath, 'conflicted-path-1.txt')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-0.txt'), 2);
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-1.txt'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -223,12 +207,7 @@ describe('StagingView', function() {
       }];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.load('abcd1234', {
-        revision: 'abcd1234',
-        paths: {
-          [path.join(workingDirectoryPath, 'conflicted-path')]: 0,
-        },
-      });
+      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
 
       const view = new StagingView({
         workingDirectoryPath,
@@ -278,9 +257,7 @@ describe('StagingView', function() {
           unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
         });
         document.body.appendChild(view.element);
-        assert.equal(didSelectFilePath.callCount, 0);
 
-        view.focus();
         await view.selectNext();
         assert.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath));
         await view.selectNext();
@@ -291,7 +268,7 @@ describe('StagingView', function() {
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
-        assert.equal(didSelectMergeConflictFile.callCount, 0);
+        assert.equal(didSelectMergeConflictFile.callCount, 1);
 
         view.element.remove();
       });
@@ -327,7 +304,6 @@ describe('StagingView', function() {
         document.body.appendChild(view.element);
         assert.equal(didSelectFilePath.callCount, 0);
 
-        view.focus();
         await view.selectNext();
         assert.isFalse(didSelectFilePath.calledWith(filePatches[1].filePath));
         await assert.async.isTrue(didSelectFilePath.calledWith(filePatches[1].filePath));
@@ -340,7 +316,7 @@ describe('StagingView', function() {
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
-        await assert.async.isTrue(didSelectMergeConflictFile.callCount === 0);
+        await assert.async.isTrue(didSelectMergeConflictFile.callCount === 1);
 
         view.element.remove();
       });
@@ -394,7 +370,6 @@ describe('StagingView', function() {
         workingDirectoryPath, commandRegistry, didSelectFilePath,
         unstagedChanges, stagedChanges: [],
       });
-      view.isFocused = sinon.stub().returns(true);
 
       document.body.appendChild(view.element);
       await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
@@ -539,7 +514,6 @@ describe('StagingView', function() {
     const view = new StagingView({
       workingDirectoryPath, commandRegistry, unstagedChanges, stagedChanges: [],
     });
-    view.isFocused = sinon.stub().returns(true);
 
     document.body.appendChild(view.element);
     await view.mousedownOnItem({button: 0}, unstagedChanges[0]);
@@ -562,7 +536,6 @@ describe('StagingView', function() {
         ];
         const didSelectFilePath = sinon.stub();
         const view = new StagingView({commandRegistry, unstagedChanges, stagedChanges: [], didSelectFilePath});
-        view.isFocused = sinon.stub().returns(true);
 
         sinon.spy(view.selection, 'addOrSubtractSelection');
         sinon.spy(view.selection, 'selectItem');
