@@ -546,8 +546,8 @@ describe('GithubPackage', function() {
 
       repository1 = contextPool.getContext(workdirPath1).getRepository();
       repository2 = contextPool.getContext(workdirPath2).getRepository();
-      sinon.stub(repository1, 'refresh');
-      sinon.stub(repository2, 'refresh');
+      sinon.stub(repository1, 'observeFilesystemChange');
+      sinon.stub(repository2, 'observeFilesystemChange');
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 1', async function() {
@@ -557,7 +557,7 @@ describe('GithubPackage', function() {
 
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
-      await assert.async.isTrue(repository1.refresh.called);
+      await assert.async.isTrue(repository1.observeFilesystemChange.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
     });
 
@@ -568,21 +568,21 @@ describe('GithubPackage', function() {
 
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
-      await assert.async.isTrue(repository2.refresh.called);
+      await assert.async.isTrue(repository2.observeFilesystemChange.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 1', async function() {
       await repository1.git.exec(['commit', '-am', 'commit in repository1']);
 
-      await assert.async.isTrue(repository1.refresh.called);
+      await assert.async.isTrue(repository1.observeFilesystemChange.called);
       await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
     });
 
     it('refreshes the appropriate Repository and Atom GitRepository when a commit is made in workspace 2', async function() {
       await repository2.git.exec(['commit', '-am', 'commit in repository2']);
 
-      await assert.async.isTrue(repository2.refresh.called);
+      await assert.async.isTrue(repository2.observeFilesystemChange.called);
       await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
     });
   });
