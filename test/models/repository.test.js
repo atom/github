@@ -15,15 +15,7 @@ import {
 } from '../helpers';
 import {writeFile} from '../../lib/helpers';
 
-const PRIMER = Symbol('cachePrimer');
-
 describe('Repository', function() {
-  function primeCache(repo, ...keys) {
-    for (const key of keys) {
-      repo.state.cache.getOrSet(key, () => Promise.resolve(PRIMER));
-    }
-  }
-
   it('delegates all state methods', function() {
     const missing = expectedDelegates.filter(delegateName => {
       return Repository.prototype[delegateName] === undefined;
