@@ -8,6 +8,7 @@ import sinon from 'sinon';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import WorkerManager from '../lib/worker-manager';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -89,6 +90,11 @@ export async function getHeadCommitOnRemote(remotePath) {
 export async function buildRepository(workingDirPath) {
   const repository = new Repository(workingDirPath);
   await repository.getLoadPromise();
+  // eslint-disable-next-line jasmine/no-global-setup
+  afterEach(async () => {
+    const repo = await repository;
+    repo && repo.destroy();
+  });
   return repository;
 }
 
@@ -158,6 +164,19 @@ export function createRenderer() {
   return renderer;
 }
 
+export function isProcessAlive(pid) {
+  if (typeof pid !== 'number') {
+    throw new Error(`PID must be a number. Got ${pid}`);
+  }
+  let alive = true;
+  try {
+    return process.kill(pid, 0);
+  } catch (e) {
+    alive = false;
+  }
+  return alive;
+}
+
 // eslint-disable-next-line jasmine/no-global-setup
 beforeEach(function() {
   global.sinon = sinon.sandbox.create();
@@ -168,4 +187,11 @@ afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
   global.sinon.restore();
+});
+
+// eslint-disable-next-line jasmine/no-global-setup
+after(() => {
+  if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
+    WorkerManager.reset(true);
+  }
 });

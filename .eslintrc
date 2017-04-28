@@ -20,6 +20,7 @@
     "MouseEvent": true,
     "IDBKeyRange": true,
     "beforeEach": true,
+    "after": true,
     "afterEach": true,
     "describe": true,
     "fdescribe": true,
