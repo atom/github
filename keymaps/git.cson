@@ -1,5 +1,6 @@
 '.workspace':
   'ctrl-9': 'github:toggle-git-tab'
+  'ctrl-8': 'github:toggle-github-tab'
   'ctrl-(': 'github:toggle-git-tab-focus' # ctrl-shift-9
 
 '.github-Panel':
