@@ -1,43 +1,61 @@
-.github-PrUrlInputBox-Container {
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-}
 
-.github-PrUrlInputBox-Subview {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-self: center;
-  align-items: center;
-  padding: @component-padding * 2;
+@import "variables";
 
-  > button, > input {
-    margin: @component-padding;
+.github-PrUrlInputBox {
+
+  &-Container {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
   }
 
-  .icon-git-pull-request:before {
-    width: auto;
-    font-size: 48px;
-    color: @text-color-subtle;
-  }
-
-  p {
-    text-align: center;
-    font-size: 1.15em;
-    -webkit-user-select: none;
+  &-pinButton {
+    padding: @component-padding;
+    border-bottom: 1px solid @base-border-color;
     cursor: default;
+  }
 
-    &:last-of-type {
-      margin-bottom: 0;
+  // TODO: Simplify selector
+  &-pinButton + &-Subview {
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-Subview {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    align-items: center;
+    padding: @component-padding * 2;
+
+    > button, > input {
+      margin: @component-padding;
     }
 
-    a {
-      color: @text-color-info;
+    .icon-git-pull-request:before {
+      width: auto;
+      font-size: 48px;
+      color: @text-color-subtle;
+    }
+
+    p {
+      text-align: center;
+      font-size: 1.15em;
+      -webkit-user-select: none;
+      cursor: default;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+
+      a {
+        color: @text-color-info;
+      }
+    }
+
+    input[type=text] {
+      width: 100%;
     }
   }
 
-  input[type=text] {
-    width: 100%;
-  }
 }
