@@ -10,19 +10,26 @@
   flex-direction: column;
   align-self: center;
   align-items: center;
-  padding: 20px;
+  padding: @component-padding * 2;
 
   > button, > input {
     margin: @component-padding;
   }
 
+  .icon-git-pull-request:before {
+    width: auto;
+    font-size: 48px;
+    color: @text-color-subtle;
+  }
+
   p {
     text-align: center;
-    font-size: @font-size * 1.25;
-    margin: 0;
+    font-size: 1.15em;
+    -webkit-user-select: none;
+    cursor: default;
 
-    &:first-child {
-      margin-bottom: 20px;
+    &:last-of-type {
+      margin-bottom: 0;
     }
 
     a {
