@@ -5,6 +5,10 @@
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
+## Installation
+
+This package is bundled with Atom, and does not need to be installed separately.
+
 ## License
 
 The MIT license grant is not for GitHub's trademarks, which include the logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks.
