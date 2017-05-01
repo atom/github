@@ -1,0 +1,71 @@
+
+@import "variables";
+
+.github-PrUrlInputBox {
+
+  &-Container {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+
+    // TODO: Simplify selector
+    // Only add padding when inside this container
+    .github-PrUrlInputBox-Subview {
+      padding: @component-padding * 2;
+    }
+
+    p {
+      text-align: center;
+    }
+  }
+
+  &-pinButton {
+    padding: @component-padding;
+    border-bottom: 1px solid @base-border-color;
+    cursor: default;
+  }
+
+  // TODO: Simplify selector
+  &-pinButton + &-Subview {
+    padding: @component-padding;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-Subview {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    align-items: center;
+
+    > button, > input {
+      margin: @component-padding;
+    }
+
+    .icon-git-pull-request:before {
+      width: auto;
+      font-size: 48px;
+      color: @text-color-subtle;
+    }
+
+    p {
+      font-size: 1.1em;
+      line-height: 1.5;
+      -webkit-user-select: none;
+      cursor: default;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+
+      a {
+        color: @text-color-info;
+      }
+    }
+
+    input[type=text] {
+      width: 100%;
+    }
+  }
+
+}
