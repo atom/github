@@ -1,8 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
+import http from 'http';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
+import hock from 'hock';
 import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
@@ -945,6 +947,70 @@ import {fsStat} from '../lib/helpers';
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 2);
       });
+    });
+
+    describe('https authentication', function() {
+      async function withHttpRemote(options) {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir, options);
+
+        const mockGitServer = hock.createHock();
+
+        const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
+          '004961682f085ea7b27e2b3d933b5cd7e4892ce5288c refs/heads/master\0multi_ack\n' +
+          '0000';
+
+        mockGitServer
+          .get('/some/repo.git/info/refs?service=git-upload-pack')
+          .reply(401, '', {'WWW-Authenticate': 'Basic realm="SomeRealm"'})
+          .get('/some/repo.git/info/refs?service=git-upload-pack', {Authorization: 'Basic bWU6b3Blbi1zZXNhbWU='})
+          .reply(200, uploadPackAdvertisement, {'Content-Type': 'application/x-git-upload-pack-advertisement'})
+          .get('/some/repo.git/info/refs?service=git-upload-pack')
+          .reply(400);
+
+        const server = http.createServer(mockGitServer.handler);
+        return new Promise(resolve => {
+          server.listen(0, async () => {
+            const {address, port} = server.address();
+            await git.setConfig('remote.mock.url', `http://${address}:${port}/some/repo.git`);
+            await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+            resolve(git);
+          });
+        });
+      }
+
+      it('prompts for authentication data through Atom', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/(::|127.0.0.1):[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve();
+          },
+        });
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on authentication failure');
+      it('fails the command on dialog cancel');
+      it('prefers user-configured credential helpers if present');
+      it('falls back to Atom credential prompts if credential helpers are present but fail');
+    });
+
+    describe('ssh authentication', function() {
+      it('prompts for an SSH password through Atom');
+      it('fails the command on authentication failure');
+      it('fails the command on dialog cancel');
+      it('prefers a user-configured SSH_ASKPASS if present');
+      it('falls back to Atom credential prompts if SSH_ASKPASS is present but fails');
     });
   });
 });
