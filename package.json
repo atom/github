@@ -46,7 +46,7 @@
     "compare-sets": "^1.0.1",
     "core-decorators": "^0.17.0",
     "diff": "3.2.0",
-    "dugite": "^1.25.0",
+    "dugite": "^1.27.0",
     "enzyme": "^2.8.2",
     "etch": "0.12.1",
     "event-kit": "^2.3.0",
