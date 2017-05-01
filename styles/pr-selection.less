@@ -1,20 +1,28 @@
 @import 'variables';
 
 .github-PrSelectionByBranch {
-  padding: @component-padding;
   overflow: auto;
+
+  &-message {
+    padding: @component-padding;
+    padding-bottom: 0;
+  }
+
+  .github-PrUrlInputBox-Subview {
+    padding: 0 @component-padding @component-padding @component-padding;
+  }
 
   ul {
     list-style: none;
     padding-left: 0;
-    cursor: pointer;
-
-    li {
-      margin-bottom: @component-padding / 2;
-    }
-
-    li:nth-child(2n) {
-      background: @background-color-highlight;
+    cursor: default;
+  }
+  li {
+    padding: @component-padding/2 @component-padding;
+    border-top: 1px solid @base-border-color;
+    &:hover {
+      background-color: @background-color-highlight;
     }
   }
+
 }
