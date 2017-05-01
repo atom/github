@@ -1,27 +1,36 @@
 @import 'variables';
 
 .github-PrSelectionByBranch {
+  flex: 1;
+  display: flex;
   overflow: auto;
 
   &-message {
-    padding: @component-padding;
-    padding-bottom: 0;
+    padding: 0 @component-padding;
+    margin: @component-padding 0;
   }
 
-  .github-PrUrlInputBox-Subview {
-    padding: 0 @component-padding @component-padding @component-padding;
+  &-input {
+    padding: 0 @component-padding;
+    margin: @component-padding 0;
+
+    // TODO: Simplify selector
+    .github-PrUrlInputBox-Subview > input {
+      margin-top: 0;
+    }
   }
 
-  ul {
+  &-list {
     list-style: none;
     padding-left: 0;
     cursor: default;
-  }
-  li {
-    padding: @component-padding/2 @component-padding;
-    border-top: 1px solid @base-border-color;
-    &:hover {
-      background-color: @background-color-highlight;
+
+    li {
+      padding: @component-padding/2 @component-padding;
+      border-top: 1px solid @base-border-color;
+      &:hover {
+        background-color: @background-color-highlight;
+      }
     }
   }
 
