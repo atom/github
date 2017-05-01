@@ -87,6 +87,7 @@ describe('WorkdirContext', function() {
   });
 
   it('stops the change observer on destroy()', async function() {
+    this.retries(5);
     const observer = context.getChangeObserver();
     await observer.start();
 
