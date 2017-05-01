@@ -957,9 +957,13 @@ import {fsStat} from '../lib/helpers';
         const mockGitServer = hock.createHock();
 
         const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
-          '004961682f085ea7b27e2b3d933b5cd7e4892ce5288c refs/heads/master\0multi_ack\n' +
+          '0000' +
+          '005a66d11860af6d28eb38349ef83de475597cb0e8b4 HEAD\0multi_ack symref=HEAD:refs/heads/master\n' +
+          '003f66d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/master\n' +
           '0000';
 
+        // Accepted auth data:
+        // me:open-sesame
         mockGitServer
           .get('/some/repo.git/info/refs?service=git-upload-pack')
           .reply(401, '', {'WWW-Authenticate': 'Basic realm="SomeRealm"'})
@@ -991,7 +995,7 @@ import {fsStat} from '../lib/helpers';
             );
             assert.isTrue(query.includeUsername);
 
-            return Promise.resolve();
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
           },
         });
 
