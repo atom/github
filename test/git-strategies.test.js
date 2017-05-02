@@ -1055,7 +1055,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-success.py')),
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-success.sh')),
         );
 
         await git.fetch('mock', 'master');
@@ -1079,7 +1079,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-notfound.py')),
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-notfound.sh')),
         );
 
         await git.fetch('mock', 'master');
@@ -1103,7 +1103,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-kaboom.py')),
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-kaboom.sh')),
         );
 
         await git.fetch('mock', 'master');
@@ -1137,7 +1137,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
         await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.py'));
+        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh'));
         delete process.env.SSH_AUTH_SOCK;
 
         return git;
@@ -1203,7 +1203,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.py'));
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
 
         await git.fetch('mock', 'master');
         assert.isFalse(prompted);
@@ -1221,7 +1221,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.py'));
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
 
         await git.fetch('mock', 'master');
         assert.isTrue(prompted);
