@@ -950,6 +950,27 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
     });
 
     describe('https authentication', function() {
+      const envKeys = ['SSH_ASKPASS', 'GIT_ASKPASS'];
+      let preserved;
+
+      beforeEach(function() {
+        preserved = {};
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          preserved[key] = process.env[key];
+        }
+
+        process.env.SSH_ASKPASS = '';
+        process.env.GIT_ASKPASS = '';
+      });
+
+      afterEach(function() {
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          process.env[key] = preserved[key];
+        }
+      });
+
       async function withHttpRemote(options) {
         atom.config.set('github.gitDiagnostics', true);
 
