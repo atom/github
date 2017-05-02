@@ -1,5 +1,5 @@
 const net = require('net');
-const {exec} = require('child_process');
+const {execFile} = require('child_process');
 
 const sockPath = process.argv[2];
 const prompt = process.argv[3];
@@ -26,7 +26,9 @@ function userHelper() {
     }
 
     log(`attempting user askpass: ${userAskPass}`);
-    exec(`${userAskPass} '${prompt}'`, {cwd: workdirPath}, (err, stdout, stderr) => {
+
+    // Present on ${PATH} even in Windows from dugite!
+    execFile('sh', ['-c', `'${userAskPass}' '${prompt}'`], {cwd: workdirPath}, (err, stdout, stderr) => {
       log(`err:\n${require('util').inspect(err)}`);
       log(`stdout:\n${require('util').inspect(stdout)}`);
       log(`stderr:\n${require('util').inspect(stderr)}`);
