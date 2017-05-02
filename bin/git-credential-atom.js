@@ -85,7 +85,7 @@ function withAllHelpers(query, subAction) {
     log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
     log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
     log(`arguments = ${args.join(' ')}`);
-    log(`stdin =\n${stdin.replace(/password=[^\n]+/, '******')}`);
+    log(`stdin =\n${stdin.replace(/password=[^\n]+/, 'password=*******')}`);
 
     return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
   });
