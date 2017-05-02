@@ -1114,7 +1114,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
     });
 
     describe('ssh authentication', function() {
-      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS'];
+      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS', 'GIT_ASKPASS'];
       let preserved;
 
       beforeEach(function() {
@@ -1123,6 +1123,10 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           const key = envKeys[i];
           preserved[key] = process.env[key];
         }
+
+        delete process.env.SSH_AUTH_SOCK;
+        process.env.SSH_ASKPASS = '';
+        process.env.GIT_ASKPASS = '';
       });
 
       afterEach(function() {
@@ -1144,7 +1148,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
         process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
-        delete process.env.SSH_AUTH_SOCK;
 
         return git;
       }
