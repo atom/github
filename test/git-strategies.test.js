@@ -1137,7 +1137,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
         await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh'));
+        process.env.GIT_SSH_COMMAND = path.join(__dirname, 'scripts', 'ssh-remote.sh');
         delete process.env.SSH_AUTH_SOCK;
 
         return git;
