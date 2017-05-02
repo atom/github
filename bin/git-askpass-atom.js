@@ -29,10 +29,6 @@ function userHelper() {
 
     // Present on ${PATH} even in Windows from dugite!
     execFile('sh', ['-c', `'${userAskPass}' '${prompt}'`], {cwd: workdirPath}, (err, stdout, stderr) => {
-      log(`err:\n${require('util').inspect(err)}`);
-      log(`stdout:\n${require('util').inspect(stdout)}`);
-      log(`stderr:\n${require('util').inspect(stderr)}`);
-
       if (err) {
         log(`user askpass failed. this is ok\n${err.stack}`);
 
