@@ -950,9 +950,6 @@ import {fsStat} from '../lib/helpers';
     });
 
     describe('https authentication', function() {
-      beforeEach(function() {
-      });
-
       async function withHttpRemote(options) {
         const workdir = await cloneRepository('three-files');
         const git = createTestStrategy(workdir, options);
