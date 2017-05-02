@@ -1,4 +1,3 @@
 #!/bin/sh
 
-# who knows
-exit 143
+exit 1

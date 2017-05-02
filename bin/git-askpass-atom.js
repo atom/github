@@ -27,6 +27,10 @@ function userHelper() {
 
     log(`attempting user askpass: ${userAskPass}`);
     exec(`${userAskPass} '${prompt}'`, {cwd: workdirPath}, (err, stdout, stderr) => {
+      log(`err:\n${require('util').inspect(err)}`);
+      log(`stdout:\n${require('util').inspect(stdout)}`);
+      log(`stderr:\n${require('util').inspect(stderr)}`);
+
       if (err) {
         log(`user askpass failed. this is ok\n${err.stack}`);
 
