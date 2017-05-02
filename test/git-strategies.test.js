@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -1053,7 +1053,10 @@ import {fsStat} from '../lib/helpers';
           },
         });
 
-        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-success.py'));
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-success.py')),
+        );
 
         await git.fetch('mock', 'master');
         assert.isFalse(prompted);
@@ -1074,7 +1077,10 @@ import {fsStat} from '../lib/helpers';
           },
         });
 
-        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-notfound.py'));
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-notfound.py')),
+        );
 
         await git.fetch('mock', 'master');
         assert.isTrue(prompted);
@@ -1095,7 +1101,10 @@ import {fsStat} from '../lib/helpers';
           },
         });
 
-        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-kaboom.py'));
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-kaboom.py')),
+        );
 
         await git.fetch('mock', 'master');
         assert.isTrue(prompted);
@@ -1128,7 +1137,7 @@ import {fsStat} from '../lib/helpers';
         await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
         await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-        process.env.GIT_SSH_COMMAND = path.join(__dirname, 'scripts', 'ssh-remote.py');
+        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.py'));
         delete process.env.SSH_AUTH_SOCK;
 
         return git;
