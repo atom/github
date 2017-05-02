@@ -2,7 +2,6 @@
 
 PASSWORD=$(${SSH_ASKPASS} 'Speak friend and enter')
 if [ "${PASSWORD}" != 'friend' ]; then
-  printf 'Bzzzzzt bad password\n' >/dev/stderr
   exit 1
 fi
 
