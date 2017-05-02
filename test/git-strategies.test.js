@@ -1233,7 +1233,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
+        process.env.SSH_ASKPASS = path.join(__dirname, 'scripts', 'askpass-success.sh');
         console.log(`process.env.SSH_ASKPASS = ${process.env.SSH_ASKPASS}`);
 
         await git.fetch('mock', 'master');
