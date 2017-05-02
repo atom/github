@@ -2,6 +2,7 @@
 
 PASSWORD=$(${SSH_ASKPASS} 'Speak friend and enter')
 if [ "${PASSWORD}" != 'friend' ]; then
+  printf "Invalid password: [${PASSWORD}]\n" >&2
   exit 1
 fi
 
