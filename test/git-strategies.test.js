@@ -1044,8 +1044,62 @@ import {fsStat} from '../lib/helpers';
         assert.isTrue(prompted);
       });
 
-      it('prefers user-configured credential helpers if present');
-      it('falls back to Atom credential prompts if credential helpers are present but fail');
+      it('prefers user-configured credential helpers if present', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            return Promise.resolve();
+          },
+        });
+
+        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-success.py'));
+
+        await git.fetch('mock', 'master');
+        assert.isFalse(prompted);
+      });
+
+      it('falls back to Atom credential prompts if credential helpers are present but fail', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
+          },
+        });
+
+        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-notfound.py'));
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
+      it('falls back to Atom credential prompts if credential helpers are present but explode', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
+          },
+        });
+
+        await git.setConfig('credential.helper', path.join(__dirname, 'scripts', 'credential-helper-kaboom.py'));
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
     });
 
     describe('ssh authentication', function() {
