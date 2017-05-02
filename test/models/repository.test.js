@@ -1096,11 +1096,8 @@ describe('Repository', function() {
         const skip = [
           'readFileFromIndex modified-on-both-ours.txt',
         ];
-        const expected = [
-          'getLastCommit', // Needs to be invalidated when the commit succeeds
-        ];
         const files = ['modified-on-both-ours.txt'];
-        await assertCorrectInvalidation({repository, files, expected, skip}, async () => {
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
           await assert.isRejected(repository.merge('origin/branch'));
         });
       });
@@ -1114,11 +1111,8 @@ describe('Repository', function() {
         const stagedFile = 'modified-on-both-ours.txt';
         await repository.stageFiles([stagedFile]);
 
-        const expected = [
-          'getFilePatchForPath {unstaged} modified-on-both-ours.txt',
-        ];
         const files = [stagedFile];
-        await assertCorrectInvalidation({repository, files, expected}, async () => {
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.abortMerge();
         });
       });
@@ -1175,12 +1169,8 @@ describe('Repository', function() {
         await repository.stageFiles(['new-file.txt']);
         await repository.commit('wat');
 
-        const expected = [
-          'getStatusesForChangedFiles',
-          'readFileFromIndex new-file.txt',
-        ];
         const files = ['new-file.txt', 'file.txt'];
-        await assertCorrectInvalidation({repository, files, expected}, async () => {
+        await assertCorrectInvalidation({repository, files}, async () => {
           await repository.pull('master');
         });
       });
@@ -1385,8 +1375,6 @@ describe('Repository', function() {
           await expectEvents('index', 'modified-on-both-ours.txt', 'MERGE_HEAD', 'HEAD');
         });
       });
-
-      it('when writing a merge conflict to the index');
 
       it('when checking out a revision', async function() {
         const {repository, observer} = await wireUpObserver();
