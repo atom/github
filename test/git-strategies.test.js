@@ -1004,6 +1004,25 @@ import {fsStat} from '../lib/helpers';
       });
 
       it('fails the command on authentication failure', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'whoops'});
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on dialog cancel', async function() {
         // Until we resolve the TODO in lib/git-shell-out-strategy.js
         this.skip();
 
@@ -1025,7 +1044,6 @@ import {fsStat} from '../lib/helpers';
         assert.isTrue(prompted);
       });
 
-      it('fails the command on dialog cancel');
       it('prefers user-configured credential helpers if present');
       it('falls back to Atom credential prompts if credential helpers are present but fail');
     });
