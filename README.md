@@ -7,7 +7,7 @@ The Atom GitHub package provides Git and GitHub integration for Atom.
 
 ## Installation
 
-This package is bundled with Atom, and does not need to be installed separately.
+This package is bundled with Atom starting in version 1.18, and does not need to be installed separately.
 
 ## License
 
