@@ -1103,7 +1103,55 @@ import {fsStat} from '../lib/helpers';
     });
 
     describe('ssh authentication', function() {
-      it('prompts for an SSH password through Atom');
+      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK'];
+      let preserved;
+
+      beforeEach(function() {
+        preserved = {};
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          preserved[key] = process.env[key];
+        }
+      });
+
+      afterEach(function() {
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          process.env[key] = preserved[key];
+        }
+      });
+
+      async function withSSHRemote(options) {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir, options);
+
+        await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
+        await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+        process.env.GIT_SSH_COMMAND = path.join(__dirname, 'scripts', 'ssh-remote.py');
+        delete process.env.SSH_AUTH_SOCK;
+
+        return git;
+      }
+
+      it('prompts for an SSH password through Atom', async function() {
+        atom.config.set('github.gitDiagnostics', true);
+
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'friend'});
+          },
+        });
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
       it('fails the command on authentication failure');
       it('fails the command on dialog cancel');
       it('prefers a user-configured SSH_ASKPASS if present');
