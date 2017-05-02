@@ -974,7 +974,7 @@ import {fsStat} from '../lib/helpers';
 
         const server = http.createServer(mockGitServer.handler);
         return new Promise(resolve => {
-          server.listen(0, async () => {
+          server.listen(0, '127.0.0.1', async () => {
             const {address, port} = server.address();
             await git.setConfig('remote.mock.url', `http://${address}:${port}/some/repo.git`);
             await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
