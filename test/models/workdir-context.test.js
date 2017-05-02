@@ -86,12 +86,11 @@ describe('WorkdirContext', function() {
     assert.isTrue(repo.isDestroyed());
   });
 
-  it.only('stops the change observer on destroy()', async function() {
-    const observer = context.getChangeObserver();
-    await observer.start();
+  it('stops the change observer on destroy()', async function() {
+    await context.getObserverStartedPromise();
 
     await context.destroy();
-    await assert.async.isFalse(observer.isStarted());
+    await assert.isFalse(context.getChangeObserver().isStarted());
   });
 
   it('can be destroyed twice', async function() {
