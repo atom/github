@@ -8,6 +8,7 @@ const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 
 const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length !== 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
+const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
 const sockPath = process.argv[2];
 const action = process.argv[3];
 
@@ -30,6 +31,11 @@ function log(message) {
  * to collect them by running the native git, if one is present.
  */
 function systemCredentialHelpers() {
+  if (inSpecMode) {
+    // Skip system credential helpers in spec mode to maintain reproduceability across systems.
+    return Promise.resolve([]);
+  }
+
   return new Promise(resolve => {
     const env = {
       PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
