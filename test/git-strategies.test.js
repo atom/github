@@ -1234,6 +1234,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         });
 
         process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
+        console.log(`process.env.SSH_ASKPASS = ${process.env.SSH_ASKPASS}`);
 
         await git.fetch('mock', 'master');
         assert.isFalse(prompted);
