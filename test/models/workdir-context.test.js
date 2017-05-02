@@ -86,8 +86,7 @@ describe('WorkdirContext', function() {
     assert.isTrue(repo.isDestroyed());
   });
 
-  it('stops the change observer on destroy()', async function() {
-    this.retries(5);
+  it.only('stops the change observer on destroy()', async function() {
     const observer = context.getChangeObserver();
     await observer.start();
 
