@@ -1481,7 +1481,7 @@ describe('Repository', function() {
         const files = ['b.txt'];
         await assertCorrectInvalidation({repository, files}, async () => {
           await writeFile(path.join(workdir, 'b.txt'), 'new contents\n');
-          expectEvents('b.txt');
+          await expectEvents('b.txt');
         });
       });
     });
