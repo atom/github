@@ -87,12 +87,10 @@ describe('WorkdirContext', function() {
   });
 
   it('stops the change observer on destroy()', async function() {
-    this.retries(5);
-    const observer = context.getChangeObserver();
-    await observer.start();
+    await context.getObserverStartedPromise();
 
     await context.destroy();
-    await assert.async.isFalse(observer.isStarted());
+    await assert.isFalse(context.getChangeObserver().isStarted());
   });
 
   it('can be destroyed twice', async function() {
