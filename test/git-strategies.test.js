@@ -994,7 +994,7 @@ import {fsStat} from '../lib/helpers';
             prompted = true;
             assert.match(
               query.prompt,
-              /^Please enter your credentials for http:\/\/(::|127.0.0.1):[0-9]{0,5}/,
+              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
             );
             assert.isTrue(query.includeUsername);
 
