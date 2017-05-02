@@ -1,3 +1,5 @@
+import path from 'path';
+
 import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository} from '../helpers';
@@ -62,10 +64,9 @@ describe('WorkdirContext', function() {
 
     sinon.spy(repo, 'observeFilesystemChange');
 
-    const payload = {};
-    context.getChangeObserver().didChange(payload);
+    context.getChangeObserver().didChange([{directory: '/a/b', file: 'c'}]);
 
-    assert.isTrue(repo.observeFilesystemChange.calledWith(payload));
+    assert.isTrue(repo.observeFilesystemChange.calledWith([path.join('/a/b', 'c')]));
   });
 
   it('re-emits an event on workdir or head change', async function() {
