@@ -950,16 +950,9 @@ import {fsStat} from '../lib/helpers';
     });
 
     describe('https authentication', function() {
-      let savedPath;
-
       beforeEach(function() {
-        savedPath = process.env.PATH;
-        process.env.PATH = '';
       });
 
-      afterEach(function() {
-        process.env.PATH = savedPath;
-      });
       async function withHttpRemote(options) {
         const workdir = await cloneRepository('three-files');
         const git = createTestStrategy(workdir, options);
