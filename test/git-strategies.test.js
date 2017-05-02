@@ -951,6 +951,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
     describe('https authentication', function() {
       async function withHttpRemote(options) {
+        atom.config.set('github.gitDiagnostics', true);
+
         const workdir = await cloneRepository('three-files');
         const git = createTestStrategy(workdir, options);
 
@@ -1131,6 +1133,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       async function withSSHRemote(options) {
+        atom.config.set('github.gitDiagnostics', true);
+
         const workdir = await cloneRepository('three-files');
         const git = createTestStrategy(workdir, options);
 
