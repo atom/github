@@ -1144,8 +1144,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       }
 
       it('prompts for an SSH password through Atom', async function() {
-        atom.config.set('github.gitDiagnostics', true);
-
         let prompted = false;
         const git = await withSSHRemote({
           prompt: query => {
