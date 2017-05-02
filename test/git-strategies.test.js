@@ -1,8 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
+import http from 'http';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
+import hock from 'hock';
 import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
@@ -10,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -944,6 +946,311 @@ import {fsStat} from '../lib/helpers';
         git.executeGitCommand();
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 2);
+      });
+    });
+
+    describe('https authentication', function() {
+      const envKeys = ['SSH_ASKPASS', 'GIT_ASKPASS'];
+      let preserved;
+
+      beforeEach(function() {
+        preserved = {};
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          preserved[key] = process.env[key];
+        }
+
+        process.env.SSH_ASKPASS = '';
+        process.env.GIT_ASKPASS = '';
+      });
+
+      afterEach(function() {
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          process.env[key] = preserved[key];
+        }
+      });
+
+      async function withHttpRemote(options) {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir, options);
+
+        const mockGitServer = hock.createHock();
+
+        const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
+          '0000' +
+          '005a66d11860af6d28eb38349ef83de475597cb0e8b4 HEAD\0multi_ack symref=HEAD:refs/heads/master\n' +
+          '003f66d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/master\n' +
+          '0000';
+
+        // Accepted auth data:
+        // me:open-sesame
+        mockGitServer
+          .get('/some/repo.git/info/refs?service=git-upload-pack')
+          .reply(401, '', {'WWW-Authenticate': 'Basic realm="SomeRealm"'})
+          .get('/some/repo.git/info/refs?service=git-upload-pack', {Authorization: 'Basic bWU6b3Blbi1zZXNhbWU='})
+          .reply(200, uploadPackAdvertisement, {'Content-Type': 'application/x-git-upload-pack-advertisement'})
+          .get('/some/repo.git/info/refs?service=git-upload-pack')
+          .reply(400);
+
+        const server = http.createServer(mockGitServer.handler);
+        return new Promise(resolve => {
+          server.listen(0, '127.0.0.1', async () => {
+            const {address, port} = server.address();
+            await git.setConfig('remote.mock.url', `http://${address}:${port}/some/repo.git`);
+            await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+            resolve(git);
+          });
+        });
+      }
+
+      it('prompts for authentication data through Atom', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
+          },
+        });
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on authentication failure', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'whoops'});
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on dialog cancel', async function() {
+        // Until we resolve the TODO in lib/git-shell-out-strategy.js
+        this.skip();
+
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.reject(new Error('nevermind'));
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('prefers user-configured credential helpers if present', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            return Promise.resolve();
+          },
+        });
+
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-success.sh')),
+        );
+
+        await git.fetch('mock', 'master');
+        assert.isFalse(prompted);
+      });
+
+      it('falls back to Atom credential prompts if credential helpers are present but fail', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
+          },
+        });
+
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-notfound.sh')),
+        );
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
+      it('falls back to Atom credential prompts if credential helpers are present but explode', async function() {
+        let prompted = false;
+        const git = await withHttpRemote({
+          prompt: query => {
+            prompted = true;
+            assert.match(
+              query.prompt,
+              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+            );
+            assert.isTrue(query.includeUsername);
+
+            return Promise.resolve({username: 'me', password: 'open-sesame'});
+          },
+        });
+
+        await git.setConfig(
+          'credential.helper',
+          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-kaboom.sh')),
+        );
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+    });
+
+    describe('ssh authentication', function() {
+      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS', 'GIT_ASKPASS'];
+      let preserved;
+
+      beforeEach(function() {
+        preserved = {};
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          preserved[key] = process.env[key];
+        }
+
+        delete process.env.SSH_AUTH_SOCK;
+        process.env.SSH_ASKPASS = '';
+        process.env.GIT_ASKPASS = '';
+      });
+
+      afterEach(function() {
+        for (let i = 0; i < envKeys.length; i++) {
+          const key = envKeys[i];
+          process.env[key] = preserved[key];
+        }
+      });
+
+      async function withSSHRemote(options) {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir, options);
+
+        await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
+        await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+        // Append ' #' to ensure the script is run with sh on Windows.
+        // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
+        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+
+        return git;
+      }
+
+      it('prompts for an SSH password through Atom', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'friend'});
+          },
+        });
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on authentication failure', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'let me in damnit'});
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on dialog cancel', async function() {
+        // Until we resolve the TODO in lib/git-shell-out-strategy.js
+        this.skip();
+
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.reject(new Error('nah'));
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('prefers a user-configured SSH_ASKPASS if present', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            return Promise.resolve({password: 'BZZT'});
+          },
+        });
+
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
+
+        await git.fetch('mock', 'master');
+        assert.isFalse(prompted);
+      });
+
+      it('falls back to Atom credential prompts if SSH_ASKPASS is present but goes boom', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'friend'});
+          },
+        });
+
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
       });
     });
   });
