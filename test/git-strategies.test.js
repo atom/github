@@ -1225,6 +1225,13 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('prefers a user-configured SSH_ASKPASS if present', async function() {
+        if (process.platform === 'win32') {
+          // SSH calls CreateProcess with SSH_ASKPASS directly, so scripts won't work.
+          // If this is important we could build some x86 and x64 Go binaries to use
+          // as askpass standins.
+          this.skip();
+        }
+
         let prompted = false;
         const git = await withSSHRemote({
           prompt: query => {
@@ -1234,13 +1241,17 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         });
 
         process.env.SSH_ASKPASS = path.join(__dirname, 'scripts', 'askpass-success.sh');
-        console.log(`process.env.SSH_ASKPASS = ${process.env.SSH_ASKPASS}`);
 
         await git.fetch('mock', 'master');
         assert.isFalse(prompted);
       });
 
       it('falls back to Atom credential prompts if SSH_ASKPASS is present but goes boom', async function() {
+        if (process.platform === 'win32') {
+          // SSH calls CreateProcess with SSH_ASKPASS directly, so scripts won't work.
+          this.skip();
+        }
+
         let prompted = false;
         const git = await withSSHRemote({
           prompt: query => {
@@ -1252,7 +1263,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
+        process.env.SSH_ASKPASS = path.join(__dirname, 'scripts', 'askpass-kaboom.sh');
 
         await git.fetch('mock', 'master');
         assert.isTrue(prompted);
