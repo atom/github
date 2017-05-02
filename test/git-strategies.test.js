@@ -1112,7 +1112,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
     });
 
     describe('ssh authentication', function() {
-      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK'];
+      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS'];
       let preserved;
 
       beforeEach(function() {
@@ -1161,10 +1161,73 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         assert.isTrue(prompted);
       });
 
-      it('fails the command on authentication failure');
-      it('fails the command on dialog cancel');
-      it('prefers a user-configured SSH_ASKPASS if present');
-      it('falls back to Atom credential prompts if SSH_ASKPASS is present but fails');
+      it('fails the command on authentication failure', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'let me in damnit'});
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('fails the command on dialog cancel', async function() {
+        // Until we resolve the TODO in lib/git-shell-out-strategy.js
+        this.skip();
+
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.reject(new Error('nah'));
+          },
+        });
+
+        await assert.isRejected(git.fetch('mock', 'master'));
+        assert.isTrue(prompted);
+      });
+
+      it('prefers a user-configured SSH_ASKPASS if present', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            return Promise.resolve({password: 'BZZT'});
+          },
+        });
+
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.py'));
+
+        await git.fetch('mock', 'master');
+        assert.isFalse(prompted);
+      });
+
+      it('falls back to Atom credential prompts if SSH_ASKPASS is present but goes boom', async function() {
+        let prompted = false;
+        const git = await withSSHRemote({
+          prompt: query => {
+            prompted = true;
+            assert.equal(query.prompt, 'Speak friend and enter');
+            assert.isFalse(query.includeUsername);
+
+            return Promise.resolve({password: 'friend'});
+          },
+        });
+
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.py'));
+
+        await git.fetch('mock', 'master');
+        assert.isTrue(prompted);
+      });
     });
   });
 });
