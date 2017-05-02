@@ -1,5 +1,5 @@
 const net = require('net');
-const {execFile} = require('child_process');
+const {exec} = require('child_process');
 
 const sockPath = process.argv[2];
 const prompt = process.argv[3];
@@ -26,7 +26,7 @@ function userHelper() {
     }
 
     log(`attempting user askpass: ${userAskPass}`);
-    execFile(userAskPass, [prompt], {cwd: workdirPath}, (err, stdout, stderr) => {
+    exec(`${userAskPass} '${prompt}'`, {cwd: workdirPath}, (err, stdout, stderr) => {
       if (err) {
         log(`user askpass failed. this is ok\n${err.stack}`);
 
