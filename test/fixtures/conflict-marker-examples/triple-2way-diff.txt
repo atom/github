@@ -22,7 +22,6 @@ Text in between 1 and 2.
 <<<<<<< HEAD
 More of my changes
 =======
-More of your changes
 >>>>>>> other-branch
 
 Stuff at the very end.

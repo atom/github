@@ -97,7 +97,7 @@ describe('EditorConflictController', function() {
 
       assert.equal(textFromSide(conflicts[2].getSide(OURS)), 'More of my changes\n');
       assert.equal(textFromSide(conflicts[2].separator), '=======\n');
-      assert.equal(textFromSide(conflicts[2].getSide(THEIRS)), 'More of your changes\n');
+      assert.equal(textFromSide(conflicts[2].getSide(THEIRS)), '');
     });
 
     it('renders a ConflictController for each Conflict', function() {
