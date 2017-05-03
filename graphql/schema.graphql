@@ -187,26 +187,38 @@ type AddReactionPayload {
   subject: Reactable!
 }
 
-# Represents an 'assigned' event on a given issue or pull request.
-type AssignedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
-  actor: User!
+# An object that can have users assigned to it.
+interface Assignable {
+  # A list of Users assigned to this object.
+  assignees(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserConnection!
+}
+
+# Represents an 'assigned' event on any assignable object.
+type AssignedEvent implements Node {
+  # Identifies the user who performed the 'assigned' event.
+  actor: User
+
+  # Identifies the assignable associated with the event.
+  assignable: Assignable!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the user who performed the 'assigned' event.
-  subject: User!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Identifies the user who was assigned.
+  user: User
 }
 
 # Represents an object which can create content. Typically a User or Bot.
@@ -225,8 +237,8 @@ interface Author {
 }
 
 # Represents a 'base_ref_force_pushed' event on a given pull request.
-type BaseRefForcePushedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type BaseRefForcePushedEvent implements Node {
+  # Identifies the user who performed the 'base_ref_force_pushed' event.
   actor: User!
 
   # Identifies the after commit SHA for the 'base_ref_force_pushed' event.
@@ -239,17 +251,11 @@ type BaseRefForcePushedEvent implements Node, IssueEvent {
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
   # Identifies the fully qualified ref name for the 'base_ref_force_pushed' event.
   ref: Ref
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # Represents a Git blame.
@@ -317,10 +323,19 @@ type Bot implements Node, Author, UniformResourceLocatable {
   url: URI!
 }
 
-# Represents a 'closed' event on a given issue or pull request.
-type ClosedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# An object that can be closed
+interface Closable {
+  # true if the object is `closed` (definition of closed may depend on type)
+  closed: Boolean!
+}
+
+# Represents a 'closed' event on any `Closable`.
+type ClosedEvent implements Node {
+  # Identifies the user who closed the item.
   actor: User!
+
+  # Object that was closed.
+  closable: Closable!
 
   # Identifies the commit associated with the 'closed' event.
   commit: Commit
@@ -328,15 +343,21 @@ type ClosedEvent implements Node, IssueEvent {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
+}
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+# The Code of Conduct for a repository
+type CodeOfConduct {
+  # The body of the CoC
+  body: String
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
+  # The key for the CoC
+  key: String!
 
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # The formal name of the CoC
+  name: String!
+
+  # The path to the CoC
+  url: String
 }
 
 # Represents a comment.
@@ -422,6 +443,9 @@ enum CommentCannotUpdateReason {
 type Commit implements Node, GitObject {
   # Authorship details of the commit.
   author: GitActor
+
+  # Check if the committer and the author match.
+  authoredByCommitter: Boolean!
 
   # Fetches `git blame` information.
   blame(
@@ -838,30 +862,24 @@ type DeletePullRequestReviewPayload {
 }
 
 # Represents a 'demilestoned' event on a given issue or pull request.
-type DemilestonedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type DemilestonedEvent implements Node {
+  # Identifies the user who performed the 'demilestoned' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
   # Identifies the milestone title associated with the 'demilestoned' event.
   milestoneTitle: String!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object referenced by event.
+  subject: MilestoneItem!
 }
 
-# Represents a 'deployed' event on a given issue or pull request.
-type DeployedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'deployed' event on a given pull request.
+type DeployedEvent implements Node {
+  # Identifies the user who performed the 'deployed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
@@ -871,17 +889,11 @@ type DeployedEvent implements Node, IssueEvent {
   deployment: Deployment!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
   # The ref associated with the 'deployed' event.
   ref: Ref
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # Represents triggered deployment instance.
@@ -1010,6 +1022,61 @@ input DraftPullRequestReviewComment {
 
   # Body of the comment to leave.
   body: String!
+}
+
+# An external identity provisioned by SAML SSO or SCIM.
+type ExternalIdentity implements Node {
+  # The GUID for this identity
+  guid: String!
+  id: ID!
+
+  # Organization invitation for this SCIM-provisioned external identity
+  organizationInvitation: OrganizationInvitation
+
+  # SAML Identity attributes
+  samlIdentity: ExternalIdentitySamlAttributes
+
+  # SCIM Identity attributes
+  scimIdentity: ExternalIdentityScimAttributes
+
+  # User linked to this external identity
+  user: User
+}
+
+# The connection type for ExternalIdentity.
+type ExternalIdentityConnection {
+  # A list of edges.
+  edges: [ExternalIdentityEdge]
+
+  # A list of nodes.
+  nodes: [ExternalIdentity]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type ExternalIdentityEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: ExternalIdentity
+}
+
+# SAML attributes for the External Identity
+type ExternalIdentitySamlAttributes {
+  # The NameID of the SAML identity
+  nameId: String
+}
+
+# SCIM attributes for the External Identity
+type ExternalIdentityScimAttributes {
+  # The userName of the SCIM identity
+  username: String
 }
 
 # The connection type for User.
@@ -1277,8 +1344,8 @@ type GpgSignature implements GitSignature {
 }
 
 # Represents a 'head_ref_deleted' event on a given pull request.
-type HeadRefDeletedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type HeadRefDeletedEvent implements Node {
+  # Identifies the user who performed the 'head_ref_deleted' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
@@ -1291,19 +1358,13 @@ type HeadRefDeletedEvent implements Node, IssueEvent {
   headRefName: String!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 }
 
 # Represents a 'head_ref_force_pushed' event on a given pull request.
-type HeadRefForcePushedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type HeadRefForcePushedEvent implements Node {
+  # Identifies the user who performed the 'head_ref_force_pushed' event.
   actor: User!
 
   # Identifies the after commit SHA for the 'head_ref_force_pushed' event.
@@ -1316,44 +1377,77 @@ type HeadRefForcePushedEvent implements Node, IssueEvent {
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
   # Identifies the fully qualified ref name for the 'head_ref_force_pushed' event.
   ref: Ref
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # Represents a 'head_ref_restored' event on a given pull request.
-type HeadRefRestoredEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type HeadRefRestoredEvent implements Node {
+  # Identifies the user who performed the 'head_ref_restored' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 }
 
 # A string containing HTML code.
 scalar HTML
 
+# Represents an integration with GitHub.
+type Integration {
+  # Identifies the primary key from the database.
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
+  # A URL pointing to the integration's logo.
+  logoURL(
+    # The size of the resulting image.
+    size: Int
+  ): String!
+
+  # The name of the integration.
+  name: String!
+
+  # The owner of this integration.
+  owner: User!
+
+  # The URL to the integration's homepage.
+  url: String!
+}
+
+# The connection type for Integration.
+type IntegrationConnection {
+  # A list of edges.
+  edges: [IntegrationEdge]
+
+  # A list of nodes.
+  nodes: [Integration]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type IntegrationEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: Integration
+}
+
 # An Issue is a place to discuss ideas, enhancements, tasks, and bugs for a project.
-type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
-  # A list of Users assigned to the Issue or Pull Request.
+type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableComment, Labelable, Lockable, Reactable, RepositoryNode, Subscribable, UniformResourceLocatable {
+  # A list of Users assigned to this object.
   assignees(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1368,7 +1462,7 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
     before: String
   ): UserConnection!
 
-  # The author of the issue or pull request.
+  # The author of the comment.
   author: Author
 
   # Identifies the body of the issue.
@@ -1379,6 +1473,9 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
 
   # Identifies the body of the issue rendered to text.
   bodyText: String!
+
+  # true if the object is `closed` (definition of closed may depend on type)
+  closed: Boolean!
 
   # A list of comments associated with the Issue.
   comments(
@@ -1408,7 +1505,7 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
   editor: Author
   id: ID!
 
-  # A list of labels associated with the Issue or Pull Request.
+  # A list of labels associated with the object.
   labels(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1429,13 +1526,16 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
 
+  # `true` if the object is locked
+  locked: Boolean!
+
   # Identifies the milestone associated with the issue.
   milestone: Milestone
 
   # Identifies the issue number.
   number: Int!
 
-  # A list of Users that are participating in the Issue's conversation.
+  # A list of Users that are participating in the Issue conversation.
   participants(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1489,7 +1589,7 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
   # Identifies the state of the issue.
   state: IssueState!
 
-  # A list of events associated with an Issue or PullRequest.
+  # A list of events associated with an Issue.
   timeline(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1504,7 +1604,7 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
     before: String
 
     # Allows filtering timeline events by a `since` timestamp.
-    since: String
+    since: DateTime
   ): IssueTimelineConnection!
 
   # Identifies the issue title.
@@ -1516,6 +1616,9 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
   # The HTTP url for this issue
   url: URI!
 
+  # The integration the issue was authored via.
+  viaIntegration: Integration
+
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean! @deprecated(reason: "Deprecated in favor of Deletable and Deletable.viewerCanDelete.")
 
@@ -1524,6 +1627,9 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
 
   # Can user react to this subject
   viewerCanReact: Boolean!
+
+  # Check if the viewer is able to change their subscription status for the repository.
+  viewerCanSubscribe: Boolean!
 
   # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
@@ -1536,6 +1642,9 @@ type Issue implements Node, Comment, Updatable, UpdatableComment, Issueish, Reac
 
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
+
+  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  viewerSubscription: SubscriptionState!
 
   # The websocket channel ID for live updates.
   websocket(
@@ -1613,6 +1722,9 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
 
+  # The integration this comment was authored via.
+  viaIntegration: Integration
+
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
 
@@ -1689,150 +1801,8 @@ type IssueEdge {
   node: Issue
 }
 
-# Represents an issue event.
-interface IssueEvent {
-  # Identifies the actor (user) associated with the event.
-  actor: User!
-
-  # Identifies the date and time when the object was created.
-  createdAt: DateTime!
-
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
-}
-
-# The possible issue event types.
-enum IssueEventType {
-  # The issue was assigned to the actor.
-  ASSIGNED
-
-  # The base branch was force pushed by the actor.
-  BASE_REF_FORCE_PUSHED
-
-  # The issue was closed by the actor.
-  CLOSED
-
-  # The issue had a milestone removed from it.
-  DEMILESTONED
-
-  # The branch was deployed by the actor.
-  DEPLOYED
-
-  # The head branch was deleted by the actor.
-  HEAD_REF_DELETED
-
-  # The head branch was force pushed by the actor.
-  HEAD_REF_FORCE_PUSHED
-
-  # The head branch was restored by the actor.
-  HEAD_REF_RESTORED
-
-  # A label was added to the issue.
-  LABELED
-
-  # The issue was locked by the actor.
-  LOCKED
-
-  # The pull request or issue was mentioned by the actor.
-  MENTIONED
-
-  # The issue was merged by the actor.
-  MERGED
-
-  # The issue had a milestone added to it.
-  MILESTONED
-
-  # The issue was referenced from a commit message.
-  REFERENCED
-
-  # The issue's title was changed.
-  RENAMED
-
-  # The issue was reopened by the actor.
-  REOPENED
-
-  # The actor requested review from the subject.
-  REVIEW_REQUESTED
-
-  # The actor removed the review request for the subject.
-  REVIEW_REQUEST_REMOVED
-
-  # The review was dismissed by the actor.
-  REVIEW_DISMISSED
-
-  # The pull request or issue was subscribed to by the actor.
-  SUBSCRIBED
-
-  # The issue was unassigned to the actor.
-  UNASSIGNED
-
-  # A label was removed from the issue.
-  UNLABELED
-
-  # The issue was unlocked by the actor.
-  UNLOCKED
-
-  # The pull request or issue was unsubscribed from by the actor.
-  UNSUBSCRIBED
-}
-
-# Shared features of Issues and Pull Requests.
-interface Issueish {
-  # A list of Users assigned to the Issue or Pull Request.
-  assignees(
-    # Returns the first _n_ elements from the list.
-    first: Int
-
-    # Returns the elements in the list that come after the specified global ID.
-    after: String
-
-    # Returns the last _n_ elements from the list.
-    last: Int
-
-    # Returns the elements in the list that come before the specified global ID.
-    before: String
-  ): UserConnection!
-
-  # The author of the issue or pull request.
-  author: Author
-
-  # Identifies the body of the issue.
-  body: String!
-
-  # Identifies the body of the issue rendered to HTML.
-  bodyHTML: HTML!
-  id: ID!
-
-  # A list of labels associated with the Issue or Pull Request.
-  labels(
-    # Returns the first _n_ elements from the list.
-    first: Int
-
-    # Returns the elements in the list that come after the specified global ID.
-    after: String
-
-    # Returns the last _n_ elements from the list.
-    last: Int
-
-    # Returns the elements in the list that come before the specified global ID.
-    before: String
-  ): LabelConnection
-
-  # Identifies the issue number.
-  number: Int!
-
-  # Identifies the repository associated with the issue.
-  repository: Repository!
-
-  # Identifies the issue title.
-  title: String!
-}
+# Used for return value of Repository.issueOrPullRequest.
+union IssueOrPullRequest = Issue | PullRequest
 
 # The possible PubSub channels for an issue.
 enum IssuePubSubTopic {
@@ -1867,8 +1837,8 @@ type IssueTimelineConnection {
   totalCount: Int!
 }
 
-# An item in an issue/pull request timeline
-union IssueTimelineItem = Commit | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | MentionedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
+# An item in an issue timeline
+union IssueTimelineItem = Commit | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent
 
 # An edge in a connection.
 type IssueTimelineItemEdge {
@@ -1898,7 +1868,10 @@ type Label implements Node {
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
-  ): IssueConnection
+
+    # A list of states to filter the issues by.
+    states: [IssueState]
+  ): IssueConnection!
 
   # Identifies the label name.
   name: String!
@@ -1922,6 +1895,24 @@ type Label implements Node {
   repository: Repository!
 }
 
+# An object that can have labels assigned to it.
+interface Labelable {
+  # A list of labels associated with the object.
+  labels(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): LabelConnection
+}
+
 # The connection type for Label.
 type LabelConnection {
   # A list of edges.
@@ -1938,25 +1929,19 @@ type LabelConnection {
 }
 
 # Represents a 'labeled' event on a given issue or pull request.
-type LabeledEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type LabeledEvent implements Node {
+  # Identifies the user who performed the 'label' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
   # Identifies the label associated with the 'labeled' event.
   label: Label!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Identifies the `Labelable` associated with the event.
+  labelable: Labelable!
 }
 
 # An edge in a connection.
@@ -2020,23 +2005,23 @@ enum LanguageOrderField {
   SIZE
 }
 
+# An object that can be locked.
+interface Lockable {
+  # `true` if the object is locked
+  locked: Boolean!
+}
+
 # Represents a 'locked' event on a given issue or pull request.
-type LockedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type LockedEvent implements Node {
+  # Identifies the user who performed the 'locked' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object that was locked.
+  lockable: Lockable!
 }
 
 # Ways in which member connections can be ordered.
@@ -2046,25 +2031,6 @@ input MemberOrder {
 
   # The direction in which to order nodes.
   direction: OrderDirection!
-}
-
-# Represents a 'mentioned' event on a given issue or pull request.
-type MentionedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
-  actor: User!
-
-  # Identifies the date and time when the object was created.
-  createdAt: DateTime!
-  id: ID!
-
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # Whether or not a PullRequest can be merged.
@@ -2080,8 +2046,8 @@ enum MergeableState {
 }
 
 # Represents a 'merged' event on a given pull request.
-type MergedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type MergedEvent implements Node {
+  # Identifies the user who performed the 'merge' event.
   actor: User!
 
   # Identifies the commit associated with the `merge` event.
@@ -2091,20 +2057,14 @@ type MergedEvent implements Node, IssueEvent {
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
   # Identifies the Ref associated with the `merge` event.
   mergeRef: Ref
 
   # Identifies the name of the Ref associated with the `merge` event.
   mergeRefName: String!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 }
 
 # Represents a Milestone object on a given repository.
@@ -2113,7 +2073,7 @@ type Milestone implements Node {
   closedIssueCount: Int!
 
   # Identifies the creator of the milestone.
-  createdBy: User!
+  creator: User!
 
   # Identifies the description of the milestone.
   description: String
@@ -2160,25 +2120,19 @@ type MilestoneConnection {
 }
 
 # Represents a 'milestoned' event on a given issue or pull request.
-type MilestonedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type MilestonedEvent implements Node {
+  # Identifies the user who performed the 'milestoned' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
   # Identifies the milestone title associated with the 'milestoned' event.
   milestoneTitle: String!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object referenced by event.
+  subject: MilestoneItem!
 }
 
 # An edge in a connection.
@@ -2189,6 +2143,9 @@ type MilestoneEdge {
   # The item at the end of the edge.
   node: Milestone
 }
+
+# Types that can be inside a Milestone.
+union MilestoneItem = Issue | PullRequest
 
 # The possible states of a milestone.
 enum MilestoneState {
@@ -2376,7 +2333,7 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
   ): GistConnection!
   id: ID!
 
-  # The username used to login.
+  # The organization's login name.
   login: String!
 
   # A list of users who are members of this organization.
@@ -2478,6 +2435,9 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
     name: String!
   ): Repository
 
+  # The Organization's SAML Identity Providers
+  samlIdentityProvider: OrganizationIdentityProvider
+
   # Find an organization's team by its slug.
   team(
     # The name or slug of the team to find.
@@ -2512,6 +2472,9 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
 
     # Ordering options for teams returned from the connection
     orderBy: TeamOrder
+
+    # If true, filters teams that are mapped to an LDAP Group (Enterprise only)
+    ldapMapped: Boolean
   ): TeamConnection!
 
   # The HTTP path listing organization's teams
@@ -2567,6 +2530,43 @@ type OrganizationEdge {
 
   # The item at the end of the edge.
   node: Organization
+}
+
+# An Identity Provider configured to provision SAML and SCIM identities for Organizations
+type OrganizationIdentityProvider implements Node {
+  # The digest algorithm used to sign SAML requests for the Identity Provider.
+  digestMethod: URI
+
+  # External Identities provisioned by this Identity Provider
+  externalIdentities(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ExternalIdentityConnection!
+  id: ID!
+
+  # The x509 certificate used by the Identity Provder to sign assertions and responses.
+  idpCertificate: X509Certificate
+
+  # The Issuer Entity ID for the SAML Identity Provider
+  issuer: String
+
+  # Organization this Identity Provider belongs to
+  organization: Organization
+
+  # The signature algorithm used to sign SAML requests for the Identity Provider.
+  signatureMethod: URI
+
+  # The URL endpoint for the Identity Provider's SAML SSO.
+  ssoUrl: URI
 }
 
 # An Invitation for a user to an organization.
@@ -2828,7 +2828,7 @@ type ProjectColumnEdge {
   node: ProjectColumn
 }
 
-# The connection type for Project.
+# A list of projects associated with the owner.
 type ProjectConnection {
   # A list of edges.
   edges: [ProjectEdge]
@@ -3000,8 +3000,8 @@ type ProtectedBranchEdge {
 }
 
 # A repository pull request.
-type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish, Reactable, RepositoryNode, Timeline, UniformResourceLocatable {
-  # A list of Users assigned to the Issue or Pull Request.
+type PullRequest implements Node, Assignable, Closable, Comment, Updatable, UpdatableComment, Labelable, Lockable, Reactable, RepositoryNode, Subscribable, UniformResourceLocatable {
+  # A list of Users assigned to this object.
   assignees(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3033,6 +3033,9 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
 
   # Identifies the body of the pull request rendered to text.
   bodyText: String!
+
+  # true if the object is `closed` (definition of closed may depend on type)
+  closed: Boolean!
 
   # A list of comments associated with the pull request.
   comments(
@@ -3089,7 +3092,7 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
   headRepositoryOwner: RepositoryOwner!
   id: ID!
 
-  # A list of labels associated with the Issue or Pull Request.
+  # A list of labels associated with the object.
   labels(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3110,6 +3113,9 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
   # Are reaction live updates enabled for this subject.
   liveReactionUpdatesEnabled: Boolean!
 
+  # `true` if the object is locked
+  locked: Boolean!
+
   # The commit that was created when this pull request was merged.
   mergeCommit: Commit
 
@@ -3124,6 +3130,21 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
 
   # Identifies the pull request number.
   number: Int!
+
+  # A list of Users that are participating in the Pull Request conversation.
+  participants(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserConnection!
 
   # The HTTP path for this issue
   path: URI!
@@ -3203,7 +3224,10 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
   # Identifies the state of the pull request.
   state: PullRequestState!
 
-  # A list of events associated with an Issue or PullRequest.
+  # A list of reviewer suggestions based on commit history and past review comments.
+  suggestedReviewers: [SuggestedReviewer]!
+
+  # A list of events associated with a PullRequest.
   timeline(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3218,8 +3242,8 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
     before: String
 
     # Allows filtering timeline events by a `since` timestamp.
-    since: String
-  ): IssueTimelineConnection!
+    since: DateTime
+  ): PullRequestTimelineConnection!
 
   # Identifies the pull request title.
   title: String!
@@ -3239,6 +3263,9 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
   # Can user react to this subject
   viewerCanReact: Boolean!
 
+  # Check if the viewer is able to change their subscription status for the repository.
+  viewerCanSubscribe: Boolean!
+
   # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
 
@@ -3250,6 +3277,9 @@ type PullRequest implements Node, Comment, Updatable, UpdatableComment, Issueish
 
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
+
+  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  viewerSubscription: SubscriptionState!
 
   # The websocket channel ID for live updates.
   websocket(
@@ -3624,8 +3654,44 @@ enum PullRequestState {
   MERGED
 }
 
+# The connection type for PullRequestTimelineItem.
+type PullRequestTimelineConnection {
+  # A list of edges.
+  edges: [PullRequestTimelineItemEdge]
+
+  # A list of nodes.
+  nodes: [PullRequestTimelineItem]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An item in an pull request timeline
+union PullRequestTimelineItem = Commit | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
+
+# An edge in a connection.
+type PullRequestTimelineItemEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: PullRequestTimelineItem
+}
+
 # The query root of GitHub's GraphQL interface.
 type Query {
+  # Look up a code of conduct by its key
+  codeOfConduct(
+    # The code of conduct's key
+    key: String!
+  ): CodeOfConduct
+
+  # Look up a code of conduct by its key
+  codesOfConduct: [CodeOfConduct]
+
   # Fetches an object given its ID.
   node(
     # ID of the object.
@@ -3665,7 +3731,7 @@ type Query {
   # Lookup resource by a URL.
   resource(
     # The URL.
-    url: URI
+    url: URI!
   ): UniformResourceLocatable
 
   # Perform a search across resources.
@@ -3939,13 +4005,13 @@ type RefEdge {
   node: Ref
 }
 
-# Represents a 'referenced' event on a given issue or pull request.
-type ReferencedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'referenced' event on a given `ReferencedSubject`.
+type ReferencedEvent implements Node {
+  # Identifies the user who performed the 'label' event.
   actor: User!
 
   # Identifies the commit associated with the 'referenced' event.
-  commit: Commit!
+  commit: Commit
 
   # Identifies the repository associated with the 'referenced' event.
   commitRepository: Repository!
@@ -3954,15 +4020,12 @@ type ReferencedEvent implements Node, IssueEvent {
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object referenced by event.
+  subject: ReferencedSubject!
 }
+
+# Any referencable object
+union ReferencedSubject = Issue | PullRequest
 
 # A release contains the content for a release.
 type Release implements Node, UniformResourceLocatable {
@@ -4126,9 +4189,9 @@ type RemoveReactionPayload {
   subject: Reactable!
 }
 
-# Represents a 'renamed' event on a given issue or pull request or pull request.
-type RenamedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'renamed' event on a given issue or pull request
+type RenamedTitleEvent implements Node {
+  # Identifies the user who performed the 'renamed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
@@ -4138,40 +4201,34 @@ type RenamedEvent implements Node, IssueEvent {
   currentTitle: String!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
   # Identifies the previous title of the issue or pull request.
   previousTitle: String!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Subject that was renamed.
+  subject: RenamedTitleSubject!
 }
 
-# Represents a 'reopened' event on a given issue or pull request.
-type ReopenedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# An object which has a renamable title
+union RenamedTitleSubject = Issue | PullRequest
+
+# Represents a 'reopened' event on any `Closable`.
+type ReopenedEvent implements Node {
+  # Identifies the user who reopened the item.
   actor: User!
+
+  # Object that was reopened.
+  closable: Closable!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
-
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # A repository contains the content for a project.
 type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLocatable, RepositoryInfo {
+  # Returns the code of conduct for this repository
+  codeOfConduct: CodeOfConduct
+
   # A list of commit comments associated with the repository.
   commitComments(
     # Returns the first _n_ elements from the list.
@@ -4261,10 +4318,10 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   ): Issue
 
   # Returns a single issue-like object from the current repository by number.
-  issueish(
+  issueOrPullRequest(
     # The number for the issue to be returned.
     number: Int!
-  ): Issueish
+  ): IssueOrPullRequest
 
   # A list of issues that have been opened in the repository.
   issues(
@@ -4281,7 +4338,7 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
     before: String
 
     # A list of states to filter the issues by.
-    states: [IssueState!]
+    states: [IssueState]
 
     # A list of label names to filter the issues by.
     labels: [String!]
@@ -4373,6 +4430,9 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
 
   # The name of the repository.
   name: String!
+
+  # The repository's name with owner.
+  nameWithOwner: String!
 
   # A Git object in the repository
   object(
@@ -4564,6 +4624,9 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   # The HTTP url for this repository
   url: URI!
 
+  # Indicates whether the viewer has admin permissions on this repository.
+  viewerCanAdminister: Boolean!
+
   # Can the current viewer create new projects on this owner.
   viewerCanCreateProjects: Boolean!
 
@@ -4691,6 +4754,9 @@ interface RepositoryInfo {
   # The name of the repository.
   name: String!
 
+  # The repository's name with owner.
+  nameWithOwner: String!
+
   # The User owner of the repository.
   owner: RepositoryOwner!
 
@@ -4767,6 +4833,9 @@ type RepositoryInvitationRepository implements RepositoryInfo {
 
   # The name of the repository.
   name: String!
+
+  # The repository's name with owner.
+  nameWithOwner: String!
 
   # The User owner of the repository.
   owner: RepositoryOwner!
@@ -5020,16 +5089,13 @@ type ReviewDismissalAllowanceEdge {
 }
 
 # Represents a 'review_dismissed' event on a given issue or pull request.
-type ReviewDismissedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type ReviewDismissedEvent implements Node {
+  # Identifies the user who performed the 'review_dismissed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
-
-  # Identifies the issue associated with the event.
-  issue: Issue!
 
   # Identifies the message associated with the 'review_dismissed' event.
   message: String!
@@ -5037,14 +5103,11 @@ type ReviewDismissedEvent implements Node, IssueEvent {
   # Identifies the previous state of the review with the 'review_dismissed' event.
   previousReviewState: PullRequestReviewState!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
   # Identifies the review associated with the 'review_dismissed' event.
   review: PullRequestReview!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # A request for a user to review a pull request.
@@ -5076,25 +5139,19 @@ type ReviewRequestConnection {
 }
 
 # Represents an 'review_requested' event on a given pull request.
-type ReviewRequestedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type ReviewRequestedEvent implements Node {
+  # Identifies the user who performed the 'base_ref_force_pushed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the user who performed the 'review_requested' event.
+  # Identifies the user whose review was requested.
   subject: User!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # An edge in a connection.
@@ -5107,25 +5164,19 @@ type ReviewRequestEdge {
 }
 
 # Represents an 'review_request_removed' event on a given pull request.
-type ReviewRequestRemovedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type ReviewRequestRemovedEvent implements Node {
+  # Identifies the user who performed the 'review_request_removed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
+  # PullRequest referenced by event.
+  pullRequest: PullRequest!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the user who performed the 'review_request_removed' event.
+  # Identifies the user whose review request was removed.
   subject: User!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
 }
 
 # The results of a search.
@@ -5359,23 +5410,17 @@ interface Subscribable {
   viewerSubscription: SubscriptionState!
 }
 
-# Represents a 'subscribed' event on a given issue or pull request.
-type SubscribedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'subscribed' event on a given `Subscribable`.
+type SubscribedEvent implements Node {
+  # Identifies the user who performed the 'subscribed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object referenced by event.
+  subscribable: Subscribable!
 }
 
 # The possible states of a subscription.
@@ -5388,6 +5433,18 @@ enum SubscriptionState {
 
   # The User is never notified.
   IGNORED
+}
+
+# A suggestion to review a pull request based on a user's commit history and review comments.
+type SuggestedReviewer {
+  # Is this suggestion based on past commits?
+  isAuthor: Boolean!
+
+  # Is this suggestion based on past review comments?
+  isCommenter: Boolean!
+
+  # Identifies the user suggested to review the pull request.
+  reviewer: User!
 }
 
 # Represents a Git tag.
@@ -5451,6 +5508,12 @@ type Team implements Node, UniformResourceLocatable {
 
   # The slug corresponding to the team.
   slug: String!
+
+  # For team discussions
+  teamDiscussionsPath: URI!
+
+  # For team discussions
+  teamDiscussionsUrl: URI!
 
   # The HTTP path for this team
   teamPath: URI!
@@ -5525,27 +5588,6 @@ enum TeamRole {
   MEMBER
 }
 
-# Represents all of the events visible to a user from an Issue or PullRequest timeline.
-interface Timeline {
-  # A list of events associated with an Issue or PullRequest.
-  timeline(
-    # Returns the first _n_ elements from the list.
-    first: Int
-
-    # Returns the elements in the list that come after the specified global ID.
-    after: String
-
-    # Returns the last _n_ elements from the list.
-    last: Int
-
-    # Returns the elements in the list that come before the specified global ID.
-    before: String
-
-    # Allows filtering timeline events by a `since` timestamp.
-    since: String
-  ): IssueTimelineConnection!
-}
-
 # A topic aggregates entities that are related to a subject.
 type Topic implements Node {
   id: ID!
@@ -5606,26 +5648,20 @@ type TreeEntry {
   type: String!
 }
 
-# Represents a 'unassigned' event on a given issue or pull request.
-type UnassignedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'unassigned' event on any assignable object.
+type UnassignedEvent implements Node {
+  # Identifies the user who performed the 'unassigned' event.
   actor: User!
+
+  # Identifies the assignable associated with the event.
+  assignable: Assignable!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the user who performed the 'unassigned' event.
-  subject: User!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Identifies the subject (user) who was unassigned.
+  user: User
 }
 
 # Represents a type that can be retrieved by a URL.
@@ -5660,63 +5696,45 @@ type UnknownSignature implements GitSignature {
 }
 
 # Represents a 'unlabeled' event on a given issue or pull request.
-type UnlabeledEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type UnlabeledEvent implements Node {
+  # Identifies the user who performed the 'unlabel' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
-
-  # Identifies the issue associated with the event.
-  issue: Issue!
 
   # Identifies the label associated with the 'unlabeled' event.
   label: Label!
 
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Identifies the `Labelable` associated with the event.
+  labelable: Labelable!
 }
 
 # Represents a 'unlocked' event on a given issue or pull request.
-type UnlockedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+type UnlockedEvent implements Node {
+  # Identifies the user who performed the 'unlocked' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object that was unlocked.
+  lockable: Lockable!
 }
 
-# Represents a 'unsubscribed' event on a given issue or pull request.
-type UnsubscribedEvent implements Node, IssueEvent {
-  # Identifies the actor (user) associated with the event.
+# Represents a 'unsubscribed' event on a given `Subscribable`.
+type UnsubscribedEvent implements Node {
+  # Identifies the user who performed the 'unsubscribed' event.
   actor: User!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 
-  # Identifies the issue associated with the event.
-  issue: Issue!
-
-  # Identifies the repository associated with the event.
-  repository: Repository!
-
-  # Identifies the event type associated with the event.
-  type: IssueEventType!
+  # Object referenced by event.
+  subscribable: Subscribable!
 }
 
 # Entities that can be updated.
