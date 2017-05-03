@@ -1,4 +1,5 @@
 import temp from 'temp';
+import {Disposable} from 'event-kit';
 
 import {cloneRepository} from '../helpers';
 
@@ -15,7 +16,7 @@ describe('WorkdirContextPool', function() {
     };
 
     mockWorkspace = {
-      observeTextEditors: sinon.spy(),
+      observeTextEditors: sinon.stub().returns(new Disposable()),
     };
 
     pool = new WorkdirContextPool({
