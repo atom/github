@@ -48,7 +48,7 @@ describe('EditorConflictController', function() {
     atomEnv.destroy();
   });
 
-  const useFixture = async function(fixtureName) {
+  const useFixture = async function(fixtureName, {isRebase} = {isRebase: false}) {
     const fixturePath = path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName);
     const tempDir = temp.mkdirSync('conflict-fixture-');
@@ -65,7 +65,7 @@ describe('EditorConflictController', function() {
         editor={editor}
         resolutionProgress={resolutionProgress}
         refreshResolutionProgress={refreshResolutionProgress}
-        isRebase={false}
+        isRebase={isRebase}
       />
     );
     wrapper = mount(app);
@@ -379,6 +379,64 @@ describe('EditorConflictController', function() {
 
       assert.isTrue(conflict.isResolved());
       assert.include(editor.getText(), 'These are your changes\nThese are my changes\n\nPast the end\n');
+    });
+  });
+
+  describe('while rebasing', function() {
+    let conflict;
+
+    beforeEach(async function() {
+      await useFixture('single-3way-diff.txt', {isRebase: true});
+      [conflict] = Array.from(wrapper.state('conflicts'));
+    });
+
+    it('resolves a conflict as "ours"', function() {
+      editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.getSide(BASE), conflict.getSide(THEIRS)]);
+
+      assert.equal(editor.getText(), 'These are your changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "theirs"', function() {
+      editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.getSide(THEIRS));
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.getSide(OURS), conflict.getSide(BASE)]);
+
+      assert.equal(editor.getText(), 'These are my changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "base"', function() {
+      editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-base');
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.getSide(BASE));
+      assert.deepEqual(conflict.getUnchosenSides(), [conflict.getSide(OURS), conflict.getSide(THEIRS)]);
+
+      assert.equal(editor.getText(), 'These are original texts\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "ours then theirs"', function() {
+      editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
+
+      assert.isTrue(conflict.isResolved());
+      assert.equal(editor.getText(), 'These are your changes\nThese are my changes\n\nPast the end\n');
+    });
+
+    it('resolves a conflict as "theirs then ours"', function() {
+      editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
+
+      assert.isTrue(conflict.isResolved());
+      assert.equal(editor.getText(), 'These are my changes\nThese are your changes\n\nPast the end\n');
     });
   });
 });
