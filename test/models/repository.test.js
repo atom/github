@@ -1117,7 +1117,30 @@ describe('Repository', function() {
         });
       });
 
-      it('when writing a merge conflict to the index');
+      it('when writing a merge conflict to the index', async function() {
+        const workdir = await cloneRepository('three-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const fullPath = path.join(workdir, 'a.txt');
+        await writeFile(fullPath, 'qux\nfoo\nbar\n');
+        await repository.git.exec(['update-index', '--chmod=+x', 'a.txt']);
+
+        const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
+        const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
+        const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
+
+        const files = ['a.txt'];
+        const skip = [
+          'getFilePatchForPath {unstaged} a.txt',
+          'getFilePatchForPath {staged} a.txt',
+          'getFilePatchForPath {staged, amending} a.txt',
+          'readFileFromIndex a.txt',
+        ];
+        await assertCorrectInvalidation({repository, files, skip}, async () => {
+          await repository.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, theirsSha);
+        });
+      });
 
       it('when checking out a revision', async function() {
         const workdir = await cloneRepository('multi-commits-files');
