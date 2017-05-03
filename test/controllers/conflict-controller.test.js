@@ -3,6 +3,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import Conflict from '../../lib/models/conflicts/conflict';
+import {OURS, THEIRS} from '../../lib/models/conflicts/source';
 import ConflictController from '../../lib/controllers/conflict-controller';
 import Decoration from '../../lib/views/decoration';
 
@@ -18,12 +19,16 @@ describe('ConflictController', function() {
     await atomEnv.destroy();
   });
 
-  const useFixture = async function(fixtureName, conflictIndex) {
+  const useFixture = async function(fixtureName, conflictIndex, {resolution} = {}) {
     editor = await workspace.open(path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName));
 
     const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
     conflict = conflicts[conflictIndex];
+
+    if (resolution) {
+      conflict.resolveAs(resolution);
+    }
 
     app = <ConflictController workspace={workspace} editor={editor} conflict={conflict} />;
     const wrapper = shallow(app);
@@ -76,5 +81,41 @@ describe('ConflictController', function() {
 
     const theirBlockDecorations = decorationsMatching({type: 'block', position: 'after'});
     assert.deepEqual(theirBlockDecorations.map(pointFromDecoration), [[17, 0]]);
+  });
+
+  it('creates a line Decoration for resolved conflicts', async function() {
+    await useFixture('triple-2way-diff.txt', 1, {resolution: OURS});
+
+    const resolvedSideDecorations = decorationsMatching({type: 'line', className: 'github-ResolvedLines'});
+    assert.deepEqual(resolvedSideDecorations.map(textFromDecoration), ['My middle changes\n']);
+
+    [
+      {type: 'block', position: 'before'},
+      {type: 'line', className: 'github-ConflictOursBanner'},
+      {type: 'line', className: 'github-ConflictOurs'},
+      {type: 'line', className: 'github-ConflictSeparator'},
+      {type: 'line', className: 'github-ConflictTheirs'},
+      {type: 'line', className: 'github-ConflictTheirsBanner'},
+      {type: 'block', position: 'after'},
+    ].forEach(query => {
+      assert.lengthOf(decorationsMatching(query), 0);
+    });
+  });
+
+  it('creates no decorations for conflicts resolved as empty', async function() {
+    await useFixture('triple-2way-diff.txt', 2, {resolution: THEIRS});
+
+    [
+      {type: 'block', position: 'before'},
+      {type: 'line', className: 'github-ConflictOursBanner'},
+      {type: 'line', className: 'github-ConflictOurs'},
+      {type: 'line', className: 'github-ConflictSeparator'},
+      {type: 'line', className: 'github-ConflictTheirs'},
+      {type: 'line', className: 'github-ConflictTheirsBanner'},
+      {type: 'block', position: 'after'},
+      {type: 'line', className: 'github-ResolvedLines'},
+    ].forEach(query => {
+      assert.lengthOf(decorationsMatching(query), 0);
+    });
   });
 });
