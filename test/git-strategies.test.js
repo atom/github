@@ -640,10 +640,15 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         },
       ];
 
+      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+
       operations.forEach(op => {
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
-          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          execStub.returns({
+            promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            cancel: notCancelled,
+          });
 
           await op.action();
 
@@ -657,12 +662,19 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         if (!op.usesPromptServerAlready) {
           it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
             const execStub = sinon.stub(git, 'executeGitCommand');
-            execStub.onCall(0).returns(Promise.resolve({
-              stdout: '',
-              stderr: 'stderr includes "gpg failed"',
-              exitCode: 128,
-            }));
+            execStub.onCall(0).returns({
+              promise: Promise.resolve({
+                stdout: '',
+                stderr: 'stderr includes "gpg failed"',
+                exitCode: 128,
+              }),
+              cancel: notCancelled,
+            });
             execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+            execStub.returns({
+              promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+              cancel: notCancelled,
+            });
 
             // Should not throw
             await op.action();
@@ -718,10 +730,15 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         },
       ];
 
+      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+
       operations.forEach(op => {
         it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
-          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          execStub.returns({
+            promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            cancel: notCancelled,
+          });
           if (op.configureStub) {
             op.configureStub(git);
           }
