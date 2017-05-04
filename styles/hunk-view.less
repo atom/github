@@ -59,7 +59,7 @@
 
   &-plusMinus {
     margin-right: 1ch;
-    color: fade(@text-color, 33%);
+    color: fade(@text-color, 50%);
   }
 
   &-lineContent {
@@ -89,13 +89,13 @@
       background-color: @background-color-highlight;
     }
     .github-HunkView-lineContent {
-      color: mix(@fg, @text-color-highlight, 50%);
-      background-color: mix(@bg, @hunk-bg-color, 12%);
+      color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
+      background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 20%);
     }
     // hightlight when focused + selected
     .github-FilePatchView:focus &.is-selected .github-HunkView-lineContent  {
-      color: mix(@fg, @text-color-highlight, 30%);
-      background-color: mix(@bg, @hunk-bg-color, 24%);
+      color: saturate( mix(@fg, @text-color-highlight, 10%), 10%);
+      background-color: saturate( mix(@bg, @hunk-bg-color, 25%), 10%);
     }
   }
 
@@ -106,6 +106,12 @@
   &.is-added {
     .hunk-line-mixin(@text-color-success, @background-color-success);
   }
+
+  // divider line between added and deleted lines
+  &.is-deleted + .is-added .github-HunkView-lineContent {
+    box-shadow: 0 -1px 0 hsla(0,0%,50%,.1);
+  }
+
 }
 
 // focus colors
