@@ -928,22 +928,22 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         sinon.stub(workerManager, 'request');
 
         workerManager.isReady.returns(false);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 1);
         assert.equal(workerManager.request.callCount, 0);
 
         workerManager.isReady.returns(true);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 1);
         assert.equal(workerManager.request.callCount, 1);
 
         workerManager.isReady.returns(false);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 1);
 
         workerManager.isReady.returns(true);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 2);
       });
