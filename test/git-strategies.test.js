@@ -1058,7 +1058,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        await assert.isRejected(git.fetch('mock', 'master'));
+        await git.fetch('mock', 'master');
         assert.isTrue(prompted);
       });
 
@@ -1210,7 +1210,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        await assert.isRejected(git.fetch('mock', 'master'));
+        // The git operation Promise does *not* reject if the git process is killed by a signal.
+        await git.fetch('mock', 'master');
         assert.isTrue(prompted);
       });
 
