@@ -80,7 +80,7 @@ describe('ConflictController', function() {
     assert.deepEqual(theirBannerDecorations.map(textFromDecoration), ['>>>>>>> other-branch\n']);
 
     const theirBlockDecorations = decorationsMatching({type: 'block', position: 'after'});
-    assert.deepEqual(theirBlockDecorations.map(pointFromDecoration), [[17, 0]]);
+    assert.deepEqual(theirBlockDecorations.map(pointFromDecoration), [[17, 20]]);
   });
 
   it('creates a line Decoration for resolved conflicts', async function() {
