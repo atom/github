@@ -1044,9 +1044,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('fails the command on dialog cancel', async function() {
-        // Until we resolve the TODO in lib/git-shell-out-strategy.js
-        this.skip();
-
         let prompted = false;
         const git = await withHttpRemote({
           prompt: query => {
@@ -1202,9 +1199,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('fails the command on dialog cancel', async function() {
-        // Until we resolve the TODO in lib/git-shell-out-strategy.js
-        this.skip();
-
         let prompted = false;
         const git = await withSSHRemote({
           prompt: query => {
