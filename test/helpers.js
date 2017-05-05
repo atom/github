@@ -195,3 +195,14 @@ after(() => {
     WorkerManager.reset(true);
   }
 });
+
+// eslint-disable-next-line jasmine/no-global-setup
+before(() => {
+  if (process.env.ATOM_GITHUB_FS_EVENT_LOG) {
+    atom.config.set('github.filesystemEventDiagnostics', true);
+  }
+
+  if (process.env.ATOM_GITHUB_GIT_DIAGNOSTICS) {
+    atom.config.set('github.gitDiagnostics', true);
+  }
+});
