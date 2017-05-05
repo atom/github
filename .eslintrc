@@ -19,6 +19,7 @@
     "HTMLElement": true,
     "MouseEvent": true,
     "IDBKeyRange": true,
+    "before": true,
     "beforeEach": true,
     "after": true,
     "afterEach": true,
