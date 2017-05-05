@@ -11,4 +11,4 @@ printf '003f66d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/master\n'
 printf '0000'
 
 # Consume the git process' 0000 response
-read || true
+read UNUSED || true

@@ -640,10 +640,15 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         },
       ];
 
+      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+
       operations.forEach(op => {
         it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
-          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          execStub.returns({
+            promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            cancel: notCancelled,
+          });
 
           await op.action();
 
@@ -657,12 +662,19 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         if (!op.usesPromptServerAlready) {
           it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
             const execStub = sinon.stub(git, 'executeGitCommand');
-            execStub.onCall(0).returns(Promise.resolve({
-              stdout: '',
-              stderr: 'stderr includes "gpg failed"',
-              exitCode: 128,
-            }));
+            execStub.onCall(0).returns({
+              promise: Promise.resolve({
+                stdout: '',
+                stderr: 'stderr includes "gpg failed"',
+                exitCode: 128,
+              }),
+              cancel: notCancelled,
+            });
             execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+            execStub.returns({
+              promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+              cancel: notCancelled,
+            });
 
             // Should not throw
             await op.action();
@@ -718,10 +730,15 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         },
       ];
 
+      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+
       operations.forEach(op => {
         it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
-          execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+          execStub.returns({
+            promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            cancel: notCancelled,
+          });
           if (op.configureStub) {
             op.configureStub(git);
           }
@@ -928,22 +945,22 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         sinon.stub(workerManager, 'request');
 
         workerManager.isReady.returns(false);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 1);
         assert.equal(workerManager.request.callCount, 0);
 
         workerManager.isReady.returns(true);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 1);
         assert.equal(workerManager.request.callCount, 1);
 
         workerManager.isReady.returns(false);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 1);
 
         workerManager.isReady.returns(true);
-        git.executeGitCommand();
+        git.executeGitCommand([], {});
         assert.equal(GitProcess.exec.callCount, 2);
         assert.equal(workerManager.request.callCount, 2);
       });
@@ -1044,9 +1061,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('fails the command on dialog cancel', async function() {
-        // Until we resolve the TODO in lib/git-shell-out-strategy.js
-        this.skip();
-
         let prompted = false;
         const git = await withHttpRemote({
           prompt: query => {
@@ -1061,7 +1075,7 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        await assert.isRejected(git.fetch('mock', 'master'));
+        await git.fetch('mock', 'master');
         assert.isTrue(prompted);
       });
 
@@ -1202,9 +1216,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('fails the command on dialog cancel', async function() {
-        // Until we resolve the TODO in lib/git-shell-out-strategy.js
-        this.skip();
-
         let prompted = false;
         const git = await withSSHRemote({
           prompt: query => {
@@ -1216,7 +1227,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
 
-        await assert.isRejected(git.fetch('mock', 'master'));
+        // The git operation Promise does *not* reject if the git process is killed by a signal.
+        await git.fetch('mock', 'master');
         assert.isTrue(prompted);
       });
 
