@@ -43,7 +43,7 @@ function userHelper() {
 }
 
 function dialog() {
-  const payload = {prompt, includeUsername: false};
+  const payload = {prompt, includeUsername: false, pid: process.pid};
   log('requesting dialog through Atom socket');
   log(`prompt = "${prompt}"`);
 
