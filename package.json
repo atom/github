@@ -118,6 +118,11 @@
       "default": false,
       "description": "Write detailed diagnostic information about git operations to the console"
     },
+    "filesystemEventDiagnostics": {
+      "type": "boolean",
+      "default": false,
+      "description": "Trace observed filesystem events to the console"
+    },
     "performanceMask": {
       "type": "array",
       "default": [
