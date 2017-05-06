@@ -224,10 +224,10 @@ type AssignedEvent implements Node {
 # Represents an object which can create content. Typically a User or Bot.
 interface Author {
   # A URL pointing to the author's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
 
   # The username of the author.
   login: String!
@@ -307,10 +307,10 @@ type Blob implements Node, GitObject {
 # A special type of user which takes actions on behalf of integrations.
 type Bot implements Node, Author, UniformResourceLocatable {
   # A URL pointing to the owner's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
   id: ID!
 
   # The username of the author.
@@ -357,7 +357,7 @@ type CodeOfConduct {
   name: String!
 
   # The path to the CoC
-  url: String
+  url: URI
 }
 
 # Represents a comment.
@@ -390,35 +390,8 @@ interface Comment {
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
 
-  # Check if the current viewer can delete this object.
-  viewerCanDelete: Boolean! @deprecated(reason: "Deprecated in favor of Deletable and Deletable.viewerCanDelete.")
-
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
-  # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
-
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
-}
-
-# The possible errors that will prevent a user from editting a comment.
-enum CommentCannotEditReason {
-  # You must be the author or have write access to this repository to edit this comment.
-  INSUFFICIENT_ACCESS
-
-  # Unable to create comment because issue is locked.
-  LOCKED
-
-  # You must be logged in to edit this comment.
-  LOGIN_REQUIRED
-
-  # Repository is under maintenance.
-  MAINTENANCE
-
-  # At least one email address must be verified to edit this comment.
-  VERIFIED_EMAIL_REQUIRED
 }
 
 # The possible errors that will prevent a user from updating a comment.
@@ -540,9 +513,6 @@ type Commit implements Node, GitObject {
 
   # The HTTP url for this commit
   url: URI!
-
-  # The websocket channel ID for live updates.
-  websocket: String!
 }
 
 # Specifies an author for filtering Git commits.
@@ -585,9 +555,6 @@ type CommitComment implements Node, Comment, Deletable, Updatable, UpdatableComm
   # The moment the editor made the last edit
   lastEditedAt: DateTime
 
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
-
   # Identifies the file path associated with the comment.
   path: String
 
@@ -621,32 +588,20 @@ type CommitComment implements Node, Comment, Deletable, Updatable, UpdatableComm
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
   # Identifies the repository associated with the comment.
   repository: Repository!
 
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
 
-  # Identifies the user who created the comment.
-  user: User! @deprecated(reason: "Use `author`.")
-
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
-
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
 
   # Can user react to this subject
   viewerCanReact: Boolean!
 
   # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
-
-  # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
 
   # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
@@ -677,21 +632,6 @@ type CommitCommentEdge {
 
   # The item at the end of the edge.
   node: CommitComment
-}
-
-# The connection type for Commit.
-type CommitConnection {
-  # A list of edges.
-  edges: [CommitEdge]
-
-  # A list of nodes.
-  nodes: [Commit]
-
-  # Information to aid in pagination.
-  pageInfo: PageInfo!
-
-  # Identifies the total count of items in the connection.
-  totalCount: Int!
 }
 
 # An edge in a connection.
@@ -905,7 +845,7 @@ type Deployment implements Node {
   createdAt: DateTime!
 
   # Identifies the user who triggered the deployment.
-  creator: User!
+  creator: Author
   id: ID!
 
   # Identifies the repository associated with the deployment.
@@ -948,7 +888,7 @@ enum DeploymentState {
 # Describes the status of a given deployment attempt.
 type DeploymentStatus implements Node {
   # Identifies the user who triggered the deployment.
-  creator: User!
+  creator: Author
 
   # Identifies the deployment associated with status.
   deployment: Deployment!
@@ -957,11 +897,11 @@ type DeploymentStatus implements Node {
   description: String
 
   # Identifies the environment url of the deployment.
-  environmentUrl: String
+  environmentUrl: URI
   id: ID!
 
   # Identifies the log url of the deployment.
-  logUrl: String
+  logUrl: URI
 
   # Identifies the current state of the deployment.
   state: DeploymentState!
@@ -989,6 +929,21 @@ type DeploymentStatusEdge {
 
   # The item at the end of the edge.
   node: DeploymentStatus
+}
+
+# Ways in which discussion post connections can be ordered.
+input DiscussionPostOrder {
+  # The field by which to order nodes.
+  field: DiscussionPostOrderField!
+
+  # The direction in which to order nodes.
+  direction: OrderDirection!
+}
+
+# Properties by which discussion post connections can be ordered.
+enum DiscussionPostOrderField {
+  # Allows chronological ordering of discussion posts.
+  CREATED_AT
 }
 
 # Autogenerated input type of DismissPullRequestReview
@@ -1118,14 +1073,14 @@ type Gist implements Node {
   description: String
   id: ID!
 
+  # Whether the gist is public or not.
+  isPublic: Boolean!
+
   # The gist name.
   name: String!
 
   # The gist owner.
   owner: RepositoryOwner
-
-  # Whether the gist is public or not.
-  public: Boolean!
 
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
@@ -1165,13 +1120,7 @@ type GistComment implements Node, Comment, Deletable, Updatable, UpdatableCommen
   viewerCanDelete: Boolean!
 
   # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
-  # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
-
-  # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
 
   # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
@@ -1204,12 +1153,12 @@ type GistEdge {
   node: Gist
 }
 
-# The possible Gist visibility types
-enum GistVisibility {
-  # Gists that are public
+# The privacy of a Gist
+enum GistPrivacy {
+  # Public
   PUBLIC
 
-  # Gists that are secret
+  # Secret
   SECRET
 
   # Gists that are public and secret
@@ -1219,10 +1168,10 @@ enum GistVisibility {
 # Represents an actor in a Git commit (ie. an author or committer).
 type GitActor {
   # A URL pointing to the author's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
 
   # The timestamp of the Git action (authoring or committing).
   date: GitTimestamp
@@ -1401,15 +1350,16 @@ type HeadRefRestoredEvent implements Node {
 scalar HTML
 
 # Represents an integration with GitHub.
-type Integration {
+type Integration implements Node {
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  id: ID!
 
   # A URL pointing to the integration's logo.
-  logoURL(
+  logoUrl(
     # The size of the resulting image.
     size: Int
-  ): String!
+  ): URI!
 
   # The name of the integration.
   name: String!
@@ -1417,8 +1367,11 @@ type Integration {
   # The owner of this integration.
   owner: User!
 
+  # A slug based on the name of the integration for use in URLs.
+  slug: String!
+
   # The URL to the integration's homepage.
-  url: String!
+  url: URI!
 }
 
 # The connection type for Integration.
@@ -1523,9 +1476,6 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   # The moment the editor made the last edit
   lastEditedAt: DateTime
 
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
-
   # `true` if the object is locked
   locked: Boolean!
 
@@ -1580,9 +1530,6 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
   # Identifies the repository associated with the issue.
   repository: Repository!
 
@@ -1619,12 +1566,6 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   # The integration the issue was authored via.
   viaIntegration: Integration
 
-  # Check if the current viewer can delete this object.
-  viewerCanDelete: Boolean! @deprecated(reason: "Deprecated in favor of Deletable and Deletable.viewerCanDelete.")
-
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
   # Can user react to this subject
   viewerCanReact: Boolean!
 
@@ -1635,9 +1576,6 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   viewerCanUpdate: Boolean!
 
   # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
-
-  # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
 
   # Did the viewer author this comment.
@@ -1645,12 +1583,6 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
 
   # Identifies if the viewer is watching, not watching, or ignoring the repository.
   viewerSubscription: SubscriptionState!
-
-  # The websocket channel ID for live updates.
-  websocket(
-    # The channel to use.
-    channel: IssuePubSubTopic!
-  ): String!
 }
 
 # Represents a comment on an Issue.
@@ -1683,9 +1615,6 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   # The moment the editor made the last edit
   lastEditedAt: DateTime
 
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
-
   # Identifies when the comment was published at.
   publishedAt: DateTime
 
@@ -1713,9 +1642,6 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
   # The repository associated with this node.
   repository: Repository!
 
@@ -1728,9 +1654,6 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
 
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
   # Can user react to this subject
   viewerCanReact: Boolean!
 
@@ -1738,19 +1661,10 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   viewerCanUpdate: Boolean!
 
   # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
-
-  # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
 
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
-
-  # The websocket channel ID for live updates.
-  websocket(
-    # The channel to use.
-    channel: IssuePubSubTopic!
-  ): String!
 }
 
 # The connection type for IssueComment.
@@ -2069,11 +1983,8 @@ type MergedEvent implements Node {
 
 # Represents a Milestone object on a given repository.
 type Milestone implements Node {
-  # Identifies the number of issues currently closed in this milestone.
-  closedIssueCount: Int!
-
   # Identifies the creator of the milestone.
-  creator: User!
+  creator: Author
 
   # Identifies the description of the milestone.
   description: String
@@ -2084,9 +1995,6 @@ type Milestone implements Node {
 
   # Identifies the number of the milestone.
   number: Int!
-
-  # Identifies the number of issues currently open in this milestone.
-  openIssueCount: Int!
 
   # The HTTP path for this milestone
   path: URI!
@@ -2303,34 +2211,19 @@ enum OrderDirection {
 # An account on GitHub, with one or more owners, that has repositories, members and teams.
 type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourceLocatable {
   # A URL pointing to the organization's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
+
+  # Identifies the primary key from the database.
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
 
   # Find gist by repo name.
   gist(
     # The gist name to find.
     name: String!
   ): Gist
-
-  # A list of the Gists the user has created.
-  gists(
-    # Returns the first _n_ elements from the list.
-    first: Int
-
-    # Returns the elements in the list that come after the specified global ID.
-    after: String
-
-    # Returns the last _n_ elements from the list.
-    last: Int
-
-    # Returns the elements in the list that come before the specified global ID.
-    before: String
-
-    # Allows filtering by gist visibility.
-    visibility: GistVisibility
-  ): GistConnection!
   id: ID!
 
   # The organization's login name.
@@ -2575,11 +2468,11 @@ type OrganizationInvitation {
   email: String
   id: ID!
 
+  # The user who was invited to the organization.
+  invitee: User
+
   # The user who created the invitation.
   inviter: User!
-
-  # The login of the user invited to the organization.
-  login: String
 
   # The user's pending role in the organization (e.g. member, owner).
   role: OrganizationInvitationRole!
@@ -2669,7 +2562,7 @@ type Project implements Node, Updatable {
   createdAt: DateTime!
 
   # The user that originally created the project.
-  creator: User!
+  creator: Author
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
@@ -2697,9 +2590,6 @@ type Project implements Node, Updatable {
   url: URI!
 
   # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
-  # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
 }
 
@@ -2712,7 +2602,7 @@ type ProjectCard implements Node {
   createdAt: DateTime!
 
   # The user who created this card
-  creator: User!
+  creator: Author
 
   # Identifies the primary key from the database.
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
@@ -2928,33 +2818,54 @@ enum ProjectState {
 
 # A repository protected branch.
 type ProtectedBranch implements Node {
-  # Check if authorizing actors for pushing is turned on.
-  authorizedActorsOnly: Boolean!
-
-  # Check if authorizing dismissers is turned on.
-  authorizedDismissalActorsOnly: Boolean!
-
-  # Check to see what level deletion blocking is being enforced.
-  blockDeletionsEnforcementLevel: Int!
-
-  # Check to see what level force pushing is being enfored.
-  blockForcePushesEnforcementLevel: Int!
-
   # The creator of this protected branch.
-  creator: User!
+  creator: Author
+
+  # Will new commits pushed to this branch dismiss pull request review approvals.
+  hasDismissableStaleReviews: Boolean!
+
+  # Are reviews required to update this branch.
+  hasRequiredReviews: Boolean!
+
+  # Are status checks required to update this branch.
+  hasRequiredStatusChecks: Boolean!
+
+  # Is pushing to this branch restricted.
+  hasRestrictedPushes: Boolean!
+
+  # Is dismissal of pull request reviews restricted.
+  hasRestrictedReviewDismissals: Boolean!
+
+  # Are branches required to be up to date before merging.
+  hasStrictRequiredStatusChecks: Boolean!
   id: ID!
+
+  # Can admins overwrite branch protection.
+  isAdminEnforced: Boolean!
 
   # Identifies the name of the protected branch.
   name: String!
 
-  # Check to see what level reviews are being enforced.
-  pullRequestReviewsEnforcementLevel: Int!
+  # A list push allowances for this protected branch.
+  pushAllowances(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): PushAllowanceConnection!
 
   # The repository associated with this protected branch.
   repository: Repository!
 
-  # Check to see what level merge statuses are being enforced.
-  requiredStatusChecksEnforcementLevel: Int!
+  # List of required status check contexts that must pass for commits to be accepted to this branch.
+  requiredStatusCheckContexts: [String]
 
   # A list review dismissal allowances for this protected branch.
   reviewDismissalAllowances(
@@ -2970,9 +2881,6 @@ type ProtectedBranch implements Node {
     # Returns the elements in the list that come before the specified global ID.
     before: String
   ): ReviewDismissalAllowanceConnection!
-
-  # Check if required status checks is turned on.
-  strictRequiredStatusChecksPolicy: Boolean!
 }
 
 # The connection type for ProtectedBranch.
@@ -3065,7 +2973,7 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
-  ): CommitConnection!
+  ): PullRequestCommitConnection!
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
@@ -3109,9 +3017,6 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
 
   # The moment the editor made the last edit
   lastEditedAt: DateTime
-
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
 
   # `true` if the object is locked
   locked: Boolean!
@@ -3182,9 +3087,6 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
   # The repository associated with this pull request.
   repository: Repository!
 
@@ -3254,12 +3156,6 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # The HTTP url for this issue
   url: URI!
 
-  # Check if the current viewer can delete this object.
-  viewerCanDelete: Boolean! @deprecated(reason: "Deprecated in favor of Deletable and Deletable.viewerCanDelete.")
-
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
   # Can user react to this subject
   viewerCanReact: Boolean!
 
@@ -3270,9 +3166,6 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   viewerCanUpdate: Boolean!
 
   # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
-
-  # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
 
   # Did the viewer author this comment.
@@ -3280,12 +3173,40 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
 
   # Identifies if the viewer is watching, not watching, or ignoring the repository.
   viewerSubscription: SubscriptionState!
+}
 
-  # The websocket channel ID for live updates.
-  websocket(
-    # The channel to use.
-    channel: PullRequestPubSubTopic!
-  ): String!
+# Represents a Git commit part of a pull request.
+type PullRequestCommit implements Node {
+  # The Git commit object
+  commit: Commit!
+  id: ID!
+
+  # The pull request this commit belongs to
+  pullRequest: PullRequest!
+}
+
+# The connection type for PullRequestCommit.
+type PullRequestCommitConnection {
+  # A list of edges.
+  edges: [PullRequestCommitEdge]
+
+  # A list of nodes.
+  nodes: [PullRequestCommit]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type PullRequestCommitEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: PullRequestCommit
 }
 
 # The connection type for PullRequest.
@@ -3397,13 +3318,7 @@ type PullRequestReview implements Node, Comment, Deletable, Updatable, Updatable
   viewerCanDelete: Boolean!
 
   # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
-  # Check if the current viewer can update this object.
   viewerCanUpdate: Boolean!
-
-  # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
 
   # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
@@ -3451,9 +3366,6 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
   # The moment the editor made the last edit
   lastEditedAt: DateTime
 
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
-
   # Identifies the original commit associated with the comment.
   originalCommit: Commit!
 
@@ -3499,9 +3411,6 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
   # The repository associated with this review comment.
   repository: Repository!
 
@@ -3514,9 +3423,6 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
 
-  # Check if the current viewer can update this object.
-  viewerCanEdit: Boolean! @deprecated(reason: "Deprecated in favor of Updatable.viewerCanUpdate.")
-
   # Can user react to this subject
   viewerCanReact: Boolean!
 
@@ -3524,19 +3430,10 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
   viewerCanUpdate: Boolean!
 
   # Reasons why the current viewer can not update this comment.
-  viewerCannotEditReasons: [CommentCannotEditReason!]! @deprecated(reason: "Deprecated in favor of UpdatableComment.viewerCannotUpdateReasons.")
-
-  # Reasons why the current viewer can not update this comment.
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
 
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
-
-  # The websocket channel ID for live updates.
-  websocket(
-    # The channel to use.
-    channel: PullRequestPubSubTopic!
-  ): String!
 }
 
 # The connection type for PullRequestReviewComment.
@@ -3681,6 +3578,43 @@ type PullRequestTimelineItemEdge {
   node: PullRequestTimelineItem
 }
 
+# A team or user who has the ability to push to a protected branch.
+type PushAllowance implements Node {
+  # The actor that can push.
+  actor: PushAllowanceActor
+  id: ID!
+
+  # Identifies the protected branch associated with the allowed user or team.
+  protectedBranch: ProtectedBranch!
+}
+
+# Types that can be an actor.
+union PushAllowanceActor = User | Team
+
+# The connection type for PushAllowance.
+type PushAllowanceConnection {
+  # A list of edges.
+  edges: [PushAllowanceEdge]
+
+  # A list of nodes.
+  nodes: [PushAllowance]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type PushAllowanceEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: PushAllowance
+}
+
 # The query root of GitHub's GraphQL interface.
 type Query {
   # Look up a code of conduct by its key
@@ -3777,9 +3711,6 @@ interface Reactable {
   databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
   id: ID!
 
-  # Are reaction live updates enabled for this subject.
-  liveReactionUpdatesEnabled: Boolean!
-
   # A list of reactions grouped by content left on the subject.
   reactionGroups: [ReactionGroup!]
 
@@ -3803,12 +3734,6 @@ interface Reactable {
     # Allows specifying the order in which reactions are returned.
     orderBy: ReactionOrder
   ): ReactionConnection!
-
-  # The websocket channel ID for reaction live updates.
-  reactionsWebsocket: String!
-
-  # The repository associated with this reaction subject.
-  repository: Repository! @deprecated(reason: "Future reaction subjects may not be scoped under repositories.")
 
   # Can user react to this subject
   viewerCanReact: Boolean!
@@ -3851,7 +3776,7 @@ type Reaction implements Node {
   id: ID!
 
   # Identifies the user who created this reaction.
-  user: User!
+  user: User
 }
 
 # A list of reactions that have been left on the subject.
@@ -4008,7 +3933,7 @@ type RefEdge {
 # Represents a 'referenced' event on a given `ReferencedSubject`.
 type ReferencedEvent implements Node {
   # Identifies the user who performed the 'label' event.
-  actor: User!
+  actor: User
 
   # Identifies the commit associated with the 'referenced' event.
   commit: Commit
@@ -4019,6 +3944,9 @@ type ReferencedEvent implements Node {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
+
+  # Reference originated in a different repository.
+  isCrossReference: Boolean!
 
   # Object referenced by event.
   subject: ReferencedSubject!
@@ -4296,7 +4224,7 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   hasWikiEnabled: Boolean!
 
   # The repository's URL.
-  homepageURL: String
+  homepageUrl: URI
   id: ID!
 
   # Identifies if the repository is a fork.
@@ -4426,7 +4354,7 @@ type Repository implements Node, ProjectOwner, Subscribable, UniformResourceLoca
   ): MilestoneConnection
 
   # The repository's original mirror URL.
-  mirrorURL: String
+  mirrorUrl: URI
 
   # The name of the repository.
   name: String!
@@ -4712,9 +4640,6 @@ interface RepositoryInfo {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
-  # The Ref associated with the repository's default branch.
-  defaultBranchRef: Ref
-
   # The description of the repository.
   description: String
 
@@ -4728,7 +4653,7 @@ interface RepositoryInfo {
   hasWikiEnabled: Boolean!
 
   # The repository's URL.
-  homepageURL: String
+  homepageUrl: URI
 
   # Identifies if the repository is a fork.
   isFork: Boolean!
@@ -4749,7 +4674,7 @@ interface RepositoryInfo {
   lockReason: RepositoryLockReason
 
   # The repository's original mirror URL.
-  mirrorURL: String
+  mirrorUrl: URI
 
   # The name of the repository.
   name: String!
@@ -4792,9 +4717,6 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
-  # The Ref associated with the repository's default branch.
-  defaultBranchRef: Ref
-
   # The description of the repository.
   description: String
 
@@ -4808,7 +4730,7 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   hasWikiEnabled: Boolean!
 
   # The repository's URL.
-  homepageURL: String
+  homepageUrl: URI
 
   # Identifies if the repository is a fork.
   isFork: Boolean!
@@ -4829,7 +4751,7 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   lockReason: RepositoryLockReason
 
   # The repository's original mirror URL.
-  mirrorURL: String
+  mirrorUrl: URI
 
   # The name of the repository.
   name: String!
@@ -4901,34 +4823,16 @@ enum RepositoryOrderField {
 # Represents an owner of a Repository.
 interface RepositoryOwner {
   # A URL pointing to the owner's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
 
   # Find gist by repo name.
   gist(
     # The gist name to find.
     name: String!
   ): Gist
-
-  # A list of the Gists the user has created.
-  gists(
-    # Returns the first _n_ elements from the list.
-    first: Int
-
-    # Returns the elements in the list that come after the specified global ID.
-    after: String
-
-    # Returns the last _n_ elements from the list.
-    last: Int
-
-    # Returns the elements in the list that come before the specified global ID.
-    before: String
-
-    # Allows filtering by gist visibility.
-    visibility: GistVisibility
-  ): GistConnection!
   id: ID!
 
   # The username used to login.
@@ -5051,7 +4955,7 @@ type RequestReviewsPayload {
   requestedReviewersEdge: UserEdge!
 }
 
-# A team or user who as the ability to dismiss a review on a protected branch.
+# A team or user who has the ability to dismiss a review on a protected branch.
 type ReviewDismissalAllowance implements Node {
   # The actor that can dismiss.
   actor: ReviewDismissalAllowanceActor
@@ -5120,7 +5024,7 @@ type ReviewRequest implements Node {
   pullRequest: PullRequest!
 
   # Identifies the author associated with this review request.
-  reviewer: User!
+  reviewer: User
 }
 
 # The connection type for ReviewRequest.
@@ -5356,7 +5260,7 @@ type StatusContext implements Node {
   state: StatusState!
 
   # The URL for this status context.
-  targetURL: String
+  targetUrl: URI
 }
 
 # The possible commit status states.
@@ -5911,10 +5815,10 @@ scalar URI
 # A user is an individual's account on GitHub that owns repositories and can make new content.
 type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
   # A URL pointing to the user's public avatar.
-  avatarURL(
+  avatarUrl(
     # The size of the resulting square image.
     size: Int
-  ): String!
+  ): URI!
 
   # The user's public profile bio.
   bio: String
@@ -6014,8 +5918,8 @@ type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
     # Returns the elements in the list that come before the specified global ID.
     before: String
 
-    # Allows filtering by gist visibility.
-    visibility: GistVisibility
+    # Filters Gists according to privacy.
+    privacy: GistPrivacy
   ): GistConnection!
   id: ID!
 
@@ -6224,7 +6128,7 @@ type User implements Node, Author, RepositoryOwner, UniformResourceLocatable {
   ): RepositoryConnection!
 
   # A URL pointing to the user's public website/blog.
-  websiteURL: String
+  websiteUrl: URI
 }
 
 # The connection type for User.
