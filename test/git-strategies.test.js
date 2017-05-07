@@ -1061,22 +1061,20 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       });
 
       it('fails the command on dialog cancel', async function() {
-        let prompted = false;
+        let query = false;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.reject(new Error('nevermind'));
           },
         });
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
 
       it('prefers user-configured credential helpers if present', async function() {
