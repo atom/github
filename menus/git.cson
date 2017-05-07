@@ -38,7 +38,7 @@
       'command': 'github:open-file'
     }
   ]
-  '.github-UnstagedChanges': [
+  '.github-UnstagedChanges .github-FilePatchListView': [
     {
       'label': 'Stage'
       'command': 'core:confirm'
@@ -51,13 +51,13 @@
       'command': 'github:discard-changes-in-selected-files'
     }
   ]
-  '.github-StagedChanges': [
+  '.github-StagedChanges .github-FilePatchListView': [
     {
       'label': 'Unstage'
       'command': 'core:confirm'
     }
   ]
-  '.github-MergeConflictPaths': [
+  '.github-MergeConflictPaths .github-FilePatchListView': [
     {
       'label': 'Stage'
       'command': 'core:confirm'
