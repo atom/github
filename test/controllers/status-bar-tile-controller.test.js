@@ -299,37 +299,64 @@ describe('StatusBarTileController', function() {
     });
 
     describe('the push/pull menu', function() {
-      it('disables the fetch and pull buttons when there is no remote tracking branch and displays informative message', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepository(localRepoPath);
-        await repository.git.exec(['checkout', '-b', 'new-branch']);
+      describe('when there is no remote tracking branch', function() {
+        let repository;
 
-        const wrapper = mount(React.cloneElement(component, {repository}));
-        await wrapper.instance().refreshModelData();
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+          await repository.git.exec(['checkout', '-b', 'new-branch']);
+        });
 
-        const tip = getTooltipNode(wrapper, PushPullView);
+        it('disables the fetch and pull buttons and displays an informative message', async function() {
+          const wrapper = mount(React.cloneElement(component, {repository}));
+          await wrapper.instance().refreshModelData();
 
-        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
-        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
-        const message = tip.querySelector('.github-PushPullMenuView-message');
+          const tip = getTooltipNode(wrapper, PushPullView);
 
-        assert.isTrue(pullButton.disabled);
-        assert.isFalse(pushButton.disabled);
-        assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
+          const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+          const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+          const message = tip.querySelector('.github-PushPullMenuView-message');
 
-        pushButton.click();
-        await until(async fail => {
-          try {
-            repository.refresh();
+          assert.isTrue(pullButton.disabled);
+          assert.isFalse(pushButton.disabled);
+          assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
+
+          pushButton.click();
+          await until(async fail => {
+            try {
+              repository.refresh();
+              await wrapper.instance().refreshModelData();
+
+              assert.isFalse(pullButton.disabled);
+              assert.isFalse(pushButton.disabled);
+              assert.equal(message.textContent, '');
+              return true;
+            } catch (err) {
+              return fail(err);
+            }
+          });
+        });
+
+        describe('when there is no remote named "origin"', function() {
+          beforeEach(async function() {
+            await repository.git.exec(['remote', 'remove', 'origin']);
+          });
+
+          it('additionally disables the push button and displays an informative message', async function() {
+            const wrapper = mount(React.cloneElement(component, {repository}));
             await wrapper.instance().refreshModelData();
 
-            assert.isFalse(pullButton.disabled);
-            assert.isFalse(pushButton.disabled);
-            assert.equal(message.textContent, '');
-            return true;
-          } catch (err) {
-            return fail(err);
-          }
+            const tip = getTooltipNode(wrapper, PushPullView);
+
+            const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+            const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+            const message = tip.querySelector('.github-PushPullMenuView-message');
+
+            assert.isTrue(pullButton.disabled);
+            assert.isTrue(pushButton.disabled);
+            assert.match(message.innerHTML, /No remote detected.*no remote named "origin"/);
+          });
         });
       });
 
