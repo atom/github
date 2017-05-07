@@ -69,15 +69,14 @@ describe('CommitViewController', function() {
     });
 
     describe('when a merge message is defined', function() {
-      it('is set to the merge message if regularCommitMessage is blank', async function() {
-        controller.regularCommitMessage = '';
-        await controller.update({mergeMessage: 'merge conflict!'});
+      it('is set to the merge message when merging', async function() {
+        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
         assert.equal(commitView.props.message, 'merge conflict!');
       });
 
       it('is set to regularCommitMessage if it is set', async function() {
         controller.regularCommitMessage = 'regular commit message';
-        await controller.update({mergeMessage: 'merge conflict!'});
+        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
         assert.equal(commitView.props.message, 'regular commit message');
       });
     });
