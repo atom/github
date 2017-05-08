@@ -28,6 +28,7 @@
     "xdescribe": true,
     "it": true,
     "xit": true,
+    "stress": true,
     "waitsForPromise": true,
     "oneTick": true,
     "until": true,
