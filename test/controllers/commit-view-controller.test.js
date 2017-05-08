@@ -4,7 +4,6 @@ import CommitViewController from '../../lib/controllers/commit-view-controller';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, commandRegistry, lastCommit;
   let atomEnvironment, commandRegistry, notificationManager, lastCommit;
 
   beforeEach(function() {
