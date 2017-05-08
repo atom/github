@@ -65,7 +65,7 @@ import RootController from '../../lib/controllers/root-controller';
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
-        app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubPanelActive: false}});
+        app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubTabActive: false}});
         const wrapper = shallow(app);
 
         assert.isFalse(isGitPaneDisplayed(wrapper));
@@ -75,7 +75,7 @@ import RootController from '../../lib/controllers/root-controller';
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
-        app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubPanelActive: true}});
+        app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubTabActive: true}});
         const wrapper = shallow(app);
 
         assert.isTrue(isGitPaneDisplayed(wrapper));
