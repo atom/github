@@ -2,7 +2,7 @@ import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository} from '../helpers';
 
-import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
+import WorkdirContext from '../../lib/models/workdir-context';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
@@ -104,7 +104,7 @@ describe('WorkdirContext', function() {
   });
 
   it('exports a singleton containing a Repository in the absent state', function() {
-    assert.isTrue(absentWorkdirContext.getRepository().isAbsent());
+    assert.isTrue(WorkdirContext.absent().getRepository().isAbsent());
   });
 
   it('can be constructed containing an undetermined Repository that acts absent', function() {
