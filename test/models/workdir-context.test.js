@@ -1,8 +1,10 @@
+import path from 'path';
+
 import {CompositeDisposable, Disposable} from 'event-kit';
 
 import {cloneRepository} from '../helpers';
 
-import WorkdirContext, {absentWorkdirContext} from '../../lib/models/workdir-context';
+import WorkdirContext from '../../lib/models/workdir-context';
 
 describe('WorkdirContext', function() {
   let context, workingDirectory, subs;
@@ -62,10 +64,9 @@ describe('WorkdirContext', function() {
 
     sinon.spy(repo, 'observeFilesystemChange');
 
-    const payload = {};
-    context.getChangeObserver().didChange(payload);
+    context.getChangeObserver().didChange([{directory: '/a/b', file: 'c'}]);
 
-    assert.isTrue(repo.observeFilesystemChange.calledWith(payload));
+    assert.isTrue(repo.observeFilesystemChange.calledWith([path.join('/a/b', 'c')]));
   });
 
   it('re-emits an event on workdir or head change', async function() {
@@ -104,7 +105,7 @@ describe('WorkdirContext', function() {
   });
 
   it('exports a singleton containing a Repository in the absent state', function() {
-    assert.isTrue(absentWorkdirContext.getRepository().isAbsent());
+    assert.isTrue(WorkdirContext.absent().getRepository().isAbsent());
   });
 
   it('can be constructed containing an undetermined Repository that acts absent', function() {
