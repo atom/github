@@ -19156,6 +19156,18 @@
               "deprecationReason": null
             },
             {
+              "name": "organizationBillingEmail",
+              "description": "The billing email for the organization.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "path",
               "description": "The HTTP path for this user",
               "args": [],
