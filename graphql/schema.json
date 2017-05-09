@@ -1967,11 +1967,11 @@
             },
             {
               "name": "creator",
-              "description": "The user that originally created the project.",
+              "description": "The actor who originally created the project.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -2235,12 +2235,12 @@
         },
         {
           "kind": "INTERFACE",
-          "name": "Author",
-          "description": "Represents an object which can create content. Typically a User or Bot.",
+          "name": "Actor",
+          "description": "Represents an object which can take actions on GitHub. Typically a User or Bot.",
           "fields": [
             {
               "name": "avatarUrl",
-              "description": "A URL pointing to the author's public avatar.",
+              "description": "A URL pointing to the actor's public avatar.",
               "args": [
                 {
                   "name": "size",
@@ -2267,7 +2267,7 @@
             },
             {
               "name": "login",
-              "description": "The username of the author.",
+              "description": "The username of the actor.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2283,7 +2283,7 @@
             },
             {
               "name": "path",
-              "description": "The path to this author.",
+              "description": "The path to this actor.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3223,11 +3223,11 @@
             },
             {
               "name": "creator",
-              "description": "The user who created this card",
+              "description": "The actor who created this card",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -3443,11 +3443,11 @@
             },
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -3620,11 +3620,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -5706,7 +5706,7 @@
             },
             {
               "kind": "INTERFACE",
-              "name": "Author",
+              "name": "Actor",
               "ofType": null
             },
             {
@@ -6768,6 +6768,22 @@
               "deprecationReason": null
             },
             {
+              "name": "path",
+              "description": "The HTTP path for this tree",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "repository",
               "description": "The Repository the Git object belongs to",
               "args": [],
@@ -6777,6 +6793,22 @@
                 "ofType": {
                   "kind": "OBJECT",
                   "name": "Repository",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "url",
+              "description": "The HTTP url for this tree",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
                   "ofType": null
                 }
               },
@@ -7619,11 +7651,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -7723,11 +7755,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -8866,11 +8898,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -8942,11 +8974,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -9728,11 +9760,11 @@
             },
             {
               "name": "creator",
-              "description": "The author of this status context.",
+              "description": "The actor who created this status context.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -9976,6 +10008,11 @@
             {
               "kind": "OBJECT",
               "name": "PullRequest",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PullRequestCommit",
               "ofType": null
             },
             {
@@ -10313,11 +10350,11 @@
             },
             {
               "name": "author",
-              "description": "The author of the issue or pull request.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -10575,11 +10612,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of this pull request's body.",
+              "description": "The actor who edited this pull request's body.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -12785,11 +12822,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -12873,11 +12910,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -13490,11 +13527,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -13663,11 +13700,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -14092,11 +14129,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -14244,11 +14281,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -14836,6 +14873,22 @@
               "deprecationReason": null
             },
             {
+              "name": "path",
+              "description": "The HTTP path for this pull request commit",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "pullRequest",
               "description": "The pull request this commit belongs to",
               "args": [],
@@ -14850,6 +14903,22 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "url",
+              "description": "The HTTP url for this pull request commit",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -14857,6 +14926,11 @@
             {
               "kind": "INTERFACE",
               "name": "Node",
+              "ofType": null
+            },
+            {
+              "kind": "INTERFACE",
+              "name": "UniformResourceLocatable",
               "ofType": null
             }
           ],
@@ -15428,16 +15502,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who closed the item.",
+              "description": "Identifies the actor who closed the item.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -15559,16 +15629,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who reopened the item.",
+              "description": "Identifies the actor who reopened the item.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -15640,16 +15706,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'subscribed' event.",
+              "description": "Identifies the actor who performed the 'subscribed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -15780,16 +15842,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'unsubscribed' event.",
+              "description": "Identifies the actor who performed the 'unsubscribed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -15861,16 +15919,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'merge' event.",
+              "description": "Identifies the actor who performed the 'merge' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -15986,11 +16040,11 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'label' event.",
+              "description": "Identifies the actor who performed the 'label' event.",
               "args": [],
               "type": {
-                "kind": "OBJECT",
-                "name": "User",
+                "kind": "INTERFACE",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -16128,11 +16182,11 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'assigned' event.",
+              "description": "Identifies the actor who performed the 'assigned' event.",
               "args": [],
               "type": {
-                "kind": "OBJECT",
-                "name": "User",
+                "kind": "INTERFACE",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -16296,16 +16350,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'unassigned' event.",
+              "description": "Identifies the actor who performed the 'unassigned' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -16389,16 +16439,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'label' event.",
+              "description": "Identifies the actor who performed the 'label' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -16561,16 +16607,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'unlabel' event.",
+              "description": "Identifies the actor who performed the 'unlabel' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -16658,16 +16700,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'milestoned' event.",
+              "description": "Identifies the actor who performed the 'milestoned' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -16776,16 +16814,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'demilestoned' event.",
+              "description": "Identifies the actor who performed the 'demilestoned' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -16873,16 +16907,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'renamed' event.",
+              "description": "Identifies the actor who performed the 'renamed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17007,16 +17037,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'locked' event.",
+              "description": "Identifies the actor who performed the 'locked' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17126,16 +17152,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'unlocked' event.",
+              "description": "Identifies the actor who performed the 'unlocked' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17207,16 +17229,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'deployed' event.",
+              "description": "Identifies the actor who performed the 'deployed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17348,11 +17366,11 @@
             },
             {
               "name": "creator",
-              "description": "Identifies the user who triggered the deployment.",
+              "description": "Identifies the actor who triggered the deployment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -17576,11 +17594,11 @@
           "fields": [
             {
               "name": "creator",
-              "description": "Identifies the user who triggered the deployment.",
+              "description": "Identifies the actor who triggered the deployment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -17730,16 +17748,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'head_ref_deleted' event.",
+              "description": "Identifies the actor who performed the 'head_ref_deleted' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17839,16 +17853,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'head_ref_restored' event.",
+              "description": "Identifies the actor who performed the 'head_ref_restored' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -17920,16 +17930,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'head_ref_force_pushed' event.",
+              "description": "Identifies the actor who performed the 'head_ref_force_pushed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -18045,16 +18051,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'base_ref_force_pushed' event.",
+              "description": "Identifies the actor who performed the 'base_ref_force_pushed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -18170,16 +18172,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'base_ref_force_pushed' event.",
+              "description": "Identifies the actor who performed the 'base_ref_force_pushed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -18267,16 +18265,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'review_request_removed' event.",
+              "description": "Identifies the actor who performed the 'review_request_removed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -18364,16 +18358,12 @@
           "fields": [
             {
               "name": "actor",
-              "description": "Identifies the user who performed the 'review_dismissed' event.",
+              "description": "Identifies the actor who performed the 'review_dismissed' event.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "User",
-                  "ofType": null
-                }
+                "kind": "INTERFACE",
+                "name": "Actor",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -21162,7 +21152,7 @@
           "fields": [
             {
               "name": "avatarUrl",
-              "description": "A URL pointing to the owner's public avatar.",
+              "description": "A URL pointing to the integration's public avatar.",
               "args": [
                 {
                   "name": "size",
@@ -21205,7 +21195,7 @@
             },
             {
               "name": "login",
-              "description": "The username of the author.",
+              "description": "The username of the actor.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -21221,7 +21211,7 @@
             },
             {
               "name": "path",
-              "description": "The path to this resource.",
+              "description": "The HTTP path for this bot",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -21237,7 +21227,7 @@
             },
             {
               "name": "url",
-              "description": "The URL to this resource.",
+              "description": "The HTTP url for this bot",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -21261,7 +21251,7 @@
             },
             {
               "kind": "INTERFACE",
-              "name": "Author",
+              "name": "Actor",
               "ofType": null
             },
             {
@@ -21991,11 +21981,11 @@
           "fields": [
             {
               "name": "creator",
-              "description": "Identifies the creator of the milestone.",
+              "description": "Identifies the actor who created the milestone.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -22850,11 +22840,11 @@
           "fields": [
             {
               "name": "creator",
-              "description": "The creator of this protected branch.",
+              "description": "The actor who created this protected branch.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -24478,11 +24468,11 @@
           "fields": [
             {
               "name": "author",
-              "description": "The author of the comment.",
+              "description": "The actor who authored the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -24554,11 +24544,11 @@
             },
             {
               "name": "editor",
-              "description": "The editor of the comment.",
+              "description": "The actor who edited the comment.",
               "args": [],
               "type": {
                 "kind": "INTERFACE",
-                "name": "Author",
+                "name": "Actor",
                 "ofType": null
               },
               "isDeprecated": false,
