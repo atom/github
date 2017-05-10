@@ -287,6 +287,7 @@ describe('FilePatch', function() {
         assert.equal(patch.getHeaderString(), dedent`
           --- a/foo/bar/old.js
           +++ b/baz/qux/new.js
+
         `);
       });
     });
