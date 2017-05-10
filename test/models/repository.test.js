@@ -15,7 +15,7 @@ import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
   assertDeepPropertyVals, assertEqualSortedArraysByKey,
 } from '../helpers';
-import {writeFile} from '../../lib/helpers';
+import {getPackageRoot, writeFile, copyFile} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -309,6 +309,16 @@ describe('Repository', function() {
   });
 
   describe('commit', function() {
+    let realPath = '';
+
+    beforeEach(function() {
+      realPath = process.env.PATH;
+    });
+
+    afterEach(function() {
+      process.env.PATH = realPath;
+    });
+
     it('creates a commit that contains the staged changes', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
@@ -417,6 +427,21 @@ describe('Repository', function() {
     });
 
     it('clears the stored resolution progress');
+
+    it('executes hook scripts with a sane environment', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
+      await copyFile(
+        path.join(scriptDirPath, 'hook.sh'),
+        path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
+      );
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
+
+      await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
+    });
   });
 
   describe('fetch(branchName)', function() {
