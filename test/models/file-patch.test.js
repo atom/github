@@ -276,4 +276,19 @@ describe('FilePatch', function() {
       `);
     });
   });
+
+  if (process.platform === 'win32') {
+    describe('getHeaderString()', function() {
+      it('formats paths with git line endings', function() {
+        const oldPath = path.join('foo', 'bar', 'old.js');
+        const newPath = path.join('baz', 'qux', 'new.js');
+
+        const patch = new FilePatch(oldPath, newPath, 'modified', []);
+        assert.equal(patch.getHeaderString(), dedent`
+          --- a/foo/bar/old.js
+          +++ b/baz/qux/new.js
+        `);
+      });
+    });
+  }
 });
