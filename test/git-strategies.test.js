@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -140,6 +140,27 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
       });
+
+      if (process.platform === 'win32') {
+        it('normalizes the path separator on Windows', async function() {
+          const workingDir = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDir);
+          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
+          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
+
+          await writeFile(absPathA, 'some changes here\n');
+          await writeFile(absPathB, 'more changes here\n');
+          await git.stageFiles([relPathB]);
+
+          const {stagedFiles, unstagedFiles} = await git.getStatusesForChangedFiles();
+          assert.deepEqual(stagedFiles, {
+            [relPathB]: 'modified',
+          });
+          assert.deepEqual(unstagedFiles, {
+            [relPathA]: 'modified',
+          });
+        });
+      }
     });
 
     describe('getHeadCommit()', function() {
