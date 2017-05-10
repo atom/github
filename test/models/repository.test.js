@@ -274,6 +274,47 @@ describe('Repository', function() {
     });
   });
 
+  describe('isPartiallyStaged(filePath)', function() {
+    it('returns true if specified file path is partially staged', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+
+      assert.isFalse(await repo.isPartiallyStaged('a.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('b.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('c.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('new-file.txt'));
+
+      await repo.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
+      repo.refresh();
+
+      assert.isFalse(await repo.isPartiallyStaged('a.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('b.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('c.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('new-file.txt'));
+
+      // modified on both
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      // modified in working directory, added on index
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      // deleted in working directory, modified on index
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      // untracked in working directory, deleted on index
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+      repo.refresh();
+
+      assert.isTrue(await repo.isPartiallyStaged('a.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('b.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('c.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('new-file.txt'));
+    });
+  });
+
   describe('applyPatchToIndex', function() {
     it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -294,8 +335,8 @@ describe('Repository', function() {
 
       let unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       let stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
-      assert.deepEqual(stagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
+      assert.deepEqual(stagedChanges, [path.join('subdir-1', 'a.txt')]);
 
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch());
       repo.refresh();
@@ -303,7 +344,7 @@ describe('Repository', function() {
       assert.deepEqual(unstagedPatch3, unstagedPatch2);
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
       assert.deepEqual(stagedChanges, []);
     });
   });

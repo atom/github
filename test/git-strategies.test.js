@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -140,6 +140,27 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
       });
+
+      if (process.platform === 'win32') {
+        it('normalizes the path separator on Windows', async function() {
+          const workingDir = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDir);
+          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
+          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
+
+          await writeFile(absPathA, 'some changes here\n');
+          await writeFile(absPathB, 'more changes here\n');
+          await git.stageFiles([relPathB]);
+
+          const {stagedFiles, unstagedFiles} = await git.getStatusesForChangedFiles();
+          assert.deepEqual(stagedFiles, {
+            [relPathB]: 'modified',
+          });
+          assert.deepEqual(unstagedFiles, {
+            [relPathA]: 'modified',
+          });
+        });
+      }
     });
 
     describe('getHeadCommit()', function() {
@@ -218,8 +239,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8');
         assert.deepEqual(await git.getUntrackedFiles(), [
           'd.txt',
-          'folder/subfolder/e.txt',
-          'folder/subfolder/f.txt',
+          path.join('folder', 'subfolder', 'e.txt'),
+          path.join('folder', 'subfolder', 'f.txt'),
         ]);
       });
 
@@ -404,42 +425,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
             status: 'modified',
           });
         });
-      });
-    });
-
-    describe('isPartiallyStaged(filePath)', function() {
-      it('returns true if specified file path is partially staged', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
-        fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
-
-        assert.isFalse(await git.isPartiallyStaged('a.txt'));
-        assert.isFalse(await git.isPartiallyStaged('b.txt'));
-        assert.isFalse(await git.isPartiallyStaged('c.txt'));
-        assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
-
-        await git.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
-        assert.isFalse(await git.isPartiallyStaged('a.txt'));
-        assert.isFalse(await git.isPartiallyStaged('b.txt'));
-        assert.isFalse(await git.isPartiallyStaged('c.txt'));
-        assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
-
-        // modified on both
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
-        // modified in working directory, added on index
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
-        // deleted in working directory, modified on index
-        fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
-        // untracked in working directory, deleted on index
-        fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
-
-        assert.isTrue(await git.isPartiallyStaged('a.txt'));
-        assert.isTrue(await git.isPartiallyStaged('b.txt'));
-        assert.isTrue(await git.isPartiallyStaged('c.txt'));
-        assert.isTrue(await git.isPartiallyStaged('new-file.txt'));
       });
     });
 
