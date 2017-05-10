@@ -12,6 +12,7 @@
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
   'o': 'github:open-file'
+  'left': 'core:move-left'
 
 '.github-StagingView .github-UnstagedChanges .github-FilePatchListView':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
