@@ -335,8 +335,8 @@ describe('Repository', function() {
 
       let unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       let stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
-      assert.deepEqual(stagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
+      assert.deepEqual(stagedChanges, [path.join('subdir-1', 'a.txt')]);
 
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch());
       repo.refresh();
@@ -344,7 +344,7 @@ describe('Repository', function() {
       assert.deepEqual(unstagedPatch3, unstagedPatch2);
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
       assert.deepEqual(stagedChanges, []);
     });
   });
