@@ -239,8 +239,8 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8');
         assert.deepEqual(await git.getUntrackedFiles(), [
           'd.txt',
-          'folder/subfolder/e.txt',
-          'folder/subfolder/f.txt',
+          path.join('folder', 'subfolder', 'e.txt'),
+          path.join('folder', 'subfolder', 'f.txt'),
         ]);
       });
 
