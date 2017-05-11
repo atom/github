@@ -35,7 +35,6 @@ env:
   - ATOM_CHANNEL=stable
   matrix:
   - TRAVIS_BUILD_JOB=runtests
-  - TRAVIS_BUILD_JOB=schemacheck
 
 notifications:
   email:
