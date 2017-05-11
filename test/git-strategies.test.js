@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -140,6 +140,27 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
           },
         });
       });
+
+      if (process.platform === 'win32') {
+        it('normalizes the path separator on Windows', async function() {
+          const workingDir = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDir);
+          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
+          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
+
+          await writeFile(absPathA, 'some changes here\n');
+          await writeFile(absPathB, 'more changes here\n');
+          await git.stageFiles([relPathB]);
+
+          const {stagedFiles, unstagedFiles} = await git.getStatusesForChangedFiles();
+          assert.deepEqual(stagedFiles, {
+            [relPathB]: 'modified',
+          });
+          assert.deepEqual(unstagedFiles, {
+            [relPathA]: 'modified',
+          });
+        });
+      }
     });
 
     describe('getHeadCommit()', function() {
@@ -218,8 +239,8 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8');
         assert.deepEqual(await git.getUntrackedFiles(), [
           'd.txt',
-          'folder/subfolder/e.txt',
-          'folder/subfolder/f.txt',
+          path.join('folder', 'subfolder', 'e.txt'),
+          path.join('folder', 'subfolder', 'f.txt'),
         ]);
       });
 
@@ -404,42 +425,6 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
             status: 'modified',
           });
         });
-      });
-    });
-
-    describe('isPartiallyStaged(filePath)', function() {
-      it('returns true if specified file path is partially staged', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
-        fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
-
-        assert.isFalse(await git.isPartiallyStaged('a.txt'));
-        assert.isFalse(await git.isPartiallyStaged('b.txt'));
-        assert.isFalse(await git.isPartiallyStaged('c.txt'));
-        assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
-
-        await git.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
-        assert.isFalse(await git.isPartiallyStaged('a.txt'));
-        assert.isFalse(await git.isPartiallyStaged('b.txt'));
-        assert.isFalse(await git.isPartiallyStaged('c.txt'));
-        assert.isFalse(await git.isPartiallyStaged('new-file.txt'));
-
-        // modified on both
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
-        // modified in working directory, added on index
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
-        // deleted in working directory, modified on index
-        fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
-        // untracked in working directory, deleted on index
-        fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
-
-        assert.isTrue(await git.isPartiallyStaged('a.txt'));
-        assert.isTrue(await git.isPartiallyStaged('b.txt'));
-        assert.isTrue(await git.isPartiallyStaged('c.txt'));
-        assert.isTrue(await git.isPartiallyStaged('new-file.txt'));
       });
     });
 
@@ -1023,67 +1008,64 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       }
 
       it('prompts for authentication data through Atom', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({username: 'me', password: 'open-sesame'});
           },
         });
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
 
       it('fails the command on authentication failure', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({username: 'me', password: 'whoops'});
           },
         });
 
         await assert.isRejected(git.fetch('mock', 'master'));
-        assert.isTrue(prompted);
+
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
 
       it('fails the command on dialog cancel', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.reject(new Error('nevermind'));
           },
         });
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/(::|127\.0\.0\.1):[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
 
       it('prefers user-configured credential helpers if present', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
+          prompt: q => {
+            query = q;
             return Promise.resolve();
           },
         });
@@ -1094,20 +1076,15 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         );
 
         await git.fetch('mock', 'master');
-        assert.isFalse(prompted);
+
+        assert.isNull(query);
       });
 
       it('falls back to Atom credential prompts if credential helpers are present but fail', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({username: 'me', password: 'open-sesame'});
           },
         });
@@ -1118,20 +1095,19 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         );
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
 
       it('falls back to Atom credential prompts if credential helpers are present but explode', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withHttpRemote({
-          prompt: query => {
-            prompted = true;
-            assert.match(
-              query.prompt,
-              /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
-            );
-            assert.isTrue(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({username: 'me', password: 'open-sesame'});
           },
         });
@@ -1142,7 +1118,12 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         );
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.match(
+          query.prompt,
+          /^Please enter your credentials for http:\/\/127\.0\.0\.1:[0-9]{0,5}/,
+        );
+        assert.isTrue(query.includeUsername);
       });
     });
 
@@ -1184,59 +1165,56 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
       }
 
       it('prompts for an SSH password through Atom', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withSSHRemote({
-          prompt: query => {
-            prompted = true;
-            assert.equal(query.prompt, 'Speak friend and enter');
-            assert.isFalse(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({password: 'friend'});
           },
         });
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.equal(query.prompt, 'Speak friend and enter');
+        assert.isFalse(query.includeUsername);
       });
 
       it('fails the command on authentication failure', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withSSHRemote({
-          prompt: query => {
-            prompted = true;
-            assert.equal(query.prompt, 'Speak friend and enter');
-            assert.isFalse(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({password: 'let me in damnit'});
           },
         });
 
         await assert.isRejected(git.fetch('mock', 'master'));
-        assert.isTrue(prompted);
+
+        assert.equal(query.prompt, 'Speak friend and enter');
+        assert.isFalse(query.includeUsername);
       });
 
       it('fails the command on dialog cancel', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withSSHRemote({
-          prompt: query => {
-            prompted = true;
-            assert.equal(query.prompt, 'Speak friend and enter');
-            assert.isFalse(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.reject(new Error('nah'));
           },
         });
 
         // The git operation Promise does *not* reject if the git process is killed by a signal.
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.equal(query.prompt, 'Speak friend and enter');
+        assert.isFalse(query.includeUsername);
       });
 
       it('prefers a user-configured SSH_ASKPASS if present', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withSSHRemote({
-          prompt: query => {
-            prompted = true;
+          prompt: q => {
+            query = q;
             return Promise.resolve({password: 'BZZT'});
           },
         });
@@ -1244,17 +1222,14 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
 
         await git.fetch('mock', 'master');
-        assert.isFalse(prompted);
+        assert.isNull(query);
       });
 
       it('falls back to Atom credential prompts if SSH_ASKPASS is present but goes boom', async function() {
-        let prompted = false;
+        let query = null;
         const git = await withSSHRemote({
-          prompt: query => {
-            prompted = true;
-            assert.equal(query.prompt, 'Speak friend and enter');
-            assert.isFalse(query.includeUsername);
-
+          prompt: q => {
+            query = q;
             return Promise.resolve({password: 'friend'});
           },
         });
@@ -1262,7 +1237,9 @@ import {fsStat, normalizeGitHelperPath} from '../lib/helpers';
         process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
 
         await git.fetch('mock', 'master');
-        assert.isTrue(prompted);
+
+        assert.equal(query.prompt, 'Speak friend and enter');
+        assert.isFalse(query.includeUsername);
       });
     });
   });

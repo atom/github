@@ -4,11 +4,12 @@ import CommitViewController from '../../lib/controllers/commit-view-controller';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, commandRegistry, lastCommit;
+  let atomEnvironment, commandRegistry, notificationManager, lastCommit;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     commandRegistry = atomEnvironment.commands;
+    notificationManager = atomEnvironment.notifications;
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
@@ -22,7 +23,9 @@ describe('CommitViewController', function() {
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
-    const controller = new CommitViewController({commandRegistry, lastCommit, repository: repository1});
+    const controller = new CommitViewController({
+      commandRegistry, notificationManager, lastCommit, repository: repository1,
+    });
 
     assert.equal(controller.regularCommitMessage, '');
     assert.equal(controller.amendingCommitMessage, '');
@@ -44,7 +47,7 @@ describe('CommitViewController', function() {
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({commandRegistry, lastCommit, repository});
+      controller = new CommitViewController({commandRegistry, notificationManager, lastCommit, repository});
       commitView = controller.refs.commitView;
     });
 
@@ -69,17 +72,61 @@ describe('CommitViewController', function() {
     });
 
     describe('when a merge message is defined', function() {
-      it('is set to the merge message if regularCommitMessage is blank', async function() {
-        controller.regularCommitMessage = '';
-        await controller.update({mergeMessage: 'merge conflict!'});
+      it('is set to the merge message when merging', async function() {
+        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
         assert.equal(commitView.props.message, 'merge conflict!');
       });
 
       it('is set to regularCommitMessage if it is set', async function() {
         controller.regularCommitMessage = 'regular commit message';
-        await controller.update({mergeMessage: 'merge conflict!'});
+        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
         assert.equal(commitView.props.message, 'regular commit message');
       });
+    });
+  });
+
+  describe('committing', function() {
+    let controller, resolve, reject;
+
+    beforeEach(async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const commit = () => new Promise((resolver, rejecter) => {
+        resolve = resolver;
+        reject = rejecter;
+      });
+
+      controller = new CommitViewController({commandRegistry, notificationManager, lastCommit, repository, commit});
+    });
+
+    it('clears the regular and amending commit messages', async function() {
+      controller.regularCommitMessage = 'regular';
+      controller.amendingCommitMessage = 'amending';
+
+      const promise = controller.commit('message');
+      resolve();
+      await promise;
+
+      assert.equal(controller.regularCommitMessage, '');
+      assert.equal(controller.amendingCommitMessage, '');
+    });
+
+    it('issues a notification on failure', async function() {
+      controller.regularCommitMessage = 'regular';
+      controller.amendingCommitMessage = 'amending';
+
+      sinon.spy(notificationManager, 'addError');
+
+      const promise = controller.commit('message');
+      const e = new Error('message');
+      e.stdErr = 'stderr';
+      reject(e);
+      await promise;
+
+      assert.isTrue(notificationManager.addError.called);
+
+      assert.equal(controller.regularCommitMessage, 'regular');
+      assert.equal(controller.amendingCommitMessage, 'amending');
     });
   });
 });

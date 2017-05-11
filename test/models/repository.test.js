@@ -15,7 +15,7 @@ import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
   assertDeepPropertyVals, assertEqualSortedArraysByKey,
 } from '../helpers';
-import {writeFile} from '../../lib/helpers';
+import {getPackageRoot, writeFile, copyFile} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -274,6 +274,47 @@ describe('Repository', function() {
     });
   });
 
+  describe('isPartiallyStaged(filePath)', function() {
+    it('returns true if specified file path is partially staged', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+
+      assert.isFalse(await repo.isPartiallyStaged('a.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('b.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('c.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('new-file.txt'));
+
+      await repo.stageFiles(['a.txt', 'b.txt', 'c.txt', 'new-file.txt']);
+      repo.refresh();
+
+      assert.isFalse(await repo.isPartiallyStaged('a.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('b.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('c.txt'));
+      assert.isFalse(await repo.isPartiallyStaged('new-file.txt'));
+
+      // modified on both
+      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      // modified in working directory, added on index
+      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      // deleted in working directory, modified on index
+      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      // untracked in working directory, deleted on index
+      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+      repo.refresh();
+
+      assert.isTrue(await repo.isPartiallyStaged('a.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('b.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('c.txt'));
+      assert.isTrue(await repo.isPartiallyStaged('new-file.txt'));
+    });
+  });
+
   describe('applyPatchToIndex', function() {
     it('can stage and unstage modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -294,8 +335,8 @@ describe('Repository', function() {
 
       let unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       let stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
-      assert.deepEqual(stagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
+      assert.deepEqual(stagedChanges, [path.join('subdir-1', 'a.txt')]);
 
       await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch());
       repo.refresh();
@@ -303,12 +344,22 @@ describe('Repository', function() {
       assert.deepEqual(unstagedPatch3, unstagedPatch2);
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
-      assert.deepEqual(unstagedChanges, ['subdir-1/a.txt']);
+      assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
       assert.deepEqual(stagedChanges, []);
     });
   });
 
   describe('commit', function() {
+    let realPath = '';
+
+    beforeEach(function() {
+      realPath = process.env.PATH;
+    });
+
+    afterEach(function() {
+      process.env.PATH = realPath;
+    });
+
     it('creates a commit that contains the staged changes', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
@@ -417,6 +468,21 @@ describe('Repository', function() {
     });
 
     it('clears the stored resolution progress');
+
+    it('executes hook scripts with a sane environment', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
+      await copyFile(
+        path.join(scriptDirPath, 'hook.sh'),
+        path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
+      );
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
+
+      await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
+    });
   });
 
   describe('fetch(branchName)', function() {
@@ -1263,7 +1329,8 @@ describe('Repository', function() {
         );
 
         sub.add(observer.onDidChange(events => {
-          repository.observeFilesystemChange(events);
+          const paths = events.map(e => path.join(e.directory, e.file || e.newFile));
+          repository.observeFilesystemChange(paths);
           observedEvents.push(...events);
           eventCallback();
         }));
