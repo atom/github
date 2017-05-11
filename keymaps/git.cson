@@ -1,8 +1,8 @@
 '.workspace':
   'ctrl-8': 'github:toggle-github-tab-focus'
-  'ctrl-*': 'github:toggle-github-tab' # ctrl-shift-8
+  'ctrl-shift-8': 'github:toggle-github-tab'
   'ctrl-9': 'github:toggle-git-tab-focus'
-  'ctrl-(': 'github:toggle-git-tab' # ctrl-shift-9
+  'ctrl-shift-9': 'github:toggle-git-tab'
 
 '.github-Panel':
   'cmd-enter': 'github:commit'
