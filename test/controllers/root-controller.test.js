@@ -16,7 +16,6 @@ import RootController from '../../lib/controllers/root-controller';
 [true, false].forEach(function(useLegacyPanels) {
   describe(`RootController with useLegacyPanels set to ${useLegacyPanels}`, function() {
     let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
-    let workspaceElement;
 
     function isGitPaneDisplayed(wrapper) {
       if (useLegacyPanels || !workspace.getLeftDock) {
@@ -33,8 +32,6 @@ import RootController from '../../lib/controllers/root-controller';
       notificationManager = atomEnv.notifications;
       tooltips = atomEnv.tooltips;
       config = atomEnv.config;
-
-      workspaceElement = atomEnv.views.getView(workspace);
 
       const absentRepository = Repository.absent();
       const emptyResolutionProgress = new ResolutionProgress();
@@ -334,24 +331,8 @@ import RootController from '../../lib/controllers/root-controller';
       });
     });
 
-    describe('toggleGitTab()', function() {
-      it('toggles the visibility of the Git panel', async function() {
-        const workdirPath = await cloneRepository('multiple-commits');
-        const repository = await buildRepository(workdirPath);
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-
-        assert.isFalse(isGitPaneDisplayed(wrapper));
-        wrapper.instance().toggleGitTab();
-        assert.isTrue(isGitPaneDisplayed(wrapper));
-        wrapper.instance().toggleGitTab();
-        assert.isFalse(isGitPaneDisplayed(wrapper));
-      });
-    });
-
-    describe('toggleGitTabFocus()', function() {
-      let wrapper;
+    describe('git tab tracker', function() {
+      let wrapper, gitTabTracker;
 
       beforeEach(async function() {
         const workdirPath = await cloneRepository('multiple-commits');
@@ -359,46 +340,77 @@ import RootController from '../../lib/controllers/root-controller';
 
         app = React.cloneElement(app, {repository});
         wrapper = shallow(app);
+        gitTabTracker = wrapper.instance().gitTabTracker;
 
-        sinon.stub(wrapper.instance(), 'focusGitTab');
+        sinon.stub(gitTabTracker, 'focus');
         sinon.spy(workspace.getActivePane(), 'activate');
       });
 
-      it('opens and focuses the Git panel when it is initially closed', function() {
-        assert.isFalse(isGitPaneDisplayed(wrapper));
-        sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
-
-        wrapper.instance().toggleGitTabFocus();
-
-        assert.isTrue(isGitPaneDisplayed(wrapper));
-        assert.equal(wrapper.instance().focusGitTab.callCount, 1);
-        assert.isFalse(workspace.getActivePane().activate.called);
+      describe('toggle()', function() {
+        it('toggles the visibility of the Git view', function() {
+          assert.isFalse(isGitPaneDisplayed(wrapper));
+          gitTabTracker.toggle();
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+          gitTabTracker.toggle();
+          assert.isFalse(isGitPaneDisplayed(wrapper));
+        });
       });
 
-      it('focuses the Git panel when it is already open, but blurred', function() {
-        wrapper.instance().toggleGitTab();
-        sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(false);
+      describe('toggleFocus()', function() {
+        it('opens and focuses the Git panel when it is initially closed', async function() {
+          assert.isFalse(isGitPaneDisplayed(wrapper));
+          sinon.stub(gitTabTracker, 'hasFocus').returns(false);
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
+          await gitTabTracker.toggleFocus();
 
-        wrapper.instance().toggleGitTabFocus();
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+          assert.equal(gitTabTracker.focus.callCount, 1);
+          assert.isFalse(workspace.getActivePane().activate.called);
+        });
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
-        assert.equal(wrapper.instance().focusGitTab.callCount, 1);
-        assert.isFalse(workspace.getActivePane().activate.called);
+        it('focuses the Git panel when it is already open, but blurred', async function() {
+          gitTabTracker.toggle();
+          sinon.stub(gitTabTracker, 'hasFocus').returns(false);
+
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+
+          await gitTabTracker.toggleFocus();
+
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+          assert.equal(gitTabTracker.focus.callCount, 1);
+          assert.isFalse(workspace.getActivePane().activate.called);
+        });
+
+        it('blurs the Git panel when it is already open and focused', async function() {
+          gitTabTracker.toggle();
+          sinon.stub(gitTabTracker, 'hasFocus').returns(true);
+
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+
+          await gitTabTracker.toggleFocus();
+
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+          assert.equal(gitTabTracker.focus.callCount, 0);
+          assert.isTrue(workspace.getActivePane().activate.called);
+        });
       });
 
-      it('blurs the Git panel when it is already open and focused', function() {
-        wrapper.instance().toggleGitTab();
-        sinon.stub(wrapper.instance(), 'gitTabHasFocus').returns(true);
+      describe('ensureGitTab()', function() {
+        it('opens the Git panel when it is initially closed', async function() {
+          sinon.stub(gitTabTracker, 'isVisible').returns(false);
+          assert.isFalse(isGitPaneDisplayed(wrapper));
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
+          assert.isTrue(await gitTabTracker.ensureVisible());
+        });
 
-        wrapper.instance().toggleGitTabFocus();
+        it('does nothing when the Git panel is already open', async function() {
+          gitTabTracker.toggle();
+          sinon.stub(gitTabTracker, 'isVisible').returns(true);
+          assert.isTrue(isGitPaneDisplayed(wrapper));
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
-        assert.equal(wrapper.instance().focusGitTab.callCount, 0);
-        assert.isTrue(workspace.getActivePane().activate.called);
+          assert.isFalse(await gitTabTracker.ensureVisible());
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+        });
       });
     });
 
@@ -493,13 +505,13 @@ import RootController from '../../lib/controllers/root-controller';
       });
 
       it('renders the modal clone panel', function() {
-        commandRegistry.dispatch(workspaceElement, 'github:clone');
+        wrapper.instance().openCloneDialog();
 
         assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
       });
 
       it('triggers the clone callback on accept', function() {
-        commandRegistry.dispatch(workspaceElement, 'github:clone');
+        wrapper.instance().openCloneDialog();
 
         const dialog = wrapper.find('CloneDialog');
         dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
@@ -509,7 +521,7 @@ import RootController from '../../lib/controllers/root-controller';
       });
 
       it('marks the clone dialog as in progress during clone', async function() {
-        commandRegistry.dispatch(workspaceElement, 'github:clone');
+        wrapper.instance().openCloneDialog();
 
         const dialog = wrapper.find('CloneDialog');
         assert.isFalse(dialog.prop('inProgress'));
@@ -527,7 +539,7 @@ import RootController from '../../lib/controllers/root-controller';
       it('creates a notification if the clone fails', async function() {
         sinon.stub(notificationManager, 'addError');
 
-        commandRegistry.dispatch(workspaceElement, 'github:clone');
+        wrapper.instance().openCloneDialog();
 
         const dialog = wrapper.find('CloneDialog');
         assert.isFalse(dialog.prop('inProgress'));
@@ -546,7 +558,7 @@ import RootController from '../../lib/controllers/root-controller';
       });
 
       it('dismisses the clone panel on cancel', function() {
-        commandRegistry.dispatch(workspaceElement, 'github:clone');
+        wrapper.instance().openCloneDialog();
 
         const dialog = wrapper.find('CloneDialog');
         dialog.prop('didCancel')();
@@ -595,30 +607,6 @@ import RootController from '../../lib/controllers/root-controller';
         wrapper.find('CredentialDialog').prop('onCancel')();
         await assert.isRejected(credentialPromise);
         assert.isFalse(wrapper.find('CredentialDialog').exists());
-      });
-    });
-
-    describe('ensureGitTab()', function() {
-      let wrapper;
-
-      beforeEach(async function() {
-        const workdirPath = await cloneRepository('multiple-commits');
-        const repository = await buildRepository(workdirPath);
-
-        app = React.cloneElement(app, {repository});
-        wrapper = shallow(app);
-      });
-
-      it('opens the Git panel when it is initially closed', async function() {
-        assert.isFalse(isGitPaneDisplayed(wrapper));
-        assert.isTrue(await wrapper.instance().ensureGitTab());
-      });
-
-      it('does nothing when the Git panel is already open', async function() {
-        wrapper.instance().toggleGitTab();
-        assert.isTrue(isGitPaneDisplayed(wrapper));
-        assert.isFalse(await wrapper.instance().ensureGitTab());
-        assert.isTrue(isGitPaneDisplayed(wrapper));
       });
     });
 
