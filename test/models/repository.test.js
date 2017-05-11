@@ -15,7 +15,7 @@ import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
   assertDeepPropertyVals, assertEqualSortedArraysByKey,
 } from '../helpers';
-import {getPackageRoot, writeFile, copyFile} from '../../lib/helpers';
+import {getPackageRoot, writeFile, copyFile, fsStat} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -908,7 +908,46 @@ describe('Repository', function() {
   });
 
   describe('cache invalidation', function() {
-    function getCacheReaderMethods(options) {
+    function filesWithinRepository(repository) {
+      const relativePaths = [];
+
+      const descend = async (currentDirectory, relativeBase) => {
+        const files = await new Promise((readdirResolve, readdirReject) => {
+          return fs.readdir(currentDirectory, (err, result) => {
+            if (err) {
+              readdirReject(err);
+            } else {
+              readdirResolve(result);
+            }
+          });
+        });
+
+        const stats = await Promise.all(
+          files
+            .map(file => fsStat(path.join(currentDirectory, file))
+            .then(stat => ({file, stat}))),
+        );
+
+        const subdirs = [];
+        for (const {file, stat} of stats) {
+          if (stat.isFile()) {
+            relativePaths.push(path.join(relativeBase, file));
+          }
+
+          if (stat.isDirectory() && file !== '.git') {
+            subdirs.push(file);
+          }
+        }
+
+        return Promise.all(
+          subdirs.map(subdir => descend(path.join(currentDirectory, subdir), path.join(relativeBase, subdir))),
+        );
+      };
+
+      return descend(repository.getWorkingDirectoryPath(), '').then(() => relativePaths);
+    }
+
+    async function getCacheReaderMethods(options) {
       const repository = options.repository;
       const calls = new Map();
 
@@ -935,7 +974,7 @@ describe('Repository', function() {
         calls.set(`readFileFromIndex ${fileName}`, () => repository.readFileFromIndex(fileName));
       };
 
-      for (const fileName of (options.files || [])) {
+      for (const fileName of await filesWithinRepository(options.repository)) {
         withFile(fileName);
       }
 
@@ -963,7 +1002,7 @@ describe('Repository', function() {
      * Ensure that the correct cache keys are invalidated by a Repository operation.
      */
     async function assertCorrectInvalidation(options, operation) {
-      const methods = getCacheReaderMethods(options);
+      const methods = await getCacheReaderMethods(options);
       for (const opName of (options.skip || [])) {
         methods.delete(opName);
       }
