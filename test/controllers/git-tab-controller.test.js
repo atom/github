@@ -263,7 +263,7 @@ describe('GitTabController', function() {
     const gitTab = controller.refs.gitTab;
     const stagingView = gitTab.refs.stagingView;
 
-    sinon.spy(stagingView, 'focus');
+    sinon.spy(stagingView, 'setFocus');
 
     await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
@@ -271,22 +271,42 @@ describe('GitTabController', function() {
     assert.equal(selections.length, 1);
     assert.equal(selections[0].filePath, 'unstaged-2.txt');
 
-    assert.equal(stagingView.focus.callCount, 1);
+    assert.equal(stagingView.setFocus.callCount, 1);
   });
 
   describe('keyboard navigation commands', function() {
     let controller, gitTab, stagingView, commitView, commitViewController, focusElement;
+    const focuses = GitTabController.focus;
 
     const extractReferences = () => {
       gitTab = controller.refs.gitTab;
       stagingView = gitTab.refs.stagingView;
       commitViewController = gitTab.refs.commitViewController;
       commitView = commitViewController.refs.commitView;
-      focusElement = stagingView;
+      focusElement = stagingView.element;
 
-      sinon.stub(commitView, 'focus').callsFake(() => { focusElement = commitView; });
-      sinon.stub(commitView, 'isFocused').callsFake(() => focusElement === commitView);
-      sinon.stub(stagingView, 'focus').callsFake(() => { focusElement = stagingView; });
+      const stubFocus = element => {
+        if (!element) {
+          return;
+        }
+        sinon.stub(element, 'focus').callsFake(() => {
+          focusElement = element;
+        });
+      };
+      stubFocus(stagingView.element);
+      stubFocus(commitView.editorElement);
+      stubFocus(commitView.refs.abortMergeButton);
+      stubFocus(commitView.refs.amend);
+      stubFocus(commitView.refs.commitButton);
+
+      sinon.stub(commitViewController, 'hasFocus').callsFake(() => {
+        return [
+          commitView.editorElement,
+          commitView.refs.abortMergeButton,
+          commitView.refs.amend,
+          commitView.refs.commitButton,
+        ].includes(focusElement);
+      });
     };
 
     const assertSelected = paths => {
@@ -345,16 +365,16 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(controller.element, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, commitView);
+        assert.strictEqual(focusElement, commitView.editorElement);
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
         commandRegistry.dispatch(controller.element, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, commitView);
+        assert.strictEqual(focusElement, commitView.editorElement);
       });
 
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
-        commitView.focus();
+        gitTab.setFocus(focuses.EDITOR);
 
         commandRegistry.dispatch(controller.element, 'core:focus-previous');
         assertSelected(['staged-1.txt']);
@@ -402,7 +422,7 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await until('CommitView is focused', () => focusElement === commitView);
+        await assert.async.strictEqual(focusElement, commitView.editorElement);
         assert.isFalse(controller.commit.called);
       });
 

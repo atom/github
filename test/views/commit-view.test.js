@@ -142,7 +142,7 @@ describe('CommitView', function() {
         commandRegistry, lastCommit,
         stagedChangesExist: true, prepareToCommit, commit, message: 'Something',
       });
-      sinon.spy(view, 'focus');
+      sinon.spy(view.editorElement, 'focus');
 
       editor = view.refs.editor;
       commitButton = view.refs.commitButton;
@@ -178,14 +178,14 @@ describe('CommitView', function() {
       it('takes no further action when the commit button is clicked', async function() {
         commitButton.dispatchEvent(new MouseEvent('click'));
 
-        await until('focus() is called', () => view.focus.called);
+        await assert.async.isTrue(view.editorElement.focus.called);
         assert.isFalse(commit.called);
       });
 
       it('takes no further action when github:commit is dispatched', async function() {
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await until('focus() is called', () => view.focus.called);
+        await assert.async.isTrue(view.editorElement.focus.called);
         assert.isFalse(commit.called);
       });
     });
