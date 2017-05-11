@@ -264,7 +264,6 @@ describe('StagingView', function() {
         assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
 
         document.body.focus();
-        assert.isFalse(view.isFocused());
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
@@ -312,7 +311,6 @@ describe('StagingView', function() {
         await assert.async.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
 
         document.body.focus();
-        assert.isFalse(view.isFocused());
         didSelectFilePath.reset();
         didSelectMergeConflictFile.reset();
         await view.selectNext();
