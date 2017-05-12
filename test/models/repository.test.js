@@ -982,12 +982,8 @@ describe('Repository', function() {
         calls.set(`getAheadCount ${description}`, () => repository.getAheadCount(branchName));
         calls.set(`getBehindCount ${description}`, () => repository.getBehindCount(branchName));
       };
-
-      if (options.changedBranch) {
-        withBranch(options.changedBranch);
-      }
-      if (options.unchangedBranch) {
-        withBranch(options.unchangedBranch);
+      for (const branchName of await repository.git.getBranches()) {
+        withBranch(branchName);
       }
 
       for (const optionName of (options.optionNames || [])) {
