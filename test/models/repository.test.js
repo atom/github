@@ -908,6 +908,16 @@ describe('Repository', function() {
   });
 
   describe('cache invalidation', function() {
+    const preventDefault = event => event.preventDefault();
+
+    beforeEach(function() {
+      window.addEventListener('unhandledrejection', preventDefault);
+    });
+
+    afterEach(function() {
+      window.removeEventListener('unhandedrejection', preventDefault);
+    });
+
     function filesWithinRepository(repository) {
       const relativePaths = [];
 
