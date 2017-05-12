@@ -15,7 +15,7 @@ import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
-  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips;
+  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
   let component;
 
   beforeEach(function() {
@@ -24,6 +24,7 @@ describe('StatusBarTileController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     tooltips = atomEnvironment.tooltips;
+    confirm = atomEnvironment.confirm;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
@@ -33,6 +34,7 @@ describe('StatusBarTileController', function() {
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
         tooltips={tooltips}
+        confirm={confirm}
       />
     );
   });
@@ -477,13 +479,15 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const wrapper = mount(React.cloneElement(component, {repository}));
+        const fakeConfirm = sinon.stub().returns(0);
+        const wrapper = mount(React.cloneElement(component, {repository, confirm: fakeConfirm}));
         await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
         commandRegistry.dispatch(workspaceElement, 'github:force-push');
 
+        assert.equal(fakeConfirm.callCount, 1);
         assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
       });
     });
