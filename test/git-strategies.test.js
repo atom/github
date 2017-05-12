@@ -426,6 +426,56 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           });
         });
       });
+
+      describe('when the file is new', function() {
+        it('returns a diff representing the addition of the file', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
+          assertDeepPropertyVals(await git.getDiffForFilePath('new-file.txt'), {
+            oldPath: null,
+            newPath: 'new-file.txt',
+            oldMode: null,
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 0,
+                oldLineCount: 0,
+                newStartLine: 1,
+                newLineCount: 3,
+                heading: '',
+                lines: [
+                  '+qux',
+                  '+foo',
+                  '+bar',
+                ],
+              },
+            ],
+            status: 'added',
+          });
+
+        });
+
+        describe('when the file is binary', function() {
+          it('returns an empty diff', async function() {
+            const workingDirPath = await cloneRepository('three-files');
+            const git = createTestStrategy(workingDirPath);
+            const data = new Buffer(10);
+            for (let i = 0; i < 10; i++) {
+              data.writeUInt8(i + 200, i);
+            }
+            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
+            assertDeepPropertyVals(await git.getDiffForFilePath('new-file.bin'), {
+              oldPath: null,
+              newPath: 'new-file.bin',
+              oldMode: null,
+              newMode: '100644',
+              hunks: [],
+              status: 'added',
+            });
+          });
+        });
+      });
     });
 
     describe('isMerging', function() {
