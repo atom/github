@@ -62,7 +62,7 @@ describe('FilePatchController', function() {
   it('bases its tab title on the staging status', function() {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
 
-    const wrapper = shallow(React.cloneElement(component, {
+    const wrapper = mount(React.cloneElement(component, {
       filePatch: filePatch1,
       stagingStatus: 'unstaged',
     }));
@@ -76,7 +76,7 @@ describe('FilePatchController', function() {
 
     const actualTitle = wrapper.instance().getTitle();
     assert.equal(actualTitle, 'Staged Changes: a.txt');
-    assert.isTrue(changeHandler.calledWith(actualTitle));
+    assert.isTrue(changeHandler.called);
   });
 
   it('renders FilePatchView only if FilePatch has hunks', function() {
