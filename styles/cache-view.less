@@ -1,0 +1,45 @@
+@import "variables";
+
+.github-CacheView {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+
+  header {
+    text-align: center;
+    border-bottom: 1px solid @base-border-color;
+    padding: @component-padding;
+  }
+
+  table {
+    margin: 10px 20px;
+    width: 90%;
+  }
+
+  thead {
+    color: @text-color-highlight;
+    background-color: @background-color-highlight;
+    font-weight: bold;
+  }
+
+  td {
+    padding: @component-padding / 2;
+    vertical-align: top;
+  }
+
+  &-Key {
+    text-align: right;
+  }
+
+  &-Age {
+    min-width: 100px;
+  }
+
+  &-Hits {
+    min-width: 50px;
+  }
+
+  &-Content {
+    white-space: pre-wrap;
+  }
+}
