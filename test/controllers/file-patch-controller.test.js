@@ -119,8 +119,8 @@ describe('FilePatchController', function() {
 
       assert.isFalse(wrapper.find('FilePatchView').exists());
 
-      // wrapper.find('button').simulate('click');
-      // assert.isTrue(wrapper.find('FilePatchView').exists());
+      wrapper.find('button').simulate('click');
+      assert.isTrue(wrapper.find('FilePatchView').exists());
     });
 
     it('renders the full diff if the file has been confirmed before', async function() {
