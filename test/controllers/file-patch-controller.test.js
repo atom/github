@@ -33,7 +33,10 @@ describe('FilePatchController', function() {
 
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
     const repository = Repository.absent();
+    sinon.stub(repository, 'getWorkingDirectoryPath').returns('/absent');
     const resolutionProgress = new ResolutionProgress();
+
+    FilePatchController.resetConfirmedLargeFilePatches();
 
     component = (
       <FilePatchController
@@ -77,6 +80,76 @@ describe('FilePatchController', function() {
     const actualTitle = wrapper.instance().getTitle();
     assert.equal(actualTitle, 'Staged Changes: a.txt');
     assert.isTrue(changeHandler.called);
+  });
+
+  describe('when the FilePatch has many lines', function() {
+    it('renders a confirmation widget', function() {
+      const hunk1 = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+      assert.match(wrapper.text(), /large diff/);
+    });
+
+    it('renders the full diff when the confirmation is clicked', function() {
+      const hunk = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.find('button').simulate('click');
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+    });
+
+    it('renders the full diff if the file has been confirmed before', async function() {
+      const hunk = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk]);
+      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [hunk]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch: filePatch1, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.find('button').simulate('click');
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+
+      wrapper.setProps({filePatch: filePatch2});
+      await assert.async.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.setProps({filePatch: filePatch1});
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+    });
   });
 
   it('renders FilePatchView only if FilePatch has hunks', function() {
