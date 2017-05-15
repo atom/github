@@ -300,6 +300,8 @@ describe('GitTabController', function() {
 
       controller.rememberLastFocus({target: controller.element});
       assert.strictEqual(controller.lastFocus, GitTabController.focus.STAGING);
+
+      controller.restoreFocus();
     });
   });
 
