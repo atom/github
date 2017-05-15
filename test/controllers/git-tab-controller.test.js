@@ -56,6 +56,18 @@ describe('GitTabController', function() {
     assert.lengthOf(controller.element.querySelectorAll('.github-CommitView'), 1);
   });
 
+  it('displays an initialization prompt for an absent repository', function() {
+    const repository = Repository.absent();
+
+    const controller = new GitTabController({
+      workspace, commandRegistry, repository,
+      resolutionProgress, refreshResolutionProgress,
+    });
+
+    assert.isTrue(controller.element.classList.contains('is-empty'));
+    assert.isNotNull(controller.refs.noRepoMessage);
+  });
+
   it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
@@ -272,6 +284,25 @@ describe('GitTabController', function() {
     assert.equal(selections[0].filePath, 'unstaged-2.txt');
 
     assert.equal(stagingView.setFocus.callCount, 1);
+  });
+
+  describe('focus management', function() {
+    it('does nothing on an absent repository', function() {
+      const repository = Repository.absent();
+
+      const controller = new GitTabController({
+        workspace, commandRegistry, repository,
+        resolutionProgress, refreshResolutionProgress,
+      });
+
+      assert.isTrue(controller.element.classList.contains('is-empty'));
+      assert.isNotNull(controller.refs.noRepoMessage);
+
+      controller.rememberLastFocus({target: controller.element});
+      assert.strictEqual(controller.lastFocus, GitTabController.focus.STAGING);
+
+      controller.restoreFocus();
+    });
   });
 
   describe('keyboard navigation commands', function() {
