@@ -22,6 +22,19 @@ matrix:
         - gnome-keyring
         - libsecret-1-dev
         - python-gnomekeyring
+  - os: linux
+    dist: trusty
+    env:
+    - TRAVIS_BUILD_JOB=runtests
+    - ATOM_CHANNEL=beta
+    addons:
+      apt:
+        packages:
+        - clang-3.3
+        - build-essential
+        - gnome-keyring
+        - libsecret-1-dev
+        - python-gnomekeyring
 
 env:
   global:
