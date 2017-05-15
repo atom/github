@@ -32,9 +32,10 @@ env:
   - ATOM_GITHUB_FS_EVENT_LOG=1
   - MOCHA_TIMEOUT=60000
   - UNTIL_TIMEOUT=30000
-  - ATOM_CHANNEL=stable
-  matrix:
   - TRAVIS_BUILD_JOB=runtests
+  matrix:
+  - ATOM_CHANNEL=stable
+  - ATOM_CHANNEL=beta
 
 notifications:
   email:
