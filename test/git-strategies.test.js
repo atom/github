@@ -999,6 +999,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         useEnvironment({
           SSH_ASKPASS: '',
           GIT_ASKPASS: '',
+          ATOM_GITHUB_GIT_DIAGNOSTICS: 'true',
         });
       });
 
@@ -1162,6 +1163,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           SSH_AUTH_SOCK: undefined,
           SSH_ASKPASS: '',
           GIT_ASKPASS: '',
+          ATOM_GITHUB_GIT_DIAGNOSTICS: 'true',
         });
       });
 
