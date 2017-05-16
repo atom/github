@@ -177,8 +177,19 @@ export function isProcessAlive(pid) {
   return alive;
 }
 
+let originalEnvVars = {};
+export function useEnvironment(envVars) {
+  const varNames = Object.keys(envVars);
+  for (let i = 0; i < varNames.length; i++) {
+    const varName = varNames[i];
+    originalEnvVars[varName] = process.env[varName];
+    process.env[varName] = envVars[varName];
+  }
+}
+
 // eslint-disable-next-line jasmine/no-global-setup
 beforeEach(function() {
+  originalEnvVars = {};
   global.sinon = sinon.sandbox.create();
 });
 
@@ -187,6 +198,13 @@ afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
   global.sinon.restore();
+
+  const varNames = Object.keys(originalEnvVars);
+  for (let i = 0; i < varNames.length; i++) {
+    const varName = varNames[i];
+    process.env[varName] = originalEnvVars[varName];
+  }
+  originalEnvVars = {};
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
