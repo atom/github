@@ -13,7 +13,7 @@ import FileSystemChangeObserver from '../../lib/models/file-system-change-observ
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
-  assertDeepPropertyVals, assertEqualSortedArraysByKey,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey, useEnvironment,
 } from '../helpers';
 import {getPackageRoot, writeFile, copyFile, fsStat} from '../../lib/helpers';
 
