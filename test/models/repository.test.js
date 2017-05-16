@@ -350,16 +350,6 @@ describe('Repository', function() {
   });
 
   describe('commit', function() {
-    let realPath = '';
-
-    beforeEach(function() {
-      realPath = process.env.PATH;
-    });
-
-    afterEach(function() {
-      process.env.PATH = realPath;
-    });
-
     it('creates a commit that contains the staged changes', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
@@ -479,7 +469,9 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
+      useEnvironment({
+        PATH: `${scriptDirPath}:${process.env.PATH}`,
+      });
 
       await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
     });

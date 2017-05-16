@@ -11,7 +11,10 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {
+  cloneRepository, initRepository, setUpLocalAndRemoteRepositories,
+  assertDeepPropertyVals, useEnvironment,
+} from './helpers';
 import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
 /**
@@ -727,23 +730,12 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
     });
 
     describe('the built-in credential helper', function() {
-      let git, originalEnv;
+      let git;
 
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath, {
           prompt: Promise.resolve(''),
-        });
-
-        originalEnv = {};
-        ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
-          originalEnv[varName] = process.env[varName];
-        });
-      });
-
-      afterEach(function() {
-        Object.keys(originalEnv).forEach(varName => {
-          process.env[varName] = originalEnv[varName];
         });
       });
 
@@ -778,11 +770,12 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
             op.configureStub(git);
           }
 
-
-          delete process.env.DISPLAY;
-          process.env.GIT_ASKPASS = '/some/git-askpass.sh';
-          process.env.SSH_ASKPASS = '/some/ssh-askpass.sh';
-          process.env.GIT_SSH_COMMAND = '/original/ssh-command';
+          useEnvironment({
+            DISPLAY: undefined,
+            GIT_ASKPASS: '/some/git-askpass.sh',
+            SSH_ASKPASS: '/some/ssh-askpass.sh',
+            GIT_SSH_COMMAND: '/original/ssh-command',
+          });
 
           await op.action();
 
@@ -1002,25 +995,11 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
     });
 
     describe('https authentication', function() {
-      const envKeys = ['SSH_ASKPASS', 'GIT_ASKPASS'];
-      let preserved;
-
       beforeEach(function() {
-        preserved = {};
-        for (let i = 0; i < envKeys.length; i++) {
-          const key = envKeys[i];
-          preserved[key] = process.env[key];
-        }
-
-        process.env.SSH_ASKPASS = '';
-        process.env.GIT_ASKPASS = '';
-      });
-
-      afterEach(function() {
-        for (let i = 0; i < envKeys.length; i++) {
-          const key = envKeys[i];
-          process.env[key] = preserved[key];
-        }
+        useEnvironment({
+          SSH_ASKPASS: '',
+          GIT_ASKPASS: '',
+        });
       });
 
       async function withHttpRemote(options) {
@@ -1178,26 +1157,12 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
     });
 
     describe('ssh authentication', function() {
-      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS', 'GIT_ASKPASS'];
-      let preserved;
-
       beforeEach(function() {
-        preserved = {};
-        for (let i = 0; i < envKeys.length; i++) {
-          const key = envKeys[i];
-          preserved[key] = process.env[key];
-        }
-
-        delete process.env.SSH_AUTH_SOCK;
-        process.env.SSH_ASKPASS = '';
-        process.env.GIT_ASKPASS = '';
-      });
-
-      afterEach(function() {
-        for (let i = 0; i < envKeys.length; i++) {
-          const key = envKeys[i];
-          process.env[key] = preserved[key];
-        }
+        useEnvironment({
+          SSH_AUTH_SOCK: undefined,
+          SSH_ASKPASS: '',
+          GIT_ASKPASS: '',
+        });
       });
 
       async function withSSHRemote(options) {
@@ -1209,7 +1174,9 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
-        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+        useEnvironment({
+          GIT_SSH_COMMAND: normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #',
+        });
 
         return git;
       }
@@ -1269,7 +1236,9 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
+        useEnvironment({
+          SSH_ASKPASS: normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh')),
+        });
 
         await git.fetch('mock', 'master');
         assert.isNull(query);
@@ -1284,7 +1253,9 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
+        useEnvironment({
+          SSH_ASKPASS: normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh')),
+        });
 
         await git.fetch('mock', 'master');
 
