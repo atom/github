@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -52,7 +52,7 @@
     "fs-extra": "^2.1.2",
     "graphql": "^0.9.3",
     "hoist-non-react-statics": "^1.2.0",
-    "keytar": "^4.0.0",
+    "keytar": "^4.0.3",
     "lodash.memoize": "^4.1.2",
     "moment": "^2.17.1",
     "multi-list-selection": "^0.1.1",
