@@ -183,7 +183,11 @@ export function useEnvironment(envVars) {
   for (let i = 0; i < varNames.length; i++) {
     const varName = varNames[i];
     originalEnvVars[varName] = process.env[varName];
-    process.env[varName] = envVars[varName];
+    if (envVars[varName] === undefined) {
+      delete process.env[varName];
+    } else {
+      process.env[varName] = envVars[varName];
+    }
   }
 }
 
@@ -202,7 +206,11 @@ afterEach(function() {
   const varNames = Object.keys(originalEnvVars);
   for (let i = 0; i < varNames.length; i++) {
     const varName = varNames[i];
-    process.env[varName] = originalEnvVars[varName];
+    if (originalEnvVars[varName] === undefined) {
+      delete process.env[varName];
+    } else {
+      process.env[varName] = originalEnvVars[varName];
+    }
   }
   originalEnvVars = {};
 });
