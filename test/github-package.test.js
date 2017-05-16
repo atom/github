@@ -3,7 +3,7 @@ import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
 
-import {cloneRepository} from './helpers';
+import {cloneRepository, useEnvironment} from './helpers';
 import {writeFile, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
@@ -530,6 +530,10 @@ describe('GithubPackage', function() {
     let workdirPath2, atomGitRepository2, repository2;
 
     beforeEach(async function() {
+      useEnvironment({
+        ATOM_GITHUB_GIT_DIAGNOSTICS: 'true',
+      });
+
       [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
