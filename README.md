@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/psctk8vrva49dseb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/github/branch/master)
 [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github)
 
-The Atom GitHub package provides Git and GitHub integration for Atom.
+The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
 ![Git Integration](./docs/git-integration.png)
 
