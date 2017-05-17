@@ -92,5 +92,16 @@ describe('WorkspaceChangeObserver', function() {
         file: 'renamed-path.txt',
       }]));
     });
+
+    it('doesn\'t emit events for unsaved files', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const editor = await workspace.open();
+
+      const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
+      await changeObserver.start();
+
+      assert.doesNotThrow(() => editor.destroy());
+    });
   });
 });
