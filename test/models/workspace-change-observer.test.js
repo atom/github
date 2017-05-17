@@ -71,4 +71,37 @@ describe('WorkspaceChangeObserver', function() {
     editor.destroy();
     await until(() => changeSpy.calledOnce);
   });
+
+  describe('when a buffer is renamed', function() {
+    it('emits a change event with the new path', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+      const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+
+      const changeSpy = sinon.spy();
+      const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
+      changeObserver.onDidChange(changeSpy);
+      await changeObserver.start();
+
+      editor.getBuffer().setPath(path.join(workdirPath, 'renamed-path.txt'));
+
+      editor.setText('change');
+      editor.save();
+      await assert.async.isTrue(changeSpy.calledWith([{
+        directory: workdirPath,
+        file: 'renamed-path.txt',
+      }]));
+    });
+  });
+
+  it('doesn\'t emit events for unsaved files', async function() {
+    const workdirPath = await cloneRepository('three-files');
+    const repository = await buildRepository(workdirPath);
+    const editor = await workspace.open();
+
+    const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
+    await changeObserver.start();
+
+    assert.doesNotThrow(() => editor.destroy());
+  });
 });
