@@ -596,7 +596,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         const git = createTestStrategy(workingDirPath);
         assert.deepEqual(await git.getBranches(), ['master']);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['master', 'a/fancy/new/branch']);
+        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
       });
     });
 
