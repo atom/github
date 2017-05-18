@@ -431,6 +431,26 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isAbsent());
     });
 
+    it('uses the context of the PaneItem active in the workspace center', async function() {
+      if (!workspace.getLeftDock) {
+        this.skip();
+      }
+
+      const [workdir0, workdir1] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdir1]);
+
+      await workspace.open(path.join(workdir0, 'a.txt'));
+      commandRegistry.dispatch(atomEnv.views.getView(workspace), 'tree-view:toggle-focus');
+      workspace.getLeftDock().activate();
+
+      await githubPackage.scheduleActiveContextUpdate();
+
+      assert.equal(githubPackage.getActiveWorkdir(), workdir0);
+    });
+
     it('uses the context of a single open project', async function() {
       const [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
