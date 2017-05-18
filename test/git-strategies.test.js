@@ -590,6 +590,14 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         await git.checkout('another-branch', {createNew: true});
         assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
       });
+
+      it('includes branches with slashes in the name', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        assert.deepEqual(await git.getBranches(), ['master']);
+        await git.checkout('a/fancy/new/branch', {createNew: true});
+        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
+      });
     });
 
     describe('getRemotes()', function() {
