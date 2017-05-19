@@ -39,7 +39,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
       });
     });
 
-    describe('getStatusesForChangedFiles', function() {
+    xdescribe('getStatusesForChangedFiles', function() {
       it('returns objects for staged and unstaged files, including status information', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
@@ -499,7 +499,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
       });
     });
 
-    describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
+    xdescribe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
       it('returns the number of different commits on the branch vs the remote', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
         const git = createTestStrategy(localRepoPath);
@@ -549,7 +549,7 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
       });
     });
 
-    describe('getCurrentBranch() and checkout(branchName, {createNew})', function() {
+    xdescribe('getCurrentBranch() and checkout(branchName, {createNew})', function() {
       it('returns the current branch name', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
