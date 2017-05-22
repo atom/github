@@ -11,7 +11,7 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
 import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
 /**
