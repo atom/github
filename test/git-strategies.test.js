@@ -39,6 +39,25 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
       });
     });
 
+    if (process.platform === 'win32') {
+      describe('getStatusBundle()', function() {
+        it('normalizes the path separator on Windows', async function() {
+          const workingDir = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDir);
+          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
+          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
+
+          await writeFile(absPathA, 'some changes here\n');
+          await writeFile(absPathB, 'more changes here\n');
+          await git.stageFiles([relPathB]);
+
+          const {changedEntries} = await git.getStatusBundle();
+          const changedPaths = changedEntries.map(entry => entry.filePath);
+          assert.deepEqual(changedPaths, [relPathA, relPathB]);
+        });
+      });
+    }
+
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
