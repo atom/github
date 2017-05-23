@@ -9,6 +9,7 @@ import sinon from 'sinon';
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
+import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -186,6 +187,9 @@ beforeEach(function() {
 afterEach(function() {
   activeRenderers.forEach(r => r.unmount());
   activeRenderers = [];
+
+  ContextMenuInterceptor.dispose();
+
   global.sinon.restore();
 });
 
