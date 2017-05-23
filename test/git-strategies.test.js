@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
-import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -37,6 +37,16 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
 
         fs.removeSync(path.join(workingDirPath, '.git'));
         assert.isNull(await git.resolveDotGitDir(workingDirPath));
+      });
+
+      it('supports gitdir files', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const workingDirPathWithDotGitFile = await getTempDir();
+        await writeFile(path.join(workingDirPathWithDotGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+
+        const git = createTestStrategy(workingDirPathWithDotGitFile);
+        const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
+        assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
       });
     });
 
