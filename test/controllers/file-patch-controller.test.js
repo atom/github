@@ -286,8 +286,8 @@ describe('FilePatchController', function() {
 
       const opPromise0 = switchboard.getFinishStageOperationPromise();
       const hunkView0 = wrapper.find('HunkView').at(0);
-      hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
-      hunkView0.find('LineView').at(3).simulate('mousemove', {});
+      hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+      hunkView0.find('LineView').at(3).find('.github-HunkView-line').simulate('mousemove', {});
       window.dispatchEvent(new MouseEvent('mouseup'));
       hunkView0.find('button.github-HunkView-stageButton').simulate('click');
       await opPromise0;
@@ -329,9 +329,11 @@ describe('FilePatchController', function() {
       await updatePromise2;
 
       const hunkView2 = wrapper.find('HunkView').at(0);
-      hunkView2.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+      hunkView2.find('LineView').at(1).find('.github-HunkView-line')
+        .simulate('mousedown', {button: 0, detail: 1});
       window.dispatchEvent(new MouseEvent('mouseup'));
-      hunkView2.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1, metaKey: true});
+      hunkView2.find('LineView').at(2).find('.github-HunkView-line')
+        .simulate('mousedown', {button: 0, detail: 1, metaKey: true});
       window.dispatchEvent(new MouseEvent('mouseup'));
 
       const opPromise2 = switchboard.getFinishStageOperationPromise();
@@ -442,7 +444,8 @@ describe('FilePatchController', function() {
         }));
 
         const hunkView0 = wrapper.find('HunkView').at(0);
-        hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+        hunkView0.find('LineView').at(1).find('.github-HunkView-line')
+          .simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
 
         // stage lines in rapid succession
@@ -467,7 +470,8 @@ describe('FilePatchController', function() {
         await line1PatchPromise;
 
         const hunkView1 = wrapper.find('HunkView').at(0);
-        hunkView1.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1});
+        hunkView1.find('LineView').at(2).find('.github-HunkView-line')
+          .simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
 
         const line2StagingPromise = switchboard.getFinishStageOperationPromise();
