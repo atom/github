@@ -1,5 +1,6 @@
 {
   "sourceMaps": "inline",
+  "babelrc": false,
   "plugins": [
     "./graphql/relay-babel-plugin.js",
     "./assert-async-plugin.js",
