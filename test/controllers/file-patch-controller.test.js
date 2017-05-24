@@ -14,13 +14,14 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import Switchboard from '../../lib/switchboard';
 
 describe('FilePatchController', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, tooltips;
   let component, switchboard;
   let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    tooltips = atomEnv.tooltips;
 
     switchboard = new Switchboard();
 
@@ -41,6 +42,7 @@ describe('FilePatchController', function() {
     component = (
       <FilePatchController
         commandRegistry={commandRegistry}
+        tooltips={tooltips}
         repository={repository}
         resolutionProgress={resolutionProgress}
         filePatch={filePatch}
