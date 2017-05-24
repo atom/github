@@ -171,24 +171,28 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getStagedChanges(), []);
     });
 
-    it('can stage and unstage added files', async function() {
+    it('can stage and unstage added files, including those in added directories', async function() {
       const workingDirPath = await cloneRepository('three-files');
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
+      fs.mkdirSync(path.join(workingDirPath, 'new-folder'));
+      fs.writeFileSync(path.join(workingDirPath, 'new-folder', 'b.txt'), 'bar\n', 'utf8');
+      fs.writeFileSync(path.join(workingDirPath, 'new-folder', 'c.txt'), 'baz\n', 'utf8');
+
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      const [patch] = await repo.getUnstagedChanges();
-      const filePath = patch.filePath;
+      const unstagedChanges = await repo.getUnstagedChanges();
+      assert.equal(unstagedChanges.length, 3);
 
-      await repo.stageFiles([filePath]);
+      await repo.stageFiles([unstagedChanges[0].filePath, unstagedChanges[2].filePath]);
       repo.refresh();
-      assert.deepEqual(await repo.getUnstagedChanges(), []);
-      assert.deepEqual(await repo.getStagedChanges(), [patch]);
+      assert.deepEqual(await repo.getUnstagedChanges(), [unstagedChanges[1]]);
+      assert.deepEqual(await repo.getStagedChanges(), [unstagedChanges[0], unstagedChanges[2]]);
 
-      await repo.unstageFiles([filePath]);
+      await repo.unstageFiles([unstagedChanges[0].filePath]);
       repo.refresh();
-      assert.deepEqual(await repo.getUnstagedChanges(), [patch]);
-      assert.deepEqual(await repo.getStagedChanges(), []);
+      assert.deepEqual(await repo.getUnstagedChanges(), [unstagedChanges[0], unstagedChanges[1]]);
+      assert.deepEqual(await repo.getStagedChanges(), [unstagedChanges[2]]);
     });
 
     it('can unstage and retrieve staged changes relative to HEAD~', async function() {
