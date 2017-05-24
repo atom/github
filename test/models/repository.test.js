@@ -15,7 +15,7 @@ import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
   assertDeepPropertyVals, assertEqualSortedArraysByKey,
 } from '../helpers';
-import {getPackageRoot, writeFile, copyFile, fsStat} from '../../lib/helpers';
+import {getPackageRoot, writeFile, copyFile, fsStat, getTempDir} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -65,6 +65,20 @@ describe('Repository', function() {
       assert.isTrue(repository.isInState('LoadingGuess'));
       assert.isTrue(repository.showGitTabLoading());
       assert.isFalse(repository.showGitTabInit());
+    });
+  });
+
+  describe('getGitDirectoryPath', function() {
+    it('returns the correct git directory path', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const workingDirPathWithGitFile = await getTempDir();
+      await writeFile(path.join(workingDirPathWithGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+
+      const repository = new Repository(workingDirPath);
+      assert.equal(repository.getGitDirectoryPath(), path.join(workingDirPath, '.git'));
+
+      const repositoryWithGitFile = new Repository(workingDirPathWithGitFile);
+      await assert.async.equal(repositoryWithGitFile.getGitDirectoryPath(), path.join(workingDirPath, '.git'));
     });
   });
 
