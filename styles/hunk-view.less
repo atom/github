@@ -81,6 +81,22 @@
   color: @text-color-highlight;
 }
 
+.github-HunkView-split-line {
+  display: flex;
+
+  & > div {
+    flex: 50%;
+  }
+
+  .left-line {
+    border-right: 1px solid @base-border-color;
+  }
+
+  .left-line, .right-line {
+    display: flex;
+  }
+}
+
 .github-HunkView-line {
 
   // mixin
@@ -112,6 +128,14 @@
     box-shadow: 0 -1px 0 hsla(0,0%,50%,.1);
   }
 
+  &.is-empty-space {
+    flex: 1;
+    display: flex;
+
+    .github-HunkView-lineContent {
+      background: lighten(@base-border-color, 10%);
+    }
+  }
 }
 
 // focus colors
