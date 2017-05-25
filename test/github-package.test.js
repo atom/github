@@ -66,7 +66,8 @@ describe('GithubPackage', function() {
       const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings1,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+        configDirPath, getLoadSettings1,
       );
     }
 
