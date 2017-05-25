@@ -183,7 +183,6 @@ describe('GithubPackage', function() {
 
       await contextUpdateAfter(() => githubPackage.activate({
         activeRepositoryPath: workdirPath2,
-        firstRun: false,
       }));
 
       const context = contextPool.getContext(workdirPath2);
