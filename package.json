@@ -145,6 +145,12 @@
       "type": "boolean",
       "default": false,
       "description": "Capture CPU profiles"
+    },
+    "firstRun": {
+      "type": "boolean",
+      "default": true,
+      "description": "Display the Git and GitHub tabs on Atom launch. Reverts to false on each launch.",
+      "hidden": true
     }
   },
   "deserializers": {
