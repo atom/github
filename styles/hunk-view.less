@@ -77,6 +77,16 @@
 // States
 // -------------------------------
 
+.github-HunkView.is-selected.is-hunkMode .github-HunkView-header {
+  background-color: @background-color-selected;
+  .github-HunkView-title {
+    color: @text-color;
+  }
+  .github-HunkView-stageButton {
+    border-color: mix(@text-color, @background-color-selected, 25%);
+  }
+}
+
 .github-HunkView-title:hover {
   color: @text-color-highlight;
 }
@@ -87,6 +97,10 @@
   .hunk-line-mixin(@fg; @bg) {
     &:hover {
       background-color: @background-color-highlight;
+    }
+    &.is-selected {
+      color: @text-color;
+      background-color: @background-color-selected;
     }
     .github-HunkView-lineContent {
       color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
