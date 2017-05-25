@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
-import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
+import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -28,14 +28,25 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
   };
 
   describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
-    describe('isGitRepository', function() {
-      it('returns true if the path passed is a valid repository, and false if not', async function() {
+    describe('resolveDotGitDir', function() {
+      it('returns the path to the .git dir for a working directory if it exists, and null otherwise', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.isTrue(await git.isGitRepository(workingDirPath));
+        const dotGitFolder = await git.resolveDotGitDir(workingDirPath);
+        assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
 
         fs.removeSync(path.join(workingDirPath, '.git'));
-        assert.isFalse(await git.isGitRepository(workingDirPath));
+        assert.isNull(await git.resolveDotGitDir(workingDirPath));
+      });
+
+      it('supports gitdir files', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const workingDirPathWithDotGitFile = await getTempDir();
+        await writeFile(path.join(workingDirPathWithDotGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+
+        const git = createTestStrategy(workingDirPathWithDotGitFile);
+        const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
+        assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
       });
     });
 
@@ -376,8 +387,9 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
     describe('isMerging', function() {
       it('returns true if `.git/MERGE_HEAD` exists', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
+        const dotGitDir = path.join(workingDirPath, '.git');
         const git = createTestStrategy(workingDirPath);
-        let isMerging = await git.isMerging();
+        let isMerging = await git.isMerging(dotGitDir);
         assert.isFalse(isMerging);
 
         try {
@@ -385,11 +397,11 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         } catch (e) {
           // expect merge to have conflicts
         }
-        isMerging = await git.isMerging();
+        isMerging = await git.isMerging(dotGitDir);
         assert.isTrue(isMerging);
 
         fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'));
-        isMerging = await git.isMerging();
+        isMerging = await git.isMerging(dotGitDir);
         assert.isFalse(isMerging);
       });
     });

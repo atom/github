@@ -8,13 +8,14 @@ import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', function() {
-  let atomEnv, commandRegistry, component;
+  let atomEnv, commandRegistry, tooltips, component;
   let attemptLineStageOperation, attemptHunkStageOperation, discardLines, undoLastDiscard, openCurrentFile;
   let didSurfaceFile, didDiveIntoCorrespondingFilePatch;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    tooltips = atomEnv.tooltips;
 
     attemptLineStageOperation = sinon.spy();
     attemptHunkStageOperation = sinon.spy();
@@ -27,6 +28,7 @@ describe('FilePatchView', function() {
     component = (
       <FilePatchView
         commandRegistry={commandRegistry}
+        tooltips={tooltips}
         filePath="filename.js"
         hunks={[]}
         stagingStatus="unstaged"
