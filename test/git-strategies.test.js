@@ -11,8 +11,8 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
-import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
+import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -28,120 +28,30 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
   };
 
   describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
-    describe('isGitRepository', function() {
-      it('returns true if the path passed is a valid repository, and false if not', async function() {
+    describe('resolveDotGitDir', function() {
+      it('returns the path to the .git dir for a working directory if it exists, and null otherwise', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.isTrue(await git.isGitRepository(workingDirPath));
+        const dotGitFolder = await git.resolveDotGitDir(workingDirPath);
+        assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
 
         fs.removeSync(path.join(workingDirPath, '.git'));
-        assert.isFalse(await git.isGitRepository(workingDirPath));
+        assert.isNull(await git.resolveDotGitDir(workingDirPath));
+      });
+
+      it('supports gitdir files', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const workingDirPathWithDotGitFile = await getTempDir();
+        await writeFile(path.join(workingDirPathWithDotGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+
+        const git = createTestStrategy(workingDirPathWithDotGitFile);
+        const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
+        assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
       });
     });
 
-    describe('getStatusesForChangedFiles', function() {
-      it('returns objects for staged and unstaged files, including status information', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-        fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
-        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
-        fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8');
-        await git.exec(['add', 'a.txt', 'e.txt']);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modify after staging', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'modify after staging', 'utf8');
-        const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
-        assert.deepEqual(stagedFiles, {
-          'a.txt': 'modified',
-          'e.txt': 'added',
-        });
-        assert.deepEqual(unstagedFiles, {
-          'a.txt': 'modified',
-          'b.txt': 'deleted',
-          'c.txt': 'deleted',
-          'd.txt': 'added',
-          'e.txt': 'modified',
-        });
-        assert.deepEqual(mergeConflictFiles, {});
-      });
-
-      it('displays renamed files as one removed file and one added file', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
-        await git.exec(['add', '.']);
-        const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
-        assert.deepEqual(stagedFiles, {
-          'c.txt': 'deleted',
-          'd.txt': 'added',
-        });
-        assert.deepEqual(unstagedFiles, {});
-        assert.deepEqual(mergeConflictFiles, {});
-      });
-
-      it('displays copied files as an added file', async function() {
-        // This repo is carefully constructed after much experimentation
-        // to cause git to detect `two.cc` as a copy of `one.cc`.
-        const workingDirPath = await cloneRepository('copied-file');
-        const git = createTestStrategy(workingDirPath);
-        // Undo the last commit, which is where we copied one.cc to two.cc
-        // and then emptied one.cc.
-        await git.exec(['reset', '--soft', 'HEAD^']);
-        const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
-        assert.deepEqual(stagedFiles, {
-          'one.cc': 'modified',
-          'two.cc': 'added',
-        });
-        assert.deepEqual(unstagedFiles, {});
-        assert.deepEqual(mergeConflictFiles, {});
-      });
-
-      it('returns an object for merge conflict files, including ours/theirs/file status information', async function() {
-        const workingDirPath = await cloneRepository('merge-conflict');
-        const git = createTestStrategy(workingDirPath);
-        try {
-          await git.merge('origin/branch');
-        } catch (e) {
-          // expected
-          if (!e.message.match(/CONFLICT/)) {
-            throw new Error(`merge failed for wrong reason: ${e.message}`);
-          }
-        }
-
-        const {stagedFiles, unstagedFiles, mergeConflictFiles} = await git.getStatusesForChangedFiles();
-        assert.deepEqual(stagedFiles, {});
-        assert.deepEqual(unstagedFiles, {});
-
-        assert.deepEqual(mergeConflictFiles, {
-          'added-to-both.txt': {
-            ours: 'added',
-            theirs: 'added',
-            file: 'modified',
-          },
-          'modified-on-both-ours.txt': {
-            ours: 'modified',
-            theirs: 'modified',
-            file: 'modified',
-          },
-          'modified-on-both-theirs.txt': {
-            ours: 'modified',
-            theirs: 'modified',
-            file: 'modified',
-          },
-          'removed-on-branch.txt': {
-            ours: 'modified',
-            theirs: 'deleted',
-            file: 'equivalent',
-          },
-          'removed-on-master.txt': {
-            ours: 'deleted',
-            theirs: 'modified',
-            file: 'added',
-          },
-        });
-      });
-
-      if (process.platform === 'win32') {
+    if (process.platform === 'win32') {
+      describe('getStatusBundle()', function() {
         it('normalizes the path separator on Windows', async function() {
           const workingDir = await cloneRepository('three-files');
           const git = createTestStrategy(workingDir);
@@ -152,16 +62,12 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           await writeFile(absPathB, 'more changes here\n');
           await git.stageFiles([relPathB]);
 
-          const {stagedFiles, unstagedFiles} = await git.getStatusesForChangedFiles();
-          assert.deepEqual(stagedFiles, {
-            [relPathB]: 'modified',
-          });
-          assert.deepEqual(unstagedFiles, {
-            [relPathA]: 'modified',
-          });
+          const {changedEntries} = await git.getStatusBundle();
+          const changedPaths = changedEntries.map(entry => entry.filePath);
+          assert.deepEqual(changedPaths, [relPathA, relPathB]);
         });
-      }
-    });
+      });
+    }
 
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
@@ -426,13 +332,64 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
           });
         });
       });
+
+      describe('when the file is new', function() {
+        it('returns a diff representing the addition of the file', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
+          assertDeepPropertyVals(await git.getDiffForFilePath('new-file.txt'), {
+            oldPath: null,
+            newPath: 'new-file.txt',
+            oldMode: null,
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 0,
+                oldLineCount: 0,
+                newStartLine: 1,
+                newLineCount: 3,
+                heading: '',
+                lines: [
+                  '+qux',
+                  '+foo',
+                  '+bar',
+                ],
+              },
+            ],
+            status: 'added',
+          });
+
+        });
+
+        describe('when the file is binary', function() {
+          it('returns an empty diff', async function() {
+            const workingDirPath = await cloneRepository('three-files');
+            const git = createTestStrategy(workingDirPath);
+            const data = new Buffer(10);
+            for (let i = 0; i < 10; i++) {
+              data.writeUInt8(i + 200, i);
+            }
+            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
+            assertDeepPropertyVals(await git.getDiffForFilePath('new-file.bin'), {
+              oldPath: null,
+              newPath: 'new-file.bin',
+              oldMode: null,
+              newMode: '100644',
+              hunks: [],
+              status: 'added',
+            });
+          });
+        });
+      });
     });
 
     describe('isMerging', function() {
       it('returns true if `.git/MERGE_HEAD` exists', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
+        const dotGitDir = path.join(workingDirPath, '.git');
         const git = createTestStrategy(workingDirPath);
-        let isMerging = await git.isMerging();
+        let isMerging = await git.isMerging(dotGitDir);
         assert.isFalse(isMerging);
 
         try {
@@ -440,93 +397,29 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         } catch (e) {
           // expect merge to have conflicts
         }
-        isMerging = await git.isMerging();
+        isMerging = await git.isMerging(dotGitDir);
         assert.isTrue(isMerging);
 
         fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'));
-        isMerging = await git.isMerging();
+        isMerging = await git.isMerging(dotGitDir);
         assert.isFalse(isMerging);
       });
     });
 
-    describe('getAheadCount(branchName) and getBehindCount(branchName)', function() {
-      it('returns the number of different commits on the branch vs the remote', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
-        const git = createTestStrategy(localRepoPath);
-        await git.exec(['config', 'push.default', 'upstream']);
-        assert.equal(await git.getBehindCount('master'), 0);
-        assert.equal(await git.getAheadCount('master'), 0);
-        await git.fetch('origin', 'master');
-        assert.equal(await git.getBehindCount('master'), 1);
-        assert.equal(await git.getAheadCount('master'), 0);
-        await git.commit('new commit', {allowEmpty: true});
-        await git.commit('another commit', {allowEmpty: true});
-        assert.equal(await git.getBehindCount('master'), 1);
-        assert.equal(await git.getAheadCount('master'), 2);
-      });
-
-      it('returns null if there is no remote tracking branch specified', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
-        const git = createTestStrategy(localRepoPath);
-        await git.exec(['config', 'push.default', 'upstream']);
-        await git.exec(['config', '--remove-section', 'branch.master']);
-        assert.equal(await git.getBehindCount('master'), null);
-        assert.equal(await git.getAheadCount('master'), null);
-      });
-
-      it('returns null if the configured remote tracking branch does not exist locally', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const git = createTestStrategy(localRepoPath);
-        await git.exec(['config', 'push.default', 'upstream']);
-        await git.exec(['branch', '-d', '-r', 'origin/master']);
-        assert.equal(await git.getBehindCount('master'), null);
-        assert.equal(await git.getAheadCount('master'), null);
-
-        await git.exec(['fetch']);
-        assert.equal(await git.getBehindCount('master'), 0);
-        assert.equal(await git.getAheadCount('master'), 0);
-      });
-
-      it('handles a remote tracking branch with a name that differs from the local branch', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
-        const git = createTestStrategy(localRepoPath);
-        await git.exec(['config', 'push.default', 'upstream']);
-        await git.exec(['checkout', '-b', 'new-local-branch']);
-        await git.exec(['remote', 'rename', 'origin', 'upstream']);
-        await git.exec(['branch', '--set-upstream-to=upstream/master']);
-        assert.equal(await git.getBehindCount('new-local-branch'), 0);
-        assert.equal(await git.getAheadCount('new-local-branch'), 0);
-      });
-    });
-
-    describe('getCurrentBranch() and checkout(branchName, {createNew})', function() {
+    describe('checkout(branchName, {createNew})', function() {
       it('returns the current branch name', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'master', isDetached: false});
+        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'master');
         await git.checkout('branch');
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'branch', isDetached: false});
+        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
 
         // newBranch does not yet exist
         await assert.isRejected(git.checkout('newBranch'));
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'branch', isDetached: false});
+        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
+        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
         await git.checkout('newBranch', {createNew: true});
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'newBranch', isDetached: false});
-      });
-
-      it('returns the current branch name in a repository with no commits', async function() {
-        const workingDirPath = await initRepository();
-        const git = createTestStrategy(workingDirPath);
-
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'master', isDetached: false});
-      });
-
-      it('returns a reasonable default in a repository with a detached HEAD', async function() {
-        const workingDirPath = await cloneRepository('multiple-commits');
-        const git = createTestStrategy(workingDirPath);
-        await git.exec(['checkout', 'HEAD^']);
-
-        assert.deepEqual(await git.getCurrentBranch(), {name: 'master~1', isDetached: true});
+        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'newBranch');
       });
     });
 
@@ -539,6 +432,14 @@ import {fsStat, normalizeGitHelperPath, writeFile} from '../lib/helpers';
         assert.deepEqual(await git.getBranches(), ['master', 'new-branch']);
         await git.checkout('another-branch', {createNew: true});
         assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
+      });
+
+      it('includes branches with slashes in the name', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        assert.deepEqual(await git.getBranches(), ['master']);
+        await git.checkout('a/fancy/new/branch', {createNew: true});
+        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
       });
     });
 

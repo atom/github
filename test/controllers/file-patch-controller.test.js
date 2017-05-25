@@ -14,13 +14,14 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import Switchboard from '../../lib/switchboard';
 
 describe('FilePatchController', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commandRegistry, tooltips;
   let component, switchboard;
   let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    tooltips = atomEnv.tooltips;
 
     switchboard = new Switchboard();
 
@@ -33,11 +34,15 @@ describe('FilePatchController', function() {
 
     const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
     const repository = Repository.absent();
+    sinon.stub(repository, 'getWorkingDirectoryPath').returns('/absent');
     const resolutionProgress = new ResolutionProgress();
+
+    FilePatchController.resetConfirmedLargeFilePatches();
 
     component = (
       <FilePatchController
         commandRegistry={commandRegistry}
+        tooltips={tooltips}
         repository={repository}
         resolutionProgress={resolutionProgress}
         filePatch={filePatch}
@@ -62,7 +67,7 @@ describe('FilePatchController', function() {
   it('bases its tab title on the staging status', function() {
     const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
 
-    const wrapper = shallow(React.cloneElement(component, {
+    const wrapper = mount(React.cloneElement(component, {
       filePatch: filePatch1,
       stagingStatus: 'unstaged',
     }));
@@ -76,7 +81,77 @@ describe('FilePatchController', function() {
 
     const actualTitle = wrapper.instance().getTitle();
     assert.equal(actualTitle, 'Staged Changes: a.txt');
-    assert.isTrue(changeHandler.calledWith(actualTitle));
+    assert.isTrue(changeHandler.called);
+  });
+
+  describe('when the FilePatch has many lines', function() {
+    it('renders a confirmation widget', function() {
+      const hunk1 = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk1]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+      assert.match(wrapper.text(), /large diff/);
+    });
+
+    it('renders the full diff when the confirmation is clicked', function() {
+      const hunk = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [hunk]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.find('button').simulate('click');
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+    });
+
+    it('renders the full diff if the file has been confirmed before', async function() {
+      const hunk = new Hunk(0, 0, 1, 1, '', [
+        new HunkLine('line-1', 'added', 1, 1),
+        new HunkLine('line-2', 'added', 2, 2),
+        new HunkLine('line-3', 'added', 3, 3),
+        new HunkLine('line-4', 'added', 4, 4),
+        new HunkLine('line-5', 'added', 5, 5),
+        new HunkLine('line-6', 'added', 6, 6),
+      ]);
+      const filePatch1 = new FilePatch('a.txt', 'a.txt', 'modified', [hunk]);
+      const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [hunk]);
+
+      const wrapper = mount(React.cloneElement(component, {
+        filePatch: filePatch1, largeDiffLineThreshold: 5,
+      }));
+
+      assert.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.find('button').simulate('click');
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+
+      wrapper.setProps({filePatch: filePatch2});
+      await assert.async.isFalse(wrapper.find('FilePatchView').exists());
+
+      wrapper.setProps({filePatch: filePatch1});
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+    });
   });
 
   it('renders FilePatchView only if FilePatch has hunks', function() {
@@ -213,8 +288,8 @@ describe('FilePatchController', function() {
 
       const opPromise0 = switchboard.getFinishStageOperationPromise();
       const hunkView0 = wrapper.find('HunkView').at(0);
-      hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
-      hunkView0.find('LineView').at(3).simulate('mousemove', {});
+      hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+      hunkView0.find('LineView').at(3).find('.github-HunkView-line').simulate('mousemove', {});
       window.dispatchEvent(new MouseEvent('mouseup'));
       hunkView0.find('button.github-HunkView-stageButton').simulate('click');
       await opPromise0;
@@ -256,9 +331,11 @@ describe('FilePatchController', function() {
       await updatePromise2;
 
       const hunkView2 = wrapper.find('HunkView').at(0);
-      hunkView2.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+      hunkView2.find('LineView').at(1).find('.github-HunkView-line')
+        .simulate('mousedown', {button: 0, detail: 1});
       window.dispatchEvent(new MouseEvent('mouseup'));
-      hunkView2.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1, metaKey: true});
+      hunkView2.find('LineView').at(2).find('.github-HunkView-line')
+        .simulate('mousedown', {button: 0, detail: 1, metaKey: true});
       window.dispatchEvent(new MouseEvent('mouseup'));
 
       const opPromise2 = switchboard.getFinishStageOperationPromise();
@@ -369,7 +446,8 @@ describe('FilePatchController', function() {
         }));
 
         const hunkView0 = wrapper.find('HunkView').at(0);
-        hunkView0.find('LineView').at(1).simulate('mousedown', {button: 0, detail: 1});
+        hunkView0.find('LineView').at(1).find('.github-HunkView-line')
+          .simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
 
         // stage lines in rapid succession
@@ -394,7 +472,8 @@ describe('FilePatchController', function() {
         await line1PatchPromise;
 
         const hunkView1 = wrapper.find('HunkView').at(0);
-        hunkView1.find('LineView').at(2).simulate('mousedown', {button: 0, detail: 1});
+        hunkView1.find('LineView').at(2).find('.github-HunkView-line')
+          .simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
 
         const line2StagingPromise = switchboard.getFinishStageOperationPromise();

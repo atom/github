@@ -15,7 +15,7 @@ import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
-  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips;
+  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
   let component;
 
   beforeEach(function() {
@@ -24,6 +24,7 @@ describe('StatusBarTileController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     tooltips = atomEnvironment.tooltips;
+    confirm = atomEnvironment.confirm;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
@@ -33,6 +34,7 @@ describe('StatusBarTileController', function() {
         commandRegistry={commandRegistry}
         notificationManager={notificationManager}
         tooltips={tooltips}
+        confirm={confirm}
       />
     );
   });
@@ -203,6 +205,35 @@ describe('StatusBarTileController', function() {
           assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
+        it('forgets newly created branches on repository change', async function() {
+          const [repo0, repo1] = await Promise.all(
+            [0, 1].map(async () => {
+              const workdirPath = await cloneRepository('three-files');
+              return buildRepository(workdirPath);
+            }),
+          );
+
+          const wrapper = mount(React.cloneElement(component, {repository: repo0}));
+          await wrapper.instance().refreshModelData();
+          const tip = getTooltipNode(wrapper, BranchView);
+
+          // Create a new branch
+          tip.querySelector('button').click();
+          tip.querySelector('atom-text-editor').getModel().setText('created-branch');
+          tip.querySelector('button').click();
+
+          await assert.async.lengthOf(tip.querySelectorAll('select'), 1);
+
+          assert.equal(tip.querySelector('select').value, 'created-branch');
+
+          wrapper.setProps({repository: repo1});
+          await wrapper.instance().refreshModelData();
+
+          assert.equal(tip.querySelector('select').value, 'master');
+          const options = Array.from(tip.querySelectorAll('option'), node => node.value);
+          assert.notInclude(options, 'created-branch');
+        });
+
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
@@ -360,7 +391,7 @@ describe('StatusBarTileController', function() {
         });
       });
 
-      it('displays an error message if push fails and allows force pushing if meta/ctrl key is pressed', async function() {
+      it('displays an error message if push fails', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
         await repository.git.exec(['reset', '--hard', 'HEAD~2']);
@@ -388,16 +419,8 @@ describe('StatusBarTileController', function() {
         assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
 
         await wrapper.instance().refreshModelData();
-        // This rigmarole is to get around a bug where dispatching a `KeyboardEvent` does not work.
-        // Note that this causes an error from down in Atom's internals; fixing the error
-        // makes the event dispatch fail. -_-
-        const event = new Event('keydown', {bubbles: true});
-        event.key = 'a';
-        event.keyCode = 65;
-        event.ctrlKey = true;
-        document.dispatchEvent(event);
 
-        await assert.async.equal(pushButton.textContent.trim(), 'Force Push (1)');
+        await assert.async.equal(pushButton.textContent.trim(), 'Push (1)');
         await assert.async.equal(pullButton.textContent.trim(), 'Pull (2)');
         wrapper.unmount();
       });
@@ -477,13 +500,15 @@ describe('StatusBarTileController', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const repository = await buildRepository(localRepoPath);
 
-        const wrapper = mount(React.cloneElement(component, {repository}));
+        const fakeConfirm = sinon.stub().returns(0);
+        const wrapper = mount(React.cloneElement(component, {repository, confirm: fakeConfirm}));
         await wrapper.instance().refreshModelData();
 
         sinon.spy(repository, 'push');
 
         commandRegistry.dispatch(workspaceElement, 'github:force-push');
 
+        assert.equal(fakeConfirm.callCount, 1);
         assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
       });
     });

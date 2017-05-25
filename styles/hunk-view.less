@@ -27,7 +27,8 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  &-stageButton {
+  &-stageButton,
+  &-discardButton {
     line-height: 1;
     font-family: @font-family;
     border: none;
@@ -77,6 +78,16 @@
 // States
 // -------------------------------
 
+.github-HunkView.is-selected.is-hunkMode .github-HunkView-header {
+  background-color: @background-color-selected;
+  .github-HunkView-title {
+    color: @text-color;
+  }
+  .github-HunkView-stageButton, .github-HunkView-discardButton {
+    border-color: mix(@text-color, @background-color-selected, 25%);
+  }
+}
+
 .github-HunkView-title:hover {
   color: @text-color-highlight;
 }
@@ -87,6 +98,10 @@
   .hunk-line-mixin(@fg; @bg) {
     &:hover {
       background-color: @background-color-highlight;
+    }
+    &.is-selected {
+      color: @text-color;
+      background-color: @background-color-selected;
     }
     .github-HunkView-lineContent {
       color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
@@ -125,9 +140,12 @@
   .github-HunkView-line.is-selected .github-HunkView-lineNumber {
     border-color: mix(@button-border-color, @button-background-color-selected, 25%);
   }
-  .is-hunkMode .github-HunkView-stageButton {
-    border-color: mix(@hunk-bg-color, @button-background-color-selected, 30%);
-    &:hover  { background-color: mix(@hunk-bg-color, @button-background-color-selected, 10%); }
-    &:active { background-color: @button-background-color-selected; }
+  .github-HunkView.is-selected.is-hunkMode .github-HunkView {
+    &-stageButton,
+    &-discardButton {
+      border-color: mix(@hunk-bg-color, @button-background-color-selected, 30%);
+      &:hover  { background-color: mix(@hunk-bg-color, @button-background-color-selected, 10%); }
+      &:active { background-color: @button-background-color-selected; }
+    }
   }
 }
