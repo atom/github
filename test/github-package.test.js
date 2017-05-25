@@ -4,12 +4,12 @@ import temp from 'temp';
 import until from 'test-until';
 
 import {cloneRepository} from './helpers';
-import {writeFile, getTempDir} from '../lib/helpers';
+import {writeFile, deleteFileOrFolder, fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
-  let getLoadSettings;
+  let getLoadSettings, configDirPath;
   let githubPackage, contextPool;
 
   beforeEach(function() {
@@ -23,9 +23,11 @@ describe('GithubPackage', function() {
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+    configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+      configDirPath, getLoadSettings,
     );
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
@@ -273,29 +275,35 @@ describe('GithubPackage', function() {
     });
 
     describe('startOpen', function() {
-      it('renders with startOpen on the first run', function() {
-        config.set('github.firstRun', true);
+      let confFile;
+
+      beforeEach(async function() {
+        confFile = path.join(configDirPath, 'github.cson');
+        await deleteFileOrFolder(confFile);
+      });
+
+      it('renders with startOpen on the first run', async function() {
         config.set('welcome.showOnStartup', false);
-        githubPackage.activate();
+        await githubPackage.activate();
 
         assert.isTrue(githubPackage.startOpen);
-        assert.isFalse(config.get('github.firstRun'));
+        assert.isTrue(await fileExists(confFile));
       });
 
-      it('renders without startOpen on non-first runs', function() {
-        config.set('github.firstRun', false);
-        githubPackage.activate();
+      it('renders without startOpen on non-first runs', async function() {
+        await writeFile(confFile, '');
+        await githubPackage.activate();
 
         assert.isFalse(githubPackage.startOpen);
+        assert.isTrue(await fileExists(confFile));
       });
 
-      it('renders without startOpen on the first run if the welcome pane is shown', function() {
-        config.set('github.firstRun', true);
+      it('renders without startOpen on the first run if the welcome pane is shown', async function() {
         config.set('welcome.showOnStartup', true);
-        githubPackage.activate();
+        await githubPackage.activate();
 
         assert.isFalse(githubPackage.startOpen);
-        assert.isFalse(config.get('github.firstRun'));
+        assert.isTrue(await fileExists(confFile));
       });
     });
   });
