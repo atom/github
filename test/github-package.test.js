@@ -272,6 +272,33 @@ describe('GithubPackage', function() {
       assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
       assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
     });
+
+    describe('startOpen', function() {
+      it('renders with startOpen on the first run', function() {
+        config.set('github.firstRun', true);
+        config.set('welcome.showOnStartup', false);
+        githubPackage.activate();
+
+        assert.isTrue(githubPackage.startOpen);
+        assert.isFalse(config.get('github.firstRun'));
+      });
+
+      it('renders without startOpen on non-first runs', function() {
+        config.set('github.firstRun', false);
+        githubPackage.activate();
+
+        assert.isFalse(githubPackage.startOpen);
+      });
+
+      it('renders without startOpen on the first run if the welcome pane is shown', function() {
+        config.set('github.firstRun', true);
+        config.set('welcome.showOnStartup', true);
+        githubPackage.activate();
+
+        assert.isFalse(githubPackage.startOpen);
+        assert.isFalse(config.get('github.firstRun'));
+      });
+    });
   });
 
   describe('when the project paths change', function() {
