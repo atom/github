@@ -42,9 +42,9 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
-  function contextUpdateAfter(chunk) {
+  async function contextUpdateAfter(chunk) {
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
-    chunk();
+    await chunk();
     return updatePromise;
   }
 
