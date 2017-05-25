@@ -5,9 +5,9 @@
   'ctrl-shift-9': 'github:toggle-git-tab'
   'alt-g enter': 'github:commit'
   'alt-g f': 'github:fetch'
-  'alt-g F': 'github:pull'
+  'alt-g shift-f': 'github:pull'
   'alt-g p': 'github:push'
-  'alt-g P': 'github:force-push'
+  'alt-g shift-p': 'github:force-push'
   'alt-g =': 'github:clone'
 
 'atom-text-editor':
