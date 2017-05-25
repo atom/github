@@ -205,6 +205,35 @@ describe('StatusBarTileController', function() {
           assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
+        it('forgets newly created branches on repository change', async function() {
+          const [repo0, repo1] = await Promise.all(
+            [0, 1].map(async () => {
+              const workdirPath = await cloneRepository('three-files');
+              return buildRepository(workdirPath);
+            }),
+          );
+
+          const wrapper = mount(React.cloneElement(component, {repository: repo0}));
+          await wrapper.instance().refreshModelData();
+          const tip = getTooltipNode(wrapper, BranchView);
+
+          // Create a new branch
+          tip.querySelector('button').click();
+          tip.querySelector('atom-text-editor').getModel().setText('created-branch');
+          tip.querySelector('button').click();
+
+          await assert.async.lengthOf(tip.querySelectorAll('select'), 1);
+
+          assert.equal(tip.querySelector('select').value, 'created-branch');
+
+          wrapper.setProps({repository: repo1});
+          await wrapper.instance().refreshModelData();
+
+          assert.equal(tip.querySelector('select').value, 'master');
+          const options = Array.from(tip.querySelectorAll('option'), node => node.value);
+          assert.notInclude(options, 'created-branch');
+        });
+
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
