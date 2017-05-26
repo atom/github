@@ -27,7 +27,8 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  &-stageButton {
+  &-stageButton,
+  &-discardButton {
     line-height: 1;
     font-family: @font-family;
     border: none;
@@ -82,7 +83,7 @@
   .github-HunkView-title {
     color: @text-color;
   }
-  .github-HunkView-stageButton {
+  .github-HunkView-stageButton, .github-HunkView-discardButton {
     border-color: mix(@text-color, @background-color-selected, 25%);
   }
 }
@@ -139,9 +140,12 @@
   .github-HunkView-line.is-selected .github-HunkView-lineNumber {
     border-color: mix(@button-border-color, @button-background-color-selected, 25%);
   }
-  .github-HunkView.is-selected.is-hunkMode .github-HunkView-stageButton {
-    border-color: mix(@hunk-bg-color, @button-background-color-selected, 30%);
-    &:hover  { background-color: mix(@hunk-bg-color, @button-background-color-selected, 10%); }
-    &:active { background-color: @button-background-color-selected; }
+  .github-HunkView.is-selected.is-hunkMode .github-HunkView {
+    &-stageButton,
+    &-discardButton {
+      border-color: mix(@hunk-bg-color, @button-background-color-selected, 30%);
+      &:hover  { background-color: mix(@hunk-bg-color, @button-background-color-selected, 10%); }
+      &:active { background-color: @button-background-color-selected; }
+    }
   }
 }
