@@ -113,3 +113,22 @@
       'command': 'github:open-link-in-browser'
     }
   ]
+  '.github-UnstagedChanges .github-StagingView-header': [
+    {
+      'label': 'Stage All'
+      'command': 'github:stage-all'
+    }
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Discard All'
+      'command': 'github:discard-all'
+    }
+  ]
+  '.github-StagedChanges .github-StagingView-header': [
+    {
+      'label': 'Unstage All'
+      'command': 'github:unstage-all'
+    }
+  ]
