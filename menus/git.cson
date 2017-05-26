@@ -115,20 +115,20 @@
   ]
   '.github-UnstagedChanges .github-StagingView-header': [
     {
-      'label': 'Stage All'
-      'command': 'github:stage-all'
+      'label': 'Stage All Changes'
+      'command': 'github:stage-all-changes'
     }
     {
       'type': 'separator'
     }
     {
-      'label': 'Discard All'
-      'command': 'github:discard-all'
+      'label': 'Discard All Changes'
+      'command': 'github:discard-all-changes'
     }
   ]
   '.github-StagedChanges .github-StagingView-header': [
     {
-      'label': 'Unstage All'
-      'command': 'github:unstage-all'
+      'label': 'Unstage All Changes'
+      'command': 'github:unstage-all-changes'
     }
   ]
