@@ -511,6 +511,33 @@ describe('StatusBarTileController', function() {
         assert.equal(fakeConfirm.callCount, 1);
         assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
       });
+
+      it('displays a warning notification when pull results in merge conflicts', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
+
+        const repository = await buildRepository(localRepoPath);
+        await repository.git.exec(['commit', '-am', 'Add conflicting change']);
+
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
+
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+
+        sinon.stub(notificationManager, 'addWarning');
+
+        pullButton.click();
+        await wrapper.instance().refreshModelData();
+
+        await assert.async.isTrue(notificationManager.addWarning.called);
+        const notificationArgs = notificationManager.addWarning.args[0];
+        assert.equal(notificationArgs[0], 'Automatic merge after pull failed');
+        assert.match(notificationArgs[1].description, /Please fix conflicts and then commit the result./);
+
+        assert.isTrue(await repository.isMerging());
+      });
     });
   });
 
