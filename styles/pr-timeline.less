@@ -33,7 +33,7 @@
   }
 
   .commit {
-    display: flex;
+    display: table-row;
     align-items: center;
     padding: 0 @component-padding;
     margin-left: @component-padding * 2;
@@ -53,13 +53,19 @@
       margin-top: @component-padding/2;
     }
 
+    .commit-author {
+      display: table-cell;
+      white-space: nowrap;
+      text-align: right;
+    }
+
     .author-avatar {
       flex-basis: @avatar-size;
     }
 
     .commit-message-headline {
+      display: table-cell;
       font-size: .9em;
-      flex: 1;
       max-height: @avatar-size;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -67,9 +73,10 @@
     }
 
     .commit-sha {
+      display: table-cell;
       text-align: right;
       font-family: monospace;
-      margin-left: 5px;
+      padding-left: 5px;
       font-size: .85em;
       color: @text-color-subtle;
     }
