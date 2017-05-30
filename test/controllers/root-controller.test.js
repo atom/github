@@ -1158,6 +1158,49 @@ import RootController from '../../lib/controllers/root-controller';
         assert.isDefined(paneItem);
         assert.equal(paneItem.getTitle(), 'Unstaged Changes: a.txt');
       });
+
+      describe('viewing diffs from active editor', function() {
+        describe('viewUnstagedChangesForCurrentFile()', function() {
+          it('opens the unstaged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
+            const workdirPath = await cloneRepository('three-files');
+            const repository = await buildRepository(workdirPath);
+            const wrapper = mount(React.cloneElement(app, {repository}));
+
+            fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+
+            const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+            editor.setCursorBufferPosition([7, 0]);
+
+            await wrapper.instance().viewUnstagedChangesForCurrentFile();
+
+            await assert.async.equal(workspace.getActivePaneItem().getTitle(), 'Unstaged Changes: a.txt');
+            const selectedLines = Array.from(workspace.getActivePaneItem().getInstance().filePatchView.getSelectedLines());
+            assert.equal(selectedLines.length, 1);
+            assert.equal(selectedLines[0].getText(), '7');
+          });
+        });
+
+        describe('viewStagedChangesForCurrentFile()', function() {
+          it('opens the staged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
+            const workdirPath = await cloneRepository('three-files');
+            const repository = await buildRepository(workdirPath);
+            const wrapper = mount(React.cloneElement(app, {repository}));
+
+            fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+            await repository.stageFiles(['a.txt']);
+
+            const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+            editor.setCursorBufferPosition([7, 0]);
+
+            await wrapper.instance().viewStagedChangesForCurrentFile();
+
+            await assert.async.equal(workspace.getActivePaneItem().getTitle(), 'Staged Changes: a.txt');
+            const selectedLines = Array.from(workspace.getActivePaneItem().getInstance().filePatchView.getSelectedLines());
+            assert.equal(selectedLines.length, 1);
+            assert.equal(selectedLines[0].getText(), '7');
+          });
+        });
+      });
     });
   });
 });
