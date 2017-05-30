@@ -113,3 +113,13 @@
       'command': 'github:open-link-in-browser'
     }
   ]
+  'atom-text-editor': [
+    {
+      'label': 'View Unstaged Changes',
+      'command': 'github:view-unstaged-changes-for-current-file'
+    }
+    {
+      'label': 'View Staged Changes',
+      'command': 'github:view-staged-changes-for-current-file'
+    }
+  ]
