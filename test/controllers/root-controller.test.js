@@ -48,7 +48,7 @@ import RootController from '../../lib/controllers/root-controller';
           repository={absentRepository}
           resolutionProgress={emptyResolutionProgress}
           useLegacyPanels={useLegacyPanels || !workspace.getLeftDock}
-          firstRun={false}
+          startOpen={false}
         />
       );
     });
@@ -78,11 +78,11 @@ import RootController from '../../lib/controllers/root-controller';
         assert.isTrue(isGitPaneDisplayed(wrapper));
       });
 
-      it('is always visible when the firstRun prop is true', async function() {
+      it('is always visible when the startOpen prop is true', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
-        app = React.cloneElement(app, {repository, firstRun: true});
+        app = React.cloneElement(app, {repository, startOpen: true});
         const wrapper = shallow(app);
 
         assert.isTrue(isGitPaneDisplayed(wrapper));
