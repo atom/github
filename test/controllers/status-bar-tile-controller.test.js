@@ -35,6 +35,7 @@ describe('StatusBarTileController', function() {
         notificationManager={notificationManager}
         tooltips={tooltips}
         confirm={confirm}
+        ensureGitTabVisible={() => {}}
       />
     );
   });
@@ -533,8 +534,8 @@ describe('StatusBarTileController', function() {
 
         await assert.async.isTrue(notificationManager.addWarning.called);
         const notificationArgs = notificationManager.addWarning.args[0];
-        assert.equal(notificationArgs[0], 'Automatic merge after pull failed');
-        assert.match(notificationArgs[1].description, /Please fix conflicts and then commit the result./);
+        assert.equal(notificationArgs[0], 'Merge conflicts');
+        assert.match(notificationArgs[1].description, /Your local changes conflicted with changes made on the remote branch./);
 
         assert.isTrue(await repository.isMerging());
       });
