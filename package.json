@@ -111,6 +111,17 @@
       "default": 300,
       "description": "How long to wait before showing a diff view after navigating to an entry with the keyboard"
     },
+    "viewChangesForCurrentFileDiffPaneSplitDirection": {
+      "type": "string",
+      "default": "none",
+      "enum": [
+        "none",
+        "right",
+        "down"
+      ],
+      "title": "Direction to open diff pane",
+      "description": "Direction to split the active pane when showing diff associated with open file. If 'none', the results will be shown in the active pane."
+    },
     "gitDiagnostics": {
       "type": "boolean",
       "default": false,
