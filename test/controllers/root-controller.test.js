@@ -17,11 +17,15 @@ import RootController from '../../lib/controllers/root-controller';
   describe(`RootController with useLegacyPanels set to ${useLegacyPanels}`, function() {
     let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
 
+    function useDocks() {
+      return !useLegacyPanels && !!workspace.getLeftDock;
+    }
+
     function isGitPaneDisplayed(wrapper) {
-      if (useLegacyPanels || !workspace.getLeftDock) {
-        return wrapper.find('Panel').prop('visible');
-      } else {
+      if (useDocks()) {
         return wrapper.find('DockItem').exists();
+      } else {
+        return wrapper.find('Panel').prop('visible');
       }
     }
 
@@ -347,12 +351,35 @@ import RootController from '../../lib/controllers/root-controller';
       });
 
       describe('toggle()', function() {
-        it('toggles the visibility of the Git view', function() {
+        beforeEach(function() {
+          if (useDocks()) {
+            sinon.spy(workspace, 'toggle');
+            wrapper.instance().gitDockItem = {
+              getDockItem() { return {}; },
+            };
+          }
+        });
+
+        it('shows the Git view when closed', async function() {
           assert.isFalse(isGitPaneDisplayed(wrapper));
-          gitTabTracker.toggle();
+          assert.isNotOk(wrapper.state('gitTabActive'));
+
+          await gitTabTracker.toggle();
+
           assert.isTrue(isGitPaneDisplayed(wrapper));
-          gitTabTracker.toggle();
+          assert.isTrue(wrapper.state('gitTabActive'));
+          if (useDocks()) { assert.isTrue(workspace.toggle.called); }
+        });
+
+        it('hides the Git view when open', async function() {
+          wrapper.setState({gitTabActive: true});
+          assert.isTrue(isGitPaneDisplayed(wrapper));
+
+          await gitTabTracker.toggle();
+
           assert.isFalse(isGitPaneDisplayed(wrapper));
+          assert.isFalse(wrapper.state('gitTabActive'));
+          if (useDocks()) { assert.isTrue(workspace.toggle.called); }
         });
       });
 
