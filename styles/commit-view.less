@@ -25,6 +25,27 @@
     }
   }
 
+  &-expandButton {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      opacity: .5;
+    }
+    &:before {
+      margin: 0;
+    }
+  }
+
   &-bar {
     display: flex;
     align-items: center;
@@ -39,6 +60,7 @@
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: default;
     &.is-secondary {
       flex: 0 1 auto;
       margin-right: @component-padding;
