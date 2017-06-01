@@ -111,6 +111,24 @@ import RootController from '../../lib/controllers/root-controller';
         });
       });
 
+      it('is rendered but not activated when startOpen prop is false', async function() {
+        const workdirPath = await cloneRepository('multiple-commits');
+        const repository = await buildRepository(workdirPath);
+
+        app = React.cloneElement(app, {repository, startOpen: false});
+        const wrapper = shallow(app);
+
+        assertInitialTabState({
+          wrapper, tabName: 'git',
+          rendered: true, activated: false, visible: false,
+        });
+
+        assertInitialTabState({
+          wrapper, tabName: 'github',
+          rendered: true, activated: false, visible: false,
+        });
+      });
+
       it('is initially activated when the startOpen prop is true', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
