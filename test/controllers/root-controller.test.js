@@ -351,35 +351,66 @@ import RootController from '../../lib/controllers/root-controller';
       });
 
       describe('toggle()', function() {
+        const FAKEITEM = Symbol('fake dock item');
+        let treatAsActive;
+
         beforeEach(function() {
           if (useDocks()) {
-            sinon.spy(workspace, 'toggle');
+            treatAsActive = false;
             wrapper.instance().gitDockItem = {
-              getDockItem() { return {}; },
+              getDockItem() { return FAKEITEM; },
+              getDockItemPromise() { return Promise.resolve(FAKEITEM); },
             };
+
+            sinon.stub(workspace, 'toggle').callsFake(() => {
+              treatAsActive = !treatAsActive;
+            });
+
+            sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
+            sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => {
+              return [{
+                getActiveItem: () => (treatAsActive ? FAKEITEM : null),
+              }];
+            });
           }
         });
 
-        it('shows the Git view when closed', async function() {
-          assert.isFalse(isGitPaneDisplayed(wrapper));
+        it('renders and reveals the Git view when item is not rendered', async function() {
           assert.isNotOk(wrapper.state('gitTabActive'));
+          treatAsActive = false;
 
           await gitTabTracker.toggle();
 
-          assert.isTrue(isGitPaneDisplayed(wrapper));
           assert.isTrue(wrapper.state('gitTabActive'));
           if (useDocks()) { assert.isTrue(workspace.toggle.called); }
         });
 
-        it('hides the Git view when open', async function() {
+        it('reveals the Git view when the item is rendered but not visible', async function() {
           wrapper.setState({gitTabActive: true});
-          assert.isTrue(isGitPaneDisplayed(wrapper));
+          treatAsActive = false;
 
           await gitTabTracker.toggle();
 
-          assert.isFalse(isGitPaneDisplayed(wrapper));
-          assert.isFalse(wrapper.state('gitTabActive'));
-          if (useDocks()) { assert.isTrue(workspace.toggle.called); }
+          if (useDocks()) {
+            assert.isTrue(wrapper.state('gitTabActive'));
+            assert.isTrue(workspace.toggle.called);
+          } else {
+            assert.isFalse(wrapper.state('gitTabActive'));
+          }
+        });
+
+        it('hides and unrenders the Git view when open', async function() {
+          wrapper.setState({gitTabActive: true});
+          treatAsActive = true;
+
+          await gitTabTracker.toggle();
+
+          if (useDocks()) {
+            assert.isTrue(wrapper.state('gitTabActive'));
+            assert.isTrue(workspace.toggle.called);
+          } else {
+            assert.isFalse(wrapper.state('gitTabActive'));
+          }
         });
       });
 
