@@ -319,155 +319,160 @@ import RootController from '../../lib/controllers/root-controller';
       });
     });
 
-    describe('git tab tracker', function() {
-      let wrapper, gitTabTracker;
+    ['git', 'github'].forEach(function(tabName) {
+      describe(`${tabName} tab tracker`, function() {
+        let wrapper, tabTracker, stateKey, mockDockItem;
 
-      beforeEach(async function() {
-        const workdirPath = await cloneRepository('multiple-commits');
-        const repository = await buildRepository(workdirPath);
+        beforeEach(async function() {
+          const workdirPath = await cloneRepository('multiple-commits');
+          const repository = await buildRepository(workdirPath);
 
-        app = React.cloneElement(app, {repository});
-        wrapper = shallow(app);
-        gitTabTracker = wrapper.instance().gitTabTracker;
+          const savedState = {
+            gitTabActive: false,
+            githubTabActive: false,
+          };
+          app = React.cloneElement(app, {repository, savedState});
+          wrapper = shallow(app);
+          tabTracker = wrapper.instance()[`${tabName}TabTracker`];
 
-        sinon.stub(gitTabTracker, 'focus');
-        sinon.spy(workspace.getActivePane(), 'activate');
-      });
+          sinon.stub(tabTracker, 'focus');
+          sinon.spy(workspace.getActivePane(), 'activate');
 
-      describe('toggle()', function() {
-        let mockDockItem;
+          stateKey = `${tabName}TabActive`;
 
-        beforeEach(function() {
           const FAKE_PANE_ITEM = Symbol('fake pane item');
           mockDockItem = {
             visible: false,
-
             reveal() {
               this.visible = true;
               return Promise.resolve();
             },
-
             hide() {
               this.visible = false;
               return Promise.resolve();
             },
-
             getDockItem() {
               return FAKE_PANE_ITEM;
             },
           };
 
           if (useDocks()) {
-            wrapper.instance().gitDockItem = mockDockItem;
+            wrapper.instance()[`${tabName}DockItem`] = mockDockItem;
 
             sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
-            sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => {
-              return [{
-                getActiveItem() {
-                  if (mockDockItem.visible) {
-                    return FAKE_PANE_ITEM;
-                  } else {
-                    return null;
-                  }
-                },
-              }];
-            });
+            sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => [{
+              getActiveItem() { return mockDockItem.visible ? FAKE_PANE_ITEM : null; },
+            }]);
           }
         });
 
-        it('renders and reveals the Git view when item is not rendered', async function() {
-          assert.isNotOk(wrapper.state('gitTabActive'));
-          mockDockItem.visible = false;
-
-          await gitTabTracker.toggle();
-
-          assert.isTrue(wrapper.state('gitTabActive'));
-          if (useDocks()) { assert.isTrue(mockDockItem.visible); }
-        });
-
-        it('reveals the Git view when the item is rendered but not visible', async function() {
-          wrapper.setState({gitTabActive: true});
-          mockDockItem.visible = false;
-
-          await gitTabTracker.toggle();
-
+        function assertTabState({rendered, visible}) {
           if (useDocks()) {
-            assert.isTrue(wrapper.state('gitTabActive'));
-            assert.isTrue(mockDockItem.visible);
+            const isRendered = wrapper.find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`}).exists();
+            const isVisible = mockDockItem.visible;
+
+            assert.deepEqual({rendered, visible}, {rendered: isRendered, visible: isVisible});
           } else {
-            assert.isFalse(wrapper.state('gitTabActive'));
+            // Legacy panels API.
+            // Legacy panels are always rendered, so disregard "rendered" assertions.
+            const title = {git: 'Git', github: 'GitHub (preview)'}[tabName];
+            const activeIndex = {git: 0, github: 1}[tabName];
+
+            const isVisible = wrapper.find('Panel').find({visible: true})
+              .find('Tabs').find({activeIndex})
+              .find('TabPanel').find({title})
+              .exists();
+
+            assert.deepEqual({visible}, {visible: isVisible});
           }
+        }
+
+        describe('toggle()', function() {
+          it(`renders and reveals the ${tabName} tab when item is not rendered`, async function() {
+            console.log(`-- ${tabName} + ${useLegacyPanels} --`);
+            console.log(`precondition check:\n${wrapper.debug()}`);
+            assertTabState({rendered: false, visible: false});
+
+            console.log('about to toggle');
+            await tabTracker.toggle();
+            console.log('toggle complete');
+
+            console.log(`postcondition check:\n${wrapper.debug()}`);
+            assertTabState({rendered: true, visible: true});
+          });
+
+          it(`reveals the ${tabName} tab when the item is rendered but not visible`, async function() {
+            wrapper.setState({[stateKey]: true});
+
+            assertTabState({rendered: true, visible: false});
+
+            await tabTracker.toggle();
+
+            assertTabState({rendered: true, visible: true});
+          });
+
+          it('hides and unrenders the Git view when open', async function() {
+            wrapper.setState({[stateKey]: true});
+            mockDockItem.visible = true;
+
+            assertTabState({rendered: true, visible: true});
+
+            await tabTracker.toggle();
+
+            assertTabState({rendered: true, visible: false});
+          });
         });
 
-        it('hides and unrenders the Git view when open', async function() {
-          wrapper.setState({gitTabActive: true});
-          mockDockItem.visible = true;
+        describe('toggleFocus()', function() {
+          it(`opens and focuses the ${tabName} tab when it is initially closed`, async function() {
+            assertTabState({rendered: false, visible: false});
+            sinon.stub(tabTracker, 'hasFocus').returns(false);
 
-          await gitTabTracker.toggle();
+            await tabTracker.toggleFocus();
 
-          if (useDocks()) {
-            assert.isTrue(wrapper.state('gitTabActive'));
-            assert.isFalse(mockDockItem.visible);
-          } else {
-            assert.isFalse(wrapper.state('gitTabActive'));
-          }
-        });
-      });
+            assertTabState({rendered: true, visible: true});
+            assert.isTrue(tabTracker.focus.called);
+            assert.isFalse(workspace.getActivePane().activate.called);
+          });
 
-      describe('toggleFocus()', function() {
-        it('opens and focuses the Git panel when it is initially closed', async function() {
-          assert.isFalse(isGitPaneDisplayed(wrapper));
-          sinon.stub(gitTabTracker, 'hasFocus').returns(false);
+          it(`focuses the ${tabName} tab when it is already open, but blurred`, async function() {
+            await tabTracker.ensureVisible();
+            assertTabState({rendered: true, visible: true});
+            sinon.stub(tabTracker, 'hasFocus').returns(false);
 
-          await gitTabTracker.toggleFocus();
+            await tabTracker.toggleFocus();
 
-          assert.isTrue(isGitPaneDisplayed(wrapper));
-          assert.equal(gitTabTracker.focus.callCount, 1);
-          assert.isFalse(workspace.getActivePane().activate.called);
-        });
+            assertTabState({rendered: true, visible: true});
+            assert.isTrue(tabTracker.focus.called);
+            assert.isFalse(workspace.getActivePane().activate.called);
+          });
 
-        it('focuses the Git panel when it is already open, but blurred', async function() {
-          gitTabTracker.toggle();
-          sinon.stub(gitTabTracker, 'hasFocus').returns(false);
+          it(`blurs the ${tabName} tab when it is already open and focused`, async function() {
+            await tabTracker.ensureVisible();
+            assertTabState({rendered: true, visible: true});
+            sinon.stub(tabTracker, 'hasFocus').returns(true);
 
-          assert.isTrue(isGitPaneDisplayed(wrapper));
+            await tabTracker.toggleFocus();
 
-          await gitTabTracker.toggleFocus();
-
-          assert.isTrue(isGitPaneDisplayed(wrapper));
-          assert.equal(gitTabTracker.focus.callCount, 1);
-          assert.isFalse(workspace.getActivePane().activate.called);
+            assertTabState({rendered: true, visible: true});
+            assert.isFalse(tabTracker.focus.called);
+            assert.isTrue(workspace.getActivePane().activate.called);
+          });
         });
 
-        it('blurs the Git panel when it is already open and focused', async function() {
-          gitTabTracker.toggle();
-          sinon.stub(gitTabTracker, 'hasFocus').returns(true);
+        describe('ensureVisible()', function() {
+          it(`opens the ${tabName} tab when it is initially closed`, async function() {
+            assertTabState({rendered: false, visible: false});
+            assert.isTrue(await tabTracker.ensureVisible());
+            assertTabState({rendered: true, visible: true});
+          });
 
-          assert.isTrue(isGitPaneDisplayed(wrapper));
-
-          await gitTabTracker.toggleFocus();
-
-          assert.isTrue(isGitPaneDisplayed(wrapper));
-          assert.equal(gitTabTracker.focus.callCount, 0);
-          assert.isTrue(workspace.getActivePane().activate.called);
-        });
-      });
-
-      describe('ensureGitTab()', function() {
-        it('opens the Git panel when it is initially closed', async function() {
-          sinon.stub(gitTabTracker, 'isVisible').returns(false);
-          assert.isFalse(isGitPaneDisplayed(wrapper));
-
-          assert.isTrue(await gitTabTracker.ensureVisible());
-        });
-
-        it('does nothing when the Git panel is already open', async function() {
-          gitTabTracker.toggle();
-          sinon.stub(gitTabTracker, 'isVisible').returns(true);
-          assert.isTrue(isGitPaneDisplayed(wrapper));
-
-          assert.isFalse(await gitTabTracker.ensureVisible());
-          assert.isTrue(isGitPaneDisplayed(wrapper));
+          it(`does nothing when the ${tabName} tab is already open`, async function() {
+            tabTracker.toggle();
+            assertTabState({rendered: true, visible: true});
+            assert.isFalse(await tabTracker.ensureVisible());
+            assertTabState({rendered: true, visible: true});
+          });
         });
       });
     });
