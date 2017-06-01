@@ -34,6 +34,8 @@ export async function cloneRepository(repoName = 'three-files') {
     await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
+    await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
+    await git.exec(['config', '--local', 'user.name', 'Someone']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
