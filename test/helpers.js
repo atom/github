@@ -55,6 +55,8 @@ export async function initRepository(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   const git = new GitShellOutStrategy(workingDirPath);
   await git.exec(['init']);
+  await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
+  await git.exec(['config', '--local', 'user.name', 'Someone']);
   return fs.realpathSync(workingDirPath);
 }
 
@@ -80,6 +82,8 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await localGit.clone(baseRepoPath, {noLocal: true});
   await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath]);
   await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
+  await localGit.exec(['config', '--local', 'user.email', 'nope@nah.com']);
+  await localGit.exec(['config', '--local', 'user.name', 'Someone']);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
