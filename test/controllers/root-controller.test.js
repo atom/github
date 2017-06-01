@@ -380,13 +380,13 @@ import RootController from '../../lib/controllers/root-controller';
 
           const FAKE_PANE_ITEM = Symbol('fake pane item');
           mockDockItem = {
-            visible: false,
+            active: false,
             reveal() {
-              this.visible = true;
+              this.active = true;
               return Promise.resolve();
             },
             hide() {
-              this.visible = false;
+              this.active = false;
               return Promise.resolve();
             },
             getDockItem() {
@@ -399,97 +399,97 @@ import RootController from '../../lib/controllers/root-controller';
 
             sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
             sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => [{
-              getActiveItem() { return mockDockItem.visible ? FAKE_PANE_ITEM : null; },
+              getActiveItem() { return mockDockItem.active ? FAKE_PANE_ITEM : null; },
             }]);
           }
         });
 
-        function assertTabState({rendered, visible}) {
+        function assertTabState({rendered, active}) {
           if (useDocks()) {
             const isRendered = wrapper.find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`}).exists();
-            const isVisible = mockDockItem.visible;
+            const isActive = mockDockItem.active;
 
             assert.equal(isRendered, rendered);
-            assert.equal(isVisible, visible);
+            assert.equal(isActive, active);
           } else {
             // Legacy panels API.
             // Legacy panels are always rendered, so disregard "rendered" assertions.
             const title = {git: 'Git', github: 'GitHub (preview)'}[tabName];
 
-            const isVisible = wrapper.find('Panel').find({visible: true})
+            const isActive = wrapper.find('Panel').find({visible: true})
               .find('Tabs').find({activeIndex: tabIndex})
               .find('TabPanel').find({title})
               .exists();
 
-            assert.equal(isVisible, visible);
+            assert.equal(isActive, active);
           }
         }
 
         describe('toggle()', function() {
           it(`renders and reveals the ${tabName} tab when item is not rendered`, async function() {
-            assertTabState({rendered: false, visible: false});
+            assertTabState({rendered: false, active: false});
 
             await tabTracker.toggle();
 
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
           });
 
           if (!useLegacyPanels) {
-            it(`reveals the ${tabName} tab when the item is rendered but not visible`, async function() {
+            it(`reveals the ${tabName} tab when the item is rendered but not active`, async function() {
               wrapper.setState({[stateKey]: true});
 
-              assertTabState({rendered: true, visible: false});
+              assertTabState({rendered: true, active: false});
 
               await tabTracker.toggle();
 
-              assertTabState({rendered: true, visible: true});
+              assertTabState({rendered: true, active: true});
             });
           }
 
           it(`hides the ${tabName} tab when open`, async function() {
             wrapper.setState({[stateKey]: true, activeTab: tabIndex});
-            mockDockItem.visible = true;
+            mockDockItem.active = true;
 
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
 
             await tabTracker.toggle();
 
-            assertTabState({rendered: true, visible: false});
+            assertTabState({rendered: true, active: false});
           });
         });
 
         describe('toggleFocus()', function() {
           it(`opens and focuses the ${tabName} tab when it is initially closed`, async function() {
-            assertTabState({rendered: false, visible: false});
+            assertTabState({rendered: false, active: false});
             sinon.stub(tabTracker, 'hasFocus').returns(false);
 
             await tabTracker.toggleFocus();
 
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             assert.isTrue(tabTracker.focus.called);
             assert.isFalse(workspace.getActivePane().activate.called);
           });
 
           it(`focuses the ${tabName} tab when it is already open, but blurred`, async function() {
             await tabTracker.ensureVisible();
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             sinon.stub(tabTracker, 'hasFocus').returns(false);
 
             await tabTracker.toggleFocus();
 
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             assert.isTrue(tabTracker.focus.called);
             assert.isFalse(workspace.getActivePane().activate.called);
           });
 
           it(`blurs the ${tabName} tab when it is already open and focused`, async function() {
             await tabTracker.ensureVisible();
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             sinon.stub(tabTracker, 'hasFocus').returns(true);
 
             await tabTracker.toggleFocus();
 
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             assert.isFalse(tabTracker.focus.called);
             assert.isTrue(workspace.getActivePane().activate.called);
           });
@@ -497,16 +497,16 @@ import RootController from '../../lib/controllers/root-controller';
 
         describe('ensureVisible()', function() {
           it(`opens the ${tabName} tab when it is initially closed`, async function() {
-            assertTabState({rendered: false, visible: false});
+            assertTabState({rendered: false, active: false});
             assert.isTrue(await tabTracker.ensureVisible());
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
           });
 
           it(`does nothing when the ${tabName} tab is already open`, async function() {
             await tabTracker.toggle();
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
             assert.isFalse(await tabTracker.ensureVisible());
-            assertTabState({rendered: true, visible: true});
+            assertTabState({rendered: true, active: true});
           });
         });
       });
