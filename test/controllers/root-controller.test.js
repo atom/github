@@ -21,14 +21,6 @@ import RootController from '../../lib/controllers/root-controller';
       return !useLegacyPanels && !!workspace.getLeftDock;
     }
 
-    function isGitPaneDisplayed(wrapper) {
-      if (useDocks()) {
-        return wrapper.find('DockItem').exists();
-      } else {
-        return wrapper.find('Panel').prop('visible');
-      }
-    }
-
     beforeEach(function() {
       atomEnv = global.buildAtomEnvironment();
       workspace = atomEnv.workspace;
@@ -62,14 +54,43 @@ import RootController from '../../lib/controllers/root-controller';
     });
 
     describe('initial panel visibility', function() {
-      it('is not visible when the saved state indicates they were not visible last run', async function() {
+      function assertInitialTabState({tabName, wrapper, rendered, visible, activated}) {
+        if (useDocks()) {
+          // Docks API. Disregard "visible" check because the persistence of dock visibility is handled by the
+          // docks API.
+          const dockItem = wrapper
+            .find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`});
+          const isRendered = dockItem.exists();
+          const isActivated = isRendered ? dockItem.prop('activate') === true : false;
+
+          assert.equal(rendered, isRendered);
+          assert.equal(activated, isActivated);
+        } else {
+          // Legacy panels. Only test for visibility.
+          const isVisible = wrapper
+            .find('Panel').find({visible: true})
+            .exists();
+
+          assert.equal(visible, isVisible);
+        }
+      }
+
+      it('is not rendered when the saved state indicates they were not visible last run', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
         app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubTabActive: false}});
         const wrapper = shallow(app);
 
-        assert.isFalse(isGitPaneDisplayed(wrapper));
+        assertInitialTabState({
+          wrapper, tabName: 'git',
+          rendered: false, visible: false, activated: false,
+        });
+
+        assertInitialTabState({
+          wrapper, tabName: 'github',
+          rendered: false, visible: false, activated: false,
+        });
       });
 
       it('is visible when the saved state indicates they were visible last run', async function() {
@@ -79,17 +100,33 @@ import RootController from '../../lib/controllers/root-controller';
         app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubTabActive: true}});
         const wrapper = shallow(app);
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
+        assertInitialTabState({
+          wrapper, tabName: 'git',
+          rendered: true, activated: false, visible: true,
+        });
+
+        assertInitialTabState({
+          wrapper, tabName: 'github',
+          rendered: true, activated: false, visible: true,
+        });
       });
 
-      it('is always visible when the startOpen prop is true', async function() {
+      it('is initially activated when the startOpen prop is true', async function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
         app = React.cloneElement(app, {repository, startOpen: true});
         const wrapper = shallow(app);
 
-        assert.isTrue(isGitPaneDisplayed(wrapper));
+        assertInitialTabState({
+          wrapper, tabName: 'git',
+          rendered: true, activated: true, visible: true,
+        });
+
+        assertInitialTabState({
+          wrapper, tabName: 'github',
+          rendered: true, activated: false, visible: true,
+        });
       });
     });
 
@@ -321,7 +358,7 @@ import RootController from '../../lib/controllers/root-controller';
 
     ['git', 'github'].forEach(function(tabName) {
       describe(`${tabName} tab tracker`, function() {
-        let wrapper, tabTracker, stateKey, mockDockItem;
+        let wrapper, tabTracker, stateKey, tabIndex, mockDockItem;
 
         beforeEach(async function() {
           const workdirPath = await cloneRepository('multiple-commits');
@@ -339,6 +376,7 @@ import RootController from '../../lib/controllers/root-controller';
           sinon.spy(workspace.getActivePane(), 'activate');
 
           stateKey = `${tabName}TabActive`;
+          tabIndex = {git: 0, github: 1}[tabName];
 
           const FAKE_PANE_ITEM = Symbol('fake pane item');
           mockDockItem = {
@@ -371,48 +409,45 @@ import RootController from '../../lib/controllers/root-controller';
             const isRendered = wrapper.find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`}).exists();
             const isVisible = mockDockItem.visible;
 
-            assert.deepEqual({rendered, visible}, {rendered: isRendered, visible: isVisible});
+            assert.equal(isRendered, rendered);
+            assert.equal(isVisible, visible);
           } else {
             // Legacy panels API.
             // Legacy panels are always rendered, so disregard "rendered" assertions.
             const title = {git: 'Git', github: 'GitHub (preview)'}[tabName];
-            const activeIndex = {git: 0, github: 1}[tabName];
 
             const isVisible = wrapper.find('Panel').find({visible: true})
-              .find('Tabs').find({activeIndex})
+              .find('Tabs').find({activeIndex: tabIndex})
               .find('TabPanel').find({title})
               .exists();
 
-            assert.deepEqual({visible}, {visible: isVisible});
+            assert.equal(isVisible, visible);
           }
         }
 
         describe('toggle()', function() {
           it(`renders and reveals the ${tabName} tab when item is not rendered`, async function() {
-            console.log(`-- ${tabName} + ${useLegacyPanels} --`);
-            console.log(`precondition check:\n${wrapper.debug()}`);
             assertTabState({rendered: false, visible: false});
 
-            console.log('about to toggle');
-            await tabTracker.toggle();
-            console.log('toggle complete');
-
-            console.log(`postcondition check:\n${wrapper.debug()}`);
-            assertTabState({rendered: true, visible: true});
-          });
-
-          it(`reveals the ${tabName} tab when the item is rendered but not visible`, async function() {
-            wrapper.setState({[stateKey]: true});
-
-            assertTabState({rendered: true, visible: false});
-
             await tabTracker.toggle();
 
             assertTabState({rendered: true, visible: true});
           });
 
-          it('hides and unrenders the Git view when open', async function() {
-            wrapper.setState({[stateKey]: true});
+          if (!useLegacyPanels) {
+            it(`reveals the ${tabName} tab when the item is rendered but not visible`, async function() {
+              wrapper.setState({[stateKey]: true});
+
+              assertTabState({rendered: true, visible: false});
+
+              await tabTracker.toggle();
+
+              assertTabState({rendered: true, visible: true});
+            });
+          }
+
+          it(`hides the ${tabName} tab when open`, async function() {
+            wrapper.setState({[stateKey]: true, activeTab: tabIndex});
             mockDockItem.visible = true;
 
             assertTabState({rendered: true, visible: true});
@@ -468,7 +503,7 @@ import RootController from '../../lib/controllers/root-controller';
           });
 
           it(`does nothing when the ${tabName} tab is already open`, async function() {
-            tabTracker.toggle();
+            await tabTracker.toggle();
             assertTabState({rendered: true, visible: true});
             assert.isFalse(await tabTracker.ensureVisible());
             assertTabState({rendered: true, visible: true});
