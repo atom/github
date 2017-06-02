@@ -13,6 +13,12 @@
     border-bottom: 1px solid mix(@text-color, @base-background-color, 15%);
   }
 
+  .emoji,
+  g-emoji {
+    margin-right: .25em;
+  }
+
+
   .author-avatar {
     width: @avatar-size;
     height: @avatar-size;
@@ -33,11 +39,9 @@
   }
 
   .commit {
-    display: flex;
+    display: table-row;
     align-items: center;
-    padding: 0 @component-padding;
     margin-left: @component-padding * 2;
-    padding-bottom: @component-padding * 0.66;
 
     &:first-child {
       padding-top: @component-padding;
@@ -53,23 +57,33 @@
       margin-top: @component-padding/2;
     }
 
+    .commit-author {
+      display: table-cell;
+      white-space: nowrap;
+      text-align: right;
+    }
+
     .author-avatar {
       flex-basis: @avatar-size;
     }
 
     .commit-message-headline {
+      display: table-cell;
       font-size: .9em;
-      flex: 1;
+      padding: 0 @component-padding/3;
       max-height: @avatar-size;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+      max-width: 0; // this makes sure the ellipsis work in table-cell
+      width: 100%;
     }
 
     .commit-sha {
+      display: table-cell;
       text-align: right;
       font-family: monospace;
-      margin-left: 5px;
+      padding-left: 5px;
       font-size: .85em;
       color: @text-color-subtle;
     }
