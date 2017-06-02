@@ -76,7 +76,38 @@
     &.is-warning { color: @text-color-warning; }
     &.is-error   { color: @text-color-error; }
   }
+
+
+  // States ---------------------------------------------------
+
+  &-editor.is-expanded {
+    background-color: transparent;
+    atom-text-editor {
+      display: none;
+    }
+    .github-CommitView-expandButton {
+      position: relative;
+      width: 100%;
+      line-height: inherit;
+      background-color: transparent;
+      opacity: .5;
+      &::before {
+        margin-right: @component-padding / 2;
+      }
+      &::after {
+        content: "Commit message is expanded";
+      }
+      &:active {
+        opacity: .3;
+      }
+    }
+  }
+
 }
+
+
+
+
 
 
 // Hacks ---------------------------------------------------
