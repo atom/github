@@ -2253,6 +2253,9 @@ type Organization implements Node, ProjectOwner, RepositoryOwner, UniformResourc
   # The HTTP url creating a new team
   newTeamUrl: URI!
 
+  # The billing email for the organization.
+  organizationBillingEmail: String
+
   # The HTTP path for this user
   path: URI!
 
