@@ -7,13 +7,14 @@ import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
+    grammars = atomEnvironment.grammars;
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
@@ -141,7 +142,7 @@ describe('CommitViewController', function() {
       const repository = await buildRepository(workdirPath);
 
       controller = new CommitViewController({
-        workspace, commandRegistry, notificationManager, lastCommit, repository,
+        workspace, commandRegistry, notificationManager, grammars, lastCommit, repository,
       });
     });
 
