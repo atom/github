@@ -30,7 +30,7 @@ describe('CommitViewController', function() {
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
     const controller = new CommitViewController({
-      commandRegistry, notificationManager, lastCommit, repository: repository1,
+      workspace, commandRegistry, notificationManager, lastCommit, repository: repository1,
     });
 
     assert.equal(controller.regularCommitMessage, '');
@@ -53,7 +53,7 @@ describe('CommitViewController', function() {
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({commandRegistry, notificationManager, lastCommit, repository});
+      controller = new CommitViewController({workspace, commandRegistry, notificationManager, lastCommit, repository});
       commitView = controller.refs.commitView;
     });
 
@@ -152,15 +152,8 @@ describe('CommitViewController', function() {
         controller.refs.commitView.editor.setText('message in box');
 
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-        let editor;
-        await until(() => {
-          editor = workspace.getActiveTextEditor();
-          if (editor) {
-            return editor.getPath() === controller.getCommitMessagePath();
-          } else {
-            return false;
-          }
-        });
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const editor = workspace.getActiveTextEditor();
         assert.equal(editor.getText(), 'message in box');
 
         editor.setText('message in editor');
@@ -171,15 +164,8 @@ describe('CommitViewController', function() {
 
       it('activates editor if already opened', async function() {
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-        let editor;
-        await until(() => {
-          editor = workspace.getActiveTextEditor();
-          if (editor) {
-            return editor.getPath() === controller.getCommitMessagePath();
-          } else {
-            return false;
-          }
-        });
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const editor = workspace.getActiveTextEditor();
 
         await workspace.open(path.join(workdirPath, 'a.txt'));
         workspace.getActivePane().splitRight();
@@ -194,15 +180,7 @@ describe('CommitViewController', function() {
         it('uses git commit grammar in the editor', async function() {
           await atomEnvironment.packages.activatePackage('language-git');
           commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-          let editor;
-          await until(() => {
-            editor = workspace.getActiveTextEditor();
-            if (editor) {
-              return editor.getGrammar().scopeName === COMMIT_GRAMMAR_SCOPE;
-            } else {
-              return false;
-            }
-          });
+          await assert.async.equal(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
         });
 
         it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
@@ -217,15 +195,9 @@ describe('CommitViewController', function() {
 
           commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
 
-          let editor;
-          await until(() => {
-            editor = workspace.getActiveTextEditor();
-            if (editor) {
-              return editor.getPath() === controller.getCommitMessagePath();
-            } else {
-              return false;
-            }
-          });
+          await assert.async.isTrue(controller.refs.commitView.isCommitButtonEnabled());
+          const editor = workspace.getActiveTextEditor();
+          assert.equal(editor.getPath(), controller.getCommitMessagePath());
 
           editor.setText('message in editor');
           editor.save();
