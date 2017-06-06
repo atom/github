@@ -181,17 +181,19 @@ describe('CommitViewController', function() {
         await assert.async.equal(workspace.getActiveTextEditor(), editor);
       });
 
-      it('uses git commit grammar in the editor', async function() {
-        await atomEnvironment.packages.activatePackage('language-git');
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-        let editor;
-        await until(() => {
-          editor = workspace.getActiveTextEditor();
-          if (editor) {
-            return editor.getGrammar().scopeName === COMMIT_GRAMMAR_SCOPE;
-          } else {
-            return false;
-          }
+      describe('committing from commit editor', function() {
+        it('uses git commit grammar in the editor', async function() {
+          await atomEnvironment.packages.activatePackage('language-git');
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+          let editor;
+          await until(() => {
+            editor = workspace.getActiveTextEditor();
+            if (editor) {
+              return editor.getGrammar().scopeName === COMMIT_GRAMMAR_SCOPE;
+            } else {
+              return false;
+            }
+          });
         });
       });
     });
