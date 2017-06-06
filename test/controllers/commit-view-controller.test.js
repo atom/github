@@ -181,8 +181,8 @@ describe('CommitViewController', function() {
         await assert.async.equal(workspace.getActiveTextEditor(), editor);
       });
 
-      // TODO: Why is this not passing? get text.plain.null-grammar
-      xit('uses git commit grammar in the editor', async function() {
+      it('uses git commit grammar in the editor', async function() {
+        await atomEnvironment.packages.activatePackage('language-git');
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
         let editor;
         await until(() => {
