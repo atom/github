@@ -1,5 +1,6 @@
 import path from 'path';
 import until from 'test-until';
+import fs from 'fs';
 
 import Commit from '../../lib/models/commit';
 
@@ -91,17 +92,25 @@ describe('CommitViewController', function() {
   });
 
   describe('committing', function() {
-    let controller, resolve, reject, workdirPath;
+    let controller, resolve, reject, workdirPath, repository;
 
     beforeEach(async function() {
       workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
+      repository = await buildRepository(workdirPath);
       const commit = () => new Promise((resolver, rejecter) => {
         resolve = resolver;
         reject = rejecter;
       });
 
-      controller = new CommitViewController({workspace, commandRegistry, notificationManager, grammars, lastCommit, repository, commit});
+      controller = new CommitViewController({
+        workspace,
+        commandRegistry,
+        notificationManager,
+        grammars,
+        lastCommit,
+        repository,
+        commit,
+      });
     });
 
     afterEach(() => {
@@ -194,6 +203,35 @@ describe('CommitViewController', function() {
               return false;
             }
           });
+        });
+
+        it('takes the commit message from the editor', async function() {
+          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
+          await repository.stageFiles(['a.txt']);
+
+          await controller.update({
+            commit: repository.commit.bind(repository),
+            prepareToCommit: () => true,
+            stagedChangesExist: true,
+          });
+
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+
+          let editor;
+          await until(() => {
+            editor = workspace.getActiveTextEditor();
+            if (editor) {
+              return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+            } else {
+              return false;
+            }
+          });
+
+          editor.setText('message in editor');
+          editor.save();
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+
+          await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
         });
       });
     });
