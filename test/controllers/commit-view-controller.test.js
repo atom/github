@@ -91,17 +91,21 @@ describe('CommitViewController', function() {
   });
 
   describe('committing', function() {
-    let controller, resolve, reject;
+    let controller, resolve, reject, workdirPath;
 
     beforeEach(async function() {
-      const workdirPath = await cloneRepository('three-files');
+      workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       const commit = () => new Promise((resolver, rejecter) => {
         resolve = resolver;
         reject = rejecter;
       });
 
-      controller = new CommitViewController({commandRegistry, notificationManager, lastCommit, repository, commit});
+      controller = new CommitViewController({workspace, commandRegistry, notificationManager, grammars, lastCommit, repository, commit});
+    });
+
+    afterEach(() => {
+      controller.destroy();
     });
 
     it('clears the regular and amending commit messages', async function() {
@@ -133,76 +137,62 @@ describe('CommitViewController', function() {
       assert.equal(controller.regularCommitMessage, 'regular');
       assert.equal(controller.amendingCommitMessage, 'amending');
     });
-  });
 
-  describe('toggling between commit box and commit editor', function() {
-    let controller, workdirPath;
-    beforeEach(async () => {
-      workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
+    describe('toggling between commit box and commit editor', function() {
+      it('transfers the commit message contents', async function() {
+        controller.refs.commitView.editor.setText('message in box');
 
-      controller = new CommitViewController({
-        workspace, commandRegistry, notificationManager, grammars, lastCommit, repository,
-      });
-    });
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        let editor;
+        await until(() => {
+          editor = workspace.getActiveTextEditor();
+          if (editor) {
+            return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+          } else {
+            return false;
+          }
+        });
+        assert.equal(editor.getText(), 'message in box');
 
-    afterEach(() => {
-      controller.destroy();
-    });
-
-    it('transfers the commit message contents', async function() {
-      controller.refs.commitView.editor.setText('message in box');
-
-      commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-      let editor;
-      await until(() => {
-        editor = workspace.getActiveTextEditor();
-        if (editor) {
-          return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
-        } else {
-          return false;
-        }
-      });
-      assert.equal(editor.getText(), 'message in box');
-
-      editor.setText('message in editor');
-      editor.save();
-      editor.destroy();
-      await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
-    });
-
-    it('activates editor if already opened', async function() {
-      commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-      let editor;
-      await until(() => {
-        editor = workspace.getActiveTextEditor();
-        if (editor) {
-          return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
-        } else {
-          return false;
-        }
+        editor.setText('message in editor');
+        editor.save();
+        editor.destroy();
+        await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
       });
 
-      await workspace.open(path.join(workdirPath, 'a.txt'));
-      workspace.getActivePane().splitRight();
-      await workspace.open(path.join(workdirPath, 'b.txt'));
-      assert.notEqual(workspace.getActiveTextEditor(), editor);
+      it('activates editor if already opened', async function() {
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        let editor;
+        await until(() => {
+          editor = workspace.getActiveTextEditor();
+          if (editor) {
+            return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+          } else {
+            return false;
+          }
+        });
 
-      commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-      await assert.async.equal(workspace.getActiveTextEditor(), editor);
-    });
+        await workspace.open(path.join(workdirPath, 'a.txt'));
+        workspace.getActivePane().splitRight();
+        await workspace.open(path.join(workdirPath, 'b.txt'));
+        assert.notEqual(workspace.getActiveTextEditor(), editor);
 
-    // TODO: Why is this not passing? get text.plain.null-grammar
-    xit('uses git commit grammar in the editor', async function() {
-      commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-      let editor;
-      await until(() => {
-        editor = workspace.getActiveTextEditor();
-        if (editor) {
-          return editor.getGrammar().scopeName === COMMIT_GRAMMAR_SCOPE;
-        } else {
-          return false;
-        }
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        await assert.async.equal(workspace.getActiveTextEditor(), editor);
+      });
+
+      // TODO: Why is this not passing? get text.plain.null-grammar
+      xit('uses git commit grammar in the editor', async function() {
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        let editor;
+        await until(() => {
+          editor = workspace.getActiveTextEditor();
+          if (editor) {
+            return editor.getGrammar().scopeName === COMMIT_GRAMMAR_SCOPE;
+          } else {
+            return false;
+          }
+        });
       });
     });
   });
