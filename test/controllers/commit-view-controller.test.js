@@ -156,7 +156,7 @@ describe('CommitViewController', function() {
         await until(() => {
           editor = workspace.getActiveTextEditor();
           if (editor) {
-            return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+            return editor.getPath() === controller.getCommitMessagePath();
           } else {
             return false;
           }
@@ -175,7 +175,7 @@ describe('CommitViewController', function() {
         await until(() => {
           editor = workspace.getActiveTextEditor();
           if (editor) {
-            return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+            return editor.getPath() === controller.getCommitMessagePath();
           } else {
             return false;
           }
@@ -205,7 +205,7 @@ describe('CommitViewController', function() {
           });
         });
 
-        it('takes the commit message from the editor', async function() {
+        it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
           fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
           await repository.stageFiles(['a.txt']);
 
@@ -221,7 +221,7 @@ describe('CommitViewController', function() {
           await until(() => {
             editor = workspace.getActiveTextEditor();
             if (editor) {
-              return path.basename(editor.getPath()) === 'ATOM_COMMIT_EDITMSG';
+              return editor.getPath() === controller.getCommitMessagePath();
             } else {
               return false;
             }
@@ -232,6 +232,7 @@ describe('CommitViewController', function() {
           commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
 
           await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
+          await assert.async.isFalse(fs.existsSync(controller.getCommitMessagePath()));
         });
       });
     });
