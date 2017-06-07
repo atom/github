@@ -8,7 +8,7 @@ import {writeFile, deleteFileOrFolder, fileExists, getTempDir} from '../lib/help
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
   let getLoadSettings, configDirPath;
   let githubPackage, contextPool;
 
@@ -22,11 +22,12 @@ describe('GithubPackage', function() {
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
+    grammars = atomEnv.grammars;
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
       configDirPath, getLoadSettings,
     );
 
@@ -66,7 +67,7 @@ describe('GithubPackage', function() {
       const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
         configDirPath, getLoadSettings1,
       );
     }
