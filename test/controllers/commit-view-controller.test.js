@@ -1,6 +1,7 @@
 import path from 'path';
-import until from 'test-until';
 import fs from 'fs';
+
+import etch from 'etch';
 
 import Commit from '../../lib/models/commit';
 
@@ -217,6 +218,31 @@ describe('CommitViewController', function() {
 
           await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
           await assert.async.isFalse(fs.existsSync(controller.getCommitMessagePath()));
+        });
+
+        it('asks user to confirm if commit editor has unsaved changes', async function() {
+          const confirm = sinon.stub();
+          const commit = sinon.stub();
+          await controller.update({confirm, commit, prepareToCommit: () => true, stagedChangesExist: true});
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+          await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+          const editor = workspace.getActiveTextEditor();
+
+          editor.setText('unsaved changes');
+          commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
+          await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
+          assert.equal(workspace.getTextEditors().length, 2);
+
+          confirm.returns(1); // Cancel
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+          await etch.getScheduler().getNextUpdatePromise();
+          assert.equal(commit.callCount, 0);
+
+          confirm.returns(0); // Commit
+          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+          await etch.getScheduler().getNextUpdatePromise();
+          await assert.async.equal(commit.callCount, 1);
+          assert.equal(workspace.getTextEditors().length, 0);
         });
       });
     });
