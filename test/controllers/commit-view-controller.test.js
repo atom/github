@@ -148,17 +148,29 @@ describe('CommitViewController', function() {
     });
 
     describe('toggling between commit box and commit editor', function() {
-      it('transfers the commit message contents', async function() {
+      it('transfers the commit message contents of the last editor', async function() {
         controller.refs.commitView.editor.setText('message in box');
 
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        await assert.async.isTrue(controller.refs.commitView.props.deactivateCommitBox);
         const editor = workspace.getActiveTextEditor();
         assert.equal(editor.getText(), 'message in box');
 
         editor.setText('message in editor');
         editor.save();
+
+        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
+        await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
+
+        sinon.spy(controller.refs.commitView, 'update');
         editor.destroy();
+        await assert.async.isTrue(controller.refs.commitView.update.called);
+        assert.equal(controller.refs.commitView.editor.getText(), 'message in box');
+        assert.isTrue(controller.refs.commitView.props.deactivateCommitBox);
+
+        workspace.getActiveTextEditor().destroy();
+        await assert.async.isFalse(controller.refs.commitView.props.deactivateCommitBox);
         await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
       });
 
