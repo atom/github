@@ -137,8 +137,8 @@
       'type': 'separator'
     }
     {
-      'label': 'Edit Commit Message in Editor'
-      'command': 'github:edit-commit-message-in-editor'
+      'label': 'Toggle Expanded Commit Message Editor'
+      'command': 'github:toggle-expanded-commit-message-editor'
     }
   ]
   'atom-text-editor': [

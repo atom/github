@@ -152,7 +152,7 @@ describe('CommitViewController', function() {
       it('transfers the commit message contents of the last editor', async function() {
         controller.refs.commitView.editor.setText('message in box');
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
         await assert.async.isTrue(controller.refs.commitView.props.deactivateCommitBox);
         const editor = workspace.getActiveTextEditor();
@@ -175,8 +175,8 @@ describe('CommitViewController', function() {
         await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
       });
 
-      it('activates editor if already opened', async function() {
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+      it('activates editor if already opened but in background', async function() {
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
         const editor = workspace.getActiveTextEditor();
 
@@ -185,65 +185,87 @@ describe('CommitViewController', function() {
         await workspace.open(path.join(workdirPath, 'b.txt'));
         assert.notEqual(workspace.getActiveTextEditor(), editor);
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(workspace.getActiveTextEditor(), editor);
       });
 
-      describe('committing from commit editor', function() {
-        it('uses git commit grammar in the editor', async function() {
-          await atomEnvironment.packages.activatePackage('language-git');
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-          await assert.async.equal(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
+      it('closes all open commit message editors if one is in the foreground of a pane, prompting for unsaved changes', async function() {
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+
+        const editor = workspace.getActiveTextEditor();
+        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
+        assert.equal(controller.getCommitMessageEditors().length, 2);
+
+        // Activate another editor but keep commit message editor in foreground of inactive pane
+        await workspace.open(path.join(workdirPath, 'a.txt'));
+        assert.notEqual(workspace.getActiveTextEditor(), editor);
+
+        editor.setText('make some new changes');
+
+        // atom internals calls `confirm` on the ApplicationDelegate instead of the atom environment
+        sinon.stub(atomEnvironment.applicationDelegate, 'confirm').returns(0); // Save
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        await assert.async.equal(controller.getCommitMessageEditors().length, 0);
+        assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
+        await assert.async.equal(controller.refs.commitView.editor.getText(), 'make some new changes');
+      });
+    });
+
+    describe('committing from commit editor', function() {
+      it('uses git commit grammar in the editor', async function() {
+        await atomEnvironment.packages.activatePackage('language-git');
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        await assert.async.equal(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
+      });
+
+      it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
+        await repository.stageFiles(['a.txt']);
+
+        await controller.update({
+          commit: repository.commit.bind(repository),
+          prepareToCommit: () => true,
+          stagedChangesExist: true,
         });
 
-        it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
-          fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
-          await repository.stageFiles(['a.txt']);
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
 
-          await controller.update({
-            commit: repository.commit.bind(repository),
-            prepareToCommit: () => true,
-            stagedChangesExist: true,
-          });
+        await assert.async.isTrue(controller.refs.commitView.isCommitButtonEnabled());
+        const editor = workspace.getActiveTextEditor();
+        assert.equal(editor.getPath(), controller.getCommitMessagePath());
 
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
+        editor.setText('message in editor');
+        editor.save();
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
 
-          await assert.async.isTrue(controller.refs.commitView.isCommitButtonEnabled());
-          const editor = workspace.getActiveTextEditor();
-          assert.equal(editor.getPath(), controller.getCommitMessagePath());
+        await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
+        await assert.async.isFalse(fs.existsSync(controller.getCommitMessagePath()));
+      });
 
-          editor.setText('message in editor');
-          editor.save();
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+      it('asks user to confirm if commit editor has unsaved changes', async function() {
+        const confirm = sinon.stub();
+        const commit = sinon.stub();
+        await controller.update({confirm, commit, prepareToCommit: () => true, stagedChangesExist: true});
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const editor = workspace.getActiveTextEditor();
 
-          await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
-          await assert.async.isFalse(fs.existsSync(controller.getCommitMessagePath()));
-        });
+        editor.setText('unsaved changes');
+        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
+        await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
+        assert.equal(workspace.getTextEditors().length, 2);
 
-        it('asks user to confirm if commit editor has unsaved changes', async function() {
-          const confirm = sinon.stub();
-          const commit = sinon.stub();
-          await controller.update({confirm, commit, prepareToCommit: () => true, stagedChangesExist: true});
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:edit-commit-message-in-editor');
-          await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
-          const editor = workspace.getActiveTextEditor();
+        confirm.returns(1); // Cancel
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+        await etch.getScheduler().getNextUpdatePromise();
+        assert.equal(commit.callCount, 0);
 
-          editor.setText('unsaved changes');
-          commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
-          await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
-          assert.equal(workspace.getTextEditors().length, 2);
-
-          confirm.returns(1); // Cancel
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
-          await etch.getScheduler().getNextUpdatePromise();
-          assert.equal(commit.callCount, 0);
-
-          confirm.returns(0); // Commit
-          commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
-          await etch.getScheduler().getNextUpdatePromise();
-          await assert.async.equal(commit.callCount, 1);
-          assert.equal(workspace.getTextEditors().length, 0);
-        });
+        confirm.returns(0); // Commit
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+        await etch.getScheduler().getNextUpdatePromise();
+        await assert.async.equal(commit.callCount, 1);
+        assert.equal(workspace.getTextEditors().length, 0);
       });
     });
   });
