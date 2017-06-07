@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 import etch from 'etch';
+import until from 'test-until';
 
 import Commit from '../../lib/models/commit';
 
@@ -166,7 +167,7 @@ describe('CommitViewController', function() {
 
         sinon.spy(controller.refs.commitView, 'update');
         editor.destroy();
-        await assert.async.isTrue(controller.refs.commitView.update.called);
+        await until(() => controller.refs.commitView.update.called);
         assert.equal(controller.refs.commitView.editor.getText(), 'message in box');
         assert.isTrue(controller.refs.commitView.props.deactivateCommitBox);
 
