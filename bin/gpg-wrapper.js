@@ -163,6 +163,11 @@ function startIsolatedAgent() {
 
     const env = {
       PATH: process.env.PATH,
+      GIT_ASKPASS: process.env.GIT_ASKPASS,
+      ATOM_GITHUB_ELECTRON_PATH: process.env.ATOM_GITHUB_ELECTRON_PATH,
+      ATOM_GITHUB_ASKPASS_PATH: process.env.ATOM_GITHUB_ASKPASS_PATH,
+      ATOM_GITHUB_SOCK_PATH: process.env.ATOM_GITHUB_SOCK_PATH,
+      GNUPGHOME: GPG_TMP_HOME,
     };
 
     let stdout = '';
@@ -252,6 +257,7 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
     const env = agentEnv;
     if (!env.PATH) { env.PATH = process.env.PATH; }
     if (!env.GPG_AGENT_INFO) { env.GPG_AGENT_INFO = process.env.GPG_AGENT_INFO || ''; }
+    if (!env.GNUPGHOME) { env.GNUPGHOME = gpgHome; }
 
     let stdout = '';
     let stderr = '';
