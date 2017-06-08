@@ -10,8 +10,6 @@ const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const pinentryPath = process.env.ATOM_GITHUB_PINENTRY_PATH;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
 
-const gpgArgs = ['--batch', '--no-tty', '--yes'].concat(process.argv.slice(2));
-
 const DEFAULT_GPG = 'gpg';
 const ORIGINAL_GPG_HOME = process.env.GNUPGHOME || path.join(os.homedir(), '.gnupg');
 const GPG_TMP_HOME = path.join(atomTmp, 'gpg-home');
@@ -175,7 +173,6 @@ function startIsolatedAgent() {
     });
 
     agent.on('exit', (code, signal) => {
-      agent = null;
       if (code !== null) {
         log(`gpg-agent exited with status ${code}.`);
       } else if (signal !== null) {
@@ -236,7 +233,11 @@ function getStdin() {
 }
 
 function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
-  log(`Executing ${gpgProgram} ${gpgArgs.join(' ')} in ${gpgHome}.`);
+  const gpgArgs = [
+    '--batch', '--no-tty', '--yes', '--homedir', gpgHome,
+  ].concat(process.argv.slice(2));
+
+  log(`Executing ${gpgProgram} ${gpgArgs.join(' ')}.`);
 
   return new Promise((resolve, reject) => {
     const env = agentEnv;
