@@ -273,11 +273,11 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
       }
 
       if (code === 0 && signal === null) {
-        // Success. Propagate stdout and stderr to the calling process.
+        // Success. Propagate stdout, stderr, and the exit status to the calling process.
         process.stderr.write(stderr);
         process.stdout.write(stdout);
 
-        resolve();
+        resolve(code);
       }
     });
 
@@ -285,18 +285,15 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
   });
 }
 
-function cleanup() {
-  const promises = [];
-
-  if (agent) {
-    agent.kill();
-  }
-
+function cleanup(exitCode) {
   if (logStream) {
-    promises.push(new Promise(resolve => logStream.end('\n', 'utf8', resolve)));
+    return new Promise(resolve => {
+      logStream.end('\n', 'utf8', () => process.exit(exitCode));
+    });
+  } else {
+    process.exit(exitCode);
+    return Promise.resolve();
   }
-
-  return Promise.all(promises);
 }
 
 Promise.all([
@@ -307,9 +304,7 @@ Promise.all([
   .then(startIsolatedAgent)
   .then(env => runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env));
 })
-.then(() => {
-  cleanup();
-}, err => {
+.then(cleanup, err => {
   log(`Error:\n${err.stack}`);
-  return cleanup();
+  return cleanup(1);
 });
