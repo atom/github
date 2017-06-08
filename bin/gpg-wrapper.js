@@ -16,44 +16,43 @@ const GPG_TMP_HOME = path.join(atomTmp, 'gpg-home');
 
 let logStream = null;
 
-/*
- * Emit diagnostic messages to stderr if GIT_TRACE is set to a non-empty value.
- */
-function log(message, raw = false) {
-  if (!diagnosticsEnabled) {
-    return;
-  }
+async function main() {
+  let exitCode = 1;
+  try {
+    const [gpgProgram, gpgStdin] = await Promise.all([
+      getGpgProgram(), getStdin(),
+    ]);
 
-  if (!logStream) {
-    const logFile = path.join(process.env.ATOM_GITHUB_TMP, 'gpg-wrapper.log');
-    logStream = fs.createWriteStream(logFile, {defaultEncoding: true});
-  }
-
-  if (!raw) {
-    logStream.write(`gpg-wrapper: ${message}\n`);
-  } else {
-    logStream.write(message);
+    const native = await tryNativePinentry(gpgProgram, gpgStdin);
+    if (native.success) {
+      exitCode = native.exitCode;
+    } else {
+      const atom = await tryAtomPinentry(gpgProgram, gpgStdin);
+      exitCode = atom.exitCode;
+    }
+  } catch (err) {
+    log(`Failed with error:\n${err}`);
+  } finally {
+    await cleanup();
+    process.exit(exitCode);
   }
 }
 
 /*
- * Discover a GPG program configured in the --system git status, if any.
+ * Read all information written to this process' stdin.
  */
-function getSystemGpgProgram() {
-  if (inSpecMode) {
-    // Skip system configuration in spec mode to maintain reproduceability across systems.
-    return '';
-  }
+function getStdin() {
+  return new Promise((resolve, reject) => {
+    let stdin = '';
 
-  const env = {
-    GIT_CONFIG_PARAMETERS: '',
-    PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
-  };
+    process.stdin.setEncoding('utf8');
 
-  return new Promise(resolve => {
-    execFile('git', ['config', '--system', 'gpg.program'], {env}, (error, stdout, stderr) => {
-      resolve(stdout || '');
+    process.stdin.on('data', chunk => {
+      stdin += chunk;
     });
+
+    process.stdin.on('end', () => resolve(stdin));
+    process.stdin.on('error', reject);
   });
 }
 
@@ -79,6 +78,59 @@ async function getGpgProgram() {
 
   log('Using default gpg program.');
   return DEFAULT_GPG;
+}
+
+/*
+ * Discover a GPG program configured in the --system git status, if any.
+ */
+function getSystemGpgProgram() {
+  if (inSpecMode) {
+    // Skip system configuration in spec mode to maintain reproduceability across systems.
+    return '';
+  }
+
+  const env = {
+    GIT_CONFIG_PARAMETERS: '',
+    PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
+  };
+
+  return new Promise(resolve => {
+    execFile('git', ['config', '--system', 'gpg.program'], {env}, (error, stdout, stderr) => {
+      resolve(stdout || '');
+    });
+  });
+}
+
+async function tryNativePinentry(gpgProgram, gpgStdin) {
+  log('Attempting to execute gpg with native pinentry.');
+  try {
+    const exitCode = await runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {});
+    return {success: true, exitCode};
+  } catch (err) {
+    // Interpret the nature of the failure.
+    const killedBySignal = err.signal !== null;
+    const badPassphrase = /Bad passphrase/.test(err.stderr);
+    const cancelledByUser = /Operation cancelled/.test(err.stderr);
+
+    if (killedBySignal || badPassphrase || cancelledByUser) {
+      // Continue dying.
+      process.stderr.write(err.stderr);
+      process.stdout.write(err.stdout);
+      throw err;
+    }
+
+    log('Native pinentry failed. This is ok.');
+    return {success: false, exitCode: err.code};
+  }
+}
+
+async function tryAtomPinentry(gpgProgram, gpgStdin) {
+  log('Attempting to execute gpg with Atom pinentry.');
+
+  await createIsolatedGpgHome();
+  const env = await startIsolatedAgent();
+  const exitCode = await runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env);
+  return {success: true, exitCode};
 }
 
 /*
@@ -214,24 +266,6 @@ function startIsolatedAgent() {
   });
 }
 
-/*
- * Read all information written to this process' stdin.
- */
-function getStdin() {
-  return new Promise((resolve, reject) => {
-    let stdin = '';
-
-    process.stdin.setEncoding('utf8');
-
-    process.stdin.on('data', chunk => {
-      stdin += chunk;
-    });
-
-    process.stdin.on('end', () => resolve(stdin));
-    process.stdin.on('error', reject);
-  });
-}
-
 function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
   const gpgArgs = [
     '--batch', '--no-tty', '--yes', '--homedir', gpgHome,
@@ -304,63 +338,29 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
   });
 }
 
+/*
+ * Emit diagnostic messages to stderr if GIT_TRACE is set to a non-empty value.
+ */
+function log(message, raw = false) {
+  if (!diagnosticsEnabled) {
+    return;
+  }
+
+  if (!logStream) {
+    const logFile = path.join(process.env.ATOM_GITHUB_TMP, 'gpg-wrapper.log');
+    logStream = fs.createWriteStream(logFile, {defaultEncoding: true});
+  }
+
+  if (!raw) {
+    logStream.write(`gpg-wrapper: ${message}\n`);
+  } else {
+    logStream.write(message);
+  }
+}
+
 async function cleanup() {
   if (logStream) {
     await new Promise(resolve => logStream.end('\n', 'utf8', resolve));
-  }
-}
-
-async function tryNativePinentry(gpgProgram, gpgStdin) {
-  log('Attempting to execute gpg with native pinentry.');
-  try {
-    const exitCode = await runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {});
-    return {success: true, exitCode};
-  } catch (err) {
-    // Interpret the nature of the failure.
-    const killedBySignal = err.signal !== null;
-    const badPassphrase = /Bad passphrase/.test(err.stderr);
-    const cancelledByUser = /Operation cancelled/.test(err.stderr);
-
-    if (killedBySignal || badPassphrase || cancelledByUser) {
-      // Continue dying.
-      process.stderr.write(err.stderr);
-      process.stdout.write(err.stdout);
-      throw err;
-    }
-
-    log('Native pinentry failed. This is ok.');
-    return {success: false, exitCode: err.code};
-  }
-}
-
-async function tryAtomPinentry(gpgProgram, gpgStdin) {
-  log('Attempting to execute gpg with Atom pinentry.');
-
-  await createIsolatedGpgHome();
-  const env = await startIsolatedAgent();
-  const exitCode = await runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env);
-  return {success: true, exitCode};
-}
-
-async function main() {
-  let exitCode = 1;
-  try {
-    const [gpgProgram, gpgStdin] = await Promise.all([
-      getGpgProgram(), getStdin(),
-    ]);
-
-    const native = await tryNativePinentry(gpgProgram, gpgStdin);
-    if (native.success) {
-      exitCode = native.exitCode;
-    } else {
-      const atom = await tryAtomPinentry(gpgProgram, gpgStdin);
-      exitCode = atom.exitCode;
-    }
-  } catch (err) {
-    log(`Failed with error:\n${err}`);
-  } finally {
-    await cleanup();
-    process.exit(exitCode);
   }
 }
 
