@@ -323,6 +323,7 @@ Promise.all([
   getGpgProgram(),
   getStdin(),
 ]).then(([gpgProgram, gpgStdin]) => {
+  // TODO Attempt gpgProgram directly first.
   return createIsolatedGpgHome()
   .then(startIsolatedAgent)
   .then(env => runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env));
