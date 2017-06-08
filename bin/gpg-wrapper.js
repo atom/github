@@ -15,7 +15,6 @@ const ORIGINAL_GPG_HOME = process.env.GNUPGHOME || path.join(os.homedir(), '.gnu
 const GPG_TMP_HOME = path.join(atomTmp, 'gpg-home');
 
 let logStream = null;
-let agent = null;
 
 /*
  * Emit diagnostic messages to stderr if GIT_TRACE is set to a non-empty value.
@@ -158,7 +157,8 @@ function startIsolatedAgent() {
 
     // TODO ensure that the gpg-agent corresponds to the gpg binary
     // TODO allow explicit gpg-agent specification just in case
-    agent = spawn('gpg-agent', args, {
+    log(`Spawning gpg-agent with ${args.join(' ')}`);
+    const agent = spawn('gpg-agent', args, {
       env, stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -173,43 +173,35 @@ function startIsolatedAgent() {
     });
 
     agent.on('exit', (code, signal) => {
-      if (code !== null) {
-        log(`gpg-agent exited with status ${code}.`);
+      if (code !== null && code !== 0) {
+        reject(new Error(`gpg-agent exited with status ${code}.`));
+        return;
       } else if (signal !== null) {
-        log(`gpg-agent was terminated with signal ${signal}.`);
+        reject(new Error(`gpg-agent was terminated with signal ${signal}.`));
+        return;
+      } else {
+        log('gpg-agent launched successfully.');
       }
 
       if (!done) {
         done = true;
-        reject(new Error('No launch notification received.'));
-      }
-    });
 
-    agent.stdout.on('data', chunk => {
-      log(chunk, true);
-      stdout += chunk;
-
-      // Parse GPG_AGENT_INFO from stdout.
-      const match = /GPG_AGENT_INFO=([^;\s]+)/.match(stdout);
-      if (match) {
-        log(`Acquired agent info ${match[1]}.`);
-        agentEnv.GPG_AGENT_INFO = match[1];
-      }
-    });
-
-    agent.stderr.on('data', chunk => {
-      log(chunk, true);
-      stderr += chunk;
-
-      // Detect a successful agent launch.
-      if (/gpg-agent \(GnuPG\) [\d.]+ started/.test(stderr)) {
-        log('gpg-agent has started.');
-        if (!done) {
-          done = true;
-          resolve(agentEnv);
+        // Parse GPG_AGENT_INFO from stdout.
+        const match = /GPG_AGENT_INFO=([^;\s]+)/.exec(stdout);
+        if (match) {
+          log(`Acquired agent info ${match[1]}.`);
+          agentEnv.GPG_AGENT_INFO = match[1];
         }
+
+        resolve(agentEnv);
       }
     });
+
+    agent.stdout.setEncoding('utf8');
+    agent.stdout.on('data', chunk => (stdout += chunk));
+
+    agent.stderr.setEncoding('utf8');
+    agent.stderr.on('data', chunk => (stderr += chunk));
   });
 }
 
