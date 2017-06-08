@@ -161,11 +161,10 @@ async function main() {
   try {
     process.stdout.write('OK Your orders please\n');
     exitCode = await parseStdin();
-    await cleanup();
   } catch (err) {
     log(`Failed with error:\n${err}`);
-    await cleanup();
   } finally {
+    await cleanup();
     process.exit(exitCode);
   }
 }

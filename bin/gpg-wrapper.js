@@ -42,8 +42,9 @@ function log(message, raw = false) {
 function getSystemGpgProgram() {
   if (inSpecMode) {
     // Skip system configuration in spec mode to maintain reproduceability across systems.
-    return Promise.resolve(DEFAULT_GPG);
+    return '';
   }
+
   const env = {
     GIT_CONFIG_PARAMETERS: '',
     PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
@@ -51,16 +52,7 @@ function getSystemGpgProgram() {
 
   return new Promise(resolve => {
     execFile('git', ['config', '--system', 'gpg.program'], {env}, (error, stdout, stderr) => {
-      if (error) {
-        log('No system GPG program. this is ok');
-        resolve(DEFAULT_GPG);
-        return;
-      }
-
-      const systemGpgProgram = stdout !== '' ? stdout : DEFAULT_GPG;
-
-      log(`Discovered system GPG program: ${systemGpgProgram}`);
-      resolve(systemGpgProgram);
+      resolve(stdout || '');
     });
   });
 }
@@ -68,83 +60,78 @@ function getSystemGpgProgram() {
 /*
  * Discover the real GPG program that git is configured to use.
  */
-function getGpgProgram() {
+async function getGpgProgram() {
   const env = {GIT_CONFIG_PARAMETERS: ''};
-  return GitProcess.exec(['config', 'gpg.program'], workdirPath, {env})
-  .then(({stdout}) => {
-    if (stdout !== '') {
-      log(`Discovered gpg program ${stdout}.`);
-      return stdout;
-    } else {
-      return getSystemGpgProgram();
-    }
-  });
+
+  const {stdout} = await GitProcess.exec(['config', 'gpg.program'], workdirPath, {env});
+
+  if (stdout.length > 0) {
+    log(`Discovered gpg program ${stdout} from non-system git configuration.`);
+    return stdout;
+  }
+
+  const systemGpgProgram = await getSystemGpgProgram();
+
+  if (systemGpgProgram.length > 0) {
+    log(`Discovered gpg program ${systemGpgProgram} from system git configuration.`);
+    return systemGpgProgram;
+  }
+
+  log('Using default gpg program.');
+  return DEFAULT_GPG;
 }
 
 /*
  * Launch a temporary GPG agent with an independent --homedir and a --pinentry-program that's overridden to use our
  * Atom-backed gpg-pinentry.sh.
  */
-function createIsolatedGpgHome() {
-  log(`Creating an isolated GPG home ${GPG_TMP_HOME}`);
-  return new Promise((resolve, reject) => {
+async function createIsolatedGpgHome() {
+  log(`Creating an isolated GPG home ${GPG_TMP_HOME}.`);
+  await new Promise((resolve, reject) => {
     fs.mkdir(GPG_TMP_HOME, 0o700, err => (err ? reject(err) : resolve()));
-  })
-  .then(() => copyGpgHome());
+  });
+  return copyGpgHome();
 }
 
 function copyGpgHome() {
   log(`Copying GPG home from ${ORIGINAL_GPG_HOME} to ${GPG_TMP_HOME}.`);
 
-  function copyGpgEntry(subpath, entry) {
-    return new Promise((resolve, reject) => {
-      const fullPath = path.join(ORIGINAL_GPG_HOME, subpath, entry);
-      const destPath = path.join(GPG_TMP_HOME, subpath, entry);
-      fs.lstat(fullPath, (err, stats) => {
-        if (err) {
-          reject(err);
-          return;
-        }
+  async function copyGpgEntry(subpath, entry) {
+    const fullPath = path.join(ORIGINAL_GPG_HOME, subpath, entry);
+    const destPath = path.join(GPG_TMP_HOME, subpath, entry);
 
-        if (stats.isFile()) {
-          const rd = fs.createReadStream(fullPath);
-          rd.on('error', reject);
-
-          const wd = fs.createWriteStream(destPath);
-          wd.on('error', reject);
-          wd.on('close', resolve);
-
-          rd.pipe(wd);
-        } else if (stats.isDirectory()) {
-          const subdir = path.join(subpath, entry);
-          // eslint-disable-next-line no-shadow
-          fs.mkdir(destPath, 0o700, err => {
-            if (err) {
-              reject(err);
-              return;
-            }
-
-            copyGpgDirectory(subdir).then(resolve);
-          });
-        } else {
-          resolve();
-        }
-      });
+    const stat = await new Promise((resolve, reject) => {
+      fs.lstat(fullPath, (err, statResult) => (err ? reject(err) : resolve(statResult)));
     });
+
+    if (stat.isFile()) {
+      await new Promise((resolve, reject) => {
+        const rd = fs.createReadStream(fullPath);
+        rd.on('error', reject);
+
+        const wd = fs.createWriteStream(destPath);
+        wd.on('error', reject);
+        wd.on('close', resolve);
+
+        rd.pipe(wd);
+      });
+    } else if (stat.isDirectory()) {
+      const subdir = path.join(subpath, entry);
+      await new Promise((resolve, reject) => {
+        fs.mkdir(destPath, 0o700, err => (err ? reject(err) : resolve()));
+      });
+
+      await copyGpgDirectory(subdir);
+    }
   }
 
-  function copyGpgDirectory(subpath) {
-    return new Promise((resolve, reject) => {
-      const dirPath = path.join(ORIGINAL_GPG_HOME, subpath);
-      fs.readdir(dirPath, (err, contents) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve(Promise.all(contents.map(entry => copyGpgEntry(subpath, entry))));
-      });
+  async function copyGpgDirectory(subpath) {
+    const dirPath = path.join(ORIGINAL_GPG_HOME, subpath);
+    const contents = await new Promise((resolve, reject) => {
+      fs.readdir(dirPath, (err, readdirResult) => (err ? reject(err) : resolve(readdirResult)));
     });
+
+    return Promise.all(contents.map(entry => copyGpgEntry(subpath, entry)));
   }
 
   return copyGpgDirectory('');
@@ -317,24 +304,19 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
   });
 }
 
-function cleanup(exitCode) {
+async function cleanup() {
   if (logStream) {
-    return new Promise(resolve => {
-      logStream.end('\n', 'utf8', () => process.exit(exitCode));
-    });
-  } else {
-    process.exit(exitCode);
-    return Promise.resolve();
+    await new Promise(resolve => logStream.end('\n', 'utf8', resolve));
   }
 }
 
-Promise.all([
-  getGpgProgram(),
-  getStdin(),
-]).then(([gpgProgram, gpgStdin]) => {
+async function tryNativePinentry(gpgProgram, gpgStdin) {
   log('Attempting to execute gpg with native pinentry.');
-  return runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {})
-  .catch(err => {
+  try {
+    const exitCode = await runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {});
+    return {success: true, exitCode};
+  } catch (err) {
+    // Interpret the nature of the failure.
     const killedBySignal = err.signal !== null;
     const badPassphrase = /Bad passphrase/.test(err.stderr);
     const cancelledByUser = /Operation cancelled/.test(err.stderr);
@@ -346,13 +328,40 @@ Promise.all([
       throw err;
     }
 
-    log('Native pinentry failed. This is ok. Attempting to execute gpg with Atom pinentry.');
-    return createIsolatedGpgHome()
-    .then(startIsolatedAgent)
-    .then(env => runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env));
-  });
-})
-.then(cleanup, err => {
-  log(`Error:\n${err.stack}`);
-  return cleanup(1);
-});
+    log('Native pinentry failed. This is ok.');
+    return {success: false, exitCode: err.code};
+  }
+}
+
+async function tryAtomPinentry(gpgProgram, gpgStdin) {
+  log('Attempting to execute gpg with Atom pinentry.');
+
+  await createIsolatedGpgHome();
+  const env = await startIsolatedAgent();
+  const exitCode = await runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env);
+  return {success: true, exitCode};
+}
+
+async function main() {
+  let exitCode = 1;
+  try {
+    const [gpgProgram, gpgStdin] = await Promise.all([
+      getGpgProgram(), getStdin(),
+    ]);
+
+    const native = await tryNativePinentry(gpgProgram, gpgStdin);
+    if (native.success) {
+      exitCode = native.exitCode;
+    } else {
+      const atom = await tryAtomPinentry(gpgProgram, gpgStdin);
+      exitCode = atom.exitCode;
+    }
+  } catch (err) {
+    log(`Failed with error:\n${err}`);
+  } finally {
+    await cleanup();
+    process.exit(exitCode);
+  }
+}
+
+main();
