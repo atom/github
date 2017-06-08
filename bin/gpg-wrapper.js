@@ -241,8 +241,7 @@ function getStdin() {
     });
 
     process.stdin.on('end', () => resolve(stdin));
-
-    process.stdin.on('error', err => reject(err));
+    process.stdin.on('error', reject);
   });
 }
 
