@@ -96,9 +96,10 @@ function createIsolatedGpgHome() {
 function copyGpgHome() {
   log(`Copying GPG home from ${ORIGINAL_GPG_HOME} to ${GPG_TMP_HOME}.`);
 
-  function copyGpgHomeEntry(entry) {
+  function copyGpgEntry(subpath, entry) {
     return new Promise((resolve, reject) => {
-      const fullPath = path.join(ORIGINAL_GPG_HOME, entry);
+      const fullPath = path.join(ORIGINAL_GPG_HOME, subpath, entry);
+      const destPath = path.join(GPG_TMP_HOME, subpath, entry);
       fs.lstat(fullPath, (err, stats) => {
         if (err) {
           reject(err);
@@ -109,11 +110,22 @@ function copyGpgHome() {
           const rd = fs.createReadStream(fullPath);
           rd.on('error', reject);
 
-          const wd = fs.createWriteStream(path.join(GPG_TMP_HOME, entry));
+          const wd = fs.createWriteStream(destPath);
           wd.on('error', reject);
           wd.on('close', resolve);
 
           rd.pipe(wd);
+        } else if (stats.isDirectory()) {
+          const subdir = path.join(subpath, entry);
+          // eslint-disable-next-line no-shadow
+          fs.mkdir(destPath, 0o700, err => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            copyGpgDirectory(subdir).then(resolve);
+          });
         } else {
           resolve();
         }
@@ -121,16 +133,21 @@ function copyGpgHome() {
     });
   }
 
-  return new Promise((resolve, reject) => {
-    fs.readdir(ORIGINAL_GPG_HOME, (err, contents) => {
-      if (err) {
-        reject(err);
-        return;
-      }
+  function copyGpgDirectory(subpath) {
+    return new Promise((resolve, reject) => {
+      const dirPath = path.join(ORIGINAL_GPG_HOME, subpath);
+      fs.readdir(dirPath, (err, contents) => {
+        if (err) {
+          reject(err);
+          return;
+        }
 
-      resolve(Promise.all(contents.map(copyGpgHomeEntry)));
+        resolve(Promise.all(contents.map(entry => copyGpgEntry(subpath, entry))));
+      });
     });
-  });
+  }
+
+  return copyGpgDirectory('');
 }
 
 function startIsolatedAgent() {
