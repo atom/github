@@ -7,7 +7,7 @@ const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 const atomTmp = process.env.ATOM_GITHUB_TMP || '';
 const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length > 0 && atomTmp.length > 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
-const pinentryPath = process.env.ATOM_GITHUB_PINENTRY_PATH;
+const pinentryLauncher = process.env.ATOM_GITHUB_PINENTRY_LAUNCHER;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
 
 const DEFAULT_GPG = 'gpg';
@@ -158,17 +158,17 @@ function startIsolatedAgent() {
       '--daemon',
       '--verbose',
       '--homedir', GPG_TMP_HOME,
-      '--pinentry-program', pinentryPath,
+      '--pinentry-program', pinentryLauncher,
     ];
 
-    const env = {
-      PATH: process.env.PATH,
-      GIT_ASKPASS: process.env.GIT_ASKPASS,
-      ATOM_GITHUB_ELECTRON_PATH: process.env.ATOM_GITHUB_ELECTRON_PATH,
-      ATOM_GITHUB_ASKPASS_PATH: process.env.ATOM_GITHUB_ASKPASS_PATH,
-      ATOM_GITHUB_SOCK_PATH: process.env.ATOM_GITHUB_SOCK_PATH,
-      GNUPGHOME: GPG_TMP_HOME,
-    };
+    const env = {GNUPGHOME: GPG_TMP_HOME};
+    const varsToPass = [
+      'PATH', 'GIT_TRACE',
+      'ATOM_GITHUB_TMP', 'ATOM_GITHUB_ELECTRON_PATH', 'ATOM_GITHUB_SOCK_PATH', 'ATOM_GITHUB_PINENTRY_PATH',
+    ];
+    for (let i = 0; i < varsToPass.length; i++) {
+      env[varsToPass[i]] = process.env[varsToPass[i]];
+    }
 
     let stdout = '';
     let stderr = '';
