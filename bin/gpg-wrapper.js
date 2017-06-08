@@ -332,10 +332,25 @@ Promise.all([
   getGpgProgram(),
   getStdin(),
 ]).then(([gpgProgram, gpgStdin]) => {
-  // TODO Attempt gpgProgram directly first.
-  return createIsolatedGpgHome()
-  .then(startIsolatedAgent)
-  .then(env => runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env));
+  log('Attempting to execute gpg with native pinentry.');
+  return runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {})
+  .catch(err => {
+    const killedBySignal = err.signal !== null;
+    const badPassphrase = /Bad passphrase/.test(err.stderr);
+    const cancelledByUser = /Operation cancelled/.test(err.stderr);
+
+    if (killedBySignal || badPassphrase || cancelledByUser) {
+      // Continue dying.
+      process.stderr.write(err.stderr);
+      process.stdout.write(err.stdout);
+      throw err;
+    }
+
+    log('Native pinentry failed. This is ok. Attempting to execute gpg with Atom pinentry.');
+    return createIsolatedGpgHome()
+    .then(startIsolatedAgent)
+    .then(env => runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env));
+  });
 })
 .then(cleanup, err => {
   log(`Error:\n${err.stack}`);
