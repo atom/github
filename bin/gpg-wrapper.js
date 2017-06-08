@@ -282,23 +282,33 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
     });
 
     gpg.on('exit', (code, signal) => {
-      if (code !== 0 && code !== null && !done) {
-        const err = new Error(`gpg process exited abormally with code ${code}.`);
-        reject(err);
-        done = true;
+      let errorMessage = null;
+
+      if (code !== 0 && code !== null) {
+        errorMessage = `gpg process exited abnormally with code ${code}.`;
+      } else if (signal !== null) {
+        errorMessage = `gpg process terminated with signal ${signal}.`;
       }
 
-      if (signal !== null && !done) {
-        const err = new Error(`gpg process terminated with signal ${signal}.`);
-        reject(err);
-        done = true;
-      }
+      if (errorMessage && done) {
+        log(errorMessage);
+      } else if (errorMessage && !done) {
+        const err = new Error(errorMessage);
+        err.stderr = stderr;
+        err.stdout = stdout;
+        err.code = code;
+        err.signal = signal;
 
-      if (code === 0 && signal === null) {
+        done = true;
+        reject(err);
+      } else if (!errorMessage && done) {
+        log('gpg process terminated normally.');
+      } else if (!errorMessage && !done) {
         // Success. Propagate stdout, stderr, and the exit status to the calling process.
         process.stderr.write(stderr);
         process.stdout.write(stdout);
 
+        done = true;
         resolve(code);
       }
     });
