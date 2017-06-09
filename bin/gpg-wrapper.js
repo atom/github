@@ -406,8 +406,7 @@ function getGpgProgram() {
 }
 
 function getGpgAgentProgram(gpgProgram) {
-  const defaultAgentPath = path.join(path.dirname(gpgProgram), 'gpg-agent');
-  return getGitConfig('gpg.agentProgram', defaultAgentPath);
+  return getGitConfig('gpg.agentProgram', 'gpg-agent');
 }
 
 /*
