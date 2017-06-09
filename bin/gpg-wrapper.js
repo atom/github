@@ -10,9 +10,7 @@ const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const pinentryLauncher = process.env.ATOM_GITHUB_PINENTRY_LAUNCHER;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
 
-const DEFAULT_GPG = 'gpg';
 const ORIGINAL_GPG_HOME = process.env.GNUPGHOME || path.join(os.homedir(), '.gnupg');
-const GPG_TMP_HOME = path.join(atomTmp, 'gpg-home');
 
 let logStream = null;
 
@@ -56,51 +54,6 @@ function getStdin() {
   });
 }
 
-/*
- * Discover the real GPG program that git is configured to use.
- */
-async function getGpgProgram() {
-  const env = {GIT_CONFIG_PARAMETERS: ''};
-
-  const {stdout} = await GitProcess.exec(['config', 'gpg.program'], workdirPath, {env});
-
-  if (stdout.length > 0) {
-    log(`Discovered gpg program ${stdout} from non-system git configuration.`);
-    return stdout;
-  }
-
-  const systemGpgProgram = await getSystemGpgProgram();
-
-  if (systemGpgProgram.length > 0) {
-    log(`Discovered gpg program ${systemGpgProgram} from system git configuration.`);
-    return systemGpgProgram;
-  }
-
-  log('Using default gpg program.');
-  return DEFAULT_GPG;
-}
-
-/*
- * Discover a GPG program configured in the --system git status, if any.
- */
-function getSystemGpgProgram() {
-  if (inSpecMode) {
-    // Skip system configuration in spec mode to maintain reproduceability across systems.
-    return '';
-  }
-
-  const env = {
-    GIT_CONFIG_PARAMETERS: '',
-    PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
-  };
-
-  return new Promise(resolve => {
-    execFile('git', ['config', '--system', 'gpg.program'], {env}, (error, stdout, stderr) => {
-      resolve(stdout || '');
-    });
-  });
-}
-
 async function tryNativePinentry(gpgProgram, gpgStdin) {
   log('Attempting to execute gpg with native pinentry.');
   try {
@@ -127,30 +80,29 @@ async function tryNativePinentry(gpgProgram, gpgStdin) {
 async function tryAtomPinentry(gpgProgram, gpgStdin) {
   log('Attempting to execute gpg with Atom pinentry.');
 
-  await createIsolatedGpgHome();
-  const env = await startIsolatedAgent();
-  const exitCode = await runGpgProgram(gpgProgram, GPG_TMP_HOME, gpgStdin, env);
+  const [gpgHome, gpgAgentProgram] = await Promise.all([
+    createIsolatedGpgHome(),
+    getGpgAgentProgram(),
+  ]);
+
+  const env = await startIsolatedAgent(gpgAgentProgram, gpgHome);
+  const exitCode = await runGpgProgram(gpgProgram, gpgHome, gpgStdin, env);
   return {success: true, exitCode};
 }
 
-/*
- * Launch a temporary GPG agent with an independent --homedir and a --pinentry-program that's overridden to use our
- * Atom-backed gpg-pinentry.sh.
- */
 async function createIsolatedGpgHome() {
-  log(`Creating an isolated GPG home ${GPG_TMP_HOME}.`);
-  await new Promise((resolve, reject) => {
-    fs.mkdir(GPG_TMP_HOME, 0o700, err => (err ? reject(err) : resolve()));
-  });
-  return copyGpgHome();
-}
+  const gpgHome = path.join(atomTmp, 'gpg-home');
 
-function copyGpgHome() {
-  log(`Copying GPG home from ${ORIGINAL_GPG_HOME} to ${GPG_TMP_HOME}.`);
+  log(`Creating an isolated GPG home ${gpgHome}.`);
+  await new Promise((resolve, reject) => {
+    fs.mkdir(gpgHome, 0o700, err => (err ? reject(err) : resolve()));
+  });
+
+  log(`Copying GPG home from ${ORIGINAL_GPG_HOME} to ${gpgHome}.`);
 
   async function copyGpgEntry(subpath, entry) {
     const fullPath = path.join(ORIGINAL_GPG_HOME, subpath, entry);
-    const destPath = path.join(GPG_TMP_HOME, subpath, entry);
+    const destPath = path.join(gpgHome, subpath, entry);
 
     const stat = await new Promise((resolve, reject) => {
       fs.lstat(fullPath, (err, statResult) => (err ? reject(err) : resolve(statResult)));
@@ -186,21 +138,26 @@ function copyGpgHome() {
     return Promise.all(contents.map(entry => copyGpgEntry(subpath, entry)));
   }
 
-  return copyGpgDirectory('');
+  await copyGpgDirectory('');
+  return gpgHome;
 }
 
-function startIsolatedAgent() {
-  log(`Starting an isolated GPG agent in ${GPG_TMP_HOME}.`);
+/*
+ * Launch a temporary GPG agent with an independent --homedir and a --pinentry-program that's overridden to use our
+ * Atom-backed gpg-pinentry.sh.
+ */
+function startIsolatedAgent(gpgAgentProgram, gpgHome) {
+  log(`Starting an isolated GPG agent in ${gpgHome}.`);
 
   return new Promise((resolve, reject) => {
     const args = [
       '--daemon',
       '--verbose',
-      '--homedir', GPG_TMP_HOME,
+      '--homedir', gpgHome,
       '--pinentry-program', pinentryLauncher,
     ];
 
-    const env = {GNUPGHOME: GPG_TMP_HOME};
+    const env = {GNUPGHOME: gpgHome};
     const varsToPass = [
       'PATH', 'GIT_TRACE',
       'ATOM_GITHUB_TMP', 'ATOM_GITHUB_ELECTRON_PATH', 'ATOM_GITHUB_SOCK_PATH', 'ATOM_GITHUB_PINENTRY_PATH',
@@ -218,8 +175,8 @@ function startIsolatedAgent() {
 
     // TODO ensure that the gpg-agent corresponds to the gpg binary
     // TODO allow explicit gpg-agent specification just in case
-    log(`Spawning gpg-agent with ${args.join(' ')}`);
-    const agent = spawn('gpg-agent', args, {
+    log(`Spawning ${gpgAgentProgram} with ${args.join(' ')}`);
+    const agent = spawn(gpgAgentProgram, args, {
       env, stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -335,6 +292,60 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
     });
 
     gpg.stdin.end(gpgStdin);
+  });
+}
+
+function getGpgProgram() {
+  return getGitConfig('gpg.program', 'gpg');
+}
+
+function getGpgAgentProgram(gpgProgram) {
+  const defaultAgentPath = path.join(path.dirname(gpgProgram), 'gpg-agent');
+  return getGitConfig('gpg.agentProgram', defaultAgentPath);
+}
+
+/*
+ * Read the current value of a git setting.
+ */
+async function getGitConfig(setting, def) {
+  const env = {GIT_CONFIG_PARAMETERS: ''};
+
+  const {stdout} = await GitProcess.exec(['config', setting], workdirPath, {env});
+
+  if (stdout.length > 0) {
+    log(`Discovered ${setting} = ${stdout} from non-system git configuration.`);
+    return stdout;
+  }
+
+  const systemValue = await getSystemGitConfig(setting);
+
+  if (systemValue.length > 0) {
+    log(`Discovered ${setting} = ${systemValue} from system git configuration.`);
+    return systemValue;
+  }
+
+  log(`Using default ${setting}.`);
+  return def;
+}
+
+/*
+ * Discover a GPG program configured in the --system git status, if any.
+ */
+function getSystemGitConfig(setting) {
+  if (inSpecMode) {
+    // Skip system configuration in spec mode to maintain reproduceability across systems.
+    return '';
+  }
+
+  const env = {
+    GIT_CONFIG_PARAMETERS: '',
+    PATH: process.env.ATOM_GITHUB_ORIGINAL_PATH || '',
+  };
+
+  return new Promise(resolve => {
+    execFile('git', ['config', '--system', setting], {env}, (error, stdout, stderr) => {
+      resolve(stdout || '');
+    });
   });
 }
 
