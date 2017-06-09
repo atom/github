@@ -15,8 +15,8 @@ let logStream = null;
 async function main() {
   let exitCode = 1;
   try {
-    const [gpgProgram, gpgStdin, originalGpgHome] = await Promise.all([
-      getGpgProgram(), getStdin(), getOriginalGpgHome(),
+    const [gpgProgram, originalGpgHome, gpgStdin] = await Promise.all([
+      getGpgProgram(), getOriginalGpgHome(), getStdin(),
     ]);
 
     const native = await tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin);
