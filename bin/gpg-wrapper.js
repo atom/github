@@ -10,22 +10,20 @@ const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const pinentryLauncher = process.env.ATOM_GITHUB_PINENTRY_LAUNCHER;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
 
-const ORIGINAL_GPG_HOME = process.env.GNUPGHOME || path.join(os.homedir(), '.gnupg');
-
 let logStream = null;
 
 async function main() {
   let exitCode = 1;
   try {
-    const [gpgProgram, gpgStdin] = await Promise.all([
-      getGpgProgram(), getStdin(),
+    const [gpgProgram, gpgStdin, originalGpgHome] = await Promise.all([
+      getGpgProgram(), getStdin(), getOriginalGpgHome(),
     ]);
 
-    const native = await tryNativePinentry(gpgProgram, gpgStdin);
+    const native = await tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin);
     if (native.success) {
       exitCode = native.exitCode;
     } else {
-      const atom = await tryAtomPinentry(gpgProgram, gpgStdin);
+      const atom = await tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin);
       exitCode = atom.exitCode;
     }
   } catch (err) {
@@ -54,10 +52,10 @@ function getStdin() {
   });
 }
 
-async function tryNativePinentry(gpgProgram, gpgStdin) {
+async function tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin) {
   log('Attempting to execute gpg with native pinentry.');
   try {
-    const exitCode = await runGpgProgram(gpgProgram, ORIGINAL_GPG_HOME, gpgStdin, {});
+    const exitCode = await runGpgProgram(gpgProgram, originalGpgHome, gpgStdin, {});
     return {success: true, exitCode};
   } catch (err) {
     // Interpret the nature of the failure.
@@ -77,11 +75,11 @@ async function tryNativePinentry(gpgProgram, gpgStdin) {
   }
 }
 
-async function tryAtomPinentry(gpgProgram, gpgStdin) {
+async function tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin) {
   log('Attempting to execute gpg with Atom pinentry.');
 
   const [gpgHome, gpgAgentProgram] = await Promise.all([
-    createIsolatedGpgHome(),
+    createIsolatedGpgHome(originalGpgHome),
     getGpgAgentProgram(),
   ]);
 
@@ -90,7 +88,7 @@ async function tryAtomPinentry(gpgProgram, gpgStdin) {
   return {success: true, exitCode};
 }
 
-async function createIsolatedGpgHome() {
+async function createIsolatedGpgHome(originalGpgHome) {
   const gpgHome = path.join(atomTmp, 'gpg-home');
 
   log(`Creating an isolated GPG home ${gpgHome}.`);
@@ -98,10 +96,10 @@ async function createIsolatedGpgHome() {
     fs.mkdir(gpgHome, 0o700, err => (err ? reject(err) : resolve()));
   });
 
-  log(`Copying GPG home from ${ORIGINAL_GPG_HOME} to ${gpgHome}.`);
+  log(`Copying GPG home from ${originalGpgHome} to ${gpgHome}.`);
 
   async function copyGpgEntry(subpath, entry) {
-    const fullPath = path.join(ORIGINAL_GPG_HOME, subpath, entry);
+    const fullPath = path.join(originalGpgHome, subpath, entry);
     const destPath = path.join(gpgHome, subpath, entry);
 
     const stat = await new Promise((resolve, reject) => {
@@ -130,7 +128,7 @@ async function createIsolatedGpgHome() {
   }
 
   async function copyGpgDirectory(subpath) {
-    const dirPath = path.join(ORIGINAL_GPG_HOME, subpath);
+    const dirPath = path.join(originalGpgHome, subpath);
     const contents = await new Promise((resolve, reject) => {
       fs.readdir(dirPath, (err, readdirResult) => (err ? reject(err) : resolve(readdirResult)));
     });
@@ -302,6 +300,45 @@ function getGpgProgram() {
 function getGpgAgentProgram(gpgProgram) {
   const defaultAgentPath = path.join(path.dirname(gpgProgram), 'gpg-agent');
   return getGitConfig('gpg.agentProgram', defaultAgentPath);
+}
+
+/*
+ * Discover the native GPG home directory.
+ */
+async function getOriginalGpgHome() {
+  if (process.env.GNUPGHOME) {
+    return process.env.GNUPGHOME;
+  }
+
+  function isValidDirectory(dirPath) {
+    return new Promise((resolve, reject) => {
+      fs.stat(dirPath, (err, stats) => {
+        if (err) {
+          if (['ENOENT', 'ENOTDIR'].include(err.code)) {
+            resolve(false);
+          } else {
+            reject(err);
+          }
+        }
+
+        resolve(stats.isDirectory());
+      });
+    });
+  }
+
+  // gpg 2.0.x on Windows
+  const appData = process.env.APPDATA && path.join(process.env.APPDATA, 'gnupg');
+  if (appData && await isValidDirectory(appData)) {
+    return appData;
+  }
+
+  // gpg 1.x on Windows; gpg 2.* on other OSes
+  const homeDir = path.join(os.homedir(), '.gnupg');
+  if (await isValidDirectory(homeDir)) {
+    return homeDir;
+  }
+
+  throw new Error('Unable to discover GPG data directory. Please set GNUPGHOME.');
 }
 
 /*
