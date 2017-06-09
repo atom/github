@@ -5,7 +5,7 @@ const {execFile, spawn} = require('child_process');
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 
 const atomTmp = process.env.ATOM_GITHUB_TMP || '';
-const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length > 0 && atomTmp.length > 0;
+const diagnosticsEnabled = process.env.GIT_TRACE && atomTmp.length > 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const pinentryLauncher = process.env.ATOM_GITHUB_PINENTRY_LAUNCHER;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
