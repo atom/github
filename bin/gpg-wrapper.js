@@ -348,10 +348,11 @@ async function getGitConfig(setting, def) {
   const env = {GIT_CONFIG_PARAMETERS: ''};
 
   const {stdout} = await GitProcess.exec(['config', setting], workdirPath, {env});
+  const value = stdout.trim();
 
-  if (stdout.length > 0) {
-    log(`Discovered ${setting} = ${stdout} from non-system git configuration.`);
-    return stdout;
+  if (value.length > 0) {
+    log(`Discovered ${setting} = ${value} from non-system git configuration.`);
+    return value;
   }
 
   const systemValue = await getSystemGitConfig(setting);
@@ -381,7 +382,7 @@ function getSystemGitConfig(setting) {
 
   return new Promise(resolve => {
     execFile('git', ['config', '--system', setting], {env}, (error, stdout, stderr) => {
-      resolve(stdout || '');
+      resolve(stdout ? stdout.trim() : '');
     });
   });
 }
