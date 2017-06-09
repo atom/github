@@ -55,7 +55,10 @@ function getStdin() {
 async function tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin) {
   log('Attempting to execute gpg with native pinentry.');
   try {
-    const exitCode = await runGpgProgram(gpgProgram, originalGpgHome, gpgStdin, {});
+    const exitCode = await runGpgProgram(gpgProgram, {
+      home: originalGpgHome,
+      stdin: gpgStdin,
+    });
     return {success: true, exitCode};
   } catch (err) {
     // Interpret the nature of the failure.
@@ -83,8 +86,13 @@ async function tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin) {
     getGpgAgentProgram(),
   ]);
 
-  const env = await startIsolatedAgent(gpgAgentProgram, gpgHome);
-  const exitCode = await runGpgProgram(gpgProgram, gpgHome, gpgStdin, env);
+  const agentEnv = await startIsolatedAgent(gpgAgentProgram, gpgHome);
+  const exitCode = await runGpgProgram(gpgProgram, {
+    home: gpgHome,
+    stdin: gpgStdin,
+    extraArgs: ['--homedir', gpgHome],
+    extraEnv: agentEnv,
+  });
   return {success: true, exitCode};
 }
 
@@ -221,24 +229,34 @@ function startIsolatedAgent(gpgAgentProgram, gpgHome) {
   });
 }
 
-function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
-  const gpgArgs = [
-    '--batch', '--no-tty', '--yes', '--homedir', gpgHome,
+function runGpgProgram(gpgProgram, options) {
+  // Trick eslint into not "helpfully" fixing this to an object spread operator,
+  // our v8 doesn't support yet.
+  const finalOptions = {
+    extraArgs: [],
+    extraEnv: {},
+  };
+  Object.assign(finalOptions, options);
+
+  const finalEnv = {
+    PATH: process.env.PATH,
+    GPG_AGENT_INFO: process.env.GPG_AGENT_INFO || '',
+    GNUPGHOME: finalOptions.home || process.env.GNUPGHOME,
+  };
+  Object.assign(finalEnv, finalOptions.extraEnv);
+
+  const finalArgs = [
+    '--batch', '--no-tty', '--yes', ...finalOptions.extraArgs,
   ].concat(process.argv.slice(2));
 
-  log(`Executing ${gpgProgram} ${gpgArgs.join(' ')}.`);
+  log(`Executing ${gpgProgram} ${finalArgs.join(' ')}.`);
 
   return new Promise((resolve, reject) => {
-    const env = agentEnv;
-    if (!env.PATH) { env.PATH = process.env.PATH; }
-    if (!env.GPG_AGENT_INFO) { env.GPG_AGENT_INFO = process.env.GPG_AGENT_INFO || ''; }
-    if (!env.GNUPGHOME) { env.GNUPGHOME = gpgHome; }
-
     let stdout = '';
     let stderr = '';
     let done = false;
 
-    const gpg = spawn(gpgProgram, gpgArgs, {env});
+    const gpg = spawn(gpgProgram, finalArgs, {env: finalEnv});
 
     gpg.stderr.on('data', chunk => {
       log(chunk, true);
@@ -289,7 +307,7 @@ function runGpgProgram(gpgProgram, gpgHome, gpgStdin, agentEnv) {
       }
     });
 
-    gpg.stdin.end(gpgStdin);
+    gpg.stdin.end(finalOptions.stdin);
   });
 }
 
