@@ -4,7 +4,9 @@ const path = require('path');
 const {execFile, spawn} = require('child_process');
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 
-const atomTmp = process.env.ATOM_GITHUB_TMP || '';
+const atomTmp = process.env.ATOM_GITHUB_TMP;
+const electronPath = process.env.ATOM_GITHUB_ELECTRON_PATH;
+const atomAskPass = process.env.GIT_ASKPASS;
 const diagnosticsEnabled = process.env.GIT_TRACE && atomTmp.length > 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const pinentryLauncher = process.env.ATOM_GITHUB_PINENTRY_LAUNCHER;
@@ -19,15 +21,9 @@ async function main() {
       getGpgProgram(), getOriginalGpgHome(), getStdin(),
     ]);
 
-    const native = await tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin);
-    if (native.success) {
-      exitCode = native.exitCode;
-    } else {
-      const atom = await tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin);
-      exitCode = atom.exitCode;
-    }
+    exitCode = await attempts(gpgProgram, originalGpgHome, gpgStdin);
   } catch (err) {
-    log(`Failed with error:\n${err}`);
+    log(`Failed with error:\n${err.stack}`);
   } finally {
     await cleanup();
     process.exit(exitCode);
@@ -50,6 +46,26 @@ function getStdin() {
     process.stdin.on('end', () => resolve(stdin));
     process.stdin.on('error', reject);
   });
+}
+
+async function attempts(gpgProgram, originalGpgHome, gpgStdin) {
+  const native = await tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin);
+  if (native.success) {
+    return native.exitCode;
+  }
+
+  const atom = await tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin);
+  if (atom.success) {
+    return atom.exitCode;
+  }
+
+  const viaFd = await tryPassphraseFd(gpgProgram, originalGpgHome, gpgStdin);
+  if (viaFd.success) {
+    return viaFd.exitCode;
+  }
+
+  log('No passphrase strategy worked successfully. Giving up in frustration.');
+  return 1;
 }
 
 async function tryNativePinentry(gpgProgram, originalGpgHome, gpgStdin) {
@@ -86,12 +102,57 @@ async function tryAtomPinentry(gpgProgram, originalGpgHome, gpgStdin) {
     getGpgAgentProgram(),
   ]);
 
-  const agentEnv = await startIsolatedAgent(gpgAgentProgram, gpgHome);
+  const agent = await startIsolatedAgent(gpgAgentProgram, gpgHome);
+  if (!agent.success) {
+    return {success: false};
+  }
+
   const exitCode = await runGpgProgram(gpgProgram, {
     home: gpgHome,
     stdin: gpgStdin,
     extraArgs: ['--homedir', gpgHome],
-    extraEnv: agentEnv,
+    extraEnv: agent.env,
+  });
+  return {success: true, exitCode};
+}
+
+async function tryPassphraseFd(gpgProgram, originalGpgHome, gpgStdin) {
+  log('Attempting to execute gpg with --passphrase-fd.');
+
+  // Use GIT_ASKPASS, set by Atom to git-askpass-atom.sh, to query for
+  // the passphrase through the socket.
+  const passphrase = await new Promise((resolve, reject) => {
+    const args = [
+      process.env.ATOM_GITHUB_ASKPASS_PATH,
+      process.env.ATOM_GITHUB_SOCK_PATH,
+      'Please enter the passphrase for your GPG signing key.',
+    ];
+
+    const varsToPass = ['PATH', 'GIT_TRACE', 'ATOM_GITHUB_TMP'];
+    const env = {
+      ELECTRON_RUN_AS_NODE: '1',
+      ELECTRON_NO_ATTACH_CONSOLE: '1',
+    };
+    for (let i = 0; i < varsToPass.length; i++) {
+      env[varsToPass[i]] = process.env[varsToPass[i]];
+    }
+
+    log(`Calling Electron ${electronPath} with args ${args.join(' ')} to collect passphrase.`);
+    execFile(electronPath, args, {env}, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(stdout.trim());
+    });
+  });
+
+  const exitCode = await runGpgProgram(gpgProgram, {
+    home: originalGpgHome,
+    stdin: gpgStdin,
+    fd3: passphrase,
+    extraArgs: ['--passphrase-fd', '3'],
   });
   return {success: true, exitCode};
 }
@@ -153,6 +214,10 @@ async function createIsolatedGpgHome(originalGpgHome) {
  * Atom-backed gpg-pinentry.sh.
  */
 function startIsolatedAgent(gpgAgentProgram, gpgHome) {
+  if (gpgAgentProgram === 'disable') {
+    return Promise.resolve({success: false});
+  }
+
   log(`Starting an isolated GPG agent in ${gpgHome}.`);
 
   return new Promise((resolve, reject) => {
@@ -187,21 +252,34 @@ function startIsolatedAgent(gpgAgentProgram, gpgHome) {
     });
 
     agent.on('error', err => {
-      log(`gpg-agent failed to launch: ${err}`);
-      // TODO attempt 1.4.x mode here
-
       if (!done) {
         done = true;
+        if (err.code === 'ENOENT') {
+          log('gpg-agent not found. this is ok.');
+          resolve({success: false});
+          return;
+        }
+
+        log(`gpg-agent failed to launch: ${err}`);
         reject(err);
       }
     });
 
     agent.on('exit', (code, signal) => {
+      function fail(msg) {
+        if (!done) {
+          done = true;
+          reject(new Error(msg));
+        }
+
+        log(msg);
+      }
+
       if (code !== null && code !== 0) {
-        reject(new Error(`gpg-agent exited with status ${code}.`));
+        fail(`gpg-agent exited with status ${code}.`);
         return;
       } else if (signal !== null) {
-        reject(new Error(`gpg-agent was terminated with signal ${signal}.`));
+        fail(`gpg-agent was terminated with signal ${signal}.`);
         return;
       } else {
         log('gpg-agent launched successfully.');
@@ -217,7 +295,7 @@ function startIsolatedAgent(gpgAgentProgram, gpgHome) {
           agentEnv.GPG_AGENT_INFO = match[1];
         }
 
-        resolve(agentEnv);
+        resolve({success: true, env: agentEnv});
       }
     });
 
@@ -249,6 +327,11 @@ function runGpgProgram(gpgProgram, options) {
     '--batch', '--no-tty', '--yes', ...finalOptions.extraArgs,
   ].concat(process.argv.slice(2));
 
+  const finalStdio = ['pipe', 'pipe', 'pipe'];
+  if (finalOptions.fd3) {
+    finalStdio.push('pipe');
+  }
+
   log(`Executing ${gpgProgram} ${finalArgs.join(' ')}.`);
 
   return new Promise((resolve, reject) => {
@@ -256,7 +339,10 @@ function runGpgProgram(gpgProgram, options) {
     let stderr = '';
     let done = false;
 
-    const gpg = spawn(gpgProgram, finalArgs, {env: finalEnv});
+    const gpg = spawn(gpgProgram, finalArgs, {
+      env: finalEnv,
+      stdio: finalStdio,
+    });
 
     gpg.stderr.on('data', chunk => {
       log(chunk, true);
@@ -308,6 +394,10 @@ function runGpgProgram(gpgProgram, options) {
     });
 
     gpg.stdin.end(finalOptions.stdin);
+    if (finalOptions.fd3) {
+      gpg.stdio[3].setEncoding('utf8');
+      gpg.stdio[3].end(finalOptions.fd3);
+    }
   });
 }
 
