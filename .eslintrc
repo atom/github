@@ -12,6 +12,9 @@
     ]
   },
   "extends": ["fbjs/opensource"],
+  "rules": {
+    "linebreak-style": 0
+  },
   "globals": {
     "atom": true,
     "advanceClock": true,
