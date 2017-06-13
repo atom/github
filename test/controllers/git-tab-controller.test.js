@@ -29,7 +29,6 @@ describe('GitTabController', function() {
 
   afterEach(function() {
     atomEnvironment.destroy();
-    atom.confirm.restore && atom.confirm.restore();
   });
 
   it('displays a loading message in GitTabView while data is being fetched', async function() {
@@ -157,12 +156,13 @@ describe('GitTabController', function() {
         throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
       });
 
+      const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, notificationManager, repository,
+        workspace, commandRegistry, notificationManager, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       assert.equal(notificationManager.getNotifications().length, 0);
-      sinon.stub(atom, 'confirm').returns(0);
+      confirm.returns(0);
       await controller.abortMerge();
       assert.equal(notificationManager.getNotifications().length, 1);
     });
@@ -173,8 +173,9 @@ describe('GitTabController', function() {
 
       await assert.isRejected(repository.git.merge('origin/branch'));
 
+      const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, repository,
+        workspace, commandRegistry, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();
@@ -184,7 +185,7 @@ describe('GitTabController', function() {
       assert.isTrue(modelData.isMerging);
       assert.isOk(modelData.mergeMessage);
 
-      sinon.stub(atom, 'confirm').returns(0);
+      confirm.returns(0);
       await controller.abortMerge();
       await controller.getLastModelDataRefreshPromise();
       modelData = controller.repositoryObserver.getActiveModelData();
@@ -515,8 +516,9 @@ describe('GitTabController', function() {
 
       await assert.isRejected(repository.git.merge('origin/branch'));
 
+      const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, repository,
+        workspace, commandRegistry, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
@@ -530,33 +532,32 @@ describe('GitTabController', function() {
       assert.include(contentsWithMarkers, '>>>>>>>');
       assert.include(contentsWithMarkers, '<<<<<<<');
 
-      sinon.stub(atom, 'confirm');
       // click Cancel
-      atom.confirm.returns(1);
+      confirm.returns(1);
       await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
 
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 5);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
-      assert.isTrue(atom.confirm.calledOnce);
+      assert.isTrue(confirm.calledOnce);
 
       // click Stage
-      atom.confirm.reset();
-      atom.confirm.returns(0);
+      confirm.reset();
+      confirm.returns(0);
       await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
 
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
-      assert.isTrue(atom.confirm.calledOnce);
+      assert.isTrue(confirm.calledOnce);
 
       // clear merge markers
       const conflict2 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-theirs.txt')[0];
-      atom.confirm.reset();
+      confirm.reset();
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
       stagingView.dblclickOnItem({}, conflict2);
 
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 3);
       assert.lengthOf(stagingView.props.stagedChanges, 2);
-      assert.isFalse(atom.confirm.called);
+      assert.isFalse(confirm.called);
     });
 
     it('avoids conflicts with pending file staging operations', async function() {

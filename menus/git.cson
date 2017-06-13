@@ -132,6 +132,15 @@
       'command': 'github:unstage-all-changes'
     }
   ]
+  '.github-CommitView': [
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Toggle Expanded Commit Message Editor'
+      'command': 'github:toggle-expanded-commit-message-editor'
+    }
+  ]
   'atom-text-editor': [
     {
       'label': 'View Unstaged Changes',
