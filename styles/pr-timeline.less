@@ -89,6 +89,10 @@
     }
   }
 
+  .sha {
+    font-family: monospace;
+  }
+
   .merged-event {
     display: flex;
     align-items: center;
@@ -102,14 +106,20 @@
       font-weight: bold;
       color: @text-color-highlight;
     }
-
-    .sha {
-      font-family: monospace;
-    }
   }
 
   .merged-event ~ .issue {
     border-bottom-style: dashed;
+  }
+
+  .head-ref-force-pushed-event {
+    .username {
+      font-weight: bold;
+      color: @text-color-highlight;
+    }
+    .sha {
+      font-weight: bold;
+    }
   }
 
   .issue {
