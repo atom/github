@@ -30,6 +30,8 @@
   &-stageButton,
   &-discardButton {
     line-height: 1;
+    padding-left: @component-padding;
+    padding-right: @component-padding;
     font-family: @font-family;
     border: none;
     border-left: 1px solid @panel-heading-border-color;
@@ -37,6 +39,12 @@
     cursor: default;
     &:hover  { background-color: @button-background-color-hover; }
     &:active { background-color: @panel-heading-border-color; }
+  }
+
+  // pixel fit the icon
+  &-discardButton:before {
+    text-align: left;
+    width: auto;
   }
 
   &-line {

@@ -35,7 +35,7 @@ describe('CommitsContainer', function() {
     assert.match(instance.text(), /FirstLogin, SecondLogin, and others added/);
   });
 
-  it('perefers displaying usernames from user.login', function() {
+  it('prefers displaying usernames from user.login', function() {
     const nodes = [
       {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}},
       {id: 2, author: {name: 'SecondName', user: null}},

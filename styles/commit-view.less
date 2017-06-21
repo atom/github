@@ -14,10 +14,35 @@
     background-color: @syntax-background-color;
   }
 
+  &-editor.hidden {
+    display: none;
+  }
+
   &-editor atom-text-editor {
     height: 100px;
     .cursor-line.cursor-line.cursor-line {
       background-color: transparent;
+    }
+  }
+
+  &-expandButton {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      opacity: .5;
+    }
+    &:before {
+      margin: 0;
     }
   }
 
@@ -35,6 +60,7 @@
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: default;
     &.is-secondary {
       flex: 0 1 auto;
       margin-right: @component-padding;
@@ -50,7 +76,38 @@
     &.is-warning { color: @text-color-warning; }
     &.is-error   { color: @text-color-error; }
   }
+
+
+  // States ---------------------------------------------------
+
+  &-editor.is-expanded {
+    background-color: transparent;
+    atom-text-editor {
+      display: none;
+    }
+    .github-CommitView-expandButton {
+      position: relative;
+      width: 100%;
+      line-height: inherit;
+      background-color: transparent;
+      opacity: .5;
+      &::before {
+        margin-right: @component-padding / 2;
+      }
+      &::after {
+        content: "Toggle expanded commit message";
+      }
+      &:active {
+        opacity: .3;
+      }
+    }
+  }
+
 }
+
+
+
+
 
 
 // Hacks ---------------------------------------------------

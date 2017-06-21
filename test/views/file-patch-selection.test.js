@@ -914,6 +914,47 @@ describe('FilePatchSelection', function() {
       assertEqualSets(selection13.getSelectedLines(), new Set([getFirstChangedLine(hunks[0])]));
     });
   });
+
+  describe('goToDiffLine(lineNumber)', function() {
+    it('selects the closest selectable hunk line', function() {
+      const hunks = [
+        new Hunk(1, 1, 2, 4, '', [
+          new HunkLine('line-1', 'unchanged', 1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'added', -1, 3),
+          new HunkLine('line-4', 'unchanged', 2, 4),
+        ]),
+        new Hunk(5, 7, 3, 4, '', [
+          new HunkLine('line-7', 'unchanged', 5, 7),
+          new HunkLine('line-8', 'unchanged', 6, 8),
+          new HunkLine('line-9', 'added', -1, 9),
+          new HunkLine('line-10', 'unchanged', 7, 10),
+        ]),
+      ];
+
+      const selection0 = new FilePatchSelection(hunks);
+      const selection1 = selection0.goToDiffLine(2);
+      assert.equal(Array.from(selection1.getSelectedLines())[0].getText(), 'line-2');
+      assertEqualSets(selection1.getSelectedLines(), new Set([hunks[0].lines[1]]));
+
+      const selection2 = selection1.goToDiffLine(9);
+      assert.equal(Array.from(selection2.getSelectedLines())[0].getText(), 'line-9');
+      assertEqualSets(selection2.getSelectedLines(), new Set([hunks[1].lines[2]]));
+
+      // selects closest added hunk line
+      const selection3 = selection2.goToDiffLine(5);
+      assert.equal(Array.from(selection3.getSelectedLines())[0].getText(), 'line-3');
+      assertEqualSets(selection3.getSelectedLines(), new Set([hunks[0].lines[2]]));
+
+      const selection4 = selection3.goToDiffLine(8);
+      assert.equal(Array.from(selection4.getSelectedLines())[0].getText(), 'line-9');
+      assertEqualSets(selection4.getSelectedLines(), new Set([hunks[1].lines[2]]));
+
+      const selection5 = selection4.goToDiffLine(11);
+      assert.equal(Array.from(selection5.getSelectedLines())[0].getText(), 'line-9');
+      assertEqualSets(selection5.getSelectedLines(), new Set([hunks[1].lines[2]]));
+    });
+  });
 });
 
 function getChangedLines(hunk) {
