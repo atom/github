@@ -3,6 +3,19 @@
   'ctrl-shift-8': 'github:toggle-github-tab'
   'ctrl-9': 'github:toggle-git-tab-focus'
   'ctrl-shift-9': 'github:toggle-git-tab'
+  'alt-g enter': 'github:commit'
+  'alt-g f': 'github:fetch'
+  'alt-g shift-f': 'github:pull'
+  'alt-g p': 'github:push'
+  'alt-g shift-p': 'github:force-push'
+  'alt-g =': 'github:clone'
+
+'atom-text-editor':
+  'alt-m 1': 'github:resolve-as-ours'
+  'alt-m 2': 'github:resolve-as-theirs'
+  'alt-m 3': 'github:resolve-as-base'
+  'alt-m enter': 'github:resolve-as-current'
+  'alt-m r': 'github:revert-current'
 
 '.github-Panel':
   'cmd-enter': 'github:commit'
