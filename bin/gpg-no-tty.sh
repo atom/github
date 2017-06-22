@@ -19,6 +19,6 @@ if [ -n "${ATOM_GITHUB_ASKPASS_PATH:-}" ] && [ -n "${GIT_ASKPASS:-}" ]; then
   PASSPHRASE_ARG="--passphrase-fd 3"
 fi
 
-exec ${GPG_PROGRAM} --batch --no-tty --yes ${PASSPHRASE_ARG} "$@" 3<<EOM
+exec "${GPG_PROGRAM}" --batch --no-tty --yes ${PASSPHRASE_ARG} "$@" 3<<EOM
 ${PASSPHRASE}
 EOM
