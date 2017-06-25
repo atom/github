@@ -4,12 +4,12 @@ import temp from 'temp';
 import until from 'test-until';
 
 import {cloneRepository} from './helpers';
-import {writeFile, getTempDir} from '../lib/helpers';
+import {writeFile, deleteFileOrFolder, fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, config, confirm, tooltips, styles;
-  let getLoadSettings;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
+  let getLoadSettings, configDirPath;
   let githubPackage, contextPool;
 
   beforeEach(function() {
@@ -22,10 +22,13 @@ describe('GithubPackage', function() {
     config = atomEnv.config;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
+    grammars = atomEnv.grammars;
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+    configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
+      configDirPath, getLoadSettings,
     );
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
@@ -40,9 +43,9 @@ describe('GithubPackage', function() {
     atomEnv.destroy();
   });
 
-  function contextUpdateAfter(chunk) {
+  async function contextUpdateAfter(chunk) {
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
-    chunk();
+    await chunk();
     return updatePromise;
   }
 
@@ -64,7 +67,8 @@ describe('GithubPackage', function() {
       const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, config, confirm, getLoadSettings1,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
+        configDirPath, getLoadSettings1,
       );
     }
 
@@ -183,7 +187,6 @@ describe('GithubPackage', function() {
 
       await contextUpdateAfter(() => githubPackage.activate({
         activeRepositoryPath: workdirPath2,
-        firstRun: false,
       }));
 
       const context = contextPool.getContext(workdirPath2);
@@ -271,6 +274,39 @@ describe('GithubPackage', function() {
       assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
       assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
       assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
+    });
+
+    describe('startOpen', function() {
+      let confFile;
+
+      beforeEach(async function() {
+        confFile = path.join(configDirPath, 'github.cson');
+        await deleteFileOrFolder(confFile);
+      });
+
+      it('renders with startOpen on the first run', async function() {
+        config.set('welcome.showOnStartup', false);
+        await githubPackage.activate();
+
+        assert.isTrue(githubPackage.startOpen);
+        assert.isTrue(await fileExists(confFile));
+      });
+
+      it('renders without startOpen on non-first runs', async function() {
+        await writeFile(confFile, '');
+        await githubPackage.activate();
+
+        assert.isFalse(githubPackage.startOpen);
+        assert.isTrue(await fileExists(confFile));
+      });
+
+      it('renders without startOpen on the first run if the welcome pane is shown', async function() {
+        config.set('welcome.showOnStartup', true);
+        await githubPackage.activate();
+
+        assert.isFalse(githubPackage.startOpen);
+        assert.isTrue(await fileExists(confFile));
+      });
     });
   });
 

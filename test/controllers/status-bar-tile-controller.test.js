@@ -35,6 +35,7 @@ describe('StatusBarTileController', function() {
         notificationManager={notificationManager}
         tooltips={tooltips}
         confirm={confirm}
+        ensureGitTabVisible={() => {}}
       />
     );
   });
@@ -203,6 +204,35 @@ describe('StatusBarTileController', function() {
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
           assert.lengthOf(tip.querySelectorAll('select'), 1);
+        });
+
+        it('forgets newly created branches on repository change', async function() {
+          const [repo0, repo1] = await Promise.all(
+            [0, 1].map(async () => {
+              const workdirPath = await cloneRepository('three-files');
+              return buildRepository(workdirPath);
+            }),
+          );
+
+          const wrapper = mount(React.cloneElement(component, {repository: repo0}));
+          await wrapper.instance().refreshModelData();
+          const tip = getTooltipNode(wrapper, BranchView);
+
+          // Create a new branch
+          tip.querySelector('button').click();
+          tip.querySelector('atom-text-editor').getModel().setText('created-branch');
+          tip.querySelector('button').click();
+
+          await assert.async.lengthOf(tip.querySelectorAll('select'), 1);
+
+          assert.equal(tip.querySelector('select').value, 'created-branch');
+
+          wrapper.setProps({repository: repo1});
+          await wrapper.instance().refreshModelData();
+
+          assert.equal(tip.querySelector('select').value, 'master');
+          const options = Array.from(tip.querySelectorAll('option'), node => node.value);
+          assert.notInclude(options, 'created-branch');
         });
 
         it('displays an error message if branch already exists', async function() {
@@ -481,6 +511,33 @@ describe('StatusBarTileController', function() {
 
         assert.equal(fakeConfirm.callCount, 1);
         assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
+      });
+
+      it('displays a warning notification when pull results in merge conflicts', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
+
+        const repository = await buildRepository(localRepoPath);
+        await repository.git.exec(['commit', '-am', 'Add conflicting change']);
+
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
+
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+
+        sinon.stub(notificationManager, 'addWarning');
+
+        pullButton.click();
+        await wrapper.instance().refreshModelData();
+
+        await assert.async.isTrue(notificationManager.addWarning.called);
+        const notificationArgs = notificationManager.addWarning.args[0];
+        assert.equal(notificationArgs[0], 'Merge conflicts');
+        assert.match(notificationArgs[1].description, /Your local changes conflicted with changes made on the remote branch./);
+
+        assert.isTrue(await repository.isMerging());
       });
     });
   });
