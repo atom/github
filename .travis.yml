@@ -29,13 +29,9 @@ matrix:
     - ATOM_CHANNEL=beta
     addons:
       apt:
-        sources:
-        - ubuntu-toolchain-r-test
         packages:
         - clang-3.3
         - build-essential
-        - gcc-4.9
-        - g++-4.9
         - gnome-keyring
         - libsecret-1-dev
         - python-gnomekeyring
