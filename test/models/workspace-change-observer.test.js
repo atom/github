@@ -60,7 +60,7 @@ describe('WorkspaceChangeObserver', function() {
     await changeObserver.start();
 
     editor.setText('change');
-    editor.save();
+    await editor.save();
     await until(() => changeSpy.calledOnce);
 
     changeSpy.reset();
@@ -86,7 +86,7 @@ describe('WorkspaceChangeObserver', function() {
       editor.getBuffer().setPath(path.join(workdirPath, 'renamed-path.txt'));
 
       editor.setText('change');
-      editor.save();
+      await editor.save();
       await assert.async.isTrue(changeSpy.calledWith([{
         directory: workdirPath,
         file: 'renamed-path.txt',
