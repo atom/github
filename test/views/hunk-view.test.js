@@ -6,7 +6,7 @@ import HunkLine from '../../lib/models/hunk-line';
 import HunkView from '../../lib/views/hunk-view';
 
 describe('HunkView', function() {
-  let component, mousedownOnHeader, mousedownOnLine, mousemoveOnLine, contextMenuOnItem, didClickStageButton;
+  let component, mousedownOnHeader, mousedownOnLine, mousemoveOnLine, contextMenuOnItem, didClickStageButton, didClickDiscardButton;
 
   beforeEach(function() {
     const onlyLine = new HunkLine('only', 'added', 1, 1);
@@ -19,6 +19,7 @@ describe('HunkView', function() {
     mousemoveOnLine = sinon.spy();
     contextMenuOnItem = sinon.spy();
     didClickStageButton = sinon.spy();
+    didClickDiscardButton = sinon.spy();
 
     component = (
       <HunkView
@@ -34,6 +35,10 @@ describe('HunkView', function() {
         mousemoveOnLine={mousemoveOnLine}
         contextMenuOnItem={contextMenuOnItem}
         didClickStageButton={didClickStageButton}
+        didClickDiscardButton={didClickDiscardButton}
+        tooltips={{}}
+        unstaged={false}
+        discardButtonLabel="Discard"
       />
     );
   });
