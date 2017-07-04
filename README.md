@@ -6,11 +6,11 @@
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
-![Git Integration](./docs/git-integration.png)
+<img width="1171" alt="git-integration" src="https://user-images.githubusercontent.com/378023/27811906-e154f422-60a5-11e7-81a8-ba0e030b672e.png">
 
-![GitHub Integration](./docs/github-integration.png)
+<img width="1171" alt="github-integration" src="https://user-images.githubusercontent.com/378023/27811908-e157a014-60a5-11e7-82bd-083f9156865f.png">
 
-![Merge Conflict Resolution](./docs/merge-conflicts.png)
+<img width="1172" alt="merge-conflicts" src="https://user-images.githubusercontent.com/378023/27811907-e1573fca-60a5-11e7-9401-1315e4750eb9.png">
 
 ## Installation
 
