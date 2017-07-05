@@ -771,7 +771,7 @@ import RootController from '../../lib/controllers/root-controller';
     });
 
     describe('discarding and restoring changed lines', () => {
-      describe('discardLines(lines)', () => {
+      describe('discardLines(filePatch, lines)', () => {
         it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepository(workdirPath);
@@ -794,14 +794,14 @@ import RootController from '../../lib/controllers/root-controller';
           sinon.stub(notificationManager, 'addError');
           // unmodified buffer
           const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
-          await wrapper.instance().discardLines(new Set([hunkLines[0]]));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set([hunkLines[0]]));
           assert.isTrue(repository.applyPatchToWorkdir.calledOnce);
           assert.isFalse(notificationManager.addError.called);
 
           // modified buffer
           repository.applyPatchToWorkdir.reset();
           editor.setText('modify contents');
-          await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines()));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines()));
           assert.isFalse(repository.applyPatchToWorkdir.called);
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot discard lines.');
@@ -863,14 +863,14 @@ import RootController from '../../lib/controllers/root-controller';
 
           it('reverses last discard for file path', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
             await repository.refresh();
 
             unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
             wrapper.setState({filePatch: unstagedFilePatch});
-            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
             const contents3 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents2, contents3);
 
@@ -882,7 +882,7 @@ import RootController from '../../lib/controllers/root-controller';
 
           it('does not undo if buffer is modified', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -906,7 +906,7 @@ import RootController from '../../lib/controllers/root-controller';
           describe('when file content has changed since last discard', () => {
             it('successfully undoes discard if changes do not conflict', async () => {
               const contents1 = fs.readFileSync(absFilePath, 'utf8');
-              await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+              await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
               const contents2 = fs.readFileSync(absFilePath, 'utf8');
               assert.notEqual(contents1, contents2);
 
@@ -926,7 +926,7 @@ import RootController from '../../lib/controllers/root-controller';
               await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
               const contents1 = fs.readFileSync(absFilePath, 'utf8');
-              await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+              await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
               const contents2 = fs.readFileSync(absFilePath, 'utf8');
               assert.notEqual(contents1, contents2);
 
@@ -989,11 +989,11 @@ import RootController from '../../lib/controllers/root-controller';
 
           it('clears the discard history if the last blob is no longer valid', async () => {
             // this would occur in the case of garbage collection cleaning out the blob
-            await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
             await repository.refresh();
             unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
             wrapper.setState({filePatch: unstagedFilePatch});
-            const {beforeSha} = await wrapper.instance().discardLines(new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+            const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
 
             // remove blob from git object store
             fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
