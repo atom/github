@@ -6,15 +6,12 @@ import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
   const workingDirectoryPath = '/not/real/';
-  let atomEnv, commandRegistry, workspace, showFilePatchItem, showMergeConflictFileForPath;
+  let atomEnv, commandRegistry, workspace;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
     workspace = atomEnv.workspace;
-
-    showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
-    showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
   });
 
   afterEach(function() {
@@ -241,6 +238,12 @@ describe('StagingView', function() {
   });
 
   describe('when the selection changes', function() {
+    let showFilePatchItem, showMergeConflictFileForPath;
+    beforeEach(function() {
+      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+      showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
+    });
+
     describe('when github.keyboardNavigationDelay is 0', function() {
       beforeEach(function() {
         atom.config.set('github.keyboardNavigationDelay', 0);
@@ -376,6 +379,11 @@ describe('StagingView', function() {
   });
 
   describe('when dragging a mouse across multiple items', function() {
+    let showFilePatchItem;
+    beforeEach(function() {
+      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+    });
+
     // https://github.com/atom/github/issues/352
     it('selects the items', async function() {
       const unstagedChanges = [
@@ -462,7 +470,7 @@ describe('StagingView', function() {
   });
 
   describe('when navigating with core:move-left', function() {
-    let view;
+    let view, showFilePatchItem, showMergeConflictFileForPath;
 
     beforeEach(function() {
       const unstagedChanges = [
@@ -478,6 +486,9 @@ describe('StagingView', function() {
         workspace, commandRegistry, workingDirectoryPath,
         unstagedChanges, stagedChanges: [], mergeConflicts,
       });
+
+      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+      showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
     });
 
     it('invokes a callback only when a single file is selected', async function() {
