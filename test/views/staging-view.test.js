@@ -6,7 +6,7 @@ import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
   const workingDirectoryPath = '/not/real/';
-  let atomEnv, commandRegistry, workspace, showFilePatchItem;
+  let atomEnv, commandRegistry, workspace, showFilePatchItem, showMergeConflictFileForPath;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -14,6 +14,7 @@ describe('StagingView', function() {
     workspace = atomEnv.workspace;
 
     showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+    showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
   });
 
   afterEach(function() {
@@ -245,39 +246,64 @@ describe('StagingView', function() {
         atom.config.set('github.keyboardNavigationDelay', 0);
       });
 
-      it('synchronously notifies the parent component via the appropriate callback', async function() {
+      it('synchronously calls showFilePatchItem if there is a pending file patch item open', async function() {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
         ];
-        const mergeConflicts = [{
-          filePath: 'conflicted-path',
-          status: {
-            file: 'modified',
-            ours: 'deleted',
-            theirs: 'modified',
-          },
-        }];
-
-        const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
-          workspace, workingDirectoryPath, commandRegistry, didSelectMergeConflictFile,
-          unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: filePatches, mergeConflicts: [], stagedChanges: [],
         });
         document.body.appendChild(view.element);
 
-        sinon.stub(view, 'pendingFilePatchItemPresent').returns(true);
+        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
+        await view.selectNext();
+        assert.isFalse(showFilePatchItem.called);
+
+        getPendingFilePatchItem.returns(true);
+        await view.selectPrevious();
+        assert.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
         await view.selectNext();
         assert.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
-        await view.selectNext();
-        assert.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
 
-        document.body.focus();
-        showFilePatchItem.reset();
-        didSelectMergeConflictFile.reset();
+        view.element.remove();
+      });
+
+      it('does not call showMergeConflictFileForPath', async function() {
+        // Currently we don't show merge conflict files while using keyboard nav. They can only be viewed via clicking.
+        // This behavior is different from the diff views because merge conflict files are regular editors with decorations
+        // We might change this in the future to also open pending items
+        const mergeConflicts = [
+          {
+            filePath: 'conflicted-path-1',
+            status: {
+              file: 'modified',
+              ours: 'deleted',
+              theirs: 'modified',
+            },
+          },
+          {
+            filePath: 'conflicted-path-2',
+            status: {
+              file: 'modified',
+              ours: 'deleted',
+              theirs: 'modified',
+            },
+          },
+        ];
+
+        const view = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: [], mergeConflicts, stagedChanges: [],
+        });
+        document.body.appendChild(view.element);
+
         await view.selectNext();
-        assert.equal(didSelectMergeConflictFile.callCount, 1);
+        const selectedItems = view.getSelectedItems().map(item => item.filePath);
+        assert.deepEqual(selectedItems, ['conflicted-path-2']);
+        assert.isFalse(showMergeConflictFileForPath.called);
 
         view.element.remove();
       });
@@ -288,43 +314,27 @@ describe('StagingView', function() {
         atom.config.set('github.keyboardNavigationDelay', 50);
       });
 
-      it('asynchronously notifies the parent component via the appropriate callback', async function() {
+      it('asynchronously calls showFilePatchItem if there is a pending file patch item open', async function() {
         const filePatches = [
           {filePath: 'a.txt', status: 'modified'},
           {filePath: 'b.txt', status: 'deleted'},
         ];
-        const mergeConflicts = [{
-          filePath: 'conflicted-path',
-          status: {
-            file: 'modified',
-            ours: 'deleted',
-            theirs: 'modified',
-          },
-        }];
-
-        const didSelectMergeConflictFile = sinon.spy();
 
         const view = new StagingView({
           workspace, workingDirectoryPath, commandRegistry,
-          didSelectMergeConflictFile,
-          unstagedChanges: filePatches, mergeConflicts, stagedChanges: [],
+          unstagedChanges: filePatches, mergeConflicts: [], stagedChanges: [],
         });
         document.body.appendChild(view.element);
 
-        sinon.stub(view, 'pendingFilePatchItemPresent').returns(true);
-
+        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
         await view.selectNext();
-        assert.isFalse(showFilePatchItem.calledWith(filePatches[1].filePath));
+        assert.isFalse(showFilePatchItem.called);
+
+        getPendingFilePatchItem.returns(true);
+        await view.selectPrevious();
+        await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        await view.selectNext();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
-        await view.selectNext();
-        assert.isFalse(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
-        await assert.async.isTrue(didSelectMergeConflictFile.calledWith(mergeConflicts[0].filePath));
-
-        document.body.focus();
-        showFilePatchItem.reset();
-        didSelectMergeConflictFile.reset();
-        await view.selectNext();
-        await assert.async.isTrue(didSelectMergeConflictFile.callCount === 1);
 
         view.element.remove();
       });
@@ -452,7 +462,7 @@ describe('StagingView', function() {
   });
 
   describe('when navigating with core:move-left', function() {
-    let view, didDiveIntoFilePath, didDiveIntoMergeConflictPath;
+    let view;
 
     beforeEach(function() {
       const unstagedChanges = [
@@ -464,22 +474,27 @@ describe('StagingView', function() {
         {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
       ];
 
-      didDiveIntoFilePath = sinon.spy();
-      didDiveIntoMergeConflictPath = sinon.spy();
-
       view = new StagingView({
         workspace, commandRegistry, workingDirectoryPath,
-        didDiveIntoMergeConflictPath,
         unstagedChanges, stagedChanges: [], mergeConflicts,
       });
     });
 
-    it('invokes a callback with a single file selection', async function() {
+    it('invokes a callback only when a single file is selected', async function() {
       await view.selectFirst();
 
       commandRegistry.dispatch(view.element, 'core:move-left');
 
       assert.isTrue(showFilePatchItem.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
+
+      showFilePatchItem.reset();
+      await view.selectAll();
+      const selectedFilePaths = view.getSelectedItems().map(item => item.filePath).sort();
+      assert.deepEqual(selectedFilePaths, ['unstaged-1.txt', 'unstaged-2.txt']);
+
+      commandRegistry.dispatch(view.element, 'core:move-left');
+
+      assert.equal(showFilePatchItem.callCount, 0);
     });
 
     it('invokes a callback with a single merge conflict selection', async function() {
@@ -488,26 +503,16 @@ describe('StagingView', function() {
 
       commandRegistry.dispatch(view.element, 'core:move-left');
 
-      assert.isTrue(didDiveIntoMergeConflictPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
-    });
+      assert.isTrue(showMergeConflictFileForPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
 
-    it('does nothing with multiple files selections', async function() {
+      showMergeConflictFileForPath.reset();
       await view.selectAll();
+      const selectedFilePaths = view.getSelectedItems().map(item => item.filePath).sort();
+      assert.deepEqual(selectedFilePaths, ['conflict-1.txt', 'conflict-2.txt']);
 
       commandRegistry.dispatch(view.element, 'core:move-left');
 
-      assert.equal(didDiveIntoFilePath.callCount, 0);
-      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
-    });
-
-    it('does nothing with multiple merge conflict selections', async function() {
-      await view.activateNextList();
-      await view.selectAll();
-
-      commandRegistry.dispatch(view.element, 'core:move-left');
-
-      assert.equal(didDiveIntoFilePath.callCount, 0);
-      assert.equal(didDiveIntoMergeConflictPath.callCount, 0);
+      assert.equal(showMergeConflictFileForPath.callCount, 0);
     });
   });
 
