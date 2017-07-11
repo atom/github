@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -57,7 +57,7 @@
     "moment": "^2.17.1",
     "multi-list-selection": "^0.1.1",
     "ncp": "^2.0.0",
-    "nsfw": "1.0.15",
+    "nsfw": "1.0.16",
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
