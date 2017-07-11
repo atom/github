@@ -12,6 +12,9 @@ describe('StagingView', function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
     workspace = atomEnv.workspace;
+
+    sinon.stub(workspace, 'open');
+    sinon.stub(workspace, 'paneForItem').returns({activateItem: () => {}});
   });
 
   afterEach(function() {
