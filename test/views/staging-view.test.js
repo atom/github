@@ -240,6 +240,73 @@ describe('StagingView', function() {
     });
   });
 
+  describe('showFilePatchItem(filePath, stagingStatus, {activate})', function() {
+    describe('calls to workspace.open', function() {
+      it('passes amending as a query parameter if props.isAmending is true', function() {
+        const viewNoAmending = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: [], stagedChanges: [],
+        });
+
+        viewNoAmending.showFilePatchItem('file.txt', 'staged');
+        assert.equal(workspace.open.callCount, 1);
+        assert.deepEqual(workspace.open.args[0], [
+          'atom-github://file-patch/file.txt?stagingStatus=staged',
+          {pending: true, activatePane: false, activateItem: false},
+        ]);
+
+        workspace.open.reset();
+        const viewWithAmending = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: [], stagedChanges: [],
+          isAmending: true, lastCommit: {getSha: () => 'basdf5475sdf7'},
+        });
+
+        viewWithAmending.showFilePatchItem('file.txt', 'staged');
+        assert.equal(workspace.open.callCount, 1);
+        assert.deepEqual(workspace.open.args[0], [
+          'atom-github://file-patch/file.txt?stagingStatus=staged&amending',
+          {pending: true, activatePane: false, activateItem: false},
+        ]);
+      });
+
+      it('passes activation options and focuses the returned item if activate is true', async function() {
+        const view = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: [], stagedChanges: [],
+        });
+
+        const filePatchItem = {focus: sinon.spy()};
+        workspace.open.returns(filePatchItem);
+        await view.showFilePatchItem('file.txt', 'staged', {activate: true});
+        assert.equal(workspace.open.callCount, 1);
+        assert.deepEqual(workspace.open.args[0], [
+          'atom-github://file-patch/file.txt?stagingStatus=staged',
+          {pending: true, activatePane: true, activateItem: true},
+        ]);
+        assert.isTrue(filePatchItem.focus.called);
+      });
+
+      it('makes the item visible if activate is false', async function() {
+        const view = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry,
+          unstagedChanges: [], stagedChanges: [],
+        });
+
+        const focus = sinon.spy();
+        const filePatchItem = {focus};
+        workspace.open.returns(filePatchItem);
+        const activateItem = sinon.spy();
+        workspace.paneForItem.returns({activateItem});
+        await view.showFilePatchItem('file.txt', 'staged', {activate: false});
+        assert.equal(workspace.open.callCount, 1);
+        assert.isFalse(focus.called);
+        assert.equal(activateItem.callCount, 1);
+        assert.equal(activateItem.args[0][0], filePatchItem);
+      });
+    });
+  });
+
   describe('when the selection changes', function() {
     let showFilePatchItem, showMergeConflictFileForPath;
     beforeEach(function() {
