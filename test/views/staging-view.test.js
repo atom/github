@@ -4,7 +4,7 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import {assertEqualSets} from '../helpers';
 
-describe('StagingView', function() {
+describe.only('StagingView', function() {
   const workingDirectoryPath = '/not/real/';
   let atomEnv, commandRegistry, workspace;
 
@@ -304,6 +304,32 @@ describe('StagingView', function() {
         assert.equal(activateItem.callCount, 1);
         assert.equal(activateItem.args[0][0], filePatchItem);
       });
+    });
+  });
+
+  describe('showMergeConflictFileForPath(relativeFilePath, {activate})', function() {
+    it('passes activation options and focuses the returned item if activate is true', async function() {
+      const view = new StagingView({
+        workspace, workingDirectoryPath, commandRegistry,
+        unstagedChanges: [], stagedChanges: [],
+      });
+
+      sinon.stub(view, 'fileExists').returns(true);
+
+      await view.showMergeConflictFileForPath('conflict.txt');
+      assert.equal(workspace.open.callCount, 1);
+      assert.deepEqual(workspace.open.args[0], [
+        path.join(workingDirectoryPath, 'conflict.txt'),
+        {pending: true, activatePane: false, activateItem: false},
+      ]);
+
+      workspace.open.reset();
+      await view.showMergeConflictFileForPath('conflict.txt', {activate: true});
+      assert.equal(workspace.open.callCount, 1);
+      assert.deepEqual(workspace.open.args[0], [
+        path.join(workingDirectoryPath, 'conflict.txt'),
+        {pending: true, activatePane: true, activateItem: true},
+      ]);
     });
   });
 
