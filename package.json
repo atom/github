@@ -162,6 +162,7 @@
     "GitTimingsView": "createGitTimingsView",
     "IssueishPaneItem": "createIssueishPaneItem",
     "GitTabControllerStub": "createGitTabControllerStub",
-    "GithubTabControllerStub": "createGithubTabControllerStub"
+    "GithubTabControllerStub": "createGithubTabControllerStub",
+    "FilePatchControllerStub": "createFilePatchControllerStub"
   }
 }

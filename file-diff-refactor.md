@@ -1,6 +1,0 @@
-- [ ] rearchitect code - update whenever index changes - get selected item from the git panel, check amending, display
-	- when index changes, invalidate cache
-	- if diff view open (based on state), get file selected from git panel, get from repo (or cache)
-		- set diff view state open if clicked on file, or dive into file, or view from editor
-		- set diff view state closed if pane item is destroyed, committed and it was staged, last one staged? (and focus commit box) no I don’t think so…
-- [ ] bug after merge marker prompt
