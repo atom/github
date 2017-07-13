@@ -80,6 +80,11 @@ describe('Repository', function() {
       const repositoryWithGitFile = new Repository(workingDirPathWithGitFile);
       await assert.async.equal(repositoryWithGitFile.getGitDirectoryPath(), path.join(workingDirPath, '.git'));
     });
+
+    it('returns null for absent/loading repositories', function() {
+      const repo = Repository.absent();
+      repo.getGitDirectoryPath();
+    });
   });
 
   describe('init', function() {
