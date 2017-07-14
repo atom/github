@@ -161,8 +161,7 @@
   "deserializers": {
     "GitTimingsView": "createGitTimingsView",
     "IssueishPaneItem": "createIssueishPaneItem",
-    "GitTabControllerStub": "createGitTabControllerStub",
-    "GithubTabControllerStub": "createGithubTabControllerStub",
+    "DockItem": "createDockItemStub",
     "FilePatchControllerStub": "createFilePatchControllerStub"
   }
 }
