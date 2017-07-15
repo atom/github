@@ -9,7 +9,7 @@ import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
-  let getLoadSettings, configDirPath;
+  let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
   beforeEach(function() {
@@ -17,6 +17,7 @@ describe('GithubPackage', function() {
     workspace = atomEnv.workspace;
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
+    deserializers = atomEnv.deserializers;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
@@ -28,7 +29,7 @@ describe('GithubPackage', function() {
 
     githubPackage = new GithubPackage(
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-      configDirPath, getLoadSettings,
+      deserializers, configDirPath, getLoadSettings,
     );
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
@@ -68,7 +69,7 @@ describe('GithubPackage', function() {
 
       githubPackage1 = new GithubPackage(
         workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-        configDirPath, getLoadSettings1,
+        deserializers, configDirPath, getLoadSettings1,
       );
     }
 
