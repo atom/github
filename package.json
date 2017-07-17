@@ -63,6 +63,7 @@
     "react-dom": "^15.5.4",
     "react-relay": "^0.10.0",
     "temp": "^0.8.3",
+    "tinycolor2": "^1.4.1",
     "tree-kill": "^1.1.0",
     "what-the-diff": "^0.3.0",
     "what-the-status": "^1.0.2",
