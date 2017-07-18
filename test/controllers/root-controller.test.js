@@ -59,42 +59,6 @@ describe('RootController', function() {
       assert.equal(activated, isActivated);
     }
 
-    it('is not rendered when the saved state indicates they were not visible last run', async function() {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository, savedState: {gitTabActive: false, githubTabActive: false}});
-      const wrapper = shallow(app);
-
-      assertInitialTabState({
-        wrapper, tabName: 'git',
-        rendered: false, visible: false, activated: false,
-      });
-
-      assertInitialTabState({
-        wrapper, tabName: 'github',
-        rendered: false, visible: false, activated: false,
-      });
-    });
-
-    it('is visible when the saved state indicates they were visible last run', async function() {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository, savedState: {gitTabActive: true, githubTabActive: true}});
-      const wrapper = shallow(app);
-
-      assertInitialTabState({
-        wrapper, tabName: 'git',
-        rendered: true, activated: false, visible: true,
-      });
-
-      assertInitialTabState({
-        wrapper, tabName: 'github',
-        rendered: true, activated: false, visible: true,
-      });
-    });
-
     it('is rendered but not activated when startOpen prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
@@ -367,11 +331,7 @@ describe('RootController', function() {
         const workdirPath = await cloneRepository('multiple-commits');
         const repository = await buildRepository(workdirPath);
 
-        const savedState = {
-          gitTabActive: false,
-          githubTabActive: false,
-        };
-        app = React.cloneElement(app, {repository, savedState});
+        app = React.cloneElement(app, {repository});
         wrapper = shallow(app);
         tabTracker = wrapper.instance()[`${tabName}TabTracker`];
 
