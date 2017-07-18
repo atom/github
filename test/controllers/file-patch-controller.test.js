@@ -196,7 +196,7 @@ describe('FilePatchController', function() {
       const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk1]);
       getFilePatchForPath.returns(filePatch);
 
-      wrapper.instance().onRepoRefresh();
+      wrapper.instance().onRepoRefresh(repository);
       await assert.async.isTrue(wrapper.find('FilePatchView').exists());
     });
 
@@ -217,7 +217,7 @@ describe('FilePatchController', function() {
       const filePatch1 = new FilePatch(filePath, filePath, 'modified', [hunk1, hunk3]);
       getFilePatchForPath.returns(filePatch1);
 
-      wrapper.instance().onRepoRefresh();
+      wrapper.instance().onRepoRefresh(repository);
       let view1;
       await until(() => {
         view1 = wrapper.find('FilePatchView').shallow();
