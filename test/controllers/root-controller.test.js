@@ -324,8 +324,8 @@ describe('RootController', function() {
   });
 
   ['git', 'github'].forEach(function(tabName) {
-    describe.only(`${tabName} tab tracker`, function() {
-      let wrapper, tabTracker, stateKey, tabIndex, mockDockItem;
+    describe(`${tabName} tab tracker`, function() {
+      let wrapper, tabTracker, mockDockItem;
 
       beforeEach(async function() {
         const workdirPath = await cloneRepository('multiple-commits');
@@ -338,20 +338,8 @@ describe('RootController', function() {
         sinon.stub(tabTracker, 'focus');
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        stateKey = `${tabName}TabActive`;
-        tabIndex = {git: 0, github: 1}[tabName];
-
         const FAKE_PANE_ITEM = Symbol('fake pane item');
         mockDockItem = {
-          active: false,
-          reveal() {
-            this.active = true;
-            return Promise.resolve();
-          },
-          hide() {
-            this.active = false;
-            return Promise.resolve();
-          },
           getDockItem() {
             return FAKE_PANE_ITEM;
           },
@@ -365,94 +353,119 @@ describe('RootController', function() {
         }]);
       });
 
-      function assertTabState({rendered, active}) {
-        const isRendered = wrapper.find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`}).exists();
-        const isActive = mockDockItem.active;
+      describe('reveal', function() {
+        it('calls workspace.open with the correct uri', function() {
+          sinon.stub(workspace, 'open');
 
-        assert.equal(isRendered, rendered);
-        assert.equal(isActive, active);
-      }
+          tabTracker.reveal();
+          assert.equal(workspace.open.callCount, 1);
+          assert.deepEqual(workspace.open.args[0], [
+            `atom-github://dock-item/${tabName}`,
+            {searchAllPanes: true, activateItem: true, activatePane: true},
+          ]);
+        });
+      });
+
+      describe('hide', function() {
+        it('calls workspace.hide with the correct uri', function() {
+          sinon.stub(workspace, 'hide');
+
+          tabTracker.hide();
+          assert.equal(workspace.hide.callCount, 1);
+          assert.deepEqual(workspace.hide.args[0], [
+            `atom-github://dock-item/${tabName}`,
+          ]);
+        });
+      });
 
       describe('toggle()', function() {
-        it.only(`renders and reveals the ${tabName} tab when item is not rendered`, async function() {
-          assertTabState({rendered: false, active: false});
+        it(`reveals the ${tabName} tab when item is not rendered`, async function() {
+          sinon.stub(tabTracker, 'reveal');
+
+          sinon.stub(tabTracker, 'isRendered').returns(false);
+          sinon.stub(tabTracker, 'isVisible').returns(false);
 
           await tabTracker.toggle();
-
-          assertTabState({rendered: true, active: true});
+          assert.equal(tabTracker.reveal.callCount, 1);
         });
 
         it(`reveals the ${tabName} tab when the item is rendered but not active`, async function() {
-          wrapper.setState({[stateKey]: true});
+          sinon.stub(tabTracker, 'reveal');
 
-          assertTabState({rendered: true, active: false});
+          sinon.stub(tabTracker, 'isRendered').returns(true);
+          sinon.stub(tabTracker, 'isVisible').returns(false);
 
           await tabTracker.toggle();
-
-          assertTabState({rendered: true, active: true});
+          assert.equal(tabTracker.reveal.callCount, 1);
         });
 
         it(`hides the ${tabName} tab when open`, async function() {
-          wrapper.setState({[stateKey]: true, activeTab: tabIndex});
-          mockDockItem.active = true;
+          sinon.stub(tabTracker, 'hide');
 
-          assertTabState({rendered: true, active: true});
+          sinon.stub(tabTracker, 'isRendered').returns(true);
+          sinon.stub(tabTracker, 'isVisible').returns(true);
 
           await tabTracker.toggle();
-
-          assertTabState({rendered: true, active: false});
+          assert.equal(tabTracker.hide.callCount, 1);
         });
       });
 
       describe('toggleFocus()', function() {
-        it(`opens and focuses the ${tabName} tab when it is initially closed`, async function() {
-          assertTabState({rendered: false, active: false});
+        it(`reveals and focuses the ${tabName} tab when it is initially closed`, async function() {
+          sinon.stub(tabTracker, 'reveal');
+
+          sinon.stub(tabTracker, 'isRendered').returns(false);
+          sinon.stub(tabTracker, 'isVisible').returns(false);
+
           sinon.stub(tabTracker, 'hasFocus').returns(false);
 
           await tabTracker.toggleFocus();
 
-          assertTabState({rendered: true, active: true});
+          assert.equal(tabTracker.reveal.callCount, 1);
           assert.isTrue(tabTracker.focus.called);
           assert.isFalse(workspace.getActivePane().activate.called);
         });
 
         it(`focuses the ${tabName} tab when it is already open, but blurred`, async function() {
-          await tabTracker.ensureVisible();
-          assertTabState({rendered: true, active: true});
+          sinon.stub(tabTracker, 'isRendered').returns(true);
+          sinon.stub(tabTracker, 'isVisible').returns(true);
           sinon.stub(tabTracker, 'hasFocus').returns(false);
 
           await tabTracker.toggleFocus();
 
-          assertTabState({rendered: true, active: true});
           assert.isTrue(tabTracker.focus.called);
           assert.isFalse(workspace.getActivePane().activate.called);
         });
 
         it(`blurs the ${tabName} tab when it is already open and focused`, async function() {
-          await tabTracker.ensureVisible();
-          assertTabState({rendered: true, active: true});
+          sinon.stub(tabTracker, 'isRendered').returns(true);
+          sinon.stub(tabTracker, 'isVisible').returns(true);
           sinon.stub(tabTracker, 'hasFocus').returns(true);
 
           await tabTracker.toggleFocus();
 
-          assertTabState({rendered: true, active: true});
           assert.isFalse(tabTracker.focus.called);
           assert.isTrue(workspace.getActivePane().activate.called);
         });
       });
 
       describe('ensureVisible()', function() {
-        it(`opens the ${tabName} tab when it is initially closed`, async function() {
-          assertTabState({rendered: false, active: false});
+        it(`reveals the ${tabName} tab when it is initially closed`, async function() {
+          sinon.stub(tabTracker, 'reveal');
+
+          sinon.stub(tabTracker, 'isRendered').returns(false);
+          sinon.stub(tabTracker, 'isVisible').returns(false);
           assert.isTrue(await tabTracker.ensureVisible());
-          assertTabState({rendered: true, active: true});
+          assert.equal(tabTracker.reveal.callCount, 1);
         });
 
         it(`does nothing when the ${tabName} tab is already open`, async function() {
-          await tabTracker.toggle();
-          assertTabState({rendered: true, active: true});
+          sinon.stub(tabTracker, 'reveal');
+
+          sinon.stub(tabTracker, 'isRendered').returns(true);
+          sinon.stub(tabTracker, 'isVisible').returns(true);
           assert.isFalse(await tabTracker.ensureVisible());
-          assertTabState({rendered: true, active: true});
+          assert.equal(tabTracker.reveal.callCount, 0);
         });
       });
     });
