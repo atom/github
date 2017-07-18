@@ -49,50 +49,51 @@ describe('RootController', function() {
   });
 
   describe('initial panel visibility', function() {
-    function assertInitialTabState({tabName, wrapper, rendered, visible, activated}) {
-      const dockItem = wrapper
-        .find('DockItem').find({stubItemSelector: `${tabName}-tab-controller`});
-      const isRendered = dockItem.exists();
-      const isActivated = isRendered ? dockItem.prop('activate') === true : false;
-
-      assert.equal(rendered, isRendered);
-      assert.equal(activated, isActivated);
-    }
+    let gitTabStubItem, githubTabStubItem;
+    beforeEach(function() {
+      const FAKE_PANE_ITEM = Symbol('fake pane item');
+      gitTabStubItem = {
+        getDockItem() {
+          return FAKE_PANE_ITEM;
+        },
+      };
+      githubTabStubItem = {
+        getDockItem() {
+          return FAKE_PANE_ITEM;
+        },
+      };
+    });
 
     it('is rendered but not activated when startOpen prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startOpen: false});
+      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: false});
       const wrapper = shallow(app);
 
-      assertInitialTabState({
-        wrapper, tabName: 'git',
-        rendered: true, activated: false, visible: false,
-      });
+      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
+      assert.isTrue(gitDockItem.exists());
+      assert.isFalse(gitDockItem.prop('activate'));
 
-      assertInitialTabState({
-        wrapper, tabName: 'github',
-        rendered: true, activated: false, visible: false,
-      });
+      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
+      assert.isTrue(githubDockItem.exists());
+      assert.isNotTrue(githubDockItem.prop('activate'));
     });
 
     it('is initially activated when the startOpen prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startOpen: true});
+      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: true});
       const wrapper = shallow(app);
 
-      assertInitialTabState({
-        wrapper, tabName: 'git',
-        rendered: true, activated: true, visible: true,
-      });
+      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
+      assert.isTrue(gitDockItem.exists());
+      assert.isTrue(gitDockItem.prop('activate'));
 
-      assertInitialTabState({
-        wrapper, tabName: 'github',
-        rendered: true, activated: false, visible: true,
-      });
+      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
+      assert.isTrue(githubDockItem.exists());
+      assert.isNotTrue(githubDockItem.prop('activate'));
     });
   });
 
