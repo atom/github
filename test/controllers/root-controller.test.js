@@ -120,10 +120,10 @@ describe('RootController', function() {
       assert.equal(wrapper.find('FilePatchController').length, 0);
 
       app = React.cloneElement(app, {repository, filePatchItems: [
-        {uri: 'atom-github://file-patch/a.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
-        {uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
-        {uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
-        {uri: 'atom-github://file-patch/c.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
+        {key: 1, uri: 'atom-github://file-patch/a.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
+        {key: 2, uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
+        {key: 3, uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
+        {key: 4, uri: 'atom-github://file-patch/c.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
       ]});
       wrapper = shallow(app);
 
