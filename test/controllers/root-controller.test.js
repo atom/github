@@ -6,17 +6,15 @@ import {shallow, mount} from 'enzyme';
 import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {writeFile} from '../../lib/helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
-import StubItem from '../../lib/atom-items/stub-item';
 
 describe('RootController', function() {
   let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, app;
-  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatch;
+  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -31,7 +29,7 @@ describe('RootController', function() {
     getRepositoryForWorkdir = sinon.stub();
     destroyGitTabItem = sinon.spy();
     destroyGithubTabItem = sinon.spy();
-    removeFilePatch = sinon.spy();
+    removeFilePatchItem = sinon.spy();
 
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
@@ -54,7 +52,7 @@ describe('RootController', function() {
         getRepositoryForWorkdir={getRepositoryForWorkdir}
         destroyGitTabItem={destroyGitTabItem}
         destroyGithubTabItem={destroyGithubTabItem}
-        removeFilePatch={removeFilePatch}
+        removeFilePatchItem={removeFilePatchItem}
       />
     );
   });

@@ -16,7 +16,7 @@ import Switchboard from '../../lib/switchboard';
 describe('FilePatchController', function() {
   let atomEnv, commandRegistry, tooltips, deserializers;
   let component, switchboard, repository, filePath, getFilePatchForPath, repositoryStateRegistry, workdirPath;
-  let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles, getRepository;
+  let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles, getRepositoryForWorkdir;
   let getSelectedStagingViewItems;
 
   beforeEach(async function() {
@@ -48,7 +48,7 @@ describe('FilePatchController', function() {
     workdirPath = await cloneRepository('multi-line-file');
     repository = await buildRepository(workdirPath);
 
-    getRepository = () => repository;
+    getRepositoryForWorkdir = () => repository;
     const resolutionProgress = new ResolutionProgress();
 
     FilePatchController.resetConfirmedLargeFilePatches();
@@ -72,7 +72,7 @@ describe('FilePatchController', function() {
         quietlySelectItem={quietlySelectItem}
         undoLastDiscard={undoLastDiscard}
         openFiles={openFiles}
-        getRepository={getRepository}
+        getRepositoryForWorkdir={getRepositoryForWorkdir}
         repositoryStateRegistry={repositoryStateRegistry}
         workingDirectoryPath={repository.getWorkingDirectoryPath()}
         getSelectedStagingViewItems={getSelectedStagingViewItems}
