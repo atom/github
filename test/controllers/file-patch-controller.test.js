@@ -530,9 +530,7 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {filePath}));
 
-        console.log(1);
         await assert.async.isTrue(wrapper.find('FilePatchView').exists());
-        console.log(2);
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line')
           .simulate('mousedown', {button: 0, detail: 1});
@@ -543,28 +541,20 @@ describe('FilePatchController', function() {
         const line1StagingPromise = switchboard.getFinishStageOperationPromise();
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
-        console.log(3);
         await line1StagingPromise;
-        console.log(4);
         // assert that only line 1 has been staged
         repository.refresh(); // clear the cached file patches
-        console.log(5);
         const modifiedFilePatch = await repository.getFilePatchForPath(filePath);
-        console.log(6);
         let expectedLines = originalLines.slice();
         expectedLines.splice(1, 0,
           'this is a modified line',
         );
-        console.log(7);
         let actualLines = await repository.readFileFromIndex(filePath);
-        console.log(8);
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
         const changePatchPromise = switchboard.getChangePatchPromise();
         wrapper.setState({filePatch: modifiedFilePatch});
-        console.log('before');
         await changePatchPromise;
-        console.log('after');
 
         const hunkView1 = wrapper.find('HunkView').at(0);
         hunkView1.find('LineView').at(2).find('.github-HunkView-line')
@@ -572,9 +562,7 @@ describe('FilePatchController', function() {
         window.dispatchEvent(new MouseEvent('mouseup'));
         const line2StagingPromise = switchboard.getFinishStageOperationPromise();
         hunkView1.find('.github-HunkView-stageButton').simulate('click');
-        console.log(9);
         await line2StagingPromise;
-        console.log(10);
 
         // assert that line 2 has now been staged
         expectedLines = originalLines.slice();
@@ -582,9 +570,7 @@ describe('FilePatchController', function() {
           'this is a modified line',
           'this is a new line',
         );
-        console.log(11);
         actualLines = await repository.readFileFromIndex(filePath);
-        console.log(12);
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
       });
 
