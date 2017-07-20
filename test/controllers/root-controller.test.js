@@ -12,17 +12,26 @@ import Repository from '../../lib/models/repository';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
+import StubItem from '../../lib/atom-items/stub-item';
 
 describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, app;
+  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, app;
+  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatch;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     commandRegistry = atomEnv.commands;
+    deserializers = atomEnv.deserializers;
+    grammars = atomEnv.grammars;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
+
+    getRepositoryForWorkdir = sinon.stub();
+    destroyGitTabItem = sinon.spy();
+    destroyGithubTabItem = sinon.spy();
+    removeFilePatch = sinon.spy();
 
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
@@ -32,6 +41,8 @@ describe('RootController', function() {
       <RootController
         workspace={workspace}
         commandRegistry={commandRegistry}
+        deserializers={deserializers}
+        grammars={grammars}
         notificationManager={notificationManager}
         tooltips={tooltips}
         config={config}
@@ -40,6 +51,10 @@ describe('RootController', function() {
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
         filePatchItems={[]}
+        getRepositoryForWorkdir={getRepositoryForWorkdir}
+        destroyGitTabItem={destroyGitTabItem}
+        destroyGithubTabItem={destroyGithubTabItem}
+        removeFilePatch={removeFilePatch}
       />
     );
   });
@@ -97,230 +112,65 @@ describe('RootController', function() {
     });
   });
 
-  xdescribe('showMergeConflictFileForPath(relativeFilePath, {focus} = {})', function() {
-    it('opens the file as a pending pane item if it exists', async function() {
-      const workdirPath = await cloneRepository('merge-conflict');
-      const repository = await buildRepository(workdirPath);
-      sinon.spy(workspace, 'open');
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-      await wrapper.instance().showMergeConflictFileForPath('added-to-both.txt');
-
-      assert.equal(workspace.open.callCount, 1);
-      assert.deepEqual(workspace.open.args[0], [path.join(workdirPath, 'added-to-both.txt'), {activatePane: false, pending: true}]);
-    });
-
-    describe('when the file doesn\'t exist', function() {
-      it('shows an info notification and does not open the file', async function() {
-        const workdirPath = await cloneRepository('merge-conflict');
-        const repository = await buildRepository(workdirPath);
-        fs.unlinkSync(path.join(workdirPath, 'added-to-both.txt'));
-
-        sinon.spy(notificationManager, 'addInfo');
-        sinon.spy(workspace, 'open');
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-
-        assert.equal(notificationManager.getNotifications().length, 0);
-        await wrapper.instance().showMergeConflictFileForPath('added-to-both.txt');
-        assert.equal(workspace.open.callCount, 0);
-        assert.equal(notificationManager.addInfo.callCount, 1);
-        assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
-      });
-    });
-  });
-
-  xdescribe('diveIntoMergeConflictFileForPath(relativeFilePath)', function() {
-    it('opens the file and focuses the pane', async function() {
-      const workdirPath = await cloneRepository('merge-conflict');
-      const repository = await buildRepository(workdirPath);
-      sinon.spy(workspace, 'open');
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      await wrapper.instance().diveIntoMergeConflictFileForPath('added-to-both.txt');
-
-      assert.equal(workspace.open.callCount, 1);
-      assert.deepEqual(workspace.open.args[0], [path.join(workdirPath, 'added-to-both.txt'), {activatePane: true, pending: true}]);
-    });
-  });
-
   describe('rendering a FilePatch', function() {
-    it('renders the FilePatchController based on state', async function() {
+    it('renders the FilePatchController based on props.filePatchItems', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
+      app = React.cloneElement(app, {repository, filePatchItems: []});
+      let wrapper = shallow(app);
 
-      wrapper.setState({
-        filePath: null,
-        filePatch: null,
-        stagingStatus: null,
-      });
       assert.equal(wrapper.find('FilePatchController').length, 0);
 
-      const state = {
-        filePath: 'path',
-        filePatch: {getPath: () => 'path.txt'},
-        stagingStatus: 'unstaged',
-      };
-      wrapper.setState(state);
-      assert.equal(wrapper.find('FilePatchController').length, 1);
-      assert.equal(wrapper.find('PaneItem').length, 1);
-      assert.equal(wrapper.find('PaneItem FilePatchController').length, 1);
-      assert.equal(wrapper.find('FilePatchController').prop('filePatch'), state.filePatch);
-      assert.equal(wrapper.find('FilePatchController').prop('stagingStatus'), state.stagingStatus);
-      assert.equal(wrapper.find('FilePatchController').prop('repository'), app.props.repository);
-    });
-  });
+      app = React.cloneElement(app, {repository, filePatchItems: [
+        {uri: 'atom-github://file-patch/a.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
+        {uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
+        {uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
+        {uri: 'atom-github://file-patch/c.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
+      ]});
+      wrapper = shallow(app);
 
-  // move to FilePatchController
-  xdescribe('showFilePatchForPath(filePath, staged, {amending, activate})', function() {
-    describe('when a file is selected in the staging panel', function() {
-      it('sets appropriate state', async function() {
-        const workdirPath = await cloneRepository('three-files');
-        const repository = await buildRepository(workdirPath);
-
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8');
-        fs.writeFileSync(path.join(workdirPath, 'd.txt'), 'new-file', 'utf8');
-        await repository.stageFiles(['d.txt']);
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-
-        await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged');
-
-        assert.equal(wrapper.state('filePath'), 'a.txt');
-        assert.equal(wrapper.state('filePatch').getPath(), 'a.txt');
-        assert.equal(wrapper.state('stagingStatus'), 'unstaged');
-
-        await wrapper.instance().showFilePatchForPath('d.txt', 'staged');
-
-        assert.equal(wrapper.state('filePath'), 'd.txt');
-        assert.equal(wrapper.state('filePatch').getPath(), 'd.txt');
-        assert.equal(wrapper.state('stagingStatus'), 'staged');
-
-        wrapper.find('PaneItem').prop('onDidCloseItem')();
-        assert.isNull(wrapper.state('filePath'));
-        assert.isNull(wrapper.state('filePatch'));
-
-        const activate = sinon.stub();
-        wrapper.instance().filePatchControllerPane = {activate};
-        await wrapper.instance().showFilePatchForPath('d.txt', 'staged', {activate: true});
-        assert.equal(activate.callCount, 1);
-      });
-    });
-
-    describe('when there is a change to the repo', function() {
-      it('calls onRepoRefresh', async function() {
-        const workdirPath = await cloneRepository('multiple-commits');
-        const repository = await buildRepository(workdirPath);
-
-        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change', 'utf8');
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-
-        sinon.spy(wrapper.instance(), 'onRepoRefresh');
-        repository.refresh();
-        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
-        assert.isTrue(wrapper.instance().onRepoRefresh.called);
-      });
-    });
-
-    describe('#onRepoRefresh', function() {
-      it('sets the correct FilePatch as state', async function() {
-        const workdirPath = await cloneRepository('multiple-commits');
-        const repository = await buildRepository(workdirPath);
-
-        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change', 'utf8');
-
-        app = React.cloneElement(app, {repository});
-        const wrapper = shallow(app);
-
-        await wrapper.instance().showFilePatchForPath('file.txt', 'unstaged', {activate: true});
-
-        const originalFilePatch = wrapper.state('filePatch');
-        assert.equal(wrapper.state('filePath'), 'file.txt');
-        assert.equal(wrapper.state('filePatch').getPath(), 'file.txt');
-        assert.equal(wrapper.state('stagingStatus'), 'unstaged');
-
-        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nand again!', 'utf8');
-        repository.refresh();
-        await wrapper.instance().onRepoRefresh();
-
-        assert.equal(wrapper.state('filePath'), 'file.txt');
-        assert.equal(wrapper.state('filePatch').getPath(), 'file.txt');
-        assert.equal(wrapper.state('stagingStatus'), 'unstaged');
-        assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
-      });
-    });
-
-    // https://github.com/atom/github/issues/505
-    it('calls repository.getFilePatchForPath with amending: true only if staging status is staged', async () => {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      sinon.stub(repository, 'getFilePatchForPath');
-      await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged', {amending: true});
-      assert.equal(repository.getFilePatchForPath.callCount, 1);
-      assert.deepEqual(repository.getFilePatchForPath.args[0], ['a.txt', {staged: false, amending: false}]);
-    });
-  });
-
-  xdescribe('diveIntoFilePatchForPath(filePath, staged, {amending, activate})', function() {
-    it('reveals and focuses the file patch', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-
-      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'change', 'utf8');
-      repository.refresh();
-
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      const focusFilePatch = sinon.spy();
-      const activate = sinon.spy();
-
-      const mockPane = {
-        getPaneItem: () => mockPane,
-        getElement: () => mockPane,
-        querySelector: () => mockPane,
-        focus: focusFilePatch,
-        activate,
-      };
-      wrapper.instance().filePatchControllerPane = mockPane;
-
-      await wrapper.instance().diveIntoFilePatchForPath('a.txt', 'unstaged');
-
-      assert.equal(wrapper.state('filePath'), 'a.txt');
-      assert.equal(wrapper.state('filePatch').getPath(), 'a.txt');
-      assert.equal(wrapper.state('stagingStatus'), 'unstaged');
-
-      assert.isTrue(focusFilePatch.called);
-      assert.isTrue(activate.called);
+      assert.equal(wrapper.find('FilePatchController').length, 4);
+      assert.isTrue(wrapper.find({filePath: 'a.txt', initialStagingStatus: 'unstaged'}).exists());
+      assert.isTrue(wrapper.find({filePath: 'b.txt', initialStagingStatus: 'unstaged'}).exists());
+      assert.isTrue(wrapper.find({filePath: 'b.txt', initialStagingStatus: 'staged'}).exists());
+      assert.isTrue(wrapper.find({filePath: 'c.txt', initialStagingStatus: 'staged'}).exists());
     });
   });
 
   describe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
-    it('refetches the FilePatch with the amending flag toggled', async function() {
+    it('updates the amending state and saves it to the repositoryStateRegistry', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app);
 
-      fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change', 'utf8');
-      await wrapper.instance().showFilePatchForPath('file.txt', 'unstaged', {amending: false});
-      const originalFilePatch = wrapper.state('filePatch');
-      assert.isOk(originalFilePatch);
+      const repositoryStateRegistry = wrapper.instance().repositoryStateRegistry;
 
-      sinon.spy(wrapper.instance(), 'showFilePatchForPath');
+      sinon.stub(repositoryStateRegistry, 'setStateForModel');
+      sinon.stub(repositoryStateRegistry, 'save');
+
+      assert.isFalse(wrapper.state('amending'));
+
       await wrapper.instance().didChangeAmending(true);
-      assert.isTrue(wrapper.instance().showFilePatchForPath.args[0][2].amending);
+      assert.isTrue(wrapper.state('amending'));
+      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
+      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
+        repository,
+        {amending: true},
+      ]);
+      assert.equal(repositoryStateRegistry.save.callCount, 1);
+
+      repositoryStateRegistry.setStateForModel.reset();
+      repositoryStateRegistry.save.reset();
+      await wrapper.instance().didChangeAmending(false);
+      assert.isFalse(wrapper.state('amending'));
+      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
+      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
+        repository,
+        {amending: false},
+      ]);
+      assert.equal(repositoryStateRegistry.save.callCount, 1);
     });
   });
 
@@ -1202,86 +1052,69 @@ describe('RootController', function() {
     });
   });
 
-  describe('integration tests', function() {
-    it('mounts the FilePatchController as a PaneItem', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      const wrapper = mount(React.cloneElement(app, {repository}));
+  describe('viewing diffs from active editor', function() {
+    describe('viewUnstagedChangesForCurrentFile()', function() {
+      it('opens the unstaged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const wrapper = mount(React.cloneElement(app, {repository}));
 
-      const filePath = path.join(workdirPath, 'a.txt');
-      await writeFile(filePath, 'wut\n');
-      await wrapper.instance().showFilePatchForPath('a.txt', 'unstaged');
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
 
-      const paneItem = workspace.getActivePaneItem();
-      assert.isDefined(paneItem);
-      assert.equal(paneItem.getTitle(), 'Unstaged Changes: a.txt');
+        const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+        editor.setCursorBufferPosition([7, 0]);
+
+        // TODO: too implementation-detail-y
+        const filePatchItem = {
+          goToDiffLine: sinon.spy(),
+          focus: sinon.spy(),
+          getRealItemPromise: () => Promise.resolve(),
+          getFilePatchLoadedPromise: () => Promise.resolve(),
+        };
+        sinon.stub(workspace, 'open').returns(filePatchItem);
+        await wrapper.instance().viewUnstagedChangesForCurrentFile();
+
+        assert.equal(workspace.open.callCount, 1);
+        assert.deepEqual(workspace.open.args[0], [
+          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
+          {pending: true, activatePane: true, activateItem: true},
+        ]);
+        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
+        assert.equal(filePatchItem.focus.callCount, 1);
+      });
     });
 
-    // TODO: move out of integration tests, or can we use the openers?
-    describe('viewing diffs from active editor', function() {
-      describe('viewUnstagedChangesForCurrentFile()', function() {
-        it('opens the unstaged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
-          const workdirPath = await cloneRepository('three-files');
-          const repository = await buildRepository(workdirPath);
-          const wrapper = mount(React.cloneElement(app, {repository}));
+    describe('viewStagedChangesForCurrentFile()', function() {
+      it('opens the staged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const wrapper = mount(React.cloneElement(app, {repository}));
 
-          fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+        fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+        await repository.stageFiles(['a.txt']);
 
-          const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
-          editor.setCursorBufferPosition([7, 0]);
+        const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
+        editor.setCursorBufferPosition([7, 0]);
 
-          // TODO: too implementation-detail-y
-          const filePatchItem = {
-            goToDiffLine: sinon.spy(),
-            focus: sinon.spy(),
-            getRealItemPromise: () => Promise.resolve(),
-            getFilePatchLoadedPromise: () => Promise.resolve(),
-          };
-          sinon.stub(workspace, 'open').returns(filePatchItem);
-          await wrapper.instance().viewUnstagedChangesForCurrentFile();
+        // TODO: too implementation-detail-y
+        const filePatchItem = {
+          goToDiffLine: sinon.spy(),
+          focus: sinon.spy(),
+          getRealItemPromise: () => Promise.resolve(),
+          getFilePatchLoadedPromise: () => Promise.resolve(),
+        };
+        sinon.stub(workspace, 'open').returns(filePatchItem);
+        await wrapper.instance().viewStagedChangesForCurrentFile();
 
-          assert.equal(workspace.open.callCount, 1);
-          assert.deepEqual(workspace.open.args[0], [
-            `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
-            {pending: true, activatePane: true, activateItem: true},
-          ]);
-          await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-          assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-          assert.equal(filePatchItem.focus.callCount, 1);
-        });
-      });
-
-      describe('viewStagedChangesForCurrentFile()', function() {
-        it('opens the staged changes diff view associated with the active editor and selects the closest hunk line according to cursor position', async function() {
-          const workdirPath = await cloneRepository('three-files');
-          const repository = await buildRepository(workdirPath);
-          const wrapper = mount(React.cloneElement(app, {repository}));
-
-          fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
-          await repository.stageFiles(['a.txt']);
-
-          const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
-          editor.setCursorBufferPosition([7, 0]);
-
-          // TODO: too implementation-detail-y
-          const filePatchItem = {
-            goToDiffLine: sinon.spy(),
-            focus: sinon.spy(),
-            getRealItemPromise: () => Promise.resolve(),
-            getFilePatchLoadedPromise: () => Promise.resolve(),
-          };
-          sinon.stub(workspace, 'open').returns(filePatchItem);
-          await wrapper.instance().viewStagedChangesForCurrentFile();
-
-          assert.equal(workspace.open.callCount, 1);
-          assert.deepEqual(workspace.open.args[0], [
-            `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
-            {pending: true, activatePane: true, activateItem: true},
-          ]);
-          await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-          assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-          assert.equal(filePatchItem.focus.callCount, 1);
-        });
+        assert.equal(workspace.open.callCount, 1);
+        assert.deepEqual(workspace.open.args[0], [
+          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
+          {pending: true, activatePane: true, activateItem: true},
+        ]);
+        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
+        assert.equal(filePatchItem.focus.callCount, 1);
       });
     });
   });

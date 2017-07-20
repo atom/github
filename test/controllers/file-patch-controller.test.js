@@ -184,6 +184,41 @@ describe('FilePatchController', function() {
       });
     });
 
+    describe('onRepoRefresh', function() {
+      it('sets the correct FilePatch as state', async function() {
+        repository.getFilePatchForPath.restore();
+        fs.writeFileSync(path.join(workdirPath, filePath), 'change', 'utf8');
+
+        const wrapper = mount(React.cloneElement(component, {filePath, initialStagingStatus: 'unstaged'}));
+
+        await assert.async.isNotNull(wrapper.state('filePatch'));
+
+        const originalFilePatch = wrapper.state('filePatch');
+        assert.equal(wrapper.state('stagingStatus'), 'unstaged');
+
+        fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nand again!', 'utf8');
+        repository.refresh();
+        await wrapper.instance().onRepoRefresh(repository);
+
+        assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
+        assert.equal(wrapper.state('stagingStatus'), 'unstaged');
+      });
+    });
+
+    // https://github.com/atom/github/issues/505
+    describe('getFilePatchForPath(filePath, staged, isAmending)', function() {
+      it('calls repository.getFilePatchForPath with amending: true only if staged is true', async () => {
+        const wrapper = mount(React.cloneElement(component, {filePath, initialStagingStatus: 'unstaged'}));
+
+        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
+        repository.getFilePatchForPath.reset();
+
+        await wrapper.instance().getFilePatchForPath(filePath, false, true);
+        assert.equal(repository.getFilePatchForPath.callCount, 1);
+        assert.deepEqual(repository.getFilePatchForPath.args[0], [filePath, {staged: false, amending: false}]);
+      });
+    });
+
     it('renders FilePatchView only if FilePatch has hunks', async function() {
       const emptyFilePatch = new FilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);

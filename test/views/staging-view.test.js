@@ -6,12 +6,13 @@ import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
   const workingDirectoryPath = '/not/real/';
-  let atomEnv, commandRegistry, workspace;
+  let atomEnv, commandRegistry, workspace, notificationManager;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
     workspace = atomEnv.workspace;
+    notificationManager = atomEnv.notifications;
 
     sinon.stub(workspace, 'open');
     sinon.stub(workspace, 'paneForItem').returns({activateItem: () => {}});
@@ -306,6 +307,26 @@ describe('StagingView', function() {
         path.join(workingDirectoryPath, 'conflict.txt'),
         {pending: true, activatePane: true, activateItem: true},
       ]);
+    });
+
+    describe('when the file doesn\'t exist', function() {
+      it('shows an info notification and does not open the file', async function() {
+        sinon.spy(notificationManager, 'addInfo');
+
+        const view = new StagingView({
+          workspace, workingDirectoryPath, commandRegistry, notificationManager,
+          unstagedChanges: [], stagedChanges: [],
+        });
+
+        sinon.stub(view, 'fileExists').returns(false);
+
+        assert.equal(notificationManager.getNotifications().length, 0);
+        await view.showMergeConflictFileForPath('conflict.txt');
+
+        assert.equal(workspace.open.callCount, 0);
+        assert.equal(notificationManager.addInfo.callCount, 1);
+        assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
+      });
     });
   });
 
