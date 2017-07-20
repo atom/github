@@ -560,7 +560,12 @@ describe('FilePatchController', function() {
         console.log(8);
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
+        const changePatchPromise = switchboard.getChangePatchPromise();
         wrapper.setState({filePatch: modifiedFilePatch});
+        console.log('before');
+        await changePatchPromise;
+        console.log('after');
+
         const hunkView1 = wrapper.find('HunkView').at(0);
         hunkView1.find('LineView').at(2).find('.github-HunkView-line')
           .simulate('mousedown', {button: 0, detail: 1});
