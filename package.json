@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.3.5",
+  "version": "0.3.8",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -63,9 +63,10 @@
     "react-dom": "^15.5.4",
     "react-relay": "^0.10.0",
     "temp": "^0.8.3",
+    "tinycolor2": "^1.4.1",
     "tree-kill": "^1.1.0",
     "what-the-diff": "^0.3.0",
-    "what-the-status": "^0.1.0",
+    "what-the-status": "^1.0.2",
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
