@@ -37,10 +37,10 @@
   &-container {
     flex: 1;
     overflow-y: auto;
-    display: flex;
-    height: 100%;
 
-    &.is-blank, &.large-file-patch {
+    .is-blank, .large-file-patch {
+      display: flex;
+      height: 100%;
       align-items: center;
       justify-content: center;
       text-align: center;
@@ -48,7 +48,7 @@
       padding: @component-padding;
     }
 
-    &.large-file-patch {
+    .large-file-patch {
       flex-direction: column;
     }
   }
