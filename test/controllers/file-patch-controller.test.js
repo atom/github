@@ -554,9 +554,7 @@ describe('FilePatchController', function() {
         let actualLines = await repository.readFileFromIndex(filePath);
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
 
-        const changePatchPromise = switchboard.getChangePatchPromise();
         wrapper.setState({filePatch: modifiedFilePatch});
-        await changePatchPromise;
 
         const hunkView1 = wrapper.find('HunkView').at(0);
         hunkView1.find('LineView').at(2).find('.github-HunkView-line')
