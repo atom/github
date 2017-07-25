@@ -124,7 +124,6 @@ describe('FilePatchController', function() {
           filePath, largeDiffLineThreshold: 5,
         }));
 
-        assert.isFalse(wrapper.find('FilePatchView').exists());
         await assert.async.match(wrapper.text(), /large diff/);
       });
 
@@ -145,10 +144,9 @@ describe('FilePatchController', function() {
         }));
 
 
-        await assert.async.isTrue(wrapper.find('button').exists());
-        assert.isFalse(wrapper.find('FilePatchView').exists());
-        wrapper.find('button').simulate('click');
-        assert.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
+        wrapper.find('.large-file-patch').find('button').simulate('click');
+        assert.isTrue(wrapper.find('HunkView').exists());
       });
 
       it('renders the full diff if the file has been confirmed before', async function() {
@@ -169,18 +167,17 @@ describe('FilePatchController', function() {
           filePath: filePatch1.getPath(), largeDiffLineThreshold: 5,
         }));
 
-        await assert.async.isTrue(wrapper.find('button').exists());
-        assert.isFalse(wrapper.find('FilePatchView').exists());
-        wrapper.find('button').simulate('click');
-        assert.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
+        wrapper.find('.large-file-patch').find('button').simulate('click');
+        assert.isTrue(wrapper.find('HunkView').exists());
 
         getFilePatchForPath.returns(filePatch2);
         wrapper.setProps({filePath: filePatch2.getPath()});
-        await assert.async.isFalse(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
 
         getFilePatchForPath.returns(filePatch1);
         wrapper.setProps({filePath: filePatch1.getPath()});
-        assert.isTrue(wrapper.find('FilePatchView').exists());
+        assert.isTrue(wrapper.find('HunkView').exists());
       });
     });
 
@@ -219,20 +216,23 @@ describe('FilePatchController', function() {
       });
     });
 
+    // move to FPV and add for large file patch case
     it('renders FilePatchView only if FilePatch has hunks', async function() {
       const emptyFilePatch = new FilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);
 
       const wrapper = mount(React.cloneElement(component, {filePath}));
 
-      assert.isFalse(wrapper.find('FilePatchView').exists());
+      assert.isTrue(wrapper.find('FilePatchView').exists());
+      assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no contents'));
 
       const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
       const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk1]);
       getFilePatchForPath.returns(filePatch);
 
       wrapper.instance().onRepoRefresh(repository);
-      await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+      await assert.async.isTrue(wrapper.find('HunkView').exists());
+      assert.isTrue(wrapper.find('HunkView').text().includes('@@ -0,1 +0,1 @@'));
     });
 
     it('updates the FilePatch after a repo update', async function() {
@@ -243,9 +243,11 @@ describe('FilePatchController', function() {
 
       const wrapper = shallow(React.cloneElement(component, {filePath}));
 
-      await assert.async.isTrue(wrapper.find('FilePatchView').exists());
-      const view0 = wrapper.find('FilePatchView').shallow();
-      assert.isTrue(view0.find({hunk: hunk1}).exists());
+      let view0;
+      await until(() => {
+        view0 = wrapper.find('FilePatchView').shallow();
+        return view0.find({hunk: hunk1}).exists();
+      });
       assert.isTrue(view0.find({hunk: hunk2}).exists());
 
       const hunk3 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-10', 'modified', 10, 10)]);
@@ -296,7 +298,7 @@ describe('FilePatchController', function() {
           openFiles: openFilesStub,
         }));
 
-        await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
 
         wrapper.find('LineView').simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
@@ -332,7 +334,7 @@ describe('FilePatchController', function() {
       const wrapper = mount(React.cloneElement(component, {filePath}));
 
       // selectNext()
-      await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+      await assert.async.isTrue(wrapper.find('HunkView').exists());
       commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-down');
 
       await assert.async.isTrue(wrapper.find('HunkView').exists());
@@ -381,7 +383,7 @@ describe('FilePatchController', function() {
       // stage a subset of lines from first hunk
       const wrapper = mount(React.cloneElement(component, {filePath}));
 
-      await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+      await assert.async.isTrue(wrapper.find('HunkView').exists());
       const opPromise0 = switchboard.getFinishStageOperationPromise();
       const hunkView0 = wrapper.find('HunkView').at(0);
       hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -476,7 +478,7 @@ describe('FilePatchController', function() {
           initialStagingStatus: 'staged',
         }));
 
-        await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
 
         const opPromise = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
@@ -497,7 +499,7 @@ describe('FilePatchController', function() {
           initialStagingStatus: 'staged',
         }));
 
-        await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
 
         const viewNode = wrapper.find('FilePatchView').getDOMNode();
         commandRegistry.dispatch(viewNode, 'github:toggle-patch-selection-mode');
@@ -530,7 +532,7 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {filePath}));
 
-        await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line')
           .simulate('mousedown', {button: 0, detail: 1});
@@ -590,7 +592,7 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {filePath}));
 
-        await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
 
         // ensure staging the same hunk twice does not cause issues
         // second stage action is a no-op since the first staging operation is in flight
