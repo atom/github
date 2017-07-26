@@ -516,7 +516,7 @@ describe('FilePatchController', function() {
 
     // https://github.com/atom/github/issues/341
     describe('when duplicate staging occurs', function() {
-      it.only('avoids patch conflicts with pending line staging operations', async function() {
+      it('avoids patch conflicts with pending line staging operations', async function() {
         const absFilePath = path.join(workdirPath, filePath);
         const originalLines = fs.readFileSync(absFilePath, 'utf8').split('\n');
 
