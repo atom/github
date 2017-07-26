@@ -216,7 +216,6 @@ describe('FilePatchController', function() {
       });
     });
 
-    // move to FPV and add for large file patch case
     it('renders FilePatchView only if FilePatch has hunks', async function() {
       const emptyFilePatch = new FilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);
