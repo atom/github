@@ -544,18 +544,17 @@ describe('FilePatchController', function() {
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
         hunkView0.find('.github-HunkView-stageButton').simulate('click');
         await line1StagingPromise;
+
+        const changePatchPromise = switchboard.getChangePatchPromise();
+
         // assert that only line 1 has been staged
         repository.refresh(); // clear the cached file patches
-        const modifiedFilePatch = await repository.getFilePatchForPath(filePath);
         let expectedLines = originalLines.slice();
         expectedLines.splice(1, 0,
           'this is a modified line',
         );
         let actualLines = await repository.readFileFromIndex(filePath);
         assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
-
-        const changePatchPromise = switchboard.getChangePatchPromise();
-        wrapper.setState({filePatch: modifiedFilePatch});
         await changePatchPromise;
 
         const hunkView1 = wrapper.find('HunkView').at(0);
