@@ -93,6 +93,7 @@
     "mkdirp": "^0.5.1",
     "mocha": "^3.3.0",
     "mocha-appveyor-reporter": "^0.4.0",
+    "mocha-junit-and-console-reporter": "^1.6.0",
     "mocha-junit-reporter": "^1.13.0",
     "node-fetch": "^1.6.3",
     "react-test-renderer": "^15.5.4",
