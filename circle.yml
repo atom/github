@@ -2,6 +2,12 @@ machine:
   environment:
     ATOM_LINT_WITH_BUNDLED_NODE: "true"
     APM_TEST_PACKAGES: ""
+    npm_config_clang: "1"
+    CC: clang
+    CXX: clang++
+    ATOM_GITHUB_FS_EVENT_LOG: "1"
+    MOCHA_TIMEOUT: "60000"
+    UNTIL_TIMEOUT: "30000"
 
 dependencies:
   override:
