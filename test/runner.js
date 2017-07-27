@@ -5,6 +5,8 @@ import path from 'path';
 
 import until from 'test-until';
 
+console.log('Are we even getting here');
+
 chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
