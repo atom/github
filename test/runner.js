@@ -28,9 +28,9 @@ module.exports = createRunner({
     mocha.reporter(require('mocha-appveyor-reporter'));
   }
 
-  if (process.env.CIRCLECI === 'true') {
-    mocha.reporter(require('mocha-junit-reporter'), {
-      mochaFile: path.join(process.env.CIRCLE_TEST_REPORTS, 'mocha', 'test-results.xml'),
-    });
-  }
+  // if (process.env.CIRCLECI === 'true') {
+  //   mocha.reporter(require('mocha-junit-reporter'), {
+  //     mochaFile: path.join(process.env.CIRCLE_TEST_REPORTS, 'mocha', 'test-results.xml'),
+  //   });
+  // }
 });
