@@ -1,0 +1,13 @@
+machine:
+  environment:
+    ATOM_LINT_WITH_BUNDLED_NODE: "true"
+    APM_TEST_PACKAGES: ""
+
+dependencies:
+  override:
+    - curl -s -O https://raw.githubusercontent.com/atom/ci/aw-macos-circle/build-package.sh
+    - chmod u+x build-package.sh
+
+test:
+  override:
+    - ./build-package.sh
