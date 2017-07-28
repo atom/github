@@ -16,5 +16,4 @@ dependencies:
 
 test:
   override:
-  - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
   - caffeinate -s ./build-package.sh
