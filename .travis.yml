@@ -1,7 +1,8 @@
 language: node_js
 node_js: '6.9.4'
 sudo: false
-os: osx
+os: linux
+dist: trusty
 
 branches:
   only:
@@ -9,10 +10,7 @@ branches:
 
 matrix:
   include:
-  - os: linux
-    dist: trusty
-    env:
-    - TRAVIS_BUILD_JOB=runtests
+  - env:
     - ATOM_CHANNEL=stable
     addons:
       apt:
@@ -22,10 +20,7 @@ matrix:
         - gnome-keyring
         - libsecret-1-dev
         - python-gnomekeyring
-  - os: linux
-    dist: trusty
-    env:
-    - TRAVIS_BUILD_JOB=runtests
+  - env:
     - ATOM_CHANNEL=beta
     addons:
       apt:
