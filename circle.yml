@@ -11,9 +11,10 @@ machine:
 
 dependencies:
   override:
-    - curl -s -O https://raw.githubusercontent.com/atom/ci/aw-macos-circle/build-package.sh
-    - chmod u+x build-package.sh
+  - curl -s -O https://raw.githubusercontent.com/atom/ci/aw-macos-circle/build-package.sh
+  - chmod u+x build-package.sh
 
 test:
   override:
-    - ./build-package.sh
+  - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+  - caffeinate -s ./build-package.sh
