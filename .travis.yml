@@ -8,28 +8,14 @@ branches:
   only:
   - master
 
-matrix:
-  include:
-  - env:
-    - ATOM_CHANNEL=stable
-    addons:
-      apt:
-        packages:
-        - clang-3.3
-        - build-essential
-        - gnome-keyring
-        - libsecret-1-dev
-        - python-gnomekeyring
-  - env:
-    - ATOM_CHANNEL=beta
-    addons:
-      apt:
-        packages:
-        - clang-3.3
-        - build-essential
-        - gnome-keyring
-        - libsecret-1-dev
-        - python-gnomekeyring
+addons:
+  apt:
+    packages:
+    - clang-3.3
+    - build-essential
+    - gnome-keyring
+    - libsecret-1-dev
+    - python-gnomekeyring
 
 env:
   global:
