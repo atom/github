@@ -76,6 +76,39 @@ describe('GitPromptServer', function() {
       assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
     });
 
+    it('preserves a provided username', async function () {
+      this.timeout(10000);
+
+      let queried = null;
+
+      function queryHandler(query) {
+        queried = query;
+        return {
+          password: '42',
+          remember: false,
+        };
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=ultimate-answer.com\n');
+        child.stdin.write('username=dent-arthur-dent\n');
+        child.stdin.end('\n');
+      }
+
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+
+      assert.ifError(err);
+
+      assert.equal(queried.prompt, 'Please enter your credentials for https://ultimate-answer.com');
+      assert.isFalse(queried.includeUsername);
+
+      assert.equal(stdout,
+        'protocol=https\nhost=ultimate-answer.com\n' +
+        'username=dent-arthur-dent\npassword=42\n' +
+        'quit=true\n');
+    });
+
     it('parses input without the terminating blank line', async function() {
       this.timeout(10000);
 
