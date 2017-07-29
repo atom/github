@@ -56,7 +56,7 @@ describe('CredentialDialog', function() {
       wrapper.find('.btn-primary').simulate('click');
 
       assert.deepEqual(didSubmit.firstCall.args[0], {
-        password: 'letmein'
+        password: 'twowordsuppercase'
       });
     });
   })
