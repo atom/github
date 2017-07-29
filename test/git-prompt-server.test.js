@@ -100,7 +100,7 @@ describe('GitPromptServer', function() {
 
       assert.ifError(err);
 
-      assert.equal(queried.prompt, 'Please enter your credentials for https://ultimate-answer.com');
+      assert.equal(queried.prompt, 'Please enter your credentials for https://dent-arthur-dent@ultimate-answer.com');
       assert.isFalse(queried.includeUsername);
 
       assert.equal(stdout,
