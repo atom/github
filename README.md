@@ -1,8 +1,8 @@
 # Atom GitHub Package
 
-[![Build Status](https://travis-ci.org/atom/github.svg?branch=master)](https://travis-ci.org/atom/github)
-[![Build status](https://ci.appveyor.com/api/projects/status/psctk8vrva49dseb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/github/branch/master)
-[![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github)
+| Windows | Mac | Linux | Dependency Status |
+|---------|-----|-------|-------------------|
+| [![Build status](https://ci.appveyor.com/api/projects/status/psctk8vrva49dseb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/github/branch/master) | [![CircleCI](https://circleci.com/gh/atom/github/tree/master.svg?style=svg)](https://circleci.com/gh/atom/github/tree/master) | [![Build Status](https://travis-ci.org/atom/github.svg?branch=master)](https://travis-ci.org/atom/github) | [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github) |
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
