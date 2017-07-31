@@ -49,9 +49,10 @@ describe('GitPromptServer', function() {
     it('prompts for user input and writes collected credentials to stdout', async function() {
       this.timeout(10000);
 
+      let queried = null;
+
       function queryHandler(query) {
-        assert.equal(query.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
-        assert.isTrue(query.includeUsername);
+        queried = query;
         return {
           username: 'old-man-from-scene-24',
           password: 'Green. I mean blue! AAAhhhh...',
@@ -66,6 +67,9 @@ describe('GitPromptServer', function() {
       }
 
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+
+      assert.equal(queried.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      assert.isTrue(queried.includeUsername);
 
       assert.ifError(err);
       assert.equal(stdout,
@@ -166,10 +170,11 @@ describe('GitPromptServer', function() {
     it('prompts for user input and writes the response to stdout', async function() {
       this.timeout(10000);
 
+      let queried = null;
+
       const server = new GitPromptServer();
       const {askPass, socket, electron} = await server.start(query => {
-        assert.equal(query.prompt, 'Please enter your password for "updog"');
-        assert.isFalse(query.includeUsername);
+        queried = query;
         return {
           password: "What's 'updog'?",
         };
@@ -192,6 +197,9 @@ describe('GitPromptServer', function() {
 
       assert.ifError(err);
       assert.equal(stdout, "What's 'updog'?");
+
+      assert.equal(queried.prompt, 'Please enter your password for "updog"');
+      assert.isFalse(queried.includeUsername);
 
       await server.terminate();
     });
