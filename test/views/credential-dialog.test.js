@@ -16,7 +16,7 @@ describe('CredentialDialog', function() {
     app = (
       <CredentialDialog
         commandRegistry={atomEnv.commands}
-        prompt='speak friend and enter'
+        prompt="speak friend and enter"
         includeUsername={true}
         onSubmit={didSubmit}
         onCancel={didCancel}
@@ -26,13 +26,13 @@ describe('CredentialDialog', function() {
 
   afterEach(function() {
     atomEnv.destroy();
-  })
+  });
 
   const setTextIn = function(selector, text) {
     wrapper.find(selector).simulate('change', {target: {value: text}});
   };
 
-  describe('confirm', function () {
+  describe('confirm', function() {
     it('reports the current username and password', function() {
       wrapper = mount(app);
 
@@ -43,7 +43,7 @@ describe('CredentialDialog', function() {
 
       assert.deepEqual(didSubmit.firstCall.args[0], {
         username: 'someone',
-        password: 'letmein'
+        password: 'letmein',
       });
     });
 
@@ -56,8 +56,8 @@ describe('CredentialDialog', function() {
       wrapper.find('.btn-primary').simulate('click');
 
       assert.deepEqual(didSubmit.firstCall.args[0], {
-        password: 'twowordsuppercase'
+        password: 'twowordsuppercase',
       });
     });
-  })
-})
+  });
+});
