@@ -10,7 +10,7 @@ import {assertEqualSets} from '../helpers';
 describe('FilePatchView', function() {
   let atomEnv, commandRegistry, tooltips, component;
   let attemptLineStageOperation, attemptHunkStageOperation, discardLines, undoLastDiscard, openCurrentFile;
-  let didSurfaceFile, didDiveIntoCorrespondingFilePatch;
+  let didSurfaceFile, didDiveIntoCorrespondingFilePatch, handleShowDiffClick;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -24,6 +24,7 @@ describe('FilePatchView', function() {
     openCurrentFile = sinon.spy();
     didSurfaceFile = sinon.spy();
     didDiveIntoCorrespondingFilePatch = sinon.spy();
+    handleShowDiffClick = sinon.spy();
 
     component = (
       <FilePatchView
@@ -41,6 +42,7 @@ describe('FilePatchView', function() {
         openCurrentFile={openCurrentFile}
         didSurfaceFile={didSurfaceFile}
         didDiveIntoCorrespondingFilePatch={didDiveIntoCorrespondingFilePatch}
+        handleShowDiffClick={handleShowDiffClick}
       />
     );
   });

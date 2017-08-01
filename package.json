@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.3.8",
+  "version": "0.3.9-0",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -163,7 +163,7 @@
   "deserializers": {
     "GitTimingsView": "createGitTimingsView",
     "IssueishPaneItem": "createIssueishPaneItem",
-    "GitTabControllerStub": "createGitTabControllerStub",
-    "GithubTabControllerStub": "createGithubTabControllerStub"
+    "GithubDockItem": "createDockItemStub",
+    "FilePatchControllerStub": "createFilePatchControllerStub"
   }
 }
