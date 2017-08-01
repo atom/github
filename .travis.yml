@@ -4,10 +4,6 @@ sudo: false
 os: linux
 dist: trusty
 
-branches:
-  only:
-  - master
-
 addons:
   apt:
     packages:
