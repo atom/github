@@ -80,7 +80,7 @@ describe('GitPromptServer', function() {
       assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
     });
 
-    it('preserves a provided username', async function() {
+    it.only('preserves a provided username', async function() {
       this.timeout(10000);
 
       let queried = null;
