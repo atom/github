@@ -80,8 +80,9 @@ describe('GitPromptServer', function() {
       assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
     });
 
-    it.only('preserves a provided username', async function() {
+    it('preserves a provided username', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       let queried = null;
 
@@ -115,6 +116,7 @@ describe('GitPromptServer', function() {
 
     it('parses input without the terminating blank line', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       function queryHandler(query) {
         return {
