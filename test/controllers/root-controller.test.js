@@ -1072,7 +1072,7 @@ describe('RootController', function() {
         sinon.stub(workspace, 'open').returns(filePatchItem);
         await wrapper.instance().viewUnstagedChangesForCurrentFile();
 
-        assert.equal(workspace.open.callCount, 1);
+        await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
@@ -1105,7 +1105,7 @@ describe('RootController', function() {
         sinon.stub(workspace, 'open').returns(filePatchItem);
         await wrapper.instance().viewStagedChangesForCurrentFile();
 
-        assert.equal(workspace.open.callCount, 1);
+        await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
