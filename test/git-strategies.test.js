@@ -28,6 +28,36 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
   };
 
   describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
+    // https://github.com/atom/github/issues/1051
+    // https://github.com/atom/github/issues/898
+    it('passes all environment variables to spawned git process', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const git = createTestStrategy(workingDirPath);
+
+      // dugite copies the env for us, so this is only an issue when using a Renderer process
+      await WorkerManager.getInstance().getReadyPromise();
+
+      const hookContent = dedent`
+        #!/bin/sh
+
+        if [ "$ALLOWCOMMIT" != "true" ]
+        then
+          echo "cannot commit. set \\$ALLOWCOMMIT to 'true'"
+          exit 1
+        fi
+      `;
+
+      const hookPath = path.join(workingDirPath, '.git', 'hooks', 'pre-commit');
+      await writeFile(hookPath, hookContent);
+      fs.chmodSync(hookPath, 0o755);
+
+      delete process.env.ALLOWCOMMIT;
+      await assert.isRejected(git.exec(['commit', '--allow-empty', '-m', 'commit yo']), /ALLOWCOMMIT/);
+
+      process.env.ALLOWCOMMIT = 'true';
+      await git.exec(['commit', '--allow-empty', '-m', 'commit for real']);
+    });
+
     describe('resolveDotGitDir', function() {
       it('returns the path to the .git dir for a working directory if it exists, and null otherwise', async function() {
         const workingDirPath = await cloneRepository('three-files');
@@ -1005,6 +1035,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
 
       it('falls back to Atom credential prompts if credential helpers are present but explode', async function() {
+        this.retries(5);
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {

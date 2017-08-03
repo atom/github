@@ -82,6 +82,7 @@ describe('GitPromptServer', function() {
 
     it('preserves a provided username', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       let queried = null;
 
@@ -115,6 +116,7 @@ describe('GitPromptServer', function() {
 
     it('parses input without the terminating blank line', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       function queryHandler(query) {
         return {
@@ -167,8 +169,9 @@ describe('GitPromptServer', function() {
   });
 
   describe('askpass helper', function() {
-    it('prompts for user input and writes the response to stdout', async function() {
+    it.only('prompts for user input and writes the response to stdout', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       let queried = null;
 
