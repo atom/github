@@ -1035,6 +1035,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
 
       it('falls back to Atom credential prompts if credential helpers are present but explode', async function() {
+        this.retries(5);
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {
