@@ -160,7 +160,7 @@ describe('CommitViewController', function() {
         assert.equal(editor.getText(), 'message in box');
 
         editor.setText('message in editor');
-        editor.save();
+        await editor.save();
 
         commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
         await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
@@ -237,7 +237,7 @@ describe('CommitViewController', function() {
         assert.equal(editor.getPath(), controller.getCommitMessagePath());
 
         editor.setText('message in editor');
-        editor.save();
+        await editor.save();
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
 
         await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
