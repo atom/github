@@ -169,7 +169,7 @@ describe('GitPromptServer', function() {
   });
 
   describe('askpass helper', function() {
-    it.only('prompts for user input and writes the response to stdout', async function() {
+    it('prompts for user input and writes the response to stdout', async function() {
       this.timeout(10000);
       this.retries(5);
 
