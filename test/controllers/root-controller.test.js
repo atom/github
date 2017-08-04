@@ -330,19 +330,6 @@ describe('RootController', function() {
       }));
     });
 
-    it('initializes the current working directory if there is one', function() {
-      app = React.cloneElement(app, {
-        createRepositoryForProjectPath,
-        activeWorkingDirectory: '/some/workdir',
-      });
-      const wrapper = shallow(app);
-
-      wrapper.instance().initializeRepo();
-      resolveInit();
-
-      assert.isTrue(createRepositoryForProjectPath.calledWith('/some/workdir'));
-    });
-
     it('renders the modal init panel', function() {
       app = React.cloneElement(app, {createRepositoryForProjectPath});
       const wrapper = shallow(app);
