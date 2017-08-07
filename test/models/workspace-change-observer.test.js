@@ -88,8 +88,9 @@ describe('WorkspaceChangeObserver', function() {
       editor.setText('change');
       await editor.save();
       await assert.async.isTrue(changeSpy.calledWith([{
-        directory: workdirPath,
-        file: 'renamed-path.txt',
+        action: 'renamed',
+        path: path.join(workdirPath, 'renamed-path.txt'),
+        oldPath: path.join(workdirPath, 'a.txt'),
       }]));
     });
   });

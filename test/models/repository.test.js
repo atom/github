@@ -1351,7 +1351,7 @@ describe('Repository', function() {
         );
 
         sub.add(observer.onDidChange(events => {
-          const paths = events.map(e => path.join(e.directory, e.file || e.newFile));
+          const paths = events.map(e => e.path);
           repository.observeFilesystemChange(paths);
           observedEvents.push(...events);
           eventCallback();
@@ -1363,7 +1363,7 @@ describe('Repository', function() {
       function expectEvents(...fileNames) {
         return new Promise((resolve, reject) => {
           eventCallback = () => {
-            const observedFileNames = new Set(observedEvents.map(event => event.file || event.newFile));
+            const observedFileNames = new Set(observedEvents.map(event => path.basename(event.path)));
             if (fileNames.every(fileName => observedFileNames.has(fileName))) {
               resolve();
             }
