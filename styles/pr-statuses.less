@@ -1,0 +1,59 @@
+@import 'variables';
+
+.github-PrStatuses {
+  .donut-ring-pending {
+    stroke: @gh-background-color-yellow;
+  }
+
+  .donut-ring-succeeded {
+    stroke: @gh-background-color-green;
+  }
+
+  .donut-ring-failed {
+    stroke: @gh-background-color-red;
+  }
+  
+  &-header {
+    display: flex;
+
+    svg {
+      width: 50px;
+      height: 50px;
+
+      circle {
+        stroke-width: 5;
+      }
+    }
+  }
+
+  &-summary {
+    font-weight: bold;
+    padding: @component-padding 0;
+    flex: 1;
+  }
+
+  &-list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 0;
+  }
+
+  &-list-item {
+    display: flex;
+    flex-direction: row;
+    border-top: 1px solid @base-border-color;
+    padding: @component-padding / 2;
+
+    &-icon {
+      padding-right: @component-padding;
+      display: flex;
+      align-items: center; // hmm, does it look better centered vertically or not
+    }
+
+    &-context {
+      flex: 1;
+    }
+  }
+}

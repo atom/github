@@ -140,30 +140,11 @@
     }
   }
 
-  &-statuses {
-    &-list {
-      display: flex;
-      flex-direction: column;
-      list-style: none;
-      padding: 0;
-    }
+  // Statuses ------------------------
 
-    &-list-item {
-      display: flex;
-      flex-direction: row;
-      border-top: 1px solid @base-border-color;
-      padding: @component-padding / 2;
-
-      &-icon {
-        padding-right: @component-padding;
-        display: flex;
-        align-items: center; // hmm, does it look better centered vertically or not
-      }
-
-      &-context {
-        flex: 1;
-      }
-    }
+  .github-PrStatuses {
+    border-top: 1px solid @base-border-color;
+    padding-top: @component-padding * 2;
   }
 
   // All "items" ------------------------
