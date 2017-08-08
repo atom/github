@@ -37,7 +37,7 @@ describe('HunkView', function() {
         contextMenuOnItem={contextMenuOnItem}
         didClickStageButton={didClickStageButton}
         didClickDiscardButton={didClickDiscardButton}
-        discardButtonLabel={'Discard'}
+        discardButtonLabel="Discard"
         unstaged={true}
       />
     );
