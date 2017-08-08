@@ -330,19 +330,6 @@ describe('RootController', function() {
       }));
     });
 
-    it('initializes the current working directory if there is one', function() {
-      app = React.cloneElement(app, {
-        createRepositoryForProjectPath,
-        activeWorkingDirectory: '/some/workdir',
-      });
-      const wrapper = shallow(app);
-
-      wrapper.instance().initializeRepo();
-      resolveInit();
-
-      assert.isTrue(createRepositoryForProjectPath.calledWith('/some/workdir'));
-    });
-
     it('renders the modal init panel', function() {
       app = React.cloneElement(app, {createRepositoryForProjectPath});
       const wrapper = shallow(app);
@@ -1072,7 +1059,7 @@ describe('RootController', function() {
         sinon.stub(workspace, 'open').returns(filePatchItem);
         await wrapper.instance().viewUnstagedChangesForCurrentFile();
 
-        assert.equal(workspace.open.callCount, 1);
+        await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
@@ -1105,7 +1092,7 @@ describe('RootController', function() {
         sinon.stub(workspace, 'open').returns(filePatchItem);
         await wrapper.instance().viewStagedChangesForCurrentFile();
 
-        assert.equal(workspace.open.callCount, 1);
+        await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
