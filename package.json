@@ -31,6 +31,7 @@
     }
   ],
   "dependencies": {
+    "@binarymuse/relay-compiler": "^1.2.0",
     "atom-babel6-transpiler": "1.1.1",
     "babel-generator": "^6.25.0",
     "babel-plugin-chai-assert-async": "^0.1.0",
@@ -96,7 +97,6 @@
     "mocha-junit-and-console-reporter": "^1.6.0",
     "node-fetch": "^1.7.1",
     "react-test-renderer": "^15.6.1",
-    "relay-compiler": "^1.1.0",
     "simulant": "^0.2.2",
     "sinon": "^2.3.6",
     "test-until": "^1.1.1"
