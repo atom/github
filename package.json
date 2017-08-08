@@ -8,7 +8,8 @@
   "scripts": {
     "test": "atom --test test",
     "lint": "eslint --max-warnings 0 test lib",
-    "fetch-schema": "node script/fetch-schema"
+    "fetch-schema": "node script/fetch-schema",
+    "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
   "engines": {
     "atom": ">=1.18.0"
@@ -96,6 +97,7 @@
     "mocha-junit-and-console-reporter": "^1.6.0",
     "node-fetch": "^1.7.1",
     "react-test-renderer": "^15.6.1",
+    "relay-compiler": "^1.1.0",
     "simulant": "^0.2.2",
     "sinon": "^2.3.6",
     "test-until": "^1.1.1"
