@@ -23,6 +23,7 @@ describe('HunkView', function() {
 
     component = (
       <HunkView
+        tooltips={{}}
         hunk={emptyHunk}
         headHunk={emptyHunk}
         headLine={onlyLine}
@@ -36,9 +37,8 @@ describe('HunkView', function() {
         contextMenuOnItem={contextMenuOnItem}
         didClickStageButton={didClickStageButton}
         didClickDiscardButton={didClickDiscardButton}
-        tooltips={{}}
-        unstaged={false}
         discardButtonLabel="Discard"
+        unstaged={true}
       />
     );
   });

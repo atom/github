@@ -49,9 +49,10 @@ describe('GitPromptServer', function() {
     it('prompts for user input and writes collected credentials to stdout', async function() {
       this.timeout(10000);
 
+      let queried = null;
+
       function queryHandler(query) {
-        assert.equal(query.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
-        assert.isTrue(query.includeUsername);
+        queried = query;
         return {
           username: 'old-man-from-scene-24',
           password: 'Green. I mean blue! AAAhhhh...',
@@ -67,6 +68,9 @@ describe('GitPromptServer', function() {
 
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
 
+      assert.equal(queried.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      assert.isTrue(queried.includeUsername);
+
       assert.ifError(err);
       assert.equal(stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
@@ -76,8 +80,43 @@ describe('GitPromptServer', function() {
       assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
     });
 
+    it('preserves a provided username', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      let queried = null;
+
+      function queryHandler(query) {
+        queried = query;
+        return {
+          password: '42',
+          remember: false,
+        };
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=ultimate-answer.com\n');
+        child.stdin.write('username=dent-arthur-dent\n');
+        child.stdin.end('\n');
+      }
+
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+
+      assert.ifError(err);
+
+      assert.equal(queried.prompt, 'Please enter your credentials for https://dent-arthur-dent@ultimate-answer.com');
+      assert.isFalse(queried.includeUsername);
+
+      assert.equal(stdout,
+        'protocol=https\nhost=ultimate-answer.com\n' +
+        'username=dent-arthur-dent\npassword=42\n' +
+        'quit=true\n');
+    });
+
     it('parses input without the terminating blank line', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       function queryHandler(query) {
         return {
@@ -132,11 +171,13 @@ describe('GitPromptServer', function() {
   describe('askpass helper', function() {
     it('prompts for user input and writes the response to stdout', async function() {
       this.timeout(10000);
+      this.retries(5);
+
+      let queried = null;
 
       const server = new GitPromptServer();
       const {askPass, socket, electron} = await server.start(query => {
-        assert.equal(query.prompt, 'Please enter your password for "updog"');
-        assert.isFalse(query.includeUsername);
+        queried = query;
         return {
           password: "What's 'updog'?",
         };
@@ -159,6 +200,9 @@ describe('GitPromptServer', function() {
 
       assert.ifError(err);
       assert.equal(stdout, "What's 'updog'?");
+
+      assert.equal(queried.prompt, 'Please enter your password for "updog"');
+      assert.isFalse(queried.includeUsername);
 
       await server.terminate();
     });
