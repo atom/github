@@ -45,6 +45,11 @@
       display: inline-block;
       margin-left: 0.5em;
     }
+
+    :last-child {
+      flex: 1;
+      text-align: right;
+    }
   }
 
   .pr-badge {
@@ -74,6 +79,20 @@
   .pr-link a {
     color: @text-color-subtle;
     word-break: break-all;
+  }
+
+  .refresh-button {
+    .icon {
+      color: @text-color-subtle;
+      cursor: pointer;
+
+      &.refreshing::before {
+        @keyframes github-RefreshButton-animation {
+          100% { transform: rotate(360deg); }
+        }
+        animation: github-RefreshButton-animation 2s linear 30; // limit to 1min in case something gets stuck
+      }
+    }
   }
 
 

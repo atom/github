@@ -27,7 +27,13 @@
     display: flex;
     align-items: center;
     margin-bottom: @component-padding * 2;
+
+    :last-child {
+      flex: 1;
+      text-align: right;
+    }
   }
+
   .issueish-badge {
     align-self: flex-start;
     flex-shrink: 0;
@@ -58,6 +64,20 @@
 
   .pr-build-status-icon {
     margin-left: @component-padding;
+  }
+
+  .refresh-button {
+    .icon {
+      color: @text-color-subtle;
+      cursor: pointer;
+
+      &.refreshing::before {
+        @keyframes github-RefreshButton-animation {
+          100% { transform: rotate(360deg); }
+        }
+        animation: github-RefreshButton-animation 2s linear 30; // limit to 1min in case something gets stuck
+      }
+    }
   }
 
 
