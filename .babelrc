@@ -2,7 +2,7 @@
   "sourceMaps": "inline",
   "babelrc": false,
   "plugins": [
-    ["relay", {"compat": true, "schema": "graphql/schema.graphql"}],
+    "relay",
     "./assert-messages-plugin.js",
     "chai-assert-async",
     "transform-object-rest-spread",
