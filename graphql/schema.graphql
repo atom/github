@@ -848,6 +848,37 @@ type CreateProjectPayload {
   project: Project!
 }
 
+# Represents a mention made by one issue or pull request to another.
+type CrossReferencedEvent implements Node, UniformResourceLocatable {
+  # Identifies the actor who performed the event.
+  actor: Actor
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+  id: ID!
+
+  # Reference originated in a different repository.
+  isCrossRepository: Boolean!
+
+  # Identifies when the reference was made.
+  referencedAt: DateTime!
+
+  # The HTTP path for this pull request.
+  resourcePath: URI!
+
+  # Issue or pull request that made the reference.
+  source: ReferencedSubject!
+
+  # Issue or pull request to which the reference was made.
+  target: ReferencedSubject!
+
+  # The HTTP URL for this pull request.
+  url: URI!
+
+  # Checks if the target will be closed when the source is merged.
+  willCloseTarget: Boolean!
+}
+
 # An ISO-8601 encoded UTC date string.
 scalar DateTime
 
@@ -2048,7 +2079,7 @@ type IssueTimelineConnection {
 }
 
 # An item in an issue timeline
-union IssueTimelineItem = Commit | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent
+union IssueTimelineItem = Commit | IssueComment | CrossReferencedEvent | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent
 
 # An edge in a connection.
 type IssueTimelineItemEdge {
@@ -2234,6 +2265,61 @@ input LanguageOrder {
 enum LanguageOrderField {
   # Order languages by the size of all files containing the language
   SIZE
+}
+
+# A respository's open source license
+type License {
+  # The full text of the license
+  body: String!
+
+  # The conditions set by the license
+  conditions: [LicenseRule]!
+
+  # A human-readable description of the license
+  description: String
+
+  # Whether the license should be featured
+  featured: Boolean!
+
+  # Whether the license should be displayed in license pickers
+  hidden: Boolean!
+  id: ID!
+
+  # Instructions on how to implement the license
+  implementation: String
+
+  # The lowercased SPDX ID of the license
+  key: String!
+
+  # The limitations set by the license
+  limitations: [LicenseRule]!
+
+  # The license full name specified by <https://spdx.org/licenses>
+  name: String!
+
+  # Customary short name if applicable (e.g, GPLv3)
+  nickname: String
+
+  # The permissions set by the license
+  permissions: [LicenseRule]!
+
+  # Short identifier specified by <https://spdx.org/licenses>
+  spdxId: String
+
+  # URL to the license on <https://choosealicense.com>
+  url: URI
+}
+
+# Describes a License's conditions, permissions, and limitations
+type LicenseRule {
+  # A description of the rule
+  description: String!
+
+  # The machine-readable rule key
+  key: String!
+
+  # The human-readable rule label
+  label: String!
 }
 
 # An object that can be locked.
@@ -3425,6 +3511,9 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # The date and time that the pull request was merged.
   mergedAt: DateTime
 
+  # Identifies the milestone associated with the pull request.
+  milestone: Milestone
+
   # Identifies the pull request number.
   number: Int!
 
@@ -3780,7 +3869,7 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
   lastEditedAt: DateTime
 
   # Identifies the original commit associated with the comment.
-  originalCommit: Commit!
+  originalCommit: Commit
 
   # The original line index in the diff to which the comment applies.
   originalPosition: Int!
@@ -3983,7 +4072,7 @@ type PullRequestTimelineConnection {
 }
 
 # An item in an pull request timeline
-union PullRequestTimelineItem = Commit | CommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
+union PullRequestTimelineItem = Commit | CommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | CrossReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
 
 # An edge in a connection.
 type PullRequestTimelineItemEdge {
@@ -4042,6 +4131,15 @@ type Query {
   # Look up a code of conduct by its key
   codesOfConduct: [CodeOfConduct]
 
+  # Look up an open source license by its key
+  license(
+    # The license's downcased SPDX ID
+    key: String!
+  ): License
+
+  # Return a list of known open source licenses
+  licenses: [License]!
+
   # Fetches an object given its ID.
   node(
     # ID of the object.
@@ -4061,14 +4159,17 @@ type Query {
   ): Organization
 
   # The client's rate limit information.
-  rateLimit: RateLimit
+  rateLimit(
+    # If true, calculate the cost for the query without evaluating it
+    dryRun: Boolean = false
+  ): RateLimit
 
   # Hack to workaround https://github.com/facebook/relay/issues/112 re-exposing the root query object
   relay: Query!
 
   # Lookup a given repository by the owner and repository name.
   repository(
-    # The login field of a user or organizationn
+    # The login field of a user or organization
     owner: String!
 
     # The name of the repository
@@ -4131,6 +4232,9 @@ type RateLimit {
 
   # The maximum number of points the client is permitted to consume in a 60 minute window.
   limit: Int!
+
+  # The maximum number of nodes this query may return
+  nodeCount: Int!
 
   # The number of points remaining in the current rate limit window.
   remaining: Int!
@@ -4833,7 +4937,10 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   ): LanguageConnection
 
   # The license associated with the repository
-  license: String
+  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+
+  # The license associated with the repository
+  licenseInfo: License
 
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
@@ -5198,7 +5305,10 @@ interface RepositoryInfo {
   isPrivate: Boolean!
 
   # The license associated with the repository
-  license: String
+  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+
+  # The license associated with the repository
+  licenseInfo: License
 
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
@@ -5281,7 +5391,10 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   isPrivate: Boolean!
 
   # The license associated with the repository
-  license: String
+  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+
+  # The license associated with the repository
+  licenseInfo: License
 
   # The reason the repository has been locked.
   lockReason: RepositoryLockReason
