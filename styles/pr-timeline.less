@@ -89,6 +89,46 @@
     }
   }
 
+  .cross-referenced-events {
+    // provides spacing between cross-referenced-event rows
+    border-spacing: 0 @component-padding / 2;
+
+    .info-row {
+      margin-bottom: @component-padding;
+    }
+  }
+
+  .cross-referenced-event {
+    display: table-row;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &-label {
+      display: table-cell;
+
+      &-title {
+        font-weight: bold;
+      }
+
+      &-number {
+        display: inline;
+        margin-left: 5px;
+        white-space: nowrap;
+      }
+    }
+
+    &-private {
+      display: table-cell;
+    }
+
+    &-state {
+      display: table-cell;
+      text-align: right;
+    }
+  }
+
   .sha {
     font-family: monospace;
   }
