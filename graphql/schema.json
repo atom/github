@@ -4255,6 +4255,33 @@
               "deprecationReason": null
             },
             {
+              "name": "shortDescriptionHTML",
+              "description": "A description of the repository, rendered to HTML without any links in it.",
+              "args": [
+                {
+                  "name": "limit",
+                  "description": "How many characters to return.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": "200"
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "HTML",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "stargazers",
               "description": "A list of users who have starred this starrable.",
               "args": [
@@ -16574,6 +16601,22 @@
               "deprecationReason": null
             },
             {
+              "name": "createdAt",
+              "description": "Identifies the date and time when the object was created.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "description",
               "description": "The description of the team.",
               "args": [],
@@ -17069,6 +17112,22 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "updatedAt",
+              "description": "Identifies the date and time when the object was last updated.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": true,
+              "deprecationReason": "General type updated timestamps will eventually be replaced by other field specific timestamps."
             },
             {
               "name": "url",
@@ -18160,13 +18219,9 @@
               "description": "The organization's public profile name.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -23287,6 +23342,18 @@
               "deprecationReason": null
             },
             {
+              "name": "databaseId",
+              "description": "Identifies the primary key from the database.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              },
+              "isDeprecated": true,
+              "deprecationReason": "Exposed database IDs will eventually be removed in favor of global Relay IDs."
+            },
+            {
               "name": "environment",
               "description": "The environment to which this deployment was made.",
               "args": [],
@@ -23321,6 +23388,18 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "DeploymentStatus",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "payload",
+              "description": "Extra information that a deployment system might need.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -25289,6 +25368,33 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "shortDescriptionHTML",
+              "description": "A description of the repository, rendered to HTML without any links in it.",
+              "args": [
+                {
+                  "name": "limit",
+                  "description": "How many characters to return.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": "200"
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "HTML",
                   "ofType": null
                 }
               },
@@ -27346,6 +27452,54 @@
           "description": "A release asset contains the content for a release asset.",
           "fields": [
             {
+              "name": "contentType",
+              "description": "The asset's content-type",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "createdAt",
+              "description": "Identifies the date and time when the object was created.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "downloadCount",
+              "description": "The number of times this asset was downloaded",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "id",
               "description": null,
               "args": [],
@@ -27379,12 +27533,60 @@
             },
             {
               "name": "release",
-              "description": "release that the asset is associated with",
+              "description": "Release that the asset is associated with",
               "args": [],
               "type": {
                 "kind": "OBJECT",
                 "name": "Release",
                 "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "size",
+              "description": "The size (in bytes) of the asset",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "updatedAt",
+              "description": "Identifies the date and time when the object was last updated.",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "DateTime",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": true,
+              "deprecationReason": "General type updated timestamps will eventually be replaced by other field specific timestamps."
+            },
+            {
+              "name": "uploadedBy",
+              "description": "The user that performed the upload",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "User",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -33303,6 +33505,33 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "URI",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "shortDescriptionHTML",
+              "description": "A description of the repository, rendered to HTML without any links in it.",
+              "args": [
+                {
+                  "name": "limit",
+                  "description": "How many characters to return.",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  },
+                  "defaultValue": "200"
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "HTML",
                   "ofType": null
                 }
               },

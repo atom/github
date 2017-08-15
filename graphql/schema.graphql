@@ -1020,12 +1020,18 @@ type Deployment implements Node {
   # Identifies the actor who triggered the deployment.
   creator: Actor
 
+  # Identifies the primary key from the database.
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+
   # The environment to which this deployment was made.
   environment: String
   id: ID!
 
   # The latest status of this deployment.
   latestStatus: DeploymentStatus
+
+  # Extra information that a deployment system might need.
+  payload: String
 
   # Identifies the repository associated with the deployment.
   repository: Repository!
@@ -2582,7 +2588,7 @@ type Organization implements Node, Actor, ProjectOwner, RepositoryOwner, Uniform
   ): UserConnection!
 
   # The organization's public profile name.
-  name: String!
+  name: String
 
   # The HTTP path creating a new team
   newTeamResourcePath: URI!
@@ -4458,13 +4464,30 @@ type Release implements Node, UniformResourceLocatable {
 
 # A release asset contains the content for a release asset.
 type ReleaseAsset implements Node {
+  # The asset's content-type
+  contentType: String!
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
+  # The number of times this asset was downloaded
+  downloadCount: Int!
   id: ID!
 
   # Identifies the title of the release asset.
   name: String!
 
-  # release that the asset is associated with
+  # Release that the asset is associated with
   release: Release
+
+  # The size (in bytes) of the asset
+  size: Int!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+
+  # The user that performed the upload
+  uploadedBy: User!
 
   # Identifies the URL of the release asset.
   url: URI!
@@ -5029,6 +5052,12 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   # The HTTP path for this repository
   resourcePath: URI!
 
+  # A description of the repository, rendered to HTML without any links in it.
+  shortDescriptionHTML(
+    # How many characters to return.
+    limit: Int = 200
+  ): HTML!
+
   # A list of users who have starred this starrable.
   stargazers(
     # Returns the first _n_ elements from the list.
@@ -5192,6 +5221,12 @@ interface RepositoryInfo {
   # The HTTP path for this repository
   resourcePath: URI!
 
+  # A description of the repository, rendered to HTML without any links in it.
+  shortDescriptionHTML(
+    # How many characters to return.
+    limit: Int = 200
+  ): HTML!
+
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
 
@@ -5268,6 +5303,12 @@ type RepositoryInvitationRepository implements RepositoryInfo {
 
   # The HTTP path for this repository
   resourcePath: URI!
+
+  # A description of the repository, rendered to HTML without any links in it.
+  shortDescriptionHTML(
+    # How many characters to return.
+    limit: Int = 200
+  ): HTML!
 
   # Identifies the date and time when the object was last updated.
   updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
@@ -6007,6 +6048,9 @@ type Team implements Node {
   # The slug corresponding to the organization and team.
   combinedSlug: String!
 
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
   # The description of the team.
   description: String
 
@@ -6118,6 +6162,9 @@ type Team implements Node {
 
   # The HTTP URL for this team's teams
   teamsUrl: URI!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
 
   # The HTTP URL for this team
   url: URI!
