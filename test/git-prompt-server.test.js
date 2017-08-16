@@ -47,6 +47,7 @@ describe('GitPromptServer', function() {
     }
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
+      this.retries(5); // Known Flake
       this.timeout(10000);
 
       let queried = null;
