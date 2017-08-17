@@ -559,7 +559,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
 
       operations.forEach(op => {
-        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
+        it(`overrides gpg.program when ${op.progressiveTense}`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns({
             promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
@@ -571,39 +571,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const [args, options] = execStub.getCall(0).args;
 
           assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-
-          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
         });
-
-        if (!op.usesPromptServerAlready) {
-          it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
-            const execStub = sinon.stub(git, 'executeGitCommand');
-            execStub.onCall(0).returns({
-              promise: Promise.resolve({
-                stdout: '',
-                stderr: 'stderr includes "gpg failed"',
-                exitCode: 128,
-              }),
-              cancel: notCancelled,
-            });
-            execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
-            execStub.returns({
-              promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
-              cancel: notCancelled,
-            });
-
-            // Should not throw
-            await op.action();
-
-            const [args0, options0] = execStub.getCall(0).args;
-            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
-
-            const [args1, options1] = execStub.getCall(1).args;
-            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
-          });
-        }
       });
     });
 
