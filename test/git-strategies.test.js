@@ -559,7 +559,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
 
       operations.forEach(op => {
-        it(`tries a ${op.command} without the gpg.program override first`, async function () {
+        it(`tries a ${op.command} without the gpg.program override first`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns({
             promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
