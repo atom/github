@@ -61,7 +61,7 @@ describe('GithubPackage', function() {
 
     async function constructWith(projectPaths, initialPaths) {
       const realProjectPaths = await Promise.all(
-        projectPaths.map(projectPath => getTempDir(projectPath)),
+        projectPaths.map(projectPath => getTempDir({prefix: projectPath})),
       );
 
       project.setPaths(realProjectPaths);
