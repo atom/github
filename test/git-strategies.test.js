@@ -570,7 +570,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
           const [args, options] = execStub.getCall(0).args;
 
-          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
 
           assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
         });
@@ -596,11 +596,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
             await op.action();
 
             const [args0, options0] = execStub.getCall(0).args;
-            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
             assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
 
             const [args1, options1] = execStub.getCall(1).args;
-            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
             assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
           });
         }
