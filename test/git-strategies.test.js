@@ -568,7 +568,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
           await op.action();
 
-          const [args, options] = execStub.getCall(0).args;
+          const [args] = execStub.getCall(0).args;
 
           assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
         });
