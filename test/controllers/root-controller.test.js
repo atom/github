@@ -133,6 +133,21 @@ describe('RootController', function() {
       assert.isTrue(wrapper.find({filePath: 'b.txt', initialStagingStatus: 'staged'}).exists());
       assert.isTrue(wrapper.find({filePath: 'c.txt', initialStagingStatus: 'staged'}).exists());
     });
+
+    if (path.sep !== '/') {
+      it('reconstitutes paths from the pane URI with the correct path separator', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        app = React.cloneElement(app, {repository, filePatchItems: [
+          {key: 1, uri: 'atom-github://file-patch/foo/bar/baz/filename.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
+        ]});
+        const wrapper = shallow(app);
+
+        assert.equal(wrapper.find('FilePatchController').length, 1);
+        assert.isTrue(wrapper.find({filePath: path.join('foo', 'bar', 'baz', 'filename.txt')}).exists());
+      });
+    }
   });
 
   describe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
