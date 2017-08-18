@@ -597,11 +597,18 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      await until('change observers have started', () => {
-        return [workdirPath1, workdirPath2].every(workdir => {
-          return contextPool.getContext(workdir).getChangeObserver().isStarted();
-        });
-      });
+
+      const watcherPromises = [
+        until(() => contextPool.getContext(workdirPath1).getChangeObserver().isStarted()),
+        until(() => contextPool.getContext(workdirPath2).getChangeObserver().isStarted()),
+      ];
+
+      if (project.getWatcherPromise) {
+        watcherPromises.push(project.getWatcherPromise(workdirPath1));
+        watcherPromises.push(project.getWatcherPromise(workdirPath2));
+      }
+
+      await Promise.all(watcherPromises);
 
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
