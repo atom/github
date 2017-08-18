@@ -13,9 +13,6 @@ describe('FileSystemChangeObserver', function() {
     const changeObserver = new FileSystemChangeObserver(repository);
     changeObserver.onDidChange(changeSpy);
     await changeObserver.start();
-    if (changeObserver.currentFileWatcher.getStartPromise) {
-      await changeObserver.currentFileWatcher.getStartPromise();
-    }
 
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     await assert.async.isTrue(changeSpy.called);
