@@ -27,7 +27,7 @@
   'o': 'github:open-file'
   'left': 'core:move-left'
 
-'.github-StagingView .github-UnstagedChanges .github-FilePatchListView':
+'.github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
   'ctrl-backspace': 'github:discard-changes-in-selected-files'
 

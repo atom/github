@@ -559,7 +559,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
 
       operations.forEach(op => {
-        it(`temporarily overrides gpg.program when ${op.progressiveTense}`, async function() {
+        it(`tries a ${op.command} without the gpg.program override first`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns({
             promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
@@ -569,14 +569,34 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           await op.action();
 
           const [args, options] = execStub.getCall(0).args;
+          assertNoGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH !== undefined, op.usesPromptServerAlready);
+        });
 
-          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+        it(`retries and overrides gpg.program when ${op.progressiveTense}`, async function() {
+          const execStub = sinon.stub(git, 'executeGitCommand');
+          execStub.onCall(0).returns({
+            promise: Promise.resolve({
+              stdout: '',
+              stderr: 'stderr includes "gpg failed"',
+              exitCode: 128,
+            }),
+            cancel: notCancelled,
+          });
+          execStub.returns({
+            promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            cancel: notCancelled,
+          });
 
-          assert.equal(options.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
+          await op.action();
+
+          const [args, options] = execStub.getCall(1).args;
+          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+          assert.isDefined(options.env.ATOM_GITHUB_SOCK_PATH);
         });
 
         if (!op.usesPromptServerAlready) {
-          it(`retries a ${op.command} with a GitPromptServer when GPG signing fails`, async function() {
+          it(`retries a ${op.command} with a GitPromptServer and gpg.program when GPG signing fails`, async function() {
             const execStub = sinon.stub(git, 'executeGitCommand');
             execStub.onCall(0).returns({
               promise: Promise.resolve({
@@ -596,11 +616,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
             await op.action();
 
             const [args0, options0] = execStub.getCall(0).args;
-            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
             assert.equal(options0.env.ATOM_GITHUB_SOCK_PATH === undefined, !op.usesPromptServerAlready);
 
             const [args1, options1] = execStub.getCall(1).args;
-            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-no-tty\\.sh$');
+            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
             assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
           });
         }
@@ -1192,4 +1212,18 @@ function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$'
   }
 
   assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+}
+
+function assertNoGitConfigSetting(args, command, settingName) {
+  const commandIndex = args.indexOf(command);
+  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
+
+  const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
+  const valueRx = new RegExp(`^${settingNamePattern}=.*$`);
+
+  for (let i = 0; i < commandIndex; i++) {
+    if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
+      assert.fail('', '', `Setting ${settingName} was found in exec arguments ${args.join(' ')}`);
+    }
+  }
 }

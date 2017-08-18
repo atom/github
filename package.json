@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.5.0-0",
+  "version": "0.5.0-5",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -24,8 +24,7 @@
           "package.json",
           ".babelrc",
           "assert-messages-plugin.js",
-          "graphql/schema.graphql",
-          "graphql/relay-babel-plugin.js"
+          "graphql/schema.graphql"
         ]
       }
     }
