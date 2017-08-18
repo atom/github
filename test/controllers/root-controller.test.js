@@ -135,7 +135,7 @@ describe('RootController', function() {
     });
 
     if (path.sep !== '/') {
-      it('reconstitutes paths from the pane URI with the correct path separator', async function () {
+      it('reconstitutes paths from the pane URI with the correct path separator', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
 
