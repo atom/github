@@ -22,7 +22,9 @@ GITHUB_TOKEN=abcdef0123456789 npm run fetch-schema
 
 where `abcdef0123456789` is a token generated as per the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) help article.
 
-Please check in the two generated files (`graphql/schema.js` and `graphql/schema.graphql`) together in their own commit.
+Please check in the generated `graphql/schema.graphql`.
+
+In addition, if you make any changes to any of the GraphQL queries or fragments (inside the `graphql` tagged template literals), you will need to run `npm run relay` to regenerate the statically-generated query files.
 
 ### Async Tests
 
