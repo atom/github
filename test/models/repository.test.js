@@ -1463,7 +1463,7 @@ describe('Repository', function() {
         });
       });
 
-      stress(50, 'when applying a patch to the index', async function() {
+      it('when applying a patch to the index', async function() {
         const {repository, observer} = await wireUpObserver();
 
         await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
