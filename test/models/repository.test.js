@@ -930,7 +930,7 @@ describe('Repository', function() {
     });
   });
 
-  describe.only('cache invalidation', function() {
+  describe('cache invalidation', function() {
     // These tests do a *lot* of git operations
     this.timeout(this.timeout() * 2);
 
