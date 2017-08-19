@@ -930,7 +930,10 @@ describe('Repository', function() {
     });
   });
 
-  describe('cache invalidation', function() {
+  describe.only('cache invalidation', function() {
+    // These tests do a *lot* of git operations
+    this.timeout(this.timeout() * 2);
+
     const preventDefault = event => event.preventDefault();
 
     beforeEach(function() {
@@ -1023,12 +1026,12 @@ describe('Repository', function() {
         withFile(fileName);
       }
 
-      const withBranch = (branchName, description) => {
-        calls.set(`getAheadCount ${description}`, {
+      const withBranch = branchName => {
+        calls.set(`getAheadCount ${branchName}`, {
           serial: true,
           op: () => repository.getAheadCount(branchName),
         });
-        calls.set(`getBehindCount ${description}`, {
+        calls.set(`getBehindCount ${branchName}`, {
           serial: true,
           op: () => repository.getBehindCount(branchName),
         });
@@ -1209,7 +1212,7 @@ describe('Repository', function() {
         const patch = await repository.getFilePatchForPath('a.txt');
         await writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\nfoo-2\n');
 
-        await assertCorrectInvalidation({repository}, async () => {
+        await assertCorrectInvalidation({repository, verbose: true}, async () => {
           await repository.applyPatchToIndex(patch);
         });
       });
