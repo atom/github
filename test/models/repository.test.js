@@ -1402,12 +1402,16 @@ describe('Repository', function() {
       }
 
       function expectEvents(repository, ...fileNames) {
-        const pending = new Set(fileNames);
+        const pending = new Set(
+          fileNames.map(fileName => {
+            return path.join(repository.getWorkingDirectoryPath(), ...fileName.split(/[\\/]/));
+          }),
+        );
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
               .map(event => event.path)
-              .filter(eventPath => pending.delete(path.basename(eventPath)));
+              .filter(eventPath => pending.delete(eventPath));
 
             if (matchingPaths.length > 0) {
               repository.observeFilesystemChange(matchingPaths);
@@ -1436,7 +1440,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.stageFiles(['a.txt']);
-          await expectEvents(repository, 'index');
+          await expectEvents(repository, '.git/index');
         });
       });
 
@@ -1449,7 +1453,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.unstageFiles(['a.txt']);
-          await expectEvents(repository, 'index');
+          await expectEvents(repository, '.git/index');
         });
       });
 
@@ -1459,7 +1463,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.unstageFiles(['a.txt'], 'HEAD~');
-          await expectEvents(repository, 'index');
+          await expectEvents(repository, '.git/index');
         });
       });
 
@@ -1472,7 +1476,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.applyPatch(patch.getHeaderString() + patch.toString(), {index: true});
-          await expectEvents(repository, 'index');
+          await expectEvents(repository, '.git/index');
         });
       });
 
@@ -1498,7 +1502,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.commit('boop your snoot');
-          await expectEvents(repository, 'index', 'master');
+          await expectEvents(repository, '.git/index', '.git/refs/heads/master');
         });
       });
 
@@ -1508,7 +1512,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await assert.isRejected(repository.git.merge('origin/branch'));
-          await expectEvents(repository, 'index', 'modified-on-both-ours.txt', 'MERGE_HEAD');
+          await expectEvents(repository, '.git/index', 'modified-on-both-ours.txt', '.git/MERGE_HEAD');
         });
       });
 
@@ -1519,7 +1523,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.abortMerge();
-          await expectEvents(repository, 'index', 'modified-on-both-ours.txt', 'MERGE_HEAD', 'HEAD');
+          await expectEvents(repository, '.git/index', 'modified-on-both-ours.txt', '.git/MERGE_HEAD');
         });
       });
 
@@ -1529,7 +1533,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.checkout('HEAD^');
-          await expectEvents(repository, 'index', 'HEAD', 'b.txt', 'c.txt');
+          await expectEvents(repository, '.git/index', '.git/HEAD', 'b.txt', 'c.txt');
         });
       });
 
@@ -1539,7 +1543,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.checkoutFiles(['b.txt'], 'HEAD^');
-          await expectEvents(repository, 'b.txt', 'index');
+          await expectEvents(repository, 'b.txt', '.git/index');
         });
       });
 
@@ -1553,7 +1557,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.fetch('origin', 'master');
-          await expectEvents(repository, 'master');
+          await expectEvents(repository, '.git/refs/remotes/origin/master');
         });
       });
 
@@ -1568,7 +1572,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await assert.isRejected(repository.git.pull('origin', 'master'));
-          await expectEvents(repository, 'file.txt', 'master', 'MERGE_HEAD', 'index');
+          await expectEvents(repository, 'file.txt', '.git/refs/remotes/origin/master', '.git/MERGE_HEAD', '.git/index');
         });
       });
 
@@ -1583,7 +1587,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.push('origin', 'master');
-          await expectEvents(repository, 'master');
+          await expectEvents(repository, '.git/refs/remotes/origin/master');
         });
       });
 
@@ -1594,7 +1598,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository, optionNames}, async () => {
           await observer.start();
           await repository.git.setConfig('core.editor', 'ed # :trollface:');
-          await expectEvents(repository, 'config');
+          await expectEvents(repository, '.git/config');
         });
       });
 
