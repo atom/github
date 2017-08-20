@@ -1001,6 +1001,7 @@ describe('Repository', function() {
         op: () => repository.getBranches(),
       });
       calls.set('getCurrentBranch', {
+        serial: true,
         op: () => repository.getCurrentBranch(),
       });
       calls.set('getRemotes', {
