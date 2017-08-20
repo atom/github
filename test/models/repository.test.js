@@ -1404,7 +1404,7 @@ describe('Repository', function() {
       function expectEvents(repository, ...fileNames) {
         const pending = new Set(
           fileNames.map(fileName => {
-            return fs.realPathSync(
+            return fs.realpathSync(
               path.join(repository.getWorkingDirectoryPath(), ...fileName.split(/[\\/]/)),
             );
           }),
@@ -1412,7 +1412,7 @@ describe('Repository', function() {
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
-              .map(event => fs.realPathSync(event.path))
+              .map(event => fs.realpathSync(event.path))
               .filter(eventPath => pending.delete(eventPath));
 
             if (matchingPaths.length > 0) {
