@@ -1404,13 +1404,15 @@ describe('Repository', function() {
       function expectEvents(repository, ...fileNames) {
         const pending = new Set(
           fileNames.map(fileName => {
-            return path.join(repository.getWorkingDirectoryPath(), ...fileName.split(/[\\/]/));
+            return fs.realPathSync(
+              path.join(repository.getWorkingDirectoryPath(), ...fileName.split(/[\\/]/)),
+            );
           }),
         );
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
-              .map(event => event.path)
+              .map(event => fs.realPathSync(event.path))
               .filter(eventPath => pending.delete(eventPath));
 
             if (matchingPaths.length > 0) {
