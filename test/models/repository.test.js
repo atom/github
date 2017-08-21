@@ -987,67 +987,63 @@ describe('Repository', function() {
       const repository = options.repository;
       const calls = new Map();
 
-      calls.set('getStatusesForChangedFiles', {
-        serial: true,
-        op: () => repository.getStatusesForChangedFiles(),
-      });
-      calls.set('getStagedChangesSinceParentCommit', {
-        op: () => repository.getStagedChangesSinceParentCommit(),
-      });
-      calls.set('getLastCommit', {
-        op: () => repository.getLastCommit(),
-      });
-      calls.set('getBranches', {
-        op: () => repository.getBranches(),
-      });
-      calls.set('getCurrentBranch', {
-        serial: true,
-        op: () => repository.getCurrentBranch(),
-      });
-      calls.set('getRemotes', {
-        op: () => repository.getRemotes(),
-      });
+      calls.set(
+        'getStatusBundle',
+        () => repository.getStatusBundle(),
+      );
+      calls.set(
+        'getHeadDescription',
+        () => repository.getHeadDescription(),
+      );
+      calls.set(
+        'getStagedChangesSinceParentCommit',
+        () => repository.getStagedChangesSinceParentCommit(),
+      );
+      calls.set(
+        'getLastCommit',
+        () => repository.getLastCommit(),
+      );
+      calls.set(
+        'getBranches',
+        () => repository.getBranches(),
+      );
+      calls.set(
+        'getRemotes',
+        () => repository.getRemotes(),
+      );
 
       const withFile = fileName => {
-        calls.set(`getFilePatchForPath {unstaged} ${fileName}`, {
-          op: () => repository.getFilePatchForPath(fileName, {staged: false}),
-        });
-        calls.set(`getFilePatchForPath {staged} ${fileName}`, {
-          op: () => repository.getFilePatchForPath(fileName, {staged: true}),
-        });
-        calls.set(`getFilePatchForPath {staged, amending} ${fileName}`, {
-          op: () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
-        });
-        calls.set(`readFileFromIndex ${fileName}`, {
-          op: () => repository.readFileFromIndex(fileName),
-        });
+        calls.set(
+          `getFilePatchForPath {unstaged} ${fileName}`,
+          () => repository.getFilePatchForPath(fileName, {staged: false}),
+        );
+        calls.set(
+          `getFilePatchForPath {staged} ${fileName}`,
+          () => repository.getFilePatchForPath(fileName, {staged: true}),
+        );
+        calls.set(
+          `getFilePatchForPath {staged, amending} ${fileName}`,
+          () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
+        );
+        calls.set(
+          `readFileFromIndex ${fileName}`,
+          () => repository.readFileFromIndex(fileName),
+        );
       };
 
       for (const fileName of await filesWithinRepository(options.repository)) {
         withFile(fileName);
       }
 
-      const withBranch = branchName => {
-        calls.set(`getAheadCount ${branchName}`, {
-          serial: true,
-          op: () => repository.getAheadCount(branchName),
-        });
-        calls.set(`getBehindCount ${branchName}`, {
-          serial: true,
-          op: () => repository.getBehindCount(branchName),
-        });
-      };
-      for (const branchName of await repository.git.getBranches()) {
-        withBranch(branchName);
-      }
-
       for (const optionName of (options.optionNames || [])) {
-        calls.set(`getConfig ${optionName}`, {
-          op: () => repository.getConfig(optionName),
-        });
-        calls.set(`getConfig {local} ${optionName}`, {
-          op: () => repository.getConfig(optionName, {local: true}),
-        });
+        calls.set(
+          `getConfig ${optionName}`,
+          () => repository.getConfig(optionName),
+        );
+        calls.set(
+          `getConfig {local} ${optionName}`,
+          () => repository.getConfig(optionName, {local: true}),
+        );
       }
 
       return calls;
@@ -1065,24 +1061,12 @@ describe('Repository', function() {
       const record = async () => {
         const results = new Map();
 
-        const serial = [];
-        const parallel = [];
         for (const [name, call] of methods) {
-          if (call.serial) {
-            serial.push([name, call]);
-          } else {
-            parallel.push([name, call]);
-          }
-        }
-
-        for (const [name, call] of serial) {
           const promise = call.op();
           results.set(name, promise);
-          await promise;
-        }
-
-        for (const [name, call] of parallel) {
-          results.set(name, call.op());
+          if (process.platform === 'win32') {
+            await promise;
+          }
         }
 
         return results;
