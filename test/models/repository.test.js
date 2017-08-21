@@ -1062,10 +1062,10 @@ describe('Repository', function() {
         const results = new Map();
 
         for (const [name, call] of methods) {
-          const promise = call.op();
+          const promise = call();
           results.set(name, promise);
           if (process.platform === 'win32') {
-            await promise;
+            await promise.catch(() => {});
           }
         }
 
