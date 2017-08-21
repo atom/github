@@ -1386,19 +1386,21 @@ describe('Repository', function() {
         return {repository, observer};
       }
 
-      function expectEvents(repository, ...fileNames) {
-        const pending = new Set(
-          fileNames.map(fileName => {
-            return fs.realpathSync(
-              path.join(repository.getWorkingDirectoryPath(), ...fileName.split(/[\\/]/)),
-            );
-          }),
-        );
+      function expectEvents(repository, ...suffixes) {
+        const pending = new Set(suffixes);
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
               .map(event => fs.realpathSync(event.path))
-              .filter(eventPath => pending.delete(eventPath));
+              .filter(eventPath => {
+                for (const suffix of pending) {
+                  if (eventPath.endsWith(suffix)) {
+                    pending.delete(suffix);
+                    return true;
+                  }
+                }
+                return false;
+              });
 
             if (matchingPaths.length > 0) {
               repository.observeFilesystemChange(matchingPaths);
