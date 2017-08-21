@@ -1429,7 +1429,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.stageFiles(['a.txt']);
-          await expectEvents(repository, '.git/index');
+          await expectEvents(repository, path.join('.git', 'index'));
         });
       });
 
@@ -1442,7 +1442,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.unstageFiles(['a.txt']);
-          await expectEvents(repository, '.git/index');
+          await expectEvents(repository, path.join('.git', 'index'));
         });
       });
 
@@ -1452,7 +1452,7 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.unstageFiles(['a.txt'], 'HEAD~');
-          await expectEvents(repository, '.git/index');
+          await expectEvents(repository, path.join('.git', 'index'));
         });
       });
 
@@ -1465,7 +1465,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.applyPatch(patch.getHeaderString() + patch.toString(), {index: true});
-          await expectEvents(repository, '.git/index');
+          await expectEvents(
+            repository,
+            path.join('.git', 'index'),
+          );
         });
       });
 
@@ -1478,7 +1481,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.applyPatch(patch.getHeaderString() + patch.toString());
-          await expectEvents(repository, 'a.txt');
+          await expectEvents(
+            repository,
+            'a.txt',
+          );
         });
       });
 
@@ -1491,7 +1497,11 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.commit('boop your snoot');
-          await expectEvents(repository, '.git/index', '.git/refs/heads/master');
+          await expectEvents(
+            repository,
+            path.join('.git', 'index'),
+            path.join('.git', 'refs', 'heads', 'master'),
+          );
         });
       });
 
@@ -1501,7 +1511,12 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await assert.isRejected(repository.git.merge('origin/branch'));
-          await expectEvents(repository, '.git/index', 'modified-on-both-ours.txt', '.git/MERGE_HEAD');
+          await expectEvents(
+            repository,
+            path.join('.git', 'index'),
+            'modified-on-both-ours.txt',
+            path.join('.git', 'MERGE_HEAD'),
+          );
         });
       });
 
@@ -1512,7 +1527,12 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.abortMerge();
-          await expectEvents(repository, '.git/index', 'modified-on-both-ours.txt', '.git/MERGE_HEAD');
+          await expectEvents(
+            repository,
+            path.join('.git', 'index'),
+            'modified-on-both-ours.txt',
+            path.join('.git', 'MERGE_HEAD'),
+          );
         });
       });
 
@@ -1522,7 +1542,13 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.checkout('HEAD^');
-          await expectEvents(repository, '.git/index', '.git/HEAD', 'b.txt', 'c.txt');
+          await expectEvents(
+            repository,
+            path.join('.git', 'index'),
+            path.join('.git', 'HEAD'),
+            'b.txt',
+            'c.txt',
+          );
         });
       });
 
@@ -1532,7 +1558,11 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.checkoutFiles(['b.txt'], 'HEAD^');
-          await expectEvents(repository, 'b.txt', '.git/index');
+          await expectEvents(
+            repository,
+            'b.txt',
+            path.join('.git', 'index'),
+          );
         });
       });
 
@@ -1546,7 +1576,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.fetch('origin', 'master');
-          await expectEvents(repository, '.git/refs/remotes/origin/master');
+          await expectEvents(
+            repository,
+            path.join('.git', 'refs', 'remotes', 'origin', 'master'),
+          );
         });
       });
 
@@ -1561,7 +1594,13 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await assert.isRejected(repository.git.pull('origin', 'master'));
-          await expectEvents(repository, 'file.txt', '.git/refs/remotes/origin/master', '.git/MERGE_HEAD', '.git/index');
+          await expectEvents(
+            repository,
+            'file.txt',
+            path.join('.git', 'refs', 'remotes', 'origin', 'master'),
+            path.join('.git', 'MERGE_HEAD'),
+            path.join('.git', 'index'),
+          );
         });
       });
 
@@ -1576,7 +1615,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await repository.git.push('origin', 'master');
-          await expectEvents(repository, '.git/refs/remotes/origin/master');
+          await expectEvents(
+            repository,
+            path.join('.git', 'refs', 'remotes', 'origin', 'master'),
+          );
         });
       });
 
@@ -1587,7 +1629,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository, optionNames}, async () => {
           await observer.start();
           await repository.git.setConfig('core.editor', 'ed # :trollface:');
-          await expectEvents(repository, '.git/config');
+          await expectEvents(
+            repository,
+            path.join('.git', 'config'),
+          );
         });
       });
 
@@ -1597,7 +1642,10 @@ describe('Repository', function() {
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
           await writeFile(path.join(workdir, 'b.txt'), 'new contents\n');
-          await expectEvents(repository, 'b.txt');
+          await expectEvents(
+            repository,
+            'b.txt',
+          );
         });
       });
     });
