@@ -1391,7 +1391,7 @@ describe('Repository', function() {
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
-              .map(event => fs.realpathSync(event.path))
+              .map(event => event.path)
               .filter(eventPath => {
                 for (const suffix of pending) {
                   if (eventPath.endsWith(suffix)) {
