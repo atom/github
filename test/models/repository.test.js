@@ -1197,7 +1197,7 @@ describe('Repository', function() {
         const patch = await repository.getFilePatchForPath('a.txt');
         await writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\nfoo-2\n');
 
-        await assertCorrectInvalidation({repository, verbose: true}, async () => {
+        await assertCorrectInvalidation({repository}, async () => {
           await repository.applyPatchToIndex(patch);
         });
       });
