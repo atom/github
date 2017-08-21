@@ -932,7 +932,7 @@ describe('Repository', function() {
 
   describe('cache invalidation', function() {
     // These tests do a *lot* of git operations
-    this.timeout(this.timeout() * 2);
+    this.timeout(Math.max(20000, this.timeout() * 2));
 
     const preventDefault = event => event.preventDefault();
 
