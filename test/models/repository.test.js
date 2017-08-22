@@ -1493,7 +1493,7 @@ describe('Repository', function() {
         });
       });
 
-      stress(100, 'when committing', async function() {
+      stress(400, 'when committing', async function() {
         console.log('---> start');
         const {repository, observer} = await wireUpObserver();
 
