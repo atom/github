@@ -1380,7 +1380,6 @@ describe('Repository', function() {
 
         sub.add(observer.onDidChange(events => {
           observedEvents.push(...events);
-          console.log(`> events received:\n ${events.map(e => e.path).join('\n ')}`);
           eventCallback();
         }));
 
@@ -1397,8 +1396,6 @@ describe('Repository', function() {
                 for (const suffix of pending) {
                   if (eventPath.endsWith(suffix)) {
                     pending.delete(suffix);
-                    console.log(`> event ${eventPath} matched ${suffix}`);
-                    console.log(`> remaining: ${Array.from(pending).join(', ')}`)
                     return true;
                   }
                 }
@@ -1410,13 +1407,11 @@ describe('Repository', function() {
             }
 
             if (pending.size === 0) {
-              console.log('> all events received');
               resolve();
             }
           };
 
           if (observedEvents.length > 0) {
-            console.log('> triggering initial callback');
             eventCallback();
           }
         });
@@ -1493,28 +1488,21 @@ describe('Repository', function() {
         });
       });
 
-      stress(400, 'when committing', async function() {
-        console.log('---> start');
+      it('when committing', async function() {
         const {repository, observer} = await wireUpObserver();
 
         await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
         await repository.stageFiles(['a.txt']);
 
-        console.log('---> collecting baseline');
         await assertCorrectInvalidation({repository}, async () => {
-          console.log('---> starting watcher');
           await observer.start();
-          console.log('---> performing commit');
           await repository.git.commit('boop your snoot');
-          console.log('---> waiting for filesystem events');
           await expectEvents(
             repository,
             path.join('.git', 'index'),
             path.join('.git', 'refs', 'heads', 'master'),
           );
-          console.log('---> collecting cached data');
         });
-        console.log('---> complete');
       });
 
       it('when merging', async function() {
