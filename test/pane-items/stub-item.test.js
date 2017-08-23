@@ -26,7 +26,7 @@ describe('StubItem', function() {
   let stub;
 
   beforeEach(function() {
-    stub = StubItem.create('selector', {
+    stub = StubItem.create('name', {
       title: 'stub-title',
       iconName: 'stub-icon-name',
     });
@@ -34,18 +34,6 @@ describe('StubItem', function() {
 
   afterEach(function() {
     stub.destroy();
-  });
-
-  describe('#getBySelector', function() {
-    it('allows getting the stub by its selector', function() {
-      assert.equal(StubItem.getBySelector('selector'), stub);
-    });
-  });
-
-  describe('#getElementBySelector', function() {
-    it('fetches the element of a stub by its selector', function() {
-      assert.equal(StubItem.getElementBySelector('selector'), stub.getElement());
-    });
   });
 
   describe('#setRealItem', function() {

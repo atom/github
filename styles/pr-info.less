@@ -45,35 +45,30 @@
       display: inline-block;
       margin-left: 0.5em;
     }
-  }
 
-  .pr-badge {
-    align-self: flex-start;
-    flex-shrink: 0;
-    margin-right: @component-padding;
-    font-weight: bold;
-    text-transform: capitalize;
-    border-radius: @component-border-radius;
-
-    &.open {
-      color: contrast(@gh-background-color-green, black, white, 50%);
-      background-color: @gh-background-color-green;
-    }
-
-    &.closed {
-      color: contrast(@gh-background-color-red, black, white, 50%);
-      background-color: @gh-background-color-red;
-    }
-
-    &.merged {
-      color: contrast(@gh-background-color-purple, black, white, 50%);
-      background-color: @gh-background-color-purple;
+    :last-child {
+      flex: 1;
+      text-align: right;
     }
   }
 
   .pr-link a {
     color: @text-color-subtle;
     word-break: break-all;
+  }
+
+  .refresh-button {
+    .icon {
+      color: @text-color-subtle;
+      cursor: pointer;
+
+      &.refreshing::before {
+        @keyframes github-RefreshButton-animation {
+          100% { transform: rotate(360deg); }
+        }
+        animation: github-RefreshButton-animation 2s linear 30; // limit to 1min in case something gets stuck
+      }
+    }
   }
 
 
@@ -138,6 +133,13 @@
     .reaction-group {
       margin-right: @component-padding * 2;
     }
+  }
+
+  // Statuses ------------------------
+
+  .github-PrStatuses {
+    border-top: 1px solid @base-border-color;
+    padding-top: @component-padding * 2;
   }
 
   // All "items" ------------------------

@@ -27,33 +27,33 @@
     display: flex;
     align-items: center;
     margin-bottom: @component-padding * 2;
-  }
-  .issueish-badge {
-    align-self: flex-start;
-    flex-shrink: 0;
-    margin-right: @component-padding;
-    font-weight: bold;
-    text-transform: capitalize;
-    border-radius: @component-border-radius;
 
-    &.open {
-      color: contrast(@gh-background-color-green, black, white, 50%);
-      background-color: @gh-background-color-green;
-    }
-
-    &.closed {
-      color: contrast(@gh-background-color-red, black, white, 50%);
-      background-color: @gh-background-color-red;
-    }
-
-    &.merged {
-      color: contrast(@gh-background-color-purple, black, white, 50%);
-      background-color: @gh-background-color-purple;
+    :last-child {
+      flex: 1;
+      text-align: right;
     }
   }
 
   .issueish-link a {
     color: @text-color-subtle;
+  }
+
+  .pr-build-status-icon {
+    margin-left: @component-padding;
+  }
+
+  .refresh-button {
+    .icon {
+      color: @text-color-subtle;
+      cursor: pointer;
+
+      &.refreshing::before {
+        @keyframes github-RefreshButton-animation {
+          100% { transform: rotate(360deg); }
+        }
+        animation: github-RefreshButton-animation 2s linear 30; // limit to 1min in case something gets stuck
+      }
+    }
   }
 
 
@@ -151,6 +151,15 @@
     &:empty {
       all: unset;
     }
+  }
+
+  // Statuses ------------------------
+
+  .github-PrStatuses {
+    margin-top: @component-padding * 4;
+    padding: @component-padding;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
   }
 
 

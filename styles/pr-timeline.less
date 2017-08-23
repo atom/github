@@ -7,7 +7,7 @@
   border-top: 1px solid mix(@text-color, @base-background-color, 15%);
 
   // all items
-  & > * {
+  .timeline-item {
     margin: 0 @component-padding * 3;
     padding: @component-padding*3 0;
     border-bottom: 1px solid mix(@text-color, @base-background-color, 15%);
@@ -89,27 +89,81 @@
     }
   }
 
+  .cross-referenced-events {
+    // provides spacing between cross-referenced-event rows
+    border-spacing: 0 @component-padding / 2;
+
+    .info-row {
+      margin-bottom: @component-padding;
+    }
+  }
+
+  .cross-referenced-event {
+    display: table-row;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &-label {
+      display: table-cell;
+      width: 100%;
+
+      &-title {
+        font-weight: bold;
+      }
+
+      &-number {
+        display: inline;
+        margin-left: 5px;
+        white-space: nowrap;
+      }
+    }
+
+    &-private {
+      display: table-cell;
+    }
+
+    &-state {
+      display: table-cell;
+      text-align: right;
+
+      .badge {
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .sha {
+    font-family: monospace;
+  }
+
   .merged-event {
     display: flex;
     align-items: center;
     font-size: .9em;
     line-height: 1.3;
     color: @text-color-subtle;
-    border-bottom: 4px double @base-border-color;
 
     .username,
     .merge-ref {
       font-weight: bold;
       color: @text-color-highlight;
     }
-
-    .sha {
-      font-family: monospace;
-    }
   }
 
   .merged-event ~ .issue {
     border-bottom-style: dashed;
+  }
+
+  .head-ref-force-pushed-event {
+    .username {
+      font-weight: bold;
+      color: @text-color-highlight;
+    }
+    .sha {
+      font-weight: bold;
+    }
   }
 
   .issue {
@@ -134,5 +188,9 @@
     }
   }
 
+  &-load-more-link {
+    cursor: pointer;
+    text-align: center;
+  }
 
 }

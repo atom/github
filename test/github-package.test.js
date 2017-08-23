@@ -9,7 +9,7 @@ import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
-  let getLoadSettings, configDirPath;
+  let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
   beforeEach(function() {
@@ -17,6 +17,7 @@ describe('GithubPackage', function() {
     workspace = atomEnv.workspace;
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
+    deserializers = atomEnv.deserializers;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
@@ -28,7 +29,7 @@ describe('GithubPackage', function() {
 
     githubPackage = new GithubPackage(
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-      configDirPath, getLoadSettings,
+      deserializers, configDirPath, getLoadSettings,
     );
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
@@ -60,7 +61,7 @@ describe('GithubPackage', function() {
 
     async function constructWith(projectPaths, initialPaths) {
       const realProjectPaths = await Promise.all(
-        projectPaths.map(projectPath => getTempDir(projectPath)),
+        projectPaths.map(projectPath => getTempDir({prefix: projectPath})),
       );
 
       project.setPaths(realProjectPaths);
@@ -68,7 +69,7 @@ describe('GithubPackage', function() {
 
       githubPackage1 = new GithubPackage(
         workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-        configDirPath, getLoadSettings1,
+        deserializers, configDirPath, getLoadSettings1,
       );
     }
 
@@ -596,11 +597,18 @@ describe('GithubPackage', function() {
 
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
-      await until('change observers have started', () => {
-        return [workdirPath1, workdirPath2].every(workdir => {
-          return contextPool.getContext(workdir).getChangeObserver().isStarted();
-        });
-      });
+
+      const watcherPromises = [
+        until(() => contextPool.getContext(workdirPath1).getChangeObserver().isStarted()),
+        until(() => contextPool.getContext(workdirPath2).getChangeObserver().isStarted()),
+      ];
+
+      if (project.getWatcherPromise) {
+        watcherPromises.push(project.getWatcherPromise(workdirPath1));
+        watcherPromises.push(project.getWatcherPromise(workdirPath2));
+      }
+
+      await Promise.all(watcherPromises);
 
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');

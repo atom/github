@@ -37,5 +37,19 @@
   &-container {
     flex: 1;
     overflow-y: auto;
+
+    .is-blank, .large-file-patch {
+      display: flex;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1.2em;
+      padding: @component-padding;
+    }
+
+    .large-file-patch {
+      flex-direction: column;
+    }
   }
 }

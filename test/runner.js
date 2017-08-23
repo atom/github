@@ -1,6 +1,7 @@
 import {createRunner} from 'atom-mocha-test-runner';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import path from 'path';
 
 import until from 'test-until';
 
@@ -23,7 +24,16 @@ module.exports = createRunner({
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
   mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
-  if (process.env.APPVEYOR_API_URL) {
+
+  if (process.env.TEST_JUNIT_XML_PATH) {
+    mocha.reporter(require('mocha-junit-and-console-reporter'), {
+      mochaFile: process.env.TEST_JUNIT_XML_PATH,
+    });
+  } else if (process.env.APPVEYOR_API_URL) {
     mocha.reporter(require('mocha-appveyor-reporter'));
+  } else if (process.env.CIRCLECI === 'true') {
+    mocha.reporter(require('mocha-junit-and-console-reporter'), {
+      mochaFile: path.join(process.env.CIRCLE_TEST_REPORTS, 'mocha', 'test-results.xml'),
+    });
   }
 });

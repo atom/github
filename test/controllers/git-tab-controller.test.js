@@ -13,7 +13,7 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
-  let resolutionProgress, refreshResolutionProgress;
+  let resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -25,6 +25,7 @@ describe('GitTabController', function() {
 
     resolutionProgress = new ResolutionProgress();
     refreshResolutionProgress = sinon.spy();
+    destroyFilePatchPaneItems = sinon.spy();
   });
 
   afterEach(function() {
@@ -110,7 +111,7 @@ describe('GitTabController', function() {
     const ensureGitTab = () => Promise.resolve(false);
     const controller = new GitTabController({
       workspace, commandRegistry, repository, didChangeAmending, ensureGitTab,
-      resolutionProgress, refreshResolutionProgress,
+      resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       isAmending: false,
     });
     await controller.getLastModelDataRefreshPromise();
@@ -127,6 +128,7 @@ describe('GitTabController', function() {
 
     await controller.commit('Delete most of the code', {amend: true});
     assert.equal(didChangeAmending.callCount, 2);
+    assert.equal(destroyFilePatchPaneItems.callCount, 1);
   });
 
   it('fetches conflict marker counts for conflicting files', async function() {
@@ -249,11 +251,12 @@ describe('GitTabController', function() {
       const didChangeAmending = sinon.stub();
       const controller = new GitTabController({
         workspace, commandRegistry, repository, didChangeAmending,
-        resolutionProgress, refreshResolutionProgress,
+        resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       });
 
       await controller.commit('message');
       assert.equal(didChangeAmending.callCount, 1);
+      assert.equal(destroyFilePatchPaneItems.callCount, 1);
     });
   });
 
@@ -439,7 +442,7 @@ describe('GitTabController', function() {
 
         controller = new GitTabController({
           workspace, commandRegistry, repository, didChangeAmending, prepareToCommit, ensureGitTab,
-          resolutionProgress, refreshResolutionProgress,
+          resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
         });
         await controller.getLastModelDataRefreshPromise();
         await etch.getScheduler().getNextUpdatePromise();
@@ -479,7 +482,7 @@ describe('GitTabController', function() {
       const ensureGitTab = () => Promise.resolve(false);
       const controller = new GitTabController({
         workspace, commandRegistry, repository, ensureGitTab, didChangeAmending: sinon.stub(),
-        resolutionProgress, refreshResolutionProgress,
+        resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       });
       await controller.getLastModelDataRefreshPromise();
       await etch.getScheduler().getNextUpdatePromise();
@@ -506,6 +509,7 @@ describe('GitTabController', function() {
 
       commitView.refs.editor.setText('Make it so');
       await commitView.commit();
+      assert.equal(destroyFilePatchPaneItems.callCount, 1);
 
       assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });
