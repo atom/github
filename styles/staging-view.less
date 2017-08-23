@@ -5,6 +5,23 @@
   display: flex;
   flex-direction: column;
 
+  &-filters {
+    padding: @component-padding @component-padding 0 @component-padding;
+    border-bottom: 1px solid @panel-heading-border-color;
+
+    > div {
+      margin-bottom: @component-padding / 2;
+      display: flex;
+    }
+
+    label {
+      flex: 1;
+    }
+
+    &-hiding-count {
+    }
+  }
+
   &-group {
     flex: 1;
     display: flex;
@@ -42,6 +59,15 @@
     white-space: nowrap;
     background: none;
     cursor: default;
+
+    &.github-StagingView-moreFilesButton {
+      border-top: none;
+      font-style: italic;
+      color: @text-color-subtle;
+      text-align: center;
+      width: 100%;
+      cursor: pointer;
+    }
 
     &:disabled {
       color: @text-color-subtle;
