@@ -38,7 +38,11 @@
     align-self: center;
     align-items: center;
 
-    > button, > input {
+    > div {
+      text-align: center;
+    }
+
+    > button, > div > button, > input, > div > input {
       margin: @component-padding;
     }
 
@@ -65,6 +69,10 @@
 
     input[type=text] {
       width: 100%;
+    }
+
+    input[type=submit] {
+      margin-bottom: @component-padding;
     }
   }
 
