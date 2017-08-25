@@ -7,18 +7,15 @@
 
   &-filters {
     padding: @component-padding @component-padding 0 @component-padding;
-    border-bottom: 1px solid @panel-heading-border-color;
 
-    > div {
-      margin-bottom: @component-padding / 2;
+    &-row {
+      padding-bottom: @component-padding;
       display: flex;
-    }
+      justify-content: space-between;
 
-    label {
-      flex: 1;
-    }
-
-    &-hiding-count {
+      &:last-child {
+        border-bottom: 1px solid @panel-heading-border-color;
+      }
     }
   }
 
@@ -97,6 +94,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    &-count {
+      margin-left: .5em;
+    }
   }
 
   &-list {
