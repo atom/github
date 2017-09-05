@@ -37,9 +37,14 @@
     flex-direction: column;
     align-self: center;
     align-items: center;
+    text-align: center;
 
-    > button, > input {
-      margin: @component-padding;
+    form {
+      width: 100%;
+
+      > button, > input {
+        margin: @component-padding;
+      }
     }
 
     .icon-git-pull-request:before {
@@ -63,8 +68,18 @@
       }
     }
 
+    &-input {
+      > form > div {
+        text-align: center;
+      }
+    }
+
     input[type=text] {
       width: 100%;
+    }
+
+    input[type=submit], input[type=button] {
+      margin-bottom: @component-padding;
     }
   }
 
