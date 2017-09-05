@@ -1,6 +1,6 @@
 import {ActionPipelineManager, ActionPipeline} from '../lib/action-pipeline';
 
-describe.only('ActionPipelineManager', function() {
+describe('ActionPipelineManager', function() {
   it('manages pipelines a set of actions', function() {
     const actionNames = ['ONE', 'TWO'];
     const manager = new ActionPipelineManager({actionNames});
@@ -14,7 +14,7 @@ describe.only('ActionPipelineManager', function() {
   });
 });
 
-describe.only('ActionPipeline', function() {
+describe('ActionPipeline', function() {
   let pipeline;
   beforeEach(function() {
     pipeline = new ActionPipeline(Symbol('TEST_ACTION'));
