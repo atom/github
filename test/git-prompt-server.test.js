@@ -2,7 +2,8 @@ import {execFile} from 'child_process';
 import path from 'path';
 
 import GitPromptServer from '../lib/git-prompt-server';
-import {fileExists} from '../lib/helpers';
+import GitTempDir from '../lib/git-temp-dir';
+import {fileExists, getAtomHelperPath} from '../lib/helpers';
 
 describe('GitPromptServer', function() {
   const electronEnv = {
@@ -15,20 +16,27 @@ describe('GitPromptServer', function() {
     GIT_TERMINAL_PROMPT: '0',
   };
 
+  let tempDir;
+
+  beforeEach(async function() {
+    tempDir = new GitTempDir();
+    await tempDir.ensure();
+  });
+
   describe('credential helper', function() {
     let server;
 
     beforeEach(function() {
-      server = new GitPromptServer();
+      server = new GitPromptServer(tempDir);
     });
 
     async function runCredentialScript(command, queryHandler, processHandler) {
-      const {credentialHelper, socket, electron} = await server.start(queryHandler);
+      await server.start(queryHandler);
 
       let err, stdout, stderr;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          electron, [credentialHelper.script, socket, command],
+          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
@@ -78,7 +86,7 @@ describe('GitPromptServer', function() {
         'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
         'quit=true\n');
 
-      assert.isFalse(await fileExists(path.join(server.tmpFolderPath, 'remember')));
+      assert.isFalse(await fileExists(tempDir.getScriptPath('remember')));
     });
 
     it('preserves a provided username', async function() {
@@ -161,7 +169,7 @@ describe('GitPromptServer', function() {
 
       const {err} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
-      assert.isTrue(await fileExists(path.join(server.tmpFolderPath, 'remember')));
+      assert.isTrue(await fileExists(tempDir.getScriptPath('remember')));
     });
 
     afterEach(async function() {
@@ -176,8 +184,8 @@ describe('GitPromptServer', function() {
 
       let queried = null;
 
-      const server = new GitPromptServer();
-      const {askPass, socket, electron} = await server.start(query => {
+      const server = new GitPromptServer(tempDir);
+      await server.start(query => {
         queried = query;
         return {
           password: "What's 'updog'?",
@@ -187,7 +195,7 @@ describe('GitPromptServer', function() {
       let err, stdout;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          electron, [askPass.script, socket, 'Please enter your password for "updog"'],
+          getAtomHelperPath(), [tempDir.getAskPassJs(), tempDir.getSocketPath(), 'Please enter your password for "updog"'],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
