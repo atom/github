@@ -12,6 +12,7 @@ describe('GitPromptServer', function() {
     ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
+    ATOM_GITHUB_SPEC_MODE: 'true',
     GIT_TRACE: 'true',
     GIT_TERMINAL_PROMPT: '0',
   };
