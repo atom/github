@@ -1216,17 +1216,3 @@ function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$'
 
   assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
 }
-
-function assertNoGitConfigSetting(args, command, settingName) {
-  const commandIndex = args.indexOf(command);
-  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
-
-  const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
-  const valueRx = new RegExp(`^${settingNamePattern}=.*$`);
-
-  for (let i = 0; i < commandIndex; i++) {
-    if (args[i] === '-c' && valueRx.test(args[i + 1] || '')) {
-      assert.fail('', '', `Setting ${settingName} was found in exec arguments ${args.join(' ')}`);
-    }
-  }
-}
