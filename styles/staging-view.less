@@ -5,6 +5,20 @@
   display: flex;
   flex-direction: column;
 
+  &-filters {
+    padding: @component-padding @component-padding 0 @component-padding;
+
+    &-row {
+      padding-bottom: @component-padding;
+      display: flex;
+      justify-content: space-between;
+
+      &:last-child {
+        border-bottom: 1px solid @panel-heading-border-color;
+      }
+    }
+  }
+
   &-group {
     flex: 1;
     display: flex;
@@ -43,6 +57,15 @@
     background: none;
     cursor: default;
 
+    &.github-StagingView-moreFilesButton {
+      border-top: none;
+      font-style: italic;
+      color: @text-color-subtle;
+      text-align: center;
+      width: 100%;
+      cursor: pointer;
+    }
+
     &:disabled {
       color: @text-color-subtle;
     }
@@ -59,7 +82,7 @@
 
     &--fullWidth {
       border-left: none;
-      border-bottom: 1px solid @panel-heading-border-color;
+      border-top: 1px solid @panel-heading-border-color;
     }
   }
 
@@ -71,6 +94,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    &-count {
+      margin-left: .5em;
+    }
   }
 
   &-list {
@@ -86,6 +113,7 @@
 
 .github-StagingView-group-truncatedMsg {
   padding: @component-padding / 2 @component-padding;
+  border-top: 1px solid @panel-heading-border-color;
 }
 
 .github-StagingView-group.is-focused .is-selected {
