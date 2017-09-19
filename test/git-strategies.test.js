@@ -667,6 +667,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           progressiveTense: 'pushing',
           action: () => git.push('origin', 'some-branch'),
         },
+        {
+          command: 'clone',
+          progressiveTense: 'cloning',
+          action: () => git.clone('https://github.com/atom/github'),
+        },
       ];
 
       const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
