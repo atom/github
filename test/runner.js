@@ -4,6 +4,10 @@ import chaiAsPromised from 'chai-as-promised';
 import path from 'path';
 
 import until from 'test-until';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+
+Enzyme.configure({adapter: new Adapter()});
 
 chai.use(chaiAsPromised);
 global.assert = chai.assert;
