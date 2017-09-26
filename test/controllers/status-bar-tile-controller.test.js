@@ -45,7 +45,7 @@ describe('StatusBarTileController', function() {
   });
 
   function getTooltipNode(wrapper, selector) {
-    const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
+    const ts = tooltips.findTooltips(wrapper.find(selector).getElement());
     assert.lengthOf(ts, 1);
     ts[0].show();
     return ts[0].getTooltipElement();
@@ -297,9 +297,9 @@ describe('StatusBarTileController', function() {
       await wrapper.instance().refreshModelData();
 
       assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
-      wrapper.find(PushPullView).node.element.click();
+      wrapper.find(PushPullView).getElement().click();
       assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 1);
-      wrapper.find(PushPullView).node.element.click();
+      wrapper.find(PushPullView).getElement().click();
       assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
     });
 
