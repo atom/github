@@ -11,7 +11,7 @@
       "atom"
     ]
   },
-  "extends": ["fbjs/opensource"],
+  "extends": ["fbjs-opensource"],
   "rules": {
     "linebreak-style": 0
   },
