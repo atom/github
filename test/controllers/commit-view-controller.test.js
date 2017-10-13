@@ -176,6 +176,32 @@ describe('CommitViewController', function() {
         await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
       });
 
+      it('transfers the commit message contents when in amending state', async function() {
+        const originalMessage = 'message in box before amending';
+        controller.refs.commitView.editor.setText(originalMessage);
+
+        await controller.update({isAmending: true, lastCommit});
+        assert.equal(controller.refs.commitView.editor.getText(), lastCommit.getMessage());
+
+        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const editor = workspace.getActiveTextEditor();
+        assert.equal(editor.getText(), lastCommit.getMessage());
+
+        const amendedMessage = lastCommit.getMessage() + 'plus some changes';
+        editor.setText(amendedMessage);
+        await editor.save();
+
+        editor.destroy();
+        await assert.async.equal(controller.refs.commitView.editor.getText(), amendedMessage);
+
+        await controller.update({isAmending: false});
+        await assert.async.equal(controller.refs.commitView.editor.getText(), originalMessage);
+
+        await controller.update({isAmending: true, lastCommit});
+        assert.equal(controller.refs.commitView.editor.getText(), amendedMessage);
+      });
+
       it('activates editor if already opened but in background', async function() {
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
