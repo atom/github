@@ -254,7 +254,7 @@ describe('StagingView', function() {
         await view.showFilePatchItem('file.txt', 'staged', {activate: true});
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/file.txt?workdir=${workingDirectoryPath}&stagingStatus=staged`,
+          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
         assert.isTrue(filePatchItem.focus.called);
@@ -274,7 +274,7 @@ describe('StagingView', function() {
         await view.showFilePatchItem('file.txt', 'staged', {activate: false});
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/file.txt?workdir=${workingDirectoryPath}&stagingStatus=staged`,
+          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
           {pending: true, activatePane: false, activateItem: false},
         ]);
         assert.isFalse(focus.called);
