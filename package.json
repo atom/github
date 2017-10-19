@@ -164,7 +164,7 @@
     "automaticCommitMessageWrapping": {
       "type": "boolean",
       "default": true,
-      "description": "Insert new lines at 72 characters in commit message body in commit box. Does not apply to expanded commit editors, where message formatting is preserved."
+      "description": "Hard wrap commit message body in commit box to 72 characters. Does not apply to expanded commit editors, where message formatting is preserved."
     }
   },
   "deserializers": {
