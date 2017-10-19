@@ -450,46 +450,6 @@ describe('Repository', function() {
       assert.equal((await repository.getLastCommit()).getSha(), mergeBase.getSha());
     });
 
-    it('wraps the commit message body at 72 characters', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      await repo.stageFiles([path.join('subdir-1', 'a.txt')]);
-      await repo.commit([
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-        '',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-      ].join('\n'));
-
-      const message = (await repo.getLastCommit()).getMessage();
-      assert.deepEqual(message.split('\n'), [
-        'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-        '',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
-        'ut aliquip ex ea commodo consequat.',
-      ]);
-    });
-
-    it('strips out comments', async function() {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      await repo.stageFiles([path.join('subdir-1', 'a.txt')]);
-      await repo.commit([
-        'Make a commit',
-        '',
-        '# Comments:',
-        '#  blah blah blah',
-        '#  other stuff',
-      ].join('\n'));
-
-      assert.deepEqual((await repo.getLastCommit()).getMessage(), 'Make a commit');
-    });
-
     it('clears the stored resolution progress');
 
     it('executes hook scripts with a sane environment', async function() {

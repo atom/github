@@ -10,7 +10,7 @@ import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -18,6 +18,7 @@ describe('CommitViewController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     grammars = atomEnvironment.grammars;
+    config = atomEnvironment.config;
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
@@ -109,6 +110,7 @@ describe('CommitViewController', function() {
         commandRegistry,
         notificationManager,
         grammars,
+        config,
         lastCommit,
         repository,
         commit,
@@ -147,6 +149,58 @@ describe('CommitViewController', function() {
 
       assert.equal(controller.regularCommitMessage, 'regular');
       assert.equal(controller.amendingCommitMessage, 'amending');
+    });
+
+    describe('message formatting', function() {
+      let commitSpy;
+      beforeEach(function() {
+        commitSpy = sinon.stub().returns(Promise.resolve());
+        controller.update({commit: commitSpy});
+      });
+
+      it('strips out comments', async function() {
+        await controller.commit([
+          'Make a commit',
+          '',
+          '# Comments:',
+          '#  blah blah blah',
+          '#  other stuff',
+        ].join('\n'));
+
+        assert.deepEqual(commitSpy.args[0][0], 'Make a commit');
+      });
+
+      it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
+        config.set('github.automaticCommitMessageWrapping', false);
+
+        await controller.commit([
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ].join('\n'));
+
+        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ]);
+
+        commitSpy.reset();
+        config.set('github.automaticCommitMessageWrapping', true);
+
+        await controller.commit([
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ].join('\n'));
+
+        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
+          'ut aliquip ex ea commodo consequat.',
+        ]);
+      });
     });
 
     describe('toggling between commit box and commit editor', function() {

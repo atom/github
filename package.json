@@ -160,6 +160,11 @@
       "type": "boolean",
       "default": false,
       "description": "Capture CPU profiles"
+    },
+    "automaticCommitMessageWrapping": {
+      "type": "boolean",
+      "default": true,
+      "description": "Insert new lines at 72 characters in commit message body in commit box. Does not apply to expanded commit editors, where message formatting is preserved."
     }
   },
   "deserializers": {

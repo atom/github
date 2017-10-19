@@ -12,7 +12,7 @@ import Repository, {AbortMergeError, CommitError} from '../../lib/models/reposit
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 describe('GitTabController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
+  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config;
   let resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems;
 
   beforeEach(function() {
@@ -20,6 +20,7 @@ describe('GitTabController', function() {
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
+    config = atomEnvironment.config;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
@@ -441,7 +442,7 @@ describe('GitTabController', function() {
         const ensureGitTab = () => Promise.resolve(false);
 
         controller = new GitTabController({
-          workspace, commandRegistry, repository, didChangeAmending, prepareToCommit, ensureGitTab,
+          workspace, commandRegistry, config, repository, didChangeAmending, prepareToCommit, ensureGitTab,
           resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
         });
         await controller.getLastModelDataRefreshPromise();
@@ -481,7 +482,7 @@ describe('GitTabController', function() {
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       const ensureGitTab = () => Promise.resolve(false);
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, ensureGitTab, didChangeAmending: sinon.stub(),
+        workspace, commandRegistry, config, repository, ensureGitTab, didChangeAmending: sinon.stub(),
         resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       });
       await controller.getLastModelDataRefreshPromise();
