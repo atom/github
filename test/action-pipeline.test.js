@@ -1,4 +1,4 @@
-import {ActionPipelineManager, ActionPipeline} from '../lib/action-pipeline';
+import ActionPipelineManager, {ActionPipeline} from '../lib/action-pipeline';
 
 describe('ActionPipelineManager', function() {
   it('manages pipelines for a set of actions', function() {
@@ -21,8 +21,10 @@ describe('ActionPipeline', function() {
   });
 
   it('runs actions with no middleware', async function() {
-    const base = (a, b) => Promise.resolve(a + b);
-    const result = await pipeline.run(base, 1, 2);
+    const base = (a, b) => {
+      return Promise.resolve(a + b);
+    };
+    const result = await pipeline.run(base, null, 1, 2);
     assert.equal(result, 3);
   });
 
@@ -40,7 +42,7 @@ describe('ActionPipeline', function() {
     const capturedResults = [];
     const options = {a: 1, b: 2};
 
-    pipeline.addMiddleware('testMiddleware1', (next, opts) => {
+    pipeline.addMiddleware('testMiddleware1', (next, model, opts) => {
       capturedArgs.push([opts.a, opts.b]);
       opts.a += 1;
       opts.b += 2;
@@ -49,7 +51,7 @@ describe('ActionPipeline', function() {
       return result + 1;
     });
 
-    pipeline.addMiddleware('testMiddleware2', (next, opts) => {
+    pipeline.addMiddleware('testMiddleware2', (next, model, opts) => {
       capturedArgs.push([opts.a, opts.b]);
       opts.a += 'a';
       opts.b += 'b';
@@ -59,7 +61,7 @@ describe('ActionPipeline', function() {
     });
 
     const base = ({a, b}) => a + b;
-    const result = await pipeline.run(base, options);
+    const result = await pipeline.run(base, null, options);
     assert.deepEqual(capturedArgs, [[1, 2], [2, 4]]);
     assert.deepEqual(capturedResults, ['2a4b', '2a4bc']);
     assert.equal(result, '2a4bc1');
