@@ -150,7 +150,7 @@ describe('RootController', function() {
     }
   });
 
-  describe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
+  xdescribe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
     it('updates the amending state and saves it to the repositoryStateRegistry', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
@@ -518,7 +518,7 @@ describe('RootController', function() {
     });
   });
 
-  it('correctly updates state when switching repos', async function() {
+  xit('correctly updates state when switching repos', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
