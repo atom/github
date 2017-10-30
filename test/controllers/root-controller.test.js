@@ -518,25 +518,6 @@ describe('RootController', function() {
     });
   });
 
-  xit('correctly updates state when switching repos', async function() {
-    const workdirPath1 = await cloneRepository('three-files');
-    const repository1 = await buildRepository(workdirPath1);
-    const workdirPath2 = await cloneRepository('three-files');
-    const repository2 = await buildRepository(workdirPath2);
-
-    app = React.cloneElement(app, {repository: repository1});
-    const wrapper = shallow(app);
-
-    assert.equal(wrapper.state('amending'), false);
-
-    wrapper.setState({amending: true});
-    wrapper.setProps({repository: repository2});
-    assert.equal(wrapper.state('amending'), false);
-
-    wrapper.setProps({repository: repository1});
-    assert.equal(wrapper.state('amending'), true);
-  });
-
   describe('openFiles(filePaths)', () => {
     it('calls workspace.open, passing pending:true if only one file path is passed', async () => {
       const workdirPath = await cloneRepository('three-files');
