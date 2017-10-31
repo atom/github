@@ -13,7 +13,7 @@ import BranchView from '../../lib/views/branch-view';
 import PushPullView from '../../lib/views/push-pull-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
-describe.only('StatusBarTileController', function() {
+describe('StatusBarTileController', function() {
   let atomEnvironment;
   let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
   let component;
