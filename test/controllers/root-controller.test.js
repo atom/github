@@ -150,43 +150,6 @@ describe('RootController', function() {
     }
   });
 
-  xdescribe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
-    it('updates the amending state and saves it to the repositoryStateRegistry', async function() {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      const repositoryStateRegistry = wrapper.instance().repositoryStateRegistry;
-
-      sinon.stub(repositoryStateRegistry, 'setStateForModel');
-      sinon.stub(repositoryStateRegistry, 'save');
-
-      assert.isFalse(wrapper.state('amending'));
-
-      await wrapper.instance().didChangeAmending(true);
-      assert.isTrue(wrapper.state('amending'));
-      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
-      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
-        repository,
-        {amending: true},
-      ]);
-      assert.equal(repositoryStateRegistry.save.callCount, 1);
-
-      repositoryStateRegistry.setStateForModel.reset();
-      repositoryStateRegistry.save.reset();
-      await wrapper.instance().didChangeAmending(false);
-      assert.isFalse(wrapper.state('amending'));
-      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
-      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
-        repository,
-        {amending: false},
-      ]);
-      assert.equal(repositoryStateRegistry.save.callCount, 1);
-    });
-  });
-
   ['git', 'github'].forEach(function(tabName) {
     describe(`${tabName} tab tracker`, function() {
       let wrapper, tabTracker, mockDockItem;

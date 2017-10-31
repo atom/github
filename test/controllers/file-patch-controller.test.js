@@ -15,7 +15,7 @@ import Switchboard from '../../lib/switchboard';
 
 describe('FilePatchController', function() {
   let atomEnv, commandRegistry, tooltips, deserializers;
-  let component, switchboard, repository, filePath, getFilePatchForPath, repositoryStateRegistry, workdirPath;
+  let component, switchboard, repository, filePath, getFilePatchForPath, workdirPath;
   let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles, getRepositoryForWorkdir;
   let getSelectedStagingViewItems;
 
@@ -34,16 +34,6 @@ describe('FilePatchController', function() {
     undoLastDiscard = sinon.spy();
     openFiles = sinon.spy();
     getSelectedStagingViewItems = sinon.spy();
-    repositoryStateRegistry = {
-      getStateForModel() {
-        return {amending: false};
-      },
-      onDidUpdate() {
-        return {
-          dispose() {},
-        };
-      },
-    };
 
     workdirPath = await cloneRepository('multi-line-file');
     repository = await buildRepository(workdirPath);
@@ -73,7 +63,6 @@ describe('FilePatchController', function() {
         undoLastDiscard={undoLastDiscard}
         openFiles={openFiles}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
-        repositoryStateRegistry={repositoryStateRegistry}
         workingDirectoryPath={repository.getWorkingDirectoryPath()}
         getSelectedStagingViewItems={getSelectedStagingViewItems}
         uri={'some/uri'}
