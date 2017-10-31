@@ -930,7 +930,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       // fail often enough to warn us of regressions.
       const ITERATIONS = 500;
       it('never results in lock contention', async function() {
-        this.timeout(ITERATIONS * 50);
+        this.timeout(ITERATIONS * 75);
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
