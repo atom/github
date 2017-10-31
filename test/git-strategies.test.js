@@ -910,6 +910,54 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
+    describe('index locking', function() {
+      let oldInlineGitExec;
+
+      beforeEach(async function() {
+        oldInlineGitExec = process.env.ATOM_GITHUB_INLINE_GIT_EXEC;
+        process.env.ATOM_GITHUB_INLINE_GIT_EXEC = '1';
+      });
+
+      afterEach(function() {
+        process.env.ATOM_GITHUB_INLINE_GIT_EXEC = oldInlineGitExec;
+      });
+
+      // [MKT] On my machine, this test fails consistently
+      // on the ~300-400th iteration of the loop when
+      // the GIT_OPTIONAL_LOCKS environment variable is unset.
+      //
+      // This test may not *always* fail, but it should
+      // fail often enough to warn us of regressions.
+      const ITERATIONS = 500;
+      it('never results in lock contention', async function() {
+        this.timeout(ITERATIONS * 50);
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        let enabled = true;
+        const runStatusLoop = () => {
+          git.exec(['status']);
+          if (enabled) {
+            setImmediate(runStatusLoop);
+          }
+        };
+
+        const changedFile = i => path.join(workingDirPath, `${i}.txt`);
+
+        for (let i = 0; i < ITERATIONS; i++) {
+          fs.writeFileSync(changedFile(i), `file ${i}`, 'utf8');
+        }
+
+        runStatusLoop();
+        try {
+          for (let i = 0; i < ITERATIONS; i++) {
+            await git.exec(['add', changedFile(i)]);
+          }
+        } finally {
+          enabled = false;
+        }
+      });
+    });
     describe('https authentication', function() {
       const envKeys = ['SSH_ASKPASS', 'GIT_ASKPASS'];
       let preserved;
