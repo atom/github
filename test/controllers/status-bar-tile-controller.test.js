@@ -13,7 +13,7 @@ import BranchView from '../../lib/views/branch-view';
 import PushPullView from '../../lib/views/push-pull-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
-describe('StatusBarTileController', function() {
+describe.only('StatusBarTileController', function() {
   let atomEnvironment;
   let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
   let component;
@@ -117,7 +117,6 @@ describe('StatusBarTileController', function() {
           await assert.async.equal(tip.querySelector('select').value, 'branch');
 
           selectOption(tip, 'master');
-          // TODO: test optimistic rendering
 
           await until(async () => {
             const branch2 = await repository.getCurrentBranch();
@@ -165,9 +164,9 @@ describe('StatusBarTileController', function() {
       });
 
       describe('checking out newly created branches', function() {
-        xit('can check out newly created branches', async function() {
+        it('can check out newly created branches', async function() {
           const workdirPath = await cloneRepository('three-files');
-          const repository = await buildRepository(workdirPath);
+          const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
 
           const wrapper = mount(React.cloneElement(component, {repository}));
           await wrapper.instance().refreshModelData();
@@ -189,26 +188,22 @@ describe('StatusBarTileController', function() {
           tip.querySelector('atom-text-editor').getModel().setText('new-branch');
           tip.querySelector('button').click();
 
-          // TODO: optimistic rendering
-
           await until(async () => {
-            // await wrapper.instance().refreshModelData();
-            // return tip.querySelectorAll('select').length === 1;
             const branch1 = await repository.getCurrentBranch();
             return branch1.getName() === 'new-branch' && !branch1.isDetached();
           });
-          // await wrapper.instance().refreshModelData();
+          repository.refresh(); // clear cache manually, since we're not listening for file system events here
           await assert.async.equal(tip.querySelector('select').value, 'new-branch');
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
           assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
-        xit('forgets newly created branches on repository change', async function() {
+        it('can check out newly created branches', async function() {
           const [repo0, repo1] = await Promise.all(
             [0, 1].map(async () => {
               const workdirPath = await cloneRepository('three-files');
-              return buildRepository(workdirPath);
+              return buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
             }),
           );
 
@@ -216,23 +211,25 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
           const tip = getTooltipNode(wrapper, BranchView);
 
-          // Create a new branch
-          tip.querySelector('button').click();
-          tip.querySelector('atom-text-editor').getModel().setText('created-branch');
           tip.querySelector('button').click();
 
-          await assert.async.lengthOf(tip.querySelectorAll('select'), 1);
+          // TODO: why does this test fail if 'newer-branch' is something like 'create-branch'?
+          tip.querySelector('atom-text-editor').getModel().setText('newer-branch');
+          tip.querySelector('button').click();
 
-          console.log(global.tip = tip);
-          // debugger;
-          await assert.async.equal(getTooltipNode(wrapper, BranchView).querySelector('select').value, 'created-branch');
+          await until(async () => {
+            const branch1 = await repo0.getCurrentBranch();
+            return branch1.getName() === 'newer-branch' && !branch1.isDetached();
+          });
+          repo0.refresh(); // clear cache manually, since we're not listening for file system events here
+          await assert.async.equal(tip.querySelector('select').value, 'newer-branch');
 
           wrapper.setProps({repository: repo1});
           await wrapper.instance().refreshModelData();
 
           assert.equal(tip.querySelector('select').value, 'master');
           const options = Array.from(tip.querySelectorAll('option'), node => node.value);
-          assert.notInclude(options, 'created-branch');
+          assert.notInclude(options, 'newer-branch');
         });
 
         it('displays an error message if branch already exists', async function() {
@@ -265,7 +262,9 @@ describe('StatusBarTileController', function() {
           const branch1 = await repository.getCurrentBranch();
           assert.equal(branch1.getName(), 'branch');
           assert.isFalse(branch1.isDetached());
-          assert.equal(tip.querySelector('select').value, 'branch');
+
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
+          assert.equal(tip.querySelector('atom-text-editor').getModel().getText(), 'master');
         });
       });
 
@@ -505,12 +504,13 @@ describe('StatusBarTileController', function() {
         const wrapper = mount(React.cloneElement(component, {repository}));
         await wrapper.instance().refreshModelData();
 
-        sinon.spy(repository, 'push');
+        sinon.spy(repository.git, 'push');
 
         commandRegistry.dispatch(workspaceElement, 'github:force-push');
 
         assert.equal(confirm.callCount, 1);
-        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
+        await assert.async.isTrue(repository.git.push.calledWith('origin', 'master', sinon.match({force: true, setUpstream: false})));
+        await assert.async.isFalse(repository.getOperationStates().pushInProgress);
       });
 
       it('displays a warning notification when pull results in merge conflicts', async function() {
