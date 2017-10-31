@@ -148,25 +148,6 @@ describe('GitTabController', function() {
   });
 
   describe('abortMerge()', function() {
-    // it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
-    //   const workdirPath = await cloneRepository('three-files');
-    //   const repository = await buildRepository(workdirPath);
-    //   sinon.stub(repository, 'abortMerge').callsFake(async () => {
-    //     await Promise.resolve();
-    //     throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
-    //   });
-    //
-    //   const confirm = sinon.stub();
-    //   const controller = new GitTabController({
-    //     workspace, commandRegistry, notificationManager, confirm, repository,
-    //     resolutionProgress, refreshResolutionProgress,
-    //   });
-    //   assert.equal(notificationManager.getNotifications().length, 0);
-    //   confirm.returns(0);
-    //   await controller.abortMerge();
-    //   assert.equal(notificationManager.getNotifications().length, 1);
-    // });
-
     it('resets merge related state', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
