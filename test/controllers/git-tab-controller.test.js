@@ -168,10 +168,10 @@ describe('GitTabController', function() {
 
       confirm.returns(0);
       await controller.abortMerge();
-      await controller.getLastModelDataRefreshPromise();
-      modelData = controller.repositoryObserver.getActiveModelData();
-
-      assert.equal(modelData.mergeConflicts.length, 0);
+      await until(() => {
+        modelData = controller.repositoryObserver.getActiveModelData();
+        return modelData.mergeConflicts.length === 0;
+      });
       assert.isFalse(modelData.isMerging);
       assert.isNull(modelData.mergeMessage);
     });
