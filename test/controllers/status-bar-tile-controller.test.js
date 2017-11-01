@@ -199,7 +199,7 @@ describe('StatusBarTileController', function() {
           assert.lengthOf(tip.querySelectorAll('select'), 1);
         });
 
-        it('can check out newly created branches', async function() {
+        it('forgets newly created branches on repository change', async function() {
           const [repo0, repo1] = await Promise.all(
             [0, 1].map(async () => {
               const workdirPath = await cloneRepository('three-files');
