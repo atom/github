@@ -13,15 +13,13 @@
 
   &-item {
     margin: @component-padding / 2;
+  }
 
-    // TODO: make this work
-    // Sync animation
-    .icon-sync::before {
-      @keyframes github-BranchViewSync-animation {
-        100% { transform: rotate(360deg); }
-      }
-      animation: github-BranchViewSync-animation 2s linear 30; // limit to 1min in case something gets stuck
+  .icon-sync::before {
+    @keyframes github-BranchViewSync-animation {
+      100% { transform: rotate(360deg); }
     }
+    animation: github-BranchViewSync-animation 2s linear 30; // limit to 1min in case something gets stuck
   }
 
   .icon-git-branch {
