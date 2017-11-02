@@ -510,7 +510,7 @@ describe('StatusBarTileController', function() {
 
         assert.equal(confirm.callCount, 1);
         await assert.async.isTrue(repository.git.push.calledWith('origin', 'master', sinon.match({force: true, setUpstream: false})));
-        await assert.async.isFalse(repository.getOperationStates().pushInProgress);
+        await assert.async.isFalse(repository.getOperationStates().isPushInProgress());
       });
 
       it('displays a warning notification when pull results in merge conflicts', async function() {
