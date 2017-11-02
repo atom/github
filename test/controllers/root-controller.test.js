@@ -12,8 +12,9 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
 
-describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, app;
+describe.only('RootController', function() {
+  let atomEnv, app;
+  let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
 
   beforeEach(function() {
@@ -25,6 +26,7 @@ describe('RootController', function() {
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
+    project = atomEnv.project;
 
     getRepositoryForWorkdir = sinon.stub();
     destroyGitTabItem = sinon.spy();
@@ -45,6 +47,7 @@ describe('RootController', function() {
         tooltips={tooltips}
         config={config}
         confirm={confirm}
+        project={project}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
