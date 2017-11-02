@@ -410,7 +410,11 @@ describe('StatusBarTileController', function() {
         assert.equal(pushButton.textContent.trim(), 'Push (1)');
         assert.equal(pullButton.textContent.trim(), 'Pull (2)');
 
-        pushButton.click();
+        try {
+          await wrapper.instance().getWrappedComponentInstance().push();
+        } catch (e) {
+          assert(e, 'is error');
+        }
         await wrapper.instance().refreshModelData();
 
         await assert.async.isTrue(notificationManager.addError.called);
@@ -522,13 +526,13 @@ describe('StatusBarTileController', function() {
         const wrapper = mount(React.cloneElement(component, {repository}));
         await wrapper.instance().refreshModelData();
 
-        const tip = getTooltipNode(wrapper, PushPullView);
-
-        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
-
         sinon.stub(notificationManager, 'addWarning');
 
-        pullButton.click();
+        try {
+          await wrapper.instance().getWrappedComponentInstance().pull();
+        } catch (e) {
+          assert(e, 'is error');
+        }
         await wrapper.instance().refreshModelData();
 
         await assert.async.isTrue(notificationManager.addWarning.called);
