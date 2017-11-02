@@ -12,7 +12,7 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
 
-describe.only('RootController', function() {
+describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
