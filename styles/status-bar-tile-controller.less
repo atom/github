@@ -46,6 +46,17 @@
     margin-left: @component-padding / 2;
   }
 
+  .github-branch {
+    .icon.icon-git-branch {
+      line-height: 2.5;
+      vertical-align: top;
+
+      &::before {
+        vertical-align: text-bottom; // Visually adjusted
+      }
+    }
+  }
+
   .github-branch-detached {
     color: @text-color-subtle;
     font-style: italic;
