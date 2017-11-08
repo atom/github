@@ -13,7 +13,7 @@
     font-size: @font-size;
     background-color: @syntax-background-color;
 
-    .github-CommitView-info {
+    .github-CommitView-hardwrap > .icon {
       position: absolute;
       right: 20px;
       bottom: 0;
@@ -22,18 +22,16 @@
       border: none;
       background-color: @syntax-background-color;
       cursor: default;
-      .icon {
-        opacity: .3;
-        &:hover {
-          opacity: 1;
-        }
-        &:active {
-          opacity: .5;
-        }
+      opacity: .3;
+      &:hover {
+        opacity: 1;
+      }
+      &:active {
+        opacity: .5;
       }
     }
 
-    .github-CommitView-info-tooltip {
+    .github-CommitView-hardwrap-tooltip {
       line-height: 1.5;
       padding: 0.5em 0.975em;
     }
