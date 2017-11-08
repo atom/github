@@ -16,8 +16,21 @@
     .github-CommitView-info {
       position: absolute;
       right: 20px;
-      bottom: 3px;
-      opacity: .5;
+      bottom: 0;
+      padding: @component-padding / 2;
+      line-height: 1;
+      border: none;
+      background-color: @syntax-background-color;
+      cursor: default;
+      .icon {
+        opacity: .3;
+        &:hover {
+          opacity: 1;
+        }
+        &:active {
+          opacity: .5;
+        }
+      }
     }
 
     .github-CommitView-info-tooltip {
