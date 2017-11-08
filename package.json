@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -73,7 +73,7 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
-    "atom-mocha-test-runner": "^1.0.1",
+    "atom-mocha-test-runner": "^1.2.0",
     "babel-eslint": "^7.1.1",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
