@@ -10,7 +10,7 @@ import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config, tooltips;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -19,6 +19,7 @@ describe('CommitViewController', function() {
     notificationManager = atomEnvironment.notifications;
     grammars = atomEnvironment.grammars;
     config = atomEnvironment.config;
+    tooltips = atomEnvironment.tooltips;
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
@@ -33,7 +34,7 @@ describe('CommitViewController', function() {
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
     const controller = new CommitViewController({
-      workspace, commandRegistry, notificationManager, lastCommit, repository: repository1,
+      workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository: repository1,
     });
 
     assert.equal(controller.regularCommitMessage, '');
@@ -56,7 +57,7 @@ describe('CommitViewController', function() {
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({workspace, commandRegistry, notificationManager, lastCommit, repository});
+      controller = new CommitViewController({workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository});
       commitView = controller.refs.commitView;
     });
 
@@ -111,6 +112,7 @@ describe('CommitViewController', function() {
         notificationManager,
         grammars,
         config,
+        tooltips,
         lastCommit,
         repository,
         commit,

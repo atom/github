@@ -12,7 +12,7 @@ import Repository, {AbortMergeError, CommitError} from '../../lib/models/reposit
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 describe('GitTabController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config;
+  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config, tooltips;
   let resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems;
 
   beforeEach(function() {
@@ -21,6 +21,7 @@ describe('GitTabController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     config = atomEnvironment.config;
+    tooltips = atomEnvironment.tooltips;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
@@ -41,7 +42,7 @@ describe('GitTabController', function() {
     assert.isTrue(repository.isLoading());
 
     const controller = new GitTabController({
-      workspace, commandRegistry, repository,
+      workspace, commandRegistry, tooltips, config, repository,
       resolutionProgress, refreshResolutionProgress,
     });
 
@@ -61,7 +62,7 @@ describe('GitTabController', function() {
     const repository = Repository.absent();
 
     const controller = new GitTabController({
-      workspace, commandRegistry, repository,
+      workspace, commandRegistry, tooltips, config, repository,
       resolutionProgress, refreshResolutionProgress,
     });
 
@@ -78,7 +79,7 @@ describe('GitTabController', function() {
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'));
     const controller = new GitTabController({
-      workspace, commandRegistry, resolutionProgress, refreshResolutionProgress,
+      workspace, commandRegistry, tooltips, config, resolutionProgress, refreshResolutionProgress,
       repository: Repository.absent(),
     });
 
@@ -111,7 +112,7 @@ describe('GitTabController', function() {
     const repository = await buildRepository(workdirPath);
     const ensureGitTab = () => Promise.resolve(false);
     const controller = new GitTabController({
-      workspace, commandRegistry, repository, didChangeAmending, ensureGitTab,
+      workspace, commandRegistry, tooltips, config, repository, didChangeAmending, ensureGitTab,
       resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       isAmending: false,
     });
@@ -141,7 +142,7 @@ describe('GitTabController', function() {
     rp.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
 
     const controller = new GitTabController({
-      workspace, commandRegistry, repository, resolutionProgress: rp, refreshResolutionProgress,
+      workspace, commandRegistry, tooltips, config, repository, resolutionProgress: rp, refreshResolutionProgress,
     });
     await controller.getLastModelDataRefreshPromise();
 
@@ -161,7 +162,7 @@ describe('GitTabController', function() {
 
       const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, notificationManager, confirm, repository,
+        workspace, commandRegistry, tooltips, config, notificationManager, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       assert.equal(notificationManager.getNotifications().length, 0);
@@ -178,7 +179,7 @@ describe('GitTabController', function() {
 
       const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, confirm, repository,
+        workspace, commandRegistry, tooltips, config, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();
@@ -206,7 +207,7 @@ describe('GitTabController', function() {
 
       const ensureGitTab = () => Promise.resolve(true);
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, ensureGitTab,
+        workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
         resolutionProgress, refreshResolutionProgress,
       });
 
@@ -219,7 +220,7 @@ describe('GitTabController', function() {
 
       const ensureGitTab = () => Promise.resolve(false);
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, ensureGitTab,
+        workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
         resolutionProgress, refreshResolutionProgress,
       });
 
@@ -237,7 +238,7 @@ describe('GitTabController', function() {
       });
 
       const controller = new GitTabController({
-        workspace, commandRegistry, notificationManager, repository,
+        workspace, commandRegistry, tooltips, config, notificationManager, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       assert.equal(notificationManager.getNotifications().length, 0);
@@ -251,7 +252,7 @@ describe('GitTabController', function() {
       sinon.stub(repository, 'commit').callsFake(() => Promise.resolve());
       const didChangeAmending = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, didChangeAmending,
+        workspace, commandRegistry, tooltips, config, repository, didChangeAmending,
         resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       });
 
@@ -271,7 +272,7 @@ describe('GitTabController', function() {
     repository.refresh();
 
     const controller = new GitTabController({
-      workspace, commandRegistry, repository,
+      workspace, commandRegistry, tooltips, config, repository,
       resolutionProgress, refreshResolutionProgress,
     });
     await controller.getLastModelDataRefreshPromise();
@@ -296,7 +297,7 @@ describe('GitTabController', function() {
       const repository = Repository.absent();
 
       const controller = new GitTabController({
-        workspace, commandRegistry, repository,
+        workspace, commandRegistry, tooltips, config, repository,
         resolutionProgress, refreshResolutionProgress,
       });
 
@@ -372,7 +373,7 @@ describe('GitTabController', function() {
         const didChangeAmending = () => {};
 
         controller = new GitTabController({
-          workspace, commandRegistry, repository,
+          workspace, commandRegistry, tooltips, config, repository,
           resolutionProgress, refreshResolutionProgress,
           didChangeAmending,
         });
@@ -442,7 +443,7 @@ describe('GitTabController', function() {
         const ensureGitTab = () => Promise.resolve(false);
 
         controller = new GitTabController({
-          workspace, commandRegistry, config, repository, didChangeAmending, prepareToCommit, ensureGitTab,
+          workspace, commandRegistry, tooltips, config, repository, didChangeAmending, prepareToCommit, ensureGitTab,
           resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
         });
         await controller.getLastModelDataRefreshPromise();
@@ -482,7 +483,7 @@ describe('GitTabController', function() {
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       const ensureGitTab = () => Promise.resolve(false);
       const controller = new GitTabController({
-        workspace, commandRegistry, config, repository, ensureGitTab, didChangeAmending: sinon.stub(),
+        workspace, commandRegistry, tooltips, config, repository, ensureGitTab, didChangeAmending: sinon.stub(),
         resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
       });
       await controller.getLastModelDataRefreshPromise();
@@ -523,7 +524,7 @@ describe('GitTabController', function() {
 
       const confirm = sinon.stub();
       const controller = new GitTabController({
-        workspace, commandRegistry, confirm, repository,
+        workspace, commandRegistry, tooltips, config, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
       await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
@@ -571,7 +572,7 @@ describe('GitTabController', function() {
       fs.unlinkSync(path.join(workdirPath, 'a.txt'));
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, resolutionProgress, refreshResolutionProgress,
+        workspace, commandRegistry, tooltips, config, repository, resolutionProgress, refreshResolutionProgress,
       });
 
       await assert.async.isDefined(controller.refs.gitTab.refs.stagingView);
@@ -602,7 +603,7 @@ describe('GitTabController', function() {
       fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
 
       const controller = new GitTabController({
-        workspace, commandRegistry, repository, resolutionProgress, refreshResolutionProgress,
+        workspace, commandRegistry, tooltips, config, repository, resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();
       await etch.getScheduler().getNextUpdatePromise();

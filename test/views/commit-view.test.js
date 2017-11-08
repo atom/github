@@ -6,11 +6,13 @@ import Commit, {nullCommit} from '../../lib/models/commit';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
-  let atomEnv, commandRegistry, lastCommit;
+  let atomEnv, commandRegistry, tooltips, config, lastCommit;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
+    tooltips = atomEnv.tooltips;
+    config = atomEnv.config;
 
     lastCommit = new Commit('1234abcd', 'commit message');
   });
@@ -24,7 +26,7 @@ describe('CommitView', function() {
 
     beforeEach(function() {
       view = new CommitView({
-        commandRegistry, lastCommit: nullCommit,
+        commandRegistry, tooltips, config, lastCommit: nullCommit,
         stagedChangesExist: false, maximumCharacterLimit: 72, message: '',
       });
     });
@@ -43,7 +45,7 @@ describe('CommitView', function() {
 
   it('displays the remaining characters limit based on which line is being edited', async function() {
     const view = new CommitView({
-      commandRegistry, lastCommit,
+      commandRegistry, tooltips, config, lastCommit,
       stagedChangesExist: true, maximumCharacterLimit: 72, message: '',
     });
     assert.equal(view.refs.remainingCharacters.textContent, '72');
@@ -93,7 +95,7 @@ describe('CommitView', function() {
       const repository = await buildRepository(workdirPath);
       const viewState = {};
       view = new CommitView({
-        repository, commandRegistry, lastCommit,
+        repository, commandRegistry, tooltips, config, lastCommit,
         stagedChangesExist: true, mergeConflictsExist: false, viewState,
       });
       editor = view.refs.editor;
@@ -139,7 +141,7 @@ describe('CommitView', function() {
 
       commit = sinon.spy();
       view = new CommitView({
-        commandRegistry, lastCommit,
+        commandRegistry, tooltips, config, lastCommit,
         stagedChangesExist: true, prepareToCommit, commit, message: 'Something',
       });
       sinon.spy(view.editorElement, 'focus');
@@ -192,7 +194,7 @@ describe('CommitView', function() {
   });
 
   it('shows the "Abort Merge" button when props.isMerging is true', async function() {
-    const view = new CommitView({commandRegistry, lastCommit, stagedChangesExist: true, isMerging: false});
+    const view = new CommitView({commandRegistry, tooltips, config, lastCommit, stagedChangesExist: true, isMerging: false});
     assert.isUndefined(view.refs.abortMergeButton);
 
     await view.update({isMerging: true});
@@ -205,7 +207,7 @@ describe('CommitView', function() {
   it('calls props.abortMerge() when the "Abort Merge" button is clicked', function() {
     const abortMerge = sinon.spy(() => Promise.resolve());
     const view = new CommitView({
-      commandRegistry, lastCommit,
+      commandRegistry, tooltips, config, lastCommit,
       stagedChangesExist: true, isMerging: true, abortMerge,
     });
     const {abortMergeButton} = view.refs;
@@ -219,7 +221,7 @@ describe('CommitView', function() {
 
       const setAmending = sinon.spy();
       const view = new CommitView({
-        commandRegistry,
+        commandRegistry, tooltips, config,
         stagedChangesExist: false, lastCommit: previousCommit, setAmending,
       });
       const {amend} = view.refs;
@@ -233,7 +235,7 @@ describe('CommitView', function() {
 
     it('is hidden when HEAD is an unborn ref', function() {
       const view = new CommitView({
-        commandRegistry,
+        commandRegistry, tooltips, config,
         stagedChangesExist: false,
         lastCommit: Commit.createUnborn(),
       });
