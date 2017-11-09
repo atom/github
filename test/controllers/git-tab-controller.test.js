@@ -218,7 +218,7 @@ describe('GitTabController', function() {
         workspace, commandRegistry, notificationManager, repository,
         resolutionProgress, refreshResolutionProgress,
       });
-      assert.equal(notificationManager.getNotifications().length, 0);
+      notificationManager.clear(); // clear out any notifications
       try {
         await controller.commit();
       } catch (e) {
