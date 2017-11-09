@@ -310,7 +310,7 @@ describe('StagingView', function() {
     });
 
     describe('when the file doesn\'t exist', function() {
-      it('shows an info notification and does not open the file', async function() {
+      it.only('shows an info notification and does not open the file', async function() {
         sinon.spy(notificationManager, 'addInfo');
 
         const view = new StagingView({
@@ -320,9 +320,10 @@ describe('StagingView', function() {
 
         sinon.stub(view, 'fileExists').returns(false);
 
-        assert.equal(notificationManager.getNotifications().length, 0);
+        notificationManager.clear(); // clear out notifications
         await view.showMergeConflictFileForPath('conflict.txt');
 
+        assert.equal(notificationManager.getNotifications().length, 1);
         assert.equal(workspace.open.callCount, 0);
         assert.equal(notificationManager.addInfo.callCount, 1);
         assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
