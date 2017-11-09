@@ -150,7 +150,7 @@ describe('GitTabController', function() {
   });
 
   describe('abortMerge()', function() {
-    it.only('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
+    it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'abortMerge').callsFake(async () => {
@@ -227,7 +227,7 @@ describe('GitTabController', function() {
   });
 
   describe('commit(message)', function() {
-    it.only('shows an error notification when committing throws an ECONFLICT exception', async function() {
+    it('shows an error notification when committing throws an ECONFLICT exception', async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
       sinon.stub(repository, 'commit').callsFake(async () => {

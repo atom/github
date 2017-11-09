@@ -310,7 +310,7 @@ describe('StagingView', function() {
     });
 
     describe('when the file doesn\'t exist', function() {
-      it.only('shows an info notification and does not open the file', async function() {
+      it('shows an info notification and does not open the file', async function() {
         sinon.spy(notificationManager, 'addInfo');
 
         const view = new StagingView({
