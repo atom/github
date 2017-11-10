@@ -199,40 +199,6 @@ describe('StatusBarTileController', function() {
           assert.isFalse(tip.querySelector('select').className.includes('hidden'));
         });
 
-        xit('forgets newly created branches on repository change', async function() {
-          // TODO: why do we need this test?
-          const [repo0, repo1] = await Promise.all(
-            [0, 1].map(async () => {
-              const workdirPath = await cloneRepository('three-files');
-              return buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-            }),
-          );
-
-          const wrapper = mount(React.cloneElement(component, {repository: repo0}));
-          await wrapper.instance().refreshModelData();
-          const tip = getTooltipNode(wrapper, BranchView);
-
-          tip.querySelector('button').click();
-
-          // TODO: why does this test fail if 'newer-branch' is something like 'create-branch'?
-          tip.querySelector('atom-text-editor').getModel().setText('newer-branch');
-          tip.querySelector('button').click();
-
-          await until(async () => {
-            const branch1 = await repo0.getCurrentBranch();
-            return branch1.getName() === 'newer-branch' && !branch1.isDetached();
-          });
-          repo0.refresh(); // clear cache manually, since we're not listening for file system events here
-          await assert.async.equal(tip.querySelector('select').value, 'newer-branch');
-
-          wrapper.setProps({repository: repo1});
-          await wrapper.instance().refreshModelData();
-
-          await assert.async.equal(tip.querySelector('select').value, 'master');
-          const options = Array.from(tip.querySelectorAll('option'), node => node.value);
-          assert.notInclude(options, 'newer-branch');
-        });
-
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
           const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
