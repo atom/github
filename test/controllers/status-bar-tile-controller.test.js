@@ -98,6 +98,7 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
 
           const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
@@ -105,24 +106,27 @@ describe('StatusBarTileController', function() {
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'master');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'master');
+          assert.equal(selectList.value, 'master');
 
           selectOption(tip, 'branch');
-          // TODO: test optimistic rendering
+          assert.isTrue(selectList.hasAttribute('disabled'));
 
           await until(async () => {
             const branch1 = await repository.getCurrentBranch();
             return branch1.getName() === 'branch' && !branch1.isDetached();
           });
-          await assert.async.equal(tip.querySelector('select').value, 'branch');
+          await assert.async.equal(selectList.value, 'branch');
+          await assert.async.isFalse(selectList.hasAttribute('disabled'));
 
           selectOption(tip, 'master');
+          assert.isTrue(selectList.hasAttribute('disabled'));
 
           await until(async () => {
             const branch2 = await repository.getCurrentBranch();
             return branch2.getName() === 'master' && !branch2.isDetached();
           });
-          await assert.async.equal(tip.querySelector('select').value, 'master');
+          await assert.async.equal(selectList.value, 'master');
+          await assert.async.isFalse(selectList.hasAttribute('disabled'));
         });
 
         it('displays an error message if checkout fails', async function() {
@@ -141,22 +145,25 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
 
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'branch');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'branch');
+          assert.equal(selectList.value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
 
           selectOption(tip, 'master');
-          await assert.async.equal(tip.querySelector('select').value, 'master');
+          assert.isTrue(selectList.hasAttribute('disabled'));
+          await assert.async.equal(selectList.value, 'master');
           await until(async () => {
             await wrapper.instance().refreshModelData();
-            return tip.querySelector('select').value === 'branch';
+            return selectList.value === 'branch';
           });
 
           assert.isTrue(notificationManager.addError.called);
+          assert.isFalse(selectList.hasAttribute('disabled'));
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Checkout aborted');
           assert.match(notificationArgs[1].description, /Local changes to the following would be overwritten/);
@@ -172,31 +179,34 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
+          const editor = tip.querySelector('atom-text-editor');
 
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'master');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'master');
+          assert.equal(selectList.value, 'master');
 
           tip.querySelector('button').click();
 
-          assert.isTrue(tip.querySelector('select').className.includes('hidden'));
+          assert.isTrue(selectList.className.includes('hidden'));
           assert.isFalse(tip.querySelector('.github-BranchMenuView-editor').className.includes('hidden'));
 
           tip.querySelector('atom-text-editor').getModel().setText('new-branch');
           tip.querySelector('button').click();
+          assert.isTrue(editor.hasAttribute('disabled'));
 
           await until(async () => {
             const branch1 = await repository.getCurrentBranch();
             return branch1.getName() === 'new-branch' && !branch1.isDetached();
           });
           repository.refresh(); // clear cache manually, since we're not listening for file system events here
-          await assert.async.equal(tip.querySelector('select').value, 'new-branch');
+          await assert.async.equal(selectList.value, 'new-branch');
 
           await assert.async.isTrue(tip.querySelector('.github-BranchMenuView-editor').className.includes('hidden'));
-          assert.isFalse(tip.querySelector('select').className.includes('hidden'));
+          assert.isFalse(selectList.className.includes('hidden'));
         });
 
         it('displays an error message if branch already exists', async function() {
@@ -208,6 +218,7 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const createNewButton = tip.querySelector('button');
           sinon.stub(notificationManager, 'addError');
 
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
@@ -217,9 +228,10 @@ describe('StatusBarTileController', function() {
           assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
-          tip.querySelector('button').click();
+          createNewButton.click();
           tip.querySelector('atom-text-editor').getModel().setText('master');
-          tip.querySelector('button').click();
+          createNewButton.click();
+          assert.isTrue(createNewButton.hasAttribute('disabled'));
 
           await assert.async.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
@@ -232,6 +244,7 @@ describe('StatusBarTileController', function() {
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
           assert.equal(tip.querySelector('atom-text-editor').getModel().getText(), 'master');
+          assert.isFalse(createNewButton.hasAttribute('disabled'));
         });
       });
 
