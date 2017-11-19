@@ -232,7 +232,7 @@ describe('CommitViewController', function() {
 
         // atom internals calls `confirm` on the ApplicationDelegate instead of the atom environment
         sinon.stub(atomEnvironment.applicationDelegate, 'confirm').callsFake((options, callback) => {
-          if (callback typeof 'function') {
+          if (typeof callback === 'function') {
             callback(0); // Save
           }
           return 0; // TODO: Remove this return and typeof check once https://github.com/atom/atom/pull/16229 is on stable
