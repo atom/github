@@ -160,18 +160,6 @@ describe('CommitViewController', function() {
         controller.update({commit: commitSpy});
       });
 
-      it('strips out comments', async function() {
-        await controller.commit([
-          'Make a commit',
-          '',
-          '# Comments:',
-          '#  blah blah blah',
-          '#  other stuff',
-        ].join('\n'));
-
-        assert.deepEqual(commitSpy.args[0][0], 'Make a commit');
-      });
-
       it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
         config.set('github.automaticCommitMessageWrapping', false);
 

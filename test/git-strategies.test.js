@@ -511,17 +511,61 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
-    describe('commit(message, options) where amend option is true', function() {
-      it('amends the last commit', async function() {
-        const workingDirPath = await cloneRepository('multiple-commits');
-        const git = createTestStrategy(workingDirPath);
-        const lastCommit = await git.getHeadCommit();
-        const lastCommitParent = await git.getCommit('HEAD~');
-        await git.commit('amend last commit', {amend: true, allowEmpty: true});
-        const amendedCommit = await git.getHeadCommit();
-        const amendedCommitParent = await git.getCommit('HEAD~');
-        assert.notDeepEqual(lastCommit, amendedCommit);
-        assert.deepEqual(lastCommitParent, amendedCommitParent);
+    describe('commit(message, options)', function() {
+      describe('formatting commit message', function() {
+        let message;
+        beforeEach(function() {
+          message = [
+            '    Make a commit    ',
+            '',
+            '# Comments:',
+            '#  blah blah blah',
+            '',
+            '',
+            '',
+            'other stuff        ',
+            '',
+            '',
+            '',
+          ].join('\n');
+        });
+
+        it('strips out comments and whitespace from message passed', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+
+          await git.commit(message, {allowEmpty: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
+        });
+
+        it('strips out comments and whitespace from message at specified file path', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+
+          const commitMessagePath = path.join(workingDirPath, 'commit-message.txt');
+          fs.writeFileSync(commitMessagePath, message);
+
+          await git.commit({filePath: commitMessagePath}, {allowEmpty: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
+        });
+      });
+
+      describe('when amend option is true', function() {
+        it('amends the last commit', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+          const lastCommit = await git.getHeadCommit();
+          const lastCommitParent = await git.getCommit('HEAD~');
+          await git.commit('amend last commit', {amend: true, allowEmpty: true});
+          const amendedCommit = await git.getHeadCommit();
+          const amendedCommitParent = await git.getCommit('HEAD~');
+          assert.notDeepEqual(lastCommit, amendedCommit);
+          assert.deepEqual(lastCommitParent, amendedCommitParent);
+        });
       });
     });
 
