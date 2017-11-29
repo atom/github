@@ -130,38 +130,38 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
-    for (let i = 0; i < 10; i++) {
-      it.only('uses models from preexisting projects', async function() {
-        const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-          getTempDir(),
-        ]);
-        project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
-
-        await contextUpdateAfter(() => githubPackage.activate());
-
-        assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
-        assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
-        assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
-
-        assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
-      });
-    }
-
-    it('uses an active model from a single preexisting project', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      project.setPaths([workdirPath]);
+    it('uses models from preexisting projects', async function() {
+      const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        getTempDir(),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
 
       await contextUpdateAfter(() => githubPackage.activate());
 
-      const context = contextPool.getContext(workdirPath);
-      assert.isTrue(context.isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
-      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
+
+    for (let i = 0; i < 20; i++) {
+      it.only('uses an active model from a single preexisting project', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        project.setPaths([workdirPath]);
+
+        await contextUpdateAfter(() => githubPackage.activate());
+
+        const context = contextPool.getContext(workdirPath);
+        assert.isTrue(context.isPresent());
+
+        assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+      });
+    }
 
     it('uses an active model from a preexisting active pane item', async function() {
       const [workdirPath1, workdirPath2] = await Promise.all([
