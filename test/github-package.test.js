@@ -13,6 +13,8 @@ describe.only('GithubPackage', function() {
   let githubPackage, contextPool;
 
   beforeEach(function() {
+    console.log('\n\n\n');
+    console.log('starting top beforeEach...');
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     project = atomEnv.project;
@@ -27,6 +29,7 @@ describe.only('GithubPackage', function() {
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
+    console.log('constructing GithubPackage instance...');
     githubPackage = new GithubPackage(
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
       deserializers, configDirPath, getLoadSettings,
@@ -37,16 +40,22 @@ describe.only('GithubPackage', function() {
     });
 
     contextPool = githubPackage.getContextPool();
+    console.log('top beforeEach done');
   });
 
   afterEach(async function() {
+    console.log('starting top afterEach...');
     await githubPackage.deactivate();
+    console.log('deactivation done. destroying atomEnv...');
     atomEnv.destroy();
+    console.log('top afterEach done');
   });
 
   async function contextUpdateAfter(chunk) {
+    console.log('starting contextUpdateAfter');
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
     await chunk();
+    console.log('  ending contextUpdateAfter');
     return updatePromise;
   }
 
@@ -55,7 +64,9 @@ describe.only('GithubPackage', function() {
 
     afterEach(async function() {
       if (githubPackage1) {
+        console.log("deactivating githubPackage1...");
         await githubPackage1.deactivate();
+        console.log("done deactivating githubPackage1");
       }
     });
 
