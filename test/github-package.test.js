@@ -130,22 +130,24 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
-    it('uses models from preexisting projects', async function() {
-      const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
-        cloneRepository('three-files'),
-        cloneRepository('three-files'),
-        getTempDir(),
-      ]);
-      project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
+    for (let i = 0; i < 10; i++) {
+      it.only('uses models from preexisting projects', async function() {
+        const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
+          cloneRepository('three-files'),
+          cloneRepository('three-files'),
+          getTempDir(),
+        ]);
+        project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
 
-      await contextUpdateAfter(() => githubPackage.activate());
+        await contextUpdateAfter(() => githubPackage.activate());
 
-      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
-      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
-      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
+        assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+        assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+        assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
-      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
-    });
+        assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+      });
+    }
 
     it('uses an active model from a single preexisting project', async function() {
       const workdirPath = await cloneRepository('three-files');
