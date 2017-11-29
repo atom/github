@@ -163,7 +163,7 @@ describe('GitTabController', function() {
         workspace, commandRegistry, notificationManager, confirm, repository,
         resolutionProgress, refreshResolutionProgress,
       });
-      assert.equal(notificationManager.getNotifications().length, 0);
+      notificationManager.clear(); // clear out any notifications
       confirm.returns(0);
       await controller.abortMerge();
       assert.equal(notificationManager.getNotifications().length, 1);
@@ -239,7 +239,7 @@ describe('GitTabController', function() {
         workspace, commandRegistry, notificationManager, repository,
         resolutionProgress, refreshResolutionProgress,
       });
-      assert.equal(notificationManager.getNotifications().length, 0);
+      notificationManager.clear(); // clear out any notifications
       await controller.commit();
       assert.equal(notificationManager.getNotifications().length, 1);
     });
