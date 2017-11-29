@@ -7,7 +7,8 @@ import {cloneRepository} from './helpers';
 import {writeFile, deleteFileOrFolder, fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
-describe.only('GithubPackage', function() {
+for (let i = 0; i < 10; i++) {
+describe.only(`GithubPackage run ${i+1}`, function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
@@ -689,3 +690,4 @@ describe.only('GithubPackage', function() {
     });
   });
 });
+}
