@@ -790,7 +790,7 @@ describe('Repository', function() {
             await repo.abortMerge();
             assert.fail(null, null, 'repo.abortMerge() unexepctedly succeeded');
           } catch (e) {
-            assert.match(e.command, /^git merge --abort/);
+            assert.match(e.command, /^git .* merge --abort/);
           }
           assert.equal(await repo.isMerging(), true);
           assert.deepEqual(await repo.getStagedChanges(), stagedChanges);

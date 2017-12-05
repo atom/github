@@ -275,7 +275,12 @@ describe('CommitViewController', function() {
         editor.setText('make some new changes');
 
         // atom internals calls `confirm` on the ApplicationDelegate instead of the atom environment
-        sinon.stub(atomEnvironment.applicationDelegate, 'confirm').returns(0); // Save
+        sinon.stub(atomEnvironment.applicationDelegate, 'confirm').callsFake((options, callback) => {
+          if (typeof callback === 'function') {
+            callback(0); // Save
+          }
+          return 0; // TODO: Remove this return and typeof check once https://github.com/atom/atom/pull/16229 is on stable
+        });
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(controller.getCommitMessageEditors().length, 0);
         assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
