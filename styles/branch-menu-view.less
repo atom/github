@@ -2,6 +2,10 @@
 
 .github-BranchMenuView {
 
+  .hidden {
+    display: none
+  }
+
   &-selector {
     display: flex;
     align-items: center;
@@ -9,6 +13,13 @@
 
   &-item {
     margin: @component-padding / 2;
+  }
+
+  .icon-sync::before {
+    @keyframes github-BranchViewSync-animation {
+      100% { transform: rotate(360deg); }
+    }
+    animation: github-BranchViewSync-animation 2s linear 30; // limit to 1min in case something gets stuck
   }
 
   .icon-git-branch {
@@ -44,6 +55,10 @@
     atom-text-editor[mini] {
       font-size: inherit;
       text-align: left;
+    }
+    atom-text-editor[readonly] {
+      color: @text-color-subtle;
+      pointer-events: none;
     }
   }
 

@@ -5,7 +5,7 @@ import React from 'react';
 import until from 'test-until';
 import {mount} from 'enzyme';
 
-import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {cloneRepository, buildRepository, buildRepositoryWithPipeline, setUpLocalAndRemoteRepositories} from '../helpers';
 import {getTempDir} from '../../lib/helpers';
 import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
@@ -24,7 +24,7 @@ describe('StatusBarTileController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     tooltips = atomEnvironment.tooltips;
-    confirm = atomEnvironment.confirm;
+    confirm = sinon.stub(atomEnvironment, 'confirm');
 
     workspaceElement = atomEnvironment.views.getView(workspace);
 
@@ -98,6 +98,7 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
 
           const branches = Array.from(tip.getElementsByTagName('option'), e => e.innerHTML);
           assert.deepEqual(branches, ['branch', 'master']);
@@ -105,32 +106,32 @@ describe('StatusBarTileController', function() {
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'master');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'master');
+          assert.equal(selectList.value, 'master');
 
           selectOption(tip, 'branch');
-          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+          assert.isTrue(selectList.hasAttribute('disabled'));
 
-          const branch1 = await repository.getCurrentBranch();
-          assert.equal(branch1.getName(), 'branch');
-          assert.isFalse(branch1.isDetached());
-          assert.equal(tip.querySelector('select').value, 'branch');
-          await wrapper.instance().refreshModelData();
-          assert.equal(tip.querySelector('select').value, 'branch');
+          await until(async () => {
+            const branch1 = await repository.getCurrentBranch();
+            return branch1.getName() === 'branch' && !branch1.isDetached();
+          });
+          await assert.async.equal(selectList.value, 'branch');
+          await assert.async.isFalse(selectList.hasAttribute('disabled'));
 
           selectOption(tip, 'master');
-          await assert.async.isFalse(wrapper.instance().getWrappedComponentInstance().state.inProgress);
+          assert.isTrue(selectList.hasAttribute('disabled'));
 
-          const branch2 = await repository.getCurrentBranch();
-          assert.equal(branch2.getName(), 'master');
-          assert.isFalse(branch2.isDetached());
-          assert.equal(tip.querySelector('select').value, 'master');
-          await wrapper.instance().refreshModelData();
-          assert.equal(tip.querySelector('select').value, 'master');
+          await until(async () => {
+            const branch2 = await repository.getCurrentBranch();
+            return branch2.getName() === 'master' && !branch2.isDetached();
+          });
+          await assert.async.equal(selectList.value, 'master');
+          await assert.async.isFalse(selectList.hasAttribute('disabled'));
         });
 
         it('displays an error message if checkout fails', async function() {
           const {localRepoPath} = await setUpLocalAndRemoteRepositories('three-files');
-          const repository = await buildRepository(localRepoPath);
+          const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
           await repository.git.exec(['branch', 'branch']);
 
           // create a conflict
@@ -144,23 +145,25 @@ describe('StatusBarTileController', function() {
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
 
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'branch');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'branch');
+          assert.equal(selectList.value, 'branch');
 
           sinon.stub(notificationManager, 'addError');
 
           selectOption(tip, 'master');
-          // Optimistic render
-          assert.equal(tip.querySelector('select').value, 'master');
+          assert.isTrue(selectList.hasAttribute('disabled'));
+          await assert.async.equal(selectList.value, 'master');
           await until(async () => {
             await wrapper.instance().refreshModelData();
-            return tip.querySelector('select').value === 'branch';
+            return selectList.value === 'branch';
           });
 
           assert.isTrue(notificationManager.addError.called);
+          assert.isFalse(selectList.hasAttribute('disabled'));
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Checkout aborted');
           assert.match(notificationArgs[1].description, /Local changes to the following would be overwritten/);
@@ -170,80 +173,52 @@ describe('StatusBarTileController', function() {
       describe('checking out newly created branches', function() {
         it('can check out newly created branches', async function() {
           const workdirPath = await cloneRepository('three-files');
-          const repository = await buildRepository(workdirPath);
+          const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
 
           const wrapper = mount(React.cloneElement(component, {repository}));
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const selectList = tip.querySelector('select');
+          const editor = tip.querySelector('atom-text-editor');
 
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
           const branch0 = await repository.getCurrentBranch();
           assert.equal(branch0.getName(), 'master');
           assert.isFalse(branch0.isDetached());
-          assert.equal(tip.querySelector('select').value, 'master');
+          assert.equal(selectList.value, 'master');
 
           tip.querySelector('button').click();
 
-          assert.lengthOf(tip.querySelectorAll('select'), 0);
-          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
+          assert.isTrue(selectList.className.includes('hidden'));
+          assert.isFalse(tip.querySelector('.github-BranchMenuView-editor').className.includes('hidden'));
 
-          tip.querySelector('atom-text-editor').getModel().setText('new-branch');
+          tip.querySelector('atom-text-editor').innerText = 'new-branch';
           tip.querySelector('button').click();
+          assert.isTrue(editor.hasAttribute('readonly'));
 
           await until(async () => {
-            await wrapper.instance().refreshModelData();
-            return tip.querySelectorAll('select').length === 1;
+            const branch1 = await repository.getCurrentBranch();
+            return branch1.getName() === 'new-branch' && !branch1.isDetached();
           });
+          repository.refresh(); // clear cache manually, since we're not listening for file system events here
+          await assert.async.equal(selectList.value, 'new-branch');
 
-          assert.equal(tip.querySelector('select').value, 'new-branch');
-          const branch1 = await repository.getCurrentBranch();
-          assert.equal(branch1.getName(), 'new-branch');
-          assert.isFalse(branch1.isDetached());
-
-          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 0);
-          assert.lengthOf(tip.querySelectorAll('select'), 1);
-        });
-
-        it('forgets newly created branches on repository change', async function() {
-          const [repo0, repo1] = await Promise.all(
-            [0, 1].map(async () => {
-              const workdirPath = await cloneRepository('three-files');
-              return buildRepository(workdirPath);
-            }),
-          );
-
-          const wrapper = mount(React.cloneElement(component, {repository: repo0}));
-          await wrapper.instance().refreshModelData();
-          const tip = getTooltipNode(wrapper, BranchView);
-
-          // Create a new branch
-          tip.querySelector('button').click();
-          tip.querySelector('atom-text-editor').getModel().setText('created-branch');
-          tip.querySelector('button').click();
-
-          await assert.async.lengthOf(tip.querySelectorAll('select'), 1);
-
-          assert.equal(tip.querySelector('select').value, 'created-branch');
-
-          wrapper.setProps({repository: repo1});
-          await wrapper.instance().refreshModelData();
-
-          assert.equal(tip.querySelector('select').value, 'master');
-          const options = Array.from(tip.querySelectorAll('option'), node => node.value);
-          assert.notInclude(options, 'created-branch');
+          await assert.async.isTrue(tip.querySelector('.github-BranchMenuView-editor').className.includes('hidden'));
+          assert.isFalse(selectList.className.includes('hidden'));
         });
 
         it('displays an error message if branch already exists', async function() {
           const workdirPath = await cloneRepository('three-files');
-          const repository = await buildRepository(workdirPath);
+          const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
           await repository.git.exec(['checkout', '-b', 'branch']);
 
           const wrapper = mount(React.cloneElement(component, {repository}));
           await wrapper.instance().refreshModelData();
 
           const tip = getTooltipNode(wrapper, BranchView);
+          const createNewButton = tip.querySelector('button');
           sinon.stub(notificationManager, 'addError');
 
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
@@ -253,9 +228,10 @@ describe('StatusBarTileController', function() {
           assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
-          tip.querySelector('button').click();
-          tip.querySelector('atom-text-editor').getModel().setText('master');
-          tip.querySelector('button').click();
+          createNewButton.click();
+          tip.querySelector('atom-text-editor').innerText = 'master';
+          createNewButton.click();
+          assert.isTrue(createNewButton.hasAttribute('disabled'));
 
           await assert.async.isTrue(notificationManager.addError.called);
           const notificationArgs = notificationManager.addError.args[0];
@@ -265,7 +241,10 @@ describe('StatusBarTileController', function() {
           const branch1 = await repository.getCurrentBranch();
           assert.equal(branch1.getName(), 'branch');
           assert.isFalse(branch1.isDetached());
-          assert.equal(tip.querySelector('select').value, 'branch');
+
+          assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
+          assert.equal(tip.querySelector('atom-text-editor').innerText, 'master');
+          assert.isFalse(createNewButton.hasAttribute('disabled'));
         });
       });
 
@@ -394,7 +373,7 @@ describe('StatusBarTileController', function() {
 
       it('displays an error message if push fails', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepository(localRepoPath);
+        const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
         await repository.git.exec(['reset', '--hard', 'HEAD~2']);
         await repository.git.commit('another commit', {allowEmpty: true});
 
@@ -411,7 +390,11 @@ describe('StatusBarTileController', function() {
         assert.equal(pushButton.textContent.trim(), 'Push (1)');
         assert.equal(pullButton.textContent.trim(), 'Pull (2)');
 
-        pushButton.click();
+        try {
+          await wrapper.instance().getWrappedComponentInstance().push();
+        } catch (e) {
+          assert(e, 'is error');
+        }
         await wrapper.instance().refreshModelData();
 
         await assert.async.isTrue(notificationManager.addError.called);
@@ -499,37 +482,37 @@ describe('StatusBarTileController', function() {
 
       it('force pushes when github:force-push is triggered', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepository(localRepoPath);
+        const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
 
-        const fakeConfirm = sinon.stub().returns(0);
-        const wrapper = mount(React.cloneElement(component, {repository, confirm: fakeConfirm}));
+        confirm.returns(0);
+        const wrapper = mount(React.cloneElement(component, {repository}));
         await wrapper.instance().refreshModelData();
 
-        sinon.spy(repository, 'push');
+        sinon.spy(repository.git, 'push');
 
         commandRegistry.dispatch(workspaceElement, 'github:force-push');
 
-        assert.equal(fakeConfirm.callCount, 1);
-        assert.isTrue(repository.push.calledWith('master', sinon.match({force: true, setUpstream: false})));
+        assert.equal(confirm.callCount, 1);
+        await assert.async.isTrue(repository.git.push.calledWith('origin', 'master', sinon.match({force: true, setUpstream: false})));
+        await assert.async.isFalse(repository.getOperationStates().isPushInProgress());
       });
 
       it('displays a warning notification when pull results in merge conflicts', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
-
-        const repository = await buildRepository(localRepoPath);
+        const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
         await repository.git.exec(['commit', '-am', 'Add conflicting change']);
 
         const wrapper = mount(React.cloneElement(component, {repository}));
         await wrapper.instance().refreshModelData();
 
-        const tip = getTooltipNode(wrapper, PushPullView);
-
-        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
-
         sinon.stub(notificationManager, 'addWarning');
 
-        pullButton.click();
+        try {
+          await wrapper.instance().getWrappedComponentInstance().pull();
+        } catch (e) {
+          assert(e, 'is error');
+        }
         await wrapper.instance().refreshModelData();
 
         await assert.async.isTrue(notificationManager.addWarning.called);

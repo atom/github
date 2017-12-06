@@ -10,6 +10,7 @@ import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
+import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -94,8 +95,8 @@ export async function getHeadCommitOnRemote(remotePath) {
   return git.getHeadCommit();
 }
 
-export async function buildRepository(workingDirPath) {
-  const repository = new Repository(workingDirPath);
+export async function buildRepository(workingDirPath, options) {
+  const repository = new Repository(workingDirPath, null, options);
   await repository.getLoadPromise();
   // eslint-disable-next-line jasmine/no-global-setup
   afterEach(async () => {
@@ -103,6 +104,11 @@ export async function buildRepository(workingDirPath) {
     repo && repo.destroy();
   });
   return repository;
+}
+
+export function buildRepositoryWithPipeline(workingDirPath, options) {
+  const pipelineManager = getRepoPipelineManager(options);
+  return buildRepository(workingDirPath, {pipelineManager});
 }
 
 export function assertDeepPropertyVals(actual, expected) {
