@@ -13,7 +13,8 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import RootController from '../../lib/controllers/root-controller';
 
 describe('RootController', function() {
-  let atomEnv, workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, app;
+  let atomEnv, app;
+  let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
 
   beforeEach(function() {
@@ -25,6 +26,7 @@ describe('RootController', function() {
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
+    project = atomEnv.project;
 
     getRepositoryForWorkdir = sinon.stub();
     destroyGitTabItem = sinon.spy();
@@ -45,6 +47,7 @@ describe('RootController', function() {
         tooltips={tooltips}
         config={config}
         confirm={confirm}
+        project={project}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
@@ -148,43 +151,6 @@ describe('RootController', function() {
         assert.isTrue(wrapper.find({filePath: path.join('foo', 'bar', 'baz', 'filename.txt')}).exists());
       });
     }
-  });
-
-  describe('when amend mode is toggled in the staging panel while viewing a staged change', function() {
-    it('updates the amending state and saves it to the repositoryStateRegistry', async function() {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app);
-
-      const repositoryStateRegistry = wrapper.instance().repositoryStateRegistry;
-
-      sinon.stub(repositoryStateRegistry, 'setStateForModel');
-      sinon.stub(repositoryStateRegistry, 'save');
-
-      assert.isFalse(wrapper.state('amending'));
-
-      await wrapper.instance().didChangeAmending(true);
-      assert.isTrue(wrapper.state('amending'));
-      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
-      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
-        repository,
-        {amending: true},
-      ]);
-      assert.equal(repositoryStateRegistry.save.callCount, 1);
-
-      repositoryStateRegistry.setStateForModel.reset();
-      repositoryStateRegistry.save.reset();
-      await wrapper.instance().didChangeAmending(false);
-      assert.isFalse(wrapper.state('amending'));
-      assert.equal(repositoryStateRegistry.setStateForModel.callCount, 1);
-      assert.deepEqual(repositoryStateRegistry.setStateForModel.args[0], [
-        repository,
-        {amending: false},
-      ]);
-      assert.equal(repositoryStateRegistry.save.callCount, 1);
-    });
   });
 
   ['git', 'github'].forEach(function(tabName) {
@@ -516,25 +482,6 @@ describe('RootController', function() {
       await assert.isRejected(credentialPromise);
       assert.isFalse(wrapper.find('CredentialDialog').exists());
     });
-  });
-
-  it('correctly updates state when switching repos', async function() {
-    const workdirPath1 = await cloneRepository('three-files');
-    const repository1 = await buildRepository(workdirPath1);
-    const workdirPath2 = await cloneRepository('three-files');
-    const repository2 = await buildRepository(workdirPath2);
-
-    app = React.cloneElement(app, {repository: repository1});
-    const wrapper = shallow(app);
-
-    assert.equal(wrapper.state('amending'), false);
-
-    wrapper.setState({amending: true});
-    wrapper.setProps({repository: repository2});
-    assert.equal(wrapper.state('amending'), false);
-
-    wrapper.setProps({repository: repository1});
-    assert.equal(wrapper.state('amending'), true);
   });
 
   describe('openFiles(filePaths)', () => {

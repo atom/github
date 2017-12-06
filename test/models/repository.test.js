@@ -418,7 +418,8 @@ describe('Repository', function() {
 
       const lastCommit = await repo.git.getHeadCommit();
       const lastCommitParent = await repo.git.getCommit('HEAD~');
-      await repo.commit('amend last commit', {amend: true, allowEmpty: true});
+      repo.setAmending(true);
+      await repo.commit('amend last commit', {allowEmpty: true});
       const amendedCommit = await repo.git.getHeadCommit();
       const amendedCommitParent = await repo.git.getCommit('HEAD~');
       assert.notDeepEqual(lastCommit, amendedCommit);
