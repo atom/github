@@ -11,7 +11,7 @@ import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, confirm;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config, confirm, tooltips;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -19,6 +19,8 @@ describe('CommitViewController', function() {
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     grammars = atomEnvironment.grammars;
+    config = atomEnvironment.config;
+    tooltips = atomEnvironment.tooltips;
     confirm = sinon.stub(atomEnvironment, 'confirm');
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
@@ -34,7 +36,7 @@ describe('CommitViewController', function() {
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
     const controller = new CommitViewController({
-      workspace, commandRegistry, notificationManager, lastCommit, repository: repository1,
+      workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository: repository1,
     });
 
     assert.equal(controller.getRegularCommitMessage(), '');
@@ -57,7 +59,7 @@ describe('CommitViewController', function() {
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({workspace, commandRegistry, notificationManager, lastCommit, repository});
+      controller = new CommitViewController({workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository});
       commitView = controller.refs.commitView;
     });
 
@@ -108,6 +110,8 @@ describe('CommitViewController', function() {
         commandRegistry,
         notificationManager,
         grammars,
+        config,
+        tooltips,
         lastCommit,
         repository,
         commit,
@@ -147,6 +151,46 @@ describe('CommitViewController', function() {
 
       assert.equal(controller.getRegularCommitMessage(), 'regular');
       assert.equal(controller.getAmendingCommitMessage(), 'amending');
+    });
+
+    describe('message formatting', function() {
+      let commitSpy;
+      beforeEach(function() {
+        commitSpy = sinon.stub().returns(Promise.resolve());
+        controller.update({commit: commitSpy});
+      });
+
+      it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
+        config.set('github.automaticCommitMessageWrapping', false);
+
+        await controller.commit([
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ].join('\n'));
+
+        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ]);
+
+        commitSpy.reset();
+        config.set('github.automaticCommitMessageWrapping', true);
+
+        await controller.commit([
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        ].join('\n'));
+
+        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
+          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+          '',
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
+          'ut aliquip ex ea commodo consequat.',
+        ]);
+      });
     });
 
     describe('toggling between commit box and commit editor', function() {

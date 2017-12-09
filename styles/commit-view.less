@@ -12,6 +12,24 @@
     padding: @component-padding / 2;
     font-size: @font-size;
     background-color: @syntax-background-color;
+
+    .github-CommitView-hardwrap {
+      position: absolute;
+      right: 20px;
+      bottom: 0;
+      padding: (@component-padding / 5) (@component-padding / 2);
+      line-height: 1;
+      border: none;
+      background-color: @syntax-background-color;
+      cursor: default;
+      opacity: .3;
+      &:hover {
+        opacity: 1;
+      }
+      &:active {
+        opacity: .5;
+      }
+    }
   }
 
   &-editor.hidden {
@@ -103,6 +121,9 @@
     }
   }
 
+  .hard-wrap-icons {
+    fill: @text-color
+  }
 }
 
 
