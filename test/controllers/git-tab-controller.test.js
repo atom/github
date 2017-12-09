@@ -7,13 +7,15 @@ import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 
-import {cloneRepository, buildRepository} from '../helpers';
-import Repository, {AbortMergeError, CommitError} from '../../lib/models/repository';
+import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
+import Repository from '../../lib/models/repository';
+import {GitError} from '../../lib/git-shell-out-strategy';
+
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config, tooltips;
-  let resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems;
+  let resolutionProgress, refreshResolutionProgress;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -27,7 +29,6 @@ describe('GitTabController', function() {
 
     resolutionProgress = new ResolutionProgress();
     refreshResolutionProgress = sinon.spy();
-    destroyFilePatchPaneItems = sinon.spy();
   });
 
   afterEach(function() {
@@ -107,30 +108,24 @@ describe('GitTabController', function() {
   });
 
   it('displays the staged changes since the parent commit when amending', async function() {
-    const didChangeAmending = sinon.spy();
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const ensureGitTab = () => Promise.resolve(false);
     const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository, didChangeAmending, ensureGitTab,
-      resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
+      workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
+      resolutionProgress, refreshResolutionProgress,
       isAmending: false,
     });
     await controller.getLastModelDataRefreshPromise();
     await assert.async.deepEqual(controller.refs.gitTab.props.stagedChanges, []);
-    assert.equal(didChangeAmending.callCount, 0);
 
-    await controller.setAmending(true);
-    assert.equal(didChangeAmending.callCount, 1);
-    await controller.update({isAmending: true});
-    assert.deepEqual(
+    await repository.setAmending(true);
+    await assert.async.deepEqual(
       controller.refs.gitTab.props.stagedChanges,
       await controller.getActiveRepository().getStagedChangesSinceParentCommit(),
     );
 
     await controller.commit('Delete most of the code', {amend: true});
-    assert.equal(didChangeAmending.callCount, 2);
-    assert.equal(destroyFilePatchPaneItems.callCount, 1);
   });
 
   it('fetches conflict marker counts for conflicting files', async function() {
@@ -152,25 +147,6 @@ describe('GitTabController', function() {
   });
 
   describe('abortMerge()', function() {
-    it('shows an error notification when abortMerge() throws an EDIRTYSTAGED exception', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'abortMerge').callsFake(async () => {
-        await Promise.resolve();
-        throw new AbortMergeError('EDIRTYSTAGED', 'a.txt');
-      });
-
-      const confirm = sinon.stub();
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, notificationManager, confirm, repository,
-        resolutionProgress, refreshResolutionProgress,
-      });
-      notificationManager.clear(); // clear out any notifications
-      confirm.returns(0);
-      await controller.abortMerge();
-      assert.equal(notificationManager.getNotifications().length, 1);
-    });
-
     it('resets merge related state', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
@@ -191,10 +167,10 @@ describe('GitTabController', function() {
 
       confirm.returns(0);
       await controller.abortMerge();
-      await controller.getLastModelDataRefreshPromise();
-      modelData = controller.repositoryObserver.getActiveModelData();
-
-      assert.equal(modelData.mergeConflicts.length, 0);
+      await until(() => {
+        modelData = controller.repositoryObserver.getActiveModelData();
+        return modelData.mergeConflicts.length === 0;
+      });
       assert.isFalse(modelData.isMerging);
       assert.isNull(modelData.mergeMessage);
     });
@@ -229,12 +205,12 @@ describe('GitTabController', function() {
   });
 
   describe('commit(message)', function() {
-    it('shows an error notification when committing throws an ECONFLICT exception', async function() {
+    it('shows an error notification when committing throws an error', async function() {
       const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'commit').callsFake(async () => {
+      const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
+      sinon.stub(repository.git, 'commit').callsFake(async () => {
         await Promise.resolve();
-        throw new CommitError('ECONFLICT');
+        throw new GitError('message');
       });
 
       const controller = new GitTabController({
@@ -242,23 +218,28 @@ describe('GitTabController', function() {
         resolutionProgress, refreshResolutionProgress,
       });
       notificationManager.clear(); // clear out any notifications
-      await controller.commit();
+      try {
+        await controller.commit();
+      } catch (e) {
+        assert(e, 'is error');
+      }
       assert.equal(notificationManager.getNotifications().length, 1);
     });
 
     it('sets amending to false', async function() {
       const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      sinon.stub(repository, 'commit').callsFake(() => Promise.resolve());
+      const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
+      repository.setAmending(true);
+      sinon.stub(repository.git, 'commit').callsFake(() => Promise.resolve());
       const didChangeAmending = sinon.stub();
       const controller = new GitTabController({
         workspace, commandRegistry, tooltips, config, repository, didChangeAmending,
-        resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
+        resolutionProgress, refreshResolutionProgress,
       });
 
+      assert.isTrue(repository.isAmending());
       await controller.commit('message');
-      assert.equal(didChangeAmending.callCount, 1);
-      assert.equal(destroyFilePatchPaneItems.callCount, 1);
+      assert.isFalse(repository.isAmending());
     });
   });
 
@@ -444,7 +425,7 @@ describe('GitTabController', function() {
 
         controller = new GitTabController({
           workspace, commandRegistry, tooltips, config, repository, didChangeAmending, prepareToCommit, ensureGitTab,
-          resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
+          resolutionProgress, refreshResolutionProgress,
         });
         await controller.getLastModelDataRefreshPromise();
         await etch.getScheduler().getNextUpdatePromise();
@@ -484,7 +465,7 @@ describe('GitTabController', function() {
       const ensureGitTab = () => Promise.resolve(false);
       const controller = new GitTabController({
         workspace, commandRegistry, tooltips, config, repository, ensureGitTab, didChangeAmending: sinon.stub(),
-        resolutionProgress, refreshResolutionProgress, destroyFilePatchPaneItems,
+        resolutionProgress, refreshResolutionProgress,
       });
       await controller.getLastModelDataRefreshPromise();
       await etch.getScheduler().getNextUpdatePromise();
@@ -511,7 +492,6 @@ describe('GitTabController', function() {
 
       commitView.refs.editor.setText('Make it so');
       await commitView.commit();
-      assert.equal(destroyFilePatchPaneItems.callCount, 1);
 
       assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });

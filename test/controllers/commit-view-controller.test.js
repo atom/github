@@ -5,12 +5,13 @@ import etch from 'etch';
 import until from 'test-until';
 
 import Commit from '../../lib/models/commit';
+import {writeFile} from '../../lib/helpers';
 
 import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-view-controller';
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config, tooltips;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config, confirm, tooltips;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -20,6 +21,7 @@ describe('CommitViewController', function() {
     grammars = atomEnvironment.grammars;
     config = atomEnvironment.config;
     tooltips = atomEnvironment.tooltips;
+    confirm = sinon.stub(atomEnvironment, 'confirm');
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
   });
@@ -37,19 +39,19 @@ describe('CommitViewController', function() {
       workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository: repository1,
     });
 
-    assert.equal(controller.regularCommitMessage, '');
-    assert.equal(controller.amendingCommitMessage, '');
+    assert.equal(controller.getRegularCommitMessage(), '');
+    assert.equal(controller.getAmendingCommitMessage(), '');
 
-    controller.regularCommitMessage = 'regular message 1';
-    controller.amendingCommitMessage = 'amending message 1';
+    controller.setRegularCommitMessage('regular message 1');
+    controller.setAmendingCommitMessage('amending message 1');
 
     await controller.update({repository: repository2});
-    assert.equal(controller.regularCommitMessage, '');
-    assert.equal(controller.amendingCommitMessage, '');
+    assert.equal(controller.getRegularCommitMessage(), '');
+    assert.equal(controller.getAmendingCommitMessage(), '');
 
     await controller.update({repository: repository1});
-    assert.equal(controller.regularCommitMessage, 'regular message 1');
-    assert.equal(controller.amendingCommitMessage, 'amending message 1');
+    assert.equal(controller.getRegularCommitMessage(), 'regular message 1');
+    assert.equal(controller.getAmendingCommitMessage(), 'amending message 1');
   });
 
   describe('the passed commit message', function() {
@@ -61,21 +63,21 @@ describe('CommitViewController', function() {
       commitView = controller.refs.commitView;
     });
 
-    it('is set to the regularCommitMessage in the default case', async function() {
-      controller.regularCommitMessage = 'regular message';
+    it('is set to the getRegularCommitMessage() in the default case', async function() {
+      controller.setRegularCommitMessage('regular message');
       await controller.update();
       assert.equal(commitView.props.message, 'regular message');
     });
 
     describe('when isAmending is true', function() {
-      it('is set to the last commits message if amendingCommitMessage is blank', async function() {
-        controller.amendingCommitMessage = 'amending commit message';
+      it('is set to the last commits message if getAmendingCommitMessage() is blank', async function() {
+        controller.setAmendingCommitMessage('amending commit message');
         await controller.update({isAmending: true, lastCommit});
         assert.equal(commitView.props.message, 'amending commit message');
       });
 
-      it('is set to amendingCommitMessage if it is set', async function() {
-        controller.amendingCommitMessage = 'amending commit message';
+      it('is set to getAmendingCommitMessage() if it is set', async function() {
+        controller.setAmendingCommitMessage('amending commit message');
         await controller.update({isAmending: true, lastCommit});
         assert.equal(commitView.props.message, 'amending commit message');
       });
@@ -87,8 +89,8 @@ describe('CommitViewController', function() {
         assert.equal(commitView.props.message, 'merge conflict!');
       });
 
-      it('is set to regularCommitMessage if it is set', async function() {
-        controller.regularCommitMessage = 'regular commit message';
+      it('is set to getRegularCommitMessage() if it is set', async function() {
+        controller.setRegularCommitMessage('regular commit message');
         await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
         assert.equal(commitView.props.message, 'regular commit message');
       });
@@ -96,15 +98,12 @@ describe('CommitViewController', function() {
   });
 
   describe('committing', function() {
-    let controller, resolve, reject, workdirPath, repository;
+    let controller, workdirPath, repository;
 
     beforeEach(async function() {
       workdirPath = await cloneRepository('three-files');
-      repository = await buildRepository(workdirPath);
-      const commit = () => new Promise((resolver, rejecter) => {
-        resolve = resolver;
-        reject = rejecter;
-      });
+      repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
+      const commit = message => repository.commit(message);
 
       controller = new CommitViewController({
         workspace,
@@ -124,33 +123,34 @@ describe('CommitViewController', function() {
     });
 
     it('clears the regular and amending commit messages', async function() {
-      controller.regularCommitMessage = 'regular';
-      controller.amendingCommitMessage = 'amending';
+      controller.setRegularCommitMessage('regular');
+      controller.setAmendingCommitMessage('amending');
 
-      const promise = controller.commit('message');
-      resolve();
-      await promise;
+      await writeFile(path.join(workdirPath, 'a.txt'), 'some changes');
+      await repository.git.exec(['add', '.']);
+      await controller.commit('message');
 
-      assert.equal(controller.regularCommitMessage, '');
-      assert.equal(controller.amendingCommitMessage, '');
+      assert.equal(controller.getRegularCommitMessage(), '');
+      assert.equal(controller.getAmendingCommitMessage(), '');
     });
 
     it('issues a notification on failure', async function() {
-      controller.regularCommitMessage = 'regular';
-      controller.amendingCommitMessage = 'amending';
+      controller.setRegularCommitMessage('regular');
+      controller.setAmendingCommitMessage('amending');
 
       sinon.spy(notificationManager, 'addError');
 
-      const promise = controller.commit('message');
-      const e = new Error('message');
-      e.stdErr = 'stderr';
-      reject(e);
-      await promise;
+      // Committing with no staged changes should cause commit error
+      try {
+        await controller.commit('message');
+      } catch (e) {
+        assert(e, 'is error');
+      }
 
       assert.isTrue(notificationManager.addError.called);
 
-      assert.equal(controller.regularCommitMessage, 'regular');
-      assert.equal(controller.amendingCommitMessage, 'amending');
+      assert.equal(controller.getRegularCommitMessage(), 'regular');
+      assert.equal(controller.getAmendingCommitMessage(), 'amending');
     });
 
     describe('message formatting', function() {
@@ -300,7 +300,6 @@ describe('CommitViewController', function() {
         await repository.stageFiles(['a.txt']);
 
         await controller.update({
-          commit: repository.commit.bind(repository),
           prepareToCommit: () => true,
           stagedChangesExist: true,
         });
@@ -320,9 +319,8 @@ describe('CommitViewController', function() {
       });
 
       it('asks user to confirm if commit editor has unsaved changes', async function() {
-        const confirm = sinon.stub();
-        const commit = sinon.stub();
-        await controller.update({confirm, commit, prepareToCommit: () => true, stagedChangesExist: true});
+        sinon.stub(repository.git, 'commit');
+        await controller.update({confirm, prepareToCommit: () => true, stagedChangesExist: true});
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
         const editor = workspace.getActiveTextEditor();
@@ -335,12 +333,12 @@ describe('CommitViewController', function() {
         confirm.returns(1); // Cancel
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
         await etch.getScheduler().getNextUpdatePromise();
-        assert.equal(commit.callCount, 0);
+        assert.equal(repository.git.commit.callCount, 0);
 
         confirm.returns(0); // Commit
         commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
         await etch.getScheduler().getNextUpdatePromise();
-        await assert.async.equal(commit.callCount, 1);
+        await assert.async.equal(repository.git.commit.callCount, 1);
         assert.equal(workspace.getTextEditors().length, 0);
       });
     });
