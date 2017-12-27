@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
