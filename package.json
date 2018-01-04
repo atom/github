@@ -69,7 +69,7 @@
     "tinycolor2": "^1.4.1",
     "tree-kill": "^1.1.0",
     "what-the-diff": "^0.3.0",
-    "what-the-status": "^1.0.2",
+    "what-the-status": "^1.0.3",
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
