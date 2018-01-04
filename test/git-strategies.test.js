@@ -203,6 +203,18 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
         assert.isUndefined(diffOutput);
       });
 
+      it('bypasses external diff tools', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
+        const diffOutput = await git.getDiffForFilePath('a.txt');
+        delete process.env.GIT_EXTERNAL_DIFF;
+
+        assert.isDefined(diffOutput);
+      });
+
       describe('when the file is unstaged', function() {
         it('returns a diff comparing the working directory copy of the file and the version on the index', async function() {
           const workingDirPath = await cloneRepository('three-files');
