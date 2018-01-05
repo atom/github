@@ -26,6 +26,31 @@
     }
   }
 
+  &-mode-change {
+    padding: @component-padding/2;
+    padding-left: @component-padding;
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid @base-border-color;
+
+    span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+
+    .btn {
+      font-size: .9em;
+      &.icon-move-up::before,
+      &.icon-move-down::before {
+        font-size: 1em;
+        margin-right: .5em;
+      }
+    }
+  }
+
   &-title {
     flex: 1;
     overflow: hidden;
