@@ -13,6 +13,14 @@ import HunkLine from '../../lib/models/hunk-line';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import Switchboard from '../../lib/switchboard';
 
+function createFilePatch(oldFilePath, newFilePath, status, hunks) {
+  const oldFile = new FilePatch.File({path: oldFilePath});
+  const newFile = new FilePatch.File({path: newFilePath});
+  const patch = new FilePatch.Patch({status, hunks});
+
+  return new FilePatch(oldFile, newFile, patch);
+}
+
 describe('FilePatchController', function() {
   let atomEnv, commandRegistry, tooltips, deserializers;
   let component, switchboard, repository, filePath, getFilePatchForPath, workdirPath;
@@ -105,7 +113,7 @@ describe('FilePatchController', function() {
           new HunkLine('line-5', 'added', 5, 5),
           new HunkLine('line-6', 'added', 6, 6),
         ]);
-        const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk1]);
+        const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk1]);
 
         getFilePatchForPath.returns(filePatch);
 
@@ -125,7 +133,7 @@ describe('FilePatchController', function() {
           new HunkLine('line-5', 'added', 5, 5),
           new HunkLine('line-6', 'added', 6, 6),
         ]);
-        const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk]);
+        const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk]);
         getFilePatchForPath.returns(filePatch);
 
         const wrapper = mount(React.cloneElement(component, {
@@ -147,8 +155,8 @@ describe('FilePatchController', function() {
           new HunkLine('line-5', 'added', 5, 5),
           new HunkLine('line-6', 'added', 6, 6),
         ]);
-        const filePatch1 = new FilePatch(filePath, filePath, 'modified', [hunk]);
-        const filePatch2 = new FilePatch('b.txt', 'b.txt', 'modified', [hunk]);
+        const filePatch1 = createFilePatch(filePath, filePath, 'modified', [hunk]);
+        const filePatch2 = createFilePatch('b.txt', 'b.txt', 'modified', [hunk]);
 
         getFilePatchForPath.returns(filePatch1);
 
@@ -206,7 +214,7 @@ describe('FilePatchController', function() {
     });
 
     it('renders FilePatchView only if FilePatch has hunks', async function() {
-      const emptyFilePatch = new FilePatch(filePath, filePath, 'modified', []);
+      const emptyFilePatch = createFilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);
 
       const wrapper = mount(React.cloneElement(component, {filePath}));
@@ -215,7 +223,7 @@ describe('FilePatchController', function() {
       assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no contents'));
 
       const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
-      const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk1]);
+      const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk1]);
       getFilePatchForPath.returns(filePatch);
 
       wrapper.instance().onRepoRefresh(repository);
@@ -226,7 +234,7 @@ describe('FilePatchController', function() {
     it('updates the FilePatch after a repo update', async function() {
       const hunk1 = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
       const hunk2 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-5', 'deleted', 8, -1)]);
-      const filePatch0 = new FilePatch(filePath, filePath, 'modified', [hunk1, hunk2]);
+      const filePatch0 = createFilePatch(filePath, filePath, 'modified', [hunk1, hunk2]);
       getFilePatchForPath.returns(filePatch0);
 
       const wrapper = shallow(React.cloneElement(component, {filePath}));
@@ -239,7 +247,7 @@ describe('FilePatchController', function() {
       assert.isTrue(view0.find({hunk: hunk2}).exists());
 
       const hunk3 = new Hunk(8, 8, 1, 1, '', [new HunkLine('line-10', 'modified', 10, 10)]);
-      const filePatch1 = new FilePatch(filePath, filePath, 'modified', [hunk1, hunk3]);
+      const filePatch1 = createFilePatch(filePath, filePath, 'modified', [hunk1, hunk3]);
       getFilePatchForPath.returns(filePatch1);
 
       wrapper.instance().onRepoRefresh(repository);
@@ -253,7 +261,7 @@ describe('FilePatchController', function() {
     });
 
     it('invokes a didSurfaceFile callback with the current file path', async function() {
-      const filePatch = new FilePatch(filePath, filePath, 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
+      const filePatch = createFilePatch(filePath, filePath, 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
       getFilePatchForPath.returns(filePatch);
 
       const wrapper = mount(React.cloneElement(component, {filePath}));
@@ -278,7 +286,7 @@ describe('FilePatchController', function() {
         };
 
         const hunk = new Hunk(5, 5, 2, 1, '', [new HunkLine('line-1', 'added', -1, 5)]);
-        const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk]);
+        const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk]);
         getFilePatchForPath.returns(filePatch);
 
         const wrapper = mount(React.cloneElement(component, {

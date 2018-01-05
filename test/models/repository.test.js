@@ -226,36 +226,34 @@ describe('Repository', function() {
           status: 'modified',
         },
       ]);
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
-        oldPath: 'file.txt',
-        newPath: 'file.txt',
-        status: 'modified',
-        hunks: [
-          {
-            lines: [
-              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-            ],
-          },
-        ],
-      });
+      const filePatch1 = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
+      assert.equal(filePatch1.getOldPath(), 'file.txt');
+      assert.equal(filePatch1.getNewPath(), 'file.txt');
+      assert.equal(filePatch1.getStatus(), 'modified');
+      assertDeepPropertyVals(filePatch1.getHunks(), [
+        {
+          lines: [
+            {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
+            {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
+          ],
+        },
+      ]);
 
       await repo.stageFiles(['file.txt']);
       repo.refresh();
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
-        oldPath: 'file.txt',
-        newPath: 'file.txt',
-        status: 'modified',
-        hunks: [
-          {
-            lines: [
-              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-              {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
-            ],
-          },
-        ],
-      });
+      const filePatch2 = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
+      assert.equal(filePatch2.getOldPath(), 'file.txt');
+      assert.equal(filePatch2.getNewPath(), 'file.txt');
+      assert.equal(filePatch2.getStatus(), 'modified');
+      assertDeepPropertyVals(filePatch2.getHunks(), [
+        {
+          lines: [
+            {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
+            {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
+            {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
+          ],
+        },
+      ]);
 
       await repo.stageFilesFromParentCommit(['file.txt']);
       repo.refresh();
