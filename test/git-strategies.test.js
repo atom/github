@@ -209,7 +209,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
-        const diffOutput = await git.getDiffForFilePath('a.txt');
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
 
         assert.isDefined(diffOutput);
