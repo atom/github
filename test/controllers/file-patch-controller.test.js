@@ -212,7 +212,7 @@ describe('FilePatchController', function() {
       const wrapper = mount(React.cloneElement(component, {filePath}));
 
       assert.isTrue(wrapper.find('FilePatchView').exists());
-      assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no contents'));
+      assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no changed contents'));
 
       const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
       const filePatch = new FilePatch(filePath, filePath, 'modified', [hunk1]);
