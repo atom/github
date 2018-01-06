@@ -259,6 +259,30 @@ describe('Repository', function() {
       repo.refresh();
       assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), []);
     });
+
+    it('can stage and unstage file modes without staging file contents', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      const filePath = 'a.txt';
+
+      async function indexModeAndOid(filename) {
+        const output = await repo.git.exec(['ls-files', '-s', '--', filename]);
+        const parts = output.split(' ');
+        return {mode: parts[0], oid: parts[1]};
+      }
+
+      const {mode, oid} = await indexModeAndOid(path.join(workingDirPath, filePath));
+      assert.equal(mode, '100644');
+      fs.chmodSync(path.join(workingDirPath, filePath), 0o755);
+      fs.writeFileSync(path.join(workingDirPath, filePath), 'qux\nfoo\nbar\n', 'utf8');
+
+      await repo.stageFileModeChange(filePath, '100755');
+      assert.deepEqual(await indexModeAndOid(filePath), {mode: '100755', oid});
+
+      await repo.stageFileModeChange(filePath, '100644');
+      assert.deepEqual(await indexModeAndOid(filePath), {mode: '100644', oid});
+    });
   });
 
   describe('getFilePatchForPath', function() {
