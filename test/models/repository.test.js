@@ -283,6 +283,47 @@ describe('Repository', function() {
       await repo.stageFileModeChange(filePath, '100644');
       assert.deepEqual(await indexModeAndOid(filePath), {mode: '100644', oid});
     });
+
+    it('can stage and unstage symlink changes without staging file contents', async function() {
+      const workingDirPath = await cloneRepository('symlinks');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      async function indexModeAndOid(filename) {
+        const output = await repo.git.exec(['ls-files', '-s', '--', filename]);
+        if (output) {
+          const parts = output.split(' ');
+          return {mode: parts[0], oid: parts[1]};
+        } else {
+          return null;
+        }
+      }
+
+      const deletedSymlinkAddedFilePath = 'symlink.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+      fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
+
+      const deletedFileAddedSymlinkPath = 'a.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+
+      // Stage symlink change, leaving added file unstaged
+      assert.equal((await indexModeAndOid(deletedSymlinkAddedFilePath)).mode, '120000');
+      await repo.stageFileSymlinkChange(deletedSymlinkAddedFilePath);
+      assert.isNull(await indexModeAndOid(deletedSymlinkAddedFilePath));
+      const unstagedFilePatch = await repo.getFilePatchForPath(deletedSymlinkAddedFilePath, {staged: false});
+      assert.equal(unstagedFilePatch.getStatus(), 'added');
+      assert.equal(unstagedFilePatch.toString(), '@@ -0,0 +1,3 @@\n+qux\n+foo\n+bar\n');
+
+      // Unstage symlink change, leaving deleted file staged
+      await repo.stageFiles([deletedFileAddedSymlinkPath]);
+      assert.equal((await indexModeAndOid(deletedFileAddedSymlinkPath)).mode, '120000');
+      await repo.stageFileSymlinkChange(deletedFileAddedSymlinkPath);
+      assert.isNull(await indexModeAndOid(deletedFileAddedSymlinkPath));
+      const stagedFilePatch = await repo.getFilePatchForPath(deletedFileAddedSymlinkPath, {staged: true});
+      assert.equal(stagedFilePatch.getStatus(), 'deleted');
+      assert.equal(stagedFilePatch.toString(), '@@ -1,4 +0,0 @@\n-foo\n-bar\n-baz\n-\n');
+    });
   });
 
   describe('getFilePatchForPath', function() {
