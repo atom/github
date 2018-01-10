@@ -313,7 +313,18 @@ describe('Repository', function() {
       assert.isNull(await indexModeAndOid(deletedSymlinkAddedFilePath));
       const unstagedFilePatch = await repo.getFilePatchForPath(deletedSymlinkAddedFilePath, {staged: false});
       assert.equal(unstagedFilePatch.getStatus(), 'added');
-      assert.equal(unstagedFilePatch.toString(), '@@ -0,0 +1,3 @@\n+qux\n+foo\n+bar\n');
+      // assert.equal(unstagedFilePatch.toString(), '@@ -0,0 +1,3 @@\n+qux\n+foo\n+bar\n');
+      assert.equal(unstagedFilePatch.toString(), dedent`
+        diff --git a/symlink.txt b/symlink.txt
+        new file mode 100644
+        --- /dev/null
+        +++ b/symlink.txt
+        @@ -0,0 +1,3 @@
+        +qux
+        +foo
+        +bar
+
+      `);
 
       // Unstage symlink change, leaving deleted file staged
       await repo.stageFiles([deletedFileAddedSymlinkPath]);
@@ -322,7 +333,19 @@ describe('Repository', function() {
       assert.isNull(await indexModeAndOid(deletedFileAddedSymlinkPath));
       const stagedFilePatch = await repo.getFilePatchForPath(deletedFileAddedSymlinkPath, {staged: true});
       assert.equal(stagedFilePatch.getStatus(), 'deleted');
-      assert.equal(stagedFilePatch.toString(), '@@ -1,4 +0,0 @@\n-foo\n-bar\n-baz\n-\n');
+      // assert.equal(stagedFilePatch.toString(), '@@ -1,4 +0,0 @@\n-foo\n-bar\n-baz\n-\n');
+      assert.equal(stagedFilePatch.toString(), dedent`
+        diff --git a/a.txt b/a.txt
+        deleted file mode 100644
+        --- a/a.txt
+        +++ /dev/null
+        @@ -1,4 +0,0 @@
+        -foo
+        -bar
+        -baz
+        -
+
+      `);
     });
   });
 
@@ -1488,7 +1511,7 @@ describe('Repository', function() {
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await repository.git.applyPatch(patch.getHeaderString() + patch.toString(), {index: true});
+          await repository.git.applyPatch(patch.toString(), {index: true});
           await expectEvents(
             repository,
             path.join('.git', 'index'),
@@ -1504,7 +1527,7 @@ describe('Repository', function() {
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await repository.git.applyPatch(patch.getHeaderString() + patch.toString());
+          await repository.git.applyPatch(patch.toString());
           await expectEvents(
             repository,
             'a.txt',

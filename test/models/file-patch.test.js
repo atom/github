@@ -251,6 +251,9 @@ describe('FilePatch', function() {
 
       const patch = await repository.getFilePatchForPath('sample.js');
       assert.equal(patch.toString(), dedent`
+        diff --git a/sample.js b/sample.js
+        --- a/sample.js
+        +++ b/sample.js
         @@ -1,4 +1,5 @@
         -var quicksort = function () {
         +this is a modified line
@@ -277,6 +280,10 @@ describe('FilePatch', function() {
       const patch = await repo.getFilePatchForPath('e.txt');
 
       assert.equal(patch.toString(), dedent`
+        diff --git a/e.txt b/e.txt
+        new file mode 100644
+        --- /dev/null
+        +++ b/e.txt
         @@ -0,0 +1,1 @@
         +qux
         \\ No newline at end of file
@@ -287,7 +294,7 @@ describe('FilePatch', function() {
 
   if (process.platform === 'win32') {
     describe('getHeaderString()', function() {
-      it('formats paths with git line endings', function() {
+      it('formats paths with git path separators', function() {
         const oldPath = path.join('foo', 'bar', 'old.js');
         const newPath = path.join('baz', 'qux', 'new.js');
 
