@@ -313,7 +313,6 @@ describe('Repository', function() {
       assert.isNull(await indexModeAndOid(deletedSymlinkAddedFilePath));
       const unstagedFilePatch = await repo.getFilePatchForPath(deletedSymlinkAddedFilePath, {staged: false});
       assert.equal(unstagedFilePatch.getStatus(), 'added');
-      // assert.equal(unstagedFilePatch.toString(), '@@ -0,0 +1,3 @@\n+qux\n+foo\n+bar\n');
       assert.equal(unstagedFilePatch.toString(), dedent`
         diff --git a/symlink.txt b/symlink.txt
         new file mode 100644
@@ -333,7 +332,6 @@ describe('Repository', function() {
       assert.isNull(await indexModeAndOid(deletedFileAddedSymlinkPath));
       const stagedFilePatch = await repo.getFilePatchForPath(deletedFileAddedSymlinkPath, {staged: true});
       assert.equal(stagedFilePatch.getStatus(), 'deleted');
-      // assert.equal(stagedFilePatch.toString(), '@@ -1,4 +0,0 @@\n-foo\n-bar\n-baz\n-\n');
       assert.equal(stagedFilePatch.toString(), dedent`
         diff --git a/a.txt b/a.txt
         deleted file mode 100644
