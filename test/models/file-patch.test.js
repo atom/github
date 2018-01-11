@@ -290,6 +290,65 @@ describe('FilePatch', function() {
 
       `);
     });
+
+    it('handles typechange patches for a symlink replaced with a file', async function() {
+      const workdirPath = await cloneRepository('symlinks');
+      const repository = await buildRepository(workdirPath);
+
+      const deletedSymlinkAddedFilePath = 'symlink.txt';
+      fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
+      fs.writeFileSync(path.join(workdirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
+
+      const patch = await repository.getFilePatchForPath(deletedSymlinkAddedFilePath);
+      assert.equal(patch.toString(), dedent`
+        diff --git a/symlink.txt b/symlink.txt
+        deleted file mode 120000
+        --- a/symlink.txt
+        +++ /dev/null
+        @@ -1 +0,0 @@
+        -./regular-file.txt
+        \\ No newline at end of file
+        diff --git a/symlink.txt b/symlink.txt
+        new file mode 100644
+        --- /dev/null
+        +++ b/symlink.txt
+        @@ -0,0 +1,3 @@
+        +qux
+        +foo
+        +bar
+
+      `);
+    });
+
+    it('handles typechange patches for a file replaced with a symlink', async function() {
+      const workdirPath = await cloneRepository('symlinks');
+      const repository = await buildRepository(workdirPath);
+
+      const deletedFileAddedSymlinkPath = 'a.txt';
+      fs.unlinkSync(path.join(workdirPath, deletedFileAddedSymlinkPath));
+      fs.symlinkSync(path.join(workdirPath, 'regular-file.txt'), path.join(workdirPath, deletedFileAddedSymlinkPath));
+
+      const patch = await repository.getFilePatchForPath(deletedFileAddedSymlinkPath);
+      assert.equal(patch.toString(), dedent`
+        diff --git a/a.txt b/a.txt
+        deleted file mode 100644
+        --- a/a.txt
+        +++ /dev/null
+        @@ -1,4 +0,0 @@
+        -foo
+        -bar
+        -baz
+        -
+        diff --git a/a.txt b/a.txt
+        new file mode 120000
+        --- /dev/null
+        +++ b/a.txt
+        @@ -0,0 +1 @@
+        +${path.join(workdirPath, 'regular-file.txt')}
+        \\ No newline at end of file
+
+      `);
+    });
   });
 
   if (process.platform === 'win32') {
