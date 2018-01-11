@@ -291,7 +291,7 @@ describe('FilePatch', function() {
       `);
     });
 
-    it.only('handles typechange patches for a symlink replaced with a file', async function() {
+    it('handles typechange patches for a symlink replaced with a file', async function() {
       const workdirPath = await cloneRepository('symlinks');
       const repository = await buildRepository(workdirPath);
 
@@ -322,7 +322,7 @@ describe('FilePatch', function() {
       `);
     });
 
-    it.only('handles typechange patches for a file replaced with a symlink', async function() {
+    it('handles typechange patches for a file replaced with a symlink', async function() {
       const workdirPath = await cloneRepository('symlinks');
       const repository = await buildRepository(workdirPath);
 
@@ -353,7 +353,7 @@ describe('FilePatch', function() {
     });
   });
 
-  describe.only('getHeaderString()', function() {
+  describe('getHeaderString()', function() {
     it('formats paths with git path separators', function() {
       const oldPath = path.join('foo', 'bar', 'old.js');
       const newPath = path.join('baz', 'qux', 'new.js');
