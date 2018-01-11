@@ -25,7 +25,7 @@ describe('FilePatchController', function() {
   let atomEnv, commandRegistry, tooltips, deserializers;
   let component, switchboard, repository, filePath, getFilePatchForPath, workdirPath;
   let discardLines, didSurfaceFile, didDiveIntoFilePath, quietlySelectItem, undoLastDiscard, openFiles, getRepositoryForWorkdir;
-  let getSelectedStagingViewItems;
+  let getSelectedStagingViewItems, resolutionProgress;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -47,7 +47,7 @@ describe('FilePatchController', function() {
     repository = await buildRepository(workdirPath);
 
     getRepositoryForWorkdir = () => repository;
-    const resolutionProgress = new ResolutionProgress();
+    resolutionProgress = new ResolutionProgress();
 
     FilePatchController.resetConfirmedLargeFilePatches();
 
@@ -459,6 +459,124 @@ describe('FilePatchController', function() {
       await opPromise3;
 
       assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
+    });
+
+    it('stages symlink change when staging added lines that depend on change', async function() {
+      const workingDirPath = await cloneRepository('symlinks');
+      const repository = await buildRepository(workingDirPath);
+      await repository.getLoadPromise();
+
+      async function indexModeAndOid(filename) {
+        const output = await repository.git.exec(['ls-files', '-s', '--', filename]);
+        if (output) {
+          const parts = output.split(' ');
+          return {mode: parts[0], oid: parts[1]};
+        } else {
+          return null;
+        }
+      }
+
+      const deletedSymlinkAddedFilePath = 'symlink.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+      fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
+
+      const component = (
+        <FilePatchController
+          commandRegistry={commandRegistry}
+          deserializers={deserializers}
+          tooltips={tooltips}
+          resolutionProgress={resolutionProgress}
+          isPartiallyStaged={false}
+          isAmending={false}
+          switchboard={switchboard}
+          discardLines={discardLines}
+          didSurfaceFile={didSurfaceFile}
+          didDiveIntoFilePath={didDiveIntoFilePath}
+          quietlySelectItem={quietlySelectItem}
+          undoLastDiscard={undoLastDiscard}
+          openFiles={openFiles}
+          getRepositoryForWorkdir={() => repository}
+          workingDirectoryPath={repository.getWorkingDirectoryPath()}
+          getSelectedStagingViewItems={getSelectedStagingViewItems}
+          uri={'some/uri'}
+        />
+      );
+
+      const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath, initialStagingStatus: 'unstaged'}));
+
+      assert.equal((await indexModeAndOid(deletedSymlinkAddedFilePath)).mode, '120000');
+
+      await assert.async.isTrue(wrapper.find('HunkView').exists());
+      const opPromise0 = switchboard.getFinishStageOperationPromise();
+      const hunkView0 = wrapper.find('HunkView').at(0);
+      hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+      hunkView0.find('LineView').at(2).find('.github-HunkView-line').simulate('mousemove', {});
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise0;
+
+      repository.refresh();
+      assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'foo\nbar\n');
+      assert.equal((await indexModeAndOid(deletedSymlinkAddedFilePath)).mode, '100644');
+    });
+
+    it('stages symlink change when staging deleted lines that depend on change', async function() {
+      const workingDirPath = await cloneRepository('symlinks');
+      const repository = await buildRepository(workingDirPath);
+      await repository.getLoadPromise();
+
+      async function indexModeAndOid(filename) {
+        const output = await repository.git.exec(['ls-files', '-s', '--', filename]);
+        if (output) {
+          const parts = output.split(' ');
+          return {mode: parts[0], oid: parts[1]};
+        } else {
+          return null;
+        }
+      }
+
+      const deletedFileAddedSymlinkPath = 'a.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      await repository.stageFiles([deletedFileAddedSymlinkPath]);
+
+      const component = (
+        <FilePatchController
+          commandRegistry={commandRegistry}
+          deserializers={deserializers}
+          tooltips={tooltips}
+          resolutionProgress={resolutionProgress}
+          isPartiallyStaged={false}
+          isAmending={false}
+          switchboard={switchboard}
+          discardLines={discardLines}
+          didSurfaceFile={didSurfaceFile}
+          didDiveIntoFilePath={didDiveIntoFilePath}
+          quietlySelectItem={quietlySelectItem}
+          undoLastDiscard={undoLastDiscard}
+          openFiles={openFiles}
+          getRepositoryForWorkdir={() => repository}
+          workingDirectoryPath={repository.getWorkingDirectoryPath()}
+          getSelectedStagingViewItems={getSelectedStagingViewItems}
+          uri={'some/uri'}
+        />
+      );
+
+      assert.equal((await indexModeAndOid(deletedFileAddedSymlinkPath)).mode, '120000');
+      const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath, initialStagingStatus: 'staged'}));
+
+      await assert.async.isTrue(wrapper.find('HunkView').exists());
+      const opPromise0 = switchboard.getFinishStageOperationPromise();
+      const hunkView0 = wrapper.find('HunkView').at(0);
+      hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+      hunkView0.find('LineView').at(2).find('.github-HunkView-line').simulate('mousemove', {});
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+      await opPromise0;
+
+      repository.refresh();
+      assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'bar\nbaz\n');
+      assert.equal((await indexModeAndOid(deletedFileAddedSymlinkPath)).mode, '100644');
     });
 
     // https://github.com/atom/github/issues/417
