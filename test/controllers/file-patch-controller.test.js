@@ -384,7 +384,7 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
       });
 
-      it('stages file deletion when all deleted files are staged', async function() {
+      it('stages file deletion when all deleted lines are staged', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
         await repository.getLoadPromise();
@@ -412,7 +412,7 @@ describe('FilePatchController', function() {
         assert.equal(stagedFiles[deletedFileAddedSymlinkPath], 'deleted');
       });
 
-      it('unstages file creation when all added files are unstaged', async function() {
+      it('unstages file creation when all added lines are unstaged', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
