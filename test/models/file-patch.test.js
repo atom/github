@@ -351,20 +351,18 @@ describe('FilePatch', function() {
     });
   });
 
-  if (process.platform === 'win32') {
-    describe('getHeaderString()', function() {
-      it('formats paths with git path separators', function() {
-        const oldPath = path.join('foo', 'bar', 'old.js');
-        const newPath = path.join('baz', 'qux', 'new.js');
+  describe('getHeaderString()', function() {
+    it('formats paths with git path separators', function() {
+      const oldPath = path.join('foo', 'bar', 'old.js');
+      const newPath = path.join('baz', 'qux', 'new.js');
 
-        const patch = createFilePatch(oldPath, newPath, 'modified', []);
-        assert.equal(patch.getHeaderString(), dedent`
-          diff --git a/foo/bar/old.js b/baz/qux/new.js
-          --- a/foo/bar/old.js
-          +++ b/baz/qux/new.js
+      const patch = createFilePatch(oldPath, newPath, 'modified', []);
+      assert.equal(patch.getHeaderString(), dedent`
+        diff --git a/foo/bar/old.js b/baz/qux/new.js
+        --- a/foo/bar/old.js
+        +++ b/baz/qux/new.js
 
-        `);
-      });
+      `);
     });
-  }
+  });
 });
