@@ -90,7 +90,7 @@ describe('FilePatchController', function() {
     });
 
     it('bases its tab title on the staging status', function() {
-      const wrapper = mount(React.cloneElement(component, {filePath}));
+      const wrapper = mount(component);
 
       assert.equal(wrapper.instance().getTitle(), `Unstaged Changes: ${filePath}`);
 
@@ -119,9 +119,7 @@ describe('FilePatchController', function() {
 
         getFilePatchForPath.returns(filePatch);
 
-        const wrapper = mount(React.cloneElement(component, {
-          filePath, largeDiffLineThreshold: 5,
-        }));
+        const wrapper = mount(React.cloneElement(component, {largeDiffLineThreshold: 5}));
 
         await assert.async.match(wrapper.text(), /large diff/);
       });
@@ -138,9 +136,7 @@ describe('FilePatchController', function() {
         const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk]);
         getFilePatchForPath.returns(filePatch);
 
-        const wrapper = mount(React.cloneElement(component, {
-          filePath, largeDiffLineThreshold: 5,
-        }));
+        const wrapper = mount(React.cloneElement(component, {largeDiffLineThreshold: 5}));
 
 
         await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
@@ -185,7 +181,7 @@ describe('FilePatchController', function() {
         repository.getFilePatchForPath.restore();
         fs.writeFileSync(path.join(workdirPath, filePath), 'change', 'utf8');
 
-        const wrapper = mount(React.cloneElement(component, {filePath, initialStagingStatus: 'unstaged'}));
+        const wrapper = mount(component);
 
         await assert.async.isNotNull(wrapper.state('filePatch'));
 
@@ -204,7 +200,7 @@ describe('FilePatchController', function() {
     // https://github.com/atom/github/issues/505
     describe('getFilePatchForPath(filePath, staged, isAmending)', function() {
       it('calls repository.getFilePatchForPath with amending: true only if staged is true', async () => {
-        const wrapper = mount(React.cloneElement(component, {filePath, initialStagingStatus: 'unstaged'}));
+        const wrapper = mount(component);
 
         await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
         repository.getFilePatchForPath.reset();
@@ -219,7 +215,7 @@ describe('FilePatchController', function() {
       const emptyFilePatch = createFilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);
 
-      const wrapper = mount(React.cloneElement(component, {filePath}));
+      const wrapper = mount(component);
 
       assert.isTrue(wrapper.find('FilePatchView').exists());
       assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no contents'));
@@ -239,7 +235,7 @@ describe('FilePatchController', function() {
       const filePatch0 = createFilePatch(filePath, filePath, 'modified', [hunk1, hunk2]);
       getFilePatchForPath.returns(filePatch0);
 
-      const wrapper = shallow(React.cloneElement(component, {filePath}));
+      const wrapper = shallow(component);
 
       let view0;
       await until(() => {
@@ -266,7 +262,7 @@ describe('FilePatchController', function() {
       const filePatch = createFilePatch(filePath, filePath, 'modified', [new Hunk(1, 1, 1, 3, '', [])]);
       getFilePatchForPath.returns(filePatch);
 
-      const wrapper = mount(React.cloneElement(component, {filePath}));
+      const wrapper = mount(component);
 
       await assert.async.isTrue(wrapper.find('FilePatchView').exists());
       commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-right');
@@ -291,10 +287,7 @@ describe('FilePatchController', function() {
         const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk]);
         getFilePatchForPath.returns(filePatch);
 
-        const wrapper = mount(React.cloneElement(component, {
-          filePath,
-          openFiles: openFilesStub,
-        }));
+        const wrapper = mount(React.cloneElement(component, {openFiles: openFilesStub}));
 
         await assert.async.isTrue(wrapper.find('HunkView').exists());
 
@@ -340,7 +333,7 @@ describe('FilePatchController', function() {
 
         const component = createComponent(repository, deletedSymlinkAddedFilePath);
 
-        const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath, initialStagingStatus: 'unstaged'}));
+        const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath}));
 
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '120000');
 
@@ -396,7 +389,7 @@ describe('FilePatchController', function() {
         fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
 
         const component = createComponent(repository, deletedFileAddedSymlinkPath);
-        const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath, initialStagingStatus: 'unstaged'}));
+        const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath}));
 
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
 
@@ -466,7 +459,7 @@ describe('FilePatchController', function() {
         unstagedLines.splice(11, 2, 'this is a modified line');
         fs.writeFileSync(absFilePath, unstagedLines.join('\n'));
 
-        const wrapper = mount(React.cloneElement(component, {filePath}));
+        const wrapper = mount(component);
 
         // selectNext()
         await assert.async.isTrue(wrapper.find('HunkView').exists());
@@ -516,7 +509,7 @@ describe('FilePatchController', function() {
         fs.writeFileSync(absFilePath, unstagedLines.join('\n'));
 
         // stage a subset of lines from first hunk
-        const wrapper = mount(React.cloneElement(component, {filePath}));
+        const wrapper = mount(component);
 
         await assert.async.isTrue(wrapper.find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
@@ -665,7 +658,7 @@ describe('FilePatchController', function() {
           unstagedLines.splice(11, 2, 'this is a modified line');
           fs.writeFileSync(absFilePath, unstagedLines.join('\n'));
 
-          const wrapper = mount(React.cloneElement(component, {filePath}));
+          const wrapper = mount(component);
 
           await assert.async.isTrue(wrapper.find('HunkView').exists());
           const hunkView0 = wrapper.find('HunkView').at(0);
@@ -724,7 +717,7 @@ describe('FilePatchController', function() {
           unstagedLines.splice(11, 2, 'this is a modified line');
           fs.writeFileSync(absFilePath, unstagedLines.join('\n'));
 
-          const wrapper = mount(React.cloneElement(component, {filePath}));
+          const wrapper = mount(component);
 
           await assert.async.isTrue(wrapper.find('HunkView').exists());
 
