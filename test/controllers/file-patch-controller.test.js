@@ -332,7 +332,6 @@ describe('FilePatchController', function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
-
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
         fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
@@ -360,7 +359,6 @@ describe('FilePatchController', function() {
       it('stages symlink change when staging deleted lines that depend on change', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
-        await repository.getLoadPromise();
 
         const deletedFileAddedSymlinkPath = 'a.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
@@ -384,6 +382,62 @@ describe('FilePatchController', function() {
         repository.refresh();
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'bar\nbaz\n');
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
+      });
+
+      it('stages file deletion when all deleted files are staged', async function() {
+        const workingDirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workingDirPath);
+        await repository.getLoadPromise();
+
+        const deletedFileAddedSymlinkPath = 'a.txt';
+        fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+        fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+
+        const component = createComponent(repository, deletedFileAddedSymlinkPath);
+        const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath, initialStagingStatus: 'unstaged'}));
+
+        assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
+
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        const opPromise0 = switchboard.getFinishStageOperationPromise();
+        const hunkView0 = wrapper.find('HunkView').at(0);
+        hunkView0.find('.github-HunkView-title').simulate('click');
+        hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+        await opPromise0;
+
+        repository.refresh();
+        assert.isNull(await indexModeAndOid(repository, deletedFileAddedSymlinkPath)); // File is not on index, file deletion has been staged
+        const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
+        assert.equal(unstagedFiles[deletedFileAddedSymlinkPath], 'added');
+        assert.equal(stagedFiles[deletedFileAddedSymlinkPath], 'deleted');
+      });
+
+      it('unstages file creation when all added files are unstaged', async function() {
+        const workingDirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workingDirPath);
+
+        const deletedSymlinkAddedFilePath = 'symlink.txt';
+        fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+        fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
+        await repository.stageFiles([deletedSymlinkAddedFilePath]);
+
+        const component = createComponent(repository, deletedSymlinkAddedFilePath);
+        const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath, initialStagingStatus: 'staged'}));
+
+        assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
+
+        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        const opPromise0 = switchboard.getFinishStageOperationPromise();
+        const hunkView0 = wrapper.find('HunkView').at(0);
+        hunkView0.find('.github-HunkView-title').simulate('click');
+        hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+        await opPromise0;
+
+        repository.refresh();
+        assert.isNull(await indexModeAndOid(repository, deletedSymlinkAddedFilePath)); // File is not on index, file creation has been unstaged
+        const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
+        assert.equal(unstagedFiles[deletedSymlinkAddedFilePath], 'added');
+        assert.equal(stagedFiles[deletedSymlinkAddedFilePath], 'deleted');
       });
     });
 
