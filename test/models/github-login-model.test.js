@@ -1,6 +1,6 @@
 import GithubLoginModel, {KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy, UNAUTHENTICATED} from '../../lib/models/github-login-model';
 
-describe.only('GithubLoginModel', function() {
+describe('GithubLoginModel', function() {
   [null, KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy].forEach(function(Strategy) {
     describe((Strategy && Strategy.name) || 'default strategy', function() {
       it('manages passwords', async function() {
