@@ -73,7 +73,7 @@ function createComponent(repository, filePath) {
   );
 }
 
-describe('FilePatchController', function() {
+describe.only('FilePatchController', function() {
   afterEach(function() {
     atomEnv.destroy();
   });
@@ -317,7 +317,7 @@ describe('FilePatchController', function() {
   });
 
   describe('integration tests', function() {
-    describe('handling symlink files', function() {
+    describe.only('handling symlink files', function() {
       async function indexModeAndOid(repository, filename) {
         const output = await repository.git.exec(['ls-files', '-s', '--', filename]);
         if (output) {
@@ -328,9 +328,11 @@ describe('FilePatchController', function() {
         }
       }
 
-      it('stages symlink change when staging added lines that depend on change', async function() {
+      it.only('stages symlink change when staging added lines that depend on change', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
+
+        repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
@@ -412,9 +414,11 @@ describe('FilePatchController', function() {
         assert.equal(stagedFiles[deletedFileAddedSymlinkPath], 'deleted');
       });
 
-      it('unstages file creation when all added lines are unstaged', async function() {
+      it.only('unstages file creation when all added lines are unstaged', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
+
+        repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));

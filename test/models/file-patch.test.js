@@ -1,4 +1,4 @@
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, toGitPathSep} from '../helpers';
 import path from 'path';
 import fs from 'fs';
 import dedent from 'dedent-js';
@@ -291,9 +291,11 @@ describe('FilePatch', function() {
       `);
     });
 
-    it('handles typechange patches for a symlink replaced with a file', async function() {
+    it.only('handles typechange patches for a symlink replaced with a file', async function() {
       const workdirPath = await cloneRepository('symlinks');
       const repository = await buildRepository(workdirPath);
+
+      repository.git.exec(['config', 'core.symlinks', 'true']);
 
       const deletedSymlinkAddedFilePath = 'symlink.txt';
       fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
@@ -320,7 +322,7 @@ describe('FilePatch', function() {
       `);
     });
 
-    it('handles typechange patches for a file replaced with a symlink', async function() {
+    it.only('handles typechange patches for a file replaced with a symlink', async function() {
       const workdirPath = await cloneRepository('symlinks');
       const repository = await buildRepository(workdirPath);
 
@@ -344,14 +346,14 @@ describe('FilePatch', function() {
         --- /dev/null
         +++ b/a.txt
         @@ -0,0 +1 @@
-        +${path.join(workdirPath, 'regular-file.txt')}
+        +${toGitPathSep(path.join(workdirPath, 'regular-file.txt'))}
         \\ No newline at end of file
 
       `);
     });
   });
 
-  describe('getHeaderString()', function() {
+  describe.only('getHeaderString()', function() {
     it('formats paths with git path separators', function() {
       const oldPath = path.join('foo', 'bar', 'old.js');
       const newPath = path.join('baz', 'qux', 'new.js');
