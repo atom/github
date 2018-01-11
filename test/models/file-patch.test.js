@@ -300,6 +300,7 @@ describe('FilePatch', function() {
 
         const patch = createFilePatch(oldPath, newPath, 'modified', []);
         assert.equal(patch.getHeaderString(), dedent`
+          diff --git a/foo/bar/old.js b/baz/qux/new.js
           --- a/foo/bar/old.js
           +++ b/baz/qux/new.js
 
