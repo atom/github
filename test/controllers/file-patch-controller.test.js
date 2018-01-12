@@ -321,7 +321,7 @@ describe('FilePatchController', function() {
         }
       }
 
-      it('stages symlink change when staging added lines that depend on change', async function() {
+      it.only('stages symlink change when staging added lines that depend on change', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 

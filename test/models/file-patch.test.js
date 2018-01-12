@@ -291,7 +291,7 @@ describe('FilePatch', function() {
       `);
     });
 
-    it('handles typechange patches for a symlink replaced with a file', async function() {
+    it.only('handles typechange patches for a symlink replaced with a file', async function() {
       const workdirPath = await cloneRepository('symlinks');
       const repository = await buildRepository(workdirPath);
 
