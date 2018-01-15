@@ -62,10 +62,13 @@
   &-container {
     flex: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 
-    .is-blank, .large-file-patch {
+    .is-blank,
+    .large-file-patch {
+      flex: 1;
       display: flex;
-      height: 100%;
       align-items: center;
       justify-content: center;
       text-align: center;
