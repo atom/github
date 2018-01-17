@@ -322,6 +322,74 @@ describe('FilePatchController', function() {
           }
         }
 
+        it('unstages added lines that don\'t require symlink change', async function() {
+          const workingDirPath = await cloneRepository('symlinks');
+          const repository = await buildRepository(workingDirPath);
+
+          // correctly handle symlinks on Windows
+          repository.git.exec(['config', 'core.symlinks', 'true']);
+
+          const deletedSymlinkAddedFilePath = 'symlink.txt';
+          fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+          fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
+
+          // Stage whole file
+          await repository.stageFiles([deletedSymlinkAddedFilePath]);
+
+          const component = createComponent(repository, deletedSymlinkAddedFilePath);
+          const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath, initialStagingStatus: 'staged'}));
+
+          // index shows symlink deltion and added lines
+          assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n');
+          assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
+
+          // Unstage a couple added lines, but not all
+          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          const opPromise0 = switchboard.getFinishStageOperationPromise();
+          const hunkView0 = wrapper.find('HunkView').at(0);
+          hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+          hunkView0.find('LineView').at(2).find('.github-HunkView-line').simulate('mousemove', {});
+          window.dispatchEvent(new MouseEvent('mouseup'));
+          hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+          await opPromise0;
+
+          repository.refresh();
+          // index shows symlink deletions still staged, only a couple of lines have been unstaged
+          assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
+          assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nbaz\nzoo\n');
+        });
+
+        it('stages deleted lines that don\'t require symlink change', async function() {
+          const workingDirPath = await cloneRepository('symlinks');
+          const repository = await buildRepository(workingDirPath);
+
+          const deletedFileAddedSymlinkPath = 'a.txt';
+          fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+          fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+
+          const component = createComponent(repository, deletedFileAddedSymlinkPath);
+          const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath, initialStagingStatus: 'unstaged'}));
+
+          // index shows file is not a symlink, no deleted lines
+          assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
+          assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\nbar\nbaz\n\n');
+
+          // stage a couple of lines, but not all
+          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          const opPromise0 = switchboard.getFinishStageOperationPromise();
+          const hunkView0 = wrapper.find('HunkView').at(0);
+          hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
+          hunkView0.find('LineView').at(2).find('.github-HunkView-line').simulate('mousemove', {});
+          window.dispatchEvent(new MouseEvent('mouseup'));
+          hunkView0.find('button.github-HunkView-stageButton').simulate('click');
+          await opPromise0;
+
+          repository.refresh();
+          // index shows symlink change has not been staged, a couple of lines have been deleted
+          assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
+          assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\n\n');
+        });
+
         it('stages symlink change when staging added lines that depend on change', async function() {
           const workingDirPath = await cloneRepository('symlinks');
           const repository = await buildRepository(workingDirPath);
