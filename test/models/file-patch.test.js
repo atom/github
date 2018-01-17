@@ -291,20 +291,19 @@ describe('FilePatch', function() {
       `);
     });
 
-    for (let i = 0; i < 10; i++) {
-      describe.only('typechange file patches', function() {
-        it('handles typechange patches for a symlink replaced with a file', async function() {
-          const workdirPath = await cloneRepository('symlinks');
-          const repository = await buildRepository(workdirPath);
+    describe('typechange file patches', function() {
+      it('handles typechange patches for a symlink replaced with a file', async function() {
+        const workdirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workdirPath);
 
-          repository.git.exec(['config', 'core.symlinks', 'true']);
+        repository.git.exec(['config', 'core.symlinks', 'true']);
 
-          const deletedSymlinkAddedFilePath = 'symlink.txt';
-          fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
-          fs.writeFileSync(path.join(workdirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
+        const deletedSymlinkAddedFilePath = 'symlink.txt';
+        fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
+        fs.writeFileSync(path.join(workdirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
 
-          const patch = await repository.getFilePatchForPath(deletedSymlinkAddedFilePath);
-          assert.equal(patch.toString(), dedent`
+        const patch = await repository.getFilePatchForPath(deletedSymlinkAddedFilePath);
+        assert.equal(patch.toString(), dedent`
           diff --git a/symlink.txt b/symlink.txt
           deleted file mode 120000
           --- a/symlink.txt
@@ -322,18 +321,18 @@ describe('FilePatch', function() {
           +bar
 
         `);
-        });
+      });
 
-        it('handles typechange patches for a file replaced with a symlink', async function() {
-          const workdirPath = await cloneRepository('symlinks');
-          const repository = await buildRepository(workdirPath);
+      it('handles typechange patches for a file replaced with a symlink', async function() {
+        const workdirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workdirPath);
 
-          const deletedFileAddedSymlinkPath = 'a.txt';
-          fs.unlinkSync(path.join(workdirPath, deletedFileAddedSymlinkPath));
-          fs.symlinkSync(path.join(workdirPath, 'regular-file.txt'), path.join(workdirPath, deletedFileAddedSymlinkPath));
+        const deletedFileAddedSymlinkPath = 'a.txt';
+        fs.unlinkSync(path.join(workdirPath, deletedFileAddedSymlinkPath));
+        fs.symlinkSync(path.join(workdirPath, 'regular-file.txt'), path.join(workdirPath, deletedFileAddedSymlinkPath));
 
-          const patch = await repository.getFilePatchForPath(deletedFileAddedSymlinkPath);
-          assert.equal(patch.toString(), dedent`
+        const patch = await repository.getFilePatchForPath(deletedFileAddedSymlinkPath);
+        assert.equal(patch.toString(), dedent`
           diff --git a/a.txt b/a.txt
           deleted file mode 100644
           --- a/a.txt
@@ -352,9 +351,8 @@ describe('FilePatch', function() {
           \\ No newline at end of file
 
         `);
-        });
       });
-    }
+    });
   });
 
   describe('getHeaderString()', function() {
