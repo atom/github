@@ -36,7 +36,14 @@ describe('GithubPackage', function() {
     console.log('be: 3');
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
-      callback && setTimeout(callback);
+      console.log('calling the FAKE rerender!');
+      if (callback) {
+        console.log('there is a callback to call... initiiating a setTimeout');
+        setTimeout(() => {
+          console.log('Calling that callback from the setTimeout!');
+          callback();
+        });
+      }
     });
     console.log('be: 4');
 
