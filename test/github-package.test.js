@@ -53,9 +53,13 @@ describe('GithubPackage', function() {
   });
 
   async function contextUpdateAfter(chunk) {
+    console.log('cae: 1');
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
+    console.log('cae: 2');
     await chunk();
+    console.log('cae: 3');
     return updatePromise;
+    console.log('cae: 4');
   }
 
   describe('construction', function() {
