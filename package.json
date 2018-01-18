@@ -64,6 +64,7 @@
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-relay": "^1.2.0-rc.1",
+    "realpath-native": "^1.0.0",
     "relay-runtime": "^1.2.0-rc.1",
     "temp": "^0.8.3",
     "tinycolor2": "^1.4.1",
