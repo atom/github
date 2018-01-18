@@ -399,7 +399,7 @@ describe('FilePatchController', function() {
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
         fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
-        
+
         const component = createComponent(repository, deletedSymlinkAddedFilePath);
         const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath}));
 
