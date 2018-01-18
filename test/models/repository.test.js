@@ -15,7 +15,7 @@ import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
   assertDeepPropertyVals, assertEqualSortedArraysByKey,
 } from '../helpers';
-import {getPackageRoot, writeFile, copyFile, fsStat, getTempDir} from '../../lib/helpers';
+import {getPackageRoot, writeFile, copyFile, fsStat, getTempDir, realPath} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -89,7 +89,7 @@ describe('Repository', function() {
 
   describe('init', function() {
     it('creates a repository in the given dir and returns the repository', async function() {
-      const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const soonToBeRepositoryPath = await realPath(temp.mkdirSync());
       const repo = new Repository(soonToBeRepositoryPath);
       assert.isTrue(repo.isLoading());
 
@@ -106,7 +106,7 @@ describe('Repository', function() {
   describe('clone', function() {
     it('clones a repository from a URL to a directory and returns the repository', async function() {
       const upstreamPath = await cloneRepository('three-files');
-      const destDir = fs.realpathSync(temp.mkdirSync());
+      const destDir = await realPath(temp.mkdirSync());
 
       const repo = new Repository(destDir);
       const clonePromise = repo.clone(upstreamPath);
@@ -118,7 +118,7 @@ describe('Repository', function() {
 
     it('clones a repository when the directory does not exist yet', async function() {
       const upstreamPath = await cloneRepository('three-files');
-      const parentDir = fs.realpathSync(temp.mkdirSync());
+      const parentDir = await realPath(temp.mkdirSync());
       const destDir = path.join(parentDir, 'subdir');
 
       const repo = new Repository(destDir);

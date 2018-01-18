@@ -11,6 +11,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
+import {realPath} from '../lib/helpers';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -25,7 +26,7 @@ const cachedClonedRepos = {};
 function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   fs.copySync(cachedClonedRepos[repoName], workingDirPath);
-  return fs.realpathSync(workingDirPath);
+  return realPath(workingDirPath);
 }
 
 export async function cloneRepository(repoName = 'three-files') {
@@ -58,7 +59,7 @@ export async function initRepository(repoName) {
   await git.exec(['init']);
   await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
   await git.exec(['config', '--local', 'user.name', 'Someone']);
-  return fs.realpathSync(workingDirPath);
+  return realPath(workingDirPath);
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
