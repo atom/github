@@ -59,7 +59,6 @@ describe('GithubPackage', function() {
     await chunk();
     console.log('cae: 3');
     return updatePromise;
-    console.log('cae: 4');
   }
 
   describe('construction', function() {
