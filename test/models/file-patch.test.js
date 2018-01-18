@@ -292,26 +292,15 @@ describe('FilePatch', function() {
     });
 
     describe('typechange file patches', function() {
-      it.only('handles typechange patches for a symlink replaced with a file', async function() {
+      it('handles typechange patches for a symlink replaced with a file', async function() {
         const workdirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workdirPath);
 
-        repository.git.exec(['config', 'core.symlinks', 'true']);
+        await repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
         fs.writeFileSync(path.join(workdirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
-
-        console.log(workdirPath);
-        debugger;
-        // cd into folder and see what diff looks like
-          // if not then perhaps symlinks are not being treated correctly on windows.
-            // is mode changing correctly? should we manually change it?
-            // should we ignore test? is it even relevant?
-          // if it matches below there's app logic error
-            // file isn't being marked as deleted
-            // header for patch added is missing entirely
-            // check toString method
 
         const patch = await repository.getFilePatchForPath(deletedSymlinkAddedFilePath);
         assert.equal(patch.toString(), dedent`

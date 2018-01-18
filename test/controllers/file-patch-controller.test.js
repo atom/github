@@ -325,8 +325,8 @@ describe('FilePatchController', function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
-          // correctly handle symlinks on Windows
-        repository.git.exec(['config', 'core.symlinks', 'true']);
+        // correctly handle symlinks on Windows
+        await repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
@@ -389,23 +389,17 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\n\n');
       });
 
-      it.only('stages symlink change when staging added lines that depend on change', async function() {
+      it('stages symlink change when staging added lines that depend on change', async function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
         // correctly handle symlinks on Windows
-        repository.git.exec(['config', 'core.symlinks', 'true']);
+        await repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
         fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
-
-        console.log(workingDirPath);
-        debugger;
-        // cd into directory and view in atom. do hunks show up?
-
-        // try adding 'initialStagingStatus: 'unstaged''
-
+        
         const component = createComponent(repository, deletedSymlinkAddedFilePath);
         const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath}));
 
@@ -493,7 +487,7 @@ describe('FilePatchController', function() {
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
-        repository.git.exec(['config', 'core.symlinks', 'true']);
+        await repository.git.exec(['config', 'core.symlinks', 'true']);
 
         const deletedSymlinkAddedFilePath = 'symlink.txt';
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
