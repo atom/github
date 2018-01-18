@@ -39,10 +39,14 @@ describe('GithubPackage', function() {
       console.log('calling the FAKE rerender!');
       if (callback) {
         console.log('there is a callback to call... initiiating a setTimeout');
-        const handle = setTimeout(() => {
-          console.log('Calling that callback from the setTimeout!');
+        process.nextTick(() => {
+          console.log('Calling that callback from the nextTick!');
           callback();
-        }, 0);
+        });
+        // const handle = setTimeout(() => {
+        //   console.log('Calling that callback from the setTimeout!');
+        //   callback();
+        // }, 0);
         console.log('the setTimeout call returned a handle:', handle);
       }
     });
