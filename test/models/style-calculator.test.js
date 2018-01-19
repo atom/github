@@ -44,19 +44,19 @@ describe('StyleCalculator', function(done) {
     assert.deepEqual(Object.keys(configChangeCallbacks), ['config1', 'config2']);
     assert.equal(stylesMock.addStyleSheet.callCount, 1);
     assert.deepEqual(stylesMock.addStyleSheet.getCall(0).args, [
-      expectedCss, {sourcePath: 'my-source-path'},
+      expectedCss, {sourcePath: 'my-source-path', priority: 0},
     ]);
 
     configChangeCallbacks.config1();
     assert.equal(stylesMock.addStyleSheet.callCount, 2);
     assert.deepEqual(stylesMock.addStyleSheet.getCall(1).args, [
-      expectedCss, {sourcePath: 'my-source-path'},
+      expectedCss, {sourcePath: 'my-source-path', priority: 0},
     ]);
 
     configChangeCallbacks.config2();
     assert.equal(stylesMock.addStyleSheet.callCount, 3);
     assert.deepEqual(stylesMock.addStyleSheet.getCall(2).args, [
-      expectedCss, {sourcePath: 'my-source-path'},
+      expectedCss, {sourcePath: 'my-source-path', priority: 0},
     ]);
   });
 });
