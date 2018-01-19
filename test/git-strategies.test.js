@@ -187,20 +187,20 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
-    describe('getDiffForFilePath', function() {
+    describe('getDiffsForFilePath', function() {
       it('returns an empty array if there are no modified, added, or deleted files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        const diffOutput = await git.getDiffForFilePath('a.txt');
-        assert.isUndefined(diffOutput);
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('ignores merge conflict files', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        const diffOutput = await git.getDiffForFilePath('added-to-both.txt');
-        assert.isUndefined(diffOutput);
+        const diffOutput = await git.getDiffsForFilePath('added-to-both.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('bypasses external diff tools', async function() {
@@ -209,7 +209,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
-        const diffOutput = await git.getDiffForFilePath('a.txt');
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
 
         assert.isDefined(diffOutput);
@@ -222,7 +222,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('a.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -242,9 +242,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('c.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt'), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -260,9 +260,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'deleted',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('d.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt'), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -278,7 +278,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
         });
       });
 
@@ -290,7 +290,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
           await git.exec(['add', '.']);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('a.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt', {staged: true}), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -310,9 +310,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('c.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt', {staged: true}), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -328,9 +328,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'deleted',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('d.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt', {staged: true}), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -346,7 +346,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
         });
       });
 
@@ -355,7 +355,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), [{
             oldPath: 'file.txt',
             newPath: 'file.txt',
             oldMode: '100644',
@@ -371,7 +371,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
         });
       });
 
@@ -380,7 +380,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          assertDeepPropertyVals(await git.getDiffForFilePath('new-file.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.txt'), [{
             oldPath: null,
             newPath: 'new-file.txt',
             oldMode: null,
@@ -400,7 +400,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
 
         });
 
@@ -413,14 +413,14 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               data.writeUInt8(i + 200, i);
             }
             fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
-            assertDeepPropertyVals(await git.getDiffForFilePath('new-file.bin'), {
+            assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
               newMode: '100644',
               hunks: [],
               status: 'added',
-            });
+            }]);
           });
         });
       });

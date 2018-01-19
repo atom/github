@@ -9,7 +9,8 @@ import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', function() {
   let atomEnv, commandRegistry, tooltips, component;
-  let attemptLineStageOperation, attemptHunkStageOperation, discardLines, undoLastDiscard, openCurrentFile;
+  let attemptLineStageOperation, attemptHunkStageOperation, attemptFileStageOperation, attemptSymlinkStageOperation;
+  let attemptModeStageOperation, discardLines, undoLastDiscard, openCurrentFile;
   let didSurfaceFile, didDiveIntoCorrespondingFilePatch, handleShowDiffClick;
 
   beforeEach(function() {
@@ -19,6 +20,9 @@ describe('FilePatchView', function() {
 
     attemptLineStageOperation = sinon.spy();
     attemptHunkStageOperation = sinon.spy();
+    attemptModeStageOperation = sinon.spy();
+    attemptFileStageOperation = sinon.spy();
+    attemptSymlinkStageOperation = sinon.spy();
     discardLines = sinon.spy();
     undoLastDiscard = sinon.spy();
     openCurrentFile = sinon.spy();
@@ -36,7 +40,10 @@ describe('FilePatchView', function() {
         isPartiallyStaged={false}
         hasUndoHistory={false}
         attemptLineStageOperation={attemptLineStageOperation}
+        attemptFileStageOperation={attemptFileStageOperation}
+        attemptModeStageOperation={attemptModeStageOperation}
         attemptHunkStageOperation={attemptHunkStageOperation}
+        attemptSymlinkStageOperation={attemptSymlinkStageOperation}
         discardLines={discardLines}
         undoLastDiscard={undoLastDiscard}
         openCurrentFile={openCurrentFile}

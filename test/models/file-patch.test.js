@@ -1,4 +1,4 @@
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, toGitPathSep} from '../helpers';
 import path from 'path';
 import fs from 'fs';
 import dedent from 'dedent-js';
@@ -7,10 +7,18 @@ import FilePatch from '../../lib/models/file-patch';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 
+function createFilePatch(oldFilePath, newFilePath, status, hunks) {
+  const oldFile = new FilePatch.File({path: oldFilePath});
+  const newFile = new FilePatch.File({path: newFilePath});
+  const patch = new FilePatch.Patch({status, hunks});
+
+  return new FilePatch(oldFile, newFile, patch);
+}
+
 describe('FilePatch', function() {
   describe('getStagePatchForLines()', function() {
     it('returns a new FilePatch that applies only the specified lines', function() {
-      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
+      const filePatch = createFilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
@@ -34,7 +42,7 @@ describe('FilePatch', function() {
         ]),
       ]);
       const linesFromHunk2 = filePatch.getHunks()[1].getLines().slice(1, 4);
-      assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk2)), new FilePatch(
+      assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk2)), createFilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(5, 5, 5, 4, '', [
             new HunkLine('line-4', 'unchanged', 5, 5),
@@ -51,7 +59,7 @@ describe('FilePatch', function() {
       const linesFromHunk1 = filePatch.getHunks()[0].getLines().slice(0, 1);
       const linesFromHunk3 = filePatch.getHunks()[2].getLines().slice(1, 2);
       const selectedLines = linesFromHunk2.concat(linesFromHunk1, linesFromHunk3);
-      assert.deepEqual(filePatch.getStagePatchForLines(new Set(selectedLines)), new FilePatch(
+      assert.deepEqual(filePatch.getStagePatchForLines(new Set(selectedLines)), createFilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(1, 1, 1, 2, '', [
             new HunkLine('line-1', 'added', -1, 1),
@@ -77,7 +85,7 @@ describe('FilePatch', function() {
 
     describe('staging lines from deleted files', function() {
       it('handles staging part of the file', function() {
-        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+        const filePatch = createFilePatch('a.txt', null, 'deleted', [
           new Hunk(1, 0, 3, 0, '', [
             new HunkLine('line-1', 'deleted', 1, -1),
             new HunkLine('line-2', 'deleted', 2, -1),
@@ -85,8 +93,8 @@ describe('FilePatch', function() {
           ]),
         ]);
         const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
-        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
-          'a.txt', 'a.txt', 'deleted', [
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), createFilePatch(
+          'a.txt', 'a.txt', 'modified', [
             new Hunk(1, 1, 3, 1, '', [
               new HunkLine('line-1', 'deleted', 1, -1),
               new HunkLine('line-2', 'deleted', 2, -1),
@@ -97,7 +105,7 @@ describe('FilePatch', function() {
       });
 
       it('handles staging all lines, leaving nothing unstaged', function() {
-        const filePatch = new FilePatch('a.txt', null, 'deleted', [
+        const filePatch = createFilePatch('a.txt', null, 'deleted', [
           new Hunk(1, 0, 3, 0, '', [
             new HunkLine('line-1', 'deleted', 1, -1),
             new HunkLine('line-2', 'deleted', 2, -1),
@@ -105,7 +113,7 @@ describe('FilePatch', function() {
           ]),
         ]);
         const linesFromHunk = filePatch.getHunks()[0].getLines();
-        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+        assert.deepEqual(filePatch.getStagePatchForLines(new Set(linesFromHunk)), createFilePatch(
           'a.txt', null, 'deleted', [
             new Hunk(1, 0, 3, 0, '', [
               new HunkLine('line-1', 'deleted', 1, -1),
@@ -120,7 +128,7 @@ describe('FilePatch', function() {
 
   describe('getUnstagePatchForLines()', function() {
     it('returns a new FilePatch that applies only the specified lines', function() {
-      const filePatch = new FilePatch('a.txt', 'a.txt', 'modified', [
+      const filePatch = createFilePatch('a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 1, 3, '', [
           new HunkLine('line-1', 'added', -1, 1),
           new HunkLine('line-2', 'added', -1, 2),
@@ -145,7 +153,7 @@ describe('FilePatch', function() {
       ]);
       const lines = new Set(filePatch.getHunks()[1].getLines().slice(1, 5));
       filePatch.getHunks()[2].getLines().forEach(line => lines.add(line));
-      assert.deepEqual(filePatch.getUnstagePatchForLines(lines), new FilePatch(
+      assert.deepEqual(filePatch.getUnstagePatchForLines(lines), createFilePatch(
         'a.txt', 'a.txt', 'modified', [
           new Hunk(7, 7, 4, 4, '', [
             new HunkLine('line-4', 'unchanged', 7, 7),
@@ -167,7 +175,7 @@ describe('FilePatch', function() {
 
     describe('unstaging lines from an added file', function() {
       it('handles unstaging part of the file', function() {
-        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+        const filePatch = createFilePatch(null, 'a.txt', 'added', [
           new Hunk(0, 1, 0, 3, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
@@ -175,8 +183,8 @@ describe('FilePatch', function() {
           ]),
         ]);
         const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
-        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
-          'a.txt', 'a.txt', 'deleted', [
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), createFilePatch(
+          'a.txt', 'a.txt', 'modified', [
             new Hunk(1, 1, 3, 1, '', [
               new HunkLine('line-1', 'deleted', 1, -1),
               new HunkLine('line-2', 'deleted', 2, -1),
@@ -187,7 +195,7 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging all lines, leaving nothign staged', function() {
-        const filePatch = new FilePatch(null, 'a.txt', 'added', [
+        const filePatch = createFilePatch(null, 'a.txt', 'added', [
           new Hunk(0, 1, 0, 3, '', [
             new HunkLine('line-1', 'added', -1, 1),
             new HunkLine('line-2', 'added', -1, 2),
@@ -196,7 +204,7 @@ describe('FilePatch', function() {
         ]);
 
         const linesFromHunk = filePatch.getHunks()[0].getLines();
-        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
+        assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), createFilePatch(
           'a.txt', null, 'deleted', [
             new Hunk(1, 0, 3, 0, '', [
               new HunkLine('line-1', 'deleted', 1, -1),
@@ -210,7 +218,7 @@ describe('FilePatch', function() {
   });
 
   it('handles newly added files', function() {
-    const filePatch = new FilePatch(null, 'a.txt', 'added', [
+    const filePatch = createFilePatch(null, 'a.txt', 'added', [
       new Hunk(0, 1, 0, 3, '', [
         new HunkLine('line-1', 'added', -1, 1),
         new HunkLine('line-2', 'added', -1, 2),
@@ -218,8 +226,8 @@ describe('FilePatch', function() {
       ]),
     ]);
     const linesFromHunk = filePatch.getHunks()[0].getLines().slice(0, 2);
-    assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), new FilePatch(
-      'a.txt', 'a.txt', 'deleted', [
+    assert.deepEqual(filePatch.getUnstagePatchForLines(new Set(linesFromHunk)), createFilePatch(
+      'a.txt', 'a.txt', 'modified', [
         new Hunk(1, 1, 3, 1, '', [
           new HunkLine('line-1', 'deleted', 1, -1),
           new HunkLine('line-2', 'deleted', 2, -1),
@@ -243,6 +251,9 @@ describe('FilePatch', function() {
 
       const patch = await repository.getFilePatchForPath('sample.js');
       assert.equal(patch.toString(), dedent`
+        diff --git a/sample.js b/sample.js
+        --- a/sample.js
+        +++ b/sample.js
         @@ -1,4 +1,5 @@
         -var quicksort = function () {
         +this is a modified line
@@ -269,27 +280,93 @@ describe('FilePatch', function() {
       const patch = await repo.getFilePatchForPath('e.txt');
 
       assert.equal(patch.toString(), dedent`
+        diff --git a/e.txt b/e.txt
+        new file mode 100644
+        --- /dev/null
+        +++ b/e.txt
         @@ -0,0 +1,1 @@
         +qux
         \\ No newline at end of file
 
       `);
     });
-  });
 
-  if (process.platform === 'win32') {
-    describe('getHeaderString()', function() {
-      it('formats paths with git line endings', function() {
-        const oldPath = path.join('foo', 'bar', 'old.js');
-        const newPath = path.join('baz', 'qux', 'new.js');
+    describe('typechange file patches', function() {
+      it('handles typechange patches for a symlink replaced with a file', async function() {
+        const workdirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workdirPath);
 
-        const patch = new FilePatch(oldPath, newPath, 'modified', []);
-        assert.equal(patch.getHeaderString(), dedent`
-          --- a/foo/bar/old.js
-          +++ b/baz/qux/new.js
+        await repository.git.exec(['config', 'core.symlinks', 'true']);
+
+        const deletedSymlinkAddedFilePath = 'symlink.txt';
+        fs.unlinkSync(path.join(workdirPath, deletedSymlinkAddedFilePath));
+        fs.writeFileSync(path.join(workdirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
+
+        const patch = await repository.getFilePatchForPath(deletedSymlinkAddedFilePath);
+        assert.equal(patch.toString(), dedent`
+          diff --git a/symlink.txt b/symlink.txt
+          deleted file mode 120000
+          --- a/symlink.txt
+          +++ /dev/null
+          @@ -1 +0,0 @@
+          -./regular-file.txt
+          \\ No newline at end of file
+          diff --git a/symlink.txt b/symlink.txt
+          new file mode 100644
+          --- /dev/null
+          +++ b/symlink.txt
+          @@ -0,0 +1,3 @@
+          +qux
+          +foo
+          +bar
+
+        `);
+      });
+
+      it('handles typechange patches for a file replaced with a symlink', async function() {
+        const workdirPath = await cloneRepository('symlinks');
+        const repository = await buildRepository(workdirPath);
+
+        const deletedFileAddedSymlinkPath = 'a.txt';
+        fs.unlinkSync(path.join(workdirPath, deletedFileAddedSymlinkPath));
+        fs.symlinkSync(path.join(workdirPath, 'regular-file.txt'), path.join(workdirPath, deletedFileAddedSymlinkPath));
+
+        const patch = await repository.getFilePatchForPath(deletedFileAddedSymlinkPath);
+        assert.equal(patch.toString(), dedent`
+          diff --git a/a.txt b/a.txt
+          deleted file mode 100644
+          --- a/a.txt
+          +++ /dev/null
+          @@ -1,4 +0,0 @@
+          -foo
+          -bar
+          -baz
+          -
+          diff --git a/a.txt b/a.txt
+          new file mode 120000
+          --- /dev/null
+          +++ b/a.txt
+          @@ -0,0 +1 @@
+          +${toGitPathSep(path.join(workdirPath, 'regular-file.txt'))}
+          \\ No newline at end of file
 
         `);
       });
     });
-  }
+  });
+
+  describe('getHeaderString()', function() {
+    it('formats paths with git path separators', function() {
+      const oldPath = path.join('foo', 'bar', 'old.js');
+      const newPath = path.join('baz', 'qux', 'new.js');
+
+      const patch = createFilePatch(oldPath, newPath, 'modified', []);
+      assert.equal(patch.getHeaderString(), dedent`
+        diff --git a/foo/bar/old.js b/baz/qux/new.js
+        --- a/foo/bar/old.js
+        +++ b/baz/qux/new.js
+
+      `);
+    });
+  });
 });
