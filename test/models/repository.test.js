@@ -1297,7 +1297,7 @@ describe('Repository', function() {
       });
 
       it('when writing a merge conflict to the index', async function() {
-        const workdir = await cloneRepository('three-files');
+        const workdir = await cloneRepository('multi-commits-files');
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
@@ -1376,7 +1376,7 @@ describe('Repository', function() {
       });
 
       it('when setting a config option', async function() {
-        const workdir = await cloneRepository('three-files');
+        const workdir = await cloneRepository('multi-commits-files');
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
