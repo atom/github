@@ -166,6 +166,11 @@
       "type": "boolean",
       "default": true,
       "description": "Hard wrap commit message body in commit box to 72 characters. Does not apply to expanded commit editors, where message formatting is preserved."
+    },
+    "graphicalConflictResolution": {
+      "type": "boolean",
+      "default": true,
+      "description": "Resolve merge conflicts with in-editor controls"
     }
   },
   "deserializers": {
