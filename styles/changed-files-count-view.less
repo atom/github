@@ -4,8 +4,15 @@
 
 .github-ChangedFilesCount {
 
-  &.icon-diff::before {
-    margin-right: .2em;
+  &.icon.icon-diff {
+    display: inline-block;
+    vertical-align: top;
+    line-height: 2.5;
+
+    &::before {
+      margin-right: .2em;
+      vertical-align: text-bottom; // Visually adjusted
+    }
   }
 
 }
