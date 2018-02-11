@@ -3,7 +3,6 @@
 // Used in the status-bar
 
 .github-PushPull {
-
   &-icon.icon.icon.icon {
     margin-right: 0;
     text-align: center;
@@ -13,4 +12,15 @@
     margin-right: .4em;
   }
 
+  status-bar.status-bar &-icon::before {
+    margin-right: 0px;
+  }
+}
+
+status-bar .github-Push.inline-block {
+  padding-left: 0.375em;
+}
+
+status-bar .github-Pull.inline-block {
+  padding-right: 0.375em;
 }
