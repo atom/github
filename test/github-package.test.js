@@ -50,7 +50,7 @@ describe('GithubPackage', function() {
         //   console.log('Calling that callback from the setTimeout!');
         //   callback();
         // }, 0);
-        console.log('the setTimeout call returned a handle:', handle);
+        // console.log('the setTimeout call returned a handle:', handle);
       }
     });
     console.log('be: 4');
