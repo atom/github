@@ -203,20 +203,30 @@ describe('GithubPackage', function() {
     });
 
     it('uses an active model from a preexisting active pane item', async function() {
+      console.log('1c')
       const [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
       ]);
+      console.log('2c')
       project.setPaths([workdirPath1, workdirPath2]);
+      console.log('3c')
       await workspace.open(path.join(workdirPath2, 'a.txt'));
+      console.log('4c')
 
       await contextUpdateAfter(() => githubPackage.activate());
+      console.log('5c')
 
       const context = contextPool.getContext(workdirPath2);
+      console.log('6c')
       assert.isTrue(context.isPresent());
+      console.log('7c')
       assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      console.log('8c')
       assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      console.log('9c')
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      console.log('10c')
     });
 
     it('uses an active model from serialized state', async function() {
