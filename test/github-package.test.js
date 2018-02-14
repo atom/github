@@ -14,7 +14,7 @@ describe('GithubPackage', function() {
   let interval;
 
   beforeEach(function() {
-    interval = setInterval(() => console.log('(beat)'), 500)
+    interval = setInterval(() => console.log('(beat)'), 50)
 
     console.log('be: 1');
     atomEnv = global.buildAtomEnvironment();
