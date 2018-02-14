@@ -146,7 +146,7 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe.stress(10, 'activate()', function() {
+  describe('activate()', function() {
     it('begins with an undetermined repository context', async function() {
       await contextUpdateAfter(() => githubPackage.activate());
 
