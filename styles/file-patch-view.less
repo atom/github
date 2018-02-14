@@ -37,10 +37,13 @@
   &-container {
     flex: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 
-    .is-blank, .large-file-patch {
+    .is-blank,
+    .large-file-patch {
+      flex: 1;
       display: flex;
-      height: 100%;
       align-items: center;
       justify-content: center;
       text-align: center;
@@ -52,4 +55,85 @@
       flex-direction: column;
     }
   }
+
+
+  // Meta section
+
+  &-meta {
+    padding: @component-padding;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-metaContainer {
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+  }
+
+  &-metaHeader {
+    display: flex;
+    align-items: center;
+    padding: @component-padding;
+    background-color: @background-color-highlight;
+  }
+
+  &-metaTitle {
+    flex: 1;
+    margin: 0;
+    font-size: 1.25em;
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &-metaControls {
+    margin-left: @component-padding;
+
+    .btn {
+      &.icon-move-up::before,
+      &.icon-move-down::before {
+        font-size: 1em;
+        margin-right: .5em;
+        vertical-align: baseline;
+      }
+    }
+  }
+
+  &-metaDetails {
+    padding: @component-padding;
+  }
+
+  &-metaDiff {
+    margin: 0 .2em;
+    padding: .2em .4em;
+    line-height: 1.6;
+    border-radius: @component-border-radius;
+    &--added {
+      color: mix(@text-color-highlight, @text-color-success, 40%);
+      background-color: mix(@base-background-color, @background-color-success, 80%);
+    }
+    &--removed {
+      color: mix(@text-color-highlight, @text-color-error, 40%);
+      background-color: mix(@base-background-color, @background-color-error, 80%);
+    }
+    &--fullWidth {
+      display: block;
+      margin: @component-padding/2 0 0 0;
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    code {
+      margin: 0 .2em;
+      padding: 0 .2em;
+      font-size: .9em;
+      color: inherit;
+      line-height: 1;
+      vertical-align: middle;
+      word-break: break-all;
+      background-color: @base-background-color;
+    }
+  }
+
 }

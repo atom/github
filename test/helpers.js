@@ -13,6 +13,8 @@ import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {realPath} from '../lib/helpers';
 
+export {toGitPathSep} from '../lib/helpers';
+
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
   const newExpected = expected.replace(/\r\n/g, '\n');
