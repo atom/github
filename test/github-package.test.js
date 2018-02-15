@@ -183,7 +183,7 @@ describe('GithubPackage', function() {
       console.log('9a');
     });
 
-    it('uses an active model from a single preexisting project', async function() {
+    it.only('uses an active model from a single preexisting project', async function() {
       console.log('1b');
       const workdirPath = await cloneRepository('three-files');
       console.log('2b');
