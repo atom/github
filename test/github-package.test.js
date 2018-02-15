@@ -210,6 +210,8 @@ describe('GithubPackage', function() {
       console.log('8b');
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
       console.log('9b');
+      await new Promise(resolve => setTimeout(resolve, 10))
+      console.log('10b')
     });
 
     it('uses an active model from a preexisting active pane item', async function() {
