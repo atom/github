@@ -11,11 +11,8 @@ describe('GithubPackage', function() {
   let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
-  let interval;
 
   beforeEach(function() {
-    interval = setInterval(() => console.log('(beat)'), 50)
-
     console.log('be: 1');
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
@@ -71,7 +68,6 @@ describe('GithubPackage', function() {
     console.log('ae: 2');
     atomEnv.destroy();
     console.log('ae: 3');
-    clearInterval(interval)
   });
 
   async function contextUpdateAfter(chunk) {
