@@ -59,6 +59,12 @@ describe('GithubPackage', function() {
     console.log('be: 5');
   });
 
+  beforeEach(async function () {
+    console.log('be2: 0')
+    await new Promise(resolve => resolve())
+    console.log('be2: 1')
+  })
+
   afterEach(async function() {
     console.log('ae: 1');
     await githubPackage.deactivate();
@@ -183,7 +189,7 @@ describe('GithubPackage', function() {
       console.log('9a');
     });
 
-    it.only('uses an active model from a single preexisting project', async function() {
+    it('uses an active model from a single preexisting project', async function() {
       console.log('1b');
       const workdirPath = await cloneRepository('three-files');
       console.log('2b');
