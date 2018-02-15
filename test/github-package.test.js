@@ -66,8 +66,18 @@ describe('GithubPackage', function() {
     console.log('ae: 1');
     await githubPackage.deactivate();
     console.log('ae: 2');
-    atomEnv.destroy();
+
+    const promises = []
+    for (let p in atomEnv.project.watcherPromisesByPath) {
+      promises.push(atom.project.watcherPromisesByPath[p])
+    }
     console.log('ae: 3');
+    await Promise.all(
+      promises.map(p => p.then(w => w.stop()))
+    )
+
+    atomEnv.destroy();
+    console.log('ae: 4');
   });
 
   async function contextUpdateAfter(chunk) {
