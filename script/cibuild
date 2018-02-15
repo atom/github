@@ -10,7 +10,7 @@ function waitAndDump {
     exit 1
   fi
 
-  sudo gdb -batch -ex "thread apply all bt" -p ${NODE_PID}
+  sudo strace -p ${NODE_PID}
 }
 
 function updateStatus {
