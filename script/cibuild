@@ -10,7 +10,7 @@ function waitAndDump {
     exit 1
   fi
 
-  sudo strace -p ${NODE_PID}
+  sudo strace -p ${NODE_PID} -f
 }
 
 function updateStatus {
