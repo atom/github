@@ -210,7 +210,7 @@ describe('GithubPackage', function() {
       console.log('8b');
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
       console.log('9b');
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise(resolve => process.nextTick(resolve))
       console.log('10b')
     });
 
