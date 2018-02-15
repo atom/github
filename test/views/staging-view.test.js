@@ -255,7 +255,7 @@ describe('StagingView', function() {
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: true, activateItem: true},
+          {pending: true, activatePane: true, pane: undefined, activateItem: true},
         ]);
         assert.isTrue(filePatchItem.focus.called);
       });
@@ -275,7 +275,7 @@ describe('StagingView', function() {
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: false, activateItem: false},
+          {pending: true, activatePane: false, pane: undefined, activateItem: false},
         ]);
         assert.isFalse(focus.called);
         assert.equal(activateItem.callCount, 1);
@@ -355,11 +355,11 @@ describe('StagingView', function() {
         });
         document.body.appendChild(view.element);
 
-        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
+        const getPanesWithStalePendingFilePatchItem = sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns([]);
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPendingFilePatchItem.returns(true);
+        getPanesWithStalePendingFilePatchItem.returns(['pending-file-patch-item']);
         await view.selectPrevious();
         assert.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
         await view.selectNext();
@@ -423,11 +423,11 @@ describe('StagingView', function() {
         });
         document.body.appendChild(view.element);
 
-        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
+        const getPanesWithStalePendingFilePatchItem = sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns([]);
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPendingFilePatchItem.returns(true);
+        getPanesWithStalePendingFilePatchItem.returns(['pending-file-patch-item']);
         await view.selectPrevious();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
         await view.selectNext();
