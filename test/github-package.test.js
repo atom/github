@@ -58,7 +58,7 @@ describe('GithubPackage', function() {
 
   beforeEach(async function () {
     console.log('be2: 0')
-    await new Promise(resolve => resolve())
+    await new Promise(resolve => process.nextTick(resolve))
     console.log('be2: 1')
   })
 
