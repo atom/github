@@ -29,6 +29,8 @@ describe('GithubPackage', function() {
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
     console.log('be: 2');
 
+    config.set('core.fileSystemWatcher', 'atom')
+
     githubPackage = new GithubPackage(
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
       deserializers, configDirPath, getLoadSettings,
@@ -67,14 +69,14 @@ describe('GithubPackage', function() {
     await githubPackage.deactivate();
     console.log('ae: 2');
 
-    const promises = []
-    for (let p in atomEnv.project.watcherPromisesByPath) {
-      promises.push(atom.project.watcherPromisesByPath[p])
-    }
-    console.log('ae: 3');
-    await Promise.all(
-      promises.map(p => p.then(w => w.stop()))
-    )
+    // const promises = []
+    // for (let p in atomEnv.project.watcherPromisesByPath) {
+    //   promises.push(atom.project.watcherPromisesByPath[p])
+    // }
+    // console.log('ae: 3');
+    // await Promise.all(
+    //   promises.map(p => p.then(w => w.stop()))
+    // )
 
     atomEnv.destroy();
     console.log('ae: 4');
