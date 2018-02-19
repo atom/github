@@ -208,7 +208,7 @@ export async function disableFilesystemWatchers (atomEnv) {
     }
   })
 
-  await until('directoryProvider is available', () => atom.project.directoryProviders.length > 0)
+  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0)
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
