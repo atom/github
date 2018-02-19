@@ -2,11 +2,8 @@ import {createRunner} from 'atom-mocha-test-runner';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import path from 'path';
-import fs from 'fs-extra';
 
 import until from 'test-until';
-
-fs.writeFileSync('mocha.pid', process.pid)
 
 chai.use(chaiAsPromised);
 global.assert = chai.assert;

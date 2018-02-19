@@ -13,9 +13,8 @@ describe('GithubPackage', function() {
   let githubPackage, contextPool;
 
   beforeEach(async function() {
-    console.log('be: 1');
     atomEnv = global.buildAtomEnvironment();
-    await disableFilesystemWatchers(atomEnv)
+    await disableFilesystemWatchers(atomEnv);
 
     workspace = atomEnv.workspace;
     project = atomEnv.project;
@@ -29,67 +28,30 @@ describe('GithubPackage', function() {
     grammars = atomEnv.grammars;
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-    console.log('be: 2');
-
-    config.set('core.fileSystemWatcher', 'atom')
 
     githubPackage = new GithubPackage(
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
       deserializers, configDirPath, getLoadSettings,
     );
-    console.log('be: 3');
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
-      console.log('calling the FAKE rerender!');
       if (callback) {
-        console.log('there is a callback to call... initiiating a setTimeout');
-        process.nextTick(() => {
-          console.log('Calling that callback from the nextTick!');
-          callback();
-        });
-        // const handle = setTimeout(() => {
-        //   console.log('Calling that callback from the setTimeout!');
-        //   callback();
-        // }, 0);
-        // console.log('the setTimeout call returned a handle:', handle);
+        process.nextTick(callback);
       }
     });
-    console.log('be: 4');
 
     contextPool = githubPackage.getContextPool();
-    console.log('be: 5');
   });
 
-  beforeEach(async function () {
-    console.log('be2: 0')
-    await new Promise(resolve => process.nextTick(resolve))
-    console.log('be2: 1')
-  })
-
   afterEach(async function() {
-    console.log('ae: 1');
     await githubPackage.deactivate();
-    console.log('ae: 2');
-
-    // const promises = []
-    // for (let p in atomEnv.project.watcherPromisesByPath) {
-    //   promises.push(atom.project.watcherPromisesByPath[p])
-    // }
-    // console.log('ae: 3');
-    // await Promise.all(
-    //   promises.map(p => p.then(w => w.stop()))
-    // )
 
     atomEnv.destroy();
-    console.log('ae: 4');
   });
 
   async function contextUpdateAfter(chunk) {
-    console.log('cae: 1');
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
-    console.log('cae: 2');
     await chunk();
-    console.log('cae: 3');
     return updatePromise;
   }
 
@@ -174,81 +136,51 @@ describe('GithubPackage', function() {
     });
 
     it('uses models from preexisting projects', async function() {
-      console.log('1a');
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
         getTempDir(),
       ]);
-      console.log('2a');
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
-      console.log('3a');
 
       await contextUpdateAfter(() => githubPackage.activate());
-      console.log('4a');
 
-      console.log('5a');
       assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
-      console.log('6a');
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
-      console.log('7a');
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
-      console.log('8a');
 
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
-      console.log('9a');
     });
 
     it('uses an active model from a single preexisting project', async function() {
-      console.log('1b');
       const workdirPath = await cloneRepository('three-files');
-      console.log('2b');
       project.setPaths([workdirPath]);
-      console.log('3b');
 
       await contextUpdateAfter(() => githubPackage.activate());
-      console.log('4b');
 
       const context = contextPool.getContext(workdirPath);
-      console.log('5b');
       assert.isTrue(context.isPresent());
-      console.log('6b');
 
       assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-      console.log('7b');
       assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-      console.log('8b');
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
-      console.log('9b');
-      await new Promise(resolve => setTimeout(resolve, 0))
-      console.log('10b')
     });
 
     it('uses an active model from a preexisting active pane item', async function() {
-      console.log('1c')
       const [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
       ]);
-      console.log('2c')
       project.setPaths([workdirPath1, workdirPath2]);
-      console.log('3c')
       await workspace.open(path.join(workdirPath2, 'a.txt'));
-      console.log('4c')
 
       await contextUpdateAfter(() => githubPackage.activate());
-      console.log('5c')
 
       const context = contextPool.getContext(workdirPath2);
-      console.log('6c')
       assert.isTrue(context.isPresent());
-      console.log('7c')
       assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-      console.log('8c')
       assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-      console.log('9c')
       assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
-      console.log('10c')
     });
 
     it('uses an active model from serialized state', async function() {

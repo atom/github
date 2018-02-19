@@ -457,14 +457,14 @@ describe('Repository', function() {
   });
 
   describe('commit', function() {
-    let realPath = '';
+    let rp = '';
 
     beforeEach(function() {
-      realPath = process.env.PATH;
+      rp = process.env.PATH;
     });
 
     afterEach(function() {
-      process.env.PATH = realPath;
+      process.env.PATH = rp;
     });
 
     it('creates a commit that contains the staged changes', async function() {

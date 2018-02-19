@@ -12,8 +12,8 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
-import {realPath} from '../lib/helpers';
 import {Directory} from 'atom';
+import {realPath} from '../lib/helpers';
 
 export {toGitPathSep} from '../lib/helpers';
 
@@ -196,19 +196,19 @@ export function isProcessAlive(pid) {
 }
 
 class UnwatchedDirectory extends Directory {
-  onDidChangeFiles (callback) {
-    return {dispose: () => {}}
+  onDidChangeFiles(callback) {
+    return {dispose: () => {}};
   }
 }
 
-export async function disableFilesystemWatchers (atomEnv) {
+export async function disableFilesystemWatchers(atomEnv) {
   atomEnv.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
-    directoryForURISync (uri) {
-      return new UnwatchedDirectory(uri)
-    }
-  })
+    directoryForURISync(uri) {
+      return new UnwatchedDirectory(uri);
+    },
+  });
 
-  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0)
+  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0);
 }
 
 // eslint-disable-next-line jasmine/no-global-setup

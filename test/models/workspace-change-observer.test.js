@@ -12,7 +12,7 @@ describe('WorkspaceChangeObserver', function() {
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    atomEnv.config.set('core.fileSystemWatcher', 'native')
+    atomEnv.config.set('core.fileSystemWatcher', 'native');
     workspace = atomEnv.workspace;
     changeSpy = sinon.spy();
   });
@@ -49,11 +49,8 @@ describe('WorkspaceChangeObserver', function() {
     createObserver(repository);
     await observer.start();
 
-    console.log(`about to change file in ${workdirPath}`)
     await writeFile(path.join(workdirPath, 'a.txt'), 'change');
-    console.log('about to stage file')
     await repository.stageFiles(['a.txt']);
-    console.log('file staged')
 
     await assert.async.isTrue(changeSpy.called);
   });
