@@ -12,10 +12,10 @@ describe('GithubPackage', function() {
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
-  beforeEach(async function() {
+  beforeEach(function() {
     console.log('be: 1');
     atomEnv = global.buildAtomEnvironment();
-    await disableFilesystemWatchers(atomEnv)
+    disableFilesystemWatchers(atomEnv)
 
     workspace = atomEnv.workspace;
     project = atomEnv.project;

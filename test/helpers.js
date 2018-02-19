@@ -201,14 +201,12 @@ class UnwatchedDirectory extends Directory {
   }
 }
 
-export async function disableFilesystemWatchers (atomEnv) {
+export function disableFilesystemWatchers (atomEnv) {
   atomEnv.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
     directoryForURISync (uri) {
       return new UnwatchedDirectory(uri)
     }
   })
-
-  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0)
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
