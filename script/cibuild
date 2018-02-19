@@ -1,18 +1,5 @@
 #!/bin/bash
 
-function waitAndDump {
-  # About four minutes
-  sleep 240
-
-  local NODE_PID=$(cat mocha.pid)
-  if [ -z "${NODE_PID}" ]; then
-    echo "Unable to read node pid from mocha.pid"
-    exit 1
-  fi
-
-  # sudo strace -p ${NODE_PID} -f
-}
-
 function updateStatus {
   STATUS=$1
   CTX=$2
@@ -181,7 +168,6 @@ function runTests {
   if [ $LINT_RESULT -ne 0 ]; then echo ">>> LINTING FAILED! <<< Continuing on to tests..."; fi
 
   echo "Running specs..."
-  waitAndDump &
   "$ATOM_SCRIPT_PATH" --test test
   TEST_RESULT=$?
 

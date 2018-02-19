@@ -16,7 +16,6 @@ addons:
     - gnome-keyring
     - libsecret-1-dev
     - python-gnomekeyring
-    - gdb
 
 env:
   global:
