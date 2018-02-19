@@ -8,29 +8,37 @@ import {writeFile} from '../../lib/helpers';
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 
 describe('WorkspaceChangeObserver', function() {
-  let atomEnv, workspace;
+  let atomEnv, workspace, observer, changeSpy;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
+    atomEnv.config.set('core.fileSystemWatcher', 'native')
     workspace = atomEnv.workspace;
+    changeSpy = sinon.spy();
   });
 
-  afterEach(function() {
+  function createObserver(repository) {
+    observer = new WorkspaceChangeObserver(window, workspace, repository);
+    observer.onDidChange(changeSpy);
+    return observer;
+  }
+
+  afterEach(async function() {
+    if (observer) {
+      await observer.destroy();
+    }
     atomEnv.destroy();
   });
 
   it('emits a change event when the window is focused', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
-
-    const changeSpy = sinon.spy();
-    const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
-    changeObserver.onDidChange(changeSpy);
+    createObserver(repository);
 
     window.dispatchEvent(new FocusEvent('focus'));
     assert.isFalse(changeSpy.called);
 
-    await changeObserver.start();
+    await observer.start();
     window.dispatchEvent(new FocusEvent('focus'));
     await until(() => changeSpy.calledOnce);
   });
@@ -38,13 +46,14 @@ describe('WorkspaceChangeObserver', function() {
   it('emits a change event when a staging action takes place', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
-    const changeSpy = sinon.spy();
-    const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
-    changeObserver.onDidChange(changeSpy);
-    await changeObserver.start();
+    createObserver(repository);
+    await observer.start();
 
+    console.log(`about to change file in ${workdirPath}`)
     await writeFile(path.join(workdirPath, 'a.txt'), 'change');
+    console.log('about to stage file')
     await repository.stageFiles(['a.txt']);
+    console.log('file staged')
 
     await assert.async.isTrue(changeSpy.called);
   });
@@ -54,10 +63,8 @@ describe('WorkspaceChangeObserver', function() {
     const repository = await buildRepository(workdirPath);
     const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
-    const changeSpy = sinon.spy();
-    const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
-    changeObserver.onDidChange(changeSpy);
-    await changeObserver.start();
+    createObserver(repository);
+    await observer.start();
 
     editor.setText('change');
     await editor.save();
@@ -78,10 +85,8 @@ describe('WorkspaceChangeObserver', function() {
       const repository = await buildRepository(workdirPath);
       const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
-      const changeSpy = sinon.spy();
-      const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
-      changeObserver.onDidChange(changeSpy);
-      await changeObserver.start();
+      createObserver(repository);
+      await observer.start();
 
       editor.getBuffer().setPath(path.join(workdirPath, 'renamed-path.txt'));
 
@@ -100,8 +105,8 @@ describe('WorkspaceChangeObserver', function() {
     const repository = await buildRepository(workdirPath);
     const editor = await workspace.open();
 
-    const changeObserver = new WorkspaceChangeObserver(window, workspace, repository);
-    await changeObserver.start();
+    createObserver(repository);
+    await observer.start();
 
     assert.doesNotThrow(() => editor.destroy());
   });
