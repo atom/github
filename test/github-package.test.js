@@ -3,7 +3,7 @@ import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
 
-import {cloneRepository} from './helpers';
+import {cloneRepository, disableFilesystemWatchers} from './helpers';
 import {writeFile, deleteFileOrFolder, fileExists, getTempDir, realPath} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
@@ -12,9 +12,11 @@ describe('GithubPackage', function() {
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     console.log('be: 1');
     atomEnv = global.buildAtomEnvironment();
+    await disableFilesystemWatchers(atomEnv)
+
     workspace = atomEnv.workspace;
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;

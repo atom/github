@@ -12,6 +12,7 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {realPath} from '../lib/helpers';
+import {Directory} from 'atom';
 
 export {toGitPathSep} from '../lib/helpers';
 
@@ -191,6 +192,22 @@ export function isProcessAlive(pid) {
     alive = false;
   }
   return alive;
+}
+
+class UnwatchedDirectory extends Directory {
+  onDidChangeFiles (callback) {
+    return {dispose: () => {}}
+  }
+}
+
+export async function disableFilesystemWatchers (atomEnv) {
+  atomEnv.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
+    directoryForURISync (uri) {
+      return new UnwatchedDirectory(uri)
+    }
+  })
+
+  await until('directoryProvider is available', () => atom.project.directoryProviders.length > 0)
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
