@@ -359,10 +359,13 @@ describe('StagingView', function() {
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPanesWithStalePendingFilePatchItem.returns(['pending-file-patch-item']);
+        getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2']);
         await view.selectPrevious();
+        assert.isTrue(showFilePatchItem.calledTwice);
         assert.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        showFilePatchItem.reset();
         await view.selectNext();
+        assert.isTrue(showFilePatchItem.calledTwice);
         assert.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
 
         view.element.remove();
@@ -427,11 +430,14 @@ describe('StagingView', function() {
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPanesWithStalePendingFilePatchItem.returns(['pending-file-patch-item']);
+        getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2', 'item3']);
         await view.selectPrevious();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        assert.isTrue(showFilePatchItem.calledThrice);
+        showFilePatchItem.reset();
         await view.selectNext();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
+        assert.isTrue(showFilePatchItem.calledThrice);
 
         view.element.remove();
       });
