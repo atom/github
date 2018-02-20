@@ -115,3 +115,24 @@
       'command': 'github:view-staged-changes-for-current-file'
     }
   ]
+  '.github-PushPull': [
+    {
+      'label': 'Fetch',
+      'command': 'github:fetch'
+    }
+    {
+      'label': 'Pull',
+      'command': 'github:pull'
+    }
+    {
+        'type': 'separator'
+    }
+    {
+        'label': 'Push',
+        'command': 'github:push'
+    }
+    {
+        'label': 'Force Push',
+        'command': 'github:force-push'
+    }
+  ]

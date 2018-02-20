@@ -34,11 +34,11 @@
   }
 
   // Sync animation
-  .icon-sync::before {
+  .animate-rotate.icon-sync::before {
     @keyframes github-StatusBarSync-animation {
       100% { transform: rotate(360deg); }
     }
-    animation: github-StatusBarSync-animation 2s linear 30; // limit to 1min in case something gets stuck
+    animation: github-StatusBarSync-animation 1s linear infinite;
   }
 
   // Merge conflict icon
