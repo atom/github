@@ -135,7 +135,6 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
-    /* eslint-disable no-console */
     it('uses models from preexisting projects', async function() {
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
         cloneRepository('three-files'),
@@ -152,7 +151,6 @@ describe('GithubPackage', function() {
 
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
-    /* eslint-enable no-console */
 
     it('uses an active model from a single preexisting project', async function() {
       const workdirPath = await cloneRepository('three-files');
