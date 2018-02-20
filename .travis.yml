@@ -31,6 +31,7 @@ env:
   matrix:
   - ATOM_CHANNEL=stable
   - ATOM_CHANNEL=beta
+  - ATOM_CHANNEL=dev
 
 notifications:
   email:
