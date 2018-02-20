@@ -146,19 +146,11 @@ describe('GithubPackage', function() {
 
       await contextUpdateAfter(() => githubPackage.activate());
 
-      // console.log('111 >');
-      // await new Promise(resolve => setTimeout(resolve, 10));
-      // console.log('111 <');
-      //
-      // assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
-      // assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
-      // assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
-      //
-      // assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+      assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+      assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+      assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
-      console.log('000 >');
-      await new Promise(resolve => setTimeout(resolve, 10));
-      console.log('000 <');
+      assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
     /* eslint-enable no-console */
 
