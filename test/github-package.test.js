@@ -44,7 +44,9 @@ describe('GithubPackage', function() {
   });
 
   afterEach(async function() {
+    console.log('about to deactivate github package');
     await githubPackage.deactivate();
+    console.log('github package deactivated');
 
     atomEnv.destroy();
   });
