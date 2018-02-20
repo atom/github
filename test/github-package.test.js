@@ -135,7 +135,7 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
-    it('uses models from preexisting projects', async function() {
+    it.skip('uses models from preexisting projects', async function() {
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
