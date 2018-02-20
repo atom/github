@@ -144,12 +144,8 @@ describe('GithubPackage', function() {
       ]);
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
 
-      // console.log('000 >');
-      // await new Promise(resolve => setTimeout(resolve, 10));
-      // console.log('000 <');
-      //
-      // await contextUpdateAfter(() => githubPackage.activate());
-      //
+      await contextUpdateAfter(() => githubPackage.activate());
+
       // console.log('111 >');
       // await new Promise(resolve => setTimeout(resolve, 10));
       // console.log('111 <');
@@ -160,9 +156,9 @@ describe('GithubPackage', function() {
       //
       // assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
 
-      console.log('222 >');
+      console.log('000 >');
       await new Promise(resolve => setTimeout(resolve, 10));
-      console.log('222 <');
+      console.log('000 <');
     });
     /* eslint-enable no-console */
 
