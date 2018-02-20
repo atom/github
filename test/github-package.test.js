@@ -150,6 +150,12 @@ describe('GithubPackage', function() {
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
+      await Promise.all(
+        [workdirPath1, workdirPath2].map(eachPath => {
+          return contextPool.getContext(eachPath).getObserverStartedPromise();
+        }),
+      );
+
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
     /* eslint-enable no-console */
