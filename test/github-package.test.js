@@ -135,6 +135,7 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
 
+    /* eslint-disable no-console */
     it('uses models from preexisting projects', async function() {
       const [workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
         cloneRepository('three-files'),
@@ -143,14 +144,27 @@ describe('GithubPackage', function() {
       ]);
       project.setPaths([workdirPath1, workdirPath2, nonRepositoryPath]);
 
+      console.log('000 >');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      console.log('000 <');
+
       await contextUpdateAfter(() => githubPackage.activate());
+
+      console.log('111 >');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      console.log('111 <');
 
       assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
 
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+
+      console.log('222 >');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      console.log('222 <');
     });
+    /* eslint-enable no-console */
 
     it('uses an active model from a single preexisting project', async function() {
       const workdirPath = await cloneRepository('three-files');
