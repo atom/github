@@ -44,9 +44,7 @@ describe('GithubPackage', function() {
   });
 
   afterEach(async function() {
-    console.log('about to deactivate github package');
     await githubPackage.deactivate();
-    console.log('github package deactivated');
 
     atomEnv.destroy();
   });
@@ -151,12 +149,6 @@ describe('GithubPackage', function() {
       assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
       assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
-
-      await Promise.all(
-        [workdirPath1, workdirPath2].map(eachPath => {
-          return contextPool.getContext(eachPath).getObserverStartedPromise();
-        }),
-      );
 
       assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
     });
