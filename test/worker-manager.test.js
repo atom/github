@@ -4,7 +4,7 @@ const {BrowserWindow} = remote;
 import WorkerManager, {Operation, Worker} from '../lib/worker-manager';
 import {isProcessAlive} from './helpers';
 
-describe.stress(10, 'WorkerManager', function() {
+describe('WorkerManager', function() {
   let workerManager;
   beforeEach(() => {
     workerManager = new WorkerManager();
@@ -139,6 +139,18 @@ describe.stress(10, 'WorkerManager', function() {
       [...worker1Operations, ...worker2Operations].forEach(operation => operation.complete());
       await assert.async.isFalse(isProcessAlive(worker1.getPid()));
       await assert.async.isFalse(isProcessAlive(worker2.getPid()));
+    });
+
+    it.stress(20, 'gives recently issued send operations a chance to complete before destroying the process', async function() {
+      const worker = workerManager.getActiveWorker();
+      await worker.getReadyPromise();
+
+      workerManager.request({
+        args: ['rev-parse', 'HEAD'],
+        workingDir: __dirname,
+        options: {},
+      });
+      workerManager.destroy(true);
     });
   });
 
