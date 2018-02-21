@@ -140,22 +140,6 @@ describe('WorkerManager', function() {
       await assert.async.isFalse(isProcessAlive(worker1.getPid()));
       await assert.async.isFalse(isProcessAlive(worker2.getPid()));
     });
-
-    it.stress(20, 'gives recently issued send operations a chance to complete before destroying the process', async function() {
-      const worker = workerManager.getActiveWorker();
-      await worker.getReadyPromise();
-
-      for (let i = 0; i < 5; i++) {
-        workerManager.request({
-          args: ['rev-parse', 'HEAD'],
-          workingDir: __dirname,
-          options: {},
-        });
-      }
-      workerManager.destroy(true);
-
-      await new Promise(resolve => setTimeout(resolve, 10));
-    });
   });
 
   describe('when the manager process is destroyed', function() {

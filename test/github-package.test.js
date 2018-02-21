@@ -13,6 +13,8 @@ describe('GithubPackage', function() {
   let githubPackage, contextPool;
 
   beforeEach(async function() {
+    process.env.ATOM_GITHUB_INLINE_GIT_EXEC = '1';
+
     atomEnv = global.buildAtomEnvironment();
     await disableFilesystemWatchers(atomEnv);
 
@@ -47,6 +49,8 @@ describe('GithubPackage', function() {
     await githubPackage.deactivate();
 
     atomEnv.destroy();
+
+    delete process.env.ATOM_GITHUB_INLINE_GIT_EXEC;
   });
 
   async function contextUpdateAfter(chunk) {
