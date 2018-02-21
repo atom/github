@@ -145,11 +145,13 @@ describe('WorkerManager', function() {
       const worker = workerManager.getActiveWorker();
       await worker.getReadyPromise();
 
-      workerManager.request({
-        args: ['rev-parse', 'HEAD'],
-        workingDir: __dirname,
-        options: {},
-      });
+      for (let i = 0; i < 5; i++) {
+        workerManager.request({
+          args: ['rev-parse', 'HEAD'],
+          workingDir: __dirname,
+          options: {},
+        });
+      }
       workerManager.destroy(true);
 
       await new Promise(resolve => setTimeout(resolve, 10));
