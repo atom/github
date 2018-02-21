@@ -4,7 +4,7 @@ const {BrowserWindow} = remote;
 import WorkerManager, {Operation, Worker} from '../lib/worker-manager';
 import {isProcessAlive} from './helpers';
 
-describe('WorkerManager', function() {
+describe.stress(10, 'WorkerManager', function() {
   let workerManager;
   beforeEach(() => {
     workerManager = new WorkerManager();
