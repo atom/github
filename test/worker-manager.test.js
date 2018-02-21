@@ -151,6 +151,8 @@ describe('WorkerManager', function() {
         options: {},
       });
       workerManager.destroy(true);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
     });
   });
 
