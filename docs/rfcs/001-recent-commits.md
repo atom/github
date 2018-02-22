@@ -28,7 +28,7 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
 
-On hover, reveal a tool-tip containing:
+On click, reveal a tool-tip containing:
 
 * Additional user information consistently with the GitHub integration's user mention item.
 * The full commit message and body.
