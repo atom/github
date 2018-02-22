@@ -195,10 +195,11 @@ function dialog(query) {
 
       socket.on('data', data => parts.push(data));
       socket.on('end', () => {
-        log('Atom socket stream terminated');
+        const payload = parts.join('');
+        log(`Atom socket stream terminated\n${payload}\n`);
 
         try {
-          const reply = JSON.parse(parts.join(''));
+          const reply = JSON.parse(payload);
 
           const writeReply = function() {
             const lines = [];
@@ -217,7 +218,7 @@ function dialog(query) {
             writeReply();
           }
         } catch (e) {
-          log(`Unable to parse reply from Atom:\n${e.stack}`);
+          log(`Unable to parse reply from Atom:\n${payload}\n${e.stack}`);
           reject(e);
         }
       });
