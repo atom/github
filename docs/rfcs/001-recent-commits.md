@@ -53,11 +53,11 @@ The "undo" button is not a native git concept. This can be mitigated by adding a
 
 The "soft reset" and "hard reset" context menu options are useful for expert git users, but likely to be confusing. It would be beneficial to provide additional information about the actions that both will take.
 
-The modal dialog on "hard reset" is disruptive considering that the lost changes are recoverable from `git reflog`. We may wish to remove it once we visit a reflog view within the package.
+The modal dialog on "hard reset" is disruptive considering that the lost changes are recoverable from `git reflog`. We may wish to remove it once we visit a reflog view within the package. Optionally add "Don't show" checkbox to disable modal.
 
 ## Rationale and alternatives
 
--
+- Display tracking branch in separator that indicates which commits have been pushed. This could make the purpose of the divider more clear. Drawback is that this takes up space.
 
 ## Unresolved questions
 
