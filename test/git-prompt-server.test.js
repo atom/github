@@ -32,12 +32,10 @@ describe('GitPromptServer', function() {
     });
 
     async function runCredentialScript(command, queryHandler, processHandler) {
-      console.log('0');
       await server.start(queryHandler);
-      console.log('1');
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       return new Promise((resolve, reject) => {
-        console.log('2');
         const child = execFile(
           getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
@@ -46,12 +44,10 @@ describe('GitPromptServer', function() {
             resolve({err, stdout, stderr});
           },
         );
-        console.log('3');
 
         child.stderr.on('data', console.log); // eslint-disable-line no-console
 
         processHandler(child);
-        console.log('4');
       });
     }
 
