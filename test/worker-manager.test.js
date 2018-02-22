@@ -6,7 +6,7 @@ import {isProcessAlive} from './helpers';
 
 describe('WorkerManager', function() {
   let workerManager;
-  beforeEach(() => {
+  beforeEach(function() {
     if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
       this.skip();
       return;
@@ -15,7 +15,7 @@ describe('WorkerManager', function() {
     workerManager = new WorkerManager();
   });
 
-  afterEach(() => {
+  afterEach(function() {
     workerManager.destroy(true);
   });
 
