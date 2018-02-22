@@ -33,14 +33,12 @@ describe('GitPromptServer', function() {
 
     async function runCredentialScript(command, queryHandler, processHandler) {
       await server.start(queryHandler);
-      await new Promise(resolve => setTimeout(resolve, 10));
 
       return new Promise((resolve, reject) => {
         const child = execFile(
           getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
           (err, stdout, stderr) => {
-            console.log('3');
             resolve({err, stdout, stderr});
           },
         );
