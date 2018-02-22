@@ -5,18 +5,13 @@ import WorkerManager, {Operation, Worker} from '../lib/worker-manager';
 import {isProcessAlive} from './helpers';
 
 describe('WorkerManager', function() {
-  let workerManager, inlineOption;
+  let workerManager;
   beforeEach(() => {
-    inlineOption = process.env.ATOM_GITHUB_INLINE_GIT_EXEC;
-    delete process.env.ATOM_GITHUB_INLINE_GIT_EXEC;
     workerManager = new WorkerManager();
   });
 
   afterEach(() => {
     workerManager.destroy(true);
-    if (inlineOption) {
-      process.env.ATOM_GITHUB_INLINE_GIT_EXEC = inlineOption;
-    }
   });
 
   describe('isReady()', function() {
