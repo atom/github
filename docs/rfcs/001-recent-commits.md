@@ -45,6 +45,8 @@ Right-clicking a recent commit reveals a context menu offering interactions with
 
 If any of the recent commits have been pushed to a remote, display a divider after the most recently pushed commit that shows an octocat icon. On hover, show the name of the remote tracking branch.
 
+If the Git dock item is dragged to the bottom dock, the recent commit section will remain a vertical list but appear just to the right of the mini commit editor.
+
 ## Drawbacks
 
 Consumes vertical real estate in Git panel.
