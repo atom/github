@@ -223,7 +223,7 @@ function dialog(query) {
       });
 
       log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
+      socket.end(JSON.stringify(payload) + '\u0000', 'utf8');
       log('payload written');
     });
     socket.setEncoding('utf8');
