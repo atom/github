@@ -10,11 +10,14 @@ Display the most recent few commits in a chronologically-ordered list beneath th
 
 ## Motivation
 
-Provide useful context about recent work and where you left off.
-Allow user to easily revert and reset to recent commits.
-Make it easy to undo most recent commit action, supersede amend check box.
-Reinforce the visual "flow" of changes through being unstaged, staged, and now committed.
-Provide a discoverable launch point for an eventual log feature to explore the full history.
+* Provide useful context about recent work and where you left off.
+* Allow user to easily revert and reset to recent commits.
+* Make it easy to undo most recent commit action, supersede amend check box.
+* Reinforce the visual "flow" of changes through being unstaged, staged, and now committed.
+* Provide a discoverable launch point for an eventual log feature to explore the full history.
+* Achieve greater consistency with GitHub desktop:
+
+![desktop](https://user-images.githubusercontent.com/7910250/36570484-1754fb3c-17e7-11e8-8da3-b658d404fd2c.png)
 
 ## Explanation
 
@@ -28,13 +31,9 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
 
-On click, reveal a tool-tip containing:
-
-* Additional user information consistently with the GitHub integration's user mention item.
-* The full commit message and body.
-* The absolute timestamp of the commit.
-
 On the most recent commit, display an "undo" button. Clicking "undo" performs a `git reset` and re-populates the commit message editor with the existing message.
+
+If any of the recent commits have been pushed to a remote, display a divider after the most recently pushed commit that shows an octocat icon. On hover, show the name of the remote tracking branch.
 
 Right-clicking a recent commit reveals a context menu offering interactions with the chosen commit. The context menu contains:
 
@@ -43,9 +42,19 @@ Right-clicking a recent commit reveals a context menu offering interactions with
 * A "Hard reset" option. Choosing this performs a `git reset --hard` which moves `HEAD` and the working copy to the chosen commit. When chosen, display a modal explaining that this action will discard commits and unstaged working directory context. Extra security: If there are unstaged working directory contents, artificially perform a dangling commit, disabling GPG if configured, before enacting the reset. This will record the dangling commit in the reflog for `HEAD` but not the branch itself.
 * A "Soft reset" option. Choosing this performs a `git reset --soft` which moves `HEAD` to the chosen commit and populates the staged changes list with all of the cumulative changes from all commits between the chosen one and the previous `HEAD`.
 
-If any of the recent commits have been pushed to a remote, display a divider after the most recently pushed commit that shows an octocat icon. On hover, show the name of the remote tracking branch.
+On click, reveal a tool-tip containing:
+
+* Additional user information consistently with the GitHub integration's user mention item.
+* The full commit message and body.
+* The absolute timestamp of the commit.
+* Navigation button ("open" to a git show-ish pane item)
+* Action buttons ("amend" on the most recent commit, "revert", and "reset" with "hard", "mixed", and "soft" suboptions)
+
+![commit-popout](https://user-images.githubusercontent.com/17565/36570682-11545cae-17e8-11e8-80a8-ffcf7328e214.JPG)
 
 If the Git dock item is dragged to the bottom dock, the recent commit section will remain a vertical list but appear just to the right of the mini commit editor.
+
+![bottom-dock](https://user-images.githubusercontent.com/17565/36570687-14738ca2-17e8-11e8-91f7-5cf1472d871b.JPG)
 
 ## Drawbacks
 
