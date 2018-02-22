@@ -3,7 +3,8 @@
   "parser": "babel-eslint",
   "parserOptions": {
     "ecmaFeatures": {
-      "jsx": true
+      "jsx": true,
+      "experimentalDecorators": true,
     }
   },
   "settings": {

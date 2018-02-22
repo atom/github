@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
+import until from 'test-until';
 
 import React from 'react';
 import ReactDom from 'react-dom';
@@ -11,6 +12,8 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
+import {Directory} from 'atom';
+import {realPath} from '../lib/helpers';
 
 export {toGitPathSep} from '../lib/helpers';
 
@@ -27,7 +30,7 @@ const cachedClonedRepos = {};
 function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   fs.copySync(cachedClonedRepos[repoName], workingDirPath);
-  return fs.realpathSync(workingDirPath);
+  return realPath(workingDirPath);
 }
 
 export async function cloneRepository(repoName = 'three-files') {
@@ -60,7 +63,7 @@ export async function initRepository(repoName) {
   await git.exec(['init']);
   await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
   await git.exec(['config', '--local', 'user.name', 'Someone']);
-  return fs.realpathSync(workingDirPath);
+  return realPath(workingDirPath);
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
@@ -190,6 +193,22 @@ export function isProcessAlive(pid) {
     alive = false;
   }
   return alive;
+}
+
+class UnwatchedDirectory extends Directory {
+  onDidChangeFiles(callback) {
+    return {dispose: () => {}};
+  }
+}
+
+export async function disableFilesystemWatchers(atomEnv) {
+  atomEnv.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
+    directoryForURISync(uri) {
+      return new UnwatchedDirectory(uri);
+    },
+  });
+
+  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0);
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
