@@ -188,18 +188,17 @@ function dialog(query) {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect({allowHalfOpen: true, path: sockPath}, () => {
+    const socket = net.connect(sockPath, () => {
       log('connection established');
 
       const parts = [];
 
       socket.on('data', data => parts.push(data));
       socket.on('end', () => {
-        const payload = parts.join('');
-        log(`Atom socket stream terminated\n${payload}\n`);
+        log('Atom socket stream terminated');
 
         try {
-          const reply = JSON.parse(payload);
+          const reply = JSON.parse(parts.join(''));
 
           const writeReply = function() {
             const lines = [];
@@ -218,13 +217,13 @@ function dialog(query) {
             writeReply();
           }
         } catch (e) {
-          log(`Unable to parse reply from Atom:\n${payload}\n${e.stack}`);
+          log(`Unable to parse reply from Atom:\n${e.stack}`);
           reject(e);
         }
       });
 
       log('writing payload');
-      socket.end(JSON.stringify(payload), 'utf8');
+      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
       log('payload written');
     });
     socket.setEncoding('utf8');
