@@ -14,7 +14,7 @@ Why are we doing this? What use cases does it support? What is the expected outc
 
 ## Explanation
 
-Explain the proposal as if it was already implemented in the Teletype package and you were describing it to an Atom user. That generally means:
+Explain the proposal as if it was already implemented in the GitHub package and you were describing it to an Atom user. That generally means:
 
 - Introducing new named concepts.
 - Explaining the feature largely in terms of examples.
