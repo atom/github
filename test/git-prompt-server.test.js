@@ -151,7 +151,7 @@ describe('GitPromptServer', function() {
         'quit=true\n');
     });
 
-    it('creates a flag file if remember is set to true', async function() {
+    it.stress(50, 'creates a flag file if remember is set to true', async function() {
       this.timeout(10000);
 
       function queryHandler(query) {
