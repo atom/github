@@ -7,6 +7,11 @@ import {isProcessAlive} from './helpers';
 describe('WorkerManager', function() {
   let workerManager;
   beforeEach(() => {
+    if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
+      this.skip();
+      return;
+    }
+
     workerManager = new WorkerManager();
   });
 
