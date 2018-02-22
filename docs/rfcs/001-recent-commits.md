@@ -76,8 +76,11 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 - Providing a bridge to navigate to an expanded log view that allows more flexible and powerful history exploration.
 - Show an info icon and provide introductory information when no commits exist yet.
 - Add a "view diff from this commit" option to the recent commit context menu.
+- Integration with and navigation to "git log" or "git show" pane items when they exist.
 
 ## Implementation phases
 
-- Can this functionality be introduced in multiple, distinct, self-contained pull requests?
-- A specification for when the feature is considered "done."
+1. List read-only commit information.
+2. Replace the amend checkbox with the "undo" control.
+3. Context menu with actions.
+4. Tooltip with action buttons and additional information.
