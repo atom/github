@@ -32,27 +32,27 @@ describe('GitPromptServer', function() {
     });
 
     async function runCredentialScript(command, queryHandler, processHandler) {
+      console.log('0');
       await server.start(queryHandler);
+      console.log('1');
 
-      let err, stdout, stderr;
-      await new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
+        console.log('2');
         const child = execFile(
           getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
-          (_err, _stdout, _stderr) => {
-            err = _err;
-            stdout = _stdout;
-            stderr = _stderr;
-            resolve();
+          (err, stdout, stderr) => {
+            console.log('3');
+            resolve({err, stdout, stderr});
           },
         );
+        console.log('3');
 
         child.stderr.on('data', console.log); // eslint-disable-line no-console
 
         processHandler(child);
+        console.log('4');
       });
-
-      return {err, stdout, stderr};
     }
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
