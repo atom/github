@@ -54,11 +54,11 @@ Major, cross-cutting refactoring efforts fit within this category. Our goals wit
 ##### Process
 
 1. Propose these changes first in a conversation in Slack, a stand-up, or another synchronous channel. The decisions to be made here are:
-  * Does this change make sense to people other than me?
-  * Will this impact other work in flight?
+    * Does this change make sense to people other than me?
+    * Will this impact other work in flight?
 2. Capture the context of the change in an issue, which can then be prioritized accordingly within our normal channels.
-  * Should we stop or delay existing work in favor of a refactoring?
-  * Should we leave it as-is until we complete other work that's more impactful?
+    * Should we stop or delay existing work in favor of a refactoring?
+    * Should we leave it as-is until we complete other work that's more impactful?
 3. When you're ready to begin refactoring, assign the issue to yourself and move it to "in progress" column on the [short-term roadmap project](https://github.com/atom/github/projects/8).
 4. Work in a feature branch in the `atom/github` repository and open a pull request to track your progress.
 5. Iteratively change code and tests until the change is complete and CI builds are green.
