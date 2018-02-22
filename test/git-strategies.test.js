@@ -937,6 +937,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
+        if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const workerManager = WorkerManager.getInstance();
@@ -1059,6 +1064,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
 
       it('fails the command on dialog cancel', async function() {
+        if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
+          this.skip();
+          return;
+        }
+
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {
