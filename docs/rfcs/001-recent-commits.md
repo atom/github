@@ -80,7 +80,8 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 
 ## Implementation phases
 
-1. List read-only commit information.
-2. Replace the amend checkbox with the "undo" control.
-3. Context menu with actions.
-4. Tooltip with action buttons and additional information.
+1. Convert `GitTabController` and `GitTabView` to React.
+2. List read-only commit information.
+3. Replace the amend checkbox with the "undo" control.
+4. Context menu with actions.
+5. Tooltip with action buttons and additional information.
