@@ -34,16 +34,12 @@ describe('GitPromptServer', function() {
     async function runCredentialScript(command, queryHandler, processHandler) {
       await server.start(queryHandler);
 
-      let err, stdout, stderr;
-      await new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         const child = execFile(
           getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
-          (_err, _stdout, _stderr) => {
-            err = _err;
-            stdout = _stdout;
-            stderr = _stderr;
-            resolve();
+          (err, stdout, stderr) => {
+            resolve({err, stdout, stderr});
           },
         );
 
@@ -51,8 +47,6 @@ describe('GitPromptServer', function() {
 
         processHandler(child);
       });
-
-      return {err, stdout, stderr};
     }
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
@@ -153,6 +147,7 @@ describe('GitPromptServer', function() {
 
     it('creates a flag file if remember is set to true', async function() {
       this.timeout(10000);
+      this.retries(5);
 
       function queryHandler(query) {
         return {
