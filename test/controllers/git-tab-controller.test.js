@@ -407,9 +407,11 @@ describe('GitTabController', function() {
     });
 
     describe('with staged changes', function() {
+      let repository;
+
       beforeEach(async function() {
         const workdirPath = await cloneRepository('each-staging-group');
-        const repository = await buildRepository(workdirPath);
+        repository = await buildRepository(workdirPath);
 
         // A staged file
         fs.writeFileSync(path.join(workdirPath, 'staged-1.txt'), 'This is a file with some changes staged for commit.');
@@ -423,8 +425,8 @@ describe('GitTabController', function() {
         app = React.cloneElement(app, {repository, ensureGitTab, prepareToCommit, didChangeAmending});
         wrapper = mount(app);
 
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
         extractReferences();
+        await assert.async.isTrue(commitView.props.stagedChangesExist);
       });
 
       it('focuses the CommitView on github:commit with an empty commit message', async function() {
@@ -440,12 +442,11 @@ describe('GitTabController', function() {
 
       it('creates a commit on github:commit with a nonempty commit message', async function() {
         commitView.editor.setText('I fixed the things');
-        sinon.spy(wrapper.instance().getWrappedComponentInstance(), 'commit');
-        wrapper.update();
+        sinon.spy(repository, 'commit');
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await until('Commit method called', () => wrapper.instance().getWrappedComponentInstance().commit.calledWith('I fixed the things'));
+        await until('Commit method called', () => repository.commit.calledWith('I fixed the things'));
       });
     });
   });
