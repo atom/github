@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import etch from 'etch';
+
+import React from 'react';
+import {mount} from 'enzyme';
 
 import dedent from 'dedent-js';
 import until from 'test-until';
@@ -16,6 +18,7 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config, tooltips;
   let resolutionProgress, refreshResolutionProgress;
+  let app;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
@@ -29,46 +32,61 @@ describe('GitTabController', function() {
 
     resolutionProgress = new ResolutionProgress();
     refreshResolutionProgress = sinon.spy();
+
+    const noop = () => {};
+
+    app = (
+      <GitTabController
+        workspace={workspace}
+        commandRegistry={commandRegistry}
+        grammars={atomEnvironment.grammars}
+        resolutionProgress={resolutionProgress}
+        notificationManager={notificationManager}
+        config={config}
+        project={atomEnvironment.project}
+        tooltips={tooltips}
+
+        confirm={noop}
+        ensureGitTab={noop}
+        refreshResolutionProgress={refreshResolutionProgress}
+        undoLastDiscard={noop}
+        discardWorkDirChangesForPaths={noop}
+        openFiles={noop}
+        didSelectFilePath={noop}
+        initializeRepo={noop}
+      />
+    );
   });
 
   afterEach(function() {
     atomEnvironment.destroy();
   });
 
-  it('displays a loading message in GitTabView while data is being fetched', async function() {
+  it.only('displays a loading message in GitTabView while data is being fetched', async function() {
     const workdirPath = await cloneRepository('three-files');
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath, 'b.txt'));
     const repository = new Repository(workdirPath);
     assert.isTrue(repository.isLoading());
 
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository,
-      resolutionProgress, refreshResolutionProgress,
-    });
+    app = React.cloneElement(app, {repository});
+    const wrapper = mount(app);
 
-    assert.strictEqual(controller.getActiveRepository(), repository);
-    assert.isTrue(controller.element.classList.contains('is-loading'));
-    assert.lengthOf(controller.element.querySelectorAll('.github-StagingView'), 1);
-    assert.lengthOf(controller.element.querySelectorAll('.github-CommitView'), 1);
+    assert.isTrue(wrapper.hasClass('is-loading'));
+    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
 
-    await repository.getLoadPromise();
-
-    await assert.async.isFalse(controller.element.classList.contains('is-loading'));
-    assert.lengthOf(controller.element.querySelectorAll('.github-StagingView'), 1);
-    assert.lengthOf(controller.element.querySelectorAll('.github-CommitView'), 1);
+    await assert.async.isFalse(wrapper.hasClass('is-loading'));
+    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
   });
 
   it('displays an initialization prompt for an absent repository', function() {
     const repository = Repository.absent();
 
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository,
-      resolutionProgress, refreshResolutionProgress,
-    });
+    app = React.cloneElement(app, {repository});
+    const wrapper = mount(app);
 
-    assert.isTrue(controller.element.classList.contains('is-empty'));
-    assert.isNotNull(controller.refs.noRepoMessage);
+    assert.isTrue(wrapper.hasClass('is-empty'));
+    assert.lengthOf(wrapper.find('.no-repository'), 1);
   });
 
   it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
@@ -79,53 +97,52 @@ describe('GitTabController', function() {
 
     fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath1, 'b.txt'));
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, resolutionProgress, refreshResolutionProgress,
-      repository: Repository.absent(),
-    });
+
+    app = React.cloneElement(app, {repository: Repository.absent()});
+    const wrapper = mount(app);
 
     // Renders empty GitTabView when there is no active repository
-    assert.isDefined(controller.refs.gitTab);
-    assert.isTrue(controller.getActiveRepository().isAbsent());
-    assert.isDefined(controller.refs.gitTab.refs.noRepoMessage);
+
+    assert.isTrue(wrapper.instance().getActiveRepository().isAbsent());
+    assert.lengthOf(wrapper.find('.no-repository'), 1);
 
     // Fetches data when a new repository is assigned
     // Does not update repository instance variable until that data is fetched
-    await controller.update({repository: repository1});
-    assert.equal(controller.getActiveRepository(), repository1);
-    assert.deepEqual(controller.refs.gitTab.props.unstagedChanges, await repository1.getUnstagedChanges());
+    wrapper.setProps({repository: repository1});
+    assert.strictEqual(wrapper.instance().getActiveRepository(), repository1);
+    assert.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository1.getUnstagedChanges());
 
-    await controller.update({repository: repository2});
-    assert.equal(controller.getActiveRepository(), repository2);
-    assert.deepEqual(controller.refs.gitTab.props.unstagedChanges, await repository2.getUnstagedChanges());
+    wrapper.setProps({repository: repository2});
+    assert.strictEqual(wrapper.instance().getActiveRepository(), repository2);
+    assert.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
 
     // Fetches data and updates child view when the repository is mutated
     fs.writeFileSync(path.join(workdirPath2, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath2, 'b.txt'));
     repository2.refresh();
-    await controller.getLastModelDataRefreshPromise();
-    await assert.async.deepEqual(controller.refs.gitTab.props.unstagedChanges, await repository2.getUnstagedChanges());
+
+    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
   });
 
   it('displays the staged changes since the parent commit when amending', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const ensureGitTab = () => Promise.resolve(false);
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
-      resolutionProgress, refreshResolutionProgress,
+
+    app = React.cloneElement(app, {
+      repository,
+      ensureGitTab,
       isAmending: false,
     });
-    await controller.getLastModelDataRefreshPromise();
-    await assert.async.deepEqual(controller.refs.gitTab.props.stagedChanges, []);
+    const wrapper = mount(app);
+
+    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), []);
 
     await repository.setAmending(true);
     await assert.async.deepEqual(
-      controller.refs.gitTab.props.stagedChanges,
-      await controller.getActiveRepository().getStagedChangesSinceParentCommit(),
+      wrapper.find('GitTabView').prop('stagedChanges'),
+      await wrapper.instance().getActiveRepository().getStagedChangesSinceParentCommit(),
     );
-
-    await controller.commit('Delete most of the code', {amend: true});
   });
 
   it('fetches conflict marker counts for conflicting files', async function() {
@@ -133,13 +150,14 @@ describe('GitTabController', function() {
     const repository = await buildRepository(workdirPath);
     await assert.isRejected(repository.git.merge('origin/branch'));
 
-    const rp = new ResolutionProgress();
-    rp.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
+    const resolutionProgress = new ResolutionProgress();
+    resolutionProgress.reportMarkerCount(path.join(workdirPath, 'added-to-both.txt'), 5);
 
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository, resolutionProgress: rp, refreshResolutionProgress,
+    app = React.cloneElement(app, {
+      repository,
+      resolutionProgress,
     });
-    await controller.getLastModelDataRefreshPromise();
+    const wrapper = mount(app);
 
     await assert.async.isTrue(refreshResolutionProgress.calledWith(path.join(workdirPath, 'modified-on-both-ours.txt')));
     assert.isTrue(refreshResolutionProgress.calledWith(path.join(workdirPath, 'modified-on-both-theirs.txt')));
@@ -154,10 +172,9 @@ describe('GitTabController', function() {
       await assert.isRejected(repository.git.merge('origin/branch'));
 
       const confirm = sinon.stub();
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, confirm, repository,
-        resolutionProgress, refreshResolutionProgress,
-      });
+      app = React.cloneElement(app, {repository});
+      const wrapper = mount(app);
+
       await controller.getLastModelDataRefreshPromise();
       let modelData = controller.repositoryObserver.getActiveModelData();
 
@@ -166,9 +183,9 @@ describe('GitTabController', function() {
       assert.isOk(modelData.mergeMessage);
 
       confirm.returns(0);
-      await controller.abortMerge();
+      await wrapper.instance().abortMerge();
       await until(() => {
-        modelData = controller.repositoryObserver.getActiveModelData();
+        modelData = wrapper.instance().repositoryObserver.getActiveModelData();
         return modelData.mergeConflicts.length === 0;
       });
       assert.isFalse(modelData.isMerging);
@@ -182,12 +199,13 @@ describe('GitTabController', function() {
       const repository = await buildRepository(workdirPath);
 
       const ensureGitTab = () => Promise.resolve(true);
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
-        resolutionProgress, refreshResolutionProgress,
+      app = React.cloneElement(app, {
+        repository,
+        ensureGitTab,
       });
+      const wrapper = mount(app);
 
-      assert.isFalse(await controller.prepareToCommit());
+      assert.isFalse(await wrapper.instance().prepareToCommit());
     });
 
     it('returns true if the git panel was already visible', async function() {
@@ -195,12 +213,13 @@ describe('GitTabController', function() {
       const repository = await buildRepository(workdirPath);
 
       const ensureGitTab = () => Promise.resolve(false);
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, repository, ensureGitTab,
-        resolutionProgress, refreshResolutionProgress,
+      app = React.cloneElement(app, {
+        repository,
+        ensureGitTab,
       });
+      const wrapper = mount(app);
 
-      assert.isTrue(await controller.prepareToCommit());
+      assert.isTrue(await wrapper.instance().prepareToCommit());
     });
   });
 
@@ -213,13 +232,14 @@ describe('GitTabController', function() {
         throw new GitError('message');
       });
 
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, notificationManager, repository,
-        resolutionProgress, refreshResolutionProgress,
+      app = React.cloneElement(app, {
+        repository,
       });
+      const wrapper = mount(app);
+
       notificationManager.clear(); // clear out any notifications
       try {
-        await controller.commit();
+        await wrapper.instance().commit();
       } catch (e) {
         assert(e, 'is error');
       }
@@ -232,13 +252,11 @@ describe('GitTabController', function() {
       repository.setAmending(true);
       sinon.stub(repository.git, 'commit').callsFake(() => Promise.resolve());
       const didChangeAmending = sinon.stub();
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, repository, didChangeAmending,
-        resolutionProgress, refreshResolutionProgress,
-      });
+      app = React.cloneElement(app, {repository});
+      const wrapper = mount(app);
 
       assert.isTrue(repository.isAmending());
-      await controller.commit('message');
+      await wrapper.instance().commit('message');
       assert.isFalse(repository.isAmending());
     });
   });
@@ -252,22 +270,21 @@ describe('GitTabController', function() {
     fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
     repository.refresh();
 
-    const controller = new GitTabController({
-      workspace, commandRegistry, tooltips, config, repository,
-      resolutionProgress, refreshResolutionProgress,
-    });
-    await controller.getLastModelDataRefreshPromise();
-    await etch.getScheduler().getNextUpdatePromise();
+    app = React.cloneElement(app, {repository});
+    const wrapper = mount(app);
 
-    const gitTab = controller.refs.gitTab;
+    await wrapper.instance().getLastModelDataRefreshPromise();
+    wrapper.update();
+
+    const gitTab = wrapper.instance().refs.gitTab;
     const stagingView = gitTab.refs.stagingView;
 
     sinon.spy(stagingView, 'setFocus');
 
-    await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
+    await wrapper.instance().focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
     const selections = Array.from(stagingView.selection.getSelectedItems());
-    assert.equal(selections.length, 1);
+    assert.lengthOf(selections, 1);
     assert.equal(selections[0].filePath, 'unstaged-2.txt');
 
     assert.equal(stagingView.setFocus.callCount, 1);
@@ -277,27 +294,23 @@ describe('GitTabController', function() {
     it('does nothing on an absent repository', function() {
       const repository = Repository.absent();
 
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, repository,
-        resolutionProgress, refreshResolutionProgress,
-      });
+      app = React.cloneElement(app, {repository});
+      const wrapper = mount(app);
 
-      assert.isTrue(controller.element.classList.contains('is-empty'));
-      assert.isNotNull(controller.refs.noRepoMessage);
+      assert.isTrue(wrapper.hasClass('is-empty'));
+      assert.lenghtOf(wrapper.find('.no-repository'), 1);
 
-      controller.rememberLastFocus({target: controller.element});
-      assert.strictEqual(controller.lastFocus, GitTabController.focus.STAGING);
-
-      controller.restoreFocus();
+      wrapper.instance().rememberLastFocus({target: null});
+      assert.strictEqual(wrapper.instance().lastFocus, GitTabController.focus.STAGING);
     });
   });
 
   describe('keyboard navigation commands', function() {
-    let controller, gitTab, stagingView, commitView, commitViewController, focusElement;
+    let wrapper, gitTab, stagingView, commitView, commitViewController, focusElement;
     const focuses = GitTabController.focus;
 
     const extractReferences = () => {
-      gitTab = controller.refs.gitTab;
+      gitTab = wrapper.instance().refs.gitTab;
       stagingView = gitTab.refs.stagingView;
       commitViewController = gitTab.refs.commitViewController;
       commitView = commitViewController.refs.commitView;
@@ -353,13 +366,9 @@ describe('GitTabController', function() {
 
         const didChangeAmending = () => {};
 
-        controller = new GitTabController({
-          workspace, commandRegistry, tooltips, config, repository,
-          resolutionProgress, refreshResolutionProgress,
-          didChangeAmending,
-        });
-        await controller.getLastModelDataRefreshPromise();
-        await etch.getScheduler().getNextUpdatePromise();
+        app = React.cloneElement(app, {repository});
+        wrapper = mount(app);
+        await wrapper.instance().getLastModelDataRefreshPromise();
 
         extractReferences();
       });
@@ -367,7 +376,7 @@ describe('GitTabController', function() {
       it('blurs on tool-panel:unfocus', function() {
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        commandRegistry.dispatch(controller.element, 'tool-panel:unfocus');
+        commandRegistry.dispatch(wrapper.getNode(), 'tool-panel:unfocus');
 
         assert.isTrue(workspace.getActivePane().activate.called);
       });
@@ -375,18 +384,18 @@ describe('GitTabController', function() {
       it('advances focus through StagingView groups and CommitView, but does not cycle', function() {
         assertSelected(['unstaged-1.txt']);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-next');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-next');
         assertSelected(['conflict-1.txt']);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-next');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-next');
         assertSelected(['staged-1.txt']);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-next');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-next');
         assertSelected(['staged-1.txt']);
         assert.strictEqual(focusElement, commitView.editorElement);
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
-        commandRegistry.dispatch(controller.element, 'core:focus-next');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-next');
         assertSelected(['staged-1.txt']);
         assert.strictEqual(focusElement, commitView.editorElement);
       });
@@ -394,17 +403,17 @@ describe('GitTabController', function() {
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
         gitTab.setFocus(focuses.EDITOR);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-previous');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-previous');
         assertSelected(['staged-1.txt']);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-previous');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-previous');
         assertSelected(['conflict-1.txt']);
 
-        commandRegistry.dispatch(controller.element, 'core:focus-previous');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-previous');
         assertSelected(['unstaged-1.txt']);
 
         // This should be a no-op.
-        commandRegistry.dispatch(controller.element, 'core:focus-previous');
+        commandRegistry.dispatch(wrapper.getNode(), 'core:focus-previous');
         assertSelected(['unstaged-1.txt']);
       });
     });
@@ -423,35 +432,32 @@ describe('GitTabController', function() {
         const prepareToCommit = () => Promise.resolve(true);
         const ensureGitTab = () => Promise.resolve(false);
 
-        controller = new GitTabController({
-          workspace, commandRegistry, tooltips, config, repository, didChangeAmending, prepareToCommit, ensureGitTab,
-          resolutionProgress, refreshResolutionProgress,
-        });
-        await controller.getLastModelDataRefreshPromise();
-        await etch.getScheduler().getNextUpdatePromise();
+        app = React.cloneElement(app, {repository, ensureGitTab, prepareToCommit, didChangeAmending});
+        wrapper = mount(app);
 
+        await wrapper.instance().getLastModelDataRefreshPromise();
         extractReferences();
       });
 
       it('focuses the CommitView on github:commit with an empty commit message', async function() {
         commitView.editor.setText('');
-        sinon.spy(controller, 'commit');
-        await etch.update(controller); // Ensure that the spy is passed to child components in props
+        sinon.spy(wrapper.instance(), 'commit');
+        wrapper.update();
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
         await assert.async.strictEqual(focusElement, commitView.editorElement);
-        assert.isFalse(controller.commit.called);
+        assert.isFalse(wrapper.instance().commit.called);
       });
 
       it('creates a commit on github:commit with a nonempty commit message', async function() {
         commitView.editor.setText('I fixed the things');
-        sinon.spy(controller, 'commit');
-        await etch.update(controller); // Ensure that the spy is passed to child components in props
+        sinon.spy(wrapper.instance(), 'commit');
+        wrapper.update();
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await until('Commit method called', () => controller.commit.calledWith('I fixed the things'));
+        await until('Commit method called', () => wrapper.instance().commit.calledWith('I fixed the things'));
       });
     });
   });
@@ -463,17 +469,17 @@ describe('GitTabController', function() {
       fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
       fs.unlinkSync(path.join(workdirPath, 'b.txt'));
       const ensureGitTab = () => Promise.resolve(false);
-      const controller = new GitTabController({
-        workspace, commandRegistry, tooltips, config, repository, ensureGitTab, didChangeAmending: sinon.stub(),
-        resolutionProgress, refreshResolutionProgress,
-      });
-      await controller.getLastModelDataRefreshPromise();
-      await etch.getScheduler().getNextUpdatePromise();
-      const stagingView = controller.refs.gitTab.refs.stagingView;
-      const commitView = controller.refs.gitTab.refs.commitViewController.refs.commitView;
 
-      assert.lengthOf(stagingView.props.unstagedChanges, 2);
-      assert.lengthOf(stagingView.props.stagedChanges, 0);
+      app = React.cloneElement(app, {repository, ensureGitTab});
+      const wrapper = mount(app);
+
+      await wrapper.instance().getLastModelDataRefreshPromise();
+
+      const stagingView = wrapper.ref('gitTab').refs.stagingView;
+      const commitView = controller.ref('gitTab').refs.commitViewController.refs.commitView;
+
+      assert.lengthOf(stagingView.prop('unstagedChanges'), 2);
+      assert.lengthOf(stagingView.prop('stagedChanges'), 0);
 
       stagingView.dblclickOnItem({}, stagingView.props.unstagedChanges[0]);
 
