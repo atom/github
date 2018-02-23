@@ -57,12 +57,14 @@ export async function sha(directory) {
 /*
  * Initialize an empty repository at a temporary path.
  */
-export async function initRepository(repoName) {
+export async function initRepository() {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   const git = new GitShellOutStrategy(workingDirPath);
   await git.exec(['init']);
   await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
   await git.exec(['config', '--local', 'user.name', 'Someone']);
+  await git.exec(['config', '--local', 'core.autocrlf', 'false']);
+  await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
   return realPath(workingDirPath);
 }
 
