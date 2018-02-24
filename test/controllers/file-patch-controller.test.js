@@ -556,7 +556,7 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
       });
 
-      it.stress(20, 'stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
+      it.stress(100, 'stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
         const absFilePath = path.join(workdirPath, filePath);
         const originalLines = fs.readFileSync(absFilePath, 'utf8').split('\n');
 
