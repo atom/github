@@ -123,9 +123,11 @@ describe('WorkdirCache', function() {
       Array(6).fill(null, 0, 6).map(() => cloneRepository('three-files')),
     );
 
-    await Promise.all(dirs.map(dir => cache.find(dir)));
-    const expectedDir = dirs[5];
+    await Promise.all(dirs.slice(0, 5).map(dir => cache.find(dir)));
+    console.log('----');
+    await cache.find(dirs[5]);
 
+    const expectedDir = dirs[2];
     sinon.spy(cache, 'revParse');
     const actualDir = await cache.find(expectedDir);
     assert.strictEqual(actualDir, expectedDir);
