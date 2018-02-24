@@ -124,7 +124,7 @@ describe('WorkdirCache', function() {
     );
 
     await Promise.all(dirs.map(dir => cache.find(dir)));
-    const expectedDir = dirs[1];
+    const expectedDir = dirs[5];
 
     sinon.spy(cache, 'revParse');
     const actualDir = await cache.find(expectedDir);
