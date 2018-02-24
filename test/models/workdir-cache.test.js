@@ -124,7 +124,6 @@ describe('WorkdirCache', function() {
     );
 
     await Promise.all(dirs.slice(0, 5).map(dir => cache.find(dir)));
-    console.log('----');
     await cache.find(dirs[5]);
 
     const expectedDir = dirs[2];
