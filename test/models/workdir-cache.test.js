@@ -118,7 +118,7 @@ describe('WorkdirCache', function() {
     assert.isTrue(cache.revParse.calledWith(dir1));
   });
 
-  it.stress(50, 'clears the cache when the maximum size is exceeded', async function() {
+  it('clears the cache when the maximum size is exceeded', async function() {
     const dirs = await Promise.all(
       Array(6).fill(null, 0, 6).map(() => cloneRepository('three-files')),
     );
