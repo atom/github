@@ -128,7 +128,7 @@ describe('WorkdirCache', function() {
 
     sinon.spy(cache, 'revParse');
     const actualDir = await cache.find(expectedDir);
-    assert.equal(actualDir, expectedDir);
+    assert.strictEqual(actualDir, expectedDir);
     assert.isTrue(cache.revParse.called);
   });
 });
