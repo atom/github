@@ -1049,6 +1049,10 @@ describe('Repository', function() {
         () => repository.getLastCommit(),
       );
       calls.set(
+        'getRecentCommits',
+        () => repository.getRecentCommits(),
+      );
+      calls.set(
         'getBranches',
         () => repository.getBranches(),
       );
