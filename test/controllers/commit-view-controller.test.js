@@ -1,8 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-
-import etch from 'etch';
-import until from 'test-until';
+import React from 'react';
+import {shallow} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
 import {writeFile} from '../../lib/helpers';
@@ -11,19 +10,42 @@ import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 
 describe('CommitViewController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, grammars, lastCommit, config, confirm, tooltips;
+  let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
+  let app;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commandRegistry = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
-    grammars = atomEnvironment.grammars;
     config = atomEnvironment.config;
     tooltips = atomEnvironment.tooltips;
     confirm = sinon.stub(atomEnvironment, 'confirm');
 
     lastCommit = new Commit('a1e23fd45', 'last commit message');
+    const noop = () => {};
+
+    app = (
+      <CommitViewController
+        workspace={workspace}
+        grammars={atomEnvironment.grammars}
+        commandRegistry={commandRegistry}
+        tooltips={tooltips}
+        config={config}
+        notificationManager={notificationManager}
+        repository={{}}
+        isMerging={false}
+        isAmending={false}
+        mergeConflictsExist={false}
+        stagedChangesExist={false}
+        mergeMessage={''}
+        lastCommit={lastCommit}
+        prepareToCommit={noop}
+        commit={noop}
+        didMoveUpOnFirstLine={noop}
+        abortMerge={noop}
+      />
+    );
   });
 
   afterEach(function() {
@@ -35,135 +57,132 @@ describe('CommitViewController', function() {
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
-    const controller = new CommitViewController({
-      workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository: repository1,
-    });
 
-    assert.equal(controller.getRegularCommitMessage(), '');
-    assert.equal(controller.getAmendingCommitMessage(), '');
+    app = React.cloneElement(app, {repository: repository1});
+    const wrapper = shallow(app);
 
-    controller.setRegularCommitMessage('regular message 1');
-    controller.setAmendingCommitMessage('amending message 1');
+    assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
+    assert.strictEqual(wrapper.instance().getAmendingCommitMessage(), '');
 
-    await controller.update({repository: repository2});
-    assert.equal(controller.getRegularCommitMessage(), '');
-    assert.equal(controller.getAmendingCommitMessage(), '');
+    wrapper.instance().setRegularCommitMessage('regular message 1');
+    wrapper.instance().setAmendingCommitMessage('amending message 1');
 
-    await controller.update({repository: repository1});
-    assert.equal(controller.getRegularCommitMessage(), 'regular message 1');
-    assert.equal(controller.getAmendingCommitMessage(), 'amending message 1');
+    wrapper.setProps({repository: repository2});
+
+    assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
+    assert.strictEqual(wrapper.instance().getAmendingCommitMessage(), '');
+
+    wrapper.setProps({repository: repository1});
+    assert.equal(wrapper.instance().getRegularCommitMessage(), 'regular message 1');
+    assert.equal(wrapper.instance().getAmendingCommitMessage(), 'amending message 1');
   });
 
   describe('the passed commit message', function() {
-    let controller, commitView;
+    let repository;
+
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      controller = new CommitViewController({workspace, commandRegistry, tooltips, config, notificationManager, lastCommit, repository});
-      commitView = controller.refs.commitView;
+      repository = await buildRepository(workdirPath);
+      app = React.cloneElement(app, {repository});
     });
 
-    it('is set to the getRegularCommitMessage() in the default case', async function() {
-      controller.setRegularCommitMessage('regular message');
-      await controller.update();
-      assert.equal(commitView.props.message, 'regular message');
+    it('is set to the getRegularCommitMessage() in the default case', function() {
+      repository.setRegularCommitMessage('regular message');
+      const wrapper = shallow(app);
+      assert.strictEqual(wrapper.find('CommitView').prop('message'), 'regular message');
     });
 
     describe('when isAmending is true', function() {
-      it('is set to the last commits message if getAmendingCommitMessage() is blank', async function() {
-        controller.setAmendingCommitMessage('amending commit message');
-        await controller.update({isAmending: true, lastCommit});
-        assert.equal(commitView.props.message, 'amending commit message');
+      it("is set to the last commit's message if getAmendingCommitMessage() is blank", function() {
+        repository.setAmendingCommitMessage('');
+        app = React.cloneElement(app, {isAmending: true, lastCommit});
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'last commit message');
       });
 
-      it('is set to getAmendingCommitMessage() if it is set', async function() {
-        controller.setAmendingCommitMessage('amending commit message');
-        await controller.update({isAmending: true, lastCommit});
-        assert.equal(commitView.props.message, 'amending commit message');
+      it('is set to getAmendingCommitMessage() if it is set', function() {
+        repository.setAmendingCommitMessage('amending commit message');
+        app = React.cloneElement(app, {isAmending: true, lastCommit});
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'amending commit message');
       });
     });
 
     describe('when a merge message is defined', function() {
-      it('is set to the merge message when merging', async function() {
-        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
-        assert.equal(commitView.props.message, 'merge conflict!');
+      it('is set to the merge message when merging', function() {
+        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'merge conflict!');
       });
 
-      it('is set to getRegularCommitMessage() if it is set', async function() {
-        controller.setRegularCommitMessage('regular commit message');
-        await controller.update({isMerging: true, mergeMessage: 'merge conflict!'});
-        assert.equal(commitView.props.message, 'regular commit message');
+      it('is set to getRegularCommitMessage() if it is set', function() {
+        repository.setRegularCommitMessage('regular commit message');
+        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'regular commit message');
       });
     });
   });
 
   describe('committing', function() {
-    let controller, workdirPath, repository;
+    let workdirPath, repository;
 
     beforeEach(async function() {
       workdirPath = await cloneRepository('three-files');
       repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
       const commit = message => repository.commit(message);
 
-      controller = new CommitViewController({
-        workspace,
-        commandRegistry,
-        notificationManager,
-        grammars,
-        config,
-        tooltips,
-        lastCommit,
-        repository,
-        commit,
-      });
-    });
-
-    afterEach(() => {
-      controller.destroy();
+      app = React.cloneElement(app, {repository, commit});
     });
 
     it('clears the regular and amending commit messages', async function() {
-      controller.setRegularCommitMessage('regular');
-      controller.setAmendingCommitMessage('amending');
+      repository.setRegularCommitMessage('regular');
+      repository.setAmendingCommitMessage('amending');
 
       await writeFile(path.join(workdirPath, 'a.txt'), 'some changes');
       await repository.git.exec(['add', '.']);
-      await controller.commit('message');
 
-      assert.equal(controller.getRegularCommitMessage(), '');
-      assert.equal(controller.getAmendingCommitMessage(), '');
+      const wrapper = shallow(app);
+      await wrapper.instance().commit('message');
+
+      assert.strictEqual(repository.getRegularCommitMessage(), '');
+      assert.strictEqual(repository.getAmendingCommitMessage(), '');
     });
 
     it('issues a notification on failure', async function() {
-      controller.setRegularCommitMessage('regular');
-      controller.setAmendingCommitMessage('amending');
+      repository.setRegularCommitMessage('regular');
+      repository.setAmendingCommitMessage('amending');
 
       sinon.spy(notificationManager, 'addError');
 
+      const wrapper = shallow(app);
+
       // Committing with no staged changes should cause commit error
       try {
-        await controller.commit('message');
+        await wrapper.instance().commit('message');
       } catch (e) {
         assert(e, 'is error');
       }
 
       assert.isTrue(notificationManager.addError.called);
 
-      assert.equal(controller.getRegularCommitMessage(), 'regular');
-      assert.equal(controller.getAmendingCommitMessage(), 'amending');
+      assert.strictEqual(repository.getRegularCommitMessage(), 'regular');
+      assert.strictEqual(repository.getAmendingCommitMessage(), 'amending');
     });
 
     describe('message formatting', function() {
       let commitSpy;
       beforeEach(function() {
         commitSpy = sinon.stub().returns(Promise.resolve());
-        controller.update({commit: commitSpy});
+        app = React.cloneElement(app, {commit: commitSpy});
       });
 
       it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
         config.set('github.automaticCommitMessageWrapping', false);
 
-        await controller.commit([
+        const wrapper = shallow(app);
+
+        await wrapper.instance().commit([
           'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
           '',
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
@@ -178,7 +197,7 @@ describe('CommitViewController', function() {
         commitSpy.reset();
         config.set('github.automaticCommitMessageWrapping', true);
 
-        await controller.commit([
+        await wrapper.instance().commit([
           'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
           '',
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
@@ -195,82 +214,86 @@ describe('CommitViewController', function() {
 
     describe('toggling between commit box and commit editor', function() {
       it('transfers the commit message contents of the last editor', async function() {
-        controller.refs.commitView.editor.setText('message in box');
+        const wrapper = shallow(app);
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
-        await assert.async.isTrue(controller.refs.commitView.props.deactivateCommitBox);
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
+        await assert.async.equal(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
+        assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
+
         const editor = workspace.getActiveTextEditor();
-        assert.equal(editor.getText(), 'message in box');
-
+        assert.strictEqual(editor.getText(), 'message in box');
         editor.setText('message in editor');
         await editor.save();
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
+        workspace.paneForItem(editor).splitRight({copyActiveItem: true});
         await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
 
-        sinon.spy(controller.refs.commitView, 'update');
         editor.destroy();
-        await until(() => controller.refs.commitView.update.called);
-        assert.equal(controller.refs.commitView.editor.getText(), 'message in box');
-        assert.isTrue(controller.refs.commitView.props.deactivateCommitBox);
+        assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
 
         workspace.getActiveTextEditor().destroy();
-        await assert.async.isFalse(controller.refs.commitView.props.deactivateCommitBox);
-        await assert.async.equal(controller.refs.commitView.editor.getText(), 'message in editor');
+        assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
+        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), 'message in editor');
       });
 
       it('transfers the commit message contents when in amending state', async function() {
         const originalMessage = 'message in box before amending';
-        controller.refs.commitView.editor.setText(originalMessage);
+        repository.setRegularCommitMessage(originalMessage);
+        const wrapper = shallow(app);
 
-        await controller.update({isAmending: true, lastCommit});
-        assert.equal(controller.refs.commitView.editor.getText(), lastCommit.getMessage());
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), originalMessage);
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        wrapper.setProps({isAmending: true, lastCommit});
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), lastCommit.getMessage());
+
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')(lastCommit.getMessage());
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
         const editor = workspace.getActiveTextEditor();
-        assert.equal(editor.getText(), lastCommit.getMessage());
+        assert.strictEqual(editor.getText(), lastCommit.getMessage());
 
         const amendedMessage = lastCommit.getMessage() + 'plus some changes';
         editor.setText(amendedMessage);
         await editor.save();
-
         editor.destroy();
-        await assert.async.equal(controller.refs.commitView.editor.getText(), amendedMessage);
 
-        await controller.update({isAmending: false});
-        await assert.async.equal(controller.refs.commitView.editor.getText(), originalMessage);
+        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), amendedMessage);
 
-        await controller.update({isAmending: true, lastCommit});
-        assert.equal(controller.refs.commitView.editor.getText(), amendedMessage);
+        wrapper.setProps({isAmending: false});
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), originalMessage);
+
+        wrapper.setProps({isAmending: true});
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), amendedMessage);
       });
 
       it('activates editor if already opened but in background', async function() {
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const wrapper = shallow(app);
+
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
         const editor = workspace.getActiveTextEditor();
 
         await workspace.open(path.join(workdirPath, 'a.txt'));
         workspace.getActivePane().splitRight();
         await workspace.open(path.join(workdirPath, 'b.txt'));
-        assert.notEqual(workspace.getActiveTextEditor(), editor);
+        assert.notStrictEqual(workspace.getActiveTextEditor(), editor);
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor(), editor);
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
+        await assert.async.strictEqual(workspace.getActiveTextEditor(), editor);
       });
 
       it('closes all open commit message editors if one is in the foreground of a pane, prompting for unsaved changes', async function() {
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
+        const wrapper = shallow(app);
+
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
 
         const editor = workspace.getActiveTextEditor();
-        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
-        assert.equal(controller.getCommitMessageEditors().length, 2);
+        workspace.paneForItem(editor).splitRight({copyActiveItem: true});
+        assert.lengthOf(wrapper.instance().getCommitMessageEditors(), 2);
 
         // Activate another editor but keep commit message editor in foreground of inactive pane
         await workspace.open(path.join(workdirPath, 'a.txt'));
-        assert.notEqual(workspace.getActiveTextEditor(), editor);
+        assert.notStrictEqual(workspace.getActiveTextEditor(), editor);
 
         editor.setText('make some new changes');
 
@@ -281,65 +304,62 @@ describe('CommitViewController', function() {
           }
           return 0; // TODO: Remove this return and typeof check once https://github.com/atom/atom/pull/16229 is on stable
         });
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(controller.getCommitMessageEditors().length, 0);
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
+        await assert.async.lengthOf(wrapper.instance().getCommitMessageEditors(), 0);
         assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
-        await assert.async.equal(controller.refs.commitView.editor.getText(), 'make some new changes');
+        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), 'make some new changes');
       });
     });
 
     describe('committing from commit editor', function() {
       it('uses git commit grammar in the editor', async function() {
+        const wrapper = shallow(app);
         await atomEnvironment.packages.activatePackage('language-git');
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
       });
 
       it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
         await repository.stageFiles(['a.txt']);
 
-        await controller.update({
-          prepareToCommit: () => true,
-          stagedChangesExist: true,
-        });
+        app = React.cloneElement(app, {prepareToCommit: () => true, stagedChangesExist: true});
+        const wrapper = shallow(app);
 
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
 
-        await assert.async.isTrue(controller.refs.commitView.isCommitButtonEnabled());
         const editor = workspace.getActiveTextEditor();
-        assert.equal(editor.getPath(), controller.getCommitMessagePath());
-
         editor.setText('message in editor');
         await editor.save();
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
+        wrapper.find('CommitView').prop('commit')('message in box');
 
-        await assert.async.equal((await repository.getLastCommit()).getMessage(), 'message in editor');
-        await assert.async.isFalse(fs.existsSync(controller.getCommitMessagePath()));
+        await assert.async.strictEqual((await repository.getLastCommit()).getMessage(), 'message in editor');
+        await assert.async.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
       });
 
       it('asks user to confirm if commit editor has unsaved changes', async function() {
-        sinon.stub(repository.git, 'commit');
-        await controller.update({confirm, prepareToCommit: () => true, stagedChangesExist: true});
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:toggle-expanded-commit-message-editor');
-        await assert.async.equal(workspace.getActiveTextEditor().getPath(), controller.getCommitMessagePath());
-        const editor = workspace.getActiveTextEditor();
+        app = React.cloneElement(app, {confirm, prepareToCommit: () => true, stagedChangesExist: true});
+        const wrapper = shallow(app);
 
+        sinon.stub(repository.git, 'commit');
+        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
+        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
+
+        const editor = workspace.getActiveTextEditor();
         editor.setText('unsaved changes');
-        commandRegistry.dispatch(atomEnvironment.views.getView(editor), 'pane:split-right-and-copy-active-item');
-        await assert.async.notEqual(workspace.getActiveTextEditor(), editor);
-        assert.equal(workspace.getTextEditors().length, 2);
+        workspace.paneForItem(editor).splitRight({copyActiveItem: true});
+        await assert.async.notStrictEqual(workspace.getActiveTextEditor(), editor);
+        assert.lengthOf(workspace.getTextEditors(), 2);
 
         confirm.returns(1); // Cancel
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
-        await etch.getScheduler().getNextUpdatePromise();
-        assert.equal(repository.git.commit.callCount, 0);
+        wrapper.find('CommitView').prop('commit')('message in box');
+        assert.strictEqual(repository.git.commit.callCount, 0);
 
         confirm.returns(0); // Commit
-        commandRegistry.dispatch(atomEnvironment.views.getView(workspace), 'github:commit');
-        await etch.getScheduler().getNextUpdatePromise();
+        wrapper.find('CommitView').prop('commit')('message in box');
         await assert.async.equal(repository.git.commit.callCount, 1);
-        assert.equal(workspace.getTextEditors().length, 0);
+        await assert.async.lengthOf(workspace.getTextEditors(), 0);
       });
     });
   });
