@@ -1,12 +1,13 @@
-import {cloneRepository, buildRepository} from '../helpers';
-import etch from 'etch';
-import until from 'test-until';
+import React from 'react';
+import {shallow, mount} from 'enzyme';
 
+import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
 import CommitView from '../../lib/views/commit-view';
 
-describe('CommitView', function() {
+describe.only('CommitView', function() {
   let atomEnv, commandRegistry, tooltips, config, lastCommit;
+  let app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -15,6 +16,29 @@ describe('CommitView', function() {
     config = atomEnv.config;
 
     lastCommit = new Commit('1234abcd', 'commit message');
+    const noop = () => {};
+
+    app = (
+      <CommitView
+        commandRegistry={commandRegistry}
+        tooltips={tooltips}
+        config={config}
+        lastCommit={lastCommit}
+        isAmending={false}
+        isMerging={false}
+        stagedChangesExist={false}
+        mergeConflictsExist={false}
+        isCommitting={false}
+        deactivateCommitBox={false}
+        maximumCharacterLimit={72}
+        message=""
+        commit={noop}
+        abortMerge={noop}
+        setAmending={noop}
+        onChangeMessage={noop}
+        toggleExpandedCommitMessageEditor={noop}
+      />
+    );
   });
 
   afterEach(function() {
@@ -22,224 +46,211 @@ describe('CommitView', function() {
   });
 
   describe('when the repo is loading', function() {
-    let view;
-
     beforeEach(function() {
-      view = new CommitView({
-        commandRegistry, tooltips, config, lastCommit: nullCommit,
-        stagedChangesExist: false, maximumCharacterLimit: 72, message: '',
-      });
+      app = React.cloneElement(app, {lastCommit: nullCommit});
     });
 
     it("doesn't show the amend checkbox", function() {
-      assert.isUndefined(view.refs.amend);
+      const wrapper = shallow(app);
+      assert.isFalse(wrapper.find('.github-CommitView-amend').exists());
     });
 
-    it('disables the commit button', async function() {
-      view.refs.editor.setText('even with text');
-      await view.update({});
+    it('disables the commit button', function() {
+      app = React.cloneElement(app, {message: 'even with text'});
+      const wrapper = shallow(app);
 
-      assert.isTrue(view.refs.commitButton.disabled);
+      assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
     });
   });
 
-  it('displays the remaining characters limit based on which line is being edited', async function() {
-    const view = new CommitView({
-      commandRegistry, tooltips, config, lastCommit,
-      stagedChangesExist: true, maximumCharacterLimit: 72, message: '',
-    });
-    assert.equal(view.refs.remainingCharacters.textContent, '72');
+  it('displays the remaining characters limit based on which line is being edited', function() {
+    const wrapper = mount(app);
+    const remaining = wrapper.find('.github-CommitView-remaining-characters');
+    assert.strictEqual(remaining.text(), '72');
 
-    await view.update({message: 'abcde fghij'});
-    assert.equal(view.refs.remainingCharacters.textContent, '61');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({message: 'abcde fghij'});
+    assert.strictEqual(remaining.text(), '61');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isFalse(remaining.hasClass('is-warning'));
 
-    await view.update({message: '\nklmno'});
-    assert.equal(view.refs.remainingCharacters.textContent, '∞');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({message: '\nklmno'});
+    assert.strictEqual(remaining.text(), '∞');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isFalse(remaining.hasClass('is-warning'));
 
-    await view.update({message: 'abcde\npqrst'});
-    assert.equal(view.refs.remainingCharacters.textContent, '∞');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({message: 'abcde\npqrst'});
+    assert.strictEqual(remaining.text(), '∞');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isFalse(remaining.hasClass('is-warning'));
 
-    view.editor.setCursorBufferPosition([0, 3]);
-    await etch.getScheduler().getNextUpdatePromise();
-    assert.equal(view.refs.remainingCharacters.textContent, '67');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.find('atom-text-editor').getNode().getModel().setCursorBufferPosition([0, 3]);
+    wrapper.update();
+    assert.strictEqual(remaining.text(), '67');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isFalse(remaining.hasClass('is-warning'));
 
-    await view.update({stagedChangesExist: true, maximumCharacterLimit: 50});
-    assert.equal(view.refs.remainingCharacters.textContent, '45');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({stagedChangesExist: true, maximumCharacterLimit: 50});
+    assert.strictEqual(remaining.text(), '45');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isFalse(remaining.hasClass('is-warning'));
 
-    await view.update({message: 'a'.repeat(41)});
-    assert.equal(view.refs.remainingCharacters.textContent, '9');
-    assert(!view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({message: 'a'.repeat(41)});
+    assert.strictEqual(remaining.text(), '9');
+    assert.isFalse(remaining.hasClass('is-error'));
+    assert.isTrue(remaining.hasClass('is-warning'));
 
-    await view.update({message: 'a'.repeat(58)});
-    assert.equal(view.refs.remainingCharacters.textContent, '-8');
-    assert(view.refs.remainingCharacters.classList.contains('is-error'));
-    assert(!view.refs.remainingCharacters.classList.contains('is-warning'));
+    wrapper.setProps({message: 'a'.repeat(58)});
+    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '-8');
+    assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
+    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
   });
 
   describe('the commit button', function() {
-    let view, editor, commitButton;
+    let wrapper, commitButton;
 
     beforeEach(async function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
-      const viewState = {};
-      view = new CommitView({
-        repository, commandRegistry, tooltips, config, lastCommit,
-        stagedChangesExist: true, mergeConflictsExist: false, viewState,
+
+      app = React.cloneElement(app, {
+        repository,
+        stagedChangesExist: true,
+        mergeConflictsExist: false,
+        message: 'something',
       });
-      editor = view.refs.editor;
-      commitButton = view.refs.commitButton;
+      wrapper = mount(app);
 
-      editor.setText('something');
-      await etch.getScheduler().getNextUpdatePromise();
+      commitButton = wrapper.find('.github-CommitView-commit');
     });
 
-    it('is disabled when no changes are staged', async function() {
-      await view.update({stagedChangesExist: false});
-      assert.isTrue(commitButton.disabled);
+    it('is disabled when no changes are staged', function() {
+      wrapper.setProps({stagedChangesExist: false});
+      assert.isTrue(commitButton.prop('disabled'));
 
-      await view.update({stagedChangesExist: true});
-      assert.isFalse(commitButton.disabled);
+      wrapper.setProps({stagedChangesExist: true});
+      assert.isFalse(commitButton.prop('disabled'));
     });
 
-    it('is disabled when there are merge conflicts', async function() {
-      await view.update({mergeConflictsExist: false});
-      assert.isFalse(commitButton.disabled);
+    it('is disabled when there are merge conflicts', function() {
+      wrapper.setProps({mergeConflictsExist: true});
+      assert.isTrue(commitButton.prop('disabled'));
 
-      await view.update({mergeConflictsExist: true});
-      assert.isTrue(commitButton.disabled);
+      wrapper.setProps({mergeConflictsExist: false});
+      assert.isFalse(commitButton.prop('disabled'));
     });
 
-    it('is disabled when the commit message is empty', async function() {
-      editor.setText('');
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.isTrue(commitButton.disabled);
+    it('is disabled when the commit message is empty', function() {
+      wrapper.setProps({message: ''});
+      assert.isTrue(commitButton.prop('disabled'));
 
-      editor.setText('Not empty');
-      await etch.getScheduler().getNextUpdatePromise();
-      assert.isFalse(commitButton.disabled);
+      wrapper.setProps({message: 'Not empty'});
+      assert.isFalse(commitButton.prop('disabled'));
     });
   });
 
   describe('committing', function() {
-    let view, commit, prepareToCommitResolution;
-    let editor, commitButton, workspaceElement;
+    let commit, prepareToCommitResolution;
+    let wrapper, editorElement, editor, commitButton, workspaceElement;
 
-    beforeEach(async function() {
+    beforeEach(function() {
       const prepareToCommit = () => Promise.resolve(prepareToCommitResolution);
 
       commit = sinon.spy();
-      view = new CommitView({
-        commandRegistry, tooltips, config, lastCommit,
-        stagedChangesExist: true, prepareToCommit, commit, message: 'Something',
-      });
-      sinon.spy(view.editorElement, 'focus');
+      app = React.cloneElement(app, {stagedChangesExist: true, prepareToCommit, commit, message: 'Something'});
+      wrapper = mount(app);
 
-      editor = view.refs.editor;
-      commitButton = view.refs.commitButton;
+      editorElement = wrapper.find('atom-text-editor').getNode();
+      sinon.spy(editorElement, 'focus');
+      editor = editorElement.getModel();
+
+      commitButton = wrapper.find('.github-CommitView-commit');
 
       workspaceElement = atomEnv.views.getView(atomEnv.workspace);
-
-      await view.update();
     });
 
     describe('when props.prepareToCommit() resolves true', function() {
-      beforeEach(function() { prepareToCommitResolution = true; });
+      beforeEach(function() {
+        prepareToCommitResolution = true;
+      });
 
       it('calls props.commit(message) when the commit button is clicked', async function() {
-        commitButton.dispatchEvent(new MouseEvent('click'));
+        commitButton.simulate('click');
 
-        await until('props.commit() is called', () => commit.calledWith('Something'));
+        await assert.async.isTrue(commit.calledWith('Something'));
 
         // undo history is cleared
-        commandRegistry.dispatch(editor.element, 'core:undo');
+        commandRegistry.dispatch(editorElement, 'core:undo');
         assert.equal(editor.getText(), '');
       });
 
       it('calls props.commit(message) when github:commit is dispatched', async function() {
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await until('props.commit() is called', () => commit.calledWith('Something'));
+        await assert.async.isTrue(commit.calledWith('Something'));
       });
     });
 
     describe('when props.prepareToCommit() resolves false', function() {
-      beforeEach(function() { prepareToCommitResolution = false; });
+      beforeEach(function() {
+        prepareToCommitResolution = false;
+      });
 
       it('takes no further action when the commit button is clicked', async function() {
-        commitButton.dispatchEvent(new MouseEvent('click'));
+        commitButton.simulate('click');
 
-        await assert.async.isTrue(view.editorElement.focus.called);
+        await assert.async.isTrue(editorElement.focus.called);
         assert.isFalse(commit.called);
       });
 
       it('takes no further action when github:commit is dispatched', async function() {
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await assert.async.isTrue(view.editorElement.focus.called);
+        await assert.async.isTrue(editorElement.focus.called);
         assert.isFalse(commit.called);
       });
     });
   });
 
-  it('shows the "Abort Merge" button when props.isMerging is true', async function() {
-    const view = new CommitView({commandRegistry, tooltips, config, lastCommit, stagedChangesExist: true, isMerging: false});
-    assert.isUndefined(view.refs.abortMergeButton);
+  it('shows the "Abort Merge" button when props.isMerging is true', function() {
+    app = React.cloneElement(app, {isMerging: true});
+    const wrapper = shallow(app);
+    assert.isTrue(wrapper.find('.github-CommitView-abortMerge').exists());
 
-    await view.update({isMerging: true});
-    assert.isDefined(view.refs.abortMergeButton);
-
-    await view.update({isMerging: false});
-    assert.isUndefined(view.refs.abortMergeButton);
+    wrapper.setProps({isMerging: false});
+    assert.isFalse(wrapper.find('.github-CommitView-abortMerge').exists());
   });
 
   it('calls props.abortMerge() when the "Abort Merge" button is clicked', function() {
-    const abortMerge = sinon.spy(() => Promise.resolve());
-    const view = new CommitView({
-      commandRegistry, tooltips, config, lastCommit,
-      stagedChangesExist: true, isMerging: true, abortMerge,
-    });
-    const {abortMergeButton} = view.refs;
-    abortMergeButton.dispatchEvent(new MouseEvent('click'));
-    assert(abortMerge.calledOnce);
+    const abortMerge = sinon.stub().resolves();
+    app = React.cloneElement(app, {abortMerge, stagedChangesExist: true, isMerging: true});
+    const wrapper = shallow(app);
+
+    wrapper.find('.github-CommitView-abortMerge').simulate('click');
+    assert.isTrue(abortMerge.calledOnce);
   });
 
   describe('amending', function() {
     it('calls props.setAmending() when the box is checked or unchecked', function() {
       const previousCommit = new Commit('111', "previous commit's message");
-
       const setAmending = sinon.spy();
-      const view = new CommitView({
-        commandRegistry, tooltips, config,
-        stagedChangesExist: false, lastCommit: previousCommit, setAmending,
-      });
-      const {amend} = view.refs;
 
-      amend.click();
+      app = React.cloneElement(app, {stagedChangesExist: false, lastCommit: previousCommit, setAmending});
+      const wrapper = mount(app);
+
+      wrapper.setProps({isAmending: true});
+      wrapper.find('.github-CommitView-amend').simulate('click');
       assert.deepEqual(setAmending.args, [[true]]);
 
-      amend.click();
+      wrapper.setProps({isAmending: false});
+      wrapper.find('.github-CommitView-amend').simulate('click');
       assert.deepEqual(setAmending.args, [[true], [false]]);
     });
 
     it('is hidden when HEAD is an unborn ref', function() {
-      const view = new CommitView({
-        commandRegistry, tooltips, config,
-        stagedChangesExist: false,
-        lastCommit: Commit.createUnborn(),
-      });
-      assert.isUndefined(view.refs.amend);
+      app = React.cloneElement(app, {stagedChangesExist: false, lastCommit: Commit.createUnborn()});
+      const wrapper = shallow(app);
+
+      assert.isFalse(wrapper.find('.github-CommitView-amend').exists());
     });
   });
 });
