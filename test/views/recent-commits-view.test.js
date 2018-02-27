@@ -39,5 +39,5 @@ describe('RecentCommitsView', function() {
     assert.deepEqual(wrapper.find('RecentCommitView').map(w => w.prop('commit')), commits);
   });
 
-
+  it('renders an avatar corresponding to the GitHub user who authored the commit');
 });
