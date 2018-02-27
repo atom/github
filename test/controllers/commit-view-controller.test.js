@@ -42,7 +42,6 @@ describe('CommitViewController', function() {
         lastCommit={lastCommit}
         prepareToCommit={noop}
         commit={noop}
-        didMoveUpOnFirstLine={noop}
         abortMerge={noop}
       />
     );
