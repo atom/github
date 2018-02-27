@@ -37,6 +37,7 @@
     width: @size;
     height: @size;
     border-radius: @component-border-radius;
+    background-color: mix(@text-color, @base-background-color, 15%);
   }
 
   &-message {
@@ -45,7 +46,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-
   }
 
   &-time {
