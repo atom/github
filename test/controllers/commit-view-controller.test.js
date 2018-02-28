@@ -4,6 +4,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
+import {nullBranch} from '../../lib/models/branch';
 import {writeFile} from '../../lib/helpers';
 
 import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-view-controller';
@@ -40,6 +41,7 @@ describe('CommitViewController', function() {
         stagedChangesExist={false}
         mergeMessage={''}
         lastCommit={lastCommit}
+        currentBranch={nullBranch}
         prepareToCommit={noop}
         commit={noop}
         abortMerge={noop}
