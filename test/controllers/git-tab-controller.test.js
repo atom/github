@@ -73,10 +73,12 @@ describe('GitTabController', function() {
     const wrapper = mount(app);
 
     assert.isTrue(wrapper.hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
+    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('CommitViewController'), 1);
 
     await assert.async.isFalse(wrapper.hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
+    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('CommitViewController'), 1);
   });
 
   it('displays an initialization prompt for an absent repository', function() {
@@ -300,7 +302,7 @@ describe('GitTabController', function() {
     const extractReferences = () => {
       gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       stagingView = gitTab.refStagingView.getWrappedComponent();
-      commitViewController = gitTab.refCommitViewController.getWrappedComponent();
+      commitViewController = gitTab.refCommitViewController;
       commitView = commitViewController.refs.commitView;
       focusElement = stagingView.element;
 
@@ -466,8 +468,7 @@ describe('GitTabController', function() {
 
       const gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       const stagingView = gitTab.refStagingView.getWrappedComponent();
-      const commitViewController = gitTab.refCommitViewController.getWrappedComponent();
-      const commitView = commitViewController.refs.commitView;
+      const commitView = wrapper.find('CommitView');
 
       assert.lengthOf(stagingView.props.unstagedChanges, 2);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
