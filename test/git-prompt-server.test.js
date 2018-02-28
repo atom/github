@@ -3,13 +3,14 @@ import path from 'path';
 
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
-import {fileExists, getAtomHelperPath} from '../lib/helpers';
+import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
 
-describe('GitPromptServer', function() {
+describe.only('GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
     ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
+    ATOM_GITHUB_KEYTAR_PATH: require.resolve('keytar'),
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     ATOM_GITHUB_SPEC_MODE: 'true',
@@ -25,9 +26,11 @@ describe('GitPromptServer', function() {
   });
 
   describe('credential helper', function() {
-    let server;
+    let server, stderrData, stdoutData;
 
     beforeEach(function() {
+      stderrData = [];
+      stdoutData = [];
       server = new GitPromptServer(tempDir);
     });
 
@@ -43,11 +46,23 @@ describe('GitPromptServer', function() {
           },
         );
 
-        child.stderr.on('data', console.log); // eslint-disable-line no-console
+        child.stdout.on('data', data => stdoutData.push(data));
+        child.stderr.on('data', data => stderrData.push(data));
 
         processHandler(child);
       });
     }
+
+    afterEach(function() {
+      if (this.currentTest.state === 'failed') {
+        if (stderrData.length > 0) {
+          /* eslint-disable no-console */
+          console.log(`STDERR:\n${stderrData.join('')}\n`);
+          console.log(`STDOUT:\n${stdoutData.join('')}\n`);
+          /* eslint-enable no-console */
+        }
+      }
+    });
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
       this.retries(5); // Known Flake
@@ -166,6 +181,59 @@ describe('GitPromptServer', function() {
       const {err} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
       assert.isTrue(await fileExists(tempDir.getScriptPath('remember')));
+    });
+
+    it('uses credentials from keytar if available without prompting', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      let called = false;
+      function queryHandler() {
+        called = true;
+        return {};
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.end('\n');
+      }
+
+      await writeFile(tempDir.getScriptPath('fake-keytar'), 'swordfish');
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      assert.ifError(err);
+      assert.isFalse(called);
+
+      assert.equal(stdout,
+        'protocol=https\nhost=what-is-your-favorite-color.com\n' +
+        'username=old-man-from-scene-24\npassword=swordfish\n' +
+        'quit=true\n');
+    });
+
+    it('stores credentials in keytar if a flag file is present', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      let called = false;
+      function queryHandler() {
+        called = true;
+        return {};
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.write('password=shhhh');
+        child.stdin.end('\n');
+      }
+
+      await writeFile(tempDir.getScriptPath('remember'), '');
+      const {err} = await runCredentialScript('store', queryHandler, processHandler);
+      assert.ifError(err);
+      assert.isFalse(called);
+
+      const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
+      assert.strictEqual(stored, 'shhhh');
     });
 
     afterEach(async function() {
