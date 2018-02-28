@@ -4,7 +4,7 @@ import {shallow, mount} from 'enzyme';
 import RecentCommitsView from '../../lib/views/recent-commits-view';
 import Commit from '../../lib/models/commit';
 
-describe.only('RecentCommitsView', function() {
+describe('RecentCommitsView', function() {
   let app;
 
   beforeEach(function() {
