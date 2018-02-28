@@ -488,10 +488,10 @@ describe('GitTabController', function() {
       await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
-      commitView.refs.editor.setText('Make it so');
-      await commitView.commit();
+      commitView.find('atom-text-editor').getNode().getModel().setText('Make it so');
+      commitView.find('.github-CommitView-commit').simulate('click');
 
-      assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
+      await assert.async.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });
 
     it('can stage merge conflict files', async function() {
