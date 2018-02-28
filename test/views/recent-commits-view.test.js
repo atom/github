@@ -70,4 +70,23 @@ describe('RecentCommitsView', function() {
     const wrapper = mount(app);
     assert.isTrue(wrapper.find('Timeago').prop('time').isSame(1519848555000));
   });
+
+  it('renders the full commit message in a title attribute', function() {
+    const commit = new Commit({
+      sha: '1111111111',
+      authorEmail: 'me@hooray.horse',
+      authorDate: 0,
+      message: 'really really really really really really really long',
+      body: 'and a commit body',
+    });
+
+    app = React.cloneElement(app, {commits: [commit]});
+    const wrapper = mount(app);
+
+    assert.strictEqual(
+      wrapper.find('.github-RecentCommit-message').prop('title'),
+      'really really really really really really really long\n\n' +
+      'and a commit body',
+    );
+  });
 });
