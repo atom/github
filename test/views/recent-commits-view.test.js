@@ -16,7 +16,7 @@ describe('RecentCommitsView', function() {
     const wrapper = shallow(app);
 
     assert.isFalse(wrapper.find('RecentCommitView').exists());
-    assert.strictEqual(wrapper.find('.github-RecentCommit-message').text(), 'Recent commits');
+    assert.strictEqual(wrapper.find('.github-RecentCommits-message').text(), 'Recent commits');
   });
 
   it('shows a prompting message while commits are empty and not loading', function() {
@@ -24,7 +24,7 @@ describe('RecentCommitsView', function() {
     const wrapper = shallow(app);
 
     assert.isFalse(wrapper.find('RecentCommitView').exists());
-    assert.strictEqual(wrapper.find('.github-RecentCommit-message').text(), 'Make your first commit');
+    assert.strictEqual(wrapper.find('.github-RecentCommits-message').text(), 'Make your first commit');
   });
 
   it('renders a RecentCommitView for each commit', function() {
