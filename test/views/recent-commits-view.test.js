@@ -40,9 +40,9 @@ describe('RecentCommitsView', function() {
     assert.deepEqual(wrapper.find('RecentCommitView').map(w => w.prop('commit')), commits);
   });
 
-  it.only('renders an avatar corresponding to the GitHub user who authored the commit', function() {
-    const commits = ['one@x.com', 'two@y.com', 'thr&ee@z.com'].map(authorEmail => {
-      return new Commit({sha: '1111111111', authorEmail, authorDate: 0, message: 'x'});
+  it('renders an avatar corresponding to the GitHub user who authored the commit', function() {
+    const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map((authorEmail, i) => {
+      return new Commit({sha: '1111111111' + i, authorEmail, authorDate: 0, message: 'x'});
     });
 
     app = React.cloneElement(app, {commits});
