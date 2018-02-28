@@ -6,7 +6,7 @@ import Commit, {nullCommit} from '../../lib/models/commit';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import CommitView from '../../lib/views/commit-view';
 
-describe.only('CommitView', function() {
+describe('CommitView', function() {
   let atomEnv, commandRegistry, tooltips, config, lastCommit;
   let app;
 
@@ -191,6 +191,10 @@ describe.only('CommitView', function() {
       editorElement = wrapper.find('atom-text-editor').getNode();
       sinon.spy(editorElement, 'focus');
       editor = editorElement.getModel();
+
+      // Perform an extra render to ensure the editor text is reflected in the commit button enablement.
+      // The controller accomplishes this by re-rendering on Repository update.
+      wrapper.update();
 
       commitButton = wrapper.find('.github-CommitView-commit');
 
