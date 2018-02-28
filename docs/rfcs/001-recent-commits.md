@@ -23,26 +23,34 @@ Display the most recent few commits in a chronologically-ordered list beneath th
 
 If the active repository has no commits yet, display a short panel with a background message: "Make your first commit".
 
-Otherwise, display a **recent commits** section containing a sequence of horizontal bars for each of the top three commits reachable from the current `HEAD`, with the most recently created commit on top. The user can resize the recent commits section. As it is expanded or shrunk, the number of visible commits is changed responsively.
+Otherwise, display a **recent commits** section containing a sequence of horizontal bars for ten **relevant** commits with the most recently created commit on top. The commits that are considered **relevant** include:
+
+* Commits reachable by the remote tracking branch that is the current upstream of `HEAD`. If more than three of these commits are not reachable by `HEAD`, they will be hidden behind an expandable accordion divider.
+* Commits reachable by `HEAD` that are not reachable by any local ref in the git repository.
+* The single commit at the tip of the branch that was branched from.
+
+The most recent three commits are visible by default and the user can scroll to see up to the most recent ten commits. The user can also drag a handle to resize the recent commits section and show more of the available ten.
 
 Each **recent commit** within the recent commits section summarizes that commit's metadata, to include:
 
 * GitHub avatar for both the committer and (if applicable) author. If either do not exist, show a placeholder.
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
+* A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
 
 On the most recent commit, display an "undo" button. Clicking "undo" performs a `git reset` and re-populates the commit message editor with the existing message.
 
-If any of the recent commits have been pushed to a remote, display a divider after the most recently pushed commit that shows an octocat icon. On hover, show the name of the remote tracking branch.
+Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
 
 Right-clicking a recent commit reveals a context menu offering interactions with the chosen commit. The context menu contains:
 
 * For the most recent commit only, an "Amend" option. "Amend" is enabled if changes have been staged or the commit message mini-editor contains text. Choosing this applies the staged changes and modified commit message to the most recent commit, in a direct analogue to using `git commit --amend` from the command line.
 * A "Revert" option. Choosing this performs a `git revert` on the chosen commit.
 * A "Hard reset" option. Choosing this performs a `git reset --hard` which moves `HEAD` and the working copy to the chosen commit. When chosen, display a modal explaining that this action will discard commits and unstaged working directory context. Extra security: If there are unstaged working directory contents, artificially perform a dangling commit, disabling GPG if configured, before enacting the reset. This will record the dangling commit in the reflog for `HEAD` but not the branch itself.
+* A "Mixed reset" option. Choosing this performs a `git reset` on the chosen commit.
 * A "Soft reset" option. Choosing this performs a `git reset --soft` which moves `HEAD` to the chosen commit and populates the staged changes list with all of the cumulative changes from all commits between the chosen one and the previous `HEAD`.
 
-On click, reveal a tool-tip containing:
+On click, select the commit and reveal a balloon containing:
 
 * Additional user information consistently with the GitHub integration's user mention item.
 * The full commit message and body.
@@ -77,11 +85,14 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 - Show an info icon and provide introductory information when no commits exist yet.
 - Add a "view diff from this commit" option to the recent commit context menu.
 - Integration with and navigation to "git log" or "git show" pane items when they exist.
+- Can we surface the commit that we make on your behalf before performing a `git reset --hard` with unstaged changes? Add an "Undo reset" option to the context menu on the recent commit history until the next commit is made? Show a notification with the commit SHA after the reset is complete?
 
 ## Implementation phases
 
-1. Convert `GitTabController` and `GitTabView` to React.
-2. List read-only commit information.
+1. Convert `GitTabController` and `GitTabView` to React. [#1319](https://github.com/atom/github/pull/1319)
+2. List read-only commit information. [#1322](https://github.com/atom/github/pull/1322)
 3. Replace the amend checkbox with the "undo" control.
 4. Context menu with actions.
-5. Tooltip with action buttons and additional information.
+5. Balloon with action buttons and additional information.
+6. Show which commits have been pushed.
+7. Show information about other refs.
