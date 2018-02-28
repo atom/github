@@ -271,11 +271,11 @@ describe('CommitView', function() {
       const wrapper = mount(app);
 
       wrapper.setProps({isAmending: true});
-      wrapper.find('.github-CommitView-amend').simulate('click');
+      wrapper.find('.github-CommitView-amend').simulate('change');
       assert.deepEqual(setAmending.args, [[true]]);
 
       wrapper.setProps({isAmending: false});
-      wrapper.find('.github-CommitView-amend').simulate('click');
+      wrapper.find('.github-CommitView-amend').simulate('change');
       assert.deepEqual(setAmending.args, [[true], [false]]);
     });
 
