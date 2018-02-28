@@ -73,10 +73,12 @@ describe('GitTabController', function() {
     const wrapper = mount(app);
 
     assert.isTrue(wrapper.hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
+    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('CommitController'), 1);
 
     await assert.async.isFalse(wrapper.hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 2);
+    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('CommitController'), 1);
   });
 
   it('displays an initialization prompt for an absent repository', function() {
@@ -294,14 +296,14 @@ describe('GitTabController', function() {
   });
 
   describe('keyboard navigation commands', function() {
-    let wrapper, gitTab, stagingView, commitView, commitViewController, focusElement;
+    let wrapper, gitTab, stagingView, commitView, commitController, focusElement;
     const focuses = GitTabController.focus;
 
     const extractReferences = () => {
       gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       stagingView = gitTab.refStagingView.getWrappedComponent();
-      commitViewController = gitTab.refCommitViewController.getWrappedComponent();
-      commitView = commitViewController.refs.commitView;
+      commitController = gitTab.refCommitController;
+      commitView = commitController.refs.commitView;
       focusElement = stagingView.element;
 
       const stubFocus = element => {
@@ -318,7 +320,7 @@ describe('GitTabController', function() {
       stubFocus(commitView.refs.amend);
       stubFocus(commitView.refs.commitButton);
 
-      sinon.stub(commitViewController, 'hasFocus').callsFake(() => {
+      sinon.stub(commitController, 'hasFocus').callsFake(() => {
         return [
           commitView.editorElement,
           commitView.refs.abortMergeButton,
@@ -466,8 +468,7 @@ describe('GitTabController', function() {
 
       const gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       const stagingView = gitTab.refStagingView.getWrappedComponent();
-      const commitViewController = gitTab.refCommitViewController.getWrappedComponent();
-      const commitView = commitViewController.refs.commitView;
+      const commitView = wrapper.find('CommitView');
 
       assert.lengthOf(stagingView.props.unstagedChanges, 2);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
@@ -487,10 +488,10 @@ describe('GitTabController', function() {
       await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
-      commitView.refs.editor.setText('Make it so');
-      await commitView.commit();
+      commitView.find('atom-text-editor').getNode().getModel().setText('Make it so');
+      commitView.find('.github-CommitView-commit').simulate('click');
 
-      assert.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
+      await assert.async.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
     });
 
     it('can stage merge conflict files', async function() {
