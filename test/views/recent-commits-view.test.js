@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
+import moment from 'moment';
 
 import RecentCommitsView from '../../lib/views/recent-commits-view';
 import Commit from '../../lib/models/commit';
@@ -55,5 +56,18 @@ describe('RecentCommitsView', function() {
         'https://avatars.githubusercontent.com/u/e?email=one%40x.com',
       ],
     );
+  });
+
+  it("renders the commit's relative age", function() {
+    const commit = new Commit({
+      sha: '1111111111',
+      authorEmail: 'me@hooray.party',
+      authorDate: 1519848555,
+      message: 'x',
+    });
+
+    app = React.cloneElement(app, {commits: [commit]});
+    const wrapper = mount(app);
+    assert.isTrue(wrapper.find('Timeago').prop('time').isSame(1519848555000));
   });
 });
