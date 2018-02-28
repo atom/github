@@ -1,6 +1,5 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
-import moment from 'moment';
 
 import RecentCommitsView from '../../lib/views/recent-commits-view';
 import Commit from '../../lib/models/commit';
