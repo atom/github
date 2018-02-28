@@ -74,11 +74,11 @@ describe('GitTabController', function() {
 
     assert.isTrue(wrapper.hasClass('is-loading'));
     assert.lengthOf(wrapper.find('EtchWrapper'), 1);
-    assert.lengthOf(wrapper.find('CommitViewController'), 1);
+    assert.lengthOf(wrapper.find('CommitController'), 1);
 
     await assert.async.isFalse(wrapper.hasClass('is-loading'));
     assert.lengthOf(wrapper.find('EtchWrapper'), 1);
-    assert.lengthOf(wrapper.find('CommitViewController'), 1);
+    assert.lengthOf(wrapper.find('CommitController'), 1);
   });
 
   it('displays an initialization prompt for an absent repository', function() {
@@ -296,14 +296,14 @@ describe('GitTabController', function() {
   });
 
   describe('keyboard navigation commands', function() {
-    let wrapper, gitTab, stagingView, commitView, commitViewController, focusElement;
+    let wrapper, gitTab, stagingView, commitView, commitController, focusElement;
     const focuses = GitTabController.focus;
 
     const extractReferences = () => {
       gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       stagingView = gitTab.refStagingView.getWrappedComponent();
-      commitViewController = gitTab.refCommitViewController;
-      commitView = commitViewController.refs.commitView;
+      commitController = gitTab.refCommitController;
+      commitView = commitController.refs.commitView;
       focusElement = stagingView.element;
 
       const stubFocus = element => {
@@ -320,7 +320,7 @@ describe('GitTabController', function() {
       stubFocus(commitView.refs.amend);
       stubFocus(commitView.refs.commitButton);
 
-      sinon.stub(commitViewController, 'hasFocus').callsFake(() => {
+      sinon.stub(commitController, 'hasFocus').callsFake(() => {
         return [
           commitView.editorElement,
           commitView.refs.abortMergeButton,

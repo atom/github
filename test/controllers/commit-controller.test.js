@@ -7,10 +7,10 @@ import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import {writeFile} from '../../lib/helpers';
 
-import CommitViewController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-view-controller';
+import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 
-describe('CommitViewController', function() {
+describe('CommitController', function() {
   let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
   let app;
 
@@ -27,7 +27,7 @@ describe('CommitViewController', function() {
     const noop = () => {};
 
     app = (
-      <CommitViewController
+      <CommitController
         workspace={workspace}
         grammars={atomEnvironment.grammars}
         commandRegistry={commandRegistry}
