@@ -3,6 +3,7 @@ import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
+import Branch, {nullBranch} from '../../lib/models/branch';
 import CommitView from '../../lib/views/commit-view';
 
 describe.only('CommitView', function() {
@@ -24,6 +25,7 @@ describe.only('CommitView', function() {
         tooltips={tooltips}
         config={config}
         lastCommit={lastCommit}
+        currentBranch={nullBranch}
         isAmending={false}
         isMerging={false}
         stagedChangesExist={false}
@@ -145,6 +147,33 @@ describe.only('CommitView', function() {
 
       wrapper.setProps({message: 'Not empty'});
       assert.isFalse(commitButton.prop('disabled'));
+    });
+
+    it('displays the current branch name', function() {
+      const currentBranch = new Branch('aw-do-the-stuff');
+      wrapper.setProps({currentBranch});
+      assert.strictEqual(commitButton.text(), 'Commit to aw-do-the-stuff');
+    });
+
+    it('displays the commit to be amended when amending', function() {
+      const currentBranch = new Branch('fix-all-the-bugs');
+      wrapper.setProps({currentBranch, isAmending: true});
+      assert.strictEqual(commitButton.text(), 'Amend commit (1234abcd)');
+    });
+
+    it('indicates when a commit will be detached', function() {
+      const currentBranch = Branch.createDetached('master~3');
+      wrapper.setProps({currentBranch});
+      assert.strictEqual(commitButton.text(), 'Create detached commit');
+    });
+
+    it('displays a progress message while committing', function() {
+      wrapper.setState({showWorking: true});
+      assert.strictEqual(commitButton.text(), 'Working...');
+    });
+
+    it('falls back to "commit" with no current branch', function() {
+      assert.strictEqual(commitButton.text(), 'Commit');
     });
   });
 
