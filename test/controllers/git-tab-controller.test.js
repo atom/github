@@ -303,7 +303,7 @@ describe('GitTabController', function() {
       gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       stagingView = gitTab.refStagingView.getWrappedComponent();
       commitController = gitTab.refCommitController;
-      commitView = commitController.refs.commitView;
+      commitView = commitController.refCommitView;
       focusElement = stagingView.element;
 
       const stubFocus = element => {
@@ -316,16 +316,16 @@ describe('GitTabController', function() {
       };
       stubFocus(stagingView.element);
       stubFocus(commitView.editorElement);
-      stubFocus(commitView.refs.abortMergeButton);
-      stubFocus(commitView.refs.amend);
-      stubFocus(commitView.refs.commitButton);
+      stubFocus(commitView.refAbortMergeButton);
+      stubFocus(commitView.refAmendCheckbox);
+      stubFocus(commitView.refCommitButton);
 
       sinon.stub(commitController, 'hasFocus').callsFake(() => {
         return [
           commitView.editorElement,
-          commitView.refs.abortMergeButton,
-          commitView.refs.amend,
-          commitView.refs.commitButton,
+          commitView.refAbortMergeButton,
+          commitView.refAmendCheckbox,
+          commitView.refCommitButton,
         ].includes(focusElement);
       });
     };
