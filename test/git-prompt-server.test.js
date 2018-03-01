@@ -4,13 +4,15 @@ import path from 'path';
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
 import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
+import {transpile} from './helpers';
 
 describe('GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
+    ATOM_GITHUB_KEYTAR_FILE: null,
     ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
-    ATOM_GITHUB_KEYTAR_PATH: require.resolve('keytar'),
+    ATOM_GITHUB_KEYTAR_STRATEGY_PATH: null, // Computed lazily in beforeEach()
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     ATOM_GITHUB_SPEC_MODE: 'true',
@@ -23,6 +25,13 @@ describe('GitPromptServer', function() {
   beforeEach(async function() {
     tempDir = new GitTempDir();
     await tempDir.ensure();
+
+    electronEnv.ATOM_GITHUB_KEYTAR_FILE = tempDir.getScriptPath('fake-keytar');
+
+    if (!electronEnv.ATOM_GITHUB_KEYTAR_STRATEGY_PATH) {
+      const [keytarStrategyPath] = await transpile(require.resolve('../lib/models/keytar-strategy'));
+      electronEnv.ATOM_GITHUB_KEYTAR_STRATEGY_PATH = keytarStrategyPath;
+    }
   });
 
   describe('credential helper', function() {
@@ -184,7 +193,45 @@ describe('GitPromptServer', function() {
       assert.isTrue(await fileExists(tempDir.getScriptPath('remember')));
     });
 
-    it('uses credentials from keytar if available without prompting', async function() {
+    it('uses matching credentials from keytar if available without prompting', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      let called = false;
+      function queryHandler() {
+        called = true;
+        return {};
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.write('username=old-man-from-scene-24');
+        child.stdin.end('\n');
+      }
+
+      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      {
+        "atom-github-git @ what-is-your-favorite-color.com": {
+          "old-man-from-scene-24": "swordfish",
+          "github.com": "nope"
+        },
+        "atom-github-git @ github.com": {
+          "old-man-from-scene-24": "nope"
+        }
+      }
+      `);
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      assert.ifError(err);
+      assert.isFalse(called);
+
+      assert.equal(stdout,
+        'protocol=https\nhost=what-is-your-favorite-color.com\n' +
+        'username=old-man-from-scene-24\npassword=swordfish\n' +
+        'quit=true\n');
+    });
+
+    it('uses credentials from the GitHub tab if available', async function() {
       this.timeout(10000);
       this.retries(5);
 
@@ -200,7 +247,13 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('fake-keytar'), 'swordfish');
+      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      {
+        "atom-github": {
+          "github.com": "swordfish"
+        }
+      }
+      `);
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
       assert.isFalse(called);
@@ -224,6 +277,7 @@ describe('GitPromptServer', function() {
       function processHandler(child) {
         child.stdin.write('protocol=https\n');
         child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.write('username=old-man-from-scene-24');
         child.stdin.write('password=shhhh');
         child.stdin.end('\n');
       }
@@ -234,7 +288,11 @@ describe('GitPromptServer', function() {
       assert.isFalse(called);
 
       const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
-      assert.strictEqual(stored, 'shhhh');
+      assert.deepEqual(JSON.parse(stored), {
+        'atom-github-git @ what-is-your-favorite-color.com': {
+          'old-man-from-scene-24': 'shhhh',
+        },
+      });
     });
 
     afterEach(async function() {
