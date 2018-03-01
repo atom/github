@@ -16,7 +16,7 @@ describe('CommitView', function() {
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
 
-    lastCommit = new Commit('1234abcd', 'commit message');
+    lastCommit = new Commit({sha: '1234abcd', message: 'commit message'});
     const noop = () => {};
 
     app = (
@@ -264,7 +264,7 @@ describe('CommitView', function() {
 
   describe('amending', function() {
     it('calls props.setAmending() when the box is checked or unchecked', function() {
-      const previousCommit = new Commit('111', "previous commit's message");
+      const previousCommit = new Commit({sha: '111', message: "previous commit's message"});
       const setAmending = sinon.spy();
 
       app = React.cloneElement(app, {stagedChangesExist: false, lastCommit: previousCommit, setAmending});
