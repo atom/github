@@ -50,9 +50,9 @@ describe('RecentCommitsView', function() {
     assert.deepEqual(
       wrapper.find('img.github-RecentCommit-avatar').map(w => w.prop('src')),
       [
-        'https://avatars.githubusercontent.com/u/e?email=thr%26ee%40z.com',
-        'https://avatars.githubusercontent.com/u/e?email=two%40y.com',
-        'https://avatars.githubusercontent.com/u/e?email=one%40x.com',
+        'https://avatars.githubusercontent.com/u/e?email=thr%26ee%40z.com&s=32',
+        'https://avatars.githubusercontent.com/u/e?email=two%40y.com&s=32',
+        'https://avatars.githubusercontent.com/u/e?email=one%40x.com&s=32',
       ],
     );
   });
