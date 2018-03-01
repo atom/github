@@ -18,6 +18,7 @@ describe('CommitView', function() {
 
     lastCommit = new Commit({sha: '1234abcd', message: 'commit message'});
     const noop = () => {};
+    const returnTruthyPromise = () => Promise.resolve(true);
 
     app = (
       <CommitView
@@ -34,6 +35,7 @@ describe('CommitView', function() {
         deactivateCommitBox={false}
         maximumCharacterLimit={72}
         message=""
+        prepareToCommit={returnTruthyPromise}
         commit={noop}
         abortMerge={noop}
         setAmending={noop}
