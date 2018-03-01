@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const {execFile} = require('child_process');
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
+const {createStrategy, UNAUTHENTICATED} = require(process.env.ATOM_GITHUB_KEYTAR_STRATEGY_PATH);
 
 const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length !== 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
@@ -166,10 +167,58 @@ function fromOtherHelpers(query) {
 }
 
 /*
- * This is a placeholder for eventual support of storage of credentials in an OS keychain.
+ * Attempt to read credentials previously stored in keytar.
  */
 function fromKeytar(query) {
-  return Promise.reject(new Error('Not implemented'));
+  let strategy = null;
+  let password = UNAUTHENTICATED;
+
+  log('reading credentials stored in your OS keychain');
+  return createStrategy()
+  .then(s => { strategy = s; })
+  .then(() => {
+    const service = `atom-github-git @ ${query.host}`;
+    log(`reading service "${service}" and account "${query.username}"`);
+    return strategy.getPassword(service, query.username);
+  })
+  .then(p => {
+    if (p !== UNAUTHENTICATED) {
+      password = p;
+      log('password found in keychain');
+      return UNAUTHENTICATED;
+    }
+
+    let host = query.host;
+    if (query.host === 'github.com') {
+      host = 'https://api.github.com';
+    }
+
+    log(`reading service "atom-github" and account "${host}"`);
+    return strategy.getPassword('atom-github', host);
+  })
+  .then(p => {
+    if (p !== UNAUTHENTICATED) {
+      // TODO fetch username from API
+      if (!query.username) {
+        log('token found in keychain, but no username');
+        return;
+      }
+      log('token found in keychain');
+      password = p;
+    }
+  })
+  .then(() => {
+    if (password !== UNAUTHENTICATED) {
+      const lines = ['protocol', 'host', 'username']
+        .filter(k => query[k] !== undefined)
+        .map(k => `${k}=${query[k]}\n`);
+      lines.push(`password=${password}\n`);
+      return lines.join('') + 'quit=true\n';
+    } else {
+      log('no password found in keychain');
+      return Promise.reject(new Error('Unable to read password from keychain'));
+    }
+  });
 }
 
 /*
