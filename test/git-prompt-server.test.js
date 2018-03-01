@@ -57,6 +57,7 @@ describe.only('GitPromptServer', function() {
       if (this.currentTest.state === 'failed') {
         if (stderrData.length > 0) {
           /* eslint-disable no-console */
+          console.log(this.currentTest.fullTitle());
           console.log(`STDERR:\n${stderrData.join('')}\n`);
           console.log(`STDOUT:\n${stdoutData.join('')}\n`);
           /* eslint-enable no-console */
