@@ -21,11 +21,11 @@ Display the most recent few commits in a chronologically-ordered list beneath th
 
 ## Explanation
 
-#### Blank slate
+### Blank slate
 
 If the active repository has no commits yet, display a short panel with a background message: "Make your first commit".
 
-#### Recent commits
+### Recent commits
 
 Otherwise, display a **recent commits** section containing a sequence of horizontal bars for ten **relevant** commits with the most recently created commit on top. The commits that are considered **relevant** include:
 
@@ -35,7 +35,7 @@ Otherwise, display a **recent commits** section containing a sequence of horizon
 
 The most recent three commits are visible by default and the user can scroll to see up to the most recent ten commits. The user can also drag a handle to resize the recent commits section and show more of the available ten.
 
-#### Commit metadata
+### Commit metadata
 
 Each **recent commit** within the recent commits section summarizes that commit's metadata, to include:
 
@@ -44,15 +44,15 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * A relative timestamp indicating how long ago the commit was created.
 * A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
 
-#### Undo
+### Undo
 
 On the most recent commit, display an "undo" button. Clicking "undo" performs a `git reset` and re-populates the commit message editor with the existing message.
 
-#### Refs
+### Refs
 
 Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
 
-#### Context menu
+### Context menu
 
 Right-clicking a recent commit reveals a context menu offering interactions with the chosen commit. The context menu contains:
 
@@ -62,7 +62,7 @@ Right-clicking a recent commit reveals a context menu offering interactions with
 * A "Mixed reset" option. Choosing this performs a `git reset` on the chosen commit.
 * A "Soft reset" option. Choosing this performs a `git reset --soft` which moves `HEAD` to the chosen commit and populates the staged changes list with all of the cumulative changes from all commits between the chosen one and the previous `HEAD`.
 
-#### Balloon
+### Balloon
 
 On click, select the commit and reveal a balloon containing:
 
@@ -74,7 +74,7 @@ On click, select the commit and reveal a balloon containing:
 
 ![commit-popout](https://user-images.githubusercontent.com/17565/36570682-11545cae-17e8-11e8-80a8-ffcf7328e214.JPG)
 
-#### Bottom Dock
+### Bottom Dock
 
 If the Git dock item is dragged to the bottom dock, the recent commit section will remain a vertical list but appear just to the right of the mini commit editor.
 
