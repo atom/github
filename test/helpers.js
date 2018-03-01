@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
+import transpiler from 'atom-babel6-transpiler';
 
 import React from 'react';
 import ReactDom from 'react-dom';
@@ -13,9 +14,7 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {Directory} from 'atom';
-import {realPath} from '../lib/helpers';
-
-export {toGitPathSep} from '../lib/helpers';
+import {realPath, readFile, writeFile, mkdirs} from '../lib/helpers';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -211,6 +210,25 @@ export async function disableFilesystemWatchers(atomEnv) {
   });
 
   await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0);
+}
+
+const packageRoot = path.resolve(__dirname, '..');
+const transpiledRoot = path.resolve(__dirname, 'transpiled');
+
+export function transpile(...relPaths) {
+  return Promise.all(
+    relPaths.map(async relPath => {
+      const untranspiledPath = require.resolve(relPath);
+      const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
+
+      const untranspiledSource = await readFile(untranspiledPath);
+      const transpiledSource = transpiler.transpile(untranspiledSource, untranspiledPath, {}, {}).code;
+
+      await mkdirs(path.dirname(transpiledPath));
+      await writeFile(transpiledPath, transpiledSource);
+      return transpiledPath;
+    }),
+  );
 }
 
 // eslint-disable-next-line jasmine/no-global-setup
