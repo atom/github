@@ -5,7 +5,7 @@ import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
 import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
 
-describe.only('GitPromptServer', function() {
+describe('GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
