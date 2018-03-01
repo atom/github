@@ -23,7 +23,7 @@ describe('CommitController', function() {
     tooltips = atomEnvironment.tooltips;
     confirm = sinon.stub(atomEnvironment, 'confirm');
 
-    lastCommit = new Commit('a1e23fd45', 'last commit message');
+    lastCommit = new Commit({sha: 'a1e23fd45', message: 'last commit message'});
     const noop = () => {};
 
     app = (

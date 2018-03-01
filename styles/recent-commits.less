@@ -53,3 +53,21 @@
   }
 
 }
+
+
+// Responsive
+// Show more commits if window height gets larger
+
+@media (min-height: 900px) {
+  .github-RecentCommits {
+    @show-max: 5;
+    max-height: @show-max * @size + @component-padding * @show-max + @component-padding + 1px;
+  }
+}
+
+@media (min-height: 1200px) {
+  .github-RecentCommits {
+    @show-max: 10;
+    max-height: @show-max * @size + @component-padding * @show-max + @component-padding + 1px;
+  }
+}
