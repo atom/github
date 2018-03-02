@@ -198,12 +198,29 @@ async function fromKeytar(query) {
   log(`reading service "atom-github" and account "${githubHost}"`);
   const githubPassword = await strategy.getPassword('atom-github', githubHost);
   if (githubPassword !== UNAUTHENTICATED) {
-    if (!query.username) {
-      // TODO find username from GitHub API
+    try {
+      if (!query.username) {
+        const apiUrl = githubHost === 'https://api.github.com' ? `${githubHost}/graphql` : `${githubHost}/api/v3/graphql`;
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'Authorization': `bearer ${githubPassword}`,
+            'Accept': 'application/vnd.github.graphql-profiling+json',
+          },
+          body: JSON.stringify({
+            query: 'query { viewer { login } }',
+          }),
+        });
+
+        query.username = response.json().data.viewer.login;
+      }
+    } catch (e) {
+      log(`unable to acquire username from token: ${e.stack}`);
       throw new Error('token found in keychain, but no username');
-    } else {
-      password = githubPassword;
     }
+
+    password = githubPassword;
   }
 
   if (password !== UNAUTHENTICATED) {
