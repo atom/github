@@ -3,7 +3,7 @@ import path from 'path';
 
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
-import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
+import {fileExists, writeFile, readFile, deleteFileOrFolder, getAtomHelperPath} from '../lib/helpers';
 import {transpile} from './helpers';
 
 describe('GitPromptServer', function() {
@@ -62,7 +62,7 @@ describe('GitPromptServer', function() {
       });
     }
 
-    afterEach(function() {
+    afterEach(async function() {
       if (this.currentTest.state === 'failed') {
         if (stderrData.length > 0) {
           /* eslint-disable no-console */
@@ -72,6 +72,8 @@ describe('GitPromptServer', function() {
           /* eslint-enable no-console */
         }
       }
+
+      await tempDir.dispose();
     });
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
@@ -244,13 +246,14 @@ describe('GitPromptServer', function() {
       function processHandler(child) {
         child.stdin.write('protocol=https\n');
         child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.write('username=old-man-from-scene-24\n');
         child.stdin.end('\n');
       }
 
       await writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
         "atom-github": {
-          "github.com": "swordfish"
+          "https://api.what-is-your-favorite-color.com": "swordfish"
         }
       }
       `);
@@ -277,7 +280,7 @@ describe('GitPromptServer', function() {
       function processHandler(child) {
         child.stdin.write('protocol=https\n');
         child.stdin.write('host=what-is-your-favorite-color.com\n');
-        child.stdin.write('username=old-man-from-scene-24');
+        child.stdin.write('username=old-man-from-scene-24\n');
         child.stdin.write('password=shhhh');
         child.stdin.end('\n');
       }

@@ -265,6 +265,32 @@ function dialog(query) {
   });
 }
 
+/*
+ * Write a successfully used username and password pair to the OS keychain, so that fromKeytar will find it.
+ */
+async function toKeytar(query) {
+  const rememberFlag = await new Promise(resolve => {
+    fs.access(rememberFile, err => resolve(!err));
+  });
+  if (!rememberFlag) {
+    return;
+  }
+
+  const strategy = await createStrategy();
+
+  const gitService = `atom-github-git @ ${query.host}`;
+  log(`writing service "${gitService}" and account "${query.username}"`);
+  await strategy.replacePassword(gitService, query.username, query.password);
+  log('success');
+}
+
+/*
+ *
+ */
+// async function deleteFromKeytar(query) {
+//   //
+// }
+
 async function get() {
   const query = await parse();
   const reply = await fromOtherHelpers(query)
@@ -289,7 +315,9 @@ async function get() {
 async function store() {
   try {
     const query = await parse();
+    await toKeytar(query);
     await withAllHelpers(query, 'approve');
+    log('success');
     process.exit(0);
   } catch (e) {
     log(`Unable to execute store: ${e.stack}`);
@@ -301,6 +329,7 @@ async function erase() {
   try {
     const query = await parse();
     await withAllHelpers(query, 'reject');
+    log('success');
     process.exit(0);
   } catch (e) {
     log(`Unable to execute erase: ${e.stack}`);
