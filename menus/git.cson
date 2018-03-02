@@ -121,21 +121,3 @@
       'command': 'github:amend-last-commit'
     }
   ]
-  '.github-RecentCommit': [
-    {
-      'label': 'Revert'
-      'command': 'github:revert-commit'
-    }
-    {
-      'label': 'Hard Reset'
-      'command': 'github:hard-reset'
-    }
-    {
-      'label': 'Mixed Reset'
-      'command': 'github:mixed-reset'
-    }
-    {
-      'label': 'Soft Reset'
-      'command': 'github:soft-reset'
-    }
-  ]
