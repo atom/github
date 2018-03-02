@@ -3,7 +3,7 @@ import path from 'path';
 
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
-import {fileExists, writeFile, readFile, deleteFileOrFolder, getAtomHelperPath} from '../lib/helpers';
+import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
 import {transpile} from './helpers';
 
 describe('GitPromptServer', function() {
