@@ -3,6 +3,7 @@ const readline = require('readline');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const {execFile} = require('child_process');
 const {GitProcess} = require(process.env.ATOM_GITHUB_DUGITE_PATH);
 const {createStrategy, UNAUTHENTICATED} = require(process.env.ATOM_GITHUB_KEYTAR_STRATEGY_PATH);
@@ -198,26 +199,54 @@ async function fromKeytar(query) {
 
   if (password === UNAUTHENTICATED) {
     // Read GitHub tab token
-    const githubHost = `${query.protocol}://api.${query.host}`;
+    const githubHost = query.host === 'github.com'
+      ? `${query.protocol}://api.${query.host}`
+      : `${query.protocol}://${query.host}`;
     log(`reading service "atom-github" and account "${githubHost}"`);
     const githubPassword = await strategy.getPassword('atom-github', githubHost);
     if (githubPassword !== UNAUTHENTICATED) {
       try {
         if (!query.username) {
-          const apiUrl = githubHost === 'https://api.github.com' ? `${githubHost}/graphql` : `${githubHost}/api/v3/graphql`;
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              'Authorization': `bearer ${githubPassword}`,
-              'Accept': 'application/vnd.github.graphql-profiling+json',
-            },
-            body: JSON.stringify({
-              query: 'query { viewer { login } }',
-            }),
-          });
+          const apiHost = query.host === 'github.com' ? 'api.github.com' : query.host;
+          const apiPath = query.host === 'github.com' ? '/graphql' : '/api/graphql';
 
-          query.username = response.json().data.viewer.login;
+          const response = await new Promise((resolve, reject) => {
+            const postBody = JSON.stringify({query: 'query { viewer { login } }'});
+            const req = https.request({
+              protocol: query.protocol + ':',
+              hostname: apiHost,
+              method: 'POST',
+              path: apiPath,
+              headers: {
+                'content-type': 'application/json',
+                'content-length': Buffer.byteLength(postBody, 'utf8'),
+                'Authorization': `bearer ${githubPassword}`,
+                'Accept': 'application/vnd.github.graphql-profiling+json',
+                'User-Agent': 'Atom git credential helper/1.0.0',
+              },
+            }, res => {
+              const parts = [];
+
+              res.setEncoding('utf8');
+              res.on('data', chunk => parts.push(chunk));
+              res.on('end', () => {
+                if (res.statusCode !== 200) {
+                  reject(new Error(parts.join('')));
+                } else {
+                  resolve(parts.join(''));
+                }
+              });
+            });
+
+            req.on('error', reject);
+            req.end(postBody);
+          });
+          log(`GraphQL response:\n${response}`);
+
+          query.username = JSON.parse(response).data.viewer.login;
+          if (!query.username) {
+            throw new Error('Username missing from GraphQL response');
+          }
         }
       } catch (e) {
         log(`unable to acquire username from token: ${e.stack}`);
