@@ -168,15 +168,30 @@ async function fromOtherHelpers(query) {
 async function fromKeytar(query) {
   log('reading credentials stored in your OS keychain');
   let password = UNAUTHENTICATED;
+
+  if (!query.host) {
+    throw new Error('Host unavailable');
+  }
+
   const strategy = await createStrategy();
 
-  // TODO find username if absent
-  const gitService = `atom-github-git @ ${query.host}`;
-  log(`reading service "${gitService}" and account "${query.username}"`);
-  const gitPassword = await strategy.getPassword(gitService, query.username);
-  if (gitPassword !== UNAUTHENTICATED) {
-    log('password found in keychain');
-    password = gitPassword;
+  if (!query.username) {
+    const metaService = `atom-github-git-meta @ ${query.host}`;
+    log(`reading username from service "${metaService}" and account "username"`);
+    const u = await strategy.getPassword(metaService, 'username');
+    if (u !== UNAUTHENTICATED) {
+      query.username = u;
+    }
+  }
+
+  if (query.username) {
+    const gitService = `atom-github-git @ ${query.host}`;
+    log(`reading service "${gitService}" and account "${query.username}"`);
+    const gitPassword = await strategy.getPassword(gitService, query.username);
+    if (gitPassword !== UNAUTHENTICATED) {
+      log('password found in keychain');
+      password = gitPassword;
+    }
   }
 
   const githubHost = `${query.protocol}://api.${query.host}`;

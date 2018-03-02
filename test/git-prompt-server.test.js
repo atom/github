@@ -233,6 +233,49 @@ describe('GitPromptServer', function() {
         'quit=true\n');
     });
 
+    it('uses a default username for the appropriate host if one is available', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      let called = false;
+      function queryHandler() {
+        called = true;
+        return {};
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.end('\n');
+      }
+
+      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      {
+        "atom-github-git-meta @ what-is-your-favorite-color.com": {
+          "username": "old-man-from-scene-24"
+        },
+        "atom-github-git @ what-is-your-favorite-color.com": {
+          "old-man-from-scene-24": "swordfish",
+          "github.com": "nope"
+        },
+        "atom-github-git-meta @ github.com": {
+          "username": "nah"
+        },
+        "atom-github-git @ github.com": {
+          "old-man-from-scene-24": "nope"
+        }
+      }
+      `);
+      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      assert.ifError(err);
+      assert.isFalse(called);
+
+      assert.equal(stdout,
+        'protocol=https\nhost=what-is-your-favorite-color.com\n' +
+        'username=old-man-from-scene-24\npassword=swordfish\n' +
+        'quit=true\n');
+    });
+
     it('uses credentials from the GitHub tab if available', async function() {
       this.timeout(10000);
       this.retries(5);
