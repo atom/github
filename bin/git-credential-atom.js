@@ -66,30 +66,28 @@ function systemCredentialHelpers() {
  * Dispatch a `git credential` subcommand to all configured credential helpers. Return a Promise that
  * resolves with the exit status, stdout, and stderr of the subcommand.
  */
-function withAllHelpers(query, subAction) {
-  return systemCredentialHelpers()
-  .then(systemHelpers => {
-    const env = {
-      GIT_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS || '',
-      SSH_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS || '',
-      GIT_CONFIG_PARAMETERS: '', // Only you can prevent forkbombs
-    };
+async function withAllHelpers(query, subAction) {
+  const systemHelpers = await systemCredentialHelpers();
+  const env = {
+    GIT_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS || '',
+    SSH_ASKPASS: process.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS || '',
+    GIT_CONFIG_PARAMETERS: '', // Only you can prevent forkbombs
+  };
 
-    const stdin = Object.keys(query).map(k => `${k}=${query[k]}\n`).join('') + '\n';
-    const stdinEncoding = 'utf8';
+  const stdin = Object.keys(query).map(k => `${k}=${query[k]}\n`).join('') + '\n';
+  const stdinEncoding = 'utf8';
 
-    const args = [];
-    systemHelpers.forEach(helper => args.push('-c', `credential.helper=${helper}`));
-    args.push('credential', subAction);
+  const args = [];
+  systemHelpers.forEach(helper => args.push('-c', `credential.helper=${helper}`));
+  args.push('credential', subAction);
 
-    log(`attempting to run ${subAction} with user-configured credential helpers`);
-    log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
-    log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
-    log(`arguments = ${args.join(' ')}`);
-    log(`stdin =\n${stdin.replace(/password=[^\n]+/, 'password=*******')}`);
+  log(`attempting to run ${subAction} with user-configured credential helpers`);
+  log(`GIT_ASKPASS = ${env.GIT_ASKPASS}`);
+  log(`SSH_ASKPASS = ${env.SSH_ASKPASS}`);
+  log(`arguments = ${args.join(' ')}`);
+  log(`stdin =\n${stdin.replace(/password=[^\n]+/, 'password=*******')}`);
 
-    return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
-  });
+  return GitProcess.exec(args, workdirPath, {env, stdin, stdinEncoding});
 }
 
 /*
@@ -143,82 +141,66 @@ function parse() {
  * Attempt to use user-configured credential handlers through the normal git channels. If they actually work,
  * hooray! Report the results to stdout. Otherwise, reject the promise and collect credentials through Atom.
  */
-function fromOtherHelpers(query) {
-  return withAllHelpers(query, 'fill')
-  .then(({stdout, stderr, exitCode}) => {
-    if (exitCode !== 0) {
-      log(`stdout:\n${stdout}`);
-      log(`stderr:\n${stderr}`);
-      log(`user-configured credential helpers failed with exit code ${exitCode}. this is ok`);
+async function fromOtherHelpers(query) {
+  const {stdout, stderr, exitCode} = await withAllHelpers(query, 'fill');
+  if (exitCode !== 0) {
+    log(`stdout:\n${stdout}`);
+    log(`stderr:\n${stderr}`);
+    log(`user-configured credential helpers failed with exit code ${exitCode}. this is ok`);
 
-      throw new Error('git-credential fill failed');
-    }
+    throw new Error('git-credential fill failed');
+  }
 
-    if (/password=/.test(stdout)) {
-      log('password received from user-configured credential helper');
+  if (/password=/.test(stdout)) {
+    log('password received from user-configured credential helper');
 
-      return stdout;
-    } else {
-      log(`no password received from user-configured credential helper:\n${stdout}`);
+    return stdout;
+  } else {
+    log(`no password received from user-configured credential helper:\n${stdout}`);
 
-      throw new Error('No password reported from upstream git-credential fill');
-    }
-  });
+    throw new Error('No password reported from upstream git-credential fill');
+  }
 }
 
 /*
  * Attempt to read credentials previously stored in keytar.
  */
-function fromKeytar(query) {
-  let strategy = null;
-  let password = UNAUTHENTICATED;
-
+async function fromKeytar(query) {
   log('reading credentials stored in your OS keychain');
-  return createStrategy()
-  .then(s => { strategy = s; })
-  .then(() => {
-    const service = `atom-github-git @ ${query.host}`;
-    log(`reading service "${service}" and account "${query.username}"`);
-    return strategy.getPassword(service, query.username);
-  })
-  .then(p => {
-    if (p !== UNAUTHENTICATED) {
-      password = p;
-      log('password found in keychain');
-      return UNAUTHENTICATED;
-    }
+  let password = UNAUTHENTICATED;
+  const strategy = await createStrategy();
 
-    let host = query.host;
-    if (query.host === 'github.com') {
-      host = 'https://api.github.com';
-    }
+  // TODO find username if absent
+  const gitService = `atom-github-git @ ${query.host}`;
+  log(`reading service "${gitService}" and account "${query.username}"`);
+  const gitPassword = await strategy.getPassword(gitService, query.username);
+  if (gitPassword !== UNAUTHENTICATED) {
+    log('password found in keychain');
+    password = gitPassword;
+  }
 
-    log(`reading service "atom-github" and account "${host}"`);
-    return strategy.getPassword('atom-github', host);
-  })
-  .then(p => {
-    if (p !== UNAUTHENTICATED) {
-      // TODO fetch username from API
-      if (!query.username) {
-        log('token found in keychain, but no username');
-        return;
-      }
-      log('token found in keychain');
-      password = p;
-    }
-  })
-  .then(() => {
-    if (password !== UNAUTHENTICATED) {
-      const lines = ['protocol', 'host', 'username']
-        .filter(k => query[k] !== undefined)
-        .map(k => `${k}=${query[k]}\n`);
-      lines.push(`password=${password}\n`);
-      return lines.join('') + 'quit=true\n';
+  const githubHost = `${query.protocol}://api.${query.host}`;
+  log(`reading service "atom-github" and account "${githubHost}"`);
+  const githubPassword = await strategy.getPassword('atom-github', githubHost);
+  if (githubPassword !== UNAUTHENTICATED) {
+    if (!query.username) {
+      // TODO find username from GitHub API
+      throw new Error('token found in keychain, but no username');
     } else {
-      log('no password found in keychain');
-      return Promise.reject(new Error('Unable to read password from keychain'));
+      password = githubPassword;
     }
-  });
+  }
+
+  if (password !== UNAUTHENTICATED) {
+    const lines = ['protocol', 'host', 'username']
+      .filter(k => query[k] !== undefined)
+      .map(k => `${k}=${query[k]}\n`);
+    lines.push(`password=${password}\n`);
+    return lines.join('') + 'quit=true\n';
+  } else {
+    log('no password found in keychain');
+    throw new Error('Unable to read password from keychain');
+  }
 }
 
 /*
@@ -249,7 +231,11 @@ function dialog(query) {
         try {
           const reply = JSON.parse(parts.join(''));
 
-          const writeReply = function() {
+          const writeReply = function(err) {
+            if (err) {
+              log(`Unable to write remember file: ${err.stack}`);
+            }
+
             const lines = [];
             ['protocol', 'host', 'username', 'password'].forEach(k => {
               const value = reply[k] !== undefined ? reply[k] : query[k];
@@ -279,35 +265,47 @@ function dialog(query) {
   });
 }
 
-function get() {
-  parse()
-    .then(query => {
-      return fromOtherHelpers(query)
-        .catch(() => fromKeytar(query))
-        .catch(() => dialog(query));
-    })
-    .then(reply => {
-      process.stdout.write(reply);
-      log('success');
-      process.exit(0);
-    }, err => {
+async function get() {
+  const query = await parse();
+  const reply = await fromOtherHelpers(query)
+    .catch(() => fromKeytar(query))
+    .catch(() => dialog(query))
+    .catch(err => {
       process.stderr.write(`Unable to prompt through Atom:\n${err.stack}`);
       log('failure');
-      process.stdout.write('quit=true\n\n');
-      process.exit(0);
+      return 'quit=true\n\n';
     });
+
+  await new Promise((resolve, reject) => {
+    process.stdout.write(reply, err => {
+      if (err) { reject(err); } else { resolve(); }
+    });
+  });
+
+  log('success');
+  process.exit(0);
 }
 
-function store() {
-  parse()
-    .then(query => withAllHelpers(query, 'approve'))
-    .then(() => process.exit(0), () => process.exit(1));
+async function store() {
+  try {
+    const query = await parse();
+    await withAllHelpers(query, 'approve');
+    process.exit(0);
+  } catch (e) {
+    log(`Unable to execute store: ${e.stack}`);
+    process.exit(1);
+  }
 }
 
-function erase() {
-  parse()
-    .then(query => withAllHelpers(query, 'reject'))
-    .then(() => process.exit(0), () => process.exit(1));
+async function erase() {
+  try {
+    const query = await parse();
+    await withAllHelpers(query, 'reject');
+    process.exit(0);
+  } catch (e) {
+    log(`Unable to execute erase: ${e.stack}`);
+    process.exit(1);
+  }
 }
 
 log(`working directory = ${workdirPath}`);
