@@ -196,33 +196,36 @@ async function fromKeytar(query) {
     }
   }
 
-  const githubHost = `${query.protocol}://api.${query.host}`;
-  log(`reading service "atom-github" and account "${githubHost}"`);
-  const githubPassword = await strategy.getPassword('atom-github', githubHost);
-  if (githubPassword !== UNAUTHENTICATED) {
-    try {
-      if (!query.username) {
-        const apiUrl = githubHost === 'https://api.github.com' ? `${githubHost}/graphql` : `${githubHost}/api/v3/graphql`;
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'Authorization': `bearer ${githubPassword}`,
-            'Accept': 'application/vnd.github.graphql-profiling+json',
-          },
-          body: JSON.stringify({
-            query: 'query { viewer { login } }',
-          }),
-        });
+  if (password === UNAUTHENTICATED) {
+    // Read GitHub tab token
+    const githubHost = `${query.protocol}://api.${query.host}`;
+    log(`reading service "atom-github" and account "${githubHost}"`);
+    const githubPassword = await strategy.getPassword('atom-github', githubHost);
+    if (githubPassword !== UNAUTHENTICATED) {
+      try {
+        if (!query.username) {
+          const apiUrl = githubHost === 'https://api.github.com' ? `${githubHost}/graphql` : `${githubHost}/api/v3/graphql`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'Authorization': `bearer ${githubPassword}`,
+              'Accept': 'application/vnd.github.graphql-profiling+json',
+            },
+            body: JSON.stringify({
+              query: 'query { viewer { login } }',
+            }),
+          });
 
-        query.username = response.json().data.viewer.login;
+          query.username = response.json().data.viewer.login;
+        }
+      } catch (e) {
+        log(`unable to acquire username from token: ${e.stack}`);
+        throw new Error('token found in keychain, but no username');
       }
-    } catch (e) {
-      log(`unable to acquire username from token: ${e.stack}`);
-      throw new Error('token found in keychain, but no username');
-    }
 
-    password = githubPassword;
+      password = githubPassword;
+    }
   }
 
   if (password !== UNAUTHENTICATED) {
