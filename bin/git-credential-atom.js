@@ -254,6 +254,13 @@ async function fromKeytar(query) {
       }
 
       password = githubPassword;
+
+      // Always remember credentials we had to go to GraphQL to get
+      await new Promise((resolve, reject) => {
+        fs.writeFile(rememberFile, err => {
+          if (err) { reject(err); } else { resolve(); }
+        });
+      });
     }
   }
 
