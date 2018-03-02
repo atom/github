@@ -27,22 +27,45 @@
 }
 
 .github-RecentCommit {
-
-
+  position: relative;
   display: flex;
   padding: @component-padding/2 @component-padding;
   line-height: @size;
 
+  &-authors {
+    position: absolute;
+  }
+
   &-avatar {
+    position: relative;
     width: @size;
     height: @size;
     border-radius: @component-border-radius;
     background-color: mix(@text-color, @base-background-color, 15%);
+    box-shadow: 1px 0 @base-background-color;
+
+    margin-right: -@size + 3px;
+    transition: margin .1s ease-in-out;
+
+    &:nth-child(1) { z-index: 3; }
+    &:nth-child(2) { z-index: 2; }
+    &:nth-child(3) { z-index: 1; }
+
+    &:nth-child(n+4) {
+      display: none;
+    }
+
+  }
+
+  &-authors:hover .github-RecentCommit-avatar {
+    display: inline-block;
+    margin-right: 1px;
   }
 
   &-message {
     flex: 1;
     margin: 0 .5em;
+    margin-left: @size + @component-padding;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
