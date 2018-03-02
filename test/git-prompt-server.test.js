@@ -214,11 +214,11 @@ describe('GitPromptServer', function() {
 
       await writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
-        "atom-github-git @ what-is-your-favorite-color.com": {
+        "atom-github-git @ https://what-is-your-favorite-color.com": {
           "old-man-from-scene-24": "swordfish",
           "github.com": "nope"
         },
-        "atom-github-git @ github.com": {
+        "atom-github-git @ https://github.com": {
           "old-man-from-scene-24": "nope"
         }
       }
@@ -251,17 +251,17 @@ describe('GitPromptServer', function() {
 
       await writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
-        "atom-github-git-meta @ what-is-your-favorite-color.com": {
+        "atom-github-git-meta @ https://what-is-your-favorite-color.com": {
           "username": "old-man-from-scene-24"
         },
-        "atom-github-git @ what-is-your-favorite-color.com": {
+        "atom-github-git @ https://what-is-your-favorite-color.com": {
           "old-man-from-scene-24": "swordfish",
           "github.com": "nope"
         },
-        "atom-github-git-meta @ github.com": {
+        "atom-github-git-meta @ https://github.com": {
           "username": "nah"
         },
-        "atom-github-git @ github.com": {
+        "atom-github-git @ https://github.com": {
           "old-man-from-scene-24": "nope"
         }
       }
@@ -335,10 +335,10 @@ describe('GitPromptServer', function() {
 
       const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
       assert.deepEqual(JSON.parse(stored), {
-        'atom-github-git-meta @ what-is-your-favorite-color.com': {
+        'atom-github-git-meta @ https://what-is-your-favorite-color.com': {
           username: 'old-man-from-scene-24',
         },
-        'atom-github-git @ what-is-your-favorite-color.com': {
+        'atom-github-git @ https://what-is-your-favorite-color.com': {
           'old-man-from-scene-24': 'shhhh',
         },
       });
@@ -361,11 +361,11 @@ describe('GitPromptServer', function() {
       }
 
       await writeFile(tempDir.getScriptPath('fake-keytar'), JSON.stringify({
-        'atom-github-git @ what-is-your-favorite-color.com': {
+        'atom-github-git @ https://what-is-your-favorite-color.com': {
           'old-man-from-scene-24': 'shhhh',
           'someone-else': 'untouched',
         },
-        'atom-github-git @ github.com': {
+        'atom-github-git @ https://github.com': {
           'old-man-from-scene-24': 'untouched',
         },
       }));
@@ -375,10 +375,10 @@ describe('GitPromptServer', function() {
 
       const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
       assert.deepEqual(JSON.parse(stored), {
-        'atom-github-git @ what-is-your-favorite-color.com': {
+        'atom-github-git @ https://what-is-your-favorite-color.com': {
           'someone-else': 'untouched',
         },
-        'atom-github-git @ github.com': {
+        'atom-github-git @ https://github.com': {
           'old-man-from-scene-24': 'untouched',
         },
       });

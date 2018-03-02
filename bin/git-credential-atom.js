@@ -169,14 +169,14 @@ async function fromKeytar(query) {
   log('reading credentials stored in your OS keychain');
   let password = UNAUTHENTICATED;
 
-  if (!query.host) {
-    throw new Error('Host unavailable');
+  if (!query.host && !query.protocol) {
+    throw new Error('Host or protocol unavailable');
   }
 
   const strategy = await createStrategy();
 
   if (!query.username) {
-    const metaService = `atom-github-git-meta @ ${query.host}`;
+    const metaService = `atom-github-git-meta @ ${query.protocol}://${query.host}`;
     log(`reading username from service "${metaService}" and account "username"`);
     const u = await strategy.getPassword(metaService, 'username');
     if (u !== UNAUTHENTICATED) {
@@ -185,7 +185,7 @@ async function fromKeytar(query) {
   }
 
   if (query.username) {
-    const gitService = `atom-github-git @ ${query.host}`;
+    const gitService = `atom-github-git @ ${query.protocol}://${query.host}`;
     log(`reading service "${gitService}" and account "${query.username}"`);
     const gitPassword = await strategy.getPassword(gitService, query.username);
     if (gitPassword !== UNAUTHENTICATED) {
@@ -310,11 +310,11 @@ async function toKeytar(query) {
 
   const strategy = await createStrategy();
 
-  const gitService = `atom-github-git @ ${query.host}`;
+  const gitService = `atom-github-git @ ${query.protocol}://${query.host}`;
   log(`writing service "${gitService}" and account "${query.username}"`);
   await strategy.replacePassword(gitService, query.username, query.password);
 
-  const metaService = `atom-github-git-meta @ ${query.host}`;
+  const metaService = `atom-github-git-meta @ ${query.protocol}://${query.host}`;
   log(`writing service "${metaService}" and account "username"`);
   await strategy.replacePassword(metaService, 'username', query.username);
 
@@ -327,7 +327,7 @@ async function toKeytar(query) {
 async function deleteFromKeytar(query) {
   const strategy = await createStrategy();
 
-  const gitService = `atom-github-git @ ${query.host}`;
+  const gitService = `atom-github-git @ ${query.protocol}://${query.host}`;
   log(`removing account "${query.username}" from service "${gitService}"`);
   await strategy.deletePassword(gitService, query.username, query.password);
   log('success');
