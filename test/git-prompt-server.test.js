@@ -335,6 +335,9 @@ describe('GitPromptServer', function() {
 
       const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
       assert.deepEqual(JSON.parse(stored), {
+        'atom-github-git-meta @ what-is-your-favorite-color.com': {
+          username: 'old-man-from-scene-24',
+        },
         'atom-github-git @ what-is-your-favorite-color.com': {
           'old-man-from-scene-24': 'shhhh',
         },

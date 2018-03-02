@@ -296,6 +296,11 @@ async function toKeytar(query) {
   const gitService = `atom-github-git @ ${query.host}`;
   log(`writing service "${gitService}" and account "${query.username}"`);
   await strategy.replacePassword(gitService, query.username, query.password);
+
+  const metaService = `atom-github-git-meta @ ${query.host}`;
+  log(`writing service "${metaService}" and account "username"`);
+  await strategy.replacePassword(metaService, 'username', query.username);
+
   log('success');
 }
 
