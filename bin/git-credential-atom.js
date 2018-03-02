@@ -250,7 +250,7 @@ function dialog(query) {
   const prompt = 'Please enter your credentials for ' + url.format(query);
   const includeUsername = !query.username;
 
-  const payload = {prompt, includeUsername, pid: process.pid};
+  const payload = {prompt, includeUsername, includeRemember: true, pid: process.pid};
 
   return new Promise((resolve, reject) => {
     log('requesting dialog through Atom socket');
