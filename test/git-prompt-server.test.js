@@ -4,7 +4,6 @@ import path from 'path';
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
 import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
-import {transpile} from './helpers';
 
 describe('GitPromptServer', function() {
   const electronEnv = {
@@ -12,7 +11,7 @@ describe('GitPromptServer', function() {
     ELECTRON_NO_ATTACH_CONSOLE: '1',
     ATOM_GITHUB_KEYTAR_FILE: null,
     ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
-    ATOM_GITHUB_KEYTAR_STRATEGY_PATH: null, // Computed lazily in beforeEach()
+    ATOM_GITHUB_KEYTAR_STRATEGY_PATH: require.resolve('../lib/shared/keytar-strategy'),
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     ATOM_GITHUB_SPEC_MODE: 'true',
@@ -27,11 +26,6 @@ describe('GitPromptServer', function() {
     await tempDir.ensure();
 
     electronEnv.ATOM_GITHUB_KEYTAR_FILE = tempDir.getScriptPath('fake-keytar');
-
-    if (!electronEnv.ATOM_GITHUB_KEYTAR_STRATEGY_PATH) {
-      const [keytarStrategyPath] = await transpile(require.resolve('../lib/models/keytar-strategy'));
-      electronEnv.ATOM_GITHUB_KEYTAR_STRATEGY_PATH = keytarStrategyPath;
-    }
   });
 
   describe('credential helper', function() {

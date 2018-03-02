@@ -1,5 +1,5 @@
 import GithubLoginModel from '../../lib/models/github-login-model';
-import {KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy, UNAUTHENTICATED} from '../../lib/models/keytar-strategy';
+import {KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 
 describe('GithubLoginModel', function() {
   [null, KeytarStrategy, SecurityBinaryStrategy, InMemoryStrategy].forEach(function(Strategy) {
