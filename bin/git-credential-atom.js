@@ -285,11 +285,16 @@ async function toKeytar(query) {
 }
 
 /*
- *
+ * Remove credentials that failed authentication.
  */
-// async function deleteFromKeytar(query) {
-//   //
-// }
+async function deleteFromKeytar(query) {
+  const strategy = await createStrategy();
+
+  const gitService = `atom-github-git @ ${query.host}`;
+  log(`removing account "${query.username}" from service "${gitService}"`);
+  await strategy.deletePassword(gitService, query.username, query.password);
+  log('success');
+}
 
 async function get() {
   const query = await parse();
@@ -329,6 +334,7 @@ async function erase() {
   try {
     const query = await parse();
     await withAllHelpers(query, 'reject');
+    await deleteFromKeytar(query);
     log('success');
     process.exit(0);
   } catch (e) {

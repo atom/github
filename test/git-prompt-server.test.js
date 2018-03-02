@@ -298,6 +298,46 @@ describe('GitPromptServer', function() {
       });
     });
 
+    it('forgets stored credentials from keytar if authentication fails', async function() {
+      this.timeout(10000);
+      this.retries(5);
+
+      function queryHandler() {
+        return {};
+      }
+
+      function processHandler(child) {
+        child.stdin.write('protocol=https\n');
+        child.stdin.write('host=what-is-your-favorite-color.com\n');
+        child.stdin.write('username=old-man-from-scene-24\n');
+        child.stdin.write('password=shhhh');
+        child.stdin.end('\n');
+      }
+
+      await writeFile(tempDir.getScriptPath('fake-keytar'), JSON.stringify({
+        'atom-github-git @ what-is-your-favorite-color.com': {
+          'old-man-from-scene-24': 'shhhh',
+          'someone-else': 'untouched',
+        },
+        'atom-github-git @ github.com': {
+          'old-man-from-scene-24': 'untouched',
+        },
+      }));
+
+      const {err} = await runCredentialScript('erase', queryHandler, processHandler);
+      assert.ifError(err);
+
+      const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
+      assert.deepEqual(JSON.parse(stored), {
+        'atom-github-git @ what-is-your-favorite-color.com': {
+          'someone-else': 'untouched',
+        },
+        'atom-github-git @ github.com': {
+          'old-man-from-scene-24': 'untouched',
+        },
+      });
+    });
+
     afterEach(async function() {
       await server.terminate();
     });
