@@ -180,11 +180,13 @@ async function fromKeytar(query) {
     log(`reading username from service "${metaService}" and account "username"`);
     const u = await strategy.getPassword(metaService, 'username');
     if (u !== UNAUTHENTICATED) {
+      log('username found in keychain');
       query.username = u;
     }
   }
 
   if (query.username) {
+    // Read git entry from OS keychain
     const gitService = `atom-github-git @ ${query.protocol}://${query.host}`;
     log(`reading service "${gitService}" and account "${query.username}"`);
     const gitPassword = await strategy.getPassword(gitService, query.username);
