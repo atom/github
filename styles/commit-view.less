@@ -43,6 +43,30 @@
     }
   }
 
+  &-coAuthorToggle {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      opacity: .5;
+    }
+
+    &Icon {
+      width: 12px;
+      height: 7px;
+      fill: @text-color;
+    }
+  }
+
   &-expandButton {
     position: absolute;
     right: 0;
