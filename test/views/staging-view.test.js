@@ -362,11 +362,13 @@ describe('StagingView', function() {
         getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2']);
         await view.selectPrevious();
         assert.isTrue(showFilePatchItem.calledTwice);
-        assert.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[0].filePath);
+        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[0].filePath);
         showFilePatchItem.reset();
         await view.selectNext();
         assert.isTrue(showFilePatchItem.calledTwice);
-        assert.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
+        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[1].filePath);
+        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[1].filePath);
 
         view.element.remove();
       });
