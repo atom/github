@@ -55,18 +55,31 @@ atom-dock.bottom {
   .github-Panel {
     flex-direction: row;
   }
+
+  .github-PanelEtchWrapper,
   .github-StagingView {
-    flex-direction: row;
-    flex: 2;
+    display: contents; // make these invisible to layout
   }
+
+  .github-Panel > div {
+    flex: 1;
+  }
+
   .github-StagedChanges {
     border-left: 1px solid @base-border-color;
     border-right: 1px solid @base-border-color;
   }
+
+  .github-StagingView-header {
+    flex-wrap: wrap;
+  }
   .github-StagingView-group:first-child .github-StagingView-header {
     border-top: 1px solid @base-border-color;
   }
-  .github-CommitView {
-    flex: 1;
+
+  .github-RecentCommits {
+    max-height: none;
+    border-left: 1px solid @base-border-color;
   }
+
 }

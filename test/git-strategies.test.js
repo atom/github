@@ -119,6 +119,83 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
+    describe('getRecentCommits()', function() {
+      it('returns an empty array if no commits exist yet', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        const commits = await git.getRecentCommits();
+        assert.lengthOf(commits, 0);
+      });
+
+      it('returns all commits if fewer than max commits exist', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        const commits = await git.getRecentCommits({max: 10});
+        assert.lengthOf(commits, 3);
+
+        assert.deepEqual(commits[0], {
+          sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113656,
+          message: 'third commit',
+          body: '',
+          coAuthors: [],
+        });
+        assert.deepEqual(commits[1], {
+          sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113642,
+          message: 'second commit',
+          body: '',
+          coAuthors: [],
+        });
+        assert.deepEqual(commits[2], {
+          sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113625,
+          message: 'first commit',
+          body: '',
+          coAuthors: [],
+        });
+      });
+
+      it('returns an array of the last max commits', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        for (let i = 1; i <= 10; i++) {
+          // eslint-disable-next-line no-await-in-loop
+          await git.commit(`Commit ${i}`, {allowEmpty: true});
+        }
+
+        const commits = await git.getRecentCommits({max: 10});
+        assert.lengthOf(commits, 10);
+
+        assert.strictEqual(commits[0].message, 'Commit 10');
+        assert.strictEqual(commits[9].message, 'Commit 1');
+      });
+
+      it('includes co-authors based on commit body trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another-name <another-name@example.com>"
+          Co-authored-by: yet-another <yet-another@example.com>"
+        `, {allowEmpty: true});
+
+        const commits = await git.getRecentCommits({max: 1});
+        assert.lengthOf(commits, 1);
+        assert.deepEqual(commits[0].coAuthors, ['name@example.com', 'another-name@example.com', 'yet-another@example.com']);
+      });
+
+    });
+
     describe('diffFileStatus', function() {
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
