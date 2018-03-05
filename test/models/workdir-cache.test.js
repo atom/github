@@ -5,6 +5,7 @@ import fs from 'fs';
 import {cloneRepository} from '../helpers';
 
 import WorkdirCache from '../../lib/models/workdir-cache';
+import {realPath} from '../../lib/helpers';
 
 describe('WorkdirCache', function() {
   let cache;
@@ -29,7 +30,7 @@ describe('WorkdirCache', function() {
 
   it('finds a workdir from a gitdir file', async function() {
     const repoDir = await cloneRepository('three-files');
-    const expectedDir = fs.realpathSync(temp.mkdirSync());
+    const expectedDir = await realPath(temp.mkdirSync());
     fs.writeFileSync(path.join(expectedDir, '.git'), `gitdir: ${path.join(repoDir, '.git')}`, 'utf8');
     const actualDir = await cache.find(expectedDir);
 
@@ -63,14 +64,15 @@ describe('WorkdirCache', function() {
 
     // Prime the cache
     await cache.find(givenDir);
+    assert.isTrue(cache.known.has(givenDir));
 
-    sinon.spy(cache, 'walkToRoot');
+    sinon.spy(cache, 'revParse');
     const actualDir = await cache.find(givenDir);
     assert.equal(actualDir, expectedDir);
-    assert.isFalse(cache.walkToRoot.called);
+    assert.isFalse(cache.revParse.called);
   });
 
-  it('removes cached entries for all subdirectories of an entry', async function() {
+  it('removes all cached entries', async function() {
     const [dir0, dir1] = await Promise.all([
       cloneRepository('three-files'),
       cloneRepository('three-files'),
@@ -94,26 +96,26 @@ describe('WorkdirCache', function() {
     assert.deepEqual(initial, expectedWorkdirs);
 
     // Re-lookup and hit the cache
-    sinon.spy(cache, 'walkToRoot');
+    sinon.spy(cache, 'revParse');
     const relookup = await Promise.all(
       pathsToCheck.map(input => cache.find(input)),
     );
     assert.deepEqual(relookup, expectedWorkdirs);
-    assert.equal(cache.walkToRoot.callCount, 0);
+    assert.equal(cache.revParse.callCount, 0);
 
-    // Clear dir0
-    await cache.invalidate(dir0);
+    // Clear the cache
+    await cache.invalidate();
 
-    // Re-lookup and hit the cache once
+    // Re-lookup and miss the cache
     const after = await Promise.all(
       pathsToCheck.map(input => cache.find(input)),
     );
     assert.deepEqual(after, expectedWorkdirs);
-    assert.isTrue(cache.walkToRoot.calledWith(dir0));
-    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'a.txt')));
-    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'subdir-1')));
-    assert.isTrue(cache.walkToRoot.calledWith(path.join(dir0, 'subdir-1', 'b.txt')));
-    assert.isFalse(cache.walkToRoot.calledWith(dir1));
+    assert.isTrue(cache.revParse.calledWith(dir0));
+    assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'a.txt')));
+    assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'subdir-1')));
+    assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'subdir-1', 'b.txt')));
+    assert.isTrue(cache.revParse.calledWith(dir1));
   });
 
   it('clears the cache when the maximum size is exceeded', async function() {
@@ -121,12 +123,13 @@ describe('WorkdirCache', function() {
       Array(6).fill(null, 0, 6).map(() => cloneRepository('three-files')),
     );
 
-    await Promise.all(dirs.map(dir => cache.find(dir)));
-    const expectedDir = dirs[1];
+    await Promise.all(dirs.slice(0, 5).map(dir => cache.find(dir)));
+    await cache.find(dirs[5]);
 
-    sinon.spy(cache, 'walkToRoot');
+    const expectedDir = dirs[2];
+    sinon.spy(cache, 'revParse');
     const actualDir = await cache.find(expectedDir);
-    assert.equal(actualDir, expectedDir);
-    assert.isTrue(cache.walkToRoot.called);
+    assert.strictEqual(actualDir, expectedDir);
+    assert.isTrue(cache.revParse.called);
   });
 });
