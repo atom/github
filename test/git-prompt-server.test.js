@@ -290,7 +290,7 @@ describe('GitPromptServer', function() {
       await writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
         "atom-github": {
-          "https://api.what-is-your-favorite-color.com": "swordfish"
+          "https://what-is-your-favorite-color.com": "swordfish"
         }
       }
       `);
