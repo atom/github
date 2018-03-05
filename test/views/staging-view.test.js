@@ -255,7 +255,7 @@ describe('StagingView', function() {
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: true, activateItem: true},
+          {pending: true, activatePane: true, pane: undefined, activateItem: true},
         ]);
         assert.isTrue(filePatchItem.focus.called);
       });
@@ -275,7 +275,7 @@ describe('StagingView', function() {
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: false, activateItem: false},
+          {pending: true, activatePane: false, pane: undefined, activateItem: false},
         ]);
         assert.isFalse(focus.called);
         assert.equal(activateItem.callCount, 1);
@@ -331,7 +331,7 @@ describe('StagingView', function() {
     });
   });
 
-  describe('when the selection changes', function() {
+  describe('when the selection changes due to keyboard navigation', function() {
     let showFilePatchItem, showMergeConflictFileForPath;
     beforeEach(function() {
       showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
@@ -355,15 +355,20 @@ describe('StagingView', function() {
         });
         document.body.appendChild(view.element);
 
-        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
+        const getPanesWithStalePendingFilePatchItem = sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns([]);
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPendingFilePatchItem.returns(true);
+        getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2']);
         await view.selectPrevious();
-        assert.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        assert.isTrue(showFilePatchItem.calledTwice);
+        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[0].filePath);
+        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[0].filePath);
+        showFilePatchItem.reset();
         await view.selectNext();
-        assert.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
+        assert.isTrue(showFilePatchItem.calledTwice);
+        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[1].filePath);
+        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[1].filePath);
 
         view.element.remove();
       });
@@ -423,15 +428,18 @@ describe('StagingView', function() {
         });
         document.body.appendChild(view.element);
 
-        const getPendingFilePatchItem = sinon.stub(view, 'getPendingFilePatchItem').returns(false);
+        const getPanesWithStalePendingFilePatchItem = sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns([]);
         await view.selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPendingFilePatchItem.returns(true);
+        getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2', 'item3']);
         await view.selectPrevious();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        assert.isTrue(showFilePatchItem.calledThrice);
+        showFilePatchItem.reset();
         await view.selectNext();
         await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
+        assert.isTrue(showFilePatchItem.calledThrice);
 
         view.element.remove();
       });
@@ -470,6 +478,88 @@ describe('StagingView', function() {
 
       view.element.remove();
     });
+  });
+
+  describe('when the selection changes due to a repo update', function() {
+    let showFilePatchItem;
+    beforeEach(function() {
+      atom.config.set('github.keyboardNavigationDelay', 0);
+      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+    });
+
+    // such as files being staged/unstaged, discarded or stashed
+    it('calls showFilePatchItem if there is a pending file patch item open', async function() {
+      const filePatches = [
+        {filePath: 'a.txt', status: 'modified'},
+        {filePath: 'b.txt', status: 'deleted'},
+      ];
+
+      const view = new StagingView({
+        workspace, workingDirectoryPath, commandRegistry,
+        unstagedChanges: filePatches, mergeConflicts: [], stagedChanges: [],
+      });
+      document.body.appendChild(view.element);
+
+      let selectedItems = view.getSelectedItems();
+      assert.lengthOf(selectedItems, 1);
+      assert.strictEqual(selectedItems[0].filePath, 'a.txt');
+      sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns(['item1']);
+      const newFilePatches = filePatches.slice(1); // remove first item, as though it was staged or discarded
+      await view.update({unstagedChanges: newFilePatches});
+      selectedItems = view.getSelectedItems();
+      assert.lengthOf(selectedItems, 1);
+      assert.strictEqual(selectedItems[0].filePath, 'b.txt');
+      assert.isTrue(showFilePatchItem.called);
+      assert.isTrue(showFilePatchItem.calledWith('b.txt'));
+
+      view.element.remove();
+    });
+
+    it('does not call showFilePatchItem if a new set of file patches are being fetched', async function() {
+      const view = new StagingView({
+        workspace, workingDirectoryPath, commandRegistry,
+        unstagedChanges: [{filePath: 'a.txt', status: 'modified'}], mergeConflicts: [], stagedChanges: [],
+      });
+      document.body.appendChild(view.element);
+
+      sinon.stub(view, 'getPanesWithStalePendingFilePatchItem').returns(['item1']);
+      await view.update({unstagedChanges: []}); // when repo is changed, lists are cleared out and data is fetched for new repo
+      assert.isFalse(showFilePatchItem.called);
+
+      await view.update({unstagedChanges: [{filePath: 'b.txt', status: 'deleted'}]}); // data for new repo is loaded
+      assert.isFalse(showFilePatchItem.called);
+
+      await view.update({unstagedChanges: [{filePath: 'c.txt', status: 'added'}]});
+      assert.isTrue(showFilePatchItem.called);
+
+      view.element.remove();
+    });
+  });
+
+  it('updates the selection when there is an `activeFilePatch`', async function() {
+    const view = new StagingView({
+      workspace, workingDirectoryPath, commandRegistry,
+      unstagedChanges: [{filePath: 'file.txt', status: 'modified'}], mergeConflicts: [], stagedChanges: [],
+    });
+    document.body.appendChild(view.element);
+    let selectedItems = view.getSelectedItems();
+    assert.lengthOf(selectedItems, 1);
+    assert.strictEqual(selectedItems[0].filePath, 'file.txt');
+
+    view.activeFilePatch = {
+      getFilePath() { return 'b.txt'; },
+      getStagingStatus() { return 'unstaged'; },
+    };
+    await view.update({unstagedChanges: [
+        {filePath: 'a.txt', status: 'modified'},
+        {filePath: 'b.txt', status: 'deleted'},
+    ]});
+    selectedItems = view.getSelectedItems();
+    assert.lengthOf(selectedItems, 1);
+    assert.strictEqual(selectedItems[0].filePath, view.activeFilePatch.getFilePath());
+
+    view.element.remove();
+
   });
 
   describe('when dragging a mouse across multiple items', function() {
