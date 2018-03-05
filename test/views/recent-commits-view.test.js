@@ -57,6 +57,27 @@ describe('RecentCommitsView', function() {
     );
   });
 
+  it('renders multiple avatars for co-authored commits', function() {
+    const commits = [new Commit({
+      sha: '1111111111',
+      authorEmail: 'thr&ee@z.com',
+      authorDate: 0,
+      message: 'x',
+      coAuthors: ['two@y.com', 'one@x.com'],
+    })];
+
+    app = React.cloneElement(app, {commits});
+    const wrapper = mount(app);
+    assert.deepEqual(
+      wrapper.find('img.github-RecentCommit-avatar').map(w => w.prop('src')),
+      [
+        'https://avatars.githubusercontent.com/u/e?email=thr%26ee%40z.com&s=32',
+        'https://avatars.githubusercontent.com/u/e?email=two%40y.com&s=32',
+        'https://avatars.githubusercontent.com/u/e?email=one%40x.com&s=32',
+      ],
+    );
+  });
+
   it("renders the commit's relative age", function() {
     const commit = new Commit({
       sha: '1111111111',
