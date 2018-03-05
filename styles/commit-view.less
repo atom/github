@@ -67,6 +67,40 @@
     }
   }
 
+  &-coAuthorEditor {
+    position: relative;
+    margin-top: @component-padding / 2;
+    padding: @component-padding / 4;
+    border: 1px solid @base-border-color;
+    color: @syntax-text-color;
+    border-radius: @component-border-radius;
+    background-color: @syntax-background-color;
+    cursor: text;
+
+    &-label {
+      display: inline-block;
+      margin: @component-padding / 4;
+      line-height: 1;
+      color: mix(@syntax-text-color, @syntax-background-color, 50%);
+      cursor: default;
+    }
+    &-list {
+      display: contents;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    &-listItem {
+      display: inline-block;
+      padding: 0 .1em;
+      margin: @component-padding / 4;
+      line-height: 1.2;
+      border-radius: @component-border-radius;
+      border: 1px solid mix(@syntax-text-color, @syntax-background-color, 16%);
+      background-color: mix(@syntax-text-color, @syntax-background-color, 8%);
+    }
+  }
+
   &-expandButton {
     position: absolute;
     right: 0;
@@ -165,7 +199,8 @@
 
 .theme-one-dark-ui,
 .theme-one-light-ui {
-  .github-CommitView-editor atom-text-editor.is-focused {
+  .github-CommitView-editor atom-text-editor.is-focused,
+  .github-CommitView-coAuthorEditor:focus {
     box-shadow: none;
     &:before {
       content: "";
