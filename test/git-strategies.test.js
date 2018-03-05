@@ -141,6 +141,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           authorDate: 1471113656,
           message: 'third commit',
           body: '',
+          coAuthors: [],
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
@@ -148,6 +149,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           authorDate: 1471113642,
           message: 'second commit',
           body: '',
+          coAuthors: [],
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
@@ -155,6 +157,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           authorDate: 1471113625,
           message: 'first commit',
           body: '',
+          coAuthors: [],
         });
       });
 
@@ -173,6 +176,24 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
         assert.strictEqual(commits[0].message, 'Commit 10');
         assert.strictEqual(commits[9].message, 'Commit 1');
       });
+
+      it('includes co-authors based on commit body trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another-name <another-name@example.com>"
+          Co-authored-by: yet-another <yet-another@example.com>"
+        `, {allowEmpty: true});
+
+        const commits = await git.getRecentCommits({max: 1});
+        assert.lengthOf(commits, 1);
+        assert.deepEqual(commits[0].coAuthors, ['name@example.com', 'another-name@example.com', 'yet-another@example.com']);
+      });
+
     });
 
     describe('diffFileStatus', function() {
