@@ -1,4 +1,5 @@
-import {cloneRepository, buildRepository, toGitPathSep} from '../helpers';
+import {cloneRepository, buildRepository} from '../helpers';
+import {toGitPathSep} from '../../lib/helpers';
 import path from 'path';
 import fs from 'fs';
 import dedent from 'dedent-js';
