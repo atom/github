@@ -33,5 +33,11 @@ jobs:
         name: uname maybe?
         command: uname -a
     - run:
+        name: inside a script
+        command: ./wat.sh
+    - run:
+        name: within caffeinate
+        command: caffienate -s ./wat.sh
+    - run:
         name: tests
-        command: caffeinate -s /bin/bash ./build-package.sh
+        command: caffeinate -s ./build-package.sh
