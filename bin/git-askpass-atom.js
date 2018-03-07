@@ -76,8 +76,13 @@ function dialog() {
 
 userHelper()
   .catch(() => dialog())
-  .then(password => {
-    process.stdout.write(password);
+  .then(async password => {
+    await new Promise((resolve, reject) => {
+      process.stdout.write(password, err => {
+        if (err) { reject(err); } else { resolve(); }
+      });
+    });
+
     log('success');
     process.exit(0);
   }, err => {
