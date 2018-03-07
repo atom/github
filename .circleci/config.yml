@@ -37,7 +37,7 @@ jobs:
         command: ./wat.sh
     - run:
         name: within caffeinate
-        command: caffienate -s ./wat.sh
+        command: caffeinate -s ./wat.sh
     - run:
         name: tests
         command: caffeinate -s ./build-package.sh
