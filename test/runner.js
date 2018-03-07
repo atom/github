@@ -28,7 +28,7 @@ module.exports = createRunner({
     mocha.reporter(require('mocha-appveyor-reporter'));
   } else if (process.env.CIRCLECI === 'true') {
     mocha.reporter(require('mocha-junit-and-console-reporter'), {
-      mochaFile: path.join(process.env.CIRCLE_TEST_REPORTS, 'mocha', 'test-results.xml'),
+      mochaFile: path.join('mocha', 'test-results.xml'),
     });
   }
 });
