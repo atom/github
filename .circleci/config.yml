@@ -34,4 +34,4 @@ jobs:
         command: uname -a
     - run:
         name: tests
-        command: caffeinate -s ./build-package.sh
+        command: caffeinate -s /bin/bash ./build-package.sh
