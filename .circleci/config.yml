@@ -27,3 +27,7 @@ jobs:
     - run:
         name: tests
         command: caffeinate -s ./build-package.sh
+    - store_test_results:
+        path: ~/project/mocha/
+    - store_artifacts:
+        path: ~/project/mocha/
