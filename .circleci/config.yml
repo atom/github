@@ -14,6 +14,7 @@ jobs:
     - ATOM_GITHUB_FS_EVENT_LOG: "1"
     - MOCHA_TIMEOUT: "60000"
     - UNTIL_TIMEOUT: "30000"
+    - CIRCLE_BUILD_IMAGE: osx
 
     steps:
     - checkout
