@@ -26,7 +26,7 @@ jobs:
     - run:
         name: OSTYPE wat
         command: echo "OSTYPE=${OSTYPE}"
-    - name:
+    - run:
         name: OSTYPE in bash
         command: bash -c 'echo ${OSTYPE}'
     - run:
