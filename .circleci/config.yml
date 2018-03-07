@@ -15,18 +15,14 @@ jobs:
     - MOCHA_TIMEOUT: "60000"
     - UNTIL_TIMEOUT: "30000"
 
-    dependencies:
-      override:
-      - curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
-      - chmod u+x build-package.sh
-
     steps:
     - checkout
     - run:
-        name: build-package.sh
-        command:
-        - curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
-        - chmod u+x build-package.sh
+        name: download build-package.sh
+        command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+    - run:
+        name: chmod build-package.sh
+        command: chmod u+x build-package.sh
     - run:
         name: tests
         command: caffeinate -s ./build-package.sh
