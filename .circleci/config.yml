@@ -24,5 +24,14 @@ jobs:
         name: chmod build-package.sh
         command: chmod u+x build-package.sh
     - run:
+        name: OSTYPE wat
+        command: echo "OSTYPE=${OSTYPE}"
+    - name:
+        name: OSTYPE in bash
+        command: bash -c 'echo ${OSTYPE}'
+    - run:
+        name: uname maybe?
+        command: uname -a
+    - run:
         name: tests
         command: caffeinate -s ./build-package.sh
