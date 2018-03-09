@@ -73,7 +73,7 @@ type AddedToProjectEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -282,7 +282,7 @@ type BaseRefChangedEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -292,10 +292,10 @@ type BaseRefForcePushedEvent implements Node {
   actor: Actor
 
   # Identifies the after commit SHA for the 'base_ref_force_pushed' event.
-  afterCommit: Commit!
+  afterCommit: Commit
 
   # Identifies the before commit SHA for the 'base_ref_force_pushed' event.
-  beforeCommit: Commit!
+  beforeCommit: Commit
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
@@ -371,8 +371,11 @@ type Bot implements Node, Actor, UniformResourceLocatable {
     size: Int
   ): URI!
 
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # The username of the actor.
@@ -380,6 +383,9 @@ type Bot implements Node, Actor, UniformResourceLocatable {
 
   # The HTTP path for this bot
   resourcePath: URI!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this bot
   url: URI!
@@ -389,6 +395,9 @@ type Bot implements Node, Actor, UniformResourceLocatable {
 interface Closable {
   # `true` if the object is closed (definition of closed may depend on type)
   closed: Boolean!
+
+  # Identifies the date and time when the object was closed.
+  closedAt: DateTime
 }
 
 # Represents a 'closed' event on any `Closable`.
@@ -399,13 +408,19 @@ type ClosedEvent implements Node {
   # Object that was closed.
   closable: Closable!
 
+  # Object which triggered the creation of this event.
+  closer: Closer
+
   # Identifies the commit associated with the 'closed' event.
-  commit: Commit
+  commit: Commit @deprecated(reason: "`ClosedEvent` may be associated with other objects than a commit. Use ClosedEvent.closer instead. Removal on 2018-07-01 UTC.")
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
   id: ID!
 }
+
+# The object which triggered a `ClosedEvent`.
+union Closer = Commit | PullRequest
 
 # The Code of Conduct for a repository
 type CodeOfConduct {
@@ -421,6 +436,21 @@ type CodeOfConduct {
   # The path to the CoC
   url: URI
 }
+
+# Collaborators affiliation level with a repository.
+enum CollaboratorAffiliation {
+  # All outside collaborators of an organization-owned repository.
+  OUTSIDE
+
+  # All collaborators with permissions to an organization-owned repository, regardless of organization membership status.
+  DIRECT
+
+  # All collaborators the authenticated user can see.
+  ALL
+}
+
+# Types that can be inside Collection Items.
+union CollectionItemContent = Repository | Organization | User
 
 # Represents a comment.
 interface Comment {
@@ -453,7 +483,22 @@ interface Comment {
   publishedAt: DateTime
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
@@ -510,7 +555,7 @@ type CommentDeletedEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -519,17 +564,26 @@ type Commit implements Node, GitObject, Subscribable {
   # An abbreviated version of the Git object ID
   abbreviatedOid: String!
 
+  # The number of additions in this commit.
+  additions: Int!
+
   # Authorship details of the commit.
   author: GitActor
 
   # Check if the committer and the author match.
   authoredByCommitter: Boolean!
 
+  # The datetime when this commit was authored.
+  authoredDate: DateTime!
+
   # Fetches `git blame` information.
   blame(
     # The file whose Git blame information you want.
     path: String!
   ): Blame!
+
+  # The number of changed files in this commit.
+  changedFiles: Int!
 
   # Comments made on the commit.
   comments(
@@ -560,6 +614,9 @@ type Commit implements Node, GitObject, Subscribable {
 
   # Committership details of the commit.
   committer: GitActor
+
+  # The number of deletions in this commit.
+  deletions: Int!
 
   # The linear commit history starting from (and including) this commit, in the same order as `git log`.
   history(
@@ -607,6 +664,24 @@ type Commit implements Node, GitObject, Subscribable {
   # The Git object ID
   oid: GitObjectID!
 
+  # The parents of a commit.
+  parents(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): CommitConnection!
+
+  # The datetime when this commit was pushed.
+  pushedDate: DateTime
+
   # The Repository this commit belongs to
   repository: Repository!
 
@@ -618,6 +693,10 @@ type Commit implements Node, GitObject, Subscribable {
 
   # Status information for this commit
   status: Status
+
+  # Returns a URL to download a tarball archive for a repository.                 
+  #     Note: For private repositories, these links are temporary and expire after five minutes.
+  tarballUrl: URI!
 
   # Commit's root Tree
   tree: Tree!
@@ -634,8 +713,12 @@ type Commit implements Node, GitObject, Subscribable {
   # Check if the viewer is able to change their subscription status for the repository.
   viewerCanSubscribe: Boolean!
 
-  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   viewerSubscription: SubscriptionState!
+
+  # Returns a URL to download a zipball archive for a repository.                 
+  #     Note: For private repositories, these links are temporary and expire after five minutes.
+  zipballUrl: URI!
 }
 
 # Specifies an author for filtering Git commits.
@@ -672,7 +755,7 @@ type CommitComment implements Node, Comment, Deletable, Updatable, UpdatableComm
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The actor who edited the comment.
   editor: Actor
@@ -714,11 +797,32 @@ type CommitComment implements Node, Comment, Deletable, Updatable, UpdatableComm
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # Identifies the repository associated with the comment.
+  # The repository associated with this node.
   repository: Repository!
 
+  # The HTTP path permalink for this commit comment.
+  resourcePath: URI!
+
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+
+  # The HTTP URL permalink for this commit comment.
+  url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
@@ -791,6 +895,21 @@ type CommitCommentThread implements Node, RepositoryNode {
   repository: Repository!
 }
 
+# The connection type for Commit.
+type CommitConnection {
+  # A list of edges.
+  edges: [CommitEdge]
+
+  # A list of nodes.
+  nodes: [Commit]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
 # An edge in a connection.
 type CommitEdge {
   # A cursor for use in pagination.
@@ -809,6 +928,9 @@ type CommitHistoryConnection {
 
   # Information to aid in pagination.
   pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
 }
 
 # Represents a 'converted_note_to_issue' event on a given issue or pull request.
@@ -820,7 +942,7 @@ type ConvertedNoteToIssueEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -878,6 +1000,9 @@ type CrossReferencedEvent implements Node, UniformResourceLocatable {
   # Checks if the target will be closed when the source is merged.
   willCloseTarget: Boolean!
 }
+
+# An ISO-8601 encoded date string.
+scalar Date
 
 # An ISO-8601 encoded UTC date string.
 scalar DateTime
@@ -1027,7 +1152,7 @@ type DeployedEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The deployment associated with the 'deployed' event.
   deployment: Deployment!
@@ -1038,6 +1163,49 @@ type DeployedEvent implements Node {
 
   # The ref associated with the 'deployed' event.
   ref: Ref
+}
+
+# A repository deploy key.
+type DeployKey implements Node {
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+  id: ID!
+
+  # The deploy key.
+  key: String!
+
+  # Whether or not the deploy key is read only.
+  readOnly: Boolean!
+
+  # The deploy key title.
+  title: String!
+
+  # Whether or not the deploy key has been verified.
+  verified: Boolean!
+}
+
+# The connection type for DeployKey.
+type DeployKeyConnection {
+  # A list of edges.
+  edges: [DeployKeyEdge]
+
+  # A list of nodes.
+  nodes: [DeployKey]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type DeployKeyEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: DeployKey
 }
 
 # Represents triggered deployment instance.
@@ -1052,7 +1220,7 @@ type Deployment implements Node {
   creator: Actor
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The environment to which this deployment was made.
   environment: String
@@ -1136,6 +1304,9 @@ enum DeploymentState {
 
 # Describes the status of a given deployment attempt.
 type DeploymentStatus implements Node {
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
   # Identifies the actor who triggered the deployment.
   creator: Actor
 
@@ -1154,6 +1325,9 @@ type DeploymentStatus implements Node {
 
   # Identifies the current state of the deployment.
   state: DeploymentStatusState!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 }
 
 # The connection type for DeploymentStatus.
@@ -1371,7 +1545,7 @@ type Gist implements Node, Starrable {
   ): StargazerConnection!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # Returns a boolean indicating whether the viewing user has starred this starrable.
   viewerHasStarred: Boolean!
@@ -1397,8 +1571,14 @@ type GistComment implements Node, Comment, Deletable, Updatable, UpdatableCommen
   # Check if this comment was created via an email reply.
   createdViaEmail: Boolean!
 
+  # Identifies the primary key from the database.
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
+
   # The actor who edited the comment.
   editor: Actor
+
+  # The associated gist.
+  gist: Gist!
   id: ID!
 
   # The moment the editor made the last edit
@@ -1408,7 +1588,22 @@ type GistComment implements Node, Comment, Deletable, Updatable, UpdatableCommen
   publishedAt: DateTime
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
@@ -1525,6 +1720,27 @@ type GitActor {
   user: User
 }
 
+# Represents information about the GitHub instance.
+type GitHubMetadata {
+  # Returns a String that's a SHA of `github-services`
+  gitHubServicesSha: String!
+
+  # IP addresses that users connect to for git operations
+  gitIpAddresses: [String!]
+
+  # IP addresses that service hooks are sent from
+  hookIpAddresses: [String!]
+
+  # IP addresses that the importer connects from
+  importerIpAddresses: [String!]
+
+  # Whether or not users are verified
+  isPasswordAuthenticationVerifiable: Boolean!
+
+  # IP addresses for GitHub Pages' A records
+  pagesIpAddresses: [String!]
+}
+
 # Represents a Git object.
 interface GitObject {
   # An abbreviated version of the Git object ID
@@ -1611,6 +1827,9 @@ enum GitSignatureState {
   EXPIRED_KEY
 }
 
+# Git SSH string
+scalar GitSSHRemote
+
 # An ISO-8601 encoded date string. Unlike the DateTime type, GitTimestamp is not converted in UTC.
 scalar GitTimestamp
 
@@ -1664,10 +1883,10 @@ type HeadRefForcePushedEvent implements Node {
   actor: Actor
 
   # Identifies the after commit SHA for the 'head_ref_force_pushed' event.
-  afterCommit: Commit!
+  afterCommit: Commit
 
   # Identifies the before commit SHA for the 'head_ref_force_pushed' event.
-  beforeCommit: Commit!
+  beforeCommit: Commit
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
@@ -1698,6 +1917,9 @@ scalar HTML
 
 # An Issue is a place to discuss ideas, enhancements, tasks, and bugs for a project.
 type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableComment, Labelable, Lockable, Reactable, RepositoryNode, Subscribable, UniformResourceLocatable {
+  # Reason that the conversation was locked.
+  activeLockReason: LockReason
+
   # A list of Users assigned to this object.
   assignees(
     # Returns the first _n_ elements from the list.
@@ -1731,6 +1953,9 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   # `true` if the object is closed (definition of closed may depend on type)
   closed: Boolean!
 
+  # Identifies the date and time when the object was closed.
+  closedAt: DateTime
+
   # A list of comments associated with the Issue.
   comments(
     # Returns the first _n_ elements from the list.
@@ -1753,7 +1978,7 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The actor who edited the comment.
   editor: Actor
@@ -1801,6 +2026,21 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
     before: String
   ): UserConnection!
 
+  # List of project cards associated with this issue.
+  projectCards(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ProjectCardConnection!
+
   # Identifies when the comment was published at.
   publishedAt: DateTime
 
@@ -1828,7 +2068,7 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # Identifies the repository associated with the issue.
+  # The repository associated with this node.
   repository: Repository!
 
   # The HTTP path for this issue
@@ -1837,7 +2077,7 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   # Identifies the state of the issue.
   state: IssueState!
 
-  # A list of events associated with an Issue.
+  # A list of events, comments, commits, etc. associated with the issue.
   timeline(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -1859,10 +2099,25 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   title: String!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this issue
   url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Can user react to this subject
   viewerCanReact: Boolean!
@@ -1879,7 +2134,7 @@ type Issue implements Node, Assignable, Closable, Comment, Updatable, UpdatableC
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
 
-  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   viewerSubscription: SubscriptionState!
 }
 
@@ -1907,7 +2162,7 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The actor who edited the comment.
   editor: Actor
@@ -1954,8 +2209,29 @@ type IssueComment implements Node, Comment, Deletable, Updatable, UpdatableComme
   # The repository associated with this node.
   repository: Repository!
 
+  # The HTTP path for this issue comment
+  resourcePath: URI!
+
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+
+  # The HTTP URL for this issue comment
+  url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
@@ -2094,7 +2370,13 @@ type IssueTimelineItemEdge {
 type Label implements Node {
   # Identifies the label color.
   color: String!
+
+  # A brief description of this label.
+  description: String
   id: ID!
+
+  # Indicates whether or not this is a default label.
+  isDefault: Boolean!
 
   # A list of issues associated with this label.
   issues(
@@ -2324,6 +2606,9 @@ type LicenseRule {
 
 # An object that can be locked.
 interface Lockable {
+  # Reason that the conversation was locked.
+  activeLockReason: LockReason
+
   # `true` if the object is locked
   locked: Boolean!
 }
@@ -2341,6 +2626,260 @@ type LockedEvent implements Node {
   lockable: Lockable!
 }
 
+# Autogenerated input type of LockLockable
+input LockLockableInput {
+  # A unique identifier for the client performing the mutation.
+  clientMutationId: String
+
+  # ID of the issue or pull request to be locked.
+  lockableId: ID!
+
+  # A reason for why the issue or pull request will be locked.
+  lockReason: LockReason
+}
+
+# Autogenerated return type of LockLockable
+type LockLockablePayload {
+  # A unique identifier for the client performing the mutation.
+  clientMutationId: String
+
+  # The item that was locked.
+  lockedRecord: Lockable
+}
+
+# The possible reasons that an issue or pull request was locked.
+enum LockReason {
+  # The issue or pull request was locked because the conversation was off-topic.
+  OFF_TOPIC
+
+  # The issue or pull request was locked because the conversation was too heated.
+  TOO_HEATED
+
+  # The issue or pull request was locked because the conversation was resolved.
+  RESOLVED
+
+  # The issue or pull request was locked because the conversation was spam.
+  SPAM
+}
+
+# A public description of a Marketplace category.
+type MarketplaceCategory {
+  # The category's description.
+  description: String
+
+  # The technical description of how apps listed in this category work with GitHub.
+  howItWorks: String
+
+  # The category's name.
+  name: String!
+
+  # How many Marketplace listings have this as their primary category.
+  primaryListingCount: Int!
+
+  # The HTTP path for this Marketplace category.
+  resourcePath: URI!
+
+  # How many Marketplace listings have this as their secondary category.
+  secondaryListingCount: Int!
+
+  # The short name of the category used in its URL.
+  slug: String!
+
+  # The HTTP URL for this Marketplace category.
+  url: URI!
+}
+
+# A listing in the GitHub integration marketplace.
+type MarketplaceListing implements Node {
+  # URL to the listing owner's company site.
+  companyUrl: URI
+
+  # The HTTP path for configuring access to the listing's integration or OAuth app
+  configurationResourcePath: URI!
+
+  # The HTTP URL for configuring access to the listing's integration or OAuth app
+  configurationUrl: URI!
+
+  # URL to the listing's documentation.
+  documentationUrl: URI
+
+  # The listing's detailed description.
+  extendedDescription: String
+
+  # The listing's detailed description rendered to HTML.
+  extendedDescriptionHTML: HTML!
+
+  # The listing's introductory description.
+  fullDescription: String!
+
+  # The listing's introductory description rendered to HTML.
+  fullDescriptionHTML: HTML!
+
+  # Whether this listing has been submitted for review from GitHub for approval to be displayed in the Marketplace.
+  hasApprovalBeenRequested: Boolean!
+
+  # Does this listing have any plans with a free trial?
+  hasPublishedFreeTrialPlans: Boolean!
+
+  # Does this listing have a terms of service link?
+  hasTermsOfService: Boolean!
+
+  # A technical description of how this app works with GitHub.
+  howItWorks: String
+
+  # The listing's technical description rendered to HTML.
+  howItWorksHTML: HTML!
+  id: ID!
+
+  # URL to install the product to the viewer's account or organization.
+  installationUrl: URI
+
+  # Whether this listing's app has been installed for the current viewer
+  installedForViewer: Boolean!
+
+  # Whether this listing has been approved for display in the Marketplace.
+  isApproved: Boolean!
+
+  # Whether this listing has been removed from the Marketplace.
+  isDelisted: Boolean!
+
+  # Whether this listing is still an editable draft that has not been submitted
+  # for review and is not publicly visible in the Marketplace.
+  isDraft: Boolean!
+
+  # Whether the product this listing represents is available as part of a paid plan.
+  isPaid: Boolean!
+
+  # Whether this listing has been rejected by GitHub for display in the Marketplace.
+  isRejected: Boolean!
+
+  # The hex color code, without the leading '#', for the logo background.
+  logoBackgroundColor: String!
+
+  # URL for the listing's logo image.
+  logoUrl(
+    # The size in pixels of the resulting square image.
+    size: Int = 400
+  ): URI
+
+  # The listing's full name.
+  name: String!
+
+  # The listing's very short description without a trailing period or ampersands.
+  normalizedShortDescription: String!
+
+  # URL to the listing's detailed pricing.
+  pricingUrl: URI
+
+  # The category that best describes the listing.
+  primaryCategory: MarketplaceCategory!
+
+  # URL to the listing's privacy policy.
+  privacyPolicyUrl: URI!
+
+  # The HTTP path for the Marketplace listing.
+  resourcePath: URI!
+
+  # The URLs for the listing's screenshots.
+  screenshotUrls: [String]!
+
+  # An alternate category that describes the listing.
+  secondaryCategory: MarketplaceCategory
+
+  # The listing's very short description.
+  shortDescription: String!
+
+  # The short name of the listing used in its URL.
+  slug: String!
+
+  # URL to the listing's status page.
+  statusUrl: URI
+
+  # An email address for support for this listing's app.
+  supportEmail: String
+
+  # Either a URL or an email address for support for this listing's app.
+  supportUrl: URI!
+
+  # URL to the listing's terms of service.
+  termsOfServiceUrl: URI
+
+  # The HTTP URL for the Marketplace listing.
+  url: URI!
+
+  # Can the current viewer add plans for this Marketplace listing.
+  viewerCanAddPlans: Boolean!
+
+  # Can the current viewer approve this Marketplace listing.
+  viewerCanApprove: Boolean!
+
+  # Can the current viewer delist this Marketplace listing.
+  viewerCanDelist: Boolean!
+
+  # Can the current viewer edit this Marketplace listing.
+  viewerCanEdit: Boolean!
+
+  # Can the current viewer edit the primary and secondary category of this
+  # Marketplace listing.
+  #
+  viewerCanEditCategories: Boolean!
+
+  # Can the current viewer edit the plans for this Marketplace listing.
+  viewerCanEditPlans: Boolean!
+
+  # Can the current viewer return this Marketplace listing to draft state
+  # so it becomes editable again.
+  #
+  viewerCanRedraft: Boolean!
+
+  # Can the current viewer reject this Marketplace listing by returning it to
+  # an editable draft state or rejecting it entirely.
+  #
+  viewerCanReject: Boolean!
+
+  # Can the current viewer request this listing be reviewed for display in
+  # the Marketplace.
+  #
+  viewerCanRequestApproval: Boolean!
+
+  # Indicates whether the current user has an active subscription to this Marketplace listing.
+  #
+  viewerHasPurchased: Boolean!
+
+  # Indicates if the current user has purchased a subscription to this Marketplace listing
+  # for all of the organizations the user owns.
+  #
+  viewerHasPurchasedForAllOrganizations: Boolean!
+
+  # Does the current viewer role allow them to administer this Marketplace listing.
+  #
+  viewerIsListingAdmin: Boolean!
+}
+
+# Look up Marketplace Listings
+type MarketplaceListingConnection {
+  # A list of edges.
+  edges: [MarketplaceListingEdge]
+
+  # A list of nodes.
+  nodes: [MarketplaceListing]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type MarketplaceListingEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: MarketplaceListing
+}
+
 # Represents a 'mentioned' event on a given issue or pull request.
 type MentionedEvent implements Node {
   # Identifies the actor who performed the event.
@@ -2350,7 +2889,7 @@ type MentionedEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -2395,7 +2934,16 @@ type MergedEvent implements Node, UniformResourceLocatable {
 }
 
 # Represents a Milestone object on a given repository.
-type Milestone implements Node, UniformResourceLocatable {
+type Milestone implements Node, Closable, UniformResourceLocatable {
+  # `true` if the object is closed (definition of closed may depend on type)
+  closed: Boolean!
+
+  # Identifies the date and time when the object was closed.
+  closedAt: DateTime
+
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
   # Identifies the actor who created the milestone.
   creator: Actor
 
@@ -2406,8 +2954,62 @@ type Milestone implements Node, UniformResourceLocatable {
   dueOn: DateTime
   id: ID!
 
+  # A list of issues associated with the milestone.
+  issues(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # A list of label names to filter the pull requests by.
+    labels: [String!]
+
+    # Ordering options for issues returned from the connection.
+    orderBy: IssueOrder
+
+    # A list of states to filter the issues by.
+    states: [IssueState!]
+  ): IssueConnection!
+
   # Identifies the number of the milestone.
   number: Int!
+
+  # A list of pull requests associated with the milestone.
+  pullRequests(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # A list of states to filter the pull requests by.
+    states: [PullRequestState!]
+
+    # A list of label names to filter the pull requests by.
+    labels: [String!]
+
+    # The head ref name to filter the pull requests by.
+    headRefName: String
+
+    # The base ref name to filter the pull requests by.
+    baseRefName: String
+
+    # Ordering options for pull requests returned from the connection.
+    orderBy: IssueOrder
+  ): PullRequestConnection!
 
   # The repository associated with this milestone.
   repository: Repository!
@@ -2420,6 +3022,9 @@ type Milestone implements Node, UniformResourceLocatable {
 
   # Identifies the title of the milestone.
   title: String!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this milestone
   url: URI!
@@ -2468,6 +3073,30 @@ type MilestoneEdge {
 # Types that can be inside a Milestone.
 union MilestoneItem = Issue | PullRequest
 
+# Ordering options for milestone connections.
+input MilestoneOrder {
+  # The field to order milestones by.
+  field: MilestoneOrderField!
+
+  # The ordering direction.
+  direction: OrderDirection!
+}
+
+# Properties by which milestone connections can be ordered.
+enum MilestoneOrderField {
+  # Order milestones by when they are due.
+  DUE_DATE
+
+  # Order milestones by when they were created.
+  CREATED_AT
+
+  # Order milestones by when they were last updated.
+  UPDATED_AT
+
+  # Order milestones by their number.
+  NUMBER
+}
+
 # The possible states of a milestone.
 enum MilestoneState {
   # A milestone that is still open.
@@ -2486,7 +3115,7 @@ type MovedColumnsInProjectEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -2582,6 +3211,9 @@ type Mutation {
   # Dismisses an approved or rejected pull request review.
   dismissPullRequestReview(input: DismissPullRequestReviewInput!): DismissPullRequestReviewPayload
 
+  # Lock a lockable object
+  lockLockable(input: LockLockableInput!): LockLockablePayload
+
   # Moves a project card to another place.
   moveProjectCard(input: MoveProjectCardInput!): MoveProjectCardPayload
 
@@ -2649,11 +3281,17 @@ type Organization implements Node, Actor, ProjectOwner, RepositoryOwner, Uniform
   ): URI!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
+
+  # The organization's public profile description.
+  description: String
+
+  # The organization's public email.
+  email: String
   id: ID!
 
-  # Is the account billed through invoices?
-  isInvoiced: Boolean!
+  # The organization's public profile location.
+  location: String
 
   # The organization's login name.
   login: String!
@@ -2853,8 +3491,11 @@ type Organization implements Node, Actor, ProjectOwner, RepositoryOwner, Uniform
   # Viewer can create teams on this organization.
   viewerCanCreateTeams: Boolean!
 
-  # Viewer is a member of this organization.
+  # Viewer is an active member of this organization.
   viewerIsAMember: Boolean!
+
+  # The organization's public profile URL.
+  websiteUrl: URI
 }
 
 # The connection type for Organization.
@@ -2919,16 +3560,25 @@ type OrganizationIdentityProvider implements Node {
 }
 
 # An Invitation for a user to an organization.
-type OrganizationInvitation {
+type OrganizationInvitation implements Node {
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
   # The email address of the user invited to the organization.
   email: String
   id: ID!
+
+  # The type of invitation that was sent (e.g. email, user).
+  invitationType: OrganizationInvitationType!
 
   # The user who was invited to the organization.
   invitee: User
 
   # The user who created the invitation.
   inviter: User!
+
+  # The organization the invite is for
+  organization: Organization!
 
   # The user's pending role in the organization (e.g. member, owner).
   role: OrganizationInvitationRole!
@@ -2973,6 +3623,15 @@ enum OrganizationInvitationRole {
   REINSTATE
 }
 
+# The possible organization invitation types.
+enum OrganizationInvitationType {
+  # The invitation was to an existing user.
+  USER
+
+  # The invitation was to an email address.
+  EMAIL
+}
+
 # Information about pagination in a connection.
 type PageInfo {
   # When paginating forwards, the cursor to continue.
@@ -2989,14 +3648,17 @@ type PageInfo {
 }
 
 # Projects manage issues, pull requests and notes within a project owner.
-type Project implements Node, Updatable {
+type Project implements Node, Closable, Updatable {
   # The project's description body.
   body: String
 
   # The projects description body rendered to HTML.
   bodyHTML: HTML!
 
-  # Identifities the date and time when the project was closed.
+  # `true` if the object is closed (definition of closed may depend on type)
+  closed: Boolean!
+
+  # Identifies the date and time when the object was closed.
   closedAt: DateTime
 
   # List of columns in the project
@@ -3021,7 +3683,7 @@ type Project implements Node, Updatable {
   creator: Actor
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # The project's name.
@@ -3033,6 +3695,21 @@ type Project implements Node, Updatable {
   # The project's owner. Currently limited to repositories and organizations.
   owner: ProjectOwner!
 
+  # List of pending cards in this project
+  pendingCards(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ProjectCardConnection!
+
   # The HTTP path for this project
   resourcePath: URI!
 
@@ -3040,7 +3717,7 @@ type Project implements Node, Updatable {
   state: ProjectState!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this project
   url: URI!
@@ -3068,7 +3745,7 @@ type ProjectCard implements Node {
   creator: Actor
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # The card note
@@ -3078,7 +3755,7 @@ type ProjectCard implements Node {
   project: Project!
 
   # The column that contains this card.
-  projectColumn: ProjectColumn! @deprecated(reason: "Use ProjectCard.column instead. The associated column will be null if the card is in a pending state.")
+  projectColumn: ProjectColumn! @deprecated(reason: "The associated column may be null if the card is in a pending state. Use `ProjectCard.column` instead. Removal on 2018-07-01 UTC.")
 
   # The HTTP path for this card
   resourcePath: URI!
@@ -3087,7 +3764,7 @@ type ProjectCard implements Node {
   state: ProjectCardState
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this card
   url: URI!
@@ -3153,7 +3830,7 @@ type ProjectColumn implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # The project column's name.
@@ -3162,8 +3839,14 @@ type ProjectColumn implements Node {
   # The project that contains this column.
   project: Project!
 
+  # The HTTP path for this project column
+  resourcePath: URI!
+
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+
+  # The HTTP URL for this project column
+  url: URI!
 }
 
 # The connection type for ProjectColumn.
@@ -3379,8 +4062,46 @@ type ProtectedBranchEdge {
   node: ProtectedBranch
 }
 
+# A user's public key.
+type PublicKey implements Node {
+  id: ID!
+
+  # The public key string
+  key: String!
+}
+
+# The connection type for PublicKey.
+type PublicKeyConnection {
+  # A list of edges.
+  edges: [PublicKeyEdge]
+
+  # A list of nodes.
+  nodes: [PublicKey]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type PublicKeyEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: PublicKey
+}
+
 # A repository pull request.
 type PullRequest implements Node, Assignable, Closable, Comment, Updatable, UpdatableComment, Labelable, Lockable, Reactable, RepositoryNode, Subscribable, UniformResourceLocatable {
+  # Reason that the conversation was locked.
+  activeLockReason: LockReason
+
+  # The number of additions in this pull request.
+  additions: Int!
+
   # A list of Users assigned to this object.
   assignees(
     # Returns the first _n_ elements from the list.
@@ -3408,6 +4129,9 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # Identifies the name of the base Ref associated with the pull request, even if the ref has been deleted.
   baseRefName: String!
 
+  # Identifies the oid of the base ref associated with the pull request, even if the ref has been deleted.
+  baseRefOid: GitObjectID!
+
   # Identifies the body of the pull request.
   body: String!
 
@@ -3417,8 +4141,14 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # Identifies the body of the pull request rendered to text.
   bodyText: String!
 
+  # The number of changed files in this pull request.
+  changedFiles: Int!
+
   # `true` if the pull request is closed
   closed: Boolean!
+
+  # Identifies the date and time when the object was closed.
+  closedAt: DateTime
 
   # A list of comments associated with the pull request.
   comments(
@@ -3457,7 +4187,10 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
+
+  # The number of deletions in this pull request.
+  deletions: Int!
 
   # The actor who edited this pull request's body.
   editor: Actor
@@ -3467,6 +4200,9 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
 
   # Identifies the name of the head Ref associated with the pull request, even if the ref has been deleted.
   headRefName: String!
+
+  # Identifies the oid of the head ref associated with the pull request, even if the ref has been deleted.
+  headRefOid: GitObjectID!
 
   # The repository associated with this pull request's head Ref.
   headRepository: Repository
@@ -3538,6 +4274,21 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # `mergeable` field for more details on the mergeability of the pull request.
   potentialMergeCommit: Commit
 
+  # List of project cards associated with this pull request.
+  projectCards(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): ProjectCardConnection!
+
   # Identifies when the comment was published at.
   publishedAt: DateTime
 
@@ -3565,7 +4316,7 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The repository associated with this pull request.
+  # The repository associated with this node.
   repository: Repository!
 
   # The HTTP path for this pull request.
@@ -3608,6 +4359,9 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
 
     # A list of states to filter the reviews.
     states: [PullRequestReviewState!]
+
+    # Filter by author of the review.
+    author: String
   ): PullRequestReviewConnection
 
   # Identifies the state of the pull request.
@@ -3616,7 +4370,7 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # A list of reviewer suggestions based on commit history and past review comments.
   suggestedReviewers: [SuggestedReviewer]!
 
-  # A list of events associated with a PullRequest.
+  # A list of events, comments, commits, etc. associated with the pull request.
   timeline(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -3638,10 +4392,25 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   title: String!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this pull request.
   url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Can user react to this subject
   viewerCanReact: Boolean!
@@ -3658,7 +4427,7 @@ type PullRequest implements Node, Assignable, Closable, Comment, Updatable, Upda
   # Did the viewer author this comment.
   viewerDidAuthor: Boolean!
 
-  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   viewerSubscription: SubscriptionState!
 }
 
@@ -3780,7 +4549,7 @@ type PullRequestReview implements Node, Comment, Deletable, Updatable, Updatable
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The actor who edited the comment.
   editor: Actor
@@ -3808,10 +4577,25 @@ type PullRequestReview implements Node, Comment, Deletable, Updatable, Updatable
   submittedAt: DateTime
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL permalink for this PullRequestReview.
   url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
@@ -3853,7 +4637,7 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
   createdViaEmail: Boolean!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The diff hunk to which the comment applies.
   diffHunk: String!
@@ -3913,7 +4697,10 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
     orderBy: ReactionOrder
   ): ReactionConnection!
 
-  # The repository associated with this review comment.
+  # The comment this is a reply to.
+  replyTo: PullRequestReviewComment
+
+  # The repository associated with this node.
   repository: Repository!
 
   # The HTTP path permalink for this review comment.
@@ -3924,6 +4711,21 @@ type PullRequestReviewComment implements Node, Comment, Deletable, Updatable, Up
 
   # The HTTP URL permalink for this review comment.
   url: URI!
+
+  # A list of edits to this content.
+  userContentEdits(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserContentEditConnection
 
   # Check if the current viewer can delete this object.
   viewerCanDelete: Boolean!
@@ -4042,6 +4844,9 @@ type PullRequestReviewThread implements Node {
 
   # Identifies the pull request associated with this thread.
   pullRequest: PullRequest!
+
+  # Identifies the repository associated with this thread.
+  repository: Repository!
 }
 
 # The possible states of a pull request.
@@ -4139,6 +4944,70 @@ type Query {
 
   # Return a list of known open source licenses
   licenses: [License]!
+
+  # Get alphabetically sorted list of Marketplace categories
+  marketplaceCategories(
+    # Exclude categories with no listings.
+    excludeEmpty: Boolean
+  ): [MarketplaceCategory!]!
+
+  # Look up a Marketplace category by its slug.
+  marketplaceCategory(
+    # The URL slug of the category.
+    slug: String!
+  ): MarketplaceCategory
+
+  # Look up a single Marketplace listing
+  marketplaceListing(
+    # Select the listing that matches this slug. It's the short name of the listing used in its URL.
+    slug: String!
+  ): MarketplaceListing
+
+  # Look up Marketplace listings
+  marketplaceListings(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # Select only listings with the given category.
+    categorySlug: String
+
+    # Select listings to which user has admin access. If omitted, listings visible to the
+    # viewer are returned.
+    #
+    viewerCanAdmin: Boolean
+
+    # Select listings that can be administered by the specified user.
+    adminId: ID
+
+    # Select listings for products owned by the specified organization.
+    organizationId: ID
+
+    # Select listings visible to the viewer even if they are not approved. If omitted or
+    # false, only approved listings will be returned.
+    #
+    allStates: Boolean
+
+    # Select the listings with these slugs, if they are visible to the viewer.
+    slugs: [String]
+
+    # Select only listings where the primary category matches the given category slug.
+    primaryCategoryOnly: Boolean = false
+
+    # Select only listings that offer a free trial.
+    withFreeTrialsOnly: Boolean = false
+  ): MarketplaceListingConnection!
+
+  # Return information about the GitHub instance
+  meta: GitHubMetadata!
 
   # Fetches an object given its ID.
   node(
@@ -4246,7 +5115,7 @@ type RateLimit {
 # Represents a subject that can be reacted on.
 interface Reactable {
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # A list of reactions grouped by content left on the subject.
@@ -4310,8 +5179,11 @@ type Reaction implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
+
+  # The reactable piece of content
+  reactable: Reactable!
 
   # Identifies the user who created this reaction.
   user: User
@@ -4496,7 +5368,7 @@ type ReferencedEvent implements Node {
   id: ID!
 
   # Reference originated in a different repository.
-  isCrossReference: Boolean! @deprecated(reason: "Use ReferencedEvent.isCrossRepository instead.")
+  isCrossReference: Boolean! @deprecated(reason: "`isCrossReference` will be renamed. Use `ReferencedEvent.isCrossRepository` instead. Removal on 2018-07-01 UTC.")
 
   # Reference originated in a different repository.
   isCrossRepository: Boolean!
@@ -4510,6 +5382,24 @@ type ReferencedEvent implements Node {
 
 # Any referencable object
 union ReferencedSubject = Issue | PullRequest
+
+# Ways in which lists of git refs can be ordered upon return.
+input RefOrder {
+  # The field in which to order refs by.
+  field: RefOrderField!
+
+  # The direction in which to order refs by the specified field.
+  direction: OrderDirection!
+}
+
+# Properties by which ref connections can be ordered.
+enum RefOrderField {
+  # Order refs by underlying commit date if the ref prefix is refs/tags/
+  TAG_COMMIT_DATE
+
+  # Order refs by their alphanumeric name
+  ALPHABETICAL
+}
 
 # A release contains the content for a release.
 type Release implements Node, UniformResourceLocatable {
@@ -4560,7 +5450,7 @@ type Release implements Node, UniformResourceLocatable {
   tag: Ref
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this issue
   url: URI!
@@ -4576,6 +5466,9 @@ type ReleaseAsset implements Node {
 
   # The number of times this asset was downloaded
   downloadCount: Int!
+
+  # Identifies the URL where you can download the release asset via the browser.
+  downloadUrl: URI!
   id: ID!
 
   # Identifies the title of the release asset.
@@ -4588,7 +5481,7 @@ type ReleaseAsset implements Node {
   size: Int!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The user that performed the upload
   uploadedBy: User!
@@ -4645,6 +5538,24 @@ type ReleaseEdge {
   node: Release
 }
 
+# Ways in which lists of releases can be ordered upon return.
+input ReleaseOrder {
+  # The field in which to order releases by.
+  field: ReleaseOrderField!
+
+  # The direction in which to order releases by the specified field.
+  direction: OrderDirection!
+}
+
+# Properties by which release connections can be ordered.
+enum ReleaseOrderField {
+  # Order releases by creation time
+  CREATED_AT
+
+  # Order releases alphabetically by name
+  NAME
+}
+
 # Represents a 'removed_from_project' event on a given issue or pull request.
 type RemovedFromProjectEvent implements Node {
   # Identifies the actor who performed the event.
@@ -4654,7 +5565,7 @@ type RemovedFromProjectEvent implements Node {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 }
 
@@ -4758,8 +5669,41 @@ type ReopenedEvent implements Node {
 
 # A repository contains the content for a project.
 type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformResourceLocatable, RepositoryInfo {
+  # A list of users that can be assigned to issues in this repository.
+  assignableUsers(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): UserConnection!
+
   # Returns the code of conduct for this repository
   codeOfConduct: CodeOfConduct
+
+  # A list of collaborators associated with the repository.
+  collaborators(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # Collaborators affiliation level with a repository.
+    affiliation: CollaboratorAffiliation
+  ): RepositoryCollaboratorConnection
 
   # A list of commit comments associated with the repository.
   commitComments(
@@ -4780,10 +5724,25 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The Ref associated with the repository's default branch.
   defaultBranchRef: Ref
+
+  # A list of deploy keys that are on this repository.
+  deployKeys(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): DeployKeyConnection!
 
   # Deployments associated with the repository
   deployments(
@@ -4812,7 +5771,10 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   # The number of kilobytes this repository occupies on disk.
   diskUsage: Int
 
-  # A list of forked repositories.
+  # Returns how many forks there are of this repository in the whole network.
+  forkCount: Int!
+
+  # A list of direct forked repositories.
   forks(
     # Returns the first _n_ elements from the list.
     first: Int
@@ -4848,6 +5810,9 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   # The repository's URL.
   homepageUrl: URI
   id: ID!
+
+  # Indicates if the repository is unmaintained.
+  isArchived: Boolean!
 
   # Identifies if the repository is a fork.
   isFork: Boolean!
@@ -4916,6 +5881,9 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
+
+    # If provided, searches labels by name and description.
+    query: String
   ): LabelConnection
 
   # A list containing a breakdown of the language composition of the repository.
@@ -4937,7 +5905,7 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   ): LanguageConnection
 
   # The license associated with the repository
-  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+  license: String @deprecated(reason: "Field `license` will be replaced by a more detailed license object. Use `Repository.licenseInfo` instead. Removal on 2018-07-01 UTC.")
 
   # The license associated with the repository
   licenseInfo: License
@@ -4979,6 +5947,12 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
+
+    # Filter by the state of the milestones.
+    states: [MilestoneState!]
+
+    # Ordering options for milestones.
+    orderBy: MilestoneOrder
   ): MilestoneConnection
 
   # The repository's original mirror URL.
@@ -5100,7 +6074,7 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
 
   # Fetch a given ref from the repository
   ref(
-    # The ref to retrieve.Fully qualified matches are checked in order
+    # The ref to retrieve. Fully qualified matches are checked in order
     # (`refs/heads/master`) before falling back onto checks for short name matches (`master`).
     qualifiedName: String!
   ): Ref
@@ -5122,9 +6096,18 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
     # A ref name prefix like `refs/heads/`, `refs/tags/`, etc.
     refPrefix: String!
 
-    # The ordering direction.
+    # DEPRECATED: use orderBy. The ordering direction.
     direction: OrderDirection
+
+    # Ordering options for refs returned from the connection.
+    orderBy: RefOrder
   ): RefConnection
+
+  # Lookup a single release given various criteria.
+  release(
+    # The name of the Tag the Release was created from
+    tagName: String!
+  ): Release
 
   # List of releases which are dependent on this repository.
   releases(
@@ -5139,6 +6122,9 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
 
     # Returns the elements in the list that come before the specified global ID.
     before: String
+
+    # Order for connection
+    orderBy: ReleaseOrder
   ): ReleaseConnection!
 
   # A list of applied repository-topic associations for this repository.
@@ -5165,6 +6151,9 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
     limit: Int = 200
   ): HTML!
 
+  # The SSH URL to clone this repository
+  sshUrl: GitSSHRemote!
+
   # A list of users who have starred this starrable.
   stargazers(
     # Returns the first _n_ elements from the list.
@@ -5184,7 +6173,7 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   ): StargazerConnection!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this repository
   url: URI!
@@ -5204,7 +6193,10 @@ type Repository implements Node, ProjectOwner, Subscribable, Starrable, UniformR
   # Returns a boolean indicating whether the viewing user has starred this starrable.
   viewerHasStarred: Boolean!
 
-  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  # The users permission level on the repository. Will return null if authenticated as an GitHub App.
+  viewerPermission: RepositoryPermission
+
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   viewerSubscription: SubscriptionState!
 
   # A list of users watching the repository.
@@ -5245,6 +6237,30 @@ enum RepositoryCollaboratorAffiliation {
   OUTSIDE
 }
 
+# The connection type for User.
+type RepositoryCollaboratorConnection {
+  # A list of edges.
+  edges: [RepositoryCollaboratorEdge]
+
+  # A list of nodes.
+  nodes: [User]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# Represents a user who is a collaborator of a repository.
+type RepositoryCollaboratorEdge {
+  cursor: String!
+  node: User!
+
+  # The permission the user has on the repository.
+  permission: RepositoryPermission!
+}
+
 # A list of repositories owned by the subject.
 type RepositoryConnection {
   # A list of edges.
@@ -5261,6 +6277,24 @@ type RepositoryConnection {
 
   # The total size in kilobytes of all repositories in the connection.
   totalDiskUsage: Int!
+}
+
+# The reason a repository is listed as 'contributed'.
+enum RepositoryContributionType {
+  # Created a commit
+  COMMIT
+
+  # Created an issue
+  ISSUE
+
+  # Created a pull request
+  PULL_REQUEST
+
+  # Created the repository
+  REPOSITORY
+
+  # Reviewed a pull request
+  PULL_REQUEST_REVIEW
 }
 
 # An edge in a connection.
@@ -5283,6 +6317,9 @@ interface RepositoryInfo {
   # The description of the repository rendered to HTML.
   descriptionHTML: HTML!
 
+  # Returns how many forks there are of this repository in the whole network.
+  forkCount: Int!
+
   # Indicates if the repository has issues feature enabled.
   hasIssuesEnabled: Boolean!
 
@@ -5291,6 +6328,9 @@ interface RepositoryInfo {
 
   # The repository's URL.
   homepageUrl: URI
+
+  # Indicates if the repository is unmaintained.
+  isArchived: Boolean!
 
   # Identifies if the repository is a fork.
   isFork: Boolean!
@@ -5305,7 +6345,7 @@ interface RepositoryInfo {
   isPrivate: Boolean!
 
   # The license associated with the repository
-  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+  license: String @deprecated(reason: "Field `license` will be replaced by a more detailed license object. Use `Repository.licenseInfo` instead. Removal on 2018-07-01 UTC.")
 
   # The license associated with the repository
   licenseInfo: License
@@ -5338,7 +6378,7 @@ interface RepositoryInfo {
   ): HTML!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this repository
   url: URI!
@@ -5353,6 +6393,9 @@ type RepositoryInvitation implements Node {
 
   # The user who created the invitation.
   inviter: User!
+
+  # The permission granted on this repository by this invitation.
+  permission: RepositoryPermission!
 
   # The Repository the user is invited to.
   repository: RepositoryInvitationRepository
@@ -5369,6 +6412,9 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   # The description of the repository rendered to HTML.
   descriptionHTML: HTML!
 
+  # Returns how many forks there are of this repository in the whole network.
+  forkCount: Int!
+
   # Indicates if the repository has issues feature enabled.
   hasIssuesEnabled: Boolean!
 
@@ -5377,6 +6423,9 @@ type RepositoryInvitationRepository implements RepositoryInfo {
 
   # The repository's URL.
   homepageUrl: URI
+
+  # Indicates if the repository is unmaintained.
+  isArchived: Boolean!
 
   # Identifies if the repository is a fork.
   isFork: Boolean!
@@ -5391,7 +6440,7 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   isPrivate: Boolean!
 
   # The license associated with the repository
-  license: String @deprecated(reason: "Use Repository.licenseInfo instead.")
+  license: String @deprecated(reason: "Field `license` will be replaced by a more detailed license object. Use `Repository.licenseInfo` instead. Removal on 2018-07-01 UTC.")
 
   # The license associated with the repository
   licenseInfo: License
@@ -5408,7 +6457,7 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   # The repository's name with owner.
   nameWithOwner: String!
 
-  # The User owner of the repository.
+  # The owner of the repository associated with this invitation repository.
   owner: RepositoryOwner!
 
   # Identifies when the repository was last pushed to.
@@ -5424,7 +6473,7 @@ type RepositoryInvitationRepository implements RepositoryInfo {
   ): HTML!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this repository
   url: URI!
@@ -5619,6 +6668,9 @@ type RepositoryTopicEdge {
   node: RepositoryTopic
 }
 
+# Types that can be requested reviewers.
+union RequestedReviewer = User | Team
+
 # Autogenerated input type of RequestReviews
 input RequestReviewsInput {
   # A unique identifier for the client performing the mutation.
@@ -5695,7 +6747,7 @@ type ReviewDismissedEvent implements Node, UniformResourceLocatable {
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # Identifies the message associated with the 'review_dismissed' event.
@@ -5713,27 +6765,30 @@ type ReviewDismissedEvent implements Node, UniformResourceLocatable {
   # Identifies the commit which caused the review to become stale.
   pullRequestCommit: PullRequestCommit
 
-  # The HTTP path for this ReviewDismissedEvent.
+  # The HTTP path for this review dismissed event.
   resourcePath: URI!
 
   # Identifies the review associated with the 'review_dismissed' event.
   review: PullRequestReview
 
-  # The HTTP URL for this ReviewDismissedEvent.
+  # The HTTP URL for this review dismissed event.
   url: URI!
 }
 
 # A request for a user to review a pull request.
 type ReviewRequest implements Node {
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
   id: ID!
 
   # Identifies the pull request associated with this review request.
   pullRequest: PullRequest!
 
+  # The reviewer that is requested.
+  requestedReviewer: RequestedReviewer
+
   # Identifies the author associated with this review request.
-  reviewer: User
+  reviewer: User @deprecated(reason: "Field `reviewer` will be changed in favor of returning a union type. Use `ReviewRequest.requestedReviewer` instead. Removal on 2018-07-01 UTC.")
 }
 
 # The connection type for ReviewRequest.
@@ -5763,8 +6818,11 @@ type ReviewRequestedEvent implements Node {
   # PullRequest referenced by event.
   pullRequest: PullRequest!
 
+  # Identifies the reviewer whose review was requested.
+  requestedReviewer: RequestedReviewer
+
   # Identifies the user whose review was requested.
-  subject: User!
+  subject: User @deprecated(reason: "`subject` will be renamed. Use `ReviewRequestedEvent.requestedReviewer` instead. Removal on 2018-07-01 UTC.")
 }
 
 # An edge in a connection.
@@ -5788,12 +6846,15 @@ type ReviewRequestRemovedEvent implements Node {
   # PullRequest referenced by event.
   pullRequest: PullRequest!
 
+  # Identifies the reviewer whose review request was removed.
+  requestedReviewer: RequestedReviewer
+
   # Identifies the user whose review request was removed.
-  subject: User!
+  subject: User @deprecated(reason: "`subject` will be renamed. Use `ReviewRequestRemovedEvent.requestedReviewer` instead. Removal on 2018-07-01 UTC.")
 }
 
 # The results of a search.
-union SearchResultItem = Issue | PullRequest | Repository | User | Organization
+union SearchResultItem = Issue | PullRequest | Repository | User | Organization | MarketplaceListing
 
 # A list of results that matched against a search query.
 type SearchResultItemConnection {
@@ -5829,6 +6890,9 @@ type SearchResultItemEdge {
 
   # The item at the end of the edge.
   node: SearchResultItem
+
+  # Text matches on the result found.
+  textMatches: [TextMatch]
 }
 
 # Represents the individual results of a search.
@@ -5839,7 +6903,7 @@ enum SearchType {
   # Returns results matching repositories.
   REPOSITORY
 
-  # Returns results matching users on GitHub.
+  # Returns results matching users and organizations on GitHub.
   USER
 }
 
@@ -6042,10 +7106,12 @@ type SubmitPullRequestReviewPayload {
 
 # Entities that can be subscribed to for web and email notifications.
 interface Subscribable {
+  id: ID!
+
   # Check if the viewer is able to change their subscription status for the repository.
   viewerCanSubscribe: Boolean!
 
-  # Identifies if the viewer is watching, not watching, or ignoring the repository.
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   viewerSubscription: SubscriptionState!
 }
 
@@ -6072,6 +7138,9 @@ enum SubscriptionState {
 
   # The User is never notified.
   IGNORED
+
+  # Subscriptions are currently unavailable
+  UNAVAILABLE
 }
 
 # A suggestion to review a pull request based on a user's commit history and review comments.
@@ -6118,7 +7187,7 @@ type Tag implements Node, GitObject {
 }
 
 # A team of users in an organization.
-type Team implements Node {
+type Team implements Node, Subscribable {
   # A list of teams that are ancestors of this team.
   ancestors(
     # Returns the first _n_ elements from the list.
@@ -6133,6 +7202,12 @@ type Team implements Node {
     # Returns the elements in the list that come before the specified global ID.
     before: String
   ): TeamConnection!
+
+  # A URL pointing to the team's avatar.
+  avatarUrl(
+    # The size in pixels of the resulting square image.
+    size: Int = 400
+  ): URI
 
   # List of child teams belonging to this team
   childTeams(
@@ -6277,13 +7352,19 @@ type Team implements Node {
   teamsUrl: URI!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this team
   url: URI!
 
   # Team is adminable by the viewer.
   viewerCanAdminister: Boolean!
+
+  # Check if the viewer is able to change their subscription status for the repository.
+  viewerCanSubscribe: Boolean!
+
+  # Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
+  viewerSubscription: SubscriptionState!
 }
 
 # The connection type for Team.
@@ -6448,6 +7529,30 @@ enum TeamRole {
   MEMBER
 }
 
+# A text match within a search result.
+type TextMatch {
+  # The specific text fragment within the property matched on.
+  fragment: String!
+
+  # Highlights within the matched fragment.
+  highlights: [TextMatchHighlight]!
+
+  # The property matched on.
+  property: String!
+}
+
+# Represents a single highlight in a search result match.
+type TextMatchHighlight {
+  # The indice in the fragment where the matched text begins.
+  beginIndice: Int!
+
+  # The indice in the fragment where the matched text ends.
+  endIndice: Int!
+
+  # The text matched.
+  text: String!
+}
+
 # A topic aggregates entities that are related to a subject.
 type Topic implements Node {
   id: ID!
@@ -6455,8 +7560,34 @@ type Topic implements Node {
   # The topic's name.
   name: String!
 
-  # A list of related topics sorted with the most relevant first.
+  # A list of related topics, including aliases of this topic, sorted with the most relevant
+  # first.
+  #
   relatedTopics: [Topic!]!
+}
+
+# The connection type for Topic.
+type TopicConnection {
+  # A list of edges.
+  edges: [TopicEdge]
+
+  # A list of nodes.
+  nodes: [Topic]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type TopicEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: Topic
 }
 
 # Reason that the suggested topic is declined.
@@ -6669,13 +7800,16 @@ input UpdateProjectInput {
   projectId: ID!
 
   # The name of project.
-  name: String!
+  name: String
 
   # The description of project.
   body: String
 
   # Whether the project is open or closed.
   state: ProjectState
+
+  # Whether the project is public or not.
+  public: Boolean
 }
 
 # Autogenerated return type of UpdateProject
@@ -6837,13 +7971,13 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
 
     # If non-null, filters repositories according to whether they have been locked
     isLocked: Boolean
-  ): RepositoryConnection!
+  ): RepositoryConnection! @deprecated(reason: "Arguments for connection `contributedRepositories` are getting redesigned. Use `User.repositoriesContributedTo` instead. Removal on 2018-07-01 UTC.")
 
   # Identifies the date and time when the object was created.
   createdAt: DateTime!
 
   # Identifies the primary key from the database.
-  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs.")
+  databaseId: Int @deprecated(reason: "Exposed database IDs will eventually be removed in favor of global Relay IDs. Use `Node.id` instead. Removal on 2018-07-01 UTC.")
 
   # The user's publicly visible profile email.
   email: String!
@@ -6884,6 +8018,21 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
     name: String!
   ): Gist
 
+  # A list of gist comments made by this user.
+  gistComments(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): GistCommentConnection!
+
   # A list of the Gists the user has created.
   gists(
     # Returns the first _n_ elements from the list.
@@ -6921,14 +8070,26 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
   # Whether or not the user has marked themselves as for hire.
   isHireable: Boolean!
 
-  # Is the account billed through invoices?
-  isInvoiced: Boolean!
-
   # Whether or not this user is a site administrator.
   isSiteAdmin: Boolean!
 
   # Whether or not this user is the viewing user.
   isViewer: Boolean!
+
+  # A list of issue comments made by this user.
+  issueComments(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): IssueCommentConnection!
 
   # A list of issues assocated with this user.
   issues(
@@ -7011,6 +8172,21 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
     isLocked: Boolean
   ): RepositoryConnection!
 
+  # A list of public keys associated with this user.
+  publicKeys(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+  ): PublicKeyConnection!
+
   # A list of pull requests assocated with this user.
   pullRequests(
     # Returns the first _n_ elements from the list.
@@ -7071,6 +8247,37 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
     isFork: Boolean
   ): RepositoryConnection!
 
+  # A list of repositories that the user recently contributed to.
+  repositoriesContributedTo(
+    # Returns the first _n_ elements from the list.
+    first: Int
+
+    # Returns the elements in the list that come after the specified global ID.
+    after: String
+
+    # Returns the last _n_ elements from the list.
+    last: Int
+
+    # Returns the elements in the list that come before the specified global ID.
+    before: String
+
+    # If non-null, filters repositories according to privacy
+    privacy: RepositoryPrivacy
+
+    # Ordering options for repositories returned from the connection
+    orderBy: RepositoryOrder
+
+    # If non-null, filters repositories according to whether they have been locked
+    isLocked: Boolean
+
+    # If true, include user repositories
+    includeUserRepositories: Boolean
+
+    # If non-null, include only the specified types of contributions. The
+    # GitHub.com UI uses [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]
+    contributionTypes: [RepositoryContributionType]
+  ): RepositoryConnection!
+
   # Find Repository.
   repository(
     # Name of Repository to find.
@@ -7102,7 +8309,7 @@ type User implements Node, Actor, RepositoryOwner, UniformResourceLocatable {
   ): StarredRepositoryConnection!
 
   # Identifies the date and time when the object was last updated.
-  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps.")
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
 
   # The HTTP URL for this user
   url: URI!
@@ -7157,6 +8364,43 @@ type UserConnection {
 
   # Identifies the total count of items in the connection.
   totalCount: Int!
+}
+
+# An edit on user content
+type UserContentEdit implements Node {
+  # Identifies the date and time when the object was created.
+  createdAt: DateTime!
+
+  # The actor who edited this content,
+  editor: Actor
+  id: ID!
+
+  # Identifies the date and time when the object was last updated.
+  updatedAt: DateTime! @deprecated(reason: "General type updated timestamps will eventually be replaced by other field specific timestamps. Removal on 2018-07-01 UTC.")
+}
+
+# A list of edits to content.
+type UserContentEditConnection {
+  # A list of edges.
+  edges: [UserContentEditEdge]
+
+  # A list of nodes.
+  nodes: [UserContentEdit]
+
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # Identifies the total count of items in the connection.
+  totalCount: Int!
+}
+
+# An edge in a connection.
+type UserContentEditEdge {
+  # A cursor for use in pagination.
+  cursor: String!
+
+  # The item at the end of the edge.
+  node: UserContentEdit
 }
 
 # An edge in a connection.
