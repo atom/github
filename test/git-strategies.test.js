@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
-import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/helpers';
+import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -48,7 +48,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       `;
 
       const hookPath = path.join(workingDirPath, '.git', 'hooks', 'pre-commit');
-      await writeFile(hookPath, hookContent);
+      await fs.writeFile(hookPath, hookContent, {encoding: 'utf8'});
       fs.chmodSync(hookPath, 0o755);
 
       delete process.env.ALLOWCOMMIT;
@@ -72,7 +72,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       it('supports gitdir files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const workingDirPathWithDotGitFile = await getTempDir();
-        await writeFile(path.join(workingDirPathWithDotGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+        await fs.writeFile(
+          path.join(workingDirPathWithDotGitFile, '.git'),
+          `gitdir: ${path.join(workingDirPath, '.git')}`,
+          {encoding: 'utf8'},
+        );
 
         const git = createTestStrategy(workingDirPathWithDotGitFile);
         const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
@@ -88,8 +92,8 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
           const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
 
-          await writeFile(absPathA, 'some changes here\n');
-          await writeFile(absPathB, 'more changes here\n');
+          await fs.writeFile(absPathA, 'some changes here\n', {encoding: 'utf8'});
+          await fs.writeFile(absPathB, 'more changes here\n', {encoding: 'utf8'});
           await git.stageFiles([relPathB]);
 
           const {changedEntries} = await git.getStatusBundle();
@@ -911,7 +915,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
         fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
-        const regularMode = await fsStat(absFilePath).mode;
+        const regularMode = (await fs.stat(absFilePath)).mode;
         const executableMode = regularMode | fs.constants.S_IXUSR; // eslint-disable-line no-bitwise
 
         assert.equal(await git.getFileMode('new-file.txt'), '100644');

@@ -1,9 +1,9 @@
 import path from 'path';
+import fs from 'fs-extra';
 
 import until from 'test-until';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {writeFile} from '../../lib/helpers';
 
 import WorkspaceChangeObserver from '../../lib/models/workspace-change-observer';
 
@@ -49,7 +49,7 @@ describe('WorkspaceChangeObserver', function() {
     createObserver(repository);
     await observer.start();
 
-    await writeFile(path.join(workdirPath, 'a.txt'), 'change');
+    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'change', {encoding: 'utf8'});
     await repository.stageFiles(['a.txt']);
 
     await assert.async.isTrue(changeSpy.called);

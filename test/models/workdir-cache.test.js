@@ -1,11 +1,10 @@
 import path from 'path';
 import temp from 'temp';
-import fs from 'fs';
+import fs from 'fs-extra';
 
 import {cloneRepository} from '../helpers';
 
 import WorkdirCache from '../../lib/models/workdir-cache';
-import {realPath} from '../../lib/helpers';
 
 describe('WorkdirCache', function() {
   let cache;
@@ -30,7 +29,7 @@ describe('WorkdirCache', function() {
 
   it('finds a workdir from a gitdir file', async function() {
     const repoDir = await cloneRepository('three-files');
-    const expectedDir = await realPath(temp.mkdirSync());
+    const expectedDir = await fs.realpath(temp.mkdirSync());
     fs.writeFileSync(path.join(expectedDir, '.git'), `gitdir: ${path.join(repoDir, '.git')}`, 'utf8');
     const actualDir = await cache.find(expectedDir);
 

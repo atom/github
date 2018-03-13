@@ -14,7 +14,6 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {Directory} from 'atom';
-import {realPath, readFile, writeFile, mkdirs} from '../lib/helpers';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -29,7 +28,7 @@ const cachedClonedRepos = {};
 function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   fs.copySync(cachedClonedRepos[repoName], workingDirPath);
-  return realPath(workingDirPath);
+  return fs.realpath(workingDirPath);
 }
 
 export async function cloneRepository(repoName = 'three-files') {
@@ -64,7 +63,7 @@ export async function initRepository() {
   await git.exec(['config', '--local', 'user.name', 'Someone']);
   await git.exec(['config', '--local', 'core.autocrlf', 'false']);
   await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
-  return realPath(workingDirPath);
+  return fs.realpath(workingDirPath);
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
@@ -221,11 +220,11 @@ export function transpile(...relPaths) {
       const untranspiledPath = require.resolve(relPath);
       const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
 
-      const untranspiledSource = await readFile(untranspiledPath);
+      const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
       const transpiledSource = transpiler.transpile(untranspiledSource, untranspiledPath, {}, {}).code;
 
-      await mkdirs(path.dirname(transpiledPath));
-      await writeFile(transpiledPath, transpiledSource);
+      await fs.mkdirs(path.dirname(transpiledPath));
+      await fs.writeFile(transpiledPath, transpiledSource, {encoding: 'utf8'});
       return transpiledPath;
     }),
   );
