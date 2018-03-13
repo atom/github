@@ -58,7 +58,6 @@
     "lodash.memoize": "^4.1.2",
     "moment": "^2.17.1",
     "multi-list-selection": "^0.1.1",
-    "ncp": "^2.0.0",
     "prop-types": "^15.5.8",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
