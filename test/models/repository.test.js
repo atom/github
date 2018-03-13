@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
