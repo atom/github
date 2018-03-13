@@ -1,11 +1,10 @@
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
 import React from 'react';
 import {shallow} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
-import {writeFile} from '../../lib/helpers';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
@@ -140,7 +139,7 @@ describe('CommitController', function() {
       repository.setRegularCommitMessage('regular');
       repository.setAmendingCommitMessage('amending');
 
-      await writeFile(path.join(workdirPath, 'a.txt'), 'some changes');
+      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
       await repository.git.exec(['add', '.']);
 
       const wrapper = shallow(app);

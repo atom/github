@@ -1,9 +1,10 @@
 import {execFile} from 'child_process';
 import path from 'path';
+import fs from 'fs-extra';
 
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
-import {fileExists, writeFile, readFile, getAtomHelperPath} from '../lib/helpers';
+import {fileExists, getAtomHelperPath} from '../lib/helpers';
 
 describe('GitPromptServer', function() {
   const electronEnv = {
@@ -206,7 +207,7 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
         "atom-github-git @ https://what-is-your-favorite-color.com": {
           "old-man-from-scene-24": "swordfish",
@@ -216,7 +217,7 @@ describe('GitPromptServer', function() {
           "old-man-from-scene-24": "nope"
         }
       }
-      `);
+      `, {encoding: 'utf8'});
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
       assert.isFalse(called);
@@ -243,7 +244,7 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
         "atom-github-git-meta @ https://what-is-your-favorite-color.com": {
           "username": "old-man-from-scene-24"
@@ -259,7 +260,7 @@ describe('GitPromptServer', function() {
           "old-man-from-scene-24": "nope"
         }
       }
-      `);
+      `, {encoding: 'utf8'});
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
       assert.isFalse(called);
@@ -287,13 +288,13 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
       {
         "atom-github": {
           "https://what-is-your-favorite-color.com": "swordfish"
         }
       }
-      `);
+      `, {encoding: 'utf8'});
       const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
       assert.ifError(err);
       assert.isFalse(called);
@@ -322,12 +323,12 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('remember'), '');
+      await fs.writeFile(tempDir.getScriptPath('remember'), '', {encoding: 'utf8'});
       const {err} = await runCredentialScript('store', queryHandler, processHandler);
       assert.ifError(err);
       assert.isFalse(called);
 
-      const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
+      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {encoding: 'utf8'});
       assert.deepEqual(JSON.parse(stored), {
         'atom-github-git-meta @ https://what-is-your-favorite-color.com': {
           username: 'old-man-from-scene-24',
@@ -354,7 +355,7 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await writeFile(tempDir.getScriptPath('fake-keytar'), JSON.stringify({
+      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), JSON.stringify({
         'atom-github-git @ https://what-is-your-favorite-color.com': {
           'old-man-from-scene-24': 'shhhh',
           'someone-else': 'untouched',
@@ -362,12 +363,12 @@ describe('GitPromptServer', function() {
         'atom-github-git @ https://github.com': {
           'old-man-from-scene-24': 'untouched',
         },
-      }));
+      }), {encoding: 'utf8'});
 
       const {err} = await runCredentialScript('erase', queryHandler, processHandler);
       assert.ifError(err);
 
-      const stored = await readFile(tempDir.getScriptPath('fake-keytar'));
+      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {encoding: 'utf8'});
       assert.deepEqual(JSON.parse(stored), {
         'atom-github-git @ https://what-is-your-favorite-color.com': {
           'someone-else': 'untouched',

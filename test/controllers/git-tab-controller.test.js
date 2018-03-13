@@ -511,26 +511,26 @@ describe('GitTabController', function() {
       assert.equal(stagingView.props.stagedChanges.length, 0);
 
       const conflict1 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-ours.txt')[0];
-      const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.filePath), 'utf8');
+      const contentsWithMarkers = fs.readFileSync(path.join(workdirPath, conflict1.filePath), {encoding: 'utf8'});
       assert.include(contentsWithMarkers, '>>>>>>>');
       assert.include(contentsWithMarkers, '<<<<<<<');
 
       // click Cancel
       confirm.returns(1);
-      await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
+      stagingView.dblclickOnItem({}, conflict1);
 
-      await assert.async.lengthOf(stagingView.props.mergeConflicts, 5);
+      await assert.async.isTrue(confirm.calledOnce);
+      assert.lengthOf(stagingView.props.mergeConflicts, 5);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
-      assert.isTrue(confirm.calledOnce);
 
       // click Stage
       confirm.reset();
       confirm.returns(0);
       await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
 
+      await assert.async.isTrue(confirm.calledOnce);
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
-      assert.isTrue(confirm.calledOnce);
 
       // clear merge markers
       const conflict2 = stagingView.props.mergeConflicts.filter(c => c.filePath === 'modified-on-both-theirs.txt')[0];
