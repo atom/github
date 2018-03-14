@@ -181,9 +181,12 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         assert.strictEqual(commits[9].message, 'Commit 1');
       });
 
-      it('includes co-authors based on commit body trailers', async function() {
+      it.only('includes co-authors based on commit body trailers', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
+        console.log(workingDirPath);
+
+        debugger
 
         await git.commit(dedent`
           Implemented feature collaboratively
@@ -199,6 +202,21 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
 
     });
+
+    describe('getRepoAuthors', function() {
+      it.only('returns list of all ', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        console.log(workingDirPath);
+        debugger
+      })
+
+      // commit with author and committer
+
+      // commit with co-author trailers
+
+    })
 
     describe('diffFileStatus', function() {
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
