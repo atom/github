@@ -27,6 +27,28 @@
           "graphql/schema.graphql"
         ]
       }
+    },
+    {
+      "transpiler": "atom-ts-transpiler",
+      "glob": "{lib,test}/**/*.tsx",
+      "options": {
+        "compilerOptions": {
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "target": "es6",
+          "noImplicitReturns": true,
+          "noFallthroughCasesInSwitch": true,
+          "noUnusedLocals": true,
+          "sourceMap": true,
+          "jsx": "react",
+          "strict": true
+        },
+        "cacheKeyFiles": [
+          "package.json",
+          "assert-messages-plugin.js",
+          "graphql/schema.graphql"
+        ]
+      }
     }
   ],
   "dependencies": {
