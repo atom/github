@@ -181,12 +181,9 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         assert.strictEqual(commits[9].message, 'Commit 1');
       });
 
-      it.only('includes co-authors based on commit body trailers', async function() {
+      it('includes co-authors based on commit body trailers', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
-        console.log(workingDirPath);
-
-        debugger
 
         await git.commit(dedent`
           Implemented feature collaboratively
@@ -203,20 +200,70 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
     });
 
-    describe('getRepoAuthors', function() {
-      it.only('returns list of all ', async function() {
+    describe('getAuthors', function() {
+      it('returns list of all authors in the last <max> commits', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        console.log(workingDirPath);
-        debugger
-      })
+        await git.exec(['config', 'user.name', 'Mona Lisa']);
+        await git.exec(['config', 'user.email', 'mona@lisa.com']);
+        await git.commit('Commit from Mona', {allowEmpty: true});
 
-      // commit with author and committer
+        await git.exec(['config', 'user.name', 'Hubot']);
+        await git.exec(['config', 'user.email', 'hubot@github.com']);
+        await git.commit('Commit from Hubot', {allowEmpty: true});
 
-      // commit with co-author trailers
+        await git.exec(['config', 'user.name', 'Me']);
+        await git.exec(['config', 'user.email', 'me@github.com']);
+        await git.commit('Commit from me', {allowEmpty: true});
 
-    })
+        const authors = await git.getAuthors({max: 3});
+        assert.deepEqual(authors, {
+          'mona@lisa.com': 'Mona Lisa',
+          'hubot@github.com': 'Hubot',
+          'me@github.com': 'Me',
+        });
+      });
+
+      it('includes commit authors', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+        await git.exec(['commit', '--allow-empty', '--author="A U Thor <author@site.org>"', '-m', 'Commit together!']);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'author@site.org': 'A U Thor',
+        });
+      });
+
+      it('includes co-authors from trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another name <another-name@example.com>"
+          Co-authored-by: yet another name <yet-another@example.com>"
+        `, {allowEmpty: true});
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'name@example.com': 'name',
+          'another-name@example.com': 'another name',
+          'yet-another@example.com': 'yet another name',
+        });
+      });
+    });
 
     describe('diffFileStatus', function() {
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
