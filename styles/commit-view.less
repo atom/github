@@ -1,4 +1,5 @@
 @import "variables";
+@import (less) "../node_modules/react-select/dist/react-select.css";
 
 .github-CommitView {
   padding: @component-padding;
@@ -70,12 +71,87 @@
   &-coAuthorEditor {
     position: relative;
     margin-top: @component-padding / 2;
-    padding: @component-padding / 4;
+    padding: (@component-padding / 4) (@component-padding / 2);
     border: 1px solid @base-border-color;
     color: @syntax-text-color;
     border-radius: @component-border-radius;
     background-color: @syntax-background-color;
     cursor: text;
+
+    &&, &.is-open, &.is-focused, &.is-searchable, &.is-searchable.is-open, &.is-searchable.is-focused:not(.is-open) {
+      & > .Select-control {
+        background-color: inherit;
+        border: none;
+        border-radius: 0;
+        color: inherit;
+        cursor: inherit;
+        height: @component-line-height;
+        box-shadow: none;
+      }
+    }
+
+    .Select-placeholder {
+      line-height: @component-line-height;
+      padding: 0;
+    }
+
+    .Select-input {
+      line-height: @component-line-height;
+      padding: 0;
+      margin: 0;
+      height: auto;
+
+      & > input {
+        padding: 0;
+        line-height: inherit;
+      }
+    }
+
+    .Select-option {
+      display: inline-block;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      background-color: transparent;
+      width: 100%;
+
+      padding: @component-padding / 2;
+      padding-right: 10px; // space for scrollbar
+      border-top: 1px solid @overlay-border-color;
+      white-space: nowrap;
+
+      &:first-child {
+        border-top: none;
+      }
+
+      &.is-focused {
+        color: white;
+        background-color: @background-color-info;
+
+        .github-CommitView-coAuthorEditor-username,
+        .github-CommitView-coAuthorEditor-name {
+          color: inherit;
+        }
+      }
+    }
+
+    .Select-menu-outer {
+      top: auto;
+      left: -1px;
+      right: -1px;
+      width: auto;
+      bottom: 100%;
+      border-radius: @component-border-radius;
+      border: 1px solid @overlay-border-color;
+      background-color: @overlay-background-color;
+      box-shadow: 0 2px 6px hsla(0,0%,0%,.15);
+      overflow: hidden;
+    }
+
+    .Select-value {
+      margin: 0;
+      vertical-align: middle;
+    }
 
     &-label {
       display: inline-block;
@@ -83,25 +159,6 @@
       line-height: 1;
       color: mix(@syntax-text-color, @syntax-background-color, 50%);
       cursor: default;
-    }
-    &-list {
-      display: contents;
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-    &-listItem {
-      display: inline-block;
-      padding: 0 .1em;
-      margin: @component-padding / 4;
-      line-height: 1.2;
-      border-radius: @component-border-radius;
-      border: 1px solid mix(@syntax-text-color, @syntax-background-color, 16%);
-      background-color: mix(@syntax-text-color, @syntax-background-color, 8%);
-    }
-
-    &:focus + .github-CommitView-coAuthorEditor-selectList {
-      display: block;
     }
 
     &-selectList {
@@ -120,35 +177,6 @@
       border-radius: @component-border-radius;
       border: 1px solid @overlay-border-color;
       background-color: @overlay-background-color;
-      box-shadow: 0 2px 6px hsla(0,0%,0%,.15);
-
-      &Item {
-        padding: @component-padding / 2;
-        padding-right: 10px; // space for scrollbar
-        border-top: 1px solid @overlay-border-color;
-        white-space: nowrap;
-        &:first-child {
-          border-top: none;
-          border-top-left-radius: inherit;
-          border-top-right-radius: inherit;
-          color: white;
-          background-color: @background-color-info;
-        }
-        &:last-child {
-          border-bottom-left-radius: inherit;
-          border-top-right-radius: inherit;
-        }
-
-        &.is-selected {
-          color: white;
-          background-color: @background-color-info;
-
-          .github-CommitView-coAuthorEditor-username,
-          .github-CommitView-coAuthorEditor-name {
-            color: inherit;
-          }
-        }
-      }
     }
 
     &-username {
@@ -260,7 +288,7 @@
 .theme-one-dark-ui,
 .theme-one-light-ui {
   .github-CommitView-editor atom-text-editor.is-focused,
-  .github-CommitView-coAuthorEditor:focus {
+  .github-CommitView-coAuthorEditor.is-focused {
     box-shadow: none;
     &:before {
       content: "";
