@@ -62,6 +62,7 @@
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-relay": "1.4.1",
+    "react-select": "^1.2.1",
     "relay-compiler": "1.4.1",
     "relay-runtime": "1.4.1",
     "temp": "^0.8.3",
