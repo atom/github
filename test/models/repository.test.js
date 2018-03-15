@@ -557,13 +557,13 @@ describe('Repository', function() {
     });
   });
 
-  describe('formatCommitMessage', function() {
+  describe('addTrailersToCommitMessage', function() {
     it('always adds trailing newline', async () => {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      assert.equal(await repo.formatCommitMessage('test'), 'test\n');
+      assert.equal(await repo.addTrailersToCommitMessage('test'), 'test\n');
     });
 
     it('appends trailers to a summary-only message', async () => {
@@ -576,7 +576,7 @@ describe('Repository', function() {
         {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
       ];
 
-      assert.equal(await repo.formatCommitMessage('foo', trailers),
+      assert.equal(await repo.addTrailersToCommitMessage('foo', trailers),
         dedent`
           foo
 
@@ -598,7 +598,7 @@ describe('Repository', function() {
         {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
       ];
       assert.equal(
-        await repo.formatCommitMessage(
+        await repo.addTrailersToCommitMessage(
           'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
           trailers,
         ),
@@ -623,7 +623,7 @@ describe('Repository', function() {
       ];
 
       assert.equal(
-        await repo.formatCommitMessage(
+        await repo.addTrailersToCommitMessage(
           // note the lack of space after :
           'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
           trailers,
