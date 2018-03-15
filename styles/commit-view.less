@@ -155,32 +155,6 @@
       vertical-align: middle;
     }
 
-    &-label {
-      display: inline-block;
-      margin: @component-padding / 4;
-      line-height: 1;
-      color: mix(@syntax-text-color, @syntax-background-color, 50%);
-      cursor: default;
-    }
-
-    &-selectList {
-      display: none; // only show when coAuthorEditor has focus
-      position: absolute;
-      z-index: 1;
-      bottom: 100px; // TODO: Needs to be relative to coAuthorEditor
-      left: @component-padding;
-      right: @component-padding;
-      max-height: 112px;
-      overflow-x: hidden;
-      overflow-y: auto;
-      padding: 0;
-      margin: 0;
-      list-style: none;
-      border-radius: @component-border-radius;
-      border: 1px solid @overlay-border-color;
-      background-color: @overlay-background-color;
-    }
-
     &-username {
       font-weight: 600;
       margin-right: .75em;
