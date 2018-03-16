@@ -158,19 +158,24 @@
         color: white;
         background-color: @background-color-info;
 
-        .github-CommitView-coAuthorEditor-username,
-        .github-CommitView-coAuthorEditor-name {
+        .github-CommitView-coAuthorEditor-selectListItem > span {
           color: inherit;
         }
       }
     }
-    &-username {
-      font-weight: 600;
-      margin-right: .75em;
-      color: @text-color-highlight;
-    }
-    &-name {
-      color: @text-color-subtle;
+
+    &-selectListItem {
+      &> span:first-child {
+        font-weight: 600;
+        color: @text-color-highlight;
+      }
+      &> span {
+        color: @text-color-subtle;
+        margin-right: .75em;
+      }
+      &> span:last-child {
+        margin-right: 0;
+      }
     }
   }
 
