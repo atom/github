@@ -267,59 +267,273 @@ describe('StatusBarTileController', function() {
     });
   });
 
-  describe('pushing and pulling', function() {
-    it('shows and hides the PushPullView', async function() {
-      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-      const repository = await buildRepository(localRepoPath);
+  describe.only('pushing and pulling', function() {
 
-      const wrapper = mount(React.cloneElement(component, {repository}));
-      await wrapper.instance().refreshModelData();
+    describe('status bar tile state', function() {
 
-      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
-      wrapper.find(PushPullView).node.element.click();
-      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 1);
-      wrapper.find(PushPullView).node.element.click();
-      assert.lengthOf(document.querySelectorAll('.github-PushPullMenuView'), 0);
-    });
-
-    it('indicates the ahead and behind counts', async function() {
-      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-      const repository = await buildRepository(localRepoPath);
-
-      const wrapper = mount(React.cloneElement(component, {repository}));
-      await wrapper.instance().refreshModelData();
-
-      const tip = getTooltipNode(wrapper, PushPullView);
-
-      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull');
-      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
-
-      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
-      repository.refresh();
-      await wrapper.instance().refreshModelData();
-
-      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
-      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push');
-
-      await repository.git.commit('new local commit', {allowEmpty: true});
-      repository.refresh();
-      await wrapper.instance().refreshModelData();
-
-      assert.equal(tip.querySelector('.github-PushPullMenuView-pull').textContent.trim(), 'Pull (2)');
-      assert.equal(tip.querySelector('.github-PushPullMenuView-push').textContent.trim(), 'Push (1)');
-    });
-
-    describe('the push/pull menu', function() {
       describe('when there is no remote tracking branch', function() {
         let repository;
+        let statusBarTile;
 
         beforeEach(async function() {
           const {localRepoPath} = await setUpLocalAndRemoteRepositories();
           repository = await buildRepository(localRepoPath);
           await repository.git.exec(['checkout', '-b', 'new-branch']);
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
         });
 
-        it('disables the fetch and pull buttons and displays an informative message', async function() {
+        it('gives the option to publish the current branch', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Publish');
+        });
+
+        it('pushes the current branch when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isTrue(repository.push.called);
+        });
+
+        it('does nothing when clicked and currently pushing', function() {
+          repository.getOperationStates().setPushInProgress(true);
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+      describe('when there is a remote with nothing to pull or push', function() {
+        let repository;
+        let statusBarTile;
+
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
+        });
+
+        it('gives the option to fetch from remote', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Fetch');
+        });
+
+        it('fetches from remote when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isTrue(repository.fetch.called);
+        });
+
+        it('does nothing when clicked and currently fetching', function() {
+          repository.getOperationStates().setFetchInProgress(true);
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+      describe('when there is a remote and we are ahead', function() {
+        let repository;
+        let statusBarTile;
+
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+          await repository.git.commit('new local commit', {allowEmpty: true});
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
+        });
+
+        it('gives the option to push with ahead count', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Push 1');
+        });
+
+        it('pushes when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isTrue(repository.push.called);
+        });
+
+        it('does nothing when clicked and is currently pushing', function() {
+          repository.getOperationStates().setPushInProgress(true);
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+      describe('when there is a remote and we are behind', function() {
+        let repository;
+        let statusBarTile;
+
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+          await repository.git.exec(['reset', '--hard', 'HEAD~2']);
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
+        });
+
+        it('gives the option to push with behind count', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pull 2');
+        });
+
+        it('pulls when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isTrue(repository.pull.called);
+        });
+
+        it('does nothing when clicked and is currently pulling', function() {
+          repository.getOperationStates().setPullInProgress(true);
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+      describe('when there is a remote and we are ahead and behind', function() {
+        let repository;
+        let statusBarTile;
+
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+          await repository.git.exec(['reset', '--hard', 'HEAD~2']);
+          await repository.git.commit('new local commit', {allowEmpty: true});
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
+        });
+
+        it('gives the option to push with ahead and behind count', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), '1 Pull 2');
+        });
+
+        it('pulls when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isTrue(repository.pull.called);
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+        });
+
+        it('does nothing when clicked and is currently pulling', function() {
+          repository.getOperationStates().setPullInProgress(true);
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+      describe('when there is a remote and we are detached HEAD', function() {
+        let repository;
+        let statusBarTile;
+
+        beforeEach(async function() {
+          const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+          repository = await buildRepository(localRepoPath);
+          await repository.checkout('HEAD~2');
+
+          statusBarTile = mount(React.cloneElement(component, {repository}));
+          await statusBarTile.instance().refreshModelData();
+
+          sinon.spy(repository, 'fetch');
+          sinon.spy(repository, 'push');
+          sinon.spy(repository, 'pull');
+        });
+
+        it('gives the option to push with ahead and behind count', function() {
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Not on branch');
+        });
+
+        it('does nothing when clicked', function() {
+          statusBarTile.find('.push-pull-target').simulate('click');
+          assert.isFalse(repository.fetch.called);
+          assert.isFalse(repository.push.called);
+          assert.isFalse(repository.pull.called);
+        });
+      });
+
+    });
+
+    describe('when there is no remote tracking branch', function() {
+      let repository;
+
+      beforeEach(async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        repository = await buildRepository(localRepoPath);
+        await repository.git.exec(['checkout', '-b', 'new-branch']);
+      });
+
+      it('disables the fetch and pull buttons and displays an informative message', async function() {
+        const wrapper = mount(React.cloneElement(component, {repository}));
+        await wrapper.instance().refreshModelData();
+
+        const tip = getTooltipNode(wrapper, PushPullView);
+
+        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
+        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
+        const message = tip.querySelector('.github-PushPullMenuView-message');
+
+        assert.isTrue(pullButton.disabled);
+        assert.isFalse(pushButton.disabled);
+        assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
+
+        pushButton.click();
+        await until(async fail => {
+          try {
+            repository.refresh();
+            await wrapper.instance().refreshModelData();
+
+            assert.isFalse(pullButton.disabled);
+            assert.isFalse(pushButton.disabled);
+            assert.equal(message.textContent, '');
+            return true;
+          } catch (err) {
+            return fail(err);
+          }
+        });
+      });
+
+      describe('when there is no remote named "origin"', function() {
+        beforeEach(async function() {
+          await repository.git.exec(['remote', 'remove', 'origin']);
+        });
+
+        it('additionally disables the push button and displays an informative message', async function() {
           const wrapper = mount(React.cloneElement(component, {repository}));
           await wrapper.instance().refreshModelData();
 
@@ -330,110 +544,64 @@ describe('StatusBarTileController', function() {
           const message = tip.querySelector('.github-PushPullMenuView-message');
 
           assert.isTrue(pullButton.disabled);
-          assert.isFalse(pushButton.disabled);
-          assert.match(message.innerHTML, /No remote detected.*Pushing will set up a remote tracking branch/);
-
-          pushButton.click();
-          await until(async fail => {
-            try {
-              repository.refresh();
-              await wrapper.instance().refreshModelData();
-
-              assert.isFalse(pullButton.disabled);
-              assert.isFalse(pushButton.disabled);
-              assert.equal(message.textContent, '');
-              return true;
-            } catch (err) {
-              return fail(err);
-            }
-          });
-        });
-
-        describe('when there is no remote named "origin"', function() {
-          beforeEach(async function() {
-            await repository.git.exec(['remote', 'remove', 'origin']);
-          });
-
-          it('additionally disables the push button and displays an informative message', async function() {
-            const wrapper = mount(React.cloneElement(component, {repository}));
-            await wrapper.instance().refreshModelData();
-
-            const tip = getTooltipNode(wrapper, PushPullView);
-
-            const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
-            const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
-            const message = tip.querySelector('.github-PushPullMenuView-message');
-
-            assert.isTrue(pullButton.disabled);
-            assert.isTrue(pushButton.disabled);
-            assert.match(message.innerHTML, /No remote detected.*no remote named "origin"/);
-          });
+          assert.isTrue(pushButton.disabled);
+          assert.match(message.innerHTML, /No remote detected.*no remote named "origin"/);
         });
       });
+    });
 
-      it('displays an error message if push fails', async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
-        await repository.git.exec(['reset', '--hard', 'HEAD~2']);
-        await repository.git.commit('another commit', {allowEmpty: true});
+    it('displays an error message if push fails', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+      const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
+      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
+      await repository.git.commit('another commit', {allowEmpty: true});
 
-        const wrapper = mount(React.cloneElement(component, {repository}));
+      const wrapper = mount(React.cloneElement(component, {repository}));
+      await wrapper.instance().refreshModelData();
+
+      sinon.stub(notificationManager, 'addError');
+
+      try {
+        await wrapper.instance().getWrappedComponentInstance().push();
+      } catch (e) {
+        assert(e, 'is error');
+      }
+      await wrapper.instance().refreshModelData();
+
+      await assert.async.isTrue(notificationManager.addError.called);
+      const notificationArgs = notificationManager.addError.args[0];
+      assert.equal(notificationArgs[0], 'Push rejected');
+      assert.match(notificationArgs[1].description, /Try pulling before pushing/);
+
+      await wrapper.instance().refreshModelData();
+
+      wrapper.unmount();
+    });
+
+    describe('with a detached HEAD', function() {
+      let wrapper;
+
+      beforeEach(async function() {
+        const workdirPath = await cloneRepository('multiple-commits');
+        const repository = await buildRepository(workdirPath);
+        await repository.checkout('HEAD~2');
+
+        wrapper = mount(React.cloneElement(component, {repository}));
         await wrapper.instance().refreshModelData();
+      });
 
+      it('disables the fetch, pull, and push buttons', function() {
         const tip = getTooltipNode(wrapper, PushPullView);
 
-        const pullButton = tip.querySelector('button.github-PushPullMenuView-pull');
-        const pushButton = tip.querySelector('button.github-PushPullMenuView-push');
-
-        sinon.stub(notificationManager, 'addError');
-
-        assert.equal(pushButton.textContent.trim(), 'Push (1)');
-        assert.equal(pullButton.textContent.trim(), 'Pull (2)');
-
-        try {
-          await wrapper.instance().getWrappedComponentInstance().push();
-        } catch (e) {
-          assert(e, 'is error');
-        }
-        await wrapper.instance().refreshModelData();
-
-        await assert.async.isTrue(notificationManager.addError.called);
-        const notificationArgs = notificationManager.addError.args[0];
-        assert.equal(notificationArgs[0], 'Push rejected');
-        assert.match(notificationArgs[1].description, /Try pulling before pushing again/);
-
-        await wrapper.instance().refreshModelData();
-
-        await assert.async.equal(pushButton.textContent.trim(), 'Push (1)');
-        await assert.async.equal(pullButton.textContent.trim(), 'Pull (2)');
-        wrapper.unmount();
+        assert.isTrue(tip.querySelector('button.github-PushPullMenuView-pull').disabled);
+        assert.isTrue(tip.querySelector('button.github-PushPullMenuView-push').disabled);
       });
 
-      describe('with a detached HEAD', function() {
-        let wrapper;
+      it('displays an appropriate explanation', function() {
+        const tip = getTooltipNode(wrapper, PushPullView);
 
-        beforeEach(async function() {
-          const workdirPath = await cloneRepository('multiple-commits');
-          const repository = await buildRepository(workdirPath);
-          await repository.checkout('HEAD~2');
-
-          wrapper = mount(React.cloneElement(component, {repository}));
-          await wrapper.instance().refreshModelData();
-        });
-
-        it('disables the fetch, pull, and push buttons', function() {
-          const tip = getTooltipNode(wrapper, PushPullView);
-
-          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-pull').disabled);
-          assert.isTrue(tip.querySelector('button.github-PushPullMenuView-push').disabled);
-        });
-
-        it('displays an appropriate explanation', function() {
-          const tip = getTooltipNode(wrapper, PushPullView);
-
-          const message = tip.querySelector('.github-PushPullMenuView-message');
-          assert.match(message.textContent, /not on a branch/);
-        });
+        const message = tip.querySelector('.github-PushPullMenuView-message');
+        assert.match(message.textContent, /not on a branch/);
       });
     });
 
