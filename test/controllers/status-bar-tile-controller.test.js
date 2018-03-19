@@ -679,7 +679,6 @@ describe('StatusBarTileController', function() {
       assert.isFalse(wrapper.find('BranchView').exists());
       assert.isFalse(wrapper.find('BranchMenuView').exists());
       assert.isFalse(wrapper.find('PushPullView').exists());
-      assert.isFalse(wrapper.find('PushPullMenuView').exists());
       assert.isTrue(wrapper.find('ChangedFilesCountView').exists());
     });
   });
