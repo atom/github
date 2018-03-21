@@ -263,6 +263,14 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           'yet-another@example.com': 'yet another name',
         });
       });
+
+      it('returns an empty array when there are no commits', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, [])
+      });
     });
 
     describe('diffFileStatus', function() {
