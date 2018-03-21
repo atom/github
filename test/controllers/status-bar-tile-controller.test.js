@@ -397,7 +397,7 @@ describe('StatusBarTileController', function() {
           sinon.spy(repository, 'pull');
         });
 
-        it('gives the option to push with behind count', function() {
+        it('gives the option to pull with behind count', function() {
           assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pull 2');
         });
 
@@ -435,7 +435,7 @@ describe('StatusBarTileController', function() {
           sinon.spy(repository, 'pull');
         });
 
-        it('gives the option to push with ahead and behind count', function() {
+        it('gives the option to pull with ahead and behind count', function() {
           assert.equal(statusBarTile.find('.github-PushPull').text().trim(), '1 Pull 2');
         });
 
@@ -474,7 +474,7 @@ describe('StatusBarTileController', function() {
           sinon.spy(repository, 'pull');
         });
 
-        it('gives the option to push with ahead and behind count', function() {
+        it('gives a hint that we are not on a branch', function() {
           assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Not on branch');
         });
 
@@ -503,7 +503,7 @@ describe('StatusBarTileController', function() {
           sinon.spy(repository, 'pull');
         });
 
-        it('gives the option to push with ahead and behind count', function() {
+        it('gives that there is no remote', function() {
           assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'No remote');
         });
 
