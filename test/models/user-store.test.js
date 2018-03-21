@@ -3,23 +3,20 @@ import UserStore from '../../lib/models/user-store';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('UserStore', function() {
-  describe('populate', function() {
-    it('loads store with users in repo', async function() {
-      const workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-      const store = new UserStore({repository});
+  it('loads store with users in repo upon construction', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+    const store = new UserStore({repository});
 
-      assert.deepEqual(store.getUsers(), []);
+    assert.deepEqual(store.getUsers(), []);
 
-      await store.populate();
-      const users = store.getUsers();
-      assert.deepEqual(users, [
-        {
-          email: 'kuychaco@github.com',
-          name: 'Katrina Uychaco',
-        },
-      ]);
-    });
+    // Store is populated asynchronously
+    await assert.async.deepEqual(store.getUsers(), [
+      {
+        email: 'kuychaco@github.com',
+        name: 'Katrina Uychaco',
+      },
+    ]);
   });
 
   describe('addUsers', function() {
@@ -28,13 +25,14 @@ describe('UserStore', function() {
       const repository = await buildRepository(workdirPath);
       const store = new UserStore({repository});
 
-      await store.populate();
+      await assert.async.lengthOf(store.getUsers(), 1);
+
       store.addUsers({
         'mona@lisa.com': 'Mona Lisa',
         'hubot@github.com': 'Hubot Robot',
       });
 
-      assert.deepEqual(store.getUsers(), [
+      await assert.async.deepEqual(store.getUsers(), [
         {
           name: 'Hubot Robot',
           email: 'hubot@github.com',
