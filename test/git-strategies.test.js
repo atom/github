@@ -251,8 +251,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           Implemented feature collaboratively
 
           Co-authored-by: name <name@example.com>
-          Co-authored-by: another name <another-name@example.com>"
-          Co-authored-by: yet another name <yet-another@example.com>"
+          Co-authored-by: another name <another-name@example.com>
+          Co-authored-by: yet another name <yet-another@example.com>
         `, {allowEmpty: true});
 
         const authors = await git.getAuthors({max: 1});
