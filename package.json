@@ -180,6 +180,5 @@
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
     "FilePatchControllerStub": "createFilePatchControllerStub"
-  },
-  "false": {}
+  }
 }
