@@ -55,7 +55,7 @@
 '.github-Dialog input':
   'enter': 'core:confirm'
 
-'body .github-CommitView-coAuthorEditor':
+'.github-CommitView-coAuthorEditor':
   'enter': 'github:co-author:enter'
   'down': 'github:co-author:down'
   'up': 'github:co-author:up'
