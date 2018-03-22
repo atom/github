@@ -115,3 +115,9 @@
       'command': 'github:view-staged-changes-for-current-file'
     }
   ]
+  '.most-recent': [
+    {
+      'label': 'Amend'
+      'command': 'github:amend-last-commit'
+    }
+  ]
