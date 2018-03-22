@@ -80,7 +80,7 @@
     "dedent-js": "^1.0.1",
     "electron-devtools-installer": "^2.2.3",
     "enzyme": "^2.9.1",
-    "eslint": "^3.0.0",
+    "eslint": "^3.19.0",
     "eslint-config-fbjs": "2.0.0-alpha.1",
     "eslint-config-standard": "^10.2.0",
     "eslint-plugin-babel": "^4.0.0",
@@ -180,5 +180,6 @@
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
     "FilePatchControllerStub": "createFilePatchControllerStub"
-  }
+  },
+  "false": {}
 }

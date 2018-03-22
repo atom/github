@@ -1,4 +1,4 @@
-import dedent from 'dedent-js'
+import dedent from 'dedent-js';
 
 import UserStore from '../../lib/models/user-store';
 
@@ -67,7 +67,7 @@ describe('UserStore', function() {
       },
     ]);
 
-    sinon.spy(store, 'addUsers')
+    sinon.spy(store, 'addUsers');
 
     // Head changes due to new commit
     await repository.commit(dedent`
@@ -76,13 +76,13 @@ describe('UserStore', function() {
       Co-authored-by: New Author <new-author@email.com>
     `, {allowEmpty: true});
 
-    await assert.async.equal(store.addUsers.callCount, 1)
+    await assert.async.equal(store.addUsers.callCount, 1);
     assert.isOk(store.getUsers().find(user => {
       return user.name === 'New Author' && user.email === 'new-author@email.com';
     }));
 
     // Change head due to branch checkout
-    await repository.checkout('new-branch')
-    await assert.async.equal(store.addUsers.callCount, 2)
+    await repository.checkout('new-branch');
+    await assert.async.equal(store.addUsers.callCount, 2);
   });
 });

@@ -269,7 +269,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         const git = createTestStrategy(workingDirPath);
 
         const authors = await git.getAuthors({max: 1});
-        assert.deepEqual(authors, [])
+        assert.deepEqual(authors, []);
       });
     });
 
