@@ -1340,6 +1340,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
         process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+        process.env.GIT_SSH_VARIANT = 'simple';
 
         return git;
       }
