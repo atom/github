@@ -1384,8 +1384,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           },
         });
 
-        // The git operation Promise does *not* reject if the git process is killed by a signal.
-        await git.fetch('mock', 'master');
+        await git.fetch('mock', 'master').catch(() => {});
 
         assert.equal(query.prompt, 'Speak friend and enter');
         assert.isFalse(query.includeUsername);
