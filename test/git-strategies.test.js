@@ -620,27 +620,29 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
     });
 
     describe('reset()', function() {
-      it('performs a soft reset to the parent of head', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
+      describe('when soft and HEAD~ are passed as arguments', function() {
+        it('performs a soft reset to the parent of head', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
 
-        fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
-        await git.exec(['add', '.']);
-        await git.commit('add stuff')
+          fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+          await git.exec(['add', '.']);
+          await git.commit('add stuff')
 
-        const parentCommit = await git.getCommit('HEAD~')
+          const parentCommit = await git.getCommit('HEAD~')
 
-        await git.reset();
+          await git.reset('soft', 'HEAD~');
 
-        const commitAfterReset = await git.getCommit('HEAD')
-        assert.strictEqual(commitAfterReset.sha, parentCommit.sha)
+          const commitAfterReset = await git.getCommit('HEAD')
+          assert.strictEqual(commitAfterReset.sha, parentCommit.sha)
 
-        const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
-        assert.lengthOf(stagedChanges, 1);
-        const stagedChange = stagedChanges[0]
-        assert.strictEqual(stagedChange.newPath, 'a.txt');
-        assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
-      });
+          const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+          assert.lengthOf(stagedChanges, 1);
+          const stagedChange = stagedChanges[0]
+          assert.strictEqual(stagedChange.newPath, 'a.txt');
+          assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
+        });
+      })
     });
 
     describe('getBranches()', function() {
