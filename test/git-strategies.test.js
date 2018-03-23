@@ -619,6 +619,30 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
+    describe('reset()', function() {
+      it('performs a soft reset to the parent of head', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+        await git.exec(['add', '.']);
+        await git.commit('add stuff')
+
+        const parentCommit = await git.getCommit('HEAD~')
+
+        await git.reset();
+
+        const commitAfterReset = await git.getCommit('HEAD')
+        assert.strictEqual(commitAfterReset.sha, parentCommit.sha)
+
+        const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+        assert.lengthOf(stagedChanges, 1);
+        const stagedChange = stagedChanges[0]
+        assert.strictEqual(stagedChange.newPath, 'a.txt');
+        assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
+      });
+    });
+
     describe('getBranches()', function() {
       it('returns an array of all branches', async function() {
         const workingDirPath = await cloneRepository('three-files');
