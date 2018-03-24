@@ -611,5 +611,37 @@ describe('GitTabController', function() {
         return modifiedFilePatch.status === 'modified' && modifiedFilePatch.filePath === 'new-file.txt';
       });
     });
+
+    describe('undoLastCommit()', function() {
+      it('restores to the state prior to committing', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
+
+        await repository.stageFiles(['new-file.txt']);
+        const commitMessage = 'Commit some stuff';
+        await repository.commit(commitMessage);
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = mount(app);
+
+        await assert.async.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
+        wrapper.find('.github-RecentCommit-undoButton').simulate('click');
+
+        let commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
+        assert.deepEqual(commitMessages, [commitMessage, 'Initial commit']);
+
+        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+        assert.deepEqual(wrapper.find('GitTabView').prop('stagedChanges'), [{
+          filePath: 'new-file.txt',
+          status: 'added',
+        }]);
+
+        commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
+        assert.deepEqual(commitMessages, ['Initial commit']);
+
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), commitMessage);
+      });
+    });
   });
 });
