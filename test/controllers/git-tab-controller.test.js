@@ -9,7 +9,7 @@ import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 
-import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
+import {cloneRepository, buildRepository, buildRepositoryWithPipeline, initRepository} from '../helpers';
 import Repository from '../../lib/models/repository';
 import {GitError} from '../../lib/git-shell-out-strategy';
 
@@ -613,6 +613,22 @@ describe('GitTabController', function() {
     });
 
     describe('undoLastCommit()', function() {
+      it('does nothing when there are no commits', async function() {
+        const workdirPath = await initRepository();
+        const repository = await buildRepository(workdirPath);
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = mount(app);
+
+        try {
+          await wrapper.instance().getWrappedComponentInstance().undoLastCommit();
+        } catch (e) {
+          throw e;
+        }
+
+        assert.doesNotThrow(async () => await wrapper.instance().getWrappedComponentInstance().undoLastCommit());
+      });
+
       it('restores to the state prior to committing', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
