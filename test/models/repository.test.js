@@ -557,6 +557,88 @@ describe('Repository', function() {
     });
   });
 
+  describe('addTrailersToCommitMessage', function() {
+    it('always adds trailing newline', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      assert.equal(await repo.addTrailersToCommitMessage('test'), 'test\n');
+    });
+
+    it('appends trailers to a summary-only message', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const trailers = [
+        {token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>'},
+        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
+      ];
+
+      assert.equal(await repo.addTrailersToCommitMessage('foo', trailers),
+        dedent`
+          foo
+
+          Co-Authored-By: Markus Olsson <niik@github.com>
+          Signed-Off-By: nerdneha <nerdneha@github.com>
+
+        `,
+      );
+    });
+
+    // note, this relies on the default git config
+    it('merges duplicate trailers', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const trailers = [
+        {token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>'},
+        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
+      ];
+      assert.equal(
+        await repo.addTrailersToCommitMessage(
+          'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
+          trailers,
+        ),
+        dedent`
+          foo
+
+          Co-Authored-By: Markus Olsson <niik@github.com>
+          Signed-Off-By: nerdneha <nerdneha@github.com>
+
+        `,
+      );
+    });
+
+    // note, this relies on the default git config
+    it('fixes up malformed trailers when trailers are given', async () => {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const trailers = [
+        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
+      ];
+
+      assert.equal(
+        await repo.addTrailersToCommitMessage(
+          // note the lack of space after :
+          'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
+          trailers,
+        ),
+        dedent`
+          foo
+
+          Co-Authored-By: Markus Olsson <niik@github.com>
+          Signed-Off-By: nerdneha <nerdneha@github.com>
+
+        `,
+      );
+    });
+  });
+
   describe('fetch(branchName)', function() {
     it('brings commits from the remote and updates remote branch, and does not update branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});

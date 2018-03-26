@@ -54,3 +54,16 @@
 
 '.github-Dialog input':
   'enter': 'core:confirm'
+
+'.github-CommitView-coAuthorEditor':
+  'enter': 'github:co-author:enter'
+  'down': 'github:co-author:down'
+  'up': 'github:co-author:up'
+  'tab': 'github:co-author:tab'
+  'backspace': 'github:co-author:backspace'
+  'escape': 'github:co-author:escape'
+  'pageup': 'github:co-author:pageup'
+  'pagedown': 'github:co-author:pagedown'
+  'home': 'github:co-author:home'
+  'end': 'github:co-author:end'
+  'delete': 'github:co-author:delete'

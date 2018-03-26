@@ -200,6 +200,79 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
     });
 
+    describe('getAuthors', function() {
+      it('returns list of all authors in the last <max> commits', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Mona Lisa']);
+        await git.exec(['config', 'user.email', 'mona@lisa.com']);
+        await git.commit('Commit from Mona', {allowEmpty: true});
+
+        await git.exec(['config', 'user.name', 'Hubot']);
+        await git.exec(['config', 'user.email', 'hubot@github.com']);
+        await git.commit('Commit from Hubot', {allowEmpty: true});
+
+        await git.exec(['config', 'user.name', 'Me']);
+        await git.exec(['config', 'user.email', 'me@github.com']);
+        await git.commit('Commit from me', {allowEmpty: true});
+
+        const authors = await git.getAuthors({max: 3});
+        assert.deepEqual(authors, {
+          'mona@lisa.com': 'Mona Lisa',
+          'hubot@github.com': 'Hubot',
+          'me@github.com': 'Me',
+        });
+      });
+
+      it('includes commit authors', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+        await git.exec(['commit', '--allow-empty', '--author="A U Thor <author@site.org>"', '-m', 'Commit together!']);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'author@site.org': 'A U Thor',
+        });
+      });
+
+      it('includes co-authors from trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another name <another-name@example.com>
+          Co-authored-by: yet another name <yet-another@example.com>
+        `, {allowEmpty: true});
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'name@example.com': 'name',
+          'another-name@example.com': 'another name',
+          'yet-another@example.com': 'yet another name',
+        });
+      });
+
+      it('returns an empty array when there are no commits', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, []);
+      });
+    });
+
     describe('diffFileStatus', function() {
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
@@ -1267,6 +1340,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
         process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+        process.env.GIT_SSH_VARIANT = 'simple';
 
         return git;
       }
@@ -1310,8 +1384,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           },
         });
 
-        // The git operation Promise does *not* reject if the git process is killed by a signal.
-        await git.fetch('mock', 'master');
+        await git.fetch('mock', 'master').catch(() => {});
 
         assert.equal(query.prompt, 'Speak friend and enter');
         assert.isFalse(query.includeUsername);

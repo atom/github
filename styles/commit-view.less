@@ -1,4 +1,5 @@
 @import "variables";
+@import (less) "../node_modules/react-select/dist/react-select.css";
 
 .github-CommitView {
   padding: @component-padding;
@@ -40,6 +41,145 @@
     height: 100px;
     .cursor-line.cursor-line.cursor-line {
       background-color: transparent;
+    }
+  }
+
+  &-coAuthorToggle {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      opacity: .5;
+    }
+
+    &Icon {
+      width: 12px;
+      height: 7px;
+      fill: @text-color;
+    }
+  }
+
+  &-coAuthorEditor {
+    position: relative;
+    margin-top: @component-padding / 2;
+    padding: (@component-padding / 4) (@component-padding / 2);
+    border: 1px solid @base-border-color;
+    color: @syntax-text-color;
+    border-radius: @component-border-radius;
+    background-color: @syntax-background-color;
+    cursor: text;
+
+    &&, &.is-open, &.is-focused, &.is-searchable, &.is-searchable.is-open, &.is-searchable.is-focused:not(.is-open) {
+      & > .Select-control {
+        background-color: inherit;
+        border: none;
+        border-radius: 0;
+        color: inherit;
+        cursor: inherit;
+        height: @component-line-height;
+        box-shadow: none;
+      }
+    }
+
+    .Select-placeholder {
+      line-height: @component-line-height;
+      padding: 0;
+      color: @text-color-subtle;
+    }
+
+    .Select-input {
+      line-height: @component-line-height;
+      padding: 0;
+      margin: 0;
+      height: auto;
+
+      & > input {
+        padding: 0;
+        line-height: inherit;
+      }
+    }
+
+    // Token
+    .Select-value {
+      margin: 0;
+      margin-right: .5em;
+      vertical-align: middle;
+      line-height: 1.1;
+      color: mix(@text-color-highlight, @text-color-info, 70%);
+      border-color: fade(@background-color-info, 15%);
+      background-color: fade(@background-color-info, 10%);
+
+      &-icon {
+        border-color: inherit;
+      }
+    }
+
+    // Popup
+    .Select-menu-outer {
+      top: auto;
+      left: -1px;
+      right: -1px;
+      width: auto;
+      bottom: calc(100% ~'+' 2px);
+      border-radius: @component-border-radius;
+      border: 1px solid @overlay-border-color;
+      background-color: @overlay-background-color;
+      box-shadow: 0 2px 4px hsla(0,0%,0%,.15);
+      overflow: hidden;
+    }
+
+    .Select-option {
+      display: inline-block;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      background-color: transparent;
+      width: 100%;
+
+      padding: @component-padding / 2;
+      padding-right: 10px; // space for scrollbar
+      border-top: 1px solid @overlay-border-color;
+      white-space: nowrap;
+
+      &:first-child {
+        border-top: none;
+      }
+
+      &.is-focused {
+        color: white;
+        background-color: @background-color-info;
+
+        .github-CommitView-coAuthorEditor-selectListItem > span {
+          color: inherit;
+        }
+      }
+    }
+
+    &-selectListItem {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+
+      &> span:first-child {
+        font-weight: 600;
+        color: @text-color-highlight;
+      }
+      &> span {
+        color: @text-color-subtle;
+        margin-right: .75em;
+      }
+      &> span:last-child {
+        margin-right: 0;
+      }
     }
   }
 
@@ -141,7 +281,8 @@
 
 .theme-one-dark-ui,
 .theme-one-light-ui {
-  .github-CommitView-editor atom-text-editor.is-focused {
+  .github-CommitView-editor atom-text-editor.is-focused,
+  .github-CommitView-coAuthorEditor.is-focused {
     box-shadow: none;
     &:before {
       content: "";
