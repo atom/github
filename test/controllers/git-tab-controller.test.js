@@ -635,17 +635,25 @@ describe('GitTabController', function() {
         fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
 
         await repository.stageFiles(['new-file.txt']);
-        const commitMessage = 'Commit some stuff';
+        const commitSubject = 'Commit some stuff';
+        const commitMessage = dedent`
+          ${commitSubject}
+
+          Co-authored-by: Foo Bar <foo@bar.com>
+        `;
         await repository.commit(commitMessage);
 
         app = React.cloneElement(app, {repository});
         const wrapper = mount(app);
 
+        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), []);
+
         await assert.async.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
         wrapper.find('.github-RecentCommit-undoButton').simulate('click');
 
         let commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
-        assert.deepEqual(commitMessages, [commitMessage, 'Initial commit']);
+        // ensure that the co author trailer is stripped from commit message
+        assert.deepEqual(commitMessages, [commitSubject, 'Initial commit']);
 
         await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
         assert.deepEqual(wrapper.find('GitTabView').prop('stagedChanges'), [{
@@ -656,7 +664,9 @@ describe('GitTabController', function() {
         commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
         assert.deepEqual(commitMessages, ['Initial commit']);
 
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), commitMessage);
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
+
+        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), ['foo@bar.com']);
       });
     });
   });
