@@ -681,7 +681,7 @@ describe('GitTabController', function() {
 
         assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
 
-        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), ['foo@bar.com']);
+        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [{name: 'Foo Bar', email: 'foo@bar.com'}]);
       });
     });
   });

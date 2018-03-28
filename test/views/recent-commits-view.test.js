@@ -63,7 +63,7 @@ describe('RecentCommitsView', function() {
       authorEmail: 'thr&ee@z.com',
       authorDate: 0,
       message: 'x',
-      coAuthors: ['two@y.com', 'one@x.com'],
+      coAuthors: [{name: 'One', email: 'two@y.com'}, {name: 'Two', email: 'one@x.com'}],
     })];
 
     app = React.cloneElement(app, {commits});
