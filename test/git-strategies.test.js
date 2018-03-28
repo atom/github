@@ -195,9 +195,21 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
         const commits = await git.getRecentCommits({max: 1});
         assert.lengthOf(commits, 1);
-        assert.deepEqual(commits[0].coAuthors, ['name@example.com', 'another-name@example.com', 'yet-another@example.com']);
+        assert.deepEqual(commits[0].coAuthors, [
+          {
+            name: 'name',
+            email: 'name@example.com',
+          },
+          {
+            name: 'another-name',
+            email: 'another-name@example.com',
+          },
+          {
+            name: 'yet-another',
+            email: 'yet-another@example.com',
+          },
+        ]);
       });
-
     });
 
     describe('getAuthors', function() {
