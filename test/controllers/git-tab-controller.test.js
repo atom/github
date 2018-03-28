@@ -612,6 +612,61 @@ describe('GitTabController', function() {
       });
     });
 
+    describe('amend', function() {
+      it('if commit message is not provided, default to using previous commit message', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        app = React.cloneElement(app, {repository});
+        const wrapper = mount(app);
+
+        const commitMessage = 'most recent commit woohoo';
+        await repository.commit(commitMessage, {allowEmpty: true});
+
+        // we have an empty commit editor with staged changes
+        fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
+        await repository.stageFiles(['new-file.txt']);
+        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+
+        assert.strictEqual(wrapper.find('CommitView').getNode().editor.getText(), '');
+
+        sinon.spy(repository, 'commit');
+        commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+
+        // amending should commit all unstaged changes
+        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
+        const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+        assert.equal(lastCommit.message, commitMessage);
+        assert.deepEqual(repository.commit.args[0][1], {amend: true});
+      });
+
+      it('amend should use commit message if one is supplied', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        app = React.cloneElement(app, {repository});
+        const wrapper = mount(app);
+
+        const commitMessage = 'most recent commit woohoo';
+        await repository.commit(commitMessage, {allowEmpty: true});
+
+        // st-st-staging changes with a shiny new commit message
+        fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
+        await repository.stageFiles(['new-file.txt']);
+        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+        const newMessage = 'such new very message';
+
+        const commitView = wrapper.find('CommitView');
+        commitView.getNode().editor.setText(newMessage);
+
+        sinon.spy(repository, 'commit');
+        commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
+        const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+        assert.equal(lastCommit.message, newMessage);
+        assert.deepEqual(repository.commit.args[0][1], {amend: true});
+      });
+    });
+
     describe('undoLastCommit()', function() {
       it('does nothing when there are no commits', async function() {
         const workdirPath = await initRepository();
