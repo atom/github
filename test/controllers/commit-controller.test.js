@@ -60,16 +60,16 @@ describe('CommitController', function() {
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app);
 
-    assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
+    assert.strictEqual(wrapper.instance().getCommitMessage(), '');
 
-    wrapper.instance().setRegularCommitMessage('regular message 1');
+    wrapper.instance().setCommitMessage('message 1');
 
     wrapper.setProps({repository: repository2});
 
-    assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
+    assert.strictEqual(wrapper.instance().getCommitMessage(), '');
 
     wrapper.setProps({repository: repository1});
-    assert.equal(wrapper.instance().getRegularCommitMessage(), 'regular message 1');
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
   });
 
   describe('the passed commit message', function() {
@@ -81,10 +81,10 @@ describe('CommitController', function() {
       app = React.cloneElement(app, {repository});
     });
 
-    it('is set to the getRegularCommitMessage() in the default case', function() {
-      repository.setRegularCommitMessage('regular message');
+    it('is set to the getCommitMessage() in the default case', function() {
+      repository.setCommitMessage('some message');
       const wrapper = shallow(app);
-      assert.strictEqual(wrapper.find('CommitView').prop('message'), 'regular message');
+      assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some message');
     });
 
     describe('when a merge message is defined', function() {
@@ -94,11 +94,11 @@ describe('CommitController', function() {
         assert.strictEqual(wrapper.find('CommitView').prop('message'), 'merge conflict!');
       });
 
-      it('is set to getRegularCommitMessage() if it is set', function() {
-        repository.setRegularCommitMessage('regular commit message');
+      it('is set to getCommitMessage() if it is set', function() {
+        repository.setCommitMessage('some commit message');
         app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
         const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'regular commit message');
+        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some commit message');
       });
     });
   });
@@ -115,19 +115,19 @@ describe('CommitController', function() {
     });
 
     it('clears the commit messages', async function() {
-      repository.setRegularCommitMessage('regular');
+      repository.setCommitMessage('a message');
 
       await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
       await repository.git.exec(['add', '.']);
 
       const wrapper = shallow(app);
-      await wrapper.instance().commit('message');
+      await wrapper.instance().commit('another message');
 
-      assert.strictEqual(repository.getRegularCommitMessage(), '');
+      assert.strictEqual(repository.getCommitMessage(), '');
     });
 
     it('issues a notification on failure', async function() {
-      repository.setRegularCommitMessage('regular');
+      repository.setCommitMessage('some message');
 
       sinon.spy(notificationManager, 'addError');
 
@@ -142,7 +142,7 @@ describe('CommitController', function() {
 
       assert.isTrue(notificationManager.addError.called);
 
-      assert.strictEqual(repository.getRegularCommitMessage(), 'regular');
+      assert.strictEqual(repository.getCommitMessage(), 'some message');
     });
 
     describe('message formatting', function() {
