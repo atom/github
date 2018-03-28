@@ -27,7 +27,6 @@ describe('CommitView', function() {
         config={config}
         lastCommit={lastCommit}
         currentBranch={nullBranch}
-        isAmending={false}
         isMerging={false}
         stagedChangesExist={false}
         mergeConflictsExist={false}
@@ -38,7 +37,6 @@ describe('CommitView', function() {
         prepareToCommit={returnTruthyPromise}
         commit={noop}
         abortMerge={noop}
-        setAmending={noop}
         onChangeMessage={noop}
         toggleExpandedCommitMessageEditor={noop}
       />
@@ -52,11 +50,6 @@ describe('CommitView', function() {
   describe('when the repo is loading', function() {
     beforeEach(function() {
       app = React.cloneElement(app, {lastCommit: nullCommit});
-    });
-
-    it("doesn't show the amend checkbox", function() {
-      const wrapper = shallow(app);
-      assert.isFalse(wrapper.find('.github-CommitView-amend').exists());
     });
 
     it('disables the commit button', function() {
@@ -155,12 +148,6 @@ describe('CommitView', function() {
       const currentBranch = new Branch('aw-do-the-stuff');
       wrapper.setProps({currentBranch});
       assert.strictEqual(commitButton.text(), 'Commit to aw-do-the-stuff');
-    });
-
-    it('displays the commit to be amended when amending', function() {
-      const currentBranch = new Branch('fix-all-the-bugs');
-      wrapper.setProps({currentBranch, isAmending: true});
-      assert.strictEqual(commitButton.text(), 'Amend commit (1234abcd)');
     });
 
     it('indicates when a commit will be detached', function() {
@@ -262,30 +249,5 @@ describe('CommitView', function() {
 
     wrapper.find('.github-CommitView-abortMerge').simulate('click');
     assert.isTrue(abortMerge.calledOnce);
-  });
-
-  describe('amending', function() {
-    it('calls props.setAmending() when the box is checked or unchecked', function() {
-      const previousCommit = new Commit({sha: '111', message: "previous commit's message"});
-      const setAmending = sinon.spy();
-
-      app = React.cloneElement(app, {stagedChangesExist: false, lastCommit: previousCommit, setAmending});
-      const wrapper = mount(app);
-
-      wrapper.setProps({isAmending: true});
-      wrapper.find('.github-CommitView-amend').simulate('change');
-      assert.deepEqual(setAmending.args, [[true]]);
-
-      wrapper.setProps({isAmending: false});
-      wrapper.find('.github-CommitView-amend').simulate('change');
-      assert.deepEqual(setAmending.args, [[true], [false]]);
-    });
-
-    it('is hidden when HEAD is an unborn ref', function() {
-      app = React.cloneElement(app, {stagedChangesExist: false, lastCommit: Commit.createUnborn()});
-      const wrapper = shallow(app);
-
-      assert.isFalse(wrapper.find('.github-CommitView-amend').exists());
-    });
   });
 });

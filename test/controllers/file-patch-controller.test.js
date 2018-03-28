@@ -57,7 +57,6 @@ function createComponent(repository, filePath) {
       filePath={filePath}
       initialStagingStatus="unstaged"
       isPartiallyStaged={false}
-      isAmending={false}
       switchboard={switchboard}
       discardLines={discardLines}
       didSurfaceFile={didSurfaceFile}
@@ -194,20 +193,6 @@ describe('FilePatchController', function() {
 
         assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
-      });
-    });
-
-    // https://github.com/atom/github/issues/505
-    describe('getFilePatchForPath(filePath, staged, isAmending)', function() {
-      it('calls repository.getFilePatchForPath with amending: true only if staged is true', async () => {
-        const wrapper = mount(component);
-
-        await wrapper.instance().repositoryObserver.getLastModelDataRefreshPromise();
-        repository.getFilePatchForPath.reset();
-
-        await wrapper.instance().getFilePatchForPath(filePath, false, true);
-        assert.equal(repository.getFilePatchForPath.callCount, 1);
-        assert.deepEqual(repository.getFilePatchForPath.args[0], [filePath, {staged: false, amending: false}]);
       });
     });
 

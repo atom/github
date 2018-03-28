@@ -35,7 +35,6 @@ describe('CommitController', function() {
         notificationManager={notificationManager}
         repository={{}}
         isMerging={false}
-        isAmending={false}
         mergeConflictsExist={false}
         stagedChangesExist={false}
         mergeMessage={''}
@@ -62,19 +61,15 @@ describe('CommitController', function() {
     const wrapper = shallow(app);
 
     assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
-    assert.strictEqual(wrapper.instance().getAmendingCommitMessage(), '');
 
     wrapper.instance().setRegularCommitMessage('regular message 1');
-    wrapper.instance().setAmendingCommitMessage('amending message 1');
 
     wrapper.setProps({repository: repository2});
 
     assert.strictEqual(wrapper.instance().getRegularCommitMessage(), '');
-    assert.strictEqual(wrapper.instance().getAmendingCommitMessage(), '');
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getRegularCommitMessage(), 'regular message 1');
-    assert.equal(wrapper.instance().getAmendingCommitMessage(), 'amending message 1');
   });
 
   describe('the passed commit message', function() {
@@ -90,22 +85,6 @@ describe('CommitController', function() {
       repository.setRegularCommitMessage('regular message');
       const wrapper = shallow(app);
       assert.strictEqual(wrapper.find('CommitView').prop('message'), 'regular message');
-    });
-
-    describe('when isAmending is true', function() {
-      it("is set to the last commit's message if getAmendingCommitMessage() is blank", function() {
-        repository.setAmendingCommitMessage('');
-        app = React.cloneElement(app, {isAmending: true, lastCommit});
-        const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'last commit message');
-      });
-
-      it('is set to getAmendingCommitMessage() if it is set', function() {
-        repository.setAmendingCommitMessage('amending commit message');
-        app = React.cloneElement(app, {isAmending: true, lastCommit});
-        const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'amending commit message');
-      });
     });
 
     describe('when a merge message is defined', function() {
@@ -135,9 +114,8 @@ describe('CommitController', function() {
       app = React.cloneElement(app, {repository, commit});
     });
 
-    it('clears the regular and amending commit messages', async function() {
+    it('clears the commit messages', async function() {
       repository.setRegularCommitMessage('regular');
-      repository.setAmendingCommitMessage('amending');
 
       await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
       await repository.git.exec(['add', '.']);
@@ -146,12 +124,10 @@ describe('CommitController', function() {
       await wrapper.instance().commit('message');
 
       assert.strictEqual(repository.getRegularCommitMessage(), '');
-      assert.strictEqual(repository.getAmendingCommitMessage(), '');
     });
 
     it('issues a notification on failure', async function() {
       repository.setRegularCommitMessage('regular');
-      repository.setAmendingCommitMessage('amending');
 
       sinon.spy(notificationManager, 'addError');
 
@@ -167,7 +143,6 @@ describe('CommitController', function() {
       assert.isTrue(notificationManager.addError.called);
 
       assert.strictEqual(repository.getRegularCommitMessage(), 'regular');
-      assert.strictEqual(repository.getAmendingCommitMessage(), 'amending');
     });
 
     describe('message formatting', function() {
@@ -234,35 +209,6 @@ describe('CommitController', function() {
         workspace.getActiveTextEditor().destroy();
         assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
         await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), 'message in editor');
-      });
-
-      it('transfers the commit message contents when in amending state', async function() {
-        const originalMessage = 'message in box before amending';
-        repository.setRegularCommitMessage(originalMessage);
-        const wrapper = shallow(app);
-
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), originalMessage);
-
-        wrapper.setProps({isAmending: true, lastCommit});
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), lastCommit.getMessage());
-
-        wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')(lastCommit.getMessage());
-        await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
-        const editor = workspace.getActiveTextEditor();
-        assert.strictEqual(editor.getText(), lastCommit.getMessage());
-
-        const amendedMessage = lastCommit.getMessage() + 'plus some changes';
-        editor.setText(amendedMessage);
-        await editor.save();
-        editor.destroy();
-
-        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), amendedMessage);
-
-        wrapper.setProps({isAmending: false});
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), originalMessage);
-
-        wrapper.setProps({isAmending: true});
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), amendedMessage);
       });
 
       it('activates editor if already opened but in background', async function() {

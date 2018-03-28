@@ -124,27 +124,6 @@ describe('GitTabController', function() {
     await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
   });
 
-  it('displays the staged changes since the parent commit when amending', async function() {
-    const workdirPath = await cloneRepository('multiple-commits');
-    const repository = await buildRepository(workdirPath);
-    const ensureGitTab = () => Promise.resolve(false);
-
-    app = React.cloneElement(app, {
-      repository,
-      ensureGitTab,
-      isAmending: false,
-    });
-    const wrapper = mount(app);
-
-    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), []);
-
-    await repository.setAmending(true);
-    await assert.async.deepEqual(
-      wrapper.find('GitTabView').prop('stagedChanges'),
-      await repository.getStagedChangesSinceParentCommit(),
-    );
-  });
-
   it('fetches conflict marker counts for conflicting files', async function() {
     const workdirPath = await cloneRepository('merge-conflict');
     const repository = await buildRepository(workdirPath);
@@ -233,21 +212,6 @@ describe('GitTabController', function() {
       }
       assert.equal(notificationManager.getNotifications().length, 1);
     });
-
-    it('sets amending to false', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-      repository.setAmending(true);
-      sinon.stub(repository.git, 'commit').callsFake(() => Promise.resolve());
-      const didChangeAmending = sinon.stub();
-
-      app = React.cloneElement(app, {repository, didChangeAmending});
-      const wrapper = mount(app);
-
-      assert.isTrue(repository.isAmending());
-      await wrapper.instance().getWrappedComponentInstance().commit('message');
-      assert.isFalse(repository.isAmending());
-    });
   });
 
   it('selects an item by description', async function() {
@@ -317,14 +281,12 @@ describe('GitTabController', function() {
       stubFocus(stagingView.element);
       stubFocus(commitView.editorElement);
       stubFocus(commitView.refAbortMergeButton);
-      stubFocus(commitView.refAmendCheckbox);
       stubFocus(commitView.refCommitButton);
 
       sinon.stub(commitController, 'hasFocus').callsFake(() => {
         return [
           commitView.editorElement,
           commitView.refAbortMergeButton,
-          commitView.refAmendCheckbox,
           commitView.refCommitButton,
         ].includes(focusElement);
       });
@@ -354,9 +316,8 @@ describe('GitTabController', function() {
         await repository.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
         repository.refresh();
 
-        const didChangeAmending = () => {};
 
-        app = React.cloneElement(app, {repository, didChangeAmending});
+        app = React.cloneElement(app, {repository});
         wrapper = mount(app);
         await assert.async.lengthOf(wrapper.find('GitTabView').prop('unstagedChanges'), 3);
 
@@ -420,11 +381,10 @@ describe('GitTabController', function() {
         await repository.stageFiles(['staged-1.txt']);
         repository.refresh();
 
-        const didChangeAmending = () => {};
         const prepareToCommit = () => Promise.resolve(true);
         const ensureGitTab = () => Promise.resolve(false);
 
-        app = React.cloneElement(app, {repository, ensureGitTab, prepareToCommit, didChangeAmending});
+        app = React.cloneElement(app, {repository, ensureGitTab, prepareToCommit});
         wrapper = mount(app);
 
         extractReferences();
