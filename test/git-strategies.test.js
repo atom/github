@@ -181,13 +181,12 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         assert.strictEqual(commits[9].message, 'Commit 1');
       });
 
-      it('includes co-authors based on commit body trailers', async function() {
+      it.only('includes co-authors based on commit body trailers', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
         await git.commit(dedent`
           Implemented feature collaboratively
-
           Co-authored-by: name <name@example.com>
           Co-authored-by: another-name <another-name@example.com>
           Co-authored-by: yet-another <yet-another@example.com>
