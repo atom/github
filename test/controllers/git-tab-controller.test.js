@@ -517,7 +517,9 @@ describe('GitTabController', function() {
 
       // click Cancel
       confirm.returns(1);
-      stagingView.dblclickOnItem({}, conflict1);
+      let result = stagingView.dblclickOnItem({}, conflict1);
+      await result.stageOperationPromise;
+      await result.selectionUpdatePromise;
 
       await assert.async.isTrue(confirm.calledOnce);
       assert.lengthOf(stagingView.props.mergeConflicts, 5);
@@ -526,7 +528,9 @@ describe('GitTabController', function() {
       // click Stage
       confirm.reset();
       confirm.returns(0);
-      await stagingView.dblclickOnItem({}, conflict1).selectionUpdatePromise;
+      result = stagingView.dblclickOnItem({}, conflict1);
+      await result.stageOperationPromise;
+      await result.selectionUpdatePromise;
 
       await assert.async.isTrue(confirm.calledOnce);
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
