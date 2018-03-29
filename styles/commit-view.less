@@ -54,6 +54,9 @@
     background-color: @syntax-background-color;
     cursor: default;
     opacity: .3;
+    // in expanded editor view, make this button sit on top of
+    // the editor toggle button so the co author toggle is still clickable.
+    z-index: 1;
     &:hover {
       opacity: 1;
     }
