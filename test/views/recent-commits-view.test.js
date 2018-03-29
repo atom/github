@@ -8,7 +8,7 @@ describe('RecentCommitsView', function() {
   let app;
 
   beforeEach(function() {
-    app = <RecentCommitsView commits={[]} isLoading={false} />;
+    app = <RecentCommitsView commits={[]} undoLastCommit={() => {}} isLoading={false} />;
   });
 
   it('shows a placeholder while commits are empty and loading', function() {
