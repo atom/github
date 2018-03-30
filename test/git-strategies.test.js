@@ -125,13 +125,20 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
     describe('getCommits()', function() {
       describe('when no commits exist in the repository', function() {
-        it('returns an array with an unborn ref commit', async function() {
+        it('returns an array with an unborn ref commit when the include unborn option is passed', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits({includeUnborn: true});
+          assert.lengthOf(commits, 1);
+          assert.isTrue(commits[0].unbornRef);
+        });
+        it('returns an empty array when the include unborn option is not passed', async function() {
           const workingDirPath = await initRepository();
           const git = createTestStrategy(workingDirPath);
 
           const commits = await git.getCommits();
-          assert.lengthOf(commits, 1);
-          assert.isTrue(commits[0].unbornRef);
+          assert.lengthOf(commits, 0);
         });
       });
 
