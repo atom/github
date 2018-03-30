@@ -33,12 +33,41 @@
     cursor: default;
   }
 
+  @keyframes github-StatusBarAnimation-fade {
+      0% { opacity: 0; }
+      25% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+  }
+
   // Sync animation
-  .icon-sync::before {
-    @keyframes github-StatusBarSync-animation {
+  .animate-rotate.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-rotate {
       100% { transform: rotate(360deg); }
     }
-    animation: github-StatusBarSync-animation 2s linear 30; // limit to 1min in case something gets stuck
+    animation: github-StatusBarAnimation-rotate 1s linear infinite;
+  }
+
+  // Push animation
+  .animate-up.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-up {
+      0% { transform: translateY(40%); }
+      100% { transform: translateY(-20%); }
+    }
+    animation:
+        github-StatusBarAnimation-up 800ms ease-out infinite,
+        github-StatusBarAnimation-fade 800ms ease-out infinite;
+  }
+
+  // Pull animation
+  .animate-down.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-down {
+        0% { transform: translateY(-20%); }
+        100% { transform: translateY(40%); }
+    }
+    animation:
+        github-StatusBarAnimation-down 800ms ease-out infinite,
+        github-StatusBarAnimation-fade 800ms ease-out infinite;
   }
 
   // Merge conflict icon
