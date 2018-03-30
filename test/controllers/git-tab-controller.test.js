@@ -605,7 +605,7 @@ describe('GitTabController', function() {
           // commit message from previous commit should be used
           const lastCommit = wrapper.find('CommitView').prop('lastCommit');
           assert.equal(lastCommit.message, commitMessage);
-        })
+        });
       });
 
       describe('when there is a new commit message provided (and no staged changes)', function() {
@@ -635,12 +635,11 @@ describe('GitTabController', function() {
           await repository.stageFiles(['new-file.txt']);
 
           // verify that last commit has no co-author
-          let commitBeforeAmend = wrapper.find('CommitView').prop('lastCommit');
-          console.log(commitBeforeAmend);
+          const commitBeforeAmend = wrapper.find('CommitView').prop('lastCommit');
           assert.deepEqual(commitBeforeAmend.coAuthors, []);
 
           // add co author
-          const author = {email: 'foo@bar.com', name: "foo bar"};
+          const author = {email: 'foo@bar.com', name: 'foo bar'};
           const commitView = wrapper.find('CommitView').getNode();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
@@ -667,7 +666,7 @@ describe('GitTabController', function() {
             We did this together!
 
             Co-authored-by: Mona Lisa <mona@lisa.com>
-          `
+          `;
           await repository.commit(commitMessageWithCoAuthors, {allowEmpty: true});
 
           // assert that last commit has co-author
