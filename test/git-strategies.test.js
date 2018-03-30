@@ -124,12 +124,15 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
     });
 
     describe('getRecentCommits()', function() {
-      it('returns an empty array if no commits exist yet', async function() {
-        const workingDirPath = await initRepository();
-        const git = createTestStrategy(workingDirPath);
+      describe('when no commits exist in the repository', function() {
+        it('returns an array with an unborn ref commit', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
 
-        const commits = await git.getRecentCommits();
-        assert.lengthOf(commits, 0);
+          const commits = await git.getRecentCommits();
+          assert.lengthOf(commits, 1);
+          assert.isTrue(commits[0].unbornRef);
+        });
       });
 
       it('returns all commits if fewer than max commits exist', async function() {
@@ -146,6 +149,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           message: 'third commit',
           body: '',
           coAuthors: [],
+          unbornRef: false,
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
@@ -154,6 +158,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           message: 'second commit',
           body: '',
           coAuthors: [],
+          unbornRef: false,
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
@@ -162,6 +167,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           message: 'first commit',
           body: '',
           coAuthors: [],
+          unbornRef: false,
         });
       });
 
@@ -181,12 +187,13 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         assert.strictEqual(commits[9].message, 'Commit 1');
       });
 
-      it.only('includes co-authors based on commit body trailers', async function() {
+      it('includes co-authors based on commit body trailers', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
         await git.commit(dedent`
           Implemented feature collaboratively
+
           Co-authored-by: name <name@example.com>
           Co-authored-by: another-name <another-name@example.com>
           Co-authored-by: yet-another <yet-another@example.com>
@@ -740,7 +747,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
+          assert.deepEqual(lastCommit.message, 'Make a commit');
+          assert.deepEqual(lastCommit.body, 'other stuff');
         });
       });
 
