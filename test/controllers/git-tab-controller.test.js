@@ -572,7 +572,7 @@ describe('GitTabController', function() {
       });
     });
 
-    describe('amend', function() {
+    describe.only('amend', function() {
       let repository, commitMessage, workdirPath, wrapper;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
@@ -585,43 +585,99 @@ describe('GitTabController', function() {
         await repository.commit(commitMessage, {allowEmpty: true});
       });
 
+      describe('when there are staged changes only', function() {
+        it('uses the last commit\'s message since there is no new message', async function() {
+          // stage some changes
+          fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
+          await repository.stageFiles(['new-file.txt']);
+          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
 
-      it('amends when there are staged changes and uses the last commit\'s message when there is no new message', async function() {
-        // we have an empty commit editor with staged changes
-        fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
-        await repository.stageFiles(['new-file.txt']);
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+          // ensure that the commit editor is empty
+          assert.strictEqual(wrapper.find('CommitView').getNode().editor.getText(), '');
 
-        assert.strictEqual(wrapper.find('CommitView').getNode().editor.getText(), '');
+          sinon.spy(repository, 'commit');
+          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          assert.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
 
-        sinon.spy(repository, 'commit');
-        commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          // amending should commit all unstaged changes
+          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
 
-        // amending should commit all unstaged changes
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
-        const lastCommit = wrapper.find('CommitView').prop('lastCommit');
-        // commit message from previous commit should be used
-        assert.equal(lastCommit.message, commitMessage);
-        assert.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          // commit message from previous commit should be used
+          const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+          assert.equal(lastCommit.message, commitMessage);
+        })
       });
 
-      it('amends when there are staged changes and a new commit message', async function() {
-        // st-st-staging changes with a shiny new commit message
-        fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
-        await repository.stageFiles(['new-file.txt']);
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
-        const newMessage = 'such new very message';
+      describe('when there is a new commit message provided (and no staged changes)', function() {
+        it('discards the last commit\'s message and uses the new one', async function() {
+          // new commit message
+          const newMessage = 'such new very message';
+          const commitView = wrapper.find('CommitView');
+          commitView.getNode().editor.setText(newMessage);
 
-        const commitView = wrapper.find('CommitView');
-        commitView.getNode().editor.setText(newMessage);
+          // no staged changes
+          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
 
-        sinon.spy(repository, 'commit');
-        commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
-        const lastCommit = wrapper.find('CommitView').prop('lastCommit');
-        // new commit message should be used for last commit
-        assert.equal(lastCommit.message, newMessage);
-        assert.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          sinon.spy(repository, 'commit');
+          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          assert.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+
+          // new commit message is used
+          const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+          assert.equal(lastCommit.message, newMessage);
+        });
+      });
+
+      describe.only('when co-authors are changed', function() {
+        it('amends the last commit re-using the commit message and adding the co-author', async function() {
+          // stage some changes
+          fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
+          await repository.stageFiles(['new-file.txt']);
+
+          // verify that last commit has no co-author
+          let commitBeforeAmend = wrapper.find('CommitView').prop('lastCommit');
+          console.log(commitBeforeAmend);
+          assert.deepEqual(commitBeforeAmend.coAuthors, []);
+
+          // add co author
+          const author = {email: 'foo@bar.com', name: "foo bar"};
+          const commitView = wrapper.find('CommitView').getNode();
+          commitView.setState({showCoAuthorInput: true});
+          commitView.onSelectedCoAuthorsChanged([author]);
+
+          sinon.spy(repository, 'commit');
+          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          // verify that coAuthor was passed
+          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
+
+          await new Promise(res => setTimeout(res, 1000))
+
+          // verify that commit message has coauthor (use helper)
+          const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+          assert.strictEqual(lastCommit.message, commitBeforeAmend.message);
+          assert.deepEqual(lastCommit.coAuthors, [author]);
+        });
+
+        it('uses a new commit message if provided', async function() {
+
+        });
+
+        it('successfully removes a co-author', async function() {
+          const commitMessageWithCoAuthors = dedent`
+            We did this together!
+
+            Co-authored-by: Mona Lisa <mona@lisa.com>
+          `
+          await repository.commit(commitMessageWithCoAuthors, {allowEmpty: true});
+
+          // assert that last commit has co-author
+          const lastCommit = wrapper.find('CommitView').prop('lastCommit');
+
+          // commit with no co-authors set
+          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+
+
+        });
       });
     });
 
