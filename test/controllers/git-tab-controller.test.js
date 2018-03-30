@@ -677,21 +677,37 @@ describe('GitTabController', function() {
           assert.strictEqual(getLastCommit().message, newMessage);
         });
 
-        it('successfully removes a co-author', async function() {
-          // make commit with co-author
-          const commitMessageWithCoAuthors = dedent`
-            We did this together!
+        it.only('successfully removes a co-author', async function() {
+          // verify that last commit has no co-author
+          const commitBeforeAmend = getLastCommit();
+          assert.deepEqual(commitBeforeAmend.coAuthors, []);
 
-            Co-authored-by: Mona Lisa <mona@lisa.com>
-          `;
-          await repository.git.exec(['commit', '--amend', '-m', commitMessageWithCoAuthors]);
+          // add co author
+          const author = {email: 'foo@bar.com', name: 'foo bar'};
+          const commitView = wrapper.find('CommitView').getNode();
+          commitView.setState({showCoAuthorInput: true});
+          commitView.onSelectedCoAuthorsChanged([author]);
+          const newMessage = 'Star Wars: A New Message';
+          commitView.editor.setText(newMessage);
+          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
 
-          // assert that last commit has co-author
-          await assert.async.deepEqual(getLastCommit().coAuthors, [{name: 'Mona Lisa', email: 'mona@lisa.com'}]);
+          // verify that coAuthor was passed
+          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
 
+          // verify that commit message has coauthor
+          await assert.async.deepEqual(getLastCommit().coAuthors, [author]);
+          assert.strictEqual(getLastCommit().message, newMessage);
+
+          // buh bye co author and commit message
+          wrapper.find('CommitView').getNode().editor.setText('');
+          assert.strictEqual(wrapper.find('CommitView').getNode().editor.getText(), '');
+          commitView.onSelectedCoAuthorsChanged([]);
+          commitView.setState({showCoAuthorInput: false});
+
+          // amend again
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that NO coAuthor was passed
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          await assert.async.deepEqual(repository.commit.args[1][1], {amend: true, coAuthors: []});
 
           // assert that no co-authors are in last commit
           await assert.async.deepEqual(getLastCommit().coAuthors, []);
