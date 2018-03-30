@@ -301,6 +301,7 @@ describe('StatusBarTileController', function() {
           statusBarTile = mount(React.cloneElement(component, {repository}));
 
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pushing');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -337,6 +338,7 @@ describe('StatusBarTileController', function() {
           statusBarTile = mount(React.cloneElement(component, {repository}));
 
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Fetching');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -374,6 +376,7 @@ describe('StatusBarTileController', function() {
           statusBarTile = mount(React.cloneElement(component, {repository}));
 
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pushing');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -411,6 +414,7 @@ describe('StatusBarTileController', function() {
           statusBarTile = mount(React.cloneElement(component, {repository}));
 
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pulling');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -451,6 +455,7 @@ describe('StatusBarTileController', function() {
           statusBarTile = mount(React.cloneElement(component, {repository}));
 
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Pulling');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -480,6 +485,7 @@ describe('StatusBarTileController', function() {
 
         it('does nothing when clicked', function() {
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'Not on branch');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
@@ -509,6 +515,7 @@ describe('StatusBarTileController', function() {
 
         it('does nothing when clicked', function() {
           statusBarTile.find('.push-pull-target').simulate('click');
+          assert.equal(statusBarTile.find('.github-PushPull').text().trim(), 'No remote');
           assert.isFalse(repository.fetch.called);
           assert.isFalse(repository.push.called);
           assert.isFalse(repository.pull.called);
