@@ -742,19 +742,6 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           const lastCommit = await git.getHeadCommit();
           assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
         });
-
-        it('strips out comments and whitespace from message at specified file path', async function() {
-          const workingDirPath = await cloneRepository('multiple-commits');
-          const git = createTestStrategy(workingDirPath);
-
-          const commitMessagePath = path.join(workingDirPath, 'commit-message.txt');
-          fs.writeFileSync(commitMessagePath, message);
-
-          await git.commit({filePath: commitMessagePath}, {allowEmpty: true});
-
-          const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
-        });
       });
 
       describe('when amend option is true', function() {
