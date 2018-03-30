@@ -774,6 +774,100 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
+    describe('addCoAuthorsToMessage', function() {
+      it('always adds trailing newline', async () => {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        assert.equal(await git.addCoAuthorsToMessage('test'), 'test\n');
+      });
+
+      it('appends trailers to a summary-only message', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(await git.addCoAuthorsToMessage('foo', coAuthors),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('merges duplicate trailers', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('fixes up malformed trailers when trailers are given', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            // note the lack of space after :
+            'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+    });
+
     // Only needs to be tested on strategies that actually implement gpgExec
     describe('GPG signing', function() {
       let git;

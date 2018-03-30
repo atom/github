@@ -572,7 +572,7 @@ describe('GitTabController', function() {
       });
     });
 
-    describe.only('amend', function() {
+    describe('amend', function() {
       let repository, commitMessage, workdirPath, wrapper, getLastCommit;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
@@ -677,7 +677,7 @@ describe('GitTabController', function() {
           assert.strictEqual(getLastCommit().message, newMessage);
         });
 
-        it.only('successfully removes a co-author', async function() {
+        it('successfully removes a co-author', async function() {
           const message = 'We did this together!';
           const author = {email: 'mona@lisa.com', name: 'Mona Lisa'};
           const commitMessageWithCoAuthors = dedent`
