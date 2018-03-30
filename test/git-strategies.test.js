@@ -123,13 +123,13 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
-    describe('getRecentCommits()', function() {
+    describe('getCommits()', function() {
       describe('when no commits exist in the repository', function() {
         it('returns an array with an unborn ref commit', async function() {
           const workingDirPath = await initRepository();
           const git = createTestStrategy(workingDirPath);
 
-          const commits = await git.getRecentCommits();
+          const commits = await git.getCommits();
           assert.lengthOf(commits, 1);
           assert.isTrue(commits[0].unbornRef);
         });
@@ -139,7 +139,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        const commits = await git.getRecentCommits({max: 10});
+        const commits = await git.getCommits({max: 10});
         assert.lengthOf(commits, 3);
 
         assert.deepEqual(commits[0], {
@@ -180,7 +180,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit(`Commit ${i}`, {allowEmpty: true});
         }
 
-        const commits = await git.getRecentCommits({max: 10});
+        const commits = await git.getCommits({max: 10});
         assert.lengthOf(commits, 10);
 
         assert.strictEqual(commits[0].message, 'Commit 10');
@@ -199,7 +199,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           Co-authored-by: yet-another <yet-another@example.com>
         `, {allowEmpty: true});
 
-        const commits = await git.getRecentCommits({max: 1});
+        const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
         assert.deepEqual(commits[0].coAuthors, [
           {
