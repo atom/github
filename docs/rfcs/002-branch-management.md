@@ -1,4 +1,4 @@
-# Feature title
+# Branch Management From Command Palette
 
 ## Status
 
