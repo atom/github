@@ -110,7 +110,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
         const commit = await git.getHeadCommit();
         assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
-        assert.equal(commit.message, 'Initial commit');
+        assert.equal(commit.messageSubject, 'Initial commit');
         assert.isFalse(commit.unbornRef);
       });
 
@@ -153,8 +153,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113656,
-          message: 'third commit',
-          body: '',
+          messageSubject: 'third commit',
+          messageBody: '',
           coAuthors: [],
           unbornRef: false,
         });
@@ -162,8 +162,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113642,
-          message: 'second commit',
-          body: '',
+          messageSubject: 'second commit',
+          messageBody: '',
           coAuthors: [],
           unbornRef: false,
         });
@@ -171,8 +171,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113625,
-          message: 'first commit',
-          body: '',
+          messageSubject: 'first commit',
+          messageBody: '',
           coAuthors: [],
           unbornRef: false,
         });
@@ -190,8 +190,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         const commits = await git.getCommits({max: 10});
         assert.lengthOf(commits, 10);
 
-        assert.strictEqual(commits[0].message, 'Commit 10');
-        assert.strictEqual(commits[9].message, 'Commit 1');
+        assert.strictEqual(commits[0].messageSubject, 'Commit 10');
+        assert.strictEqual(commits[9].messageSubject, 'Commit 1');
       });
 
       it('includes co-authors based on commit body trailers', async function() {
@@ -754,8 +754,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit');
-          assert.deepEqual(lastCommit.body, 'other stuff');
+          assert.deepEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.deepEqual(lastCommit.messageBody, 'other stuff');
         });
       });
 

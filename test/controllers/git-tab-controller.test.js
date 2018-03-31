@@ -451,7 +451,7 @@ describe('GitTabController', function() {
       commitView.find('atom-text-editor').getNode().getModel().setText('Make it so');
       commitView.find('.github-CommitView-commit').simulate('click');
 
-      await assert.async.equal((await repository.getLastCommit()).getMessage(), 'Make it so');
+      await assert.async.equal((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
     });
 
     it('can stage merge conflict files', async function() {
@@ -590,7 +590,7 @@ describe('GitTabController', function() {
           return wrapper.find('RecentCommitView').getNodes()[0].props.commit;
         };
 
-        await assert.async.strictEqual(getLastCommit().message, commitMessage);
+        await assert.async.strictEqual(getLastCommit().getMessageSubject(), commitMessage);
 
         sinon.spy(repository, 'commit');
       });
@@ -613,7 +613,7 @@ describe('GitTabController', function() {
 
           // commit message from previous commit should be used
           const lastCommit = getLastCommit();
-          assert.equal(lastCommit.message, commitMessage);
+          assert.equal(lastCommit.getMessageSubject(), commitMessage);
         });
       });
 
@@ -631,7 +631,7 @@ describe('GitTabController', function() {
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
 
           // new commit message is used
-          await assert.async.equal(getLastCommit().message, newMessage);
+          await assert.async.equal(getLastCommit().getMessageSubject(), newMessage);
         });
       });
 
@@ -652,7 +652,7 @@ describe('GitTabController', function() {
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
 
           await assert.async.deepEqual(getLastCommit().coAuthors, [author]);
-          assert.strictEqual(getLastCommit().message, commitBeforeAmend.message);
+          assert.strictEqual(getLastCommit().getMessageSubject(), commitBeforeAmend.getMessageSubject());
         });
 
         it('uses a new commit message if provided', async function() {
@@ -674,7 +674,7 @@ describe('GitTabController', function() {
 
           // verify that commit message has coauthor
           await assert.async.deepEqual(getLastCommit().coAuthors, [author]);
-          assert.strictEqual(getLastCommit().message, newMessage);
+          assert.strictEqual(getLastCommit().getMessageSubject(), newMessage);
         });
 
         it('successfully removes a co-author', async function() {
@@ -691,7 +691,7 @@ describe('GitTabController', function() {
 
           // verify that commit message has coauthor
           await assert.async.deepEqual(getLastCommit().coAuthors, [author]);
-          assert.strictEqual(getLastCommit().message, message);
+          assert.strictEqual(getLastCommit().getMessageSubject(), message);
 
           // buh bye co author
           const commitView = wrapper.find('CommitView').getNode();
@@ -705,7 +705,7 @@ describe('GitTabController', function() {
 
           // assert that no co-authors are in last commit
           await assert.async.deepEqual(getLastCommit().coAuthors, []);
-          assert.strictEqual(getLastCommit().message, message);
+          assert.strictEqual(getLastCommit().getMessageSubject(), message);
         });
       });
     });

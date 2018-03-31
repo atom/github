@@ -280,7 +280,7 @@ describe('CommitController', function() {
         await editor.save();
         wrapper.find('CommitView').prop('commit')('message in box');
 
-        await assert.async.strictEqual((await repository.getLastCommit()).getMessage(), 'message in editor');
+        await assert.async.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
         await assert.async.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
       });
 

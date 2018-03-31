@@ -96,8 +96,8 @@ describe('RecentCommitsView', function() {
       sha: '1111111111',
       authorEmail: 'me@hooray.horse',
       authorDate: 0,
-      message: 'really really really really really really really long',
-      body: 'and a commit body',
+      messageSubject: 'really really really really really really really long',
+      messageBody: 'and a commit body',
     });
 
     app = React.cloneElement(app, {commits: [commit]});

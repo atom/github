@@ -428,7 +428,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Initial commit');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Initial commit');
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
@@ -436,7 +436,7 @@ describe('Repository', function() {
       repo.refresh();
       await repo.applyPatchToIndex(unstagedPatch1);
       await repo.commit('Commit 1');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 1');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 1');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       const unstagedChanges = await repo.getUnstagedChanges();
@@ -445,7 +445,7 @@ describe('Repository', function() {
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
       await repo.applyPatchToIndex(unstagedPatch2);
       await repo.commit('Commit 2');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 2');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 2');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       assert.deepEqual(await repo.getUnstagedChanges(), []);
@@ -517,14 +517,14 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.fetch('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'second commit');
     });
   });
 
@@ -537,14 +537,14 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.pull('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'third commit');
     });
   });
 
@@ -565,7 +565,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.notDeepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
       assert.deepEqual(remoteHead, localRemoteHead);
 
       await localRepo.push('master');
@@ -573,7 +573,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.deepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'fifth commit');
+      assert.equal(remoteHead.messageSubject, 'fifth commit');
       assert.deepEqual(remoteHead, localRemoteHead);
     });
   });
