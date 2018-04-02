@@ -250,4 +250,16 @@ describe('CommitView', function() {
     wrapper.find('.github-CommitView-abortMerge').simulate('click');
     assert.isTrue(abortMerge.calledOnce);
   });
+
+  describe('co-authors', function() {
+    it('new author should be the first suggested author', function() {
+      const mentionableUsers = [{name: 'octocat@github.com', email: 'Mona Lisa'}];
+      app = React.cloneElement(app, {mentionableUsers});
+      const wrapper = mount(app);
+      wrapper.setState({showCoAuthorInput: true});
+      const listOptions = wrapper.find('Select').getNode().props.options;
+      mentionableUsers.unshift({email: 'provide name and email', name: 'New User'});
+      assert.deepEqual(listOptions, mentionableUsers);
+    });
+  });
 });
