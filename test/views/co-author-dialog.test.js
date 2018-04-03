@@ -31,7 +31,7 @@ describe('CoAuthorDialog', function() {
   };
 
   describe('confirm', function() {
-    it('submits current co author name and email', function() {
+    it('submits current co author name and email when form contains valid input', function() {
       wrapper = mount(app);
       const name = 'Coauthor Name';
       const email = 'foo@bar.com';
@@ -39,13 +39,35 @@ describe('CoAuthorDialog', function() {
       setTextIn('.github-CoAuthorDialog-name', name);
       setTextIn('.github-CoAuthorDialog-email', email);
 
-
       wrapper.find('.btn-primary').simulate('click');
 
       assert.deepEqual(didSubmit.firstCall.args[0], {
         name,
         email,
       });
+    });
+
+    it('submit button is initially disabled', function() {
+      wrapper = mount(app);
+
+      const submitButton = wrapper.find('.btn-primary');
+      assert.isTrue(submitButton.node.disabled);
+      submitButton.simulate('click');
+      assert.isFalse(didSubmit.called);
+    });
+
+    it('submit button is disabled when form contains invalid input', function() {
+      wrapper = mount(app);
+      const name = 'Coauthor Name';
+      const email = 'foobar.com';
+
+      setTextIn('.github-CoAuthorDialog-name', name);
+      setTextIn('.github-CoAuthorDialog-email', email);
+
+      const submitButton = wrapper.find('.btn-primary');
+      assert.isTrue(submitButton.node.disabled);
+      submitButton.simulate('click');
+      assert.isFalse(didSubmit.called);
     });
   });
 
