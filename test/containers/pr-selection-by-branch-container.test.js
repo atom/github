@@ -63,6 +63,7 @@ describe('PrSelectionByBranch', function() {
 
         const button = wrapper.find('.github-PrSelectionByBranch-push');
         assert.isTrue(button.exists());
+        assert.isFalse(button.prop('disabled'));
         button.simulate('click');
         assert.isTrue(onPushBranch.called);
       });
@@ -82,14 +83,36 @@ describe('PrSelectionByBranch', function() {
         const button = wrapper.find('.github-PrSelectionByBranch-createPr');
         assert.isTrue(button.exists());
         assert.isTrue(button.prop('disabled'));
-        button.simulate('click');
       });
     });
 
     describe('with unpushed commits', function() {
-      it('shows a button to push your commits');
+      beforeEach(function() {
+        app = React.cloneElement(app, {
+          aheadCount: 3,
+          isUnpublished: false,
+        });
+      });
 
-      it('shows a button to open a new pull request');
+      it('shows a button to push your commits', function() {
+        const wrapper = shallow(app);
+
+        const button = wrapper.find('.github-PrSelectionByBranch-push');
+        assert.isTrue(button.exists());
+        assert.isFalse(button.prop('disabled'));
+        button.simulate('click');
+        assert.isTrue(onPushBranch.called);
+      });
+
+      it('shows a button to open a new pull request', function() {
+        const wrapper = shallow(app);
+
+        const button = wrapper.find('.github-PrSelectionByBranch-createPr');
+        assert.isTrue(button.exists());
+        assert.isFalse(button.prop('disabled'));
+        button.simulate('click');
+        assert.isTrue(onCreatePr.called);
+      });
     });
 
     describe('when fully pushed', function() {
