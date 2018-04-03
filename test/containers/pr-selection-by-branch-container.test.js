@@ -4,7 +4,7 @@ import {shallow} from 'enzyme';
 import {PrSelectionByBranch} from '../../lib/containers/pr-selection-by-branch-container';
 
 describe('PrSelectionByBranch', function() {
-  let onSelectPr, onUnpinPr, onPushBranch, onCreatePr;
+  let onSelectPr, onUnpinPr, onPushBranch, onCreatePr, onSearchAgain;
   let app;
 
   beforeEach(function() {
@@ -12,6 +12,7 @@ describe('PrSelectionByBranch', function() {
     onUnpinPr = sinon.spy();
     onPushBranch = sinon.spy();
     onCreatePr = sinon.spy();
+    onSearchAgain = sinon.spy();
 
     app = (
       <PrSelectionByBranch
@@ -19,6 +20,7 @@ describe('PrSelectionByBranch', function() {
         onUnpinPr={onUnpinPr}
         onPushBranch={onPushBranch}
         onCreatePr={onCreatePr}
+        onSearchAgain={onSearchAgain}
         aheadCount={0}
         isUnpublished={true}
       />
@@ -66,11 +68,12 @@ describe('PrSelectionByBranch', function() {
       });
 
       it('shows a link to search again', function() {
-        this.skip();
         const wrapper = shallow(app);
 
         const link = wrapper.find('.github-PrSelectionByBranch-searchAgain');
         assert.isTrue(link.exists());
+        link.simulate('click');
+        assert.isTrue(onSearchAgain.called);
       });
 
       it('disables a button to open a new pull request', function() {
