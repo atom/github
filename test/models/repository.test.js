@@ -218,52 +218,6 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getStagedChanges(), [unstagedChanges[2]]);
     });
 
-    it('can unstage and retrieve staged changes relative to HEAD~', async function() {
-      const workingDirPath = await cloneRepository('multiple-commits');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'three\nfour\n', 'utf8');
-      assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), [
-        {
-          filePath: 'file.txt',
-          status: 'modified',
-        },
-      ]);
-      const filePatch1 = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
-      assert.equal(filePatch1.getOldPath(), 'file.txt');
-      assert.equal(filePatch1.getNewPath(), 'file.txt');
-      assert.equal(filePatch1.getStatus(), 'modified');
-      assertDeepPropertyVals(filePatch1.getHunks(), [
-        {
-          lines: [
-            {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-            {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-          ],
-        },
-      ]);
-
-      await repo.stageFiles(['file.txt']);
-      repo.refresh();
-      const filePatch2 = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
-      assert.equal(filePatch2.getOldPath(), 'file.txt');
-      assert.equal(filePatch2.getNewPath(), 'file.txt');
-      assert.equal(filePatch2.getStatus(), 'modified');
-      assertDeepPropertyVals(filePatch2.getHunks(), [
-        {
-          lines: [
-            {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-            {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-            {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
-          ],
-        },
-      ]);
-
-      await repo.stageFilesFromParentCommit(['file.txt']);
-      repo.refresh();
-      assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), []);
-    });
-
     it('can stage and unstage file modes without staging file contents', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
@@ -363,10 +317,8 @@ describe('Repository', function() {
 
       const unstagedFilePatch = await repo.getFilePatchForPath('new-file.txt');
       const stagedFilePatch = await repo.getFilePatchForPath('file.txt', {staged: true});
-      const stagedFilePatchDuringAmend = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
       assert.equal(await repo.getFilePatchForPath('new-file.txt'), unstagedFilePatch);
       assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true}), stagedFilePatch);
-      assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), stagedFilePatchDuringAmend);
     });
 
     it('returns new FilePatch object after repository refresh', async function() {
@@ -476,7 +428,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Initial commit');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Initial commit');
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
@@ -484,7 +436,7 @@ describe('Repository', function() {
       repo.refresh();
       await repo.applyPatchToIndex(unstagedPatch1);
       await repo.commit('Commit 1');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 1');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 1');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       const unstagedChanges = await repo.getUnstagedChanges();
@@ -493,7 +445,7 @@ describe('Repository', function() {
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
       await repo.applyPatchToIndex(unstagedPatch2);
       await repo.commit('Commit 2');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 2');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 2');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       assert.deepEqual(await repo.getUnstagedChanges(), []);
@@ -506,8 +458,7 @@ describe('Repository', function() {
 
       const lastCommit = await repo.git.getHeadCommit();
       const lastCommitParent = await repo.git.getCommit('HEAD~');
-      repo.setAmending(true);
-      await repo.commit('amend last commit', {allowEmpty: true});
+      await repo.commit('amend last commit', {allowEmpty: true, amend: true});
       const amendedCommit = await repo.git.getHeadCommit();
       const amendedCommitParent = await repo.git.getCommit('HEAD~');
       assert.notDeepEqual(lastCommit, amendedCommit);
@@ -557,88 +508,6 @@ describe('Repository', function() {
     });
   });
 
-  describe('addTrailersToCommitMessage', function() {
-    it('always adds trailing newline', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      assert.equal(await repo.addTrailersToCommitMessage('test'), 'test\n');
-    });
-
-    it('appends trailers to a summary-only message', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      const trailers = [
-        {token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>'},
-        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
-      ];
-
-      assert.equal(await repo.addTrailersToCommitMessage('foo', trailers),
-        dedent`
-          foo
-
-          Co-Authored-By: Markus Olsson <niik@github.com>
-          Signed-Off-By: nerdneha <nerdneha@github.com>
-
-        `,
-      );
-    });
-
-    // note, this relies on the default git config
-    it('merges duplicate trailers', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      const trailers = [
-        {token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>'},
-        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
-      ];
-      assert.equal(
-        await repo.addTrailersToCommitMessage(
-          'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
-          trailers,
-        ),
-        dedent`
-          foo
-
-          Co-Authored-By: Markus Olsson <niik@github.com>
-          Signed-Off-By: nerdneha <nerdneha@github.com>
-
-        `,
-      );
-    });
-
-    // note, this relies on the default git config
-    it('fixes up malformed trailers when trailers are given', async () => {
-      const workingDirPath = await cloneRepository('three-files');
-      const repo = new Repository(workingDirPath);
-      await repo.getLoadPromise();
-
-      const trailers = [
-        {token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>'},
-      ];
-
-      assert.equal(
-        await repo.addTrailersToCommitMessage(
-          // note the lack of space after :
-          'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
-          trailers,
-        ),
-        dedent`
-          foo
-
-          Co-Authored-By: Markus Olsson <niik@github.com>
-          Signed-Off-By: nerdneha <nerdneha@github.com>
-
-        `,
-      );
-    });
-  });
-
   describe('fetch(branchName)', function() {
     it('brings commits from the remote and updates remote branch, and does not update branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
@@ -648,14 +517,14 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.fetch('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'second commit');
     });
   });
 
@@ -668,14 +537,14 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.pull('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'third commit');
     });
   });
 
@@ -696,7 +565,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.notDeepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
       assert.deepEqual(remoteHead, localRemoteHead);
 
       await localRepo.push('master');
@@ -704,7 +573,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.deepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'fifth commit');
+      assert.equal(remoteHead.messageSubject, 'fifth commit');
       assert.deepEqual(remoteHead, localRemoteHead);
     });
   });
@@ -1128,10 +997,6 @@ describe('Repository', function() {
         () => repository.getHeadDescription(),
       );
       calls.set(
-        'getStagedChangesSinceParentCommit',
-        () => repository.getStagedChangesSinceParentCommit(),
-      );
-      calls.set(
         'getLastCommit',
         () => repository.getLastCommit(),
       );
@@ -1156,10 +1021,6 @@ describe('Repository', function() {
         calls.set(
           `getFilePatchForPath {staged} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: true}),
-        );
-        calls.set(
-          `getFilePatchForPath {staged, amending} ${fileName}`,
-          () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
         );
         calls.set(
           `readFileFromIndex ${fileName}`,
