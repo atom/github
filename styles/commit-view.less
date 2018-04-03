@@ -186,6 +186,34 @@
     }
   }
 
+  .github-NewCoAuthor {
+    margin-top: @component-padding;
+    border-radius: @component-border-radius @component-border-radius 0 0;
+    border: 1px solid @base-border-color;
+    border-bottom: 0;
+    background-color: @syntax-background-color;
+
+    .github-DialogLabel {
+      display: flex;
+
+      &-label {
+        min-width: 6ch; // fit 6 characters
+      }
+    }
+
+    .github-DialogInputs {
+      padding-bottom: 0;
+    }
+    .github-DialogButtons {
+      padding-top: 0;
+    }
+  }
+  .github-NewCoAuthor + .github-CommitView-coAuthorEditor {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
   &-expandButton {
     position: absolute;
     right: 0;
