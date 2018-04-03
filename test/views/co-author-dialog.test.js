@@ -36,8 +36,8 @@ describe('CoAuthorDialog', function() {
       const name = 'Coauthor Name';
       const email = 'foo@bar.com';
 
-      setTextIn('.github-CoAuthorDialog-Name', name);
-      setTextIn('.github-CoAuthorDialog-Email', email);
+      setTextIn('.github-CoAuthorDialog-name', name);
+      setTextIn('.github-CoAuthorDialog-email', email);
 
 
       wrapper.find('.btn-primary').simulate('click');
@@ -58,7 +58,7 @@ describe('CoAuthorDialog', function() {
 
     it('calls cancel prop when `core:cancel` is triggered', function() {
       wrapper = mount(app);
-      atomEnv.commands.dispatch(wrapper.find('.github-NewCoAuthor').getNode(), 'core:cancel');
+      atomEnv.commands.dispatch(wrapper.find('.github-CoAuthorDialog').getNode(), 'core:cancel');
       assert.isTrue(didCancel.called);
     });
   });

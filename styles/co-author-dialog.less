@@ -1,0 +1,38 @@
+@import "variables";
+
+.github-CoAuthorDialog {
+  display: flex;
+  flex-direction: column;
+  margin-top: @component-padding;
+  padding: @component-padding/2;
+  border-radius: @component-border-radius @component-border-radius 0 0;
+  border: 1px solid @base-border-color;
+  border-bottom: 0;
+  background-color: @syntax-background-color;
+
+  &-row {
+    display: flex;
+    align-items: center;
+    margin: @component-padding/2;
+
+    &.has-buttons {
+      justify-content: flex-end;
+    }
+
+    .btn {
+      margin-left: @component-padding;
+    }
+  }
+
+  &-label {
+    min-width: 6ch; // fit 6 characters
+  }
+
+
+  // make it look connected with the editor below
+  & + .github-CommitView-coAuthorEditor {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
