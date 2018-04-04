@@ -31,6 +31,11 @@ function copyCachedRepo(repoName) {
   return fs.realpath(workingDirPath);
 }
 
+export const FAKE_USER = {
+  email: 'nope@nah.com',
+  name: 'Someone'
+};
+
 export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
     const cachedPath = temp.mkdirSync('git-fixture-cache-');
@@ -38,8 +43,8 @@ export async function cloneRepository(repoName = 'three-files') {
     await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
-    await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-    await git.exec(['config', '--local', 'user.name', 'Someone']);
+    await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+    await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -59,8 +64,8 @@ export async function initRepository() {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   const git = new GitShellOutStrategy(workingDirPath);
   await git.exec(['init']);
-  await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-  await git.exec(['config', '--local', 'user.name', 'Someone']);
+  await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+  await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
   await git.exec(['config', '--local', 'core.autocrlf', 'false']);
   await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
   return fs.realpath(workingDirPath);
@@ -88,8 +93,8 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await localGit.clone(baseRepoPath, {noLocal: true});
   await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath]);
   await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
-  await localGit.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-  await localGit.exec(['config', '--local', 'user.name', 'Someone']);
+  await localGit.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+  await localGit.exec(['config', '--local', 'user.name', FAKE_USER.name]);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 

@@ -11,7 +11,7 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals, FAKE_USER} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
 /**
@@ -222,6 +222,31 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
             email: 'yet-another@example.com',
           },
         ]);
+      });
+    });
+
+    describe('getUser', function() {
+      it('returns user name and email if they exist', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        assert.deepEqual(await git.getUser(), {
+          name: FAKE_USER.name,
+          email: FAKE_USER.email,
+        });
+      });
+
+      it('returns empty object if user name or email do not exist', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        await git.unsetConfig('user.name');
+        await git.unsetConfig('user.email');
+
+        // getting the local config for testing purposes only because we don't
+        // want to blow away global config when running tests.
+        assert.deepEqual(await git.getUser({local: true}), {
+          name: null,
+          email: null,
+        });
       });
     });
 
