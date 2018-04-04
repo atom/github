@@ -5,6 +5,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import CommitView from '../../lib/views/commit-view';
+import {NEW_AUTHOR} from '../../lib/helpers'
 
 describe('CommitView', function() {
   let atomEnv, commandRegistry, tooltips, config, lastCommit;
@@ -252,13 +253,13 @@ describe('CommitView', function() {
   });
 
   describe('co-authors', function() {
-    it('new author should be the first suggested author', function() {
+    it('"New Author" should be the first suggested author', function() {
       const mentionableUsers = [{name: 'octocat@github.com', email: 'Mona Lisa'}];
       app = React.cloneElement(app, {mentionableUsers});
       const wrapper = mount(app);
       wrapper.setState({showCoAuthorInput: true});
       const listOptions = wrapper.find('Select').getNode().props.options;
-      mentionableUsers.unshift({email: 'provide name and email', name: 'New User'});
+      mentionableUsers.unshift(NEW_AUTHOR);
       assert.deepEqual(listOptions, mentionableUsers);
     });
   });
