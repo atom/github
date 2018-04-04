@@ -1,5 +1,5 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 
 import CoAuthorDialog from '../../lib/views/co-author-dialog';
 
@@ -30,7 +30,16 @@ describe('CoAuthorDialog', function() {
     wrapper.find(selector).simulate('change', {target: {value: text}});
   };
 
-  describe('confirm', function() {
+  describe('initial component state', function() {
+    it.only('name prop is in name input field if supplied', function() {
+      const name = 'Original Name';
+      app = React.cloneElement(app, {name});
+      wrapper = mount(app);
+      assert.strictEqual(wrapper.find('.github-CoAuthorDialog-name').node.value, name);
+    });
+  });
+
+  describe('submit', function() {
     it('submits current co author name and email when form contains valid input', function() {
       wrapper = mount(app);
       const name = 'Coauthor Name';
