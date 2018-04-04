@@ -16,11 +16,15 @@
     margin: @component-padding/2;
 
     &.has-buttons {
-      justify-content: flex-end;
-    }
-
-    .btn {
-      margin-left: @component-padding;
+      margin: 0;
+      flex-wrap: wrap;
+      .btn {
+        flex: 1;
+        margin: @component-padding/2;
+      }
+      .btn-primary {
+        flex: 4;
+      }
     }
   }
 
