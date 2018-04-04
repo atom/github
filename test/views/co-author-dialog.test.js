@@ -31,7 +31,7 @@ describe('CoAuthorDialog', function() {
   };
 
   describe('initial component state', function() {
-    it.only('name prop is in name input field if supplied', function() {
+    it('name prop is in name input field if supplied', function() {
       const name = 'Original Name';
       app = React.cloneElement(app, {name});
       wrapper = mount(app);
