@@ -20,6 +20,7 @@ describe('PrSelectionByBranch', function() {
         onCreatePr={onCreatePr}
         onSearchAgain={onSearchAgain}
         aheadCount={null}
+        currentBranchName={'feature'}
         isUnpublished={true}
         pushInProgress={false}
       />
@@ -30,6 +31,9 @@ describe('PrSelectionByBranch', function() {
     beforeEach(function() {
       app = React.cloneElement(app, {
         repository: {
+          defaultBranchRef: {
+            name: 'master',
+          },
           pullRequests: {
             totalCount: 0,
             edges: [],
@@ -130,6 +134,33 @@ describe('PrSelectionByBranch', function() {
         assert.strictEqual(button.text(), 'Open new pull request');
         button.simulate('click');
         assert.isTrue(onCreatePr.called);
+      });
+    });
+
+    describe('while on the main branch', function() {
+      beforeEach(function() {
+        app = React.cloneElement(app, {
+          repository: {
+            defaultBranchRef: {
+              name: 'splork',
+            },
+            pullRequests: {
+              totalCount: 0,
+              edges: [],
+            },
+          },
+          currentBranchName: 'splork',
+        });
+      });
+
+      it('does not show the new pull request button', function() {
+        const wrapper = shallow(app);
+        assert.isFalse(wrapper.find('.github-PrSelectionByBranch-createPr').exists());
+      });
+
+      it('prompts you to create a branch', function() {
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('.github-CreatePr strong').text(), 'Create a new branch');
       });
     });
   });
