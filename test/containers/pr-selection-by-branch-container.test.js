@@ -21,6 +21,7 @@ describe('PrSelectionByBranch', function() {
         onSearchAgain={onSearchAgain}
         aheadCount={null}
         isUnpublished={true}
+        pushInProgress={false}
       />
     );
   });
@@ -92,6 +93,24 @@ describe('PrSelectionByBranch', function() {
         assert.strictEqual(button.text(), 'Push + open new pull request');
         button.simulate('click');
         assert.isTrue(onCreatePr.called);
+      });
+    });
+
+    describe('while pushing is in progress', function() {
+      beforeEach(function() {
+        app = React.cloneElement(app, {
+          aheadCount: 3,
+          isUnpublished: false,
+          pushInProgress: true,
+        });
+      });
+
+      it('disables the button', function() {
+        const wrapper = shallow(app);
+
+        const button = wrapper.find('.github-PrSelectionByBranch-createPr');
+        assert.isTrue(button.prop('disabled'));
+        assert.strictEqual(button.text(), 'Pushing...');
       });
     });
 
