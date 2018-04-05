@@ -4,13 +4,12 @@ import {shallow} from 'enzyme';
 import {PrSelectionByBranch} from '../../lib/containers/pr-selection-by-branch-container';
 
 describe('PrSelectionByBranch', function() {
-  let onSelectPr, onUnpinPr, onPushBranch, onCreatePr, onSearchAgain;
+  let onSelectPr, onUnpinPr, onCreatePr, onSearchAgain;
   let app;
 
   beforeEach(function() {
     onSelectPr = sinon.spy();
     onUnpinPr = sinon.spy();
-    onPushBranch = sinon.spy();
     onCreatePr = sinon.spy();
     onSearchAgain = sinon.spy();
 
@@ -18,10 +17,9 @@ describe('PrSelectionByBranch', function() {
       <PrSelectionByBranch
         onSelectPr={onSelectPr}
         onUnpinPr={onUnpinPr}
-        onPushBranch={onPushBranch}
         onCreatePr={onCreatePr}
         onSearchAgain={onSearchAgain}
-        aheadCount={0}
+        aheadCount={null}
         isUnpublished={true}
       />
     );
@@ -58,14 +56,14 @@ describe('PrSelectionByBranch', function() {
         });
       });
 
-      it('shows a button to publish your branch', function() {
+      it('shows a button to publish your branch and create a PR', function() {
         const wrapper = shallow(app);
 
-        const button = wrapper.find('.github-PrSelectionByBranch-push');
+        const button = wrapper.find('.github-PrSelectionByBranch-createPr');
         assert.isTrue(button.exists());
-        assert.isFalse(button.prop('disabled'));
+        assert.strictEqual(button.text(), 'Publish + open new pull request');
         button.simulate('click');
-        assert.isTrue(onPushBranch.called);
+        assert.isTrue(onCreatePr.called);
       });
 
       it('shows a link to search again', function() {
@@ -75,14 +73,6 @@ describe('PrSelectionByBranch', function() {
         assert.isTrue(link.exists());
         link.simulate('click');
         assert.isTrue(onSearchAgain.called);
-      });
-
-      it('disables a button to open a new pull request', function() {
-        const wrapper = shallow(app);
-
-        const button = wrapper.find('.github-PrSelectionByBranch-createPr');
-        assert.isTrue(button.exists());
-        assert.isTrue(button.prop('disabled'));
       });
     });
 
@@ -94,22 +84,12 @@ describe('PrSelectionByBranch', function() {
         });
       });
 
-      it('shows a button to push your commits', function() {
-        const wrapper = shallow(app);
-
-        const button = wrapper.find('.github-PrSelectionByBranch-push');
-        assert.isTrue(button.exists());
-        assert.isFalse(button.prop('disabled'));
-        button.simulate('click');
-        assert.isTrue(onPushBranch.called);
-      });
-
-      it('shows a button to open a new pull request', function() {
+      it('shows a button to push your commits and create a PR', function() {
         const wrapper = shallow(app);
 
         const button = wrapper.find('.github-PrSelectionByBranch-createPr');
         assert.isTrue(button.exists());
-        assert.isFalse(button.prop('disabled'));
+        assert.strictEqual(button.text(), 'Push + open new pull request');
         button.simulate('click');
         assert.isTrue(onCreatePr.called);
       });
@@ -123,20 +103,12 @@ describe('PrSelectionByBranch', function() {
         });
       });
 
-      it('disables the push button', function() {
-        const wrapper = shallow(app);
-
-        const button = wrapper.find('.github-PrSelectionByBranch-push');
-        assert.isTrue(button.exists());
-        assert.isTrue(button.prop('disabled'));
-      });
-
       it('shows a button to open a new pull request', function() {
         const wrapper = shallow(app);
 
         const button = wrapper.find('.github-PrSelectionByBranch-createPr');
         assert.isTrue(button.exists());
-        assert.isFalse(button.prop('disabled'));
+        assert.strictEqual(button.text(), 'Open new pull request');
         button.simulate('click');
         assert.isTrue(onCreatePr.called);
       });
