@@ -225,11 +225,11 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
-    describe('getUser', function() {
+    describe('getCommitter', function() {
       it('returns user name and email if they exist', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getUser(), {
+        assert.deepEqual(await git.getCommitter(), {
           name: FAKE_USER.name,
           email: FAKE_USER.email,
         });
@@ -243,7 +243,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
         // getting the local config for testing purposes only because we don't
         // want to blow away global config when running tests.
-        assert.deepEqual(await git.getUser({local: true}), {
+        assert.deepEqual(await git.getCommitter({local: true}), {
           name: null,
           email: null,
         });

@@ -2,15 +2,16 @@ import dedent from 'dedent-js';
 
 import UserStore from '../../lib/models/user-store';
 
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
 describe('UserStore', function() {
-  it('loads store with users in repo upon construction', async function() {
+  it('loads store with users and committer in repo upon construction', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const store = new UserStore({repository});
 
     assert.deepEqual(store.getUsers(), []);
+    assert.deepEqual(store.committer, {});
 
     // Store is populated asynchronously
     await assert.async.deepEqual(store.getUsers(), [
@@ -19,6 +20,26 @@ describe('UserStore', function() {
         name: 'Katrina Uychaco',
       },
     ]);
+    await assert.async.deepEqual(store.committer, FAKE_USER);
+  });
+
+  it.stress(20, 'does not include committer from `getUsers`', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+    const store = new UserStore({repository});
+    sinon.spy(store, 'addUsers');
+    console.log(store.addUsers.args);
+
+    store.addUsers.reset();
+    await repository.commit('made a new commit', {allowEmpty: true});
+    console.log(store.addUsers.args);
+    await assert.async.equal(store.addUsers.callCount, 1);
+
+    const lastCommit = await repository.getLastCommit();
+    assert.strictEqual(lastCommit.getAuthorEmail(), FAKE_USER.email);
+
+    const committerFromStore = store.getUsers().find(user => user.email === FAKE_USER.email);
+    assert.isUndefined(committerFromStore);
   });
 
   describe('addUsers', function() {
@@ -49,6 +70,23 @@ describe('UserStore', function() {
         },
       ]);
     });
+  });
+
+  it('refetches committer when config changes', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    const store = new UserStore({repository});
+    await assert.async.deepEqual(store.committer, FAKE_USER);
+
+    const newEmail = 'foo@bar.com';
+    await repository.setConfig('user.email', newEmail);
+    await assert.async.deepEqual(store.committer, {name: FAKE_USER.name, email: newEmail});
+
+    const newName = 'Foo Bar';
+    await repository.setConfig('user.name', newName);
+    // todo: ask Ash how to properly do cache invalidation for multiple config keys
+    // await assert.async.deepEqual(store.committer, {name: newName, email: newEmail});
   });
 
   it('refetches users when HEAD changes', async function() {
