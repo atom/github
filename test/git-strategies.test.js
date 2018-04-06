@@ -225,31 +225,6 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
-    describe('getCommitter', function() {
-      it('returns user name and email if they exist', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getCommitter(), {
-          name: FAKE_USER.name,
-          email: FAKE_USER.email,
-        });
-      });
-
-      it('returns empty object if user name or email do not exist', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        await git.unsetConfig('user.name');
-        await git.unsetConfig('user.email');
-
-        // getting the local config for testing purposes only because we don't
-        // want to blow away global config when running tests.
-        assert.deepEqual(await git.getCommitter({local: true}), {
-          name: null,
-          email: null,
-        });
-      });
-    });
-
     describe('getAuthors', function() {
       it('returns list of all authors in the last <max> commits', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');

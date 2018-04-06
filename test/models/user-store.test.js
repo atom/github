@@ -86,12 +86,14 @@ describe('UserStore', function() {
 
     const newEmail = 'foo@bar.com';
     await repository.setConfig('user.email', newEmail);
+
+    repository.refresh();
     await assert.async.deepEqual(store.committer, {name: FAKE_USER.name, email: newEmail});
 
     const newName = 'Foo Bar';
     await repository.setConfig('user.name', newName);
-    // todo: ask Ash how to properly do cache invalidation for multiple config keys
-    // await assert.async.deepEqual(store.committer, {name: newName, email: newEmail});
+    repository.refresh();
+    await assert.async.deepEqual(store.committer, {name: newName, email: newEmail});
   });
 
   it('refetches users when HEAD changes', async function() {
