@@ -24,7 +24,6 @@ describe('PrSelectionByBranch', function() {
         remote={new Remote('origin', 'git@github.com:atom/github.git')}
         aheadCount={null}
         upstreamBranch={nullBranch}
-        isUnpublished={true}
         pushInProgress={false}
       />
     );
@@ -58,12 +57,6 @@ describe('PrSelectionByBranch', function() {
     });
 
     describe('with no remote tracking branch', function() {
-      beforeEach(function() {
-        app = React.cloneElement(app, {
-          isUnpublished: true,
-        });
-      });
-
       it('shows a button to publish your branch and create a PR', function() {
         const wrapper = shallow(app);
 
@@ -88,7 +81,7 @@ describe('PrSelectionByBranch', function() {
       beforeEach(function() {
         app = React.cloneElement(app, {
           aheadCount: 3,
-          isUnpublished: false,
+          upstreamBranch: new Branch('feature'),
         });
       });
 
@@ -107,12 +100,12 @@ describe('PrSelectionByBranch', function() {
       beforeEach(function() {
         app = React.cloneElement(app, {
           aheadCount: 3,
-          isUnpublished: false,
+          upstreamBranch: new Branch('feature'),
           pushInProgress: true,
         });
       });
 
-      it('disables the button', function() {
+      it('disables the button and changes the caption', function() {
         const wrapper = shallow(app);
 
         const button = wrapper.find('.github-PrSelectionByBranch-createPr');
@@ -125,7 +118,6 @@ describe('PrSelectionByBranch', function() {
       beforeEach(function() {
         app = React.cloneElement(app, {
           aheadCount: 0,
-          isUnpublished: false,
           upstreamBranch: new Branch('origin/feature'),
         });
       });
