@@ -1,6 +1,8 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import Remote from '../../lib/models/remote';
+import Branch, {nullBranch} from '../../lib/models/branch';
 import {PrSelectionByBranch} from '../../lib/containers/pr-selection-by-branch-container';
 
 describe('PrSelectionByBranch', function() {
@@ -19,8 +21,9 @@ describe('PrSelectionByBranch', function() {
         onUnpinPr={onUnpinPr}
         onCreatePr={onCreatePr}
         onSearchAgain={onSearchAgain}
+        remote={new Remote('origin', 'git@github.com:atom/github.git')}
         aheadCount={null}
-        currentBranchName={'feature'}
+        upstreamBranch={nullBranch}
         isUnpublished={true}
         pushInProgress={false}
       />
@@ -123,6 +126,7 @@ describe('PrSelectionByBranch', function() {
         app = React.cloneElement(app, {
           aheadCount: 0,
           isUnpublished: false,
+          upstreamBranch: new Branch('origin/feature'),
         });
       });
 
@@ -149,7 +153,7 @@ describe('PrSelectionByBranch', function() {
               edges: [],
             },
           },
-          currentBranchName: 'splork',
+          upstreamBranch: new Branch('origin/splork'),
         });
       });
 
