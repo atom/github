@@ -64,11 +64,18 @@
     &:active {
       opacity: .5;
     }
+    &.focused {
+      opacity: 1;
+    }
 
     &Icon {
       width: 12px;
       height: 7px;
       fill: @text-color;
+
+      &.focused {
+        fill: @button-background-color-selected;
+      }
     }
   }
 
