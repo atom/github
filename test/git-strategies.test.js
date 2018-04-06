@@ -671,22 +671,35 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
     });
 
     describe('getBranches()', function() {
+      const master = {
+        name: 'master',
+        head: false,
+        upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+      };
+
+      const currentMaster = {
+        ...master,
+        head: true,
+      };
+
       it('returns an array of all branches', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true}]);
         await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [{name: 'another-branch', head: true}, master, {name: 'new-branch', head: false}]);
       });
 
       it('includes branches with slashes in the name', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
+        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true}, master]);
       });
     });
 
