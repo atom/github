@@ -370,9 +370,12 @@ describe('GitTabController', function() {
 
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
         gitTab.setFocus(focuses.EDITOR);
+        sinon.stub(commitView, 'hasFocusEditor').callsFake(() => true);
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
         assertSelected(['staged-1.txt']);
+
+        commitView.hasFocusEditor.reset();
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
         assertSelected(['conflict-1.txt']);
