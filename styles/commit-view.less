@@ -299,6 +299,7 @@
   .github-CommitView-editor atom-text-editor.is-focused,
   .github-CommitView-coAuthorEditor.is-focused {
     box-shadow: none;
+    border-color: @button-background-color-selected;
     &:before {
       content: "";
       position: absolute;
@@ -309,9 +310,6 @@
       border: 2px solid;
       border-color: inherit;
       border-radius: @component-border-radius;
-    }
-    &.github-coAuthor-select-input {
-      border-color: @button-background-color-selected;
     }
   }
 }
