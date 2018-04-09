@@ -1,9 +1,9 @@
 import React from 'react';
 import {mount, shallow} from 'enzyme';
 
-import CoAuthorDialog from '../../lib/views/co-author-dialog';
+import CoAuthorForm from '../../lib/views/co-author-form';
 
-describe('CoAuthorDialog', function() {
+describe('CoAuthorForm', function() {
   let atomEnv;
   let app, wrapper, didSubmit, didCancel;
 
@@ -14,7 +14,7 @@ describe('CoAuthorDialog', function() {
     didCancel = sinon.stub();
 
     app = (
-      <CoAuthorDialog
+      <CoAuthorForm
         commandRegistry={atomEnv.commands}
         onSubmit={didSubmit}
         onCancel={didCancel}
@@ -35,7 +35,7 @@ describe('CoAuthorDialog', function() {
       const name = 'Original Name';
       app = React.cloneElement(app, {name});
       wrapper = mount(app);
-      assert.strictEqual(wrapper.find('.github-CoAuthorDialog-name').node.value, name);
+      assert.strictEqual(wrapper.find('.github-CoAuthorForm-name').node.value, name);
     });
   });
 
@@ -45,8 +45,8 @@ describe('CoAuthorDialog', function() {
       const name = 'Coauthor Name';
       const email = 'foo@bar.com';
 
-      setTextIn('.github-CoAuthorDialog-name', name);
-      setTextIn('.github-CoAuthorDialog-email', email);
+      setTextIn('.github-CoAuthorForm-name', name);
+      setTextIn('.github-CoAuthorForm-email', email);
 
       wrapper.find('.btn-primary').simulate('click');
 
@@ -70,8 +70,8 @@ describe('CoAuthorDialog', function() {
       const name = 'Coauthor Name';
       const email = 'foobar.com';
 
-      setTextIn('.github-CoAuthorDialog-name', name);
-      setTextIn('.github-CoAuthorDialog-email', email);
+      setTextIn('.github-CoAuthorForm-name', name);
+      setTextIn('.github-CoAuthorForm-email', email);
 
       const submitButton = wrapper.find('.btn-primary');
       assert.isTrue(submitButton.node.disabled);
@@ -89,7 +89,7 @@ describe('CoAuthorDialog', function() {
 
     it('calls cancel prop when `core:cancel` is triggered', function() {
       wrapper = mount(app);
-      atomEnv.commands.dispatch(wrapper.find('.github-CoAuthorDialog').getNode(), 'core:cancel');
+      atomEnv.commands.dispatch(wrapper.find('.github-CoAuthorForm').getNode(), 'core:cancel');
       assert.isTrue(didCancel.called);
     });
   });
