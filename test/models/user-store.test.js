@@ -28,21 +28,23 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const store = new UserStore({repository});
+    await store.loadUsersFromLocalRepo();
+
     sinon.spy(store, 'addUsers');
-
-    store.addUsers.reset();
+    // make a commit with FAKE_USER as committer
     await repository.commit('made a new commit', {allowEmpty: true});
+    await assert.async.equal(store.addUsers.callCount, 1);
 
-    // todo: this assertion is not consistently passing :-( fix it.
-    // await assert.async.equal(store.addUsers.callCount, 1);
-
+    // verify that FAKE_USER is in commit history
     const lastCommit = await repository.getLastCommit();
     assert.strictEqual(lastCommit.getAuthorEmail(), FAKE_USER.email);
 
+    // verify that FAKE_USER is not in users returned from `getUsers`
     const users = store.getUsers();
     const committerFromStore = users.find(user => user.email === FAKE_USER.email);
     assert.isUndefined(committerFromStore);
 
+    // verify that no-reply email address is not in users array
     const noReplyUser = users.find(user => user.email === NO_REPLY_GITHUB_EMAIL);
     assert.isUndefined(noReplyUser);
   });
