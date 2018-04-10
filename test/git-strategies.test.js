@@ -687,9 +687,12 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
     });
 
     describe('getBranches()', function() {
+      const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
+
       const master = {
         name: 'master',
         head: false,
+        sha,
         upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
         push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
       };
@@ -705,9 +708,13 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true}]);
+        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
         await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [{name: 'another-branch', head: true}, master, {name: 'new-branch', head: false}]);
+        assert.deepEqual(await git.getBranches(), [
+          {name: 'another-branch', head: true, sha},
+          master,
+          {name: 'new-branch', head: false, sha},
+        ]);
       });
 
       it('includes branches with slashes in the name', async function() {
@@ -715,7 +722,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         const git = createTestStrategy(workingDirPath);
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true}, master]);
+        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
       });
     });
 
