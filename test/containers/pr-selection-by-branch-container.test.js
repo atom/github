@@ -300,7 +300,7 @@ describe('PrSelectionByBranch', function() {
 
       it('informs you that your branch is currently pushed to a different remote', function() {
         const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('.github-CreatePr code').text(), 'mine');
+        assert.strictEqual(wrapper.find('.github-CreatePr code').at(0).text(), 'mine');
       });
 
       it('shows a button to publish your branch to the current remote and create a PR', function() {
