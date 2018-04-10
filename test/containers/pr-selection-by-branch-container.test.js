@@ -252,5 +252,28 @@ describe('PrSelectionByBranch', function() {
         assert.strictEqual(wrapper.find('.github-CreatePr strong').text(), 'Make some commits');
       });
     });
+
+    describe('when on a detached HEAD', function() {
+      beforeEach(function() {
+        const main = new Branch(
+          'main',
+          Branch.createRemoteTracking('refs/remotes/elsewhere/main', 'elsewhere', 'refs/heads/develop'),
+          Branch.createRemoteTracking('refs/remotes/origin/main', 'origin', 'refs/heads/develop'),
+          false,
+          {sha: 'ece5f33141b84077cbd68bfa09283d73d18433e5'},
+        );
+        branches.add(main);
+      });
+
+      it('does not show the new pull request button', function() {
+        const wrapper = shallow(app);
+        assert.isFalse(wrapper.find('.github-PrSelectionByBranch-createPr').exists());
+      });
+
+      it('prompts you to create or check out a branch', function() {
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('.github-CreatePr strong').text(), 'Create a new branch');
+      });
+    });
   });
 });
