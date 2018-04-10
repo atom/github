@@ -21,35 +21,76 @@ describe('BranchSet', function() {
     assert.isFalse(bs.getHeadBranch().isPresent());
   });
 
-  it('retrieves branches by remote ref name', function() {
-    const bs = new BranchSet();
-    bs.add(new Branch('foo'));
+  describe('getPullTargets() and getPushSources()', function() {
+    let bs, bar, baz, boo, sharedUpPush, sharedUp, sharedPush;
 
-    const bar = new Branch('bar', Branch.createRemoteTracking('upstream/bar', 'upstream', 'refs/heads/bar'));
-    bs.add(bar);
+    beforeEach(function() {
+      bs = new BranchSet();
 
-    const baz = new Branch('baz', Branch.createRemoteTracking('origin/baz', 'origin', 'refs/heads/remotes/wat/boop'));
-    bs.add(baz);
+      // A branch with no upstream or push target
+      bs.add(new Branch('foo'));
 
-    const boo = new Branch('boo',
-      Branch.createRemoteTracking('upstream/boo', 'upstream', 'refs/heads/fetch-from-here'),
-      Branch.createRemoteTracking('origin/boo', 'origin', 'refs/heads/push-to-here'),
-    );
-    bs.add(boo);
+      // A branch with a consistent upstream and push
+      bar = new Branch('bar', Branch.createRemoteTracking('upstream/bar', 'upstream', 'refs/heads/bar'));
+      bs.add(bar);
 
-    assert.lengthOf(bs.getPullTargets('refs/heads/unknown'), 0);
-    assert.lengthOf(bs.getPushSources('refs/heads/unknown'), 0);
+      // A branch with an upstream and push that use some weird-ass refspec
+      baz = new Branch('baz', Branch.createRemoteTracking('origin/baz', 'origin', 'refs/heads/remotes/wat/boop'));
+      bs.add(baz);
 
-    assert.deepEqual(bs.getPullTargets('refs/heads/bar'), [bar]);
-    assert.deepEqual(bs.getPushSources('refs/heads/bar'), [bar]);
+      // A branch with an upstream and push that differ
+      boo = new Branch(
+        'boo',
+        Branch.createRemoteTracking('upstream/boo', 'upstream', 'refs/heads/fetch-from-here'),
+        Branch.createRemoteTracking('origin/boo', 'origin', 'refs/heads/push-to-here'),
+      );
+      bs.add(boo);
 
-    assert.deepEqual(bs.getPullTargets('refs/heads/remotes/wat/boop'), [baz]);
-    assert.deepEqual(bs.getPushSources('refs/heads/remotes/wat/boop'), [baz]);
+      // Branches that fetch and push to the same remote ref as other branches
+      sharedUpPush = new Branch(
+        'shared/up/push',
+        Branch.createRemoteTracking('upstream/shared/up/push', 'upstream', 'refs/heads/shared/up'),
+        Branch.createRemoteTracking('origin/shared/up/push', 'origin', 'refs/heads/shared/push'),
+      );
+      bs.add(sharedUpPush);
 
-    assert.deepEqual(bs.getPullTargets('refs/heads/fetch-from-here'), [boo]);
-    assert.deepEqual(bs.getPushSources('refs/heads/push-to-here'), [boo]);
+      sharedUp = new Branch(
+        'shared/up',
+        Branch.createRemoteTracking('upstream/shared/up', 'upstream', 'refs/heads/shared/up'),
+      );
+      bs.add(sharedUp);
 
-    assert.lengthOf(bs.getPullTargets('refs/heads/push-to-here'), 0);
-    assert.lengthOf(bs.getPushSources('refs/heads/fetch-from-here'), 0);
+      sharedPush = new Branch(
+        'shared/push',
+        Branch.createRemoteTracking('origin/shared/push', 'origin', 'refs/heads/shared/push'),
+      );
+      bs.add(sharedPush);
+    });
+
+    it('returns empty results for an unknown remote', function() {
+      assert.lengthOf(bs.getPullTargets('unknown', 'refs/heads/bar'), 0);
+      assert.lengthOf(bs.getPushSources('unknown', 'refs/heads/bar'), 0);
+    });
+
+    it('returns empty results for an unknown ref', function() {
+      assert.lengthOf(bs.getPullTargets('upstream', 'refs/heads/unknown'), 0);
+      assert.lengthOf(bs.getPushSources('origin', 'refs/heads/unknown'), 0);
+    });
+
+    it('locates branches that fetch from a remote ref', function() {
+      assert.deepEqual(bs.getPullTargets('upstream', 'refs/heads/bar'), [bar]);
+    });
+
+    it('locates multiple branches that fetch from the same ref', function() {
+      assert.sameMembers(bs.getPullTargets('upstream', 'refs/heads/shared/up'), [sharedUpPush, sharedUp]);
+    });
+
+    it('locates branches that push to a remote ref', function() {
+      assert.deepEqual(bs.getPushSources('origin', 'refs/heads/push-to-here'), [boo]);
+    });
+
+    it('locates multiple branches that push to the same ref', function() {
+      assert.sameMembers(bs.getPushSources('origin', 'refs/heads/shared/push'), [sharedUpPush, sharedPush]);
+    });
   });
 });
