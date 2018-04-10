@@ -72,12 +72,12 @@ export async function initRepository() {
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
-  /* eslint-disable no-param-reassign */
+
   if (typeof repoName === 'object') {
     options = repoName;
     repoName = 'multiple-commits';
   }
-  /* eslint-enable no-param-reassign */
+
   const baseRepoPath = await cloneRepository(repoName);
   const baseGit = new GitShellOutStrategy(baseRepoPath);
 

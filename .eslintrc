@@ -15,6 +15,7 @@
   "extends": ["fbjs/opensource"],
   "rules": {
     "linebreak-style": 0,
+    "no-param-reassign": 0,
     "indent": ["error", 2]
   },
   "globals": {
