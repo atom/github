@@ -1,7 +1,6 @@
 import dedent from 'dedent-js';
 
-import UserStore from '../../lib/models/user-store';
-import NO_REPLY_GITHUB_EMAIL from '../../lib/models/user-store';
+import UserStore, {NO_REPLY_GITHUB_EMAIL} from '../../lib/models/user-store';
 
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 

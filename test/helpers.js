@@ -33,7 +33,7 @@ function copyCachedRepo(repoName) {
 
 export const FAKE_USER = {
   email: 'nope@nah.com',
-  name: 'Someone'
+  name: 'Someone',
 };
 
 export async function cloneRepository(repoName = 'three-files') {

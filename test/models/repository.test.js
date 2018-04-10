@@ -13,10 +13,9 @@ import FileSystemChangeObserver from '../../lib/models/file-system-change-observ
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
-  assertDeepPropertyVals, assertEqualSortedArraysByKey,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey, FAKE_USER,
 } from '../helpers';
 import {getPackageRoot, getTempDir} from '../../lib/helpers';
-import {FAKE_USER} from '../helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
