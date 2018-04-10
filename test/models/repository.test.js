@@ -13,7 +13,7 @@ import FileSystemChangeObserver from '../../lib/models/file-system-change-observ
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
-  assertDeepPropertyVals, assertEqualSortedArraysByKey,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey, FAKE_USER,
 } from '../helpers';
 import {getPackageRoot, getTempDir} from '../../lib/helpers';
 
@@ -525,6 +525,33 @@ describe('Repository', function() {
       localHead = await localRepo.git.getCommit('master');
       assert.equal(remoteHead.messageSubject, 'third commit');
       assert.equal(localHead.messageSubject, 'second commit');
+    });
+  });
+
+  describe('getCommitter', function() {
+    it('returns user name and email if they exist', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+      assert.deepEqual(await repository.getCommitter(), {
+        name: FAKE_USER.name,
+        email: FAKE_USER.email,
+      });
+    });
+
+    it('returns empty object if user name or email do not exist', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+      await repository.git.unsetConfig('user.name');
+      await repository.git.unsetConfig('user.email');
+
+        // getting the local config for testing purposes only because we don't
+        // want to blow away global config when running tests.
+      assert.deepEqual(await repository.getCommitter({local: true}), {
+        name: null,
+        email: null,
+      });
     });
   });
 

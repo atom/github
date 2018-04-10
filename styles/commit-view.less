@@ -59,15 +59,23 @@
     z-index: 1;
     &:hover {
       opacity: 1;
+      cursor: pointer;
     }
     &:active {
       opacity: .5;
+    }
+    &.focused {
+      opacity: 1;
     }
 
     &Icon {
       width: 12px;
       height: 7px;
       fill: @text-color;
+
+      &.focused {
+        fill: @button-background-color-selected;
+      }
     }
   }
 
@@ -184,6 +192,10 @@
         margin-right: 0;
       }
     }
+
+    .new-author {
+      font-style: italic;
+    }
   }
 
   &-expandButton {
@@ -287,6 +299,7 @@
   .github-CommitView-editor atom-text-editor.is-focused,
   .github-CommitView-coAuthorEditor.is-focused {
     box-shadow: none;
+    border-color: @button-background-color-selected;
     &:before {
       content: "";
       position: absolute;
