@@ -163,6 +163,16 @@ describe('PrSelectionByBranch', function() {
 
     describe('while on the main branch', function() {
       beforeEach(function() {
+        const mainUpstream = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/splork');
+        const main = new Branch(
+          'master',
+          mainUpstream,
+          mainUpstream,
+          true,
+          {sha: 'ac133c710d2f789c36799bddffe88b10551c6484'},
+        );
+        branches.add(main);
+
         app = React.cloneElement(app, {
           repository: {
             defaultBranchRef: {
@@ -173,7 +183,6 @@ describe('PrSelectionByBranch', function() {
               edges: [],
             },
           },
-          upstreamBranch: new Branch('origin/splork'),
         });
       });
 
