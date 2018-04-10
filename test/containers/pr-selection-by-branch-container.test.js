@@ -275,5 +275,52 @@ describe('PrSelectionByBranch', function() {
         assert.strictEqual(wrapper.find('.github-CreatePr strong').text(), 'Create a new branch');
       });
     });
+
+    describe('on a branch configured to push to a different remote', function() {
+      beforeEach(function() {
+        const u = Branch.createRemoteTracking(
+          'refs/remotes/origin/feature',
+          'origin',
+          'refs/heads/feature',
+        );
+        const p = Branch.createRemoteTracking(
+          'refs/remotes/mine/feature',
+          'mine',
+          'refs/heads/feature',
+        );
+        const feature = new Branch(
+          'feature',
+          u,
+          p,
+          true,
+          {sha: 'ece5f33141b84077cbd68bfa09283d73d18433e5'},
+        );
+        branches.add(feature);
+      });
+
+      it('informs you that your branch is currently pushed to a different remote', function() {
+        const wrapper = shallow(app);
+        assert.strictEqual(wrapper.find('.github-CreatePr code').text(), 'mine');
+      });
+
+      it('shows a button to publish your branch to the current remote and create a PR', function() {
+        const wrapper = shallow(app);
+
+        const button = wrapper.find('.github-PrSelectionByBranch-createPr');
+        assert.isTrue(button.exists());
+        assert.strictEqual(button.text(), 'Publish + open new pull request');
+        button.simulate('click');
+        assert.isTrue(onCreatePr.called);
+      });
+
+      it('shows a link to search again', function() {
+        const wrapper = shallow(app);
+
+        const link = wrapper.find('.github-PrSelectionByBranch-searchAgain');
+        assert.isTrue(link.exists());
+        link.simulate('click');
+        assert.isTrue(onSearchAgain.called);
+      });
+    });
   });
 });
