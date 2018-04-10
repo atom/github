@@ -89,6 +89,17 @@ describe('PrSelectionByBranch', function() {
     });
 
     describe('with no remote tracking branch', function() {
+      beforeEach(function() {
+        const feature = new Branch(
+          'feature',
+          nullBranch,
+          nullBranch,
+          true,
+          {sha: 'ece5f33141b84077cbd68bfa09283d73d18433e5'},
+        );
+        branches.add(feature);
+      });
+
       it('shows a button to publish your branch and create a PR', function() {
         const wrapper = shallow(app);
 
