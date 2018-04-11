@@ -173,6 +173,35 @@ describe('PrSelectionByBranch', function() {
       });
     });
 
+    describe('with no main branch', function() {
+      beforeEach(function() {
+        branches.add(new Branch('feature', nullBranch, nullBranch, true));
+
+        app = React.cloneElement(app, {
+          repository: {
+            defaultBranchRef: null,
+            pullRequests: {
+              totalCount: 0,
+              edges: [],
+            },
+          },
+          variables: {
+            repoOwner: 'me', repoName: 'empty', branchName: 'ohhai',
+          },
+        });
+      });
+
+      it('does not show the new pull request button', function() {
+        const wrapper = shallow(app);
+        assert.isFalse(wrapper.find('.github-PrSelectionByBranch-createPr').exists());
+      });
+
+      it('shows a placeholder message', function() {
+        const wrapper = shallow(app);
+        assert.isTrue(wrapper.find('.github-PrSelectionByBranch-message').exists());
+      });
+    });
+
     describe('while on the main branch', function() {
       beforeEach(function() {
         const mainUpstream = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/splork');
