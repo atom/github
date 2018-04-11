@@ -61,6 +61,22 @@ describe('PrSelectionByBranch', function() {
     branches.add(feature);
   }
 
+  describe('with no repository', function() {
+    beforeEach(function() {
+      app = React.cloneElement(app, {
+        repository: null,
+        variables: {
+          repoOwner: 'me', repoName: 'stuff', branchName: 'ohhai',
+        },
+      });
+    });
+
+    it('renders a message', function() {
+      const wrapper = shallow(app);
+      assert.isTrue(wrapper.find('.github-PrSelectionByBranch-message').exists());
+    });
+  });
+
   describe('with no pull request', function() {
     beforeEach(function() {
       app = React.cloneElement(app, {
