@@ -280,36 +280,3 @@
     fill: @text-color
   }
 }
-
-
-
-
-
-
-// Hacks ---------------------------------------------------
-// TODO: Unhack if possible
-
-
-// Fix focus styles
-// Since it's not possible to add a padding to <atom-text-editor>
-// a pseudo element is used to add the border when focused.
-
-.theme-one-dark-ui,
-.theme-one-light-ui {
-  .github-CommitView-editor atom-text-editor.is-focused,
-  .github-CommitView-coAuthorEditor.is-focused {
-    box-shadow: none;
-    border-color: @button-background-color-selected;
-    &:before {
-      content: "";
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      border: 2px solid;
-      border-color: inherit;
-      border-radius: @component-border-radius;
-    }
-  }
-}
