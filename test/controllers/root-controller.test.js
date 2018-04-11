@@ -316,6 +316,7 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       wrapper.instance().initializeRepo();
+      wrapper.update();
 
       assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('InitDialog'), 1);
     });
@@ -325,6 +326,7 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       wrapper.instance().initializeRepo();
+      wrapper.update();
       const dialog = wrapper.find('InitDialog');
       dialog.prop('didAccept')('/a/path');
       resolveInit();
@@ -337,9 +339,11 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       wrapper.instance().initializeRepo();
+      wrapper.update();
       const dialog = wrapper.find('InitDialog');
       dialog.prop('didCancel')();
 
+      wrapper.update();
       assert.isFalse(wrapper.find('InitDialog').exists());
     });
 
@@ -350,6 +354,7 @@ describe('RootController', function() {
       const wrapper = shallow(app);
 
       wrapper.instance().initializeRepo();
+      wrapper.update();
       const dialog = wrapper.find('InitDialog');
       const acceptPromise = dialog.prop('didAccept')('/a/path');
       const err = new GitError('git init exited with status 1');
@@ -357,6 +362,7 @@ describe('RootController', function() {
       rejectInit(err);
       await acceptPromise;
 
+      wrapper.update();
       assert.isFalse(wrapper.find('InitDialog').exists());
       assert.isTrue(notificationManager.addError.calledWith(
         'Unable to initialize git repository in /a/path',
@@ -380,12 +386,14 @@ describe('RootController', function() {
 
     it('renders the modal clone panel', function() {
       wrapper.instance().openCloneDialog();
+      wrapper.update();
 
       assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
     });
 
     it('triggers the clone callback on accept', function() {
       wrapper.instance().openCloneDialog();
+      wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
       dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
@@ -396,17 +404,20 @@ describe('RootController', function() {
 
     it('marks the clone dialog as in progress during clone', async function() {
       wrapper.instance().openCloneDialog();
+      wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
       assert.isFalse(dialog.prop('inProgress'));
 
       const acceptPromise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      wrapper.update();
 
       assert.isTrue(wrapper.find('CloneDialog').prop('inProgress'));
 
       resolveClone();
       await acceptPromise;
 
+      wrapper.update();
       assert.isFalse(wrapper.find('CloneDialog').exists());
     });
 
@@ -414,6 +425,7 @@ describe('RootController', function() {
       sinon.stub(notificationManager, 'addError');
 
       wrapper.instance().openCloneDialog();
+      wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
       assert.isFalse(dialog.prop('inProgress'));
@@ -424,6 +436,7 @@ describe('RootController', function() {
       rejectClone(err);
       await acceptPromise;
 
+      wrapper.update();
       assert.isFalse(wrapper.find('CloneDialog').exists());
       assert.isTrue(notificationManager.addError.calledWith(
         'Unable to clone git@github.com:nope/nope.git',
@@ -433,10 +446,12 @@ describe('RootController', function() {
 
     it('dismisses the clone panel on cancel', function() {
       wrapper.instance().openCloneDialog();
+      wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
       dialog.prop('didCancel')();
 
+      wrapper.update();
       assert.lengthOf(wrapper.find('CloneDialog'), 0);
       assert.isFalse(cloneRepositoryForProjectPath.called);
     });
@@ -454,6 +469,7 @@ describe('RootController', function() {
         prompt: 'Password plz',
         includeUsername: true,
       });
+      wrapper.update();
 
       const dialog = wrapper.find('Panel').find({location: 'modal'}).find('CredentialDialog');
       assert.isTrue(dialog.exists());
@@ -466,9 +482,12 @@ describe('RootController', function() {
         prompt: 'Speak "friend" and enter',
         includeUsername: false,
       });
+      wrapper.update();
 
       wrapper.find('CredentialDialog').prop('onSubmit')({password: 'friend'});
       assert.deepEqual(await credentialPromise, {password: 'friend'});
+
+      wrapper.update();
       assert.isFalse(wrapper.find('CredentialDialog').exists());
     });
 
@@ -477,9 +496,12 @@ describe('RootController', function() {
         prompt: 'Enter the square root of 1244313452349528345',
         includeUsername: false,
       });
+      wrapper.update();
 
       wrapper.find('CredentialDialog').prop('onCancel')();
       await assert.isRejected(credentialPromise);
+
+      wrapper.update();
       assert.isFalse(wrapper.find('CredentialDialog').exists());
     });
   });
