@@ -66,6 +66,7 @@ describe('PrSelectionByBranch', function() {
       app = React.cloneElement(app, {
         repository: {
           defaultBranchRef: {
+            prefix: 'refs/heads/',
             name: 'master',
           },
           pullRequests: {
@@ -187,6 +188,7 @@ describe('PrSelectionByBranch', function() {
         app = React.cloneElement(app, {
           repository: {
             defaultBranchRef: {
+              prefix: 'refs/heads/',
               name: 'splork',
             },
             pullRequests: {
@@ -232,6 +234,7 @@ describe('PrSelectionByBranch', function() {
         app = React.cloneElement(app, {
           repository: {
             defaultBranchRef: {
+              prefix: 'refs/heads/',
               name: 'develop',
             },
             pullRequests: {
