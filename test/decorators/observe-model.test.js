@@ -51,25 +51,25 @@ describe('ObserveModelDecorator', function() {
 
     assert.isTrue(wrapper.is('ObserveModelDecorator(TestComponent)'));
 
-    await assert.async.equal(wrapper.find('TestComponent').prop('one'), 1);
-    await assert.async.equal(wrapper.find('TestComponent').prop('two'), 2);
-    await assert.async.equal(wrapper.find('TestComponent').prop('testModel'), model);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('one'), 1);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('two'), 2);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('testModel'), model);
 
     model.update({one: 'one', two: 'two'});
-    await assert.async.equal(wrapper.find('TestComponent').prop('one'), 'one');
-    await assert.async.equal(wrapper.find('TestComponent').prop('two'), 'two');
-    await assert.async.equal(wrapper.find('TestComponent').prop('testModel'), model);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('one'), 'one');
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('two'), 'two');
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('testModel'), model);
 
     wrapper.setProps({testModel: null});
-    await assert.async.equal(wrapper.find('TestComponent').prop('one'), undefined);
-    await assert.async.equal(wrapper.find('TestComponent').prop('two'), undefined);
-    await assert.async.isNull(wrapper.find('TestComponent').prop('testModel'));
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('one'), undefined);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('two'), undefined);
+    await assert.async.isNull(wrapper.update().find('TestComponent').prop('testModel'));
 
     const model2 = new TestModel({one: 1, two: 2});
     wrapper.setProps({testModel: model2});
-    await assert.async.equal(wrapper.find('TestComponent').prop('one'), 1);
-    await assert.async.equal(wrapper.find('TestComponent').prop('two'), 2);
-    await assert.async.equal(wrapper.find('TestComponent').prop('testModel'), model2);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('one'), 1);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('two'), 2);
+    await assert.async.equal(wrapper.update().find('TestComponent').prop('testModel'), model2);
   });
 
   it('hosts static methods', function() {
