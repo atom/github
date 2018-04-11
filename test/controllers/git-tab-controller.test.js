@@ -72,11 +72,11 @@ describe('GitTabController', function() {
     app = React.cloneElement(app, {repository});
     const wrapper = mount(app);
 
-    assert.isTrue(wrapper.hasClass('is-loading'));
+    assert.isTrue(wrapper.find('.github-Panel').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('EtchWrapper'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
 
-    await assert.async.isFalse(wrapper.hasClass('is-loading'));
+    await assert.async.isFalse(wrapper.update().find('.github-Panel').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('EtchWrapper'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
   });
@@ -87,8 +87,8 @@ describe('GitTabController', function() {
     app = React.cloneElement(app, {repository});
     const wrapper = mount(app);
 
-    assert.isTrue(wrapper.hasClass('is-empty'));
-    assert.lengthOf(wrapper.find('.no-repository'), 1);
+    assert.isTrue(wrapper.find('.is-empty').exists());
+    assert.isTrue(wrapper.find('.no-repository').exists());
   });
 
   it('keeps the state of the GitTabView in sync with the assigned repository', async function() {
@@ -111,17 +111,17 @@ describe('GitTabController', function() {
     // Fetches data when a new repository is assigned
     // Does not update repository instance variable until that data is fetched
     wrapper.setProps({repository: repository1});
-    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository1.getUnstagedChanges());
+    await assert.async.deepEqual(wrapper.update().find('GitTabView').prop('unstagedChanges'), await repository1.getUnstagedChanges());
 
     wrapper.setProps({repository: repository2});
-    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
+    await assert.async.deepEqual(wrapper.update().find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
 
     // Fetches data and updates child view when the repository is mutated
     fs.writeFileSync(path.join(workdirPath2, 'a.txt'), 'a change\n');
     fs.unlinkSync(path.join(workdirPath2, 'b.txt'));
     repository2.refresh();
 
-    await assert.async.deepEqual(wrapper.find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
+    await assert.async.deepEqual(wrapper.update().find('GitTabView').prop('unstagedChanges'), await repository2.getUnstagedChanges());
   });
 
   it('fetches conflict marker counts for conflicting files', async function() {
@@ -153,18 +153,17 @@ describe('GitTabController', function() {
       const confirm = sinon.stub();
       app = React.cloneElement(app, {repository, confirm});
       const wrapper = mount(app);
-      const view = wrapper.find('GitTabView');
 
-      await assert.async.isTrue(view.prop('isMerging'));
-      assert.notEqual(view.prop('mergeConflicts').length, 0);
-      assert.isOk(view.prop('mergeMessage'));
+      await assert.async.isTrue(wrapper.update().find('GitTabView').prop('isMerging'));
+      assert.notEqual(wrapper.find('GitTabView').prop('mergeConflicts').length, 0);
+      assert.isOk(wrapper.find('GitTabView').prop('mergeMessage'));
 
       confirm.returns(0);
       await wrapper.instance().getWrappedComponentInstance().abortMerge();
 
-      await assert.async.lengthOf(view.prop('mergeConflicts'), 0);
-      assert.isFalse(view.prop('isMerging'));
-      assert.isNull(view.prop('mergeMessage'));
+      await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 0);
+      assert.isFalse(wrapper.find('GitTabView').prop('isMerging'));
+      assert.isNull(wrapper.find('GitTabView').prop('mergeMessage'));
     });
   });
 
@@ -243,7 +242,7 @@ describe('GitTabController', function() {
     app = React.cloneElement(app, {repository});
     const wrapper = mount(app);
 
-    await assert.async.lengthOf(wrapper.find('GitTabView').prop('unstagedChanges'), 3);
+    await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 3);
 
     const controller = wrapper.instance().getWrappedComponentInstance();
     const gitTab = controller.refView;
@@ -268,7 +267,7 @@ describe('GitTabController', function() {
       const wrapper = mount(app);
       const controller = wrapper.instance().getWrappedComponentInstance();
 
-      assert.isTrue(wrapper.hasClass('is-empty'));
+      assert.isTrue(wrapper.find('.is-empty').exists());
       assert.lengthOf(wrapper.find('.no-repository'), 1);
 
       controller.rememberLastFocus({target: null});
@@ -336,7 +335,7 @@ describe('GitTabController', function() {
 
         app = React.cloneElement(app, {repository});
         wrapper = mount(app);
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('unstagedChanges'), 3);
+        await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 3);
 
         extractReferences();
       });
@@ -344,7 +343,7 @@ describe('GitTabController', function() {
       it('blurs on tool-panel:unfocus', function() {
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        commandRegistry.dispatch(wrapper.find('.github-Panel').getNode(), 'tool-panel:unfocus');
+        commandRegistry.dispatch(wrapper.find('.github-Panel').getDOMNode(), 'tool-panel:unfocus');
 
         assert.isTrue(workspace.getActivePane().activate.called);
       });
@@ -444,7 +443,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository, ensureGitTab});
       const wrapper = mount(app);
 
-      await assert.async.lengthOf(wrapper.find('GitTabView').prop('unstagedChanges'), 2);
+      await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 2);
 
       const gitTab = wrapper.instance().getWrappedComponentInstance().refView;
       const stagingView = gitTab.refStagingView.getWrappedComponent();
@@ -468,7 +467,7 @@ describe('GitTabController', function() {
       await assert.async.lengthOf(stagingView.props.unstagedChanges, 1);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
-      commitView.find('atom-text-editor').getNode().getModel().setText('Make it so');
+      commitView.find('atom-text-editor').instance().getModel().setText('Make it so');
       commitView.find('.github-CommitView-commit').simulate('click');
 
       await assert.async.equal((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
@@ -484,7 +483,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository, confirm});
       const wrapper = mount(app);
 
-      await assert.async.lengthOf(wrapper.find('GitTabView').prop('mergeConflicts'), 5);
+      await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 5);
       const stagingView = wrapper.instance().getWrappedComponentInstance().refView.refStagingView.getWrappedComponent();
 
       assert.equal(stagingView.props.mergeConflicts.length, 5);
@@ -607,7 +606,7 @@ describe('GitTabController', function() {
         await repository.commit(commitMessage);
 
         getLastCommit = () => {
-          return wrapper.find('RecentCommitView').getNodes()[0].props.commit;
+          return wrapper.update().find('RecentCommitView').at(0).instance().props.commit;
         };
 
         await assert.async.strictEqual(getLastCommit().getMessageSubject(), commitMessage);
@@ -620,16 +619,16 @@ describe('GitTabController', function() {
           // stage some changes
           fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'oh\nem\ngee\n');
           await repository.stageFiles(['new-file.txt']);
-          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+          await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('stagedChanges'), 1);
 
           // ensure that the commit editor is empty
-          assert.strictEqual(wrapper.find('CommitView').getNode().editor.getText(), '');
+          assert.strictEqual(wrapper.find('CommitView').instance().editor.getText(), '');
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
 
           // amending should commit all unstaged changes
-          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
+          await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('stagedChanges'), 0);
 
           // commit message from previous commit should be used
           const lastCommit = getLastCommit();
@@ -642,10 +641,10 @@ describe('GitTabController', function() {
           // new commit message
           const newMessage = 'such new very message';
           const commitView = wrapper.find('CommitView');
-          commitView.getNode().editor.setText(newMessage);
+          commitView.instance().editor.setText(newMessage);
 
           // no staged changes
-          await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
+          await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('stagedChanges'), 0);
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
@@ -663,7 +662,7 @@ describe('GitTabController', function() {
 
           // add co author
           const author = {email: 'foo@bar.com', name: 'foo bar'};
-          const commitView = wrapper.find('CommitView').getNode();
+          const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
 
@@ -682,7 +681,7 @@ describe('GitTabController', function() {
 
           // add co author
           const author = {email: 'foo@bar.com', name: 'foo bar'};
-          const commitView = wrapper.find('CommitView').getNode();
+          const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
           const newMessage = 'Star Wars: A New Message';
@@ -714,7 +713,7 @@ describe('GitTabController', function() {
           assert.strictEqual(getLastCommit().getMessageSubject(), message);
 
           // buh bye co author
-          const commitView = wrapper.find('CommitView').getNode();
+          const commitView = wrapper.find('CommitView').instance();
           assert.strictEqual(commitView.editor.getText(), '');
           commitView.onSelectedCoAuthorsChanged([]);
 
@@ -766,14 +765,14 @@ describe('GitTabController', function() {
 
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), []);
 
-        await assert.async.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
+        await assert.async.lengthOf(wrapper.update().find('.github-RecentCommit-undoButton'), 1);
         wrapper.find('.github-RecentCommit-undoButton').simulate('click');
 
         let commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
         // ensure that the co author trailer is stripped from commit message
         assert.deepEqual(commitMessages, [commitSubject, 'Initial commit']);
 
-        await assert.async.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
+        await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('stagedChanges'), 1);
         assert.deepEqual(wrapper.find('GitTabView').prop('stagedChanges'), [{
           filePath: 'new-file.txt',
           status: 'added',
