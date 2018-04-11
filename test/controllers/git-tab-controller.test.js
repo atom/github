@@ -214,6 +214,23 @@ describe('GitTabController', function() {
     });
   });
 
+  describe('when a new author is added', function() {
+    it('user store is updated', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = mount(app);
+      const coAuthors = [{name: 'Mona Lisa', email: 'mona@lisa.com'}];
+      const newAuthor = {name: 'Mr. Hubot', email: 'hubot@github.com'};
+
+      const instance = wrapper.instance().getWrappedComponentInstance();
+      instance.updateSelectedCoAuthors(coAuthors, newAuthor);
+
+      assert.deepEqual(instance.state.selectedCoAuthors, [...coAuthors, newAuthor]);
+    });
+  });
+
   it('selects an item by description', async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
@@ -353,9 +370,12 @@ describe('GitTabController', function() {
 
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
         gitTab.setFocus(focuses.EDITOR);
+        sinon.stub(commitView, 'hasFocusEditor').callsFake(() => true);
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
         assertSelected(['staged-1.txt']);
+
+        commitView.hasFocusEditor.reset();
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
         assertSelected(['conflict-1.txt']);
