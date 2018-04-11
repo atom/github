@@ -16,6 +16,10 @@ module.exports = createRunner({
   reporter: process.env.MOCHA_REPORTER || 'spec',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
+  const Enzyme = require('enzyme');
+  const Adapter = require('enzyme-adapter-react-15');
+  Enzyme.configure({adapter: new Adapter()});
+
   require('mocha-stress');
 
   mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
