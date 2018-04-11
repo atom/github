@@ -103,22 +103,6 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     }
 
-    describe('getRefSha()', function() {
-      it('gets the current SHA corresponding to a ref', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
-        assert.equal(await git.getRefSha('master'), '66d11860af6d28eb38349ef83de475597cb0e8b4');
-      });
-
-      it('throws an error if the ref does not exist', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
-        await assert.isRejected(git.getRefSha('nope'));
-      });
-    });
-
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
         const workingDirPath = await cloneRepository('three-files');

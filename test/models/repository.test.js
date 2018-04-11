@@ -1032,10 +1032,6 @@ describe('Repository', function() {
         () => repository.getRecentCommits(),
       );
       calls.set(
-        'getRefSha',
-        () => repository.getRefSha('master'),
-      );
-      calls.set(
         'getBranches',
         () => repository.getBranches(),
       );
