@@ -571,7 +571,7 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
       });
 
-      it.stress(75, 'stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
+      it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
         const absFilePath = path.join(workdirPath, filePath);
         const originalLines = fs.readFileSync(absFilePath, 'utf8').split('\n');
 
@@ -589,7 +589,6 @@ describe('FilePatchController', function() {
         const wrapper = mount(component);
 
         await assert.async.isTrue(wrapper.update().find('HunkView').exists());
-        console.log('0');
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -597,10 +596,8 @@ describe('FilePatchController', function() {
         window.dispatchEvent(new MouseEvent('mouseup'));
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
-        console.log('1');
 
         await refreshRepository(wrapper);
-        console.log('2');
 
         const expectedLines0 = originalLines.slice();
         expectedLines0.splice(1, 1,
@@ -608,16 +605,13 @@ describe('FilePatchController', function() {
           'this is a new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
-        console.log('3');
 
         // stage remaining lines in hunk
         const opPromise1 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise1;
-        console.log('4');
 
         await refreshRepository(wrapper);
-        console.log('5');
 
         const expectedLines1 = originalLines.slice();
         expectedLines1.splice(1, 1,
@@ -626,12 +620,10 @@ describe('FilePatchController', function() {
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines1.join('\n'));
-        console.log('6');
 
         // unstage a subset of lines from the first hunk
         wrapper.setState({stagingStatus: 'staged'});
         await refreshRepository(wrapper);
-        console.log('7');
 
         const hunkView2 = wrapper.find('HunkView').at(0);
         hunkView2.find('LineView').at(1).find('.github-HunkView-line')
@@ -644,10 +636,8 @@ describe('FilePatchController', function() {
         const opPromise2 = switchboard.getFinishStageOperationPromise();
         hunkView2.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise2;
-        console.log('8');
 
         await refreshRepository(wrapper);
-        console.log('9');
 
         const expectedLines2 = originalLines.slice();
         expectedLines2.splice(2, 0,
@@ -655,7 +645,6 @@ describe('FilePatchController', function() {
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
-        console.log('10');
 
         // unstage the rest of the hunk
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
@@ -663,10 +652,8 @@ describe('FilePatchController', function() {
         const opPromise3 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise3;
-        console.log('11');
 
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
-        console.log('12');
       });
 
       // https://github.com/atom/github/issues/417
