@@ -576,6 +576,7 @@ describe('FilePatchController', function() {
         const wrapper = mount(component);
 
         await assert.async.isTrue(wrapper.update().find('HunkView').exists());
+        console.log('0');
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -583,6 +584,7 @@ describe('FilePatchController', function() {
         window.dispatchEvent(new MouseEvent('mouseup'));
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
+        console.log('1');
 
         repository.refresh();
         const expectedLines0 = originalLines.slice();
@@ -591,16 +593,20 @@ describe('FilePatchController', function() {
           'this is a new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
+        console.log('2');
 
         // stage remaining lines in hunk
         const updatePromise1 = switchboard.getChangePatchPromise();
         const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
+        console.log('3');
         wrapper.setState({filePatch: unstagedFilePatch1});
         await updatePromise1;
+        console.log('4');
 
         const opPromise1 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise1;
+        console.log('5');
 
         repository.refresh();
         const expectedLines1 = originalLines.slice();
@@ -610,15 +616,18 @@ describe('FilePatchController', function() {
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines1.join('\n'));
+        console.log('6');
 
         // unstage a subset of lines from the first hunk
         const updatePromise2 = switchboard.getChangePatchPromise();
         const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
+        console.log('7');
         wrapper.setState({
           filePatch: stagedFilePatch2,
           stagingStatus: 'staged',
         });
         await updatePromise2;
+        console.log('8');
 
         const hunkView2 = wrapper.find('HunkView').at(0);
         hunkView2.find('LineView').at(1).find('.github-HunkView-line')
@@ -631,6 +640,7 @@ describe('FilePatchController', function() {
         const opPromise2 = switchboard.getFinishStageOperationPromise();
         hunkView2.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise2;
+        console.log('9');
 
         repository.refresh();
         const expectedLines2 = originalLines.slice();
@@ -639,10 +649,12 @@ describe('FilePatchController', function() {
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
+        console.log('10');
 
         // unstage the rest of the hunk
         const updatePromise3 = switchboard.getChangePatchPromise();
         const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
+        console.log('11');
         wrapper.setState({
           filePatch: stagedFilePatch3,
         });
@@ -653,8 +665,10 @@ describe('FilePatchController', function() {
         const opPromise3 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise3;
+        console.log('12');
 
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
+        console.log('13');
       });
 
       // https://github.com/atom/github/issues/417
