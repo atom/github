@@ -65,7 +65,7 @@ describe('RepositoryConflictController', () => {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      await assert.async.equal(wrapper.find(EditorConflictController).length, 2);
+      await assert.async.equal(wrapper.update().find(EditorConflictController).length, 2);
     });
   });
 

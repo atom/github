@@ -42,7 +42,6 @@ function createComponent(repository, filePath) {
   openFiles = sinon.spy();
   getSelectedStagingViewItems = sinon.spy();
 
-
   getRepositoryForWorkdir = () => repository;
   resolutionProgress = new ResolutionProgress();
 
@@ -70,6 +69,16 @@ function createComponent(repository, filePath) {
       uri={'some/uri'}
     />
   );
+}
+
+async function refreshRepository(wrapper) {
+  const workDir = wrapper.prop('workingDirectoryPath');
+  const repository = wrapper.prop('getRepositoryForWorkdir')(workDir);
+
+  const promise = wrapper.prop('switchboard').getFinishRepositoryRefreshPromise();
+  repository.refresh();
+  await promise;
+  wrapper.update();
 }
 
 describe('FilePatchController', function() {
@@ -137,9 +146,9 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {largeDiffLineThreshold: 5}));
 
-
-        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
+        await assert.async.isTrue(wrapper.update().find('.large-file-patch').exists());
         wrapper.find('.large-file-patch').find('button').simulate('click');
+
         assert.isTrue(wrapper.find('HunkView').exists());
       });
 
@@ -161,17 +170,17 @@ describe('FilePatchController', function() {
           filePath: filePatch1.getPath(), largeDiffLineThreshold: 5,
         }));
 
-        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
+        await assert.async.isTrue(wrapper.update().find('.large-file-patch').exists());
         wrapper.find('.large-file-patch').find('button').simulate('click');
         assert.isTrue(wrapper.find('HunkView').exists());
 
         getFilePatchForPath.returns(filePatch2);
         wrapper.setProps({filePath: filePatch2.getPath()});
-        await assert.async.isTrue(wrapper.find('.large-file-patch').exists());
+        await assert.async.isTrue(wrapper.update().find('.large-file-patch').exists());
 
         getFilePatchForPath.returns(filePatch1);
         wrapper.setProps({filePath: filePatch1.getPath()});
-        assert.isTrue(wrapper.find('HunkView').exists());
+        assert.isTrue(wrapper.update().find('HunkView').exists());
       });
     });
 
@@ -188,8 +197,7 @@ describe('FilePatchController', function() {
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
 
         fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nand again!', 'utf8');
-        repository.refresh();
-        await wrapper.instance().onRepoRefresh(repository);
+        await refreshRepository(wrapper);
 
         assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
@@ -210,7 +218,8 @@ describe('FilePatchController', function() {
       getFilePatchForPath.returns(filePatch);
 
       wrapper.instance().onRepoRefresh(repository);
-      await assert.async.isTrue(wrapper.find('HunkView').exists());
+
+      await assert.async.isTrue(wrapper.update().find('HunkView').exists());
       assert.isTrue(wrapper.find('HunkView').text().includes('@@ -0,1 +0,1 @@'));
     });
 
@@ -224,7 +233,7 @@ describe('FilePatchController', function() {
 
       let view0;
       await until(() => {
-        view0 = wrapper.find('FilePatchView').shallow();
+        view0 = wrapper.update().find('FilePatchView').shallow();
         return view0.find({hunk: hunk1}).exists();
       });
       assert.isTrue(view0.find({hunk: hunk2}).exists());
@@ -236,7 +245,7 @@ describe('FilePatchController', function() {
       wrapper.instance().onRepoRefresh(repository);
       let view1;
       await until(() => {
-        view1 = wrapper.find('FilePatchView').shallow();
+        view1 = wrapper.update().find('FilePatchView').shallow();
         return view1.find({hunk: hunk3}).exists();
       });
       assert.isTrue(view1.find({hunk: hunk1}).exists());
@@ -249,7 +258,7 @@ describe('FilePatchController', function() {
 
       const wrapper = mount(component);
 
-      await assert.async.isTrue(wrapper.find('FilePatchView').exists());
+      await assert.async.isTrue(wrapper.update().find('Commands').exists());
       commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-right');
       assert.isTrue(didSurfaceFile.calledWith(filePath, 'unstaged'));
     });
@@ -274,11 +283,12 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {openFiles: openFilesStub}));
 
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
 
         wrapper.find('LineView').simulate('mousedown', {button: 0, detail: 1});
         window.dispatchEvent(new MouseEvent('mouseup'));
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:open-file');
+        wrapper.update();
 
         await assert.async.isTrue(editorSpy.setCursorBufferPosition.called);
 
@@ -328,7 +338,7 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
 
           // Unstage a couple added lines, but not all
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -337,7 +347,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
           // index shows symlink deletions still staged, only a couple of lines have been unstaged
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nbaz\nzoo\n');
@@ -359,7 +370,7 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\nbar\nbaz\n\n');
 
           // stage a couple of lines, but not all
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -368,7 +379,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
           // index shows symlink change has not been staged, a couple of lines have been deleted
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\n\n');
@@ -392,7 +404,7 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '120000');
 
         // Stage a couple added lines, but not all
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -401,7 +413,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // index no longer shows file is symlink (symlink has been deleted), now a regular file with contents
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'foo\nbar\n');
@@ -423,7 +436,7 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '120000');
 
         // unstage a couple of lines, but not all
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -432,7 +445,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // index no longer shows file is symlink (symlink creation has been unstaged), shows contents of file that existed prior to symlink
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'bar\nbaz\n');
@@ -453,14 +467,15 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
 
         // stage all deleted lines
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('.github-HunkView-title').simulate('click');
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // File is not on index, file deletion has been staged
         assert.isNull(await indexModeAndOid(repository, deletedFileAddedSymlinkPath));
         const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
@@ -485,14 +500,15 @@ describe('FilePatchController', function() {
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
 
         // unstage all added lines
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('.github-HunkView-title').simulate('click');
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // File is not on index, file creation has been unstaged
         assert.isNull(await indexModeAndOid(repository, deletedSymlinkAddedFilePath));
         const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
@@ -524,11 +540,10 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(component);
 
-        // selectNext()
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'core:move-down');
 
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const hunkView0 = wrapper.find('HunkView').at(0);
         assert.isFalse(hunkView0.prop('isSelected'));
         const opPromise0 = switchboard.getFinishStageOperationPromise();
@@ -558,7 +573,6 @@ describe('FilePatchController', function() {
 
       it('stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
         const absFilePath = path.join(workdirPath, filePath);
-
         const originalLines = fs.readFileSync(absFilePath, 'utf8').split('\n');
 
         // write some unstaged changes
@@ -574,7 +588,7 @@ describe('FilePatchController', function() {
         // stage a subset of lines from first hunk
         const wrapper = mount(component);
 
-        await assert.async.isTrue(wrapper.find('HunkView').exists());
+        await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
         hunkView0.find('LineView').at(1).find('.github-HunkView-line').simulate('mousedown', {button: 0, detail: 1});
@@ -583,7 +597,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         const expectedLines0 = originalLines.slice();
         expectedLines0.splice(1, 1,
           'this is a modified line',
@@ -592,16 +607,12 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
 
         // stage remaining lines in hunk
-        const updatePromise1 = switchboard.getChangePatchPromise();
-        const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
-        wrapper.setState({filePatch: unstagedFilePatch1});
-        await updatePromise1;
-
         const opPromise1 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise1;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         const expectedLines1 = originalLines.slice();
         expectedLines1.splice(1, 1,
           'this is a modified line',
@@ -611,13 +622,8 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines1.join('\n'));
 
         // unstage a subset of lines from the first hunk
-        const updatePromise2 = switchboard.getChangePatchPromise();
-        const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
-        wrapper.setState({
-          filePatch: stagedFilePatch2,
-          stagingStatus: 'staged',
-        });
-        await updatePromise2;
+        wrapper.setState({stagingStatus: 'staged'});
+        await refreshRepository(wrapper);
 
         const hunkView2 = wrapper.find('HunkView').at(0);
         hunkView2.find('LineView').at(1).find('.github-HunkView-line')
@@ -631,7 +637,8 @@ describe('FilePatchController', function() {
         hunkView2.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise2;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         const expectedLines2 = originalLines.slice();
         expectedLines2.splice(2, 0,
           'this is a new line',
@@ -640,13 +647,6 @@ describe('FilePatchController', function() {
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
 
         // unstage the rest of the hunk
-        const updatePromise3 = switchboard.getChangePatchPromise();
-        const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
-        wrapper.setState({
-          filePatch: stagedFilePatch3,
-        });
-        await updatePromise3;
-
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
 
         const opPromise3 = switchboard.getFinishStageOperationPromise();
@@ -669,7 +669,7 @@ describe('FilePatchController', function() {
             initialStagingStatus: 'staged',
           }));
 
-          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          await assert.async.isTrue(wrapper.update().find('HunkView').exists());
 
           const opPromise = switchboard.getFinishStageOperationPromise();
           wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
@@ -690,7 +690,7 @@ describe('FilePatchController', function() {
             initialStagingStatus: 'staged',
           }));
 
-          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          await assert.async.isTrue(wrapper.update().find('HunkView').exists());
 
           const viewNode = wrapper.find('FilePatchView').getDOMNode();
           commandRegistry.dispatch(viewNode, 'github:toggle-patch-selection-mode');
@@ -723,7 +723,7 @@ describe('FilePatchController', function() {
 
           const wrapper = mount(component);
 
-          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          await assert.async.isTrue(wrapper.update().find('HunkView').exists());
           const hunkView0 = wrapper.find('HunkView').at(0);
           hunkView0.find('LineView').at(1).find('.github-HunkView-line')
             .simulate('mousedown', {button: 0, detail: 1});
@@ -739,7 +739,7 @@ describe('FilePatchController', function() {
           const changePatchPromise = switchboard.getChangePatchPromise();
 
           // assert that only line 1 has been staged
-          repository.refresh(); // clear the cached file patches
+          await refreshRepository(wrapper); // clear the cached file patches
           let expectedLines = originalLines.slice();
           expectedLines.splice(1, 0,
             'this is a modified line',
@@ -747,6 +747,7 @@ describe('FilePatchController', function() {
           let actualLines = await repository.readFileFromIndex(filePath);
           assert.autocrlfEqual(actualLines, expectedLines.join('\n'));
           await changePatchPromise;
+          wrapper.update();
 
           const hunkView1 = wrapper.find('HunkView').at(0);
           hunkView1.find('LineView').at(2).find('.github-HunkView-line')
@@ -782,7 +783,7 @@ describe('FilePatchController', function() {
 
           const wrapper = mount(component);
 
-          await assert.async.isTrue(wrapper.find('HunkView').exists());
+          await assert.async.isTrue(wrapper.update().find('HunkView').exists());
 
           // ensure staging the same hunk twice does not cause issues
           // second stage action is a no-op since the first staging operation is in flight
@@ -792,7 +793,7 @@ describe('FilePatchController', function() {
           await hunk1StagingPromise;
 
           const patchPromise0 = switchboard.getChangePatchPromise();
-          repository.refresh(); // clear the cached file patches
+          await refreshRepository(wrapper); // clear the cached file patches
           const modifiedFilePatch = await repository.getFilePatchForPath(filePath);
           wrapper.setState({filePatch: modifiedFilePatch});
           await patchPromise0;

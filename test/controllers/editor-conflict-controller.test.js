@@ -284,6 +284,7 @@ describe('EditorConflictController', function() {
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
       commandRegistry.dispatch(editorView, 'github:dismiss-conflict');
+      wrapper.update();
 
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
@@ -301,6 +302,8 @@ describe('EditorConflictController', function() {
       fs.writeFileSync(fixtureFile, onlyTwoMarkers);
 
       await assert.async.equal(wrapper.state('conflicts').size, 2);
+      wrapper.update();
+
       assert.lengthOf(wrapper.find(ConflictController), 2);
       assert.equal(resolutionProgress.getRemaining(fixtureFile), 2);
     });

@@ -44,7 +44,7 @@ describe('StatusBarTileController', function() {
   });
 
   function getTooltipNode(wrapper, selector) {
-    const ts = tooltips.findTooltips(wrapper.find(selector).node.element);
+    const ts = tooltips.findTooltips(wrapper.find(selector).getDOMNode());
     assert.lengthOf(ts, 1);
     ts[0].show();
     return ts[0].getTooltipElement();
@@ -57,6 +57,7 @@ describe('StatusBarTileController', function() {
 
       const wrapper = mount(React.cloneElement(component, {repository}));
       await wrapper.instance().refreshModelData();
+      wrapper.update();
 
       assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master');
       assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 0);
@@ -69,6 +70,7 @@ describe('StatusBarTileController', function() {
 
       const wrapper = mount(React.cloneElement(component, {repository}));
       await wrapper.instance().refreshModelData();
+      wrapper.update();
 
       assert.equal(wrapper.find(BranchView).prop('currentBranch').name, 'master~2');
       assert.lengthOf(wrapper.find(BranchView).find('.github-branch-detached'), 1);
@@ -95,6 +97,7 @@ describe('StatusBarTileController', function() {
 
           const wrapper = mount(React.cloneElement(component, {repository}));
           await wrapper.instance().refreshModelData();
+          wrapper.update();
 
           const tip = getTooltipNode(wrapper, BranchView);
           const selectList = tip.querySelector('select');
@@ -281,6 +284,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -318,6 +322,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -356,6 +361,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -394,6 +400,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -433,6 +440,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -473,6 +481,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');
@@ -503,6 +512,7 @@ describe('StatusBarTileController', function() {
 
           statusBarTile = mount(React.cloneElement(component, {repository}));
           await statusBarTile.instance().refreshModelData();
+          statusBarTile.update();
 
           sinon.spy(repository, 'fetch');
           sinon.spy(repository, 'push');

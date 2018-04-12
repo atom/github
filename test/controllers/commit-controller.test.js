@@ -193,6 +193,7 @@ describe('CommitController', function() {
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
+        wrapper.update();
         assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
 
         const editor = workspace.getActiveTextEditor();
@@ -208,7 +209,7 @@ describe('CommitController', function() {
 
         workspace.getActiveTextEditor().destroy();
         assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
-        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), 'message in editor');
+        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('message'), 'message in editor');
       });
 
       it('activates editor if already opened but in background', async function() {
@@ -253,7 +254,7 @@ describe('CommitController', function() {
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
         await assert.async.lengthOf(wrapper.instance().getCommitMessageEditors(), 0);
         assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
-        await assert.async.strictEqual(wrapper.find('CommitView').prop('message'), 'make some new changes');
+        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('message'), 'make some new changes');
       });
     });
 
