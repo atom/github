@@ -598,6 +598,7 @@ describe('FilePatchController', function() {
         // stage remaining lines in hunk
         const updatePromise1 = switchboard.getChangePatchPromise();
         const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
+        unstagedFilePatch1.name = 'unstagedFilePatch1';
         console.log('3');
         wrapper.setState({filePatch: unstagedFilePatch1});
         await updatePromise1;
@@ -621,6 +622,7 @@ describe('FilePatchController', function() {
         // unstage a subset of lines from the first hunk
         const updatePromise2 = switchboard.getChangePatchPromise();
         const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
+        stagedFilePatch2.name = 'stagedFilePatch2';
         console.log('7');
         wrapper.setState({
           filePatch: stagedFilePatch2,
@@ -654,6 +656,7 @@ describe('FilePatchController', function() {
         // unstage the rest of the hunk
         const updatePromise3 = switchboard.getChangePatchPromise();
         const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
+        stagedFilePatch3.name = 'stagedFilePatch3';
         console.log('11');
         wrapper.setState({
           filePatch: stagedFilePatch3,
