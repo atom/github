@@ -646,13 +646,16 @@ describe('FilePatchController', function() {
         await opPromise2;
         console.log('8');
 
+        await refreshRepository(wrapper);
+        console.log('9');
+
         const expectedLines2 = originalLines.slice();
         expectedLines2.splice(2, 0,
           'this is a new line',
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
-        console.log('9');
+        console.log('10');
 
         // unstage the rest of the hunk
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
@@ -660,10 +663,10 @@ describe('FilePatchController', function() {
         const opPromise3 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise3;
-        console.log('10');
+        console.log('11');
 
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
-        console.log('11');
+        console.log('12');
       });
 
       // https://github.com/atom/github/issues/417
