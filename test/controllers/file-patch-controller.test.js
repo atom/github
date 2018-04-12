@@ -659,6 +659,7 @@ describe('FilePatchController', function() {
           filePatch: stagedFilePatch3,
         });
         await updatePromise3;
+        console.log('11.5');
 
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
 
