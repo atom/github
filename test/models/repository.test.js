@@ -576,7 +576,7 @@ describe('Repository', function() {
   });
 
   describe('push()', function() {
-    it('sends commits to the remote and updates ', async function() {
+    it('sends commits to the remote and updates', async function() {
       const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories();
       const localRepo = new Repository(localRepoPath);
       await localRepo.getLoadPromise();
