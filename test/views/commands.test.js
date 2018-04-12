@@ -2,6 +2,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import Commands, {Command} from '../../lib/views/commands';
+import RefHolder from '../../lib/models/ref-holder';
 
 describe('Commands', function() {
   let atomEnv, commandRegistry;
@@ -88,5 +89,23 @@ describe('Commands', function() {
     commandRegistry.dispatch(element, 'user:command2');
     assert.equal(callback1.callCount, 0);
     assert.equal(callback2.callCount, 1);
+  });
+
+  it('allows the target prop to be a RefHolder to capture refs from parent components', function() {
+    const callback = sinon.spy();
+    const holder = new RefHolder();
+    mount(
+      <Commands registry={commandRegistry} target={holder}>
+        <Command command="github:do-thing" callback={callback} />
+      </Commands>,
+    );
+
+    const element = document.createElement('div');
+    commandRegistry.dispatch(element, 'github:do-thing');
+    assert.isFalse(callback.called);
+
+    holder.setter(element);
+    commandRegistry.dispatch(element, 'github:do-thing');
+    assert.isTrue(callback.called);
   });
 });
