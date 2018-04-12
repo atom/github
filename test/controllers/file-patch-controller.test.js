@@ -42,7 +42,6 @@ function createComponent(repository, filePath) {
   openFiles = sinon.spy();
   getSelectedStagingViewItems = sinon.spy();
 
-
   getRepositoryForWorkdir = () => repository;
   resolutionProgress = new ResolutionProgress();
 
@@ -70,6 +69,16 @@ function createComponent(repository, filePath) {
       uri={'some/uri'}
     />
   );
+}
+
+async function refreshRepository(wrapper) {
+  const workDir = wrapper.prop('workingDirectoryPath');
+  const repository = wrapper.prop('getRepositoryForWorkdir')(workDir);
+
+  const promise = wrapper.prop('switchboard').getFinishRepositoryRefreshPromise();
+  repository.refresh();
+  await promise;
+  wrapper.update();
 }
 
 describe('FilePatchController', function() {
@@ -188,8 +197,7 @@ describe('FilePatchController', function() {
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
 
         fs.writeFileSync(path.join(workdirPath, 'file.txt'), 'change\nand again!', 'utf8');
-        repository.refresh();
-        await wrapper.instance().onRepoRefresh(repository);
+        await refreshRepository(wrapper);
 
         assert.notEqual(originalFilePatch, wrapper.state('filePatch'));
         assert.equal(wrapper.state('stagingStatus'), 'unstaged');
@@ -339,7 +347,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
           // index shows symlink deletions still staged, only a couple of lines have been unstaged
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nbaz\nzoo\n');
@@ -370,7 +379,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
           // index shows symlink change has not been staged, a couple of lines have been deleted
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\n\n');
@@ -403,7 +413,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // index no longer shows file is symlink (symlink has been deleted), now a regular file with contents
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'foo\nbar\n');
@@ -434,7 +445,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // index no longer shows file is symlink (symlink creation has been unstaged), shows contents of file that existed prior to symlink
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'bar\nbaz\n');
@@ -462,7 +474,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // File is not on index, file deletion has been staged
         assert.isNull(await indexModeAndOid(repository, deletedFileAddedSymlinkPath));
         const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
@@ -494,7 +507,8 @@ describe('FilePatchController', function() {
         hunkView0.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise0;
 
-        repository.refresh();
+        await refreshRepository(wrapper);
+
         // File is not on index, file creation has been unstaged
         assert.isNull(await indexModeAndOid(repository, deletedSymlinkAddedFilePath));
         const {stagedFiles, unstagedFiles} = await repository.getStatusesForChangedFiles();
@@ -586,7 +600,6 @@ describe('FilePatchController', function() {
         await opPromise0;
         console.log('1');
 
-        repository.refresh();
         const expectedLines0 = originalLines.slice();
         expectedLines0.splice(1, 1,
           'this is a modified line',
@@ -609,7 +622,6 @@ describe('FilePatchController', function() {
         await opPromise1;
         console.log('5');
 
-        repository.refresh();
         const expectedLines1 = originalLines.slice();
         expectedLines1.splice(1, 1,
           'this is a modified line',
@@ -644,7 +656,6 @@ describe('FilePatchController', function() {
         await opPromise2;
         console.log('9');
 
-        repository.refresh();
         const expectedLines2 = originalLines.slice();
         expectedLines2.splice(2, 0,
           'this is a new line',
@@ -758,7 +769,7 @@ describe('FilePatchController', function() {
           const changePatchPromise = switchboard.getChangePatchPromise();
 
           // assert that only line 1 has been staged
-          repository.refresh(); // clear the cached file patches
+          await refreshRepository(wrapper); // clear the cached file patches
           let expectedLines = originalLines.slice();
           expectedLines.splice(1, 0,
             'this is a modified line',
@@ -812,7 +823,7 @@ describe('FilePatchController', function() {
           await hunk1StagingPromise;
 
           const patchPromise0 = switchboard.getChangePatchPromise();
-          repository.refresh(); // clear the cached file patches
+          await refreshRepository(wrapper); // clear the cached file patches
           const modifiedFilePatch = await repository.getFilePatchForPath(filePath);
           wrapper.setState({filePatch: modifiedFilePatch});
           await patchPromise0;
