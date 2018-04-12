@@ -573,7 +573,6 @@ describe('FilePatchController', function() {
 
       it.stress(75, 'stages and unstages individual lines when the stage button is clicked on a hunk with selected lines', async function() {
         const absFilePath = path.join(workdirPath, filePath);
-
         const originalLines = fs.readFileSync(absFilePath, 'utf8').split('\n');
 
         // write some unstaged changes
@@ -600,26 +599,24 @@ describe('FilePatchController', function() {
         await opPromise0;
         console.log('1');
 
+        await refreshRepository(wrapper);
+        console.log('2');
+
         const expectedLines0 = originalLines.slice();
         expectedLines0.splice(1, 1,
           'this is a modified line',
           'this is a new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines0.join('\n'));
-        console.log('2');
+        console.log('3');
 
         // stage remaining lines in hunk
-        const updatePromise1 = switchboard.getChangePatchPromise();
-        const unstagedFilePatch1 = await repository.getFilePatchForPath('sample.js');
-        unstagedFilePatch1.name = 'unstagedFilePatch1';
-        console.log('3');
-        wrapper.setState({filePatch: unstagedFilePatch1});
-        await updatePromise1;
-        console.log('4');
-
         const opPromise1 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise1;
+        console.log('4');
+
+        await refreshRepository(wrapper);
         console.log('5');
 
         const expectedLines1 = originalLines.slice();
@@ -632,16 +629,9 @@ describe('FilePatchController', function() {
         console.log('6');
 
         // unstage a subset of lines from the first hunk
-        const updatePromise2 = switchboard.getChangePatchPromise();
-        const stagedFilePatch2 = await repository.getFilePatchForPath('sample.js', {staged: true});
-        stagedFilePatch2.name = 'stagedFilePatch2';
+        wrapper.setState({stagingStatus: 'staged'});
+        await refreshRepository(wrapper);
         console.log('7');
-        wrapper.setState({
-          filePatch: stagedFilePatch2,
-          stagingStatus: 'staged',
-        });
-        await updatePromise2;
-        console.log('8');
 
         const hunkView2 = wrapper.find('HunkView').at(0);
         hunkView2.find('LineView').at(1).find('.github-HunkView-line')
@@ -654,7 +644,7 @@ describe('FilePatchController', function() {
         const opPromise2 = switchboard.getFinishStageOperationPromise();
         hunkView2.find('button.github-HunkView-stageButton').simulate('click');
         await opPromise2;
-        console.log('9');
+        console.log('8');
 
         const expectedLines2 = originalLines.slice();
         expectedLines2.splice(2, 0,
@@ -662,28 +652,18 @@ describe('FilePatchController', function() {
           'this is another new line',
         );
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), expectedLines2.join('\n'));
-        console.log('10');
+        console.log('9');
 
         // unstage the rest of the hunk
-        const updatePromise3 = switchboard.getChangePatchPromise();
-        const stagedFilePatch3 = await repository.getFilePatchForPath('sample.js', {staged: true});
-        stagedFilePatch3.name = 'stagedFilePatch3';
-        console.log('11');
-        wrapper.setState({
-          filePatch: stagedFilePatch3,
-        });
-        await updatePromise3;
-        console.log('11.5');
-
         commandRegistry.dispatch(wrapper.find('FilePatchView').getDOMNode(), 'github:toggle-patch-selection-mode');
 
         const opPromise3 = switchboard.getFinishStageOperationPromise();
         wrapper.find('HunkView').at(0).find('button.github-HunkView-stageButton').simulate('click');
         await opPromise3;
-        console.log('12');
+        console.log('10');
 
         assert.autocrlfEqual(await repository.readFileFromIndex('sample.js'), originalLines.join('\n'));
-        console.log('13');
+        console.log('11');
       });
 
       // https://github.com/atom/github/issues/417
