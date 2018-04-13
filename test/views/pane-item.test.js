@@ -22,7 +22,7 @@ class Component extends React.Component {
   }
 }
 
-describe('PaneItem component', function() {
+describe('PaneItem', function() {
   let emitter, workspace, activePane;
 
   beforeEach(function() {
