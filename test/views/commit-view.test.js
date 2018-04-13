@@ -134,10 +134,10 @@ describe('CommitView', function() {
     });
 
     it('is disabled when the commit message is empty', function() {
-      wrapper.setProps({message: ''});
+      wrapper.setProps({message: ''}).update();
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
 
-      wrapper.setProps({message: 'Not empty'});
+      wrapper.setProps({message: 'Not empty'}).update();
       assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
     });
 
