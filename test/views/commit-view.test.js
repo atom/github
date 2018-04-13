@@ -90,12 +90,12 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'a'.repeat(41)});
+    wrapper.setProps({message: 'a'.repeat(41)}).update();
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '9');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'a'.repeat(58)});
+    wrapper.setProps({message: 'a'.repeat(58)}).update();
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '-8');
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
