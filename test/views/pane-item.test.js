@@ -1,12 +1,16 @@
 import React from 'react';
+import {mount} from 'enzyme';
+import PropTypes from 'prop-types';
 
 import PaneItem from '../../lib/views/pane-item';
 
 import {Emitter} from 'event-kit';
 
-import {createRenderer} from '../helpers';
-
 class Component extends React.Component {
+  static propTypes = {
+    text: PropTypes.string.isRequired,
+  }
+
   render() {
     return (
       <div>{this.props.text}</div>
@@ -19,19 +23,20 @@ class Component extends React.Component {
 }
 
 describe('PaneItem component', function() {
-  let renderer, emitter, workspace, activePane;
+  let emitter, workspace, activePane;
+
   beforeEach(function() {
-    renderer = createRenderer();
     emitter = new Emitter();
+
     const paneItem = {
-      destroy: sinon.spy(() => emitter.emit('destroy', {item: paneItem})),
+      destroy: sinon.stub().callsFake(() => emitter.emit('destroy', {item: paneItem})),
     };
+
     activePane = {
-      addItem: sinon.spy(item => {
-        return paneItem;
-      }),
+      addItem: sinon.stub().callsFake(() => paneItem),
       activateItem: sinon.stub(),
     };
+
     workspace = {
       getActivePane: sinon.stub().returns(activePane),
       paneForItem: sinon.stub().returns(activePane),
@@ -44,55 +49,32 @@ describe('PaneItem component', function() {
   });
 
   it('renders a React component into an Atom pane item', function() {
-    let portal, subtree;
     const item = Symbol('item');
-    let app = (
-      <PaneItem
-        workspace={workspace}
-        getItem={obj => {
-          portal = obj.portal;
-          subtree = obj.subtree;
-          return item;
-        }}>
+    const wrapper = mount(
+      <PaneItem workspace={workspace} getItem={() => item}>
         <Component text="hello" />
-      </PaneItem>
+      </PaneItem>,
     );
-    renderer.render(app);
-    assert.equal(activePane.addItem.callCount, 1);
+
+    const paneItem = wrapper.instance().getPaneItem();
+
+    assert.strictEqual(activePane.addItem.callCount, 1);
     assert.deepEqual(activePane.addItem.args[0], [item]);
-    assert.equal(portal.getElement().textContent, 'hello');
-    assert.equal(subtree.getText(), 'hello');
 
-    app = (
-      <PaneItem
-        workspace={workspace}
-        getItem={obj => {
-          return item;
-        }}
-        onDidCloseItem={() => { throw new Error('Expected onDidCloseItem not to be called'); }}>
-        <Component text="world" />
-      </PaneItem>
-    );
-    renderer.render(app);
-    assert.equal(activePane.addItem.callCount, 1);
-    assert.equal(portal.getElement().textContent, 'world');
-    assert.equal(subtree.getText(), 'world');
+    wrapper.unmount();
 
-    renderer.unmount();
-    assert.equal(renderer.lastInstance.getPaneItem().destroy.callCount, 1);
+    assert.strictEqual(paneItem.destroy.callCount, 1);
   });
 
   it('calls props.onDidCloseItem when the pane item is destroyed unexpectedly', function() {
     const onDidCloseItem = sinon.stub();
-    const app = (
-      <PaneItem
-        workspace={workspace}
-        onDidCloseItem={onDidCloseItem}>
+    const wrapper = mount(
+      <PaneItem workspace={workspace} onDidCloseItem={onDidCloseItem}>
         <Component text="hello" />
-      </PaneItem>
+      </PaneItem>,
     );
-    renderer.render(app);
-    renderer.instance.getPaneItem().destroy();
-    assert.equal(onDidCloseItem.callCount, 1);
+
+    wrapper.instance().getPaneItem().destroy();
+    assert.strictEqual(onDidCloseItem.callCount, 1);
   });
 });
