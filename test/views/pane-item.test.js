@@ -49,9 +49,8 @@ describe('PaneItem', function() {
   });
 
   it('renders a React component into an Atom pane item', function() {
-    const item = Symbol('item');
     const wrapper = mount(
-      <PaneItem workspace={workspace} getItem={() => item}>
+      <PaneItem workspace={workspace}>
         <Component text="hello" />
       </PaneItem>,
     );
@@ -59,7 +58,10 @@ describe('PaneItem', function() {
     const paneItem = wrapper.instance().getPaneItem();
 
     assert.strictEqual(activePane.addItem.callCount, 1);
-    assert.deepEqual(activePane.addItem.args[0], [item]);
+    assert.deepEqual(
+      activePane.addItem.args[0][0].getElement().children[0],
+      wrapper.find('Component').getDOMNode(),
+    );
 
     wrapper.unmount();
 
