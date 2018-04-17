@@ -97,21 +97,6 @@ describe('FilePatchController', function() {
       getFilePatchForPath = sinon.stub(repository, 'getFilePatchForPath');
     });
 
-    it('bases its tab title on the staging status', function() {
-      const wrapper = mount(component);
-
-      assert.equal(wrapper.instance().getTitle(), `Unstaged Changes: ${filePath}`);
-
-      const changeHandler = sinon.spy();
-      wrapper.instance().onDidChangeTitle(changeHandler);
-
-      wrapper.setState({stagingStatus: 'staged'});
-
-      const actualTitle = wrapper.instance().getTitle();
-      assert.equal(actualTitle, `Staged Changes: ${filePath}`);
-      assert.isTrue(changeHandler.called);
-    });
-
     describe('when the FilePatch has many lines', function() {
       it('renders a confirmation widget', async function() {
 

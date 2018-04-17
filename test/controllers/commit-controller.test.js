@@ -58,7 +58,7 @@ describe('CommitController', function() {
     const repository2 = await buildRepository(workdirPath2);
 
     app = React.cloneElement(app, {repository: repository1});
-    const wrapper = shallow(app);
+    const wrapper = shallow(app, {disableLifecycleMethods: true});
 
     assert.strictEqual(wrapper.instance().getCommitMessage(), '');
 
@@ -83,21 +83,21 @@ describe('CommitController', function() {
 
     it('is set to the getCommitMessage() in the default case', function() {
       repository.setCommitMessage('some message');
-      const wrapper = shallow(app);
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
       assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some message');
     });
 
     describe('when a merge message is defined', function() {
       it('is set to the merge message when merging', function() {
         app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
         assert.strictEqual(wrapper.find('CommitView').prop('message'), 'merge conflict!');
       });
 
       it('is set to getCommitMessage() if it is set', function() {
         repository.setCommitMessage('some commit message');
         app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
         assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some commit message');
       });
     });
@@ -120,7 +120,7 @@ describe('CommitController', function() {
       await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
       await repository.git.exec(['add', '.']);
 
-      const wrapper = shallow(app);
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
       await wrapper.instance().commit('another message');
 
       assert.strictEqual(repository.getCommitMessage(), '');
@@ -131,7 +131,7 @@ describe('CommitController', function() {
 
       sinon.spy(notificationManager, 'addError');
 
-      const wrapper = shallow(app);
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
 
       // Committing with no staged changes should cause commit error
       try {
@@ -155,7 +155,7 @@ describe('CommitController', function() {
       it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
         config.set('github.automaticCommitMessageWrapping', false);
 
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         await wrapper.instance().commit([
           'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
@@ -189,7 +189,7 @@ describe('CommitController', function() {
 
     describe('toggling between commit box and commit editor', function() {
       it('transfers the commit message contents of the last editor', async function() {
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -213,7 +213,7 @@ describe('CommitController', function() {
       });
 
       it('activates editor if already opened but in background', async function() {
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
         await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -229,7 +229,7 @@ describe('CommitController', function() {
       });
 
       it('closes all open commit message editors if one is in the foreground of a pane, prompting for unsaved changes', async function() {
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
         await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -260,7 +260,7 @@ describe('CommitController', function() {
 
     describe('committing from commit editor', function() {
       it('uses git commit grammar in the editor', async function() {
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
         await atomEnvironment.packages.activatePackage('language-git');
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
         await assert.async.strictEqual(workspace.getActiveTextEditor().getGrammar().scopeName, COMMIT_GRAMMAR_SCOPE);
@@ -271,7 +271,7 @@ describe('CommitController', function() {
         await repository.stageFiles(['a.txt']);
 
         app = React.cloneElement(app, {prepareToCommit: () => true, stagedChangesExist: true});
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
         await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -287,7 +287,7 @@ describe('CommitController', function() {
 
       it('asks user to confirm if commit editor has unsaved changes', async function() {
         app = React.cloneElement(app, {confirm, prepareToCommit: () => true, stagedChangesExist: true});
-        const wrapper = shallow(app);
+        const wrapper = shallow(app, {disableLifecycleMethods: true});
 
         sinon.stub(repository.git, 'commit');
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();

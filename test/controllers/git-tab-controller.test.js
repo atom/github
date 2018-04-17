@@ -286,25 +286,23 @@ describe('GitTabController', function() {
       commitView = commitController.refCommitView;
       focusElement = stagingView.element;
 
+      const commitViewElements = [];
+      commitView.refEditor.map(c => c.refElement.map(e => commitViewElements.push(e)));
+      commitView.refAbortMergeButton.map(e => commitViewElements.push(e));
+      commitView.refCommitButton.map(e => commitViewElements.push(e));
+
       const stubFocus = element => {
-        if (!element) {
-          return;
-        }
         sinon.stub(element, 'focus').callsFake(() => {
           focusElement = element;
         });
       };
       stubFocus(stagingView.element);
-      stubFocus(commitView.editorElement);
-      stubFocus(commitView.refAbortMergeButton);
-      stubFocus(commitView.refCommitButton);
+      for (const e of commitViewElements) {
+        stubFocus(e);
+      }
 
       sinon.stub(commitController, 'hasFocus').callsFake(() => {
-        return [
-          commitView.editorElement,
-          commitView.refAbortMergeButton,
-          commitView.refCommitButton,
-        ].includes(focusElement);
+        return commitViewElements.includes(focusElement);
       });
     };
 
@@ -359,12 +357,12 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, commitView.editorElement);
+        assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, commitView.editorElement);
+        assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
       });
 
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
@@ -417,7 +415,7 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await assert.async.strictEqual(focusElement, commitView.editorElement);
+        await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
         assert.isFalse(wrapper.instance().getWrappedComponentInstance().commit.called);
       });
 
