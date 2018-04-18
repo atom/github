@@ -54,7 +54,7 @@ describe('StatusBarTileController', function() {
 
   async function mountAndLoad(app) {
     const wrapper = mount(app);
-    await assert.async.isTrue(wrapper.update().find('.github-StatusBarTileController').exists());
+    await assert.async.isTrue(wrapper.update().find('.github-ChangedFilesCount').exists());
     return wrapper;
   }
 
