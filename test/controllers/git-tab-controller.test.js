@@ -159,7 +159,7 @@ describe('GitTabController', function() {
       assert.isOk(wrapper.find('GitTabView').prop('mergeMessage'));
 
       confirm.returns(0);
-      await wrapper.instance().getWrappedComponentInstance().abortMerge();
+      await wrapper.instance().abortMerge();
 
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 0);
       assert.isFalse(wrapper.find('GitTabView').prop('isMerging'));
@@ -176,7 +176,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository, ensureGitTab});
       const wrapper = mount(app);
 
-      assert.isFalse(await wrapper.instance().getWrappedComponentInstance().prepareToCommit());
+      assert.isFalse(await wrapper.instance().prepareToCommit());
     });
 
     it('returns true if the git panel was already visible', async function() {
@@ -187,7 +187,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository, ensureGitTab});
       const wrapper = mount(app);
 
-      assert.isTrue(await wrapper.instance().getWrappedComponentInstance().prepareToCommit());
+      assert.isTrue(await wrapper.instance().prepareToCommit());
     });
   });
 
@@ -205,7 +205,7 @@ describe('GitTabController', function() {
 
       notificationManager.clear(); // clear out any notifications
       try {
-        await wrapper.instance().getWrappedComponentInstance().commit();
+        await wrapper.instance().commit();
       } catch (e) {
         assert(e, 'is error');
       }
@@ -223,10 +223,9 @@ describe('GitTabController', function() {
       const coAuthors = [{name: 'Mona Lisa', email: 'mona@lisa.com'}];
       const newAuthor = {name: 'Mr. Hubot', email: 'hubot@github.com'};
 
-      const instance = wrapper.instance().getWrappedComponentInstance();
-      instance.updateSelectedCoAuthors(coAuthors, newAuthor);
+      wrapper.instance().updateSelectedCoAuthors(coAuthors, newAuthor);
 
-      assert.deepEqual(instance.state.selectedCoAuthors, [...coAuthors, newAuthor]);
+      assert.deepEqual(wrapper.state('selectedCoAuthors'), [...coAuthors, newAuthor]);
     });
   });
 
@@ -244,7 +243,7 @@ describe('GitTabController', function() {
 
     await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 3);
 
-    const controller = wrapper.instance().getWrappedComponentInstance();
+    const controller = wrapper.instance();
     const gitTab = controller.refView;
     const stagingView = gitTab.refStagingView.getWrappedComponent();
 
@@ -265,7 +264,7 @@ describe('GitTabController', function() {
 
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
-      const controller = wrapper.instance().getWrappedComponentInstance();
+      const controller = wrapper.instance();
 
       assert.isTrue(wrapper.find('.is-empty').exists());
       assert.lengthOf(wrapper.find('.no-repository'), 1);
@@ -280,7 +279,7 @@ describe('GitTabController', function() {
     const focuses = GitTabController.focus;
 
     const extractReferences = () => {
-      gitTab = wrapper.instance().getWrappedComponentInstance().refView;
+      gitTab = wrapper.instance().refView;
       stagingView = gitTab.refStagingView.getWrappedComponent();
       commitController = gitTab.refCommitController;
       commitView = commitController.refCommitView;
@@ -410,13 +409,13 @@ describe('GitTabController', function() {
 
       it('focuses the CommitView on github:commit with an empty commit message', async function() {
         commitView.editor.setText('');
-        sinon.spy(wrapper.instance().getWrappedComponentInstance(), 'commit');
+        sinon.spy(wrapper.instance(), 'commit');
         wrapper.update();
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
         await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
-        assert.isFalse(wrapper.instance().getWrappedComponentInstance().commit.called);
+        assert.isFalse(wrapper.instance().commit.called);
       });
 
       it('creates a commit on github:commit with a nonempty commit message', async function() {
@@ -443,7 +442,7 @@ describe('GitTabController', function() {
 
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 2);
 
-      const gitTab = wrapper.instance().getWrappedComponentInstance().refView;
+      const gitTab = wrapper.instance().refView;
       const stagingView = gitTab.refStagingView.getWrappedComponent();
       const commitView = wrapper.find('CommitView');
 
@@ -482,7 +481,7 @@ describe('GitTabController', function() {
       const wrapper = mount(app);
 
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 5);
-      const stagingView = wrapper.instance().getWrappedComponentInstance().refView.refStagingView.getWrappedComponent();
+      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
 
       assert.equal(stagingView.props.mergeConflicts.length, 5);
       assert.equal(stagingView.props.stagedChanges.length, 0);
@@ -533,7 +532,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      const stagingView = wrapper.instance().getWrappedComponentInstance().refView.refStagingView.getWrappedComponent();
+      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
       await assert.async.lengthOf(stagingView.props.unstagedChanges, 2);
 
       // ensure staging the same file twice does not cause issues
@@ -561,7 +560,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      const stagingView = wrapper.instance().getWrappedComponentInstance().refView.refStagingView.getWrappedComponent();
+      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
       await assert.async.include(stagingView.props.unstagedChanges.map(c => c.filePath), 'new-file.txt');
 
       const [addedFilePatch] = stagingView.props.unstagedChanges;
@@ -736,12 +735,12 @@ describe('GitTabController', function() {
         const wrapper = mount(app);
 
         try {
-          await wrapper.instance().getWrappedComponentInstance().undoLastCommit();
+          await wrapper.instance().undoLastCommit();
         } catch (e) {
           throw e;
         }
 
-        assert.doesNotThrow(async () => await wrapper.instance().getWrappedComponentInstance().undoLastCommit());
+        assert.doesNotThrow(async () => await wrapper.instance().undoLastCommit());
       });
 
       it('restores to the state prior to committing', async function() {
