@@ -1030,6 +1030,18 @@ describe('RootController', function() {
         assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
         assert.equal(filePatchItem.focus.callCount, 1);
       });
+
+      it('does nothing on an untitled buffer', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const wrapper = mount(React.cloneElement(app, {repository}));
+
+        await workspace.open();
+
+        sinon.spy(workspace, 'open');
+        await wrapper.instance().viewUnstagedChangesForCurrentFile();
+        assert.isFalse(workspace.open.called);
+      });
     });
 
     describe('viewStagedChangesForCurrentFile()', function() {
@@ -1062,6 +1074,18 @@ describe('RootController', function() {
         await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
         assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
         assert.equal(filePatchItem.focus.callCount, 1);
+      });
+
+      it('does nothing on an untitled buffer', async function() {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+        const wrapper = mount(React.cloneElement(app, {repository}));
+
+        await workspace.open();
+
+        sinon.spy(workspace, 'open');
+        await wrapper.instance().viewStagedChangesForCurrentFile();
+        assert.isFalse(workspace.open.called);
       });
     });
   });
