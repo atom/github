@@ -46,7 +46,6 @@
     "compare-sets": "^1.0.1",
     "core-decorators": "^0.19.0",
     "diff": "3.2.0",
-    "dompurify": "^1.0.3",
     "dugite": "^1.60.0",
     "etch": "^0.12.4",
     "event-kit": "^2.3.0",
