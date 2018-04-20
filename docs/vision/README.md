@@ -25,4 +25,4 @@ If you want to see our plans for what we _are_ working on in the very near term,
 * [`who.md`: Our target audience](./who.md)
 * [`git.md`: Git integration](./git.md)
 * [`github.md`: GitHub integration](./github.md)
-* [`crazy-ideas.md`: ](./crazy-ideas.md)
+* [`ideas.md`: ](./ideas.md)
