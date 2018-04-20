@@ -69,6 +69,7 @@ describe('CloneDialog', function() {
     it('disables the clone button with no remote URL', function() {
       setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
       setTextIn('.github-CloneUrl atom-text-editor', '');
+      wrapper.update();
 
       assert.isTrue(wrapper.find('button.icon-repo-clone').prop('disabled'));
     });
@@ -76,6 +77,7 @@ describe('CloneDialog', function() {
     it('disables the clone button with no project path', function() {
       setTextIn('.github-ProjectPath atom-text-editor', '');
       setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      wrapper.update();
 
       assert.isTrue(wrapper.find('button.icon-repo-clone').prop('disabled'));
     });
@@ -83,6 +85,7 @@ describe('CloneDialog', function() {
     it('enables the clone button when both text boxes are populated', function() {
       setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
       setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      wrapper.update();
 
       assert.isFalse(wrapper.find('button.icon-repo-clone').prop('disabled'));
     });

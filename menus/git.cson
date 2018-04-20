@@ -136,3 +136,9 @@
         'command': 'github:force-push'
     }
   ]
+  '.most-recent': [
+    {
+      'label': 'Amend'
+      'command': 'github:amend-last-commit'
+    }
+  ]

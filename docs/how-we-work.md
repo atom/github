@@ -116,6 +116,8 @@ The github package ships as a bundled part of Atom, which affects the way that o
 
 When the team is preparing to ship a new version of Atom, run `apm publish minor` and update `package.json` on Atom's master branch to reference the new version. This will ship our work to Atom's [beta channel](https://atom.io/beta) and allow a smaller subset of our users to discover regressions before we release it to the full Atom user population.
 
+When you update Atom's `package.json`, make sure you wait for Atom to build before you merge your changes. In particular, we've had issues with snapshot tests. You can either do `apm publish pre` on the branch with the fix, then modify `package.json` in your local atom and try a `script/build`.  Or you can open a pull requests and let the CI tests run for you.
+
 When you've merged substantial new functionality, consider running `apm publish minor` and updating `package.json` on Atom's master branch outside of the Atom release cycle, to give the rest of the Atom team time to dogfood the change internally and weigh in with opinions.
 
 After shipping a minor version release for either of the above situations, create and push a release branch from that version's tag:

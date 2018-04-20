@@ -249,7 +249,11 @@ describe('StagingView', function() {
           unstagedChanges: [], stagedChanges: [],
         });
 
-        const filePatchItem = {focus: sinon.spy()};
+        const filePatchItem = {
+          getElement: () => filePatchItem,
+          querySelector: () => filePatchItem,
+          focus: sinon.spy(),
+        };
         workspace.open.returns(filePatchItem);
         await view.showFilePatchItem('file.txt', 'staged', {activate: true});
         assert.equal(workspace.open.callCount, 1);

@@ -54,17 +54,28 @@
     background-color: @syntax-background-color;
     cursor: default;
     opacity: .3;
+    // in expanded editor view, make this button sit on top of
+    // the editor toggle button so the co author toggle is still clickable.
+    z-index: 1;
     &:hover {
       opacity: 1;
+      cursor: pointer;
     }
     &:active {
       opacity: .5;
+    }
+    &.focused {
+      opacity: 1;
     }
 
     &Icon {
       width: 12px;
       height: 7px;
       fill: @text-color;
+
+      &.focused {
+        fill: @button-background-color-selected;
+      }
     }
   }
 
@@ -181,6 +192,10 @@
         margin-right: 0;
       }
     }
+
+    .new-author {
+      font-style: italic;
+    }
   }
 
   &-expandButton {
@@ -263,37 +278,5 @@
 
   .hard-wrap-icons {
     fill: @text-color
-  }
-}
-
-
-
-
-
-
-// Hacks ---------------------------------------------------
-// TODO: Unhack if possible
-
-
-// Fix focus styles
-// Since it's not possible to add a padding to <atom-text-editor>
-// a pseudo element is used to add the border when focused.
-
-.theme-one-dark-ui,
-.theme-one-light-ui {
-  .github-CommitView-editor atom-text-editor.is-focused,
-  .github-CommitView-coAuthorEditor.is-focused {
-    box-shadow: none;
-    &:before {
-      content: "";
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      border: 2px solid;
-      border-color: inherit;
-      border-radius: @component-border-radius;
-    }
   }
 }

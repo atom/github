@@ -34,6 +34,7 @@ describe('InitDialog', function() {
 
   const setTextIn = function(selector, text) {
     wrapper.find(selector).getDOMNode().getModel().setText(text);
+    wrapper.update();
   };
 
   it('defaults to your project home path', function() {
