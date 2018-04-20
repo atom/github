@@ -1,4 +1,4 @@
-import FilePatchSelection from '../../lib/views/file-patch-selection';
+import FilePatchSelection from '../../lib/models/file-patch-selection';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';

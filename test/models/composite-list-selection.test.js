@@ -1,4 +1,4 @@
-import CompositeListSelection from '../../lib/views/composite-list-selection';
+import CompositeListSelection from '../../lib/models/composite-list-selection';
 import {assertEqualSets} from '../helpers';
 
 describe('CompositeListSelection', function() {

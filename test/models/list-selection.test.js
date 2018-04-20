@@ -1,4 +1,4 @@
-import ListSelection from '../../lib/views/list-selection';
+import ListSelection from '../../lib/models/list-selection';
 import {assertEqualSets} from '../helpers';
 
 // This class is mostly tested via CompositeListSelection and
