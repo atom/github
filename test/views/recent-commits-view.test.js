@@ -8,7 +8,7 @@ describe('RecentCommitsView', function() {
   let app;
 
   beforeEach(function() {
-    app = <RecentCommitsView commits={[]} isLoading={false} />;
+    app = <RecentCommitsView commits={[]} undoLastCommit={() => {}} isLoading={false} />;
   });
 
   it('shows a placeholder while commits are empty and loading', function() {
@@ -63,7 +63,7 @@ describe('RecentCommitsView', function() {
       authorEmail: 'thr&ee@z.com',
       authorDate: 0,
       message: 'x',
-      coAuthors: ['two@y.com', 'one@x.com'],
+      coAuthors: [{name: 'One', email: 'two@y.com'}, {name: 'Two', email: 'one@x.com'}],
     })];
 
     app = React.cloneElement(app, {commits});
@@ -96,8 +96,8 @@ describe('RecentCommitsView', function() {
       sha: '1111111111',
       authorEmail: 'me@hooray.horse',
       authorDate: 0,
-      message: 'really really really really really really really long',
-      body: 'and a commit body',
+      messageSubject: 'really really really really really really really long',
+      messageBody: 'and a commit body',
     });
 
     app = React.cloneElement(app, {commits: [commit]});

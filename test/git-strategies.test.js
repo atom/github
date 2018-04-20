@@ -110,7 +110,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
         const commit = await git.getHeadCommit();
         assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
-        assert.equal(commit.message, 'Initial commit');
+        assert.equal(commit.messageSubject, 'Initial commit');
         assert.isFalse(commit.unbornRef);
       });
 
@@ -123,45 +123,58 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
-    describe('getRecentCommits()', function() {
-      it('returns an empty array if no commits exist yet', async function() {
-        const workingDirPath = await initRepository();
-        const git = createTestStrategy(workingDirPath);
+    describe('getCommits()', function() {
+      describe('when no commits exist in the repository', function() {
+        it('returns an array with an unborn ref commit when the include unborn option is passed', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
 
-        const commits = await git.getRecentCommits();
-        assert.lengthOf(commits, 0);
+          const commits = await git.getCommits({includeUnborn: true});
+          assert.lengthOf(commits, 1);
+          assert.isTrue(commits[0].unbornRef);
+        });
+        it('returns an empty array when the include unborn option is not passed', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits();
+          assert.lengthOf(commits, 0);
+        });
       });
 
       it('returns all commits if fewer than max commits exist', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        const commits = await git.getRecentCommits({max: 10});
+        const commits = await git.getCommits({max: 10});
         assert.lengthOf(commits, 3);
 
         assert.deepEqual(commits[0], {
           sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113656,
-          message: 'third commit',
-          body: '',
+          messageSubject: 'third commit',
+          messageBody: '',
           coAuthors: [],
+          unbornRef: false,
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113642,
-          message: 'second commit',
-          body: '',
+          messageSubject: 'second commit',
+          messageBody: '',
           coAuthors: [],
+          unbornRef: false,
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
           authorEmail: 'kuychaco@github.com',
           authorDate: 1471113625,
-          message: 'first commit',
-          body: '',
+          messageSubject: 'first commit',
+          messageBody: '',
           coAuthors: [],
+          unbornRef: false,
         });
       });
 
@@ -174,11 +187,11 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit(`Commit ${i}`, {allowEmpty: true});
         }
 
-        const commits = await git.getRecentCommits({max: 10});
+        const commits = await git.getCommits({max: 10});
         assert.lengthOf(commits, 10);
 
-        assert.strictEqual(commits[0].message, 'Commit 10');
-        assert.strictEqual(commits[9].message, 'Commit 1');
+        assert.strictEqual(commits[0].messageSubject, 'Commit 10');
+        assert.strictEqual(commits[9].messageSubject, 'Commit 1');
       });
 
       it('includes co-authors based on commit body trailers', async function() {
@@ -189,15 +202,27 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           Implemented feature collaboratively
 
           Co-authored-by: name <name@example.com>
-          Co-authored-by: another-name <another-name@example.com>"
-          Co-authored-by: yet-another <yet-another@example.com>"
+          Co-authored-by: another-name <another-name@example.com>
+          Co-authored-by: yet-another <yet-another@example.com>
         `, {allowEmpty: true});
 
-        const commits = await git.getRecentCommits({max: 1});
+        const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
-        assert.deepEqual(commits[0].coAuthors, ['name@example.com', 'another-name@example.com', 'yet-another@example.com']);
+        assert.deepEqual(commits[0].coAuthors, [
+          {
+            name: 'name',
+            email: 'name@example.com',
+          },
+          {
+            name: 'another-name',
+            email: 'another-name@example.com',
+          },
+          {
+            name: 'yet-another',
+            email: 'yet-another@example.com',
+          },
+        ]);
       });
-
     });
 
     describe('getAuthors', function() {
@@ -619,23 +644,69 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
       });
     });
 
+    describe('reset()', function() {
+      describe('when soft and HEAD~ are passed as arguments', function() {
+        it('performs a soft reset to the parent of head', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+
+          fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+          await git.exec(['add', '.']);
+          await git.commit('add stuff');
+
+          const parentCommit = await git.getCommit('HEAD~');
+
+          await git.reset('soft', 'HEAD~');
+
+          const commitAfterReset = await git.getCommit('HEAD');
+          assert.strictEqual(commitAfterReset.sha, parentCommit.sha);
+
+          const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+          assert.lengthOf(stagedChanges, 1);
+          const stagedChange = stagedChanges[0];
+          assert.strictEqual(stagedChange.newPath, 'a.txt');
+          assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
+        });
+      });
+    });
+
     describe('getBranches()', function() {
+      const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
+
+      const master = {
+        name: 'master',
+        head: false,
+        sha,
+        upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+      };
+
+      const currentMaster = {
+        ...master,
+        head: true,
+      };
+
       it('returns an array of all branches', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
         await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [
+          {name: 'another-branch', head: true, sha},
+          master,
+          {name: 'new-branch', head: false, sha},
+        ]);
       });
 
       it('includes branches with slashes in the name', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
+        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
       });
     });
 
@@ -703,20 +774,8 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
-        });
-
-        it('strips out comments and whitespace from message at specified file path', async function() {
-          const workingDirPath = await cloneRepository('multiple-commits');
-          const git = createTestStrategy(workingDirPath);
-
-          const commitMessagePath = path.join(workingDirPath, 'commit-message.txt');
-          fs.writeFileSync(commitMessagePath, message);
-
-          await git.commit({filePath: commitMessagePath}, {allowEmpty: true});
-
-          const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
+          assert.deepEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.deepEqual(lastCommit.messageBody, 'other stuff');
         });
       });
 
@@ -732,6 +791,100 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           assert.notDeepEqual(lastCommit, amendedCommit);
           assert.deepEqual(lastCommitParent, amendedCommitParent);
         });
+      });
+    });
+
+    describe('addCoAuthorsToMessage', function() {
+      it('always adds trailing newline', async () => {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        assert.equal(await git.addCoAuthorsToMessage('test'), 'test\n');
+      });
+
+      it('appends trailers to a summary-only message', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(await git.addCoAuthorsToMessage('foo', coAuthors),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('merges duplicate trailers', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('fixes up malformed trailers when trailers are given', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            // note the lack of space after :
+            'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
       });
     });
 
