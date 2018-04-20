@@ -20,6 +20,14 @@ If you want to see our plans for what we _are_ working on in the very near term,
 * The [`docs/focus` directory in `atom/atom`](https://github.com/atom/atom/tree/master/docs/focus) contains weekly progress and planning updates from the entire core Atom team, including us.
 * Our intermediate-scope plans are listed in [the `#github-package` section of the focus README.](https://github.com/atom/atom/tree/master/docs/focus#github-package)
 
+## This sounds cool, how can I help?
+
+I'm glad you asked!
+
+The first step in tackling any of these would be to [submit an RFC](../how-we-work.md#new-features). The ideas described here are very rough - before we can get to work shipping any of them, we need to reach consensus on scope, graphic design direction, user experience, and many other details. If one of our bullet points sparks your imagination, start a draft of the writeup following [the template we provide](https://github.com/atom/github/blob/master/docs/rfcs/000-template.md). It doesn't have to be complete, but it's a great way to get involved and start a more in-depth conversation.
+
+If that sounds like not much fun to you, and you'd rather just write some code: try making a proof-of-concept as a separate Atom package! Tell us about it in an issue and show us what you've done. If we like it and you're okay with it, we can help you merge it into this package, or we can help provide the proper plumbing to make it an independent thing.
+
 ## Table of Contents
 
 * [`who.md`: Our target audience](./who.md)
