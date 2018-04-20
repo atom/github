@@ -33,4 +33,4 @@ If that sounds like not much fun to you, and you'd rather just write some code: 
 * [`who.md`: Our target audience](./who.md)
 * [`git.md`: Git integration](./git.md)
 * [`github.md`: GitHub integration](./github.md)
-* [`ideas.md`: ](./ideas.md)
+* [`ideas.md`: Proto RFC incubator](./ideas.md)
