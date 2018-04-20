@@ -44,3 +44,5 @@ _In no particular order_
 * Provide advance warning when local changes will have merge conflicts with changes on a remote.
 
 * "Here's what's changed." View pull requests and other recent activity on pull to see what's different.
+
+* Issue drafts. Write quick notes to yourself as the thoughts occur to you, then open them all at once as issue drafts on github.com when you're ready to flesh them out and share them.
