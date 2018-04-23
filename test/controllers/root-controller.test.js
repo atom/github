@@ -1005,7 +1005,7 @@ describe('RootController', function() {
 
         await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
+          `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
         await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
@@ -1050,7 +1050,7 @@ describe('RootController', function() {
 
         await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
+          `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
         await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
