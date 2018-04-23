@@ -2,7 +2,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 import PropTypes from 'prop-types';
 
-import PaneItem from '../../lib/views/pane-item';
+import PaneItem from '../../lib/atom/pane-item';
 
 import {Emitter} from 'event-kit';
 
