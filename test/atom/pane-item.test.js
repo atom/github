@@ -146,6 +146,26 @@ describe('PaneItem', function() {
       assert.deepEqual(calledWith, {id: '456'});
     });
 
+    it('passes the URI itself', async function() {
+      let calledWith = null;
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/{id}">
+          {({uri}) => {
+            calledWith = uri;
+            return <Component text="a prop" />;
+          }}
+        </PaneItem>,
+      );
+
+      assert.isNull(calledWith);
+      await workspace.open('atom-github://pattern/123');
+      assert.strictEqual(calledWith, 'atom-github://pattern/123');
+
+      calledWith = null;
+      await workspace.open('atom-github://pattern/456');
+      assert.strictEqual(calledWith, 'atom-github://pattern/456');
+    });
+
     it('removes a child when its pane is destroyed', async function() {
       const wrapper = mount(
         <PaneItem workspace={workspace} uriPattern="atom-github://pattern/{id}">
