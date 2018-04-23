@@ -120,5 +120,13 @@ describe('URIPattern', function() {
       assert.isTrue(m2.ok());
       assert.deepEqual(m2.getParams(), {multi: ['0', '1', '2']});
     });
+
+    it('URI-decodes matched parameters', function() {
+      const pattern = new URIPattern('proto://host/root/{child}?q={search}');
+      const m = pattern.matches('proto://host/root/hooray%3E%20for%3C%20encodings?q=%3F%26%3F!');
+
+      assert.isTrue(m.ok());
+      assert.deepEqual(m.getParams(), {child: 'hooray> for< encodings', search: '?&?!'});
+    });
   });
 });
