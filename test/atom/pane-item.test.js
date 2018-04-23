@@ -3,6 +3,7 @@ import {shallow, mount} from 'enzyme';
 import PropTypes from 'prop-types';
 
 import PaneItem from '../../lib/atom/pane-item';
+import StubItem from '../../lib/atom-items/stub-item';
 
 class Component extends React.Component {
   static propTypes = {
@@ -181,6 +182,49 @@ describe('PaneItem', function() {
       assert.isTrue(await workspace.paneForItem(item1).destroyItem(item1));
 
       assert.lengthOf(wrapper.update().find('Component'), 1);
+    });
+  });
+
+  describe('when StubItems are present', function() {
+    it('renders children into the stubs', function() {
+      const stub0 = StubItem.create(
+        'some-component',
+        {title: 'Component'},
+        'atom-github://pattern/root/10',
+      );
+      workspace.getActivePane().addItem(stub0);
+      const stub1 = StubItem.create(
+        'other-component',
+        {title: 'Other Component'},
+        'atom-github://other/pattern',
+      );
+      workspace.getActivePane().addItem(stub1);
+
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
+          {({params}) => <Component text={params.id} />}
+        </PaneItem>,
+      );
+
+      assert.lengthOf(wrapper.find('Component'), 1);
+      assert.strictEqual(wrapper.find('Component').prop('text'), '10');
+    });
+
+    it('adopts the real item into the stub', function() {
+      const stub = StubItem.create(
+        'some-component',
+        {title: 'Component'},
+        'atom-github://pattern/root/10',
+      );
+      workspace.getActivePane().addItem(stub);
+
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
+          {({params, itemHolder}) => <Component ref={itemHolder.setter} text={params.id} />}
+        </PaneItem>,
+      );
+
+      assert.strictEqual(stub.getText(), '10');
     });
   });
 });
