@@ -1,10 +1,8 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 import PropTypes from 'prop-types';
 
 import PaneItem from '../../lib/atom/pane-item';
-
-import {Emitter} from 'event-kit';
 
 class Component extends React.Component {
   static propTypes = {
@@ -17,66 +15,132 @@ class Component extends React.Component {
     );
   }
 
+  getTitle() {
+    return `Component with: ${this.props.text}`;
+  }
+
   getText() {
     return this.props.text;
   }
 }
 
 describe('PaneItem', function() {
-  let emitter, workspace, activePane;
+  let atomEnv, workspace;
 
   beforeEach(function() {
-    emitter = new Emitter();
-
-    const paneItem = {
-      destroy: sinon.stub().callsFake(() => emitter.emit('destroy', {item: paneItem})),
-    };
-
-    activePane = {
-      addItem: sinon.stub().callsFake(() => paneItem),
-      activateItem: sinon.stub(),
-    };
-
-    workspace = {
-      getActivePane: sinon.stub().returns(activePane),
-      paneForItem: sinon.stub().returns(activePane),
-      onDidDestroyPaneItem: cb => emitter.on('destroy', cb),
-    };
+    atomEnv = global.buildAtomEnvironment();
+    workspace = atomEnv.workspace;
   });
 
   afterEach(function() {
-    emitter.dispose();
+    atomEnv.destroy();
   });
 
-  it('renders a React component into an Atom pane item', function() {
-    const wrapper = mount(
-      <PaneItem workspace={workspace}>
-        <Component text="hello" />
-      </PaneItem>,
-    );
+  describe('opener', function() {
+    it('registers an opener on the workspace', function() {
+      sinon.spy(workspace, 'addOpener');
 
-    const paneItem = wrapper.instance().getPaneItem();
+      shallow(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
 
-    assert.strictEqual(activePane.addItem.callCount, 1);
-    assert.deepEqual(
-      activePane.addItem.args[0][0].getElement().children[0],
-      wrapper.find('Component').getDOMNode(),
-    );
+      assert.isTrue(workspace.addOpener.called);
+    });
 
-    wrapper.unmount();
+    it('disposes the opener on unmount', function() {
+      const sub = {
+        dispose: sinon.spy(),
+      };
+      sinon.stub(workspace, 'addOpener').returns(sub);
 
-    assert.strictEqual(paneItem.destroy.callCount, 1);
+      const wrapper = shallow(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+      wrapper.unmount();
+
+      assert.isTrue(sub.dispose.called);
+    });
+
+    it('renders no children', function() {
+      const wrapper = shallow(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+
+      assert.lengthOf(wrapper.find('Component'), 0);
+    });
   });
 
-  it('calls props.onDidCloseItem when the pane item is destroyed unexpectedly', function() {
-    const onDidCloseItem = sinon.stub();
-    const wrapper = mount(
-      <PaneItem workspace={workspace} onDidCloseItem={onDidCloseItem}>
-        <Component text="hello" />
-      </PaneItem>,
-    );
+  describe('when opened with a matching URI', function() {
+    it('calls its render prop', async function() {
+      let called = false;
+      shallow(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {() => {
+            called = true;
+            return <Component text="a prop" />;
+          }}
+        </PaneItem>,
+      );
 
-    wrapper.instance().getPaneItem().destroy();
-    assert.strictEqual(onDidCloseItem.callCount, 1);
+      assert.isFalse(called);
+      await workspace.open('atom-github://pattern');
+      assert.isTrue(called);
+    });
+
+    it('uses the child component as the workspace item', async function() {
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" />}
+        </PaneItem>,
+      );
+
+      const item = await workspace.open('atom-github://pattern');
+      assert.strictEqual(item.getTitle(), 'Component with: a prop');
+    });
+
+    it('renders a child item', async function() {
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+      await workspace.open('atom-github://pattern');
+      assert.lengthOf(wrapper.update().find('Component'), 1);
+    });
+
+    it('renders a different child item for each matching URI', async function() {
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/{id}">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+      await workspace.open('atom-github://pattern/1');
+      await workspace.open('atom-github://pattern/2');
+
+      assert.lengthOf(wrapper.update().find('Component'), 2);
+    });
+
+    it('removes a child when its pane is destroyed', async function() {
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/{id}">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+
+      await workspace.open('atom-github://pattern/0');
+      const item1 = await workspace.open('atom-github://pattern/1');
+
+      assert.lengthOf(wrapper.update().find('Component'), 2);
+
+      assert.isTrue(await workspace.paneForItem(item1).destroyItem(item1));
+
+      assert.lengthOf(wrapper.update().find('Component'), 1);
+    });
   });
 });
