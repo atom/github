@@ -42,7 +42,6 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * GitHub avatar for both the committer and (if applicable) author. If either do not exist, show a placeholder.
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
-* A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
 
 ### Undo
 
@@ -91,6 +90,8 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 - Display tracking branch in separator that indicates which commits have been pushed. This could make the purpose of the divider more clear. Drawback is that this takes up space.
 - Refs: Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
   - Drawback: They would take up quite some space and are also unpredictable and might need multiple lines. We'll reconsider adding them in a log/history view.
+- A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
+  - Drawback: If there are more than 2-3 un-pulled commits, it would burry the local commits too much. We'll reconsider adding them in a log/history view.
 
 ## Unresolved questions
 
