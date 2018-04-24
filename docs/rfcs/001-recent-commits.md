@@ -48,10 +48,6 @@ Each **recent commit** within the recent commits section summarizes that commit'
 
 On the most recent commit, display an "undo" button. Clicking "undo" performs a `git reset` and re-populates the commit message editor with the existing message.
 
-### Refs
-
-Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
-
 ### Context menu
 
 Right-clicking a recent commit reveals a context menu offering interactions with the chosen commit. The context menu contains:
@@ -93,6 +89,8 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 ## Rationale and alternatives
 
 - Display tracking branch in separator that indicates which commits have been pushed. This could make the purpose of the divider more clear. Drawback is that this takes up space.
+- Refs: Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
+  - Drawback: They would take up quite some space and are also unpredictable and might need multiple lines. We'll reconsider adding them in a log/history view.
 
 ## Unresolved questions
 
