@@ -109,4 +109,3 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 4. Context menu with actions.
 5. Balloon with action buttons and additional information.
 6. Show which commits have been pushed.
-7. Show information about other refs.
