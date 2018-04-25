@@ -26,6 +26,11 @@ Please check in the generated `graphql/schema.graphql`.
 
 In addition, if you make any changes to any of the GraphQL queries or fragments (inside the `graphql` tagged template literals), you will need to run `npm run relay` to regenerate the statically-generated query files.
 
+## Testing
+To run tests, open the command palette and select "Run Package Specs". This will open a new window running "GitHub Package Tests". If the window stays blank for more than a few seconds, open DevTools and check for error messages.
+
+To re-run tests, you can refresh that window by pressing `Cmd + R` in DevTools.
+
 ### Async Tests
 
 Sometimes it's necessary to test async operations. For example, imagine the following test:

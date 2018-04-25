@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
@@ -13,9 +13,9 @@ import FileSystemChangeObserver from '../../lib/models/file-system-change-observ
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
-  assertDeepPropertyVals, assertEqualSortedArraysByKey,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey, FAKE_USER,
 } from '../helpers';
-import {getPackageRoot, writeFile, copyFile, fsStat, getTempDir} from '../../lib/helpers';
+import {getPackageRoot, getTempDir} from '../../lib/helpers';
 
 describe('Repository', function() {
   it('delegates all state methods', function() {
@@ -72,7 +72,11 @@ describe('Repository', function() {
     it('returns the correct git directory path', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const workingDirPathWithGitFile = await getTempDir();
-      await writeFile(path.join(workingDirPathWithGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+      await fs.writeFile(
+        path.join(workingDirPathWithGitFile, '.git'),
+        `gitdir: ${path.join(workingDirPath, '.git')}`,
+        {encoding: 'utf8'},
+      );
 
       const repository = new Repository(workingDirPath);
       assert.equal(repository.getGitDirectoryPath(), path.join(workingDirPath, '.git'));
@@ -89,7 +93,7 @@ describe('Repository', function() {
 
   describe('init', function() {
     it('creates a repository in the given dir and returns the repository', async function() {
-      const soonToBeRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const soonToBeRepositoryPath = await fs.realpath(temp.mkdirSync());
       const repo = new Repository(soonToBeRepositoryPath);
       assert.isTrue(repo.isLoading());
 
@@ -106,7 +110,7 @@ describe('Repository', function() {
   describe('clone', function() {
     it('clones a repository from a URL to a directory and returns the repository', async function() {
       const upstreamPath = await cloneRepository('three-files');
-      const destDir = fs.realpathSync(temp.mkdirSync());
+      const destDir = await fs.realpath(temp.mkdirSync());
 
       const repo = new Repository(destDir);
       const clonePromise = repo.clone(upstreamPath);
@@ -118,7 +122,7 @@ describe('Repository', function() {
 
     it('clones a repository when the directory does not exist yet', async function() {
       const upstreamPath = await cloneRepository('three-files');
-      const parentDir = fs.realpathSync(temp.mkdirSync());
+      const parentDir = await fs.realpath(temp.mkdirSync());
       const destDir = path.join(parentDir, 'subdir');
 
       const repo = new Repository(destDir);
@@ -214,52 +218,90 @@ describe('Repository', function() {
       assert.deepEqual(await repo.getStagedChanges(), [unstagedChanges[2]]);
     });
 
-    it('can unstage and retrieve staged changes relative to HEAD~', async function() {
-      const workingDirPath = await cloneRepository('multiple-commits');
+    it('can stage and unstage file modes without staging file contents', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      const filePath = 'a.txt';
+
+      async function indexModeAndOid(filename) {
+        const output = await repo.git.exec(['ls-files', '-s', '--', filename]);
+        const parts = output.split(' ');
+        return {mode: parts[0], oid: parts[1]};
+      }
+
+      const {mode, oid} = await indexModeAndOid(path.join(workingDirPath, filePath));
+      assert.equal(mode, '100644');
+      fs.chmodSync(path.join(workingDirPath, filePath), 0o755);
+      fs.writeFileSync(path.join(workingDirPath, filePath), 'qux\nfoo\nbar\n', 'utf8');
+
+      await repo.stageFileModeChange(filePath, '100755');
+      assert.deepEqual(await indexModeAndOid(filePath), {mode: '100755', oid});
+
+      await repo.stageFileModeChange(filePath, '100644');
+      assert.deepEqual(await indexModeAndOid(filePath), {mode: '100644', oid});
+    });
+
+    it('can stage and unstage symlink changes without staging file contents', async function() {
+      const workingDirPath = await cloneRepository('symlinks');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'three\nfour\n', 'utf8');
-      assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), [
-        {
-          filePath: 'file.txt',
-          status: 'modified',
-        },
-      ]);
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
-        oldPath: 'file.txt',
-        newPath: 'file.txt',
-        status: 'modified',
-        hunks: [
-          {
-            lines: [
-              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-            ],
-          },
-        ],
-      });
+      async function indexModeAndOid(filename) {
+        const output = await repo.git.exec(['ls-files', '-s', '--', filename]);
+        if (output) {
+          const parts = output.split(' ');
+          return {mode: parts[0], oid: parts[1]};
+        } else {
+          return null;
+        }
+      }
 
-      await repo.stageFiles(['file.txt']);
-      repo.refresh();
-      assertDeepPropertyVals(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), {
-        oldPath: 'file.txt',
-        newPath: 'file.txt',
-        status: 'modified',
-        hunks: [
-          {
-            lines: [
-              {status: 'deleted', text: 'two', oldLineNumber: 1, newLineNumber: -1},
-              {status: 'added', text: 'three', oldLineNumber: -1, newLineNumber: 1},
-              {status: 'added', text: 'four', oldLineNumber: -1, newLineNumber: 2},
-            ],
-          },
-        ],
-      });
+      const deletedSymlinkAddedFilePath = 'symlink.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+      fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
 
-      await repo.stageFilesFromParentCommit(['file.txt']);
-      repo.refresh();
-      assert.deepEqual(await repo.getStagedChangesSinceParentCommit(), []);
+      const deletedFileAddedSymlinkPath = 'a.txt';
+      fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+
+      // Stage symlink change, leaving added file unstaged
+      assert.equal((await indexModeAndOid(deletedSymlinkAddedFilePath)).mode, '120000');
+      await repo.stageFileSymlinkChange(deletedSymlinkAddedFilePath);
+      assert.isNull(await indexModeAndOid(deletedSymlinkAddedFilePath));
+      const unstagedFilePatch = await repo.getFilePatchForPath(deletedSymlinkAddedFilePath, {staged: false});
+      assert.equal(unstagedFilePatch.getStatus(), 'added');
+      assert.equal(unstagedFilePatch.toString(), dedent`
+        diff --git a/symlink.txt b/symlink.txt
+        new file mode 100644
+        --- /dev/null
+        +++ b/symlink.txt
+        @@ -0,0 +1,3 @@
+        +qux
+        +foo
+        +bar
+
+      `);
+
+      // Unstage symlink change, leaving deleted file staged
+      await repo.stageFiles([deletedFileAddedSymlinkPath]);
+      assert.equal((await indexModeAndOid(deletedFileAddedSymlinkPath)).mode, '120000');
+      await repo.stageFileSymlinkChange(deletedFileAddedSymlinkPath);
+      assert.isNull(await indexModeAndOid(deletedFileAddedSymlinkPath));
+      const stagedFilePatch = await repo.getFilePatchForPath(deletedFileAddedSymlinkPath, {staged: true});
+      assert.equal(stagedFilePatch.getStatus(), 'deleted');
+      assert.equal(stagedFilePatch.toString(), dedent`
+        diff --git a/a.txt b/a.txt
+        deleted file mode 100644
+        --- a/a.txt
+        +++ /dev/null
+        @@ -1,4 +0,0 @@
+        -foo
+        -bar
+        -baz
+        -
+
+      `);
     });
   });
 
@@ -275,10 +317,8 @@ describe('Repository', function() {
 
       const unstagedFilePatch = await repo.getFilePatchForPath('new-file.txt');
       const stagedFilePatch = await repo.getFilePatchForPath('file.txt', {staged: true});
-      const stagedFilePatchDuringAmend = await repo.getFilePatchForPath('file.txt', {staged: true, amending: true});
       assert.equal(await repo.getFilePatchForPath('new-file.txt'), unstagedFilePatch);
       assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true}), stagedFilePatch);
-      assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true, amending: true}), stagedFilePatchDuringAmend);
     });
 
     it('returns new FilePatch object after repository refresh', async function() {
@@ -373,14 +413,14 @@ describe('Repository', function() {
   });
 
   describe('commit', function() {
-    let realPath = '';
+    let rp = '';
 
     beforeEach(function() {
-      realPath = process.env.PATH;
+      rp = process.env.PATH;
     });
 
     afterEach(function() {
-      process.env.PATH = realPath;
+      process.env.PATH = rp;
     });
 
     it('creates a commit that contains the staged changes', async function() {
@@ -388,7 +428,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Initial commit');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Initial commit');
 
       fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
@@ -396,7 +436,7 @@ describe('Repository', function() {
       repo.refresh();
       await repo.applyPatchToIndex(unstagedPatch1);
       await repo.commit('Commit 1');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 1');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 1');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       const unstagedChanges = await repo.getUnstagedChanges();
@@ -405,7 +445,7 @@ describe('Repository', function() {
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
       await repo.applyPatchToIndex(unstagedPatch2);
       await repo.commit('Commit 2');
-      assert.equal((await repo.getLastCommit()).getMessage(), 'Commit 2');
+      assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Commit 2');
       repo.refresh();
       assert.deepEqual(await repo.getStagedChanges(), []);
       assert.deepEqual(await repo.getUnstagedChanges(), []);
@@ -418,8 +458,7 @@ describe('Repository', function() {
 
       const lastCommit = await repo.git.getHeadCommit();
       const lastCommitParent = await repo.git.getCommit('HEAD~');
-      repo.setAmending(true);
-      await repo.commit('amend last commit', {allowEmpty: true});
+      await repo.commit('amend last commit', {allowEmpty: true, amend: true});
       const amendedCommit = await repo.git.getHeadCommit();
       const amendedCommitParent = await repo.git.getCommit('HEAD~');
       assert.notDeepEqual(lastCommit, amendedCommit);
@@ -456,7 +495,7 @@ describe('Repository', function() {
     it('executes hook scripts with a sane environment', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
-      await copyFile(
+      await fs.copy(
         path.join(scriptDirPath, 'hook.sh'),
         path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
       );
@@ -478,14 +517,41 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.fetch('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'second commit');
+    });
+  });
+
+  describe('getCommitter', function() {
+    it('returns user name and email if they exist', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+      assert.deepEqual(await repository.getCommitter(), {
+        name: FAKE_USER.name,
+        email: FAKE_USER.email,
+      });
+    });
+
+    it('returns empty object if user name or email do not exist', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+      await repository.git.unsetConfig('user.name');
+      await repository.git.unsetConfig('user.email');
+
+        // getting the local config for testing purposes only because we don't
+        // want to blow away global config when running tests.
+      assert.deepEqual(await repository.getCommitter({local: true}), {
+        name: null,
+        email: null,
+      });
     });
   });
 
@@ -498,19 +564,19 @@ describe('Repository', function() {
       let remoteHead, localHead;
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'second commit');
-      assert.equal(localHead.message, 'second commit');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'second commit');
 
       await localRepo.pull('master');
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
-      assert.equal(remoteHead.message, 'third commit');
-      assert.equal(localHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'third commit');
     });
   });
 
   describe('push()', function() {
-    it('sends commits to the remote and updates ', async function() {
+    it('sends commits to the remote and updates', async function() {
       const {localRepoPath, remoteRepoPath} = await setUpLocalAndRemoteRepositories();
       const localRepo = new Repository(localRepoPath);
       await localRepo.getLoadPromise();
@@ -526,7 +592,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.notDeepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'third commit');
+      assert.equal(remoteHead.messageSubject, 'third commit');
       assert.deepEqual(remoteHead, localRemoteHead);
 
       await localRepo.push('master');
@@ -534,7 +600,7 @@ describe('Repository', function() {
       localRemoteHead = await localRepo.git.getCommit('origin/master');
       remoteHead = await getHeadCommitOnRemote(remoteRepoPath);
       assert.deepEqual(localHead, remoteHead);
-      assert.equal(remoteHead.message, 'fifth commit');
+      assert.equal(remoteHead.messageSubject, 'fifth commit');
       assert.deepEqual(remoteHead, localRemoteHead);
     });
   });
@@ -920,9 +986,10 @@ describe('Repository', function() {
         });
 
         const stats = await Promise.all(
-          files
-            .map(file => fsStat(path.join(currentDirectory, file))
-            .then(stat => ({file, stat}))),
+          files.map(async file => {
+            const stat = await fs.stat(path.join(currentDirectory, file));
+            return {file, stat};
+          }),
         );
 
         const subdirs = [];
@@ -957,12 +1024,12 @@ describe('Repository', function() {
         () => repository.getHeadDescription(),
       );
       calls.set(
-        'getStagedChangesSinceParentCommit',
-        () => repository.getStagedChangesSinceParentCommit(),
-      );
-      calls.set(
         'getLastCommit',
         () => repository.getLastCommit(),
+      );
+      calls.set(
+        'getRecentCommits',
+        () => repository.getRecentCommits(),
       );
       calls.set(
         'getBranches',
@@ -981,10 +1048,6 @@ describe('Repository', function() {
         calls.set(
           `getFilePatchForPath {staged} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: true}),
-        );
-        calls.set(
-          `getFilePatchForPath {staged, amending} ${fileName}`,
-          () => repository.getFilePatchForPath(fileName, {staged: true, amending: true}),
         );
         calls.set(
           `readFileFromIndex ${fileName}`,
@@ -1116,7 +1179,7 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'bar\nbar-1\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'bar\nbar-1\n', {encoding: 'utf8'});
 
         await assertCorrectInvalidation({repository}, async () => {
           await repository.stageFiles(['a.txt']);
@@ -1128,7 +1191,7 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'bar\nbaz\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'bar\nbaz\n', {encoding: 'utf8'});
         await repository.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1141,7 +1204,7 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'bar\nbaz\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'bar\nbaz\n', {encoding: 'utf8'});
         await repository.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1154,9 +1217,9 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n', {encoding: 'utf8'});
         const patch = await repository.getFilePatchForPath('a.txt');
-        await writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\nfoo-2\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\nfoo-2\n', {encoding: 'utf8'});
 
         await assertCorrectInvalidation({repository}, async () => {
           await repository.applyPatchToIndex(patch);
@@ -1168,7 +1231,7 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n', {encoding: 'utf8'});
         const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1181,7 +1244,7 @@ describe('Repository', function() {
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(workdir, 'b.txt'), 'foo\nfoo-1\nfoo-2\n');
+        await fs.writeFile(path.join(workdir, 'b.txt'), 'foo\nfoo-1\nfoo-2\n', {encoding: 'utf8'});
         await repository.stageFiles(['b.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1213,12 +1276,12 @@ describe('Repository', function() {
       });
 
       it('when writing a merge conflict to the index', async function() {
-        const workdir = await cloneRepository('three-files');
+        const workdir = await cloneRepository('multi-commits-files');
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
         const fullPath = path.join(workdir, 'a.txt');
-        await writeFile(fullPath, 'qux\nfoo\nbar\n');
+        await fs.writeFile(fullPath, 'qux\nfoo\nbar\n', {encoding: 'utf8'});
         await repository.git.exec(['update-index', '--chmod=+x', 'a.txt']);
 
         const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
@@ -1268,7 +1331,7 @@ describe('Repository', function() {
         const repository = new Repository(localRepoPath);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await fs.writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['new-file.txt']);
         await repository.commit('wat');
 
@@ -1282,7 +1345,7 @@ describe('Repository', function() {
         const repository = new Repository(localRepoPath);
         await repository.getLoadPromise();
 
-        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await fs.writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['new-file.txt']);
         await repository.commit('wat');
 
@@ -1292,7 +1355,7 @@ describe('Repository', function() {
       });
 
       it('when setting a config option', async function() {
-        const workdir = await cloneRepository('three-files');
+        const workdir = await cloneRepository('multi-commits-files');
         const repository = new Repository(workdir);
         await repository.getLoadPromise();
 
@@ -1308,8 +1371,8 @@ describe('Repository', function() {
         await repository.getLoadPromise();
 
         await Promise.all([
-          writeFile(path.join(workdir, 'a.txt'), 'aaa\n'),
-          writeFile(path.join(workdir, 'c.txt'), 'baz\n'),
+          fs.writeFile(path.join(workdir, 'a.txt'), 'aaa\n', {encoding: 'utf8'}),
+          fs.writeFile(path.join(workdir, 'c.txt'), 'baz\n', {encoding: 'utf8'}),
         ]);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1385,7 +1448,7 @@ describe('Repository', function() {
       it('when staging files', async function() {
         const {repository, observer} = await wireUpObserver();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -1397,7 +1460,7 @@ describe('Repository', function() {
       it('when unstaging files', async function() {
         const {repository, observer} = await wireUpObserver();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
         await repository.git.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1420,12 +1483,12 @@ describe('Repository', function() {
       it('when applying a patch to the index', async function() {
         const {repository, observer} = await wireUpObserver();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
         const patch = await repository.getFilePatchForPath('a.txt');
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await repository.git.applyPatch(patch.getHeaderString() + patch.toString(), {index: true});
+          await repository.git.applyPatch(patch.toString(), {index: true});
           await expectEvents(
             repository,
             path.join('.git', 'index'),
@@ -1436,12 +1499,12 @@ describe('Repository', function() {
       it('when applying a patch to the working directory', async function() {
         const {repository, observer} = await wireUpObserver();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
         const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await repository.git.applyPatch(patch.getHeaderString() + patch.toString());
+          await repository.git.applyPatch(patch.toString());
           await expectEvents(
             repository,
             'a.txt',
@@ -1452,7 +1515,7 @@ describe('Repository', function() {
       it('when committing', async function() {
         const {repository, observer} = await wireUpObserver();
 
-        await writeFile(path.join(workdir, 'a.txt'), 'boop\n');
+        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
         await repository.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1548,7 +1611,7 @@ describe('Repository', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
         const {repository, observer} = await wireUpObserver(null, localRepoPath);
 
-        await writeFile(path.join(localRepoPath, 'file.txt'), 'one\n');
+        await fs.writeFile(path.join(localRepoPath, 'file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['file.txt']);
         await repository.commit('wat');
 
@@ -1569,7 +1632,7 @@ describe('Repository', function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
         const {repository, observer} = await wireUpObserver(null, localRepoPath);
 
-        await writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n');
+        await fs.writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['new-file.txt']);
         await repository.commit('wat');
 
@@ -1602,7 +1665,7 @@ describe('Repository', function() {
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await writeFile(path.join(workdir, 'b.txt'), 'new contents\n');
+          await fs.writeFile(path.join(workdir, 'b.txt'), 'new contents\n', {encoding: 'utf8'});
           await expectEvents(
             repository,
             'b.txt',

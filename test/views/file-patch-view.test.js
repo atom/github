@@ -9,7 +9,8 @@ import {assertEqualSets} from '../helpers';
 
 describe('FilePatchView', function() {
   let atomEnv, commandRegistry, tooltips, component;
-  let attemptLineStageOperation, attemptHunkStageOperation, discardLines, undoLastDiscard, openCurrentFile;
+  let attemptLineStageOperation, attemptHunkStageOperation, attemptFileStageOperation, attemptSymlinkStageOperation;
+  let attemptModeStageOperation, discardLines, undoLastDiscard, openCurrentFile;
   let didSurfaceFile, didDiveIntoCorrespondingFilePatch, handleShowDiffClick;
 
   beforeEach(function() {
@@ -19,6 +20,9 @@ describe('FilePatchView', function() {
 
     attemptLineStageOperation = sinon.spy();
     attemptHunkStageOperation = sinon.spy();
+    attemptModeStageOperation = sinon.spy();
+    attemptFileStageOperation = sinon.spy();
+    attemptSymlinkStageOperation = sinon.spy();
     discardLines = sinon.spy();
     undoLastDiscard = sinon.spy();
     openCurrentFile = sinon.spy();
@@ -36,7 +40,10 @@ describe('FilePatchView', function() {
         isPartiallyStaged={false}
         hasUndoHistory={false}
         attemptLineStageOperation={attemptLineStageOperation}
+        attemptFileStageOperation={attemptFileStageOperation}
+        attemptModeStageOperation={attemptModeStageOperation}
         attemptHunkStageOperation={attemptHunkStageOperation}
+        attemptSymlinkStageOperation={attemptSymlinkStageOperation}
         discardLines={discardLines}
         undoLastDiscard={undoLastDiscard}
         openCurrentFile={openCurrentFile}
@@ -75,6 +82,7 @@ describe('FilePatchView', function() {
       getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
       getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
       wrapper.instance().mouseup();
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
@@ -84,6 +92,7 @@ describe('FilePatchView', function() {
       // start a new selection, drag it across an existing selection
       getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunks[1], hunks[1].lines[3]);
       getHunkView(0).prop('mousemoveOnLine')({}, hunks[0], hunks[0].lines[0]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -95,6 +104,7 @@ describe('FilePatchView', function() {
 
       // drag back down without releasing mouse; the other selection remains intact
       getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[3]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -107,6 +117,7 @@ describe('FilePatchView', function() {
       // drag back up so selections are adjacent, then release the mouse. selections should merge.
       getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[2]);
       wrapper.instance().mouseup();
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
@@ -117,12 +128,14 @@ describe('FilePatchView', function() {
 
       // we detect merged selections based on the head here
       wrapper.instance().selectToNext();
+      wrapper.update();
 
       assert.isFalse(getHunkView(0).prop('isSelected'));
       assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
 
       // double-clicking clears the existing selection and starts hunk-wise selection
       getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 2}, hunks[0], hunks[0].lines[2]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -130,6 +143,7 @@ describe('FilePatchView', function() {
       assert.isFalse(getHunkView(1).prop('isSelected'));
 
       getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -141,6 +155,7 @@ describe('FilePatchView', function() {
 
       // clicking the header clears the existing selection and starts hunk-wise selection
       getHunkView(0).prop('mousedownOnHeader')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -148,6 +163,7 @@ describe('FilePatchView', function() {
       assert.isFalse(getHunkView(1).prop('isSelected'));
 
       getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
+      wrapper.update();
 
       assert.isTrue(getHunkView(0).prop('isSelected'));
       assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
@@ -463,6 +479,7 @@ describe('FilePatchView', function() {
     assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Hunk');
 
     wrapper.instance().togglePatchSelectionMode();
+    wrapper.update();
 
     assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Selection');
     wrapper.setProps({stagingStatus: 'unstaged'});

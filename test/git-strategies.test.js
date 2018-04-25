@@ -12,7 +12,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
-import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/helpers';
+import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -48,7 +48,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       `;
 
       const hookPath = path.join(workingDirPath, '.git', 'hooks', 'pre-commit');
-      await writeFile(hookPath, hookContent);
+      await fs.writeFile(hookPath, hookContent, {encoding: 'utf8'});
       fs.chmodSync(hookPath, 0o755);
 
       delete process.env.ALLOWCOMMIT;
@@ -72,7 +72,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       it('supports gitdir files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const workingDirPathWithDotGitFile = await getTempDir();
-        await writeFile(path.join(workingDirPathWithDotGitFile, '.git'), `gitdir: ${path.join(workingDirPath, '.git')}`);
+        await fs.writeFile(
+          path.join(workingDirPathWithDotGitFile, '.git'),
+          `gitdir: ${path.join(workingDirPath, '.git')}`,
+          {encoding: 'utf8'},
+        );
 
         const git = createTestStrategy(workingDirPathWithDotGitFile);
         const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
@@ -88,8 +92,8 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
           const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
 
-          await writeFile(absPathA, 'some changes here\n');
-          await writeFile(absPathB, 'more changes here\n');
+          await fs.writeFile(absPathA, 'some changes here\n', {encoding: 'utf8'});
+          await fs.writeFile(absPathB, 'more changes here\n', {encoding: 'utf8'});
           await git.stageFiles([relPathB]);
 
           const {changedEntries} = await git.getStatusBundle();
@@ -106,7 +110,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
         const commit = await git.getHeadCommit();
         assert.equal(commit.sha, '66d11860af6d28eb38349ef83de475597cb0e8b4');
-        assert.equal(commit.message, 'Initial commit');
+        assert.equal(commit.messageSubject, 'Initial commit');
         assert.isFalse(commit.unbornRef);
       });
 
@@ -116,6 +120,181 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
         const commit = await git.getHeadCommit();
         assert.isTrue(commit.unbornRef);
+      });
+    });
+
+    describe('getCommits()', function() {
+      describe('when no commits exist in the repository', function() {
+        it('returns an array with an unborn ref commit when the include unborn option is passed', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits({includeUnborn: true});
+          assert.lengthOf(commits, 1);
+          assert.isTrue(commits[0].unbornRef);
+        });
+        it('returns an empty array when the include unborn option is not passed', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits();
+          assert.lengthOf(commits, 0);
+        });
+      });
+
+      it('returns all commits if fewer than max commits exist', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        const commits = await git.getCommits({max: 10});
+        assert.lengthOf(commits, 3);
+
+        assert.deepEqual(commits[0], {
+          sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113656,
+          messageSubject: 'third commit',
+          messageBody: '',
+          coAuthors: [],
+          unbornRef: false,
+        });
+        assert.deepEqual(commits[1], {
+          sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113642,
+          messageSubject: 'second commit',
+          messageBody: '',
+          coAuthors: [],
+          unbornRef: false,
+        });
+        assert.deepEqual(commits[2], {
+          sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
+          authorEmail: 'kuychaco@github.com',
+          authorDate: 1471113625,
+          messageSubject: 'first commit',
+          messageBody: '',
+          coAuthors: [],
+          unbornRef: false,
+        });
+      });
+
+      it('returns an array of the last max commits', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        for (let i = 1; i <= 10; i++) {
+          // eslint-disable-next-line no-await-in-loop
+          await git.commit(`Commit ${i}`, {allowEmpty: true});
+        }
+
+        const commits = await git.getCommits({max: 10});
+        assert.lengthOf(commits, 10);
+
+        assert.strictEqual(commits[0].messageSubject, 'Commit 10');
+        assert.strictEqual(commits[9].messageSubject, 'Commit 1');
+      });
+
+      it('includes co-authors based on commit body trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another-name <another-name@example.com>
+          Co-authored-by: yet-another <yet-another@example.com>
+        `, {allowEmpty: true});
+
+        const commits = await git.getCommits({max: 1});
+        assert.lengthOf(commits, 1);
+        assert.deepEqual(commits[0].coAuthors, [
+          {
+            name: 'name',
+            email: 'name@example.com',
+          },
+          {
+            name: 'another-name',
+            email: 'another-name@example.com',
+          },
+          {
+            name: 'yet-another',
+            email: 'yet-another@example.com',
+          },
+        ]);
+      });
+    });
+
+    describe('getAuthors', function() {
+      it('returns list of all authors in the last <max> commits', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Mona Lisa']);
+        await git.exec(['config', 'user.email', 'mona@lisa.com']);
+        await git.commit('Commit from Mona', {allowEmpty: true});
+
+        await git.exec(['config', 'user.name', 'Hubot']);
+        await git.exec(['config', 'user.email', 'hubot@github.com']);
+        await git.commit('Commit from Hubot', {allowEmpty: true});
+
+        await git.exec(['config', 'user.name', 'Me']);
+        await git.exec(['config', 'user.email', 'me@github.com']);
+        await git.commit('Commit from me', {allowEmpty: true});
+
+        const authors = await git.getAuthors({max: 3});
+        assert.deepEqual(authors, {
+          'mona@lisa.com': 'Mona Lisa',
+          'hubot@github.com': 'Hubot',
+          'me@github.com': 'Me',
+        });
+      });
+
+      it('includes commit authors', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+        await git.exec(['commit', '--allow-empty', '--author="A U Thor <author@site.org>"', '-m', 'Commit together!']);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'author@site.org': 'A U Thor',
+        });
+      });
+
+      it('includes co-authors from trailers', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.exec(['config', 'user.name', 'Com Mitter']);
+        await git.exec(['config', 'user.email', 'comitter@place.com']);
+
+        await git.commit(dedent`
+          Implemented feature collaboratively
+
+          Co-authored-by: name <name@example.com>
+          Co-authored-by: another name <another-name@example.com>
+          Co-authored-by: yet another name <yet-another@example.com>
+        `, {allowEmpty: true});
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, {
+          'comitter@place.com': 'Com Mitter',
+          'name@example.com': 'name',
+          'another-name@example.com': 'another name',
+          'yet-another@example.com': 'yet another name',
+        });
+      });
+
+      it('returns an empty array when there are no commits', async function() {
+        const workingDirPath = await initRepository();
+        const git = createTestStrategy(workingDirPath);
+
+        const authors = await git.getAuthors({max: 1});
+        assert.deepEqual(authors, []);
       });
     });
 
@@ -187,20 +366,20 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
-    describe('getDiffForFilePath', function() {
+    describe('getDiffsForFilePath', function() {
       it('returns an empty array if there are no modified, added, or deleted files', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        const diffOutput = await git.getDiffForFilePath('a.txt');
-        assert.isUndefined(diffOutput);
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('ignores merge conflict files', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        const diffOutput = await git.getDiffForFilePath('added-to-both.txt');
-        assert.isUndefined(diffOutput);
+        const diffOutput = await git.getDiffsForFilePath('added-to-both.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('bypasses external diff tools', async function() {
@@ -209,7 +388,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
-        const diffOutput = await git.getDiffForFilePath('a.txt');
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
 
         assert.isDefined(diffOutput);
@@ -222,7 +401,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('a.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -242,9 +421,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('c.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt'), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -260,9 +439,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'deleted',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('d.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt'), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -278,7 +457,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
         });
       });
 
@@ -290,7 +469,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
           await git.exec(['add', '.']);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('a.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt', {staged: true}), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -310,9 +489,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('c.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt', {staged: true}), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -328,9 +507,9 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'deleted',
-          });
+          }]);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('d.txt', {staged: true}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt', {staged: true}), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -346,7 +525,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
         });
       });
 
@@ -355,7 +534,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
 
-          assertDeepPropertyVals(await git.getDiffForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), [{
             oldPath: 'file.txt',
             newPath: 'file.txt',
             oldMode: '100644',
@@ -371,7 +550,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'modified',
-          });
+          }]);
         });
       });
 
@@ -380,7 +559,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          assertDeepPropertyVals(await git.getDiffForFilePath('new-file.txt'), {
+          assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.txt'), [{
             oldPath: null,
             newPath: 'new-file.txt',
             oldMode: null,
@@ -400,7 +579,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               },
             ],
             status: 'added',
-          });
+          }]);
 
         });
 
@@ -413,14 +592,14 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
               data.writeUInt8(i + 200, i);
             }
             fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
-            assertDeepPropertyVals(await git.getDiffForFilePath('new-file.bin'), {
+            assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
               newMode: '100644',
               hunks: [],
               status: 'added',
-            });
+            }]);
           });
         });
       });
@@ -465,23 +644,69 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
     });
 
+    describe('reset()', function() {
+      describe('when soft and HEAD~ are passed as arguments', function() {
+        it('performs a soft reset to the parent of head', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+
+          fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+          await git.exec(['add', '.']);
+          await git.commit('add stuff');
+
+          const parentCommit = await git.getCommit('HEAD~');
+
+          await git.reset('soft', 'HEAD~');
+
+          const commitAfterReset = await git.getCommit('HEAD');
+          assert.strictEqual(commitAfterReset.sha, parentCommit.sha);
+
+          const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+          assert.lengthOf(stagedChanges, 1);
+          const stagedChange = stagedChanges[0];
+          assert.strictEqual(stagedChange.newPath, 'a.txt');
+          assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
+        });
+      });
+    });
+
     describe('getBranches()', function() {
+      const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
+
+      const master = {
+        name: 'master',
+        head: false,
+        sha,
+        upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+      };
+
+      const currentMaster = {
+        ...master,
+        head: true,
+      };
+
       it('returns an array of all branches', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
         await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['another-branch', 'master', 'new-branch']);
+        assert.deepEqual(await git.getBranches(), [
+          {name: 'another-branch', head: true, sha},
+          master,
+          {name: 'new-branch', head: false, sha},
+        ]);
       });
 
       it('includes branches with slashes in the name', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), ['master']);
+        assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), ['a/fancy/new/branch', 'master']);
+        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
       });
     });
 
@@ -549,20 +774,8 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
-        });
-
-        it('strips out comments and whitespace from message at specified file path', async function() {
-          const workingDirPath = await cloneRepository('multiple-commits');
-          const git = createTestStrategy(workingDirPath);
-
-          const commitMessagePath = path.join(workingDirPath, 'commit-message.txt');
-          fs.writeFileSync(commitMessagePath, message);
-
-          await git.commit({filePath: commitMessagePath}, {allowEmpty: true});
-
-          const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.message, 'Make a commit\n\nother stuff');
+          assert.deepEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.deepEqual(lastCommit.messageBody, 'other stuff');
         });
       });
 
@@ -578,6 +791,100 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           assert.notDeepEqual(lastCommit, amendedCommit);
           assert.deepEqual(lastCommitParent, amendedCommitParent);
         });
+      });
+    });
+
+    describe('addCoAuthorsToMessage', function() {
+      it('always adds trailing newline', async () => {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        assert.equal(await git.addCoAuthorsToMessage('test'), 'test\n');
+      });
+
+      it('appends trailers to a summary-only message', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(await git.addCoAuthorsToMessage('foo', coAuthors),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('merges duplicate trailers', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+          },
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            'foo\n\nCo-Authored-By: Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
+      });
+
+      // note, this relies on the default git config
+      it('fixes up malformed trailers when trailers are given', async () => {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const coAuthors = [
+          {
+            name: 'Neha Batra',
+            email: 'nerdneha@github.com',
+          },
+        ];
+
+        assert.equal(
+          await git.addCoAuthorsToMessage(
+            // note the lack of space after :
+            'foo\n\nCo-Authored-By:Markus Olsson <niik@github.com>',
+            coAuthors,
+          ),
+          dedent`
+            foo
+
+            Co-Authored-By: Markus Olsson <niik@github.com>
+            Co-Authored-By: Neha Batra <nerdneha@github.com>
+
+          `,
+        );
       });
     });
 
@@ -834,7 +1141,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
         fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
-        const regularMode = await fsStat(absFilePath).mode;
+        const regularMode = (await fs.stat(absFilePath)).mode;
         const executableMode = regularMode | fs.constants.S_IXUSR; // eslint-disable-line no-bitwise
 
         assert.equal(await git.getFileMode('new-file.txt'), '100644');
@@ -937,6 +1244,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
 
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
+        if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const workerManager = WorkerManager.getInstance();
@@ -1059,6 +1371,11 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
       });
 
       it('fails the command on dialog cancel', async function() {
+        if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
+          this.skip();
+          return;
+        }
+
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {
@@ -1176,6 +1493,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
         process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+        process.env.GIT_SSH_VARIANT = 'simple';
 
         return git;
       }
@@ -1219,8 +1537,7 @@ import {fsStat, normalizeGitHelperPath, writeFile, getTempDir} from '../lib/help
           },
         });
 
-        // The git operation Promise does *not* reject if the git process is killed by a signal.
-        await git.fetch('mock', 'master');
+        await git.fetch('mock', 'master').catch(() => {});
 
         assert.equal(query.prompt, 'Speak friend and enter');
         assert.isFalse(query.includeUsername);

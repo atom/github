@@ -1,10 +1,10 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
 
-import {cloneRepository} from './helpers';
-import {writeFile, deleteFileOrFolder, fileExists, getTempDir} from '../lib/helpers';
+import {cloneRepository, disableFilesystemWatchers} from './helpers';
+import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
@@ -12,8 +12,10 @@ describe('GithubPackage', function() {
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+    await disableFilesystemWatchers(atomEnv);
+
     workspace = atomEnv.workspace;
     project = atomEnv.project;
     commandRegistry = atomEnv.commands;
@@ -33,7 +35,9 @@ describe('GithubPackage', function() {
     );
 
     sinon.stub(githubPackage, 'rerender').callsFake(callback => {
-      callback && setTimeout(callback);
+      if (callback) {
+        process.nextTick(callback);
+      }
     });
 
     contextPool = githubPackage.getContextPool();
@@ -41,6 +45,7 @@ describe('GithubPackage', function() {
 
   afterEach(async function() {
     await githubPackage.deactivate();
+
     atomEnv.destroy();
   });
 
@@ -238,7 +243,7 @@ describe('GithubPackage', function() {
       // Repository with a merge conflict, repository without a merge conflict, path without a repository
       const workdirMergeConflict = await cloneRepository('merge-conflict');
       const workdirNoConflict = await cloneRepository('three-files');
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const nonRepositoryPath = await fs.realpath(temp.mkdirSync());
       fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
 
       project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
@@ -282,7 +287,7 @@ describe('GithubPackage', function() {
 
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
-        await deleteFileOrFolder(confFile);
+        await fs.remove(confFile);
       });
 
       it('renders with startOpen on the first run', async function() {
@@ -294,7 +299,7 @@ describe('GithubPackage', function() {
       });
 
       it('renders without startOpen on non-first runs', async function() {
-        await writeFile(confFile, '');
+        await fs.writeFile(confFile, '', {encoding: 'utf8'});
         await githubPackage.activate();
 
         assert.isFalse(githubPackage.startOpen);
@@ -456,10 +461,10 @@ describe('GithubPackage', function() {
     });
 
     it('uses an absent context when the active item is not in a git repository', async function() {
-      const nonRepositoryPath = fs.realpathSync(temp.mkdirSync());
+      const nonRepositoryPath = await fs.realpath(temp.mkdirSync());
       const workdir = await cloneRepository('three-files');
       project.setPaths([nonRepositoryPath, workdir]);
-      await writeFile(path.join(nonRepositoryPath, 'a.txt'), 'stuff');
+      await fs.writeFile(path.join(nonRepositoryPath, 'a.txt'), 'stuff', {encoding: 'utf8'});
 
       await workspace.open(path.join(nonRepositoryPath, 'a.txt'));
 
@@ -571,7 +576,7 @@ describe('GithubPackage', function() {
     if (process.platform !== 'win32') {
       it('handles symlinked project paths', async function() {
         const workdirPath = await cloneRepository('three-files');
-        const symlinkPath = fs.realpathSync(temp.mkdirSync()) + '-symlink';
+        const symlinkPath = (await fs.realpath(temp.mkdirSync())) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
         await workspace.open(path.join(symlinkPath, 'a.txt'));

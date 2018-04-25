@@ -1,6 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
+import until from 'test-until';
+import transpiler from 'atom-babel6-transpiler';
 
 import React from 'react';
 import ReactDom from 'react-dom';
@@ -11,6 +13,7 @@ import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
+import {Directory} from 'atom';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -25,8 +28,13 @@ const cachedClonedRepos = {};
 function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   fs.copySync(cachedClonedRepos[repoName], workingDirPath);
-  return fs.realpathSync(workingDirPath);
+  return fs.realpath(workingDirPath);
 }
+
+export const FAKE_USER = {
+  email: 'nope@nah.com',
+  name: 'Someone',
+};
 
 export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
@@ -35,8 +43,8 @@ export async function cloneRepository(repoName = 'three-files') {
     await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
-    await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-    await git.exec(['config', '--local', 'user.name', 'Someone']);
+    await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+    await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -52,22 +60,24 @@ export async function sha(directory) {
 /*
  * Initialize an empty repository at a temporary path.
  */
-export async function initRepository(repoName) {
+export async function initRepository() {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   const git = new GitShellOutStrategy(workingDirPath);
   await git.exec(['init']);
-  await git.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-  await git.exec(['config', '--local', 'user.name', 'Someone']);
-  return fs.realpathSync(workingDirPath);
+  await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+  await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+  await git.exec(['config', '--local', 'core.autocrlf', 'false']);
+  await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
+  return fs.realpath(workingDirPath);
 }
 
 export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
-  /* eslint-disable no-param-reassign */
+
   if (typeof repoName === 'object') {
     options = repoName;
     repoName = 'multiple-commits';
   }
-  /* eslint-enable no-param-reassign */
+
   const baseRepoPath = await cloneRepository(repoName);
   const baseGit = new GitShellOutStrategy(baseRepoPath);
 
@@ -83,8 +93,8 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await localGit.clone(baseRepoPath, {noLocal: true});
   await localGit.exec(['remote', 'set-url', 'origin', remoteRepoPath]);
   await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
-  await localGit.exec(['config', '--local', 'user.email', 'nope@nah.com']);
-  await localGit.exec(['config', '--local', 'user.name', 'Someone']);
+  await localGit.exec(['config', '--local', 'user.email', FAKE_USER.email]);
+  await localGit.exec(['config', '--local', 'user.name', FAKE_USER.name]);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
@@ -188,6 +198,41 @@ export function isProcessAlive(pid) {
     alive = false;
   }
   return alive;
+}
+
+class UnwatchedDirectory extends Directory {
+  onDidChangeFiles(callback) {
+    return {dispose: () => {}};
+  }
+}
+
+export async function disableFilesystemWatchers(atomEnv) {
+  atomEnv.packages.serviceHub.provide('atom.directory-provider', '0.1.0', {
+    directoryForURISync(uri) {
+      return new UnwatchedDirectory(uri);
+    },
+  });
+
+  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0);
+}
+
+const packageRoot = path.resolve(__dirname, '..');
+const transpiledRoot = path.resolve(__dirname, 'transpiled');
+
+export function transpile(...relPaths) {
+  return Promise.all(
+    relPaths.map(async relPath => {
+      const untranspiledPath = require.resolve(relPath);
+      const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
+
+      const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
+      const transpiledSource = transpiler.transpile(untranspiledSource, untranspiledPath, {}, {}).code;
+
+      await fs.mkdirs(path.dirname(transpiledPath));
+      await fs.writeFile(transpiledPath, transpiledSource, {encoding: 'utf8'});
+      return transpiledPath;
+    }),
+  );
 }
 
 // eslint-disable-next-line jasmine/no-global-setup

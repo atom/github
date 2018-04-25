@@ -24,6 +24,7 @@
 
   &Buttons {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     padding: @github-dialog-spacing;
 
@@ -35,6 +36,12 @@
 
     .btn {
       margin: @github-dialog-spacing;
+    }
+
+    &-leftItem,
+    &-leftItem.btn {
+      margin: @github-dialog-spacing;
+      margin-right: auto;
     }
   }
 
