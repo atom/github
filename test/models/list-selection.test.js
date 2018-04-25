@@ -21,7 +21,7 @@ describe('ListSelection', function() {
 
   describe('selectItem', () => {
     // https://github.com/atom/github/issues/467
-    it.only('selects an item when there are no selections', () => {
+    it('selects an item when there are no selections', () => {
       let selection = new ListSelection({items: ['a', 'b', 'c']});
       selection = selection.addOrSubtractSelection('a');
       selection = selection.coalesce();
