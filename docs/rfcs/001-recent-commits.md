@@ -70,7 +70,7 @@ On click, select the commit and reveal a balloon containing:
 * Navigation button ("open" to a git show-ish pane item)
 * Action buttons ("amend" on the most recent commit, "revert", and "reset" with "hard", "mixed", and "soft" suboptions)
 
-![commit-popout](https://user-images.githubusercontent.com/17565/36570682-11545cae-17e8-11e8-80a8-ffcf7328e214.JPG)
+![ballon](https://user-images.githubusercontent.com/378023/39232628-deb144b4-48a8-11e8-916b-f15e6d032cba.png)
 
 ### Bottom Dock
 
