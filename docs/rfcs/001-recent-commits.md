@@ -42,15 +42,13 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * GitHub avatar for both the committer and (if applicable) author. If either do not exist, show a placeholder.
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
-* A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
+* A background highlight for commits that haven't been pushed yet to the remote tracking branch.
+ 
+![metadata](https://user-images.githubusercontent.com/378023/39227929-4326d5ac-4896-11e8-9bbd-114d64335fad.png)
 
 ### Undo
 
 On the most recent commit, display an "undo" button. Clicking "undo" performs a `git reset` and re-populates the commit message editor with the existing message.
-
-### Refs
-
-Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
 
 ### Context menu
 
@@ -72,7 +70,7 @@ On click, select the commit and reveal a balloon containing:
 * Navigation button ("open" to a git show-ish pane item)
 * Action buttons ("amend" on the most recent commit, "revert", and "reset" with "hard", "mixed", and "soft" suboptions)
 
-![commit-popout](https://user-images.githubusercontent.com/17565/36570682-11545cae-17e8-11e8-80a8-ffcf7328e214.JPG)
+![ballon](https://user-images.githubusercontent.com/378023/39232628-deb144b4-48a8-11e8-916b-f15e6d032cba.png)
 
 ### Bottom Dock
 
@@ -93,6 +91,10 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 ## Rationale and alternatives
 
 - Display tracking branch in separator that indicates which commits have been pushed. This could make the purpose of the divider more clear. Drawback is that this takes up space.
+- Refs: Annotate visible commits that correspond to refs in the git repository (branches and tags). If the commit list has been truncated down to ten commits from the full set of relevant commits, display a message below the last commit indicating that additional commits are present but hidden.
+  - Drawback: They would take up quite some space and are also unpredictable and might need multiple lines. We'll reconsider adding them in a log/history view.
+- A greyed-out state if the commit is reachable from the remote tracking branch but _not_ from HEAD (meaning, if it has been fetched but not pulled).
+  - Drawback: If there are more than 2-3 un-pulled commits, it would burry the local commits too much. We'll reconsider adding them in a log/history view.
 
 ## Unresolved questions
 
@@ -110,5 +112,4 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 3. Replace the amend checkbox with the "undo" control.
 4. Context menu with actions.
 5. Balloon with action buttons and additional information.
-6. Show which commits have been pushed.
-7. Show information about other refs.
+6. Show which commits have not been pushed.
