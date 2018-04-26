@@ -114,7 +114,6 @@ describe('FilePatchSelection', function() {
       const selection0 = new FilePatchSelection(hunks)
         .selectLine(hunks[0].lines[2])
         .selectLine(hunks[1].lines[2], true);
-
       assertEqualSets(selection0.getSelectedLines(), new Set([
         hunks[0].lines[2],
         hunks[1].lines[1],
