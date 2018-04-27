@@ -8,10 +8,6 @@ Feel free to [open an issue](https://github.com/atom/github/issues) if you want 
 
 ## Technical Contribution Tips
 
-### React and Etch
-
-Early in the project's life, we used [Etch](https://github.com/atom/etch) to manage DOM updates via a virtual-DOM mechanism very similar to React. Eventually we migrated to using [React](https://facebook.github.io/react/) itself. During the transition, we implemented a React component called `EtchWrapper` to allow us to render Etch components from within React; however, all new UI work should be done using React, and we are working to migrate all existing UI components to fully use React.
-
 ### Updating the GraphQL Schema
 
 This project uses [Relay](https://github.com/facebook/relay) for its GitHub integration. There's a source-level transform that depends on having a local copy of the GraphQL schema available. If you need to update the local schema to the latest version, run

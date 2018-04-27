@@ -73,11 +73,11 @@ describe('GitTabController', function() {
     const wrapper = mount(app);
 
     assert.isTrue(wrapper.find('.github-Panel').hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
 
     await assert.async.isFalse(wrapper.update().find('.github-Panel').hasClass('is-loading'));
-    assert.lengthOf(wrapper.find('EtchWrapper'), 1);
+    assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
   });
 
