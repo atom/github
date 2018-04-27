@@ -15,7 +15,7 @@ import {GitError} from '../../lib/git-shell-out-strategy';
 
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
-describe('GitTabController', function() {
+describe.only('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager, config, tooltips;
   let resolutionProgress, refreshResolutionProgress;
   let app;
@@ -245,13 +245,13 @@ describe('GitTabController', function() {
 
     const controller = wrapper.instance();
     const gitTab = controller.refView;
-    const stagingView = gitTab.refStagingView.getWrappedComponent();
+    const stagingView = gitTab.refStagingView;
 
     sinon.spy(stagingView, 'setFocus');
 
     await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
-    const selections = Array.from(stagingView.selection.getSelectedItems());
+    const selections = Array.from(stagingView.state.selection.getSelectedItems());
     assert.lengthOf(selections, 1);
     assert.equal(selections[0].filePath, 'unstaged-2.txt');
 
@@ -280,7 +280,7 @@ describe('GitTabController', function() {
 
     const extractReferences = () => {
       gitTab = wrapper.instance().refView;
-      stagingView = gitTab.refStagingView.getWrappedComponent();
+      stagingView = gitTab.refStagingView;
       commitController = gitTab.refCommitController;
       commitView = commitController.refCommitView;
       focusElement = stagingView.element;
@@ -295,7 +295,7 @@ describe('GitTabController', function() {
           focusElement = element;
         });
       };
-      stubFocus(stagingView.element);
+      stubFocus(stagingView.refRoot);
       for (const e of commitViewElements) {
         stubFocus(e);
       }
@@ -306,8 +306,15 @@ describe('GitTabController', function() {
     };
 
     const assertSelected = paths => {
-      const selectionPaths = Array.from(stagingView.selection.getSelectedItems()).map(item => item.filePath);
+      const selectionPaths = Array.from(stagingView.state.selection.getSelectedItems()).map(item => item.filePath);
       assert.deepEqual(selectionPaths, paths);
+    };
+
+    const assertAsyncSelected = paths => {
+      return assert.async.deepEqual(
+        Array.from(stagingView.state.selection.getSelectedItems()).map(item => item.filePath),
+        paths,
+      );
     };
 
     describe('with conflicts and staged files', function() {
@@ -345,7 +352,7 @@ describe('GitTabController', function() {
         assert.isTrue(workspace.getActivePane().activate.called);
       });
 
-      it('advances focus through StagingView groups and CommitView, but does not cycle', function() {
+      it('advances focus through StagingView groups and CommitView, but does not cycle', async function() {
         assertSelected(['unstaged-1.txt']);
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
@@ -356,7 +363,7 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
+        await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
@@ -364,24 +371,23 @@ describe('GitTabController', function() {
         assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
       });
 
-      it('retreats focus from the CommitView through StagingView groups, but does not cycle', function() {
+      it('retreats focus from the CommitView through StagingView groups, but does not cycle', async function() {
         gitTab.setFocus(focuses.EDITOR);
-        sinon.stub(commitView, 'hasFocusEditor').callsFake(() => true);
+        sinon.stub(commitView, 'hasFocusEditor').returns(true);
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
+        await assert.async.strictEqual(focusElement, stagingView.refRoot);
         assertSelected(['staged-1.txt']);
 
-        commitView.hasFocusEditor.reset();
+        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
+        await assertAsyncSelected(['conflict-1.txt']);
 
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
-        assertSelected(['conflict-1.txt']);
-
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
-        assertSelected(['unstaged-1.txt']);
+        await assertAsyncSelected(['unstaged-1.txt']);
 
         // This should be a no-op.
         commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
-        assertSelected(['unstaged-1.txt']);
+        await assertAsyncSelected(['unstaged-1.txt']);
       });
     });
 
@@ -443,7 +449,7 @@ describe('GitTabController', function() {
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 2);
 
       const gitTab = wrapper.instance().refView;
-      const stagingView = gitTab.refStagingView.getWrappedComponent();
+      const stagingView = gitTab.refStagingView;
       const commitView = wrapper.find('CommitView');
 
       assert.lengthOf(stagingView.props.unstagedChanges, 2);
@@ -470,7 +476,8 @@ describe('GitTabController', function() {
       await assert.async.equal((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
     });
 
-    it('can stage merge conflict files', async function() {
+    it.only('can stage merge conflict files', async function() {
+      atom.config.set('github.gitDiagnostics', true);
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
@@ -480,8 +487,10 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository, confirm});
       const wrapper = mount(app);
 
+      console.log('0');
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 5);
-      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
+      console.log('1');
+      const stagingView = wrapper.instance().refView.refStagingView;
 
       assert.equal(stagingView.props.mergeConflicts.length, 5);
       assert.equal(stagingView.props.stagedChanges.length, 0);
@@ -494,10 +503,14 @@ describe('GitTabController', function() {
       // click Cancel
       confirm.returns(1);
       let result = stagingView.dblclickOnItem({}, conflict1);
+      console.log('2');
       await result.stageOperationPromise;
+      console.log('3');
       await result.selectionUpdatePromise;
 
+      console.log('4');
       await assert.async.isTrue(confirm.calledOnce);
+      console.log('5');
       assert.lengthOf(stagingView.props.mergeConflicts, 5);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
 
@@ -505,11 +518,17 @@ describe('GitTabController', function() {
       confirm.reset();
       confirm.returns(0);
       result = stagingView.dblclickOnItem({}, conflict1);
+      console.log('6');
       await result.stageOperationPromise;
+      console.log('7');
       await result.selectionUpdatePromise;
+      console.log('8');
 
+      console.log('9');
       await assert.async.isTrue(confirm.calledOnce);
+      console.log('10');
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
+      console.log('11');
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
       // clear merge markers
@@ -518,7 +537,9 @@ describe('GitTabController', function() {
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
       stagingView.dblclickOnItem({}, conflict2);
 
+      console.log('12');
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 3);
+      console.log('13');
       assert.lengthOf(stagingView.props.stagedChanges, 2);
       assert.isFalse(confirm.called);
     });
@@ -532,7 +553,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
+      const stagingView = wrapper.instance().refView.refStagingView;
       await assert.async.lengthOf(stagingView.props.unstagedChanges, 2);
 
       // ensure staging the same file twice does not cause issues
@@ -560,7 +581,7 @@ describe('GitTabController', function() {
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      const stagingView = wrapper.instance().refView.refStagingView.getWrappedComponent();
+      const stagingView = wrapper.instance().refView.refStagingView;
       await assert.async.include(stagingView.props.unstagedChanges.map(c => c.filePath), 'new-file.txt');
 
       const [addedFilePatch] = stagingView.props.unstagedChanges;
