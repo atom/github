@@ -306,6 +306,7 @@ describe('StagingView', function() {
 
   describe('when the selection changes due to keyboard navigation', function() {
     let showFilePatchItem, showMergeConflictFileForPath;
+
     beforeEach(function() {
       showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
       showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
@@ -463,7 +464,7 @@ describe('StagingView', function() {
     });
 
     // such as files being staged/unstaged, discarded or stashed
-    it('calls showFilePatchItem if there is a pending file patch item open', async function() {
+    it('calls showFilePatchItem if there is a pending file patch item open', function() {
       const filePatches = [
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
@@ -484,7 +485,6 @@ describe('StagingView', function() {
       selectedItems = wrapper.instance().getSelectedItems();
       assert.lengthOf(selectedItems, 1);
       assert.strictEqual(selectedItems[0].filePath, 'b.txt');
-      assert.isTrue(showFilePatchItem.called);
       assert.isTrue(showFilePatchItem.calledWith('b.txt'));
     });
 
