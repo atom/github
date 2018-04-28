@@ -42,6 +42,9 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * GitHub avatar for both the committer and (if applicable) author. If either do not exist, show a placeholder.
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
+* A background highlight for commits that haven't been pushed yet to the remote tracking branch.
+ 
+![metadata](https://user-images.githubusercontent.com/378023/39227929-4326d5ac-4896-11e8-9bbd-114d64335fad.png)
 
 ### Undo
 
@@ -67,7 +70,7 @@ On click, select the commit and reveal a balloon containing:
 * Navigation button ("open" to a git show-ish pane item)
 * Action buttons ("amend" on the most recent commit, "revert", and "reset" with "hard", "mixed", and "soft" suboptions)
 
-![commit-popout](https://user-images.githubusercontent.com/17565/36570682-11545cae-17e8-11e8-80a8-ffcf7328e214.JPG)
+![ballon](https://user-images.githubusercontent.com/378023/39232628-deb144b4-48a8-11e8-916b-f15e6d032cba.png)
 
 ### Bottom Dock
 
@@ -109,4 +112,4 @@ The modal dialog on "hard reset" is disruptive considering that the lost changes
 3. Replace the amend checkbox with the "undo" control.
 4. Context menu with actions.
 5. Balloon with action buttons and additional information.
-6. Show which commits have been pushed.
+6. Show which commits have not been pushed.
