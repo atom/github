@@ -113,46 +113,6 @@ describe('RootController', function() {
     });
   });
 
-  describe('rendering a FilePatch', function() {
-    it('renders the FilePatchController based on props.filePatchItems', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-      app = React.cloneElement(app, {repository, filePatchItems: []});
-      let wrapper = shallow(app);
-
-      assert.equal(wrapper.find('FilePatchController').length, 0);
-
-      app = React.cloneElement(app, {repository, filePatchItems: [
-        {key: 1, uri: 'atom-github://file-patch/a.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
-        {key: 2, uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
-        {key: 3, uri: 'atom-github://file-patch/b.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
-        {key: 4, uri: 'atom-github://file-patch/c.txt?workdir=/foo/bar/baz&stagingStatus=staged'},
-      ]});
-      wrapper = shallow(app);
-
-      assert.equal(wrapper.find('FilePatchController').length, 4);
-      assert.isTrue(wrapper.find({filePath: 'a.txt', initialStagingStatus: 'unstaged'}).exists());
-      assert.isTrue(wrapper.find({filePath: 'b.txt', initialStagingStatus: 'unstaged'}).exists());
-      assert.isTrue(wrapper.find({filePath: 'b.txt', initialStagingStatus: 'staged'}).exists());
-      assert.isTrue(wrapper.find({filePath: 'c.txt', initialStagingStatus: 'staged'}).exists());
-    });
-
-    if (path.sep !== '/') {
-      it('reconstitutes paths from the pane URI with the correct path separator', async function() {
-        const workdirPath = await cloneRepository('three-files');
-        const repository = await buildRepository(workdirPath);
-
-        app = React.cloneElement(app, {repository, filePatchItems: [
-          {key: 1, uri: 'atom-github://file-patch/foo/bar/baz/filename.txt?workdir=/foo/bar/baz&stagingStatus=unstaged'},
-        ]});
-        const wrapper = shallow(app);
-
-        assert.equal(wrapper.find('FilePatchController').length, 1);
-        assert.isTrue(wrapper.find({filePath: path.join('foo', 'bar', 'baz', 'filename.txt')}).exists());
-      });
-    }
-  });
-
   ['git', 'github'].forEach(function(tabName) {
     describe(`${tabName} tab tracker`, function() {
       let wrapper, tabTracker, mockDockItem;
@@ -1045,7 +1005,7 @@ describe('RootController', function() {
 
         await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=unstaged`,
+          `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
         await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
@@ -1090,7 +1050,7 @@ describe('RootController', function() {
 
         await assert.async.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/a.txt?workdir=${workdirPath}&stagingStatus=staged`,
+          `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
         await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
