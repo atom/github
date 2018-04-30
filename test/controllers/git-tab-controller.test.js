@@ -40,6 +40,7 @@ describe.only('GitTabController', function() {
         workspace={workspace}
         commandRegistry={commandRegistry}
         grammars={atomEnvironment.grammars}
+        repository={Repository.absent()}
         resolutionProgress={resolutionProgress}
         notificationManager={notificationManager}
         config={config}
