@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import Conflict from '../../lib/models/conflicts/conflict';
 import {OURS, THEIRS} from '../../lib/models/conflicts/source';
 import ConflictController from '../../lib/controllers/conflict-controller';
-import Decoration from '../../lib/views/decoration';
+import Decoration from '../../lib/atom/decoration';
 
 describe('ConflictController', function() {
   let atomEnv, workspace, app, editor, conflict, decorations;
