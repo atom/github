@@ -47,7 +47,6 @@
     "core-decorators": "^0.19.0",
     "diff": "3.2.0",
     "dugite": "^1.60.0",
-    "etch": "^0.12.4",
     "event-kit": "^2.3.0",
     "fs-extra": "^5.0.0",
     "graphql": "^0.10.3",
