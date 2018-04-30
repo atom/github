@@ -487,9 +487,7 @@ describe.only('GitTabController', function() {
       app = React.cloneElement(app, {repository, confirm});
       const wrapper = mount(app);
 
-      console.log('0');
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('mergeConflicts'), 5);
-      console.log('1');
       const stagingView = wrapper.instance().refView.refStagingView;
 
       assert.equal(stagingView.props.mergeConflicts.length, 5);
@@ -503,14 +501,10 @@ describe.only('GitTabController', function() {
       // click Cancel
       confirm.returns(1);
       let result = stagingView.dblclickOnItem({}, conflict1);
-      console.log('2');
       await result.stageOperationPromise;
-      console.log('3');
       await result.selectionUpdatePromise;
 
-      console.log('4');
       await assert.async.isTrue(confirm.calledOnce);
-      console.log('5');
       assert.lengthOf(stagingView.props.mergeConflicts, 5);
       assert.lengthOf(stagingView.props.stagedChanges, 0);
 
@@ -518,17 +512,11 @@ describe.only('GitTabController', function() {
       confirm.reset();
       confirm.returns(0);
       result = stagingView.dblclickOnItem({}, conflict1);
-      console.log('6');
       await result.stageOperationPromise;
-      console.log('7');
       await result.selectionUpdatePromise;
-      console.log('8');
 
-      console.log('9');
       await assert.async.isTrue(confirm.calledOnce);
-      console.log('10');
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
-      console.log('11');
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
       // clear merge markers
@@ -537,9 +525,7 @@ describe.only('GitTabController', function() {
       fs.writeFileSync(path.join(workdirPath, conflict2.filePath), 'text with no merge markers');
       stagingView.dblclickOnItem({}, conflict2);
 
-      console.log('12');
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 3);
-      console.log('13');
       assert.lengthOf(stagingView.props.stagedChanges, 2);
       assert.isFalse(confirm.called);
     });
