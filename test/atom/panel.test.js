@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Emitter} from 'event-kit';
 import {mount} from 'enzyme';
 
-import Panel from '../../lib/views/panel';
+import Panel from '../../lib/atom/panel';
 
 class Component extends React.Component {
   static propTypes = {
