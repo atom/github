@@ -477,8 +477,7 @@ describe.only('GitTabController', function() {
       await assert.async.equal((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
     });
 
-    it.only('can stage merge conflict files', async function() {
-      atom.config.set('github.gitDiagnostics', true);
+    it('can stage merge conflict files', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
@@ -501,9 +500,7 @@ describe.only('GitTabController', function() {
 
       // click Cancel
       confirm.returns(1);
-      let result = stagingView.dblclickOnItem({}, conflict1);
-      await result.stageOperationPromise;
-      await result.selectionUpdatePromise;
+      stagingView.dblclickOnItem({}, conflict1);
 
       await assert.async.isTrue(confirm.calledOnce);
       assert.lengthOf(stagingView.props.mergeConflicts, 5);
@@ -512,9 +509,7 @@ describe.only('GitTabController', function() {
       // click Stage
       confirm.reset();
       confirm.returns(0);
-      result = stagingView.dblclickOnItem({}, conflict1);
-      await result.stageOperationPromise;
-      await result.selectionUpdatePromise;
+      stagingView.dblclickOnItem({}, conflict1);
 
       await assert.async.isTrue(confirm.calledOnce);
       await assert.async.lengthOf(stagingView.props.mergeConflicts, 4);
