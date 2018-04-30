@@ -546,7 +546,7 @@ describe('StagingView', function() {
         unstagedChanges,
       }));
 
-      await wrapper.instance().mousedownOnItem({button: 0}, unstagedChanges[0]);
+      await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[1]);
       wrapper.instance().mouseup();
@@ -595,7 +595,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", async function() {
-      wrapper.instance().mousedownOnItem({button: 0}, stagedChanges[1]);
+      wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, stagedChanges[1]);
       wrapper.instance().mouseup();
       assertSelected(['staged-2.txt']);
 
@@ -687,11 +687,11 @@ describe('StagingView', function() {
       unstagedChanges,
     }));
 
-    await wrapper.instance().mousedownOnItem({button: 0}, unstagedChanges[0]);
+    await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
     wrapper.instance().mouseup();
     assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[0]]));
 
-    await wrapper.instance().mousedownOnItem({button: 0}, unstagedChanges[2]);
+    await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[2]);
     assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[2]]));
   });
 
@@ -711,7 +711,7 @@ describe('StagingView', function() {
         sinon.spy(wrapper.state('selection'), 'addOrSubtractSelection');
         sinon.spy(wrapper.state('selection'), 'selectItem');
 
-        await wrapper.instance().mousedownOnItem({button: 0, ctrlKey: true}, unstagedChanges[0]);
+        await wrapper.instance().mousedownOnItem({button: 0, ctrlKey: true, persist: () => {}}, unstagedChanges[0]);
         assert.isFalse(wrapper.state('selection').addOrSubtractSelection.called);
         assert.isFalse(wrapper.state('selection').selectItem.called);
         assert.isFalse(wrapper.instance().mouseSelectionInProgress);
