@@ -64,3 +64,24 @@ await assert.async.equal(value, 1)
 This transpiles into a form similar to the one above, so is asynchronous, but if the test fails, we'll still see a message that contains 'expected 0 to equal 1'.
 
 When writing tests that depend on values that get set asynchronously, prefer `assert.async.x(...)` over other forms.
+
+## Living on the edge
+
+If you're working on the GitHub package day-to-day, it's useful to have a development environment configured to use the latest and greatest source.
+
+1. [Build Atom from master](https://github.com/atom/atom/tree/master/docs/build-instructions) frequently if you can. This will help us notice any changes in Atom core that cause regressions.
+2. Install the GitHub package from its git URL:
+
+   ```sh
+   $ apm install atom/github
+   ```
+
+   When you run Atom in non-dev-mode (`atom .`) you'll be running the latest _merged_ code in this repository. If this isn't stable enough for day-to-day work, then we have bugs to fix :wink:
+3. Link your GitHub package source in dev mode:
+
+   ```sh
+   # In the root directory of your atom/github clone
+   $ apm link --dev .
+   ```
+
+   When you run Atom in dev mode (`atom -d .`) you'll be running your local changes. This is useful for reproducing bugs or trying out new changes live before merging them.
