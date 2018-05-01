@@ -33,11 +33,11 @@ describe('FileSystemChangeObserver', function() {
     fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
     await assert.async.isTrue(changeSpy.called);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'a change\n');
     await assert.async.isTrue(changeSpy.called);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     fs.unlinkSync(path.join(workdirPath, 'a.txt'));
     await assert.async.isTrue(changeSpy.called);
   });
@@ -52,7 +52,7 @@ describe('FileSystemChangeObserver', function() {
     await repository.git.exec(['add', 'a.txt']);
     await assert.async.isTrue(changeSpy.called);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     await repository.git.exec(['reset', 'a.txt']);
     await assert.async.isTrue(changeSpy.called);
   });
@@ -75,7 +75,7 @@ describe('FileSystemChangeObserver', function() {
 
     await repository.git.exec(['commit', '--allow-empty', '-m', 'new commit']);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     await repository.git.exec(['push', 'origin', 'master']);
     await assert.async.isTrue(changeSpy.called);
   });
@@ -88,7 +88,7 @@ describe('FileSystemChangeObserver', function() {
 
     await repository.git.exec(['checkout', '-b', 'new-branch']);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     await repository.git.exec(['push', '--set-upstream', 'origin', 'new-branch']);
     await assert.async.isTrue(changeSpy.called);
   });

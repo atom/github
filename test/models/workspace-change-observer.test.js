@@ -67,11 +67,11 @@ describe('WorkspaceChangeObserver', function() {
     await editor.save();
     await until(() => changeSpy.calledOnce);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     editor.getBuffer().reload();
     await until(() => changeSpy.calledOnce);
 
-    changeSpy.reset();
+    changeSpy.resetHistory();
     editor.destroy();
     await until(() => changeSpy.calledOnce);
   });
