@@ -237,7 +237,7 @@ export function transpile(...relPaths) {
 
 // eslint-disable-next-line jasmine/no-global-setup
 beforeEach(function() {
-  global.sinon = sinon.sandbox.create();
+  global.sinon = sinon;
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
