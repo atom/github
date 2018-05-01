@@ -725,7 +725,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           {name: 'origin', url: 'git@github.com:other/origin.git'},
           {name: 'upstream', url: 'git@github.com:my/upstream.git'},
         ].forEach(remote => {
-          assert.include(remotes, remote);
+          assert.deepInclude(remotes, remote);
         });
       });
 
