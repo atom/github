@@ -6,7 +6,7 @@ In particular, the GitHub package is under constant development by a portion of 
 
 Feel free to [open an issue](https://github.com/atom/github/issues) if you want to discuss anything with us. If you're curious what we're working on and will be working on in the near future, you can take a look at [our short-term roadmap](https://github.com/atom/github/projects/8).
 
-## Technical Contribution Tips
+## Technical contribution tips
 
 ### Updating the GraphQL Schema
 
@@ -23,6 +23,7 @@ Please check in the generated `graphql/schema.graphql`.
 In addition, if you make any changes to any of the GraphQL queries or fragments (inside the `graphql` tagged template literals), you will need to run `npm run relay` to regenerate the statically-generated query files.
 
 ## Testing
+
 To run tests, open the command palette and select "Run Package Specs". This will open a new window running "GitHub Package Tests". If the window stays blank for more than a few seconds, open DevTools and check for error messages.
 
 To re-run tests, you can refresh that window by pressing `Cmd + R` in DevTools.
