@@ -103,8 +103,8 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    fetchDataStub.reset();
-    didUpdateStub.reset();
+    fetchDataStub.resetHistory();
+    didUpdateStub.resetHistory();
     // Update once...
     model1.didUpdate();
     // fetchData called immediately
@@ -133,8 +133,8 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    fetchDataStub.reset();
-    didUpdateStub.reset();
+    fetchDataStub.resetHistory();
+    didUpdateStub.resetHistory();
     // Update once...
     model1.didUpdate();
     // fetchData called immediately
@@ -167,8 +167,8 @@ describe('ModelObserver', function() {
     assert.equal(didUpdateStub.callCount, 2);
     assert.deepEqual(observer.getActiveModelData(), {a: 'a', b: 'b'});
 
-    fetchDataStub.reset();
-    didUpdateStub.reset();
+    fetchDataStub.resetHistory();
+    didUpdateStub.resetHistory();
     // Update once...
     model1.didUpdate();
     // fetchData called immediately

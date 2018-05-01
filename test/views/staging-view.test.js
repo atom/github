@@ -312,6 +312,11 @@ describe('StagingView', function() {
       showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
     });
 
+    afterEach(function() {
+      showFilePatchItem.restore();
+      showMergeConflictFileForPath.restore();
+    });
+
     describe('when github.keyboardNavigationDelay is 0', function() {
       beforeEach(function() {
         atom.config.set('github.keyboardNavigationDelay', 0);
@@ -463,6 +468,10 @@ describe('StagingView', function() {
       showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
     });
 
+    afterEach(function() {
+      showFilePatchItem.restore();
+    });
+
     // such as files being staged/unstaged, discarded or stashed
     it('calls showFilePatchItem if there is a pending file patch item open', function() {
       const filePatches = [
@@ -532,6 +541,10 @@ describe('StagingView', function() {
 
     beforeEach(function() {
       showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+    });
+
+    afterEach(function() {
+      showFilePatchItem.restore();
     });
 
     // https://github.com/atom/github/issues/352
@@ -637,6 +650,11 @@ describe('StagingView', function() {
 
       showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
       showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
+    });
+
+    afterEach(function() {
+      showFilePatchItem.restore();
+      showMergeConflictFileForPath.restore();
     });
 
     it('invokes a callback only when a single file is selected', async function() {

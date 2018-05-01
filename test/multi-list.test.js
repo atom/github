@@ -31,7 +31,7 @@ describe('MultiList', function() {
       assert.equal(didChangeActiveItem.callCount, 1);
       assert.deepEqual(didChangeActiveItem.args[0], ['d', 'list2']);
 
-      didChangeActiveItem.reset();
+      didChangeActiveItem.resetHistory();
       ml.activateListForKey('list3');
       assert.equal(ml.getActiveListKey(), 'list3');
       assert.equal(ml.getActiveItem(), 'f');
@@ -54,7 +54,7 @@ describe('MultiList', function() {
       assert.equal(didChangeActiveItem.callCount, 1);
       assert.deepEqual(didChangeActiveItem.args[0], ['c', 'list1']);
 
-      didChangeActiveItem.reset();
+      didChangeActiveItem.resetHistory();
       ml.activateItemAtIndexForKey('list2', 1);
       assert.equal(ml.getActiveItem(), 'e');
       assert.equal(didChangeActiveItem.callCount, 1);
@@ -88,7 +88,7 @@ describe('MultiList', function() {
       assert.equal(didChangeActiveItem.callCount, 1);
       assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1']);
 
-      didChangeActiveItem.reset();
+      didChangeActiveItem.resetHistory();
       ml.activateItem('e');
       assert.equal(ml.getActiveItem(), 'e');
       assert.equal(didChangeActiveItem.callCount, 1);
@@ -111,7 +111,7 @@ describe('MultiList', function() {
       assert.equal(didChangeActiveItem.callCount, 1);
       assert.deepEqual(didChangeActiveItem.args[0], ['d', 'list2']);
 
-      didChangeActiveItem.reset();
+      didChangeActiveItem.resetHistory();
       ml.activateNextList();
       assert.equal(ml.getActiveListKey(), 'list3');
       assert.equal(didChangeActiveItem.callCount, 1);
@@ -179,7 +179,7 @@ describe('MultiList', function() {
       assert.equal(didChangeActiveItem.callCount, 1);
       assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1']);
 
-      didChangeActiveItem.reset();
+      didChangeActiveItem.resetHistory();
       ml.activateNextItem();
       assert.equal(ml.getActiveItem(), 'c');
       assert.equal(didChangeActiveItem.callCount, 1);
@@ -365,7 +365,7 @@ describe('MultiList', function() {
 
             ml.activateListForKey('list2');
 
-            didChangeActiveItem.reset();
+            didChangeActiveItem.resetHistory();
             ml.updateLists([
               {key: 'list1', items: ['a', 'b', 'c']},
             ]);
@@ -412,7 +412,7 @@ describe('MultiList', function() {
             ml.activateItemAtIndexForKey('list1', 0);
             assert.equal(ml.getActiveItem(), 'a');
 
-            didChangeActiveItem.reset();
+            didChangeActiveItem.resetHistory();
             ml.updateLists([
               {key: 'list1', items: ['b', 'c']},
             ]);
@@ -420,7 +420,7 @@ describe('MultiList', function() {
             assert.equal(didChangeActiveItem.callCount, 1);
             assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1']);
 
-            didChangeActiveItem.reset();
+            didChangeActiveItem.resetHistory();
             ml.updateLists([
               {key: 'list1', items: ['b', 'c']},
             ]);
@@ -439,7 +439,7 @@ describe('MultiList', function() {
             ml.activateItemAtIndexForKey('list1', 2);
             assert.equal(ml.getActiveItem(), 'c');
 
-            didChangeActiveItem.reset();
+            didChangeActiveItem.resetHistory();
             ml.updateLists([
               {key: 'list1', items: ['a', 'b']},
             ]);
@@ -447,7 +447,7 @@ describe('MultiList', function() {
             assert.equal(didChangeActiveItem.callCount, 1);
             assert.deepEqual(didChangeActiveItem.args[0], ['b', 'list1']);
 
-            didChangeActiveItem.reset();
+            didChangeActiveItem.resetHistory();
             ml.updateLists([
               {key: 'list1', items: ['a']},
             ]);
@@ -469,7 +469,7 @@ describe('MultiList', function() {
               ml.activateItemAtIndexForKey('list1', 0);
               assert.equal(ml.getActiveItem(), 'a');
 
-              didChangeActiveItem.reset();
+              didChangeActiveItem.resetHistory();
               ml.updateLists([
                 {key: 'list1', items: []},
                 {key: 'list2', items: ['b', 'c']},
@@ -491,7 +491,7 @@ describe('MultiList', function() {
               ml.activateItemAtIndexForKey('list2', 0);
               assert.equal(ml.getActiveItem(), 'c');
 
-              didChangeActiveItem.reset();
+              didChangeActiveItem.resetHistory();
               ml.updateLists([
                 {key: 'list1', items: ['a', 'b']},
                 {key: 'list2', items: []},

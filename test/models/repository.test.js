@@ -546,8 +546,8 @@ describe('Repository', function() {
       await repository.git.unsetConfig('user.name');
       await repository.git.unsetConfig('user.email');
 
-        // getting the local config for testing purposes only because we don't
-        // want to blow away global config when running tests.
+      // getting the local config for testing purposes only because we don't
+      // want to blow away global config when running tests.
       assert.deepEqual(await repository.getCommitter({local: true}), {
         name: null,
         email: null,
@@ -933,13 +933,13 @@ describe('Repository', function() {
         fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'woot', 'utf8');
         fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'yup', 'utf8');
       });
-      const repo1HistorySha = repo1.createDiscardHistoryBlob();
+      const repo1HistorySha = await repo1.createDiscardHistoryBlob();
 
       const repo2 = new Repository(workingDirPath);
       await repo2.getLoadPromise();
-      const repo2HistorySha = repo2.createDiscardHistoryBlob();
+      const repo2HistorySha = await repo2.createDiscardHistoryBlob();
 
-      assert.deepEqual(repo2HistorySha, repo1HistorySha);
+      assert.strictEqual(repo2HistorySha, repo1HistorySha);
     });
 
     it('is resilient to missing history blobs', async function() {
