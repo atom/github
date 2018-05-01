@@ -1,4 +1,4 @@
-import FilePatchSelection from '../../lib/views/file-patch-selection';
+import FilePatchSelection from '../../lib/models/file-patch-selection';
 import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import {assertEqualSets} from '../helpers';
@@ -114,7 +114,6 @@ describe('FilePatchSelection', function() {
       const selection0 = new FilePatchSelection(hunks)
         .selectLine(hunks[0].lines[2])
         .selectLine(hunks[1].lines[2], true);
-
       assertEqualSets(selection0.getSelectedLines(), new Set([
         hunks[0].lines[2],
         hunks[1].lines[1],
@@ -331,8 +330,8 @@ describe('FilePatchSelection', function() {
       ]));
 
       const selection2 = selection1.selectLine(hunks[0].lines[1])
-          .addOrSubtractLineSelection(hunks[0].lines[2])
-          .selectPreviousLine(true);
+        .addOrSubtractLineSelection(hunks[0].lines[2])
+        .selectPreviousLine(true);
       assertEqualSets(selection2.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[0].lines[2],

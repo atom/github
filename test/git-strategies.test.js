@@ -725,7 +725,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           {name: 'origin', url: 'git@github.com:other/origin.git'},
           {name: 'upstream', url: 'git@github.com:my/upstream.git'},
         ].forEach(remote => {
-          assert.include(remotes, remote);
+          assert.deepInclude(remotes, remote);
         });
       });
 
@@ -1184,7 +1184,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         });
       });
 
-      describe('udpateIndex(filePath, commonBaseSha, oursSha, theirsSha)', function() {
+      describe('updateIndex(filePath, commonBaseSha, oursSha, theirsSha)', function() {
         it('updates the index to have the appropriate shas, retaining the original file mode', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);

@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
-import Commands, {Command} from '../../lib/views/commands';
+import Commands, {Command} from '../../lib/atom/commands';
 import RefHolder from '../../lib/models/ref-holder';
 
 describe('Commands', function() {

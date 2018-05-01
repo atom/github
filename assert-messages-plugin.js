@@ -12,6 +12,7 @@ module.exports = function({types: t}) {
         if (!t.isMemberExpression(callee)) { return; }
 
         if (!t.isIdentifier(callee.object, {name: 'assert'})) { return; }
+        if (t.isIdentifier(callee.property, {name: 'isRejected'})) { return; }
         if (!t.isIdentifier(callee.property)) { return; }
 
         try {
