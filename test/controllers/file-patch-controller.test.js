@@ -312,17 +312,17 @@ describe('FilePatchController', function() {
         fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
         fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n', 'utf8');
 
-          // Stage whole file
+        // Stage whole file
         await repository.stageFiles([deletedSymlinkAddedFilePath]);
 
         const component = createComponent(repository, deletedSymlinkAddedFilePath);
         const wrapper = mount(React.cloneElement(component, {filePath: deletedSymlinkAddedFilePath, initialStagingStatus: 'staged'}));
 
-          // index shows symlink deltion and added lines
+        // index shows symlink deltion and added lines
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\nbaz\nzoo\n');
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
 
-          // Unstage a couple added lines, but not all
+        // Unstage a couple added lines, but not all
         await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
@@ -334,7 +334,7 @@ describe('FilePatchController', function() {
 
         await refreshRepository(wrapper);
 
-          // index shows symlink deletions still staged, only a couple of lines have been unstaged
+        // index shows symlink deletions still staged, only a couple of lines have been unstaged
         assert.equal((await indexModeAndOid(repository, deletedSymlinkAddedFilePath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedSymlinkAddedFilePath), 'qux\nbaz\nzoo\n');
       });
@@ -350,11 +350,11 @@ describe('FilePatchController', function() {
         const component = createComponent(repository, deletedFileAddedSymlinkPath);
         const wrapper = mount(React.cloneElement(component, {filePath: deletedFileAddedSymlinkPath, initialStagingStatus: 'unstaged'}));
 
-          // index shows file is not a symlink, no deleted lines
+        // index shows file is not a symlink, no deleted lines
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\nbar\nbaz\n\n');
 
-          // stage a couple of lines, but not all
+        // stage a couple of lines, but not all
         await assert.async.isTrue(wrapper.update().find('HunkView').exists());
         const opPromise0 = switchboard.getFinishStageOperationPromise();
         const hunkView0 = wrapper.find('HunkView').at(0);
@@ -366,7 +366,7 @@ describe('FilePatchController', function() {
 
         await refreshRepository(wrapper);
 
-          // index shows symlink change has not been staged, a couple of lines have been deleted
+        // index shows symlink change has not been staged, a couple of lines have been deleted
         assert.equal((await indexModeAndOid(repository, deletedFileAddedSymlinkPath)).mode, '100644');
         assert.autocrlfEqual(await repository.readFileFromIndex(deletedFileAddedSymlinkPath), 'foo\n\n');
       });

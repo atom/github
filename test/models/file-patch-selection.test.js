@@ -330,8 +330,8 @@ describe('FilePatchSelection', function() {
       ]));
 
       const selection2 = selection1.selectLine(hunks[0].lines[1])
-          .addOrSubtractLineSelection(hunks[0].lines[2])
-          .selectPreviousLine(true);
+        .addOrSubtractLineSelection(hunks[0].lines[2])
+        .selectPreviousLine(true);
       assertEqualSets(selection2.getSelectedLines(), new Set([
         hunks[0].lines[1],
         hunks[0].lines[2],
