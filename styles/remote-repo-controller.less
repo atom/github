@@ -1,0 +1,49 @@
+
+@import "variables";
+
+.github-RemoteRepoController {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+
+  // TODO: Simplify selector
+  // Only add padding when inside this container
+  .github-RemoteRepoController-Subview {
+    padding: @component-padding * 2;
+  }
+
+  .github-RemoteCreateForm-Subview {
+    margin-top: @component-padding * 2;
+  }
+
+  &-Container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    button, input[type=text], .btn, .input-label {
+      margin: @component-padding 0;
+    }
+
+    .icon-octoface:before {
+      width: auto;
+      font-size: 48px;
+      color: @text-color-subtle;
+    }
+
+    p {
+      font-size: 1.1em;
+      line-height: 1.5;
+      -webkit-user-select: none;
+      cursor: default;
+
+      a {
+        color: @text-color-info;
+      }
+    }
+
+    input[type=text] {
+      width: 100%;
+    }
+  }
+}
