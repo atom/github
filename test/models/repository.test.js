@@ -2,7 +2,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
-import util from 'util';
 import compareSets from 'compare-sets';
 import isEqual from 'lodash.isequal';
 import {CompositeDisposable, Disposable} from 'event-kit';
