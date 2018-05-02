@@ -67,7 +67,7 @@ function dialog() {
       });
 
       log('writing payload');
-      socket.end(JSON.stringify(payload) + '\u0000', 'utf8');
+      socket.end(JSON.stringify(payload), 'utf8');
       log('payload written');
     });
     socket.setEncoding('utf8');
