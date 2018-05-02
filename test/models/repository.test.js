@@ -8,7 +8,6 @@ import isEqual from 'lodash.isequal';
 import {CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../../lib/models/repository';
-import {expectedDelegates} from '../../lib/models/repository-states';
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
 import {
@@ -18,23 +17,6 @@ import {
 import {getPackageRoot, getTempDir} from '../../lib/helpers';
 
 describe('Repository', function() {
-  it('delegates all state methods', function() {
-    const missing = expectedDelegates.filter(delegateName => {
-      return Repository.prototype[delegateName] === undefined;
-    });
-
-    // For convenience, write the delegate list to the console when there are any missing (in addition to failing the
-    // test.)
-    if (missing.length > 0) {
-      const formatted = util.inspect(expectedDelegates);
-
-      // eslint-disable-next-line no-console
-      console.log(`Expected delegates for your copy-and-paste convenience:\n\n---\n${formatted}\n---\n`);
-    }
-
-    assert.lengthOf(missing, 0);
-  });
-
   describe('initial states', function() {
     let repository;
 
