@@ -1,16 +1,16 @@
-import {autobind} from 'core-decorators';
-
+import {autobind} from '../lib/helpers';
 import AsyncQueue from '../lib/async-queue';
 
 class Task {
   constructor(name, error) {
+    autobind(this, 'run', 'finish');
+
     this.name = name;
     this.error = error;
     this.started = false;
     this.finished = false;
   }
 
-  @autobind
   run() {
     this.started = true;
     this.finished = false;
@@ -20,7 +20,6 @@ class Task {
     });
   }
 
-  @autobind
   finish() {
     this.finished = true;
     if (this.error) {
