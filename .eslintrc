@@ -1,10 +1,9 @@
 {
   "root": true,
-  "parser": "babel-eslint",
   "parserOptions": {
+    "ecmaVersion": 2018,
     "ecmaFeatures": {
       "jsx": true,
-      "experimentalDecorators": true,
     }
   },
   "settings": {
