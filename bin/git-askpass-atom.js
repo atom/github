@@ -48,7 +48,7 @@ function dialog() {
   log(`prompt = "${prompt}"`);
 
   return new Promise((resolve, reject) => {
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
       log('connection established');
       const parts = [];
 

@@ -292,7 +292,7 @@ function dialog(query) {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
       log('connection established');
 
       const parts = [];
