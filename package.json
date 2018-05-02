@@ -51,7 +51,6 @@
     "react-dom": "16.3.2",
     "react-relay": "1.4.1",
     "react-select": "1.2.1",
-    "relay-compiler": "1.4.1",
     "relay-runtime": "1.4.1",
     "temp": "0.8.3",
     "tinycolor2": "1.4.1",
@@ -79,6 +78,7 @@
     "mocha-junit-and-console-reporter": "1.6.0",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
+    "relay-compiler": "1.4.1",
     "sinon": "5.0.2",
     "test-until": "1.1.1"
   },
