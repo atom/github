@@ -48,11 +48,14 @@ function dialog() {
   log(`prompt = "${prompt}"`);
 
   return new Promise((resolve, reject) => {
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
       log('connection established');
       const parts = [];
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        process.stderr.write(`<gaa> [${data}]\n`);
+        parts.push(data);
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 
@@ -67,7 +70,7 @@ function dialog() {
       });
 
       log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
+      socket.end(JSON.stringify(payload), 'utf8');
       log('payload written');
     });
     socket.setEncoding('utf8');
@@ -76,8 +79,13 @@ function dialog() {
 
 userHelper()
   .catch(() => dialog())
-  .then(password => {
-    process.stdout.write(password);
+  .then(async password => {
+    await new Promise((resolve, reject) => {
+      process.stdout.write(password, err => {
+        if (err) { reject(err); } else { resolve(); }
+      });
+    });
+
     log('success');
     process.exit(0);
   }, err => {

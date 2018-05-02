@@ -292,12 +292,15 @@ function dialog(query) {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect({path: sockPath, allowHalfOpen: true}, () => {
       log('connection established');
 
       const parts = [];
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        process.stderr.write(`<gca> [${data}]\n`);
+        parts.push(data);
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 
@@ -331,7 +334,7 @@ function dialog(query) {
       });
 
       log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
+      socket.end(JSON.stringify(payload), 'utf8');
       log('payload written');
     });
     socket.setEncoding('utf8');
@@ -426,17 +429,17 @@ log(`socket path = ${sockPath}`);
 log(`action = ${action}`);
 
 switch (action) {
-  case 'get':
-    get();
-    break;
-  case 'store':
-    store();
-    break;
-  case 'erase':
-    erase();
-    break;
-  default:
-    log(`Unrecognized command: ${action}`);
-    process.exit(0);
-    break;
+case 'get':
+  get();
+  break;
+case 'store':
+  store();
+  break;
+case 'erase':
+  erase();
+  break;
+default:
+  log(`Unrecognized command: ${action}`);
+  process.exit(0);
+  break;
 }

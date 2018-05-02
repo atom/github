@@ -6,7 +6,7 @@ import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';
 import {fileExists, getAtomHelperPath} from '../lib/helpers';
 
-describe('GitPromptServer', function() {
+describe.stress(50, 'GitPromptServer', function() {
   const electronEnv = {
     ELECTRON_RUN_AS_NODE: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
@@ -72,9 +72,6 @@ describe('GitPromptServer', function() {
     });
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
-      this.retries(5); // Known Flake
-      this.timeout(10000);
-
       let queried = null;
 
       function queryHandler(query) {
@@ -107,9 +104,6 @@ describe('GitPromptServer', function() {
     });
 
     it('preserves a provided username', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let queried = null;
 
       function queryHandler(query) {
@@ -141,9 +135,6 @@ describe('GitPromptServer', function() {
     });
 
     it('parses input without the terminating blank line', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       function queryHandler(query) {
         return {
           username: 'old-man-from-scene-24',
@@ -168,9 +159,6 @@ describe('GitPromptServer', function() {
     });
 
     it('creates a flag file if remember is set to true', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       function queryHandler(query) {
         return {
           username: 'old-man-from-scene-24',
@@ -191,9 +179,6 @@ describe('GitPromptServer', function() {
     });
 
     it('uses matching credentials from keytar if available without prompting', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let called = false;
       function queryHandler() {
         called = true;
@@ -229,9 +214,6 @@ describe('GitPromptServer', function() {
     });
 
     it('uses a default username for the appropriate host if one is available', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let called = false;
       function queryHandler() {
         called = true;
@@ -272,9 +254,6 @@ describe('GitPromptServer', function() {
     });
 
     it('uses credentials from the GitHub tab if available', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let called = false;
       function queryHandler() {
         called = true;
@@ -306,9 +285,6 @@ describe('GitPromptServer', function() {
     });
 
     it('stores credentials in keytar if a flag file is present', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let called = false;
       function queryHandler() {
         called = true;
@@ -340,9 +316,6 @@ describe('GitPromptServer', function() {
     });
 
     it('forgets stored credentials from keytar if authentication fails', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       function queryHandler() {
         return {};
       }
@@ -386,9 +359,6 @@ describe('GitPromptServer', function() {
 
   describe('askpass helper', function() {
     it('prompts for user input and writes the response to stdout', async function() {
-      this.timeout(10000);
-      this.retries(5);
-
       let queried = null;
 
       const server = new GitPromptServer(tempDir);
