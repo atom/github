@@ -297,7 +297,10 @@ function dialog(query) {
 
       const parts = [];
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        process.stderr.write(`<gca> [${data}]\n`);
+        parts.push(data);
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 

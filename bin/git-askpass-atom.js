@@ -52,7 +52,10 @@ function dialog() {
       log('connection established');
       const parts = [];
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        process.stderr.write(`<gaa> [${data}]\n`);
+        parts.push(data);
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 
