@@ -7,10 +7,7 @@
     "chai-assert-async",
     "transform-object-rest-spread",
     "transform-es2015-modules-commonjs",
-    "transform-decorators-legacy", // must come before class-properties
     "transform-class-properties",
-    "transform-es2015-destructuring", // https://github.com/babel/babel/issues/4074
-    "transform-es2015-parameters", // same
   ],
   "presets": [
     "react",
