@@ -247,4 +247,14 @@ describe('CommitView', function() {
     wrapper.find('.github-CommitView-abortMerge').simulate('click');
     assert.isTrue(abortMerge.calledOnce);
   });
+
+  describe('restoring focus', function() {
+    it('to the commit button', function() {
+      const wrapper = mount(app);
+      sinon.spy(wrapper.instance().refCommitButton.get(), 'focus');
+
+      wrapper.instance().setFocus(CommitView.focus.COMMIT_BUTTON);
+      assert.isTrue(wrapper.instance().refCommitButton.get().focus.called);
+    });
+  });
 });
