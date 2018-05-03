@@ -127,6 +127,20 @@ describe('PaneItem', function() {
       assert.lengthOf(wrapper.update().find('Component'), 2);
     });
 
+    it('renders a different child item for each item in a different Pane', async function() {
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/{id}">
+          {() => <Component text="a prop" />}
+        </PaneItem>,
+      );
+
+      const item0 = await workspace.open('atom-github://pattern/1');
+      const pane0 = workspace.paneForItem(item0);
+      pane0.splitRight({copyActiveItem: true});
+
+      assert.lengthOf(wrapper.update().find('Component'), 2);
+    });
+
     it('passes matched parameters to its render prop', async function() {
       let calledWith = null;
       mount(
