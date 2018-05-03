@@ -1,5 +1,7 @@
 # Atom GitHub Package
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/)
+
 | Windows | Mac | Linux | Dependency Status |
 |---------|-----|-------|-------------------|
 | [![Build status](https://ci.appveyor.com/api/projects/status/psctk8vrva49dseb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/github/branch/master) | [![CircleCI](https://circleci.com/gh/atom/github/tree/master.svg?style=svg)](https://circleci.com/gh/atom/github/tree/master) | [![Build Status](https://travis-ci.org/atom/github.svg?branch=master)](https://travis-ci.org/atom/github) | [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github) |
