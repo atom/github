@@ -248,6 +248,34 @@ describe('StatusBarTileController', function() {
           assert.equal(tip.querySelector('atom-text-editor').getModel().getText(), 'master');
           assert.isFalse(createNewButton.hasAttribute('disabled'));
         });
+
+        it('clears the new branch name after successful creation', async function() {
+          const workdirPath = await cloneRepository('three-files');
+          const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
+
+          const wrapper = await mountAndLoad(buildApp({repository}));
+
+          // Open the branch creator, type a branch name, and confirm branch creation.
+          await wrapper.find('.github-BranchMenuView-button').simulate('click');
+          wrapper.find('.github-BranchMenuView-editor atom-text-editor').getDOMNode().getModel()
+            .setText('new-branch-name');
+          await wrapper.find('.github-BranchMenuView-button').simulate('click');
+
+          await until('branch creation completes', async () => {
+            const b = await repository.getCurrentBranch();
+            return b.getName() === 'new-branch-name' && !b.isDetached();
+          });
+          repository.refresh();
+          await assert.async.isUndefined(
+            wrapper.update().find('.github-BranchMenuView-editor atom-text-editor').prop('readonly'),
+          );
+
+          await wrapper.find('.github-BranchMenuView-button').simulate('click');
+          assert.strictEqual(
+            wrapper.find('.github-BranchMenuView-editor atom-text-editor').getDOMNode().getModel().getText(),
+            '',
+          );
+        });
       });
 
       describe('with a detached HEAD', function() {
