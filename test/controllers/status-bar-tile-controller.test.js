@@ -197,7 +197,7 @@ describe('StatusBarTileController', function() {
           assert.isTrue(selectList.className.includes('hidden'));
           assert.isFalse(tip.querySelector('.github-BranchMenuView-editor').className.includes('hidden'));
 
-          tip.querySelector('atom-text-editor').innerText = 'new-branch';
+          tip.querySelector('atom-text-editor').getModel().setText('new-branch');
           tip.querySelector('button').click();
           assert.isTrue(editor.hasAttribute('readonly'));
 
@@ -231,7 +231,7 @@ describe('StatusBarTileController', function() {
           assert.equal(tip.querySelector('select').value, 'branch');
 
           createNewButton.click();
-          tip.querySelector('atom-text-editor').innerText = 'master';
+          tip.querySelector('atom-text-editor').getModel().setText('master');
           createNewButton.click();
           assert.isTrue(createNewButton.hasAttribute('disabled'));
 
@@ -245,7 +245,7 @@ describe('StatusBarTileController', function() {
           assert.isFalse(branch1.isDetached());
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
-          assert.equal(tip.querySelector('atom-text-editor').innerText, 'master');
+          assert.equal(tip.querySelector('atom-text-editor').getModel().getText(), 'master');
           assert.isFalse(createNewButton.hasAttribute('disabled'));
         });
       });
