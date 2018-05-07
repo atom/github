@@ -20,8 +20,8 @@ describe('URIPattern', function() {
     });
 
     it('does not match undefined or null', function() {
-      assert.isFalse(exact.matches(undefined));
-      assert.isFalse(exact.matches(null));
+      assert.isFalse(exact.matches(undefined).ok());
+      assert.isFalse(exact.matches(null).ok());
     });
   });
 
