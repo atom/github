@@ -257,7 +257,7 @@ async function fromKeytar(query) {
 
       // Always remember credentials we had to go to GraphQL to get
       await new Promise((resolve, reject) => {
-        fs.writeFile(rememberFile, err => {
+        fs.writeFile(rememberFile, '', {encoding: 'utf8'}, err => {
           if (err) { reject(err); } else { resolve(); }
         });
       });
@@ -320,7 +320,7 @@ function dialog(query) {
           };
 
           if (reply.remember) {
-            fs.writeFile(rememberFile, writeReply);
+            fs.writeFile(rememberFile, '', {encoding: 'utf8'}, writeReply);
           } else {
             writeReply();
           }
