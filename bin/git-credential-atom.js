@@ -428,17 +428,17 @@ log(`socket path = ${sockPath}`);
 log(`action = ${action}`);
 
 switch (action) {
-  case 'get':
-    get();
-    break;
-  case 'store':
-    store();
-    break;
-  case 'erase':
-    erase();
-    break;
-  default:
-    log(`Unrecognized command: ${action}`);
-    process.exit(0);
-    break;
+case 'get':
+  get();
+  break;
+case 'store':
+  store();
+  break;
+case 'erase':
+  erase();
+  break;
+default:
+  log(`Unrecognized command: ${action}`);
+  process.exit(0);
+  break;
 }
