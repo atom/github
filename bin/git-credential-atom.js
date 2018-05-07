@@ -292,7 +292,7 @@ function dialog(query) {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect(sockPath, async () => {
       log('connection established');
 
       const parts = [];
@@ -331,7 +331,9 @@ function dialog(query) {
       });
 
       log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
+      await new Promise(r => {
+        socket.write(JSON.stringify(payload) + '\u0000', 'utf8', r);
+      });
       log('payload written');
     });
     socket.setEncoding('utf8');
