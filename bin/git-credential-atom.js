@@ -257,7 +257,7 @@ async function fromKeytar(query) {
 
       // Always remember credentials we had to go to GraphQL to get
       await new Promise((resolve, reject) => {
-        fs.writeFile(rememberFile, err => {
+        fs.writeFile(rememberFile, '', {encoding: 'utf8'}, err => {
           if (err) { reject(err); } else { resolve(); }
         });
       });
@@ -292,7 +292,7 @@ function dialog(query) {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect(sockPath, async () => {
       log('connection established');
 
       const parts = [];
@@ -320,7 +320,7 @@ function dialog(query) {
           };
 
           if (reply.remember) {
-            fs.writeFile(rememberFile, writeReply);
+            fs.writeFile(rememberFile, '', {encoding: 'utf8'}, writeReply);
           } else {
             writeReply();
           }
@@ -331,7 +331,9 @@ function dialog(query) {
       });
 
       log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
+      await new Promise(r => {
+        socket.write(JSON.stringify(payload) + '\u0000', 'utf8', r);
+      });
       log('payload written');
     });
     socket.setEncoding('utf8');
@@ -426,17 +428,17 @@ log(`socket path = ${sockPath}`);
 log(`action = ${action}`);
 
 switch (action) {
-  case 'get':
-    get();
-    break;
-  case 'store':
-    store();
-    break;
-  case 'erase':
-    erase();
-    break;
-  default:
-    log(`Unrecognized command: ${action}`);
-    process.exit(0);
-    break;
+case 'get':
+  get();
+  break;
+case 'store':
+  store();
+  break;
+case 'erase':
+  erase();
+  break;
+default:
+  log(`Unrecognized command: ${action}`);
+  process.exit(0);
+  break;
 }

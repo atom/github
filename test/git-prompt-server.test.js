@@ -59,7 +59,7 @@ describe('GitPromptServer', function() {
 
     afterEach(async function() {
       if (this.currentTest.state === 'failed') {
-        if (stderrData.length > 0) {
+        if (stderrData.length > 0 || stdoutData.length > 0) {
           /* eslint-disable no-console */
           console.log(this.currentTest.fullTitle());
           console.log(`STDERR:\n${stderrData.join('')}\n`);
