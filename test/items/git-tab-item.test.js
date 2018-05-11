@@ -8,7 +8,7 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import RefHolder from '../../lib/models/ref-holder';
 import {cloneRepository, buildRepository} from '../helpers';
 
-describe.only('GitTabItem', function() {
+describe('GitTabItem', function() {
   let atomEnv, repository;
 
   beforeEach(async function() {
