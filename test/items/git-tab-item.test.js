@@ -4,9 +4,9 @@ import until from 'test-until';
 
 import DockItem from '../../lib/atom/dock-item';
 import GitTabItem from '../../lib/atom-items/git-tab-item';
-import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import RefHolder from '../../lib/models/ref-holder';
 import {cloneRepository, buildRepository} from '../helpers';
+import {gitTabItemProps} from '../fixtures/props/git-tab-props';
 
 describe('GitTabItem', function() {
   let atomEnv, repository;
@@ -23,26 +23,7 @@ describe('GitTabItem', function() {
   });
 
   function buildApp(overrideProps = {}) {
-    const props = {
-      repository,
-      workspace: atomEnv.workspace,
-      commandRegistry: atomEnv.commands,
-      grammars: atomEnv.grammars,
-      resolutionProgress: new ResolutionProgress(),
-      notificationManager: atomEnv.notifications,
-      config: atomEnv.config,
-      project: atomEnv.project,
-      tooltips: atomEnv.tooltips,
-      confirm: () => {},
-      ensureGitTab: () => {},
-      refreshResolutionProgress: () => {},
-      undoLastDiscard: () => {},
-      discardWorkDirChangesForPaths: () => {},
-      openFiles: () => {},
-      initializeRepo: () => {},
-      ...overrideProps,
-    };
-
+    const props = gitTabItemProps(atomEnv, repository, overrideProps);
     const itemHolder = new RefHolder();
 
     return (
