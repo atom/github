@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.14.0-3",
+  "version": "0.14.0-4",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -42,7 +42,7 @@
     "compare-sets": "1.0.1",
     "dugite": "1.63.0",
     "event-kit": "2.4.0",
-    "fs-extra": "6.0.0",
+    "fs-extra": "4.0.3",
     "graphql": "0.13.2",
     "keytar": "4.2.1",
     "lodash.memoize": "4.1.2",
