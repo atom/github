@@ -27,3 +27,24 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
 export function gitTabContainerProps(atomEnv, repository, overrides = {}) {
   return gitTabItemProps(atomEnv, repository, overrides);
 }
+
+export async function gitTabControllerProps(atomEnv, repository, overrides = {}) {
+  const repoProps = {
+    lastCommit: await repository.getLastCommit(),
+    recentCommits: await repository.getRecentCommits({max: 10}),
+    isMerging: await repository.isMerging(),
+    isRebasing: await repository.isRebasing(),
+    hasUndoHistory: await repository.hasDiscardHistory(),
+    currentBranch: await repository.getCurrentBranch(),
+    unstagedChanges: await repository.getUnstagedChanges(),
+    stagedChanges: await repository.getStagedChanges(),
+    mergeConflicts: await repository.getMergeConflicts(),
+    workingDirectoryPath: repository.getWorkingDirectoryPath(),
+    fetchInProgress: false,
+    ...overrides,
+  };
+
+  repoProps.mergeMessage = repoProps.isMerging ? await repository.getMergeMessage() : null;
+
+  return gitTabContainerProps(atomEnv, repository, repoProps);
+}
