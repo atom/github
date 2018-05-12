@@ -18,6 +18,11 @@ describe('URIPattern', function() {
       assert.isFalse(exact.matches('atom-github://exact/but/not').ok());
       assert.isFalse(exact.matches('atom-github://exact?no=no').ok());
     });
+
+    it('does not match undefined or null', function() {
+      assert.isFalse(exact.matches(undefined).ok());
+      assert.isFalse(exact.matches(null).ok());
+    });
   });
 
   describe('parameter placeholders', function() {
