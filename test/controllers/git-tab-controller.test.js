@@ -641,6 +641,7 @@ describe.stress(30, 'GitTabController', function() {
 
           // verify that coAuthor was passed
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
+          await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
           // verify that commit message has coauthor
