@@ -717,6 +717,7 @@ describe.stress(30, 'GitTabController', function() {
 
         assert.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
         wrapper.find('.github-RecentCommit-undoButton').simulate('click');
+        await assert.async.isTrue(repository.undoLastCommit.called);
         await repository.undoLastCommit.returnValues[0];
         await updateWrapper(repository, wrapper);
 
