@@ -16,7 +16,7 @@ import {GitError} from '../../lib/git-shell-out-strategy';
 
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
-describe.stress(30, 'GitTabController', function() {
+describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
   let resolutionProgress, refreshResolutionProgress;
 
