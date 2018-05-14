@@ -673,6 +673,7 @@ describe('GitTabController', function() {
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that NO coAuthor was passed
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
           // assert that no co-authors are in last commit
@@ -694,6 +695,7 @@ describe('GitTabController', function() {
       it('restores to the state prior to committing', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
+        sinon.spy(repository, 'undoLastCommit');
         fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
 
         await repository.stageFiles(['new-file.txt']);
@@ -714,6 +716,7 @@ describe('GitTabController', function() {
 
         assert.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
         wrapper.find('.github-RecentCommit-undoButton').simulate('click');
+        await repository.undoLastCommit.returnValues[0];
         await updateWrapper(repository, wrapper);
 
         assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
