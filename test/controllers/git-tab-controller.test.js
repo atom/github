@@ -613,10 +613,12 @@ describe('GitTabController', function() {
           const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
+          await updateWrapper(repository, wrapper);
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that coAuthor was passed
           await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
+          await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
           assert.deepEqual(getLastCommit().coAuthors, [author]);
@@ -706,14 +708,13 @@ describe('GitTabController', function() {
         const wrapper = mount(await buildApp(repository));
 
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), []);
+        // ensure that the co author trailer is stripped from commit message
+        let commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
+        assert.deepEqual(commitMessages, [commitSubject, 'Initial commit']);
 
         assert.lengthOf(wrapper.find('.github-RecentCommit-undoButton'), 1);
         wrapper.find('.github-RecentCommit-undoButton').simulate('click');
         await updateWrapper(repository, wrapper);
-
-        let commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
-        // ensure that the co author trailer is stripped from commit message
-        assert.deepEqual(commitMessages, [commitSubject, 'Initial commit']);
 
         assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
         assert.deepEqual(wrapper.find('GitTabView').prop('stagedChanges'), [{
