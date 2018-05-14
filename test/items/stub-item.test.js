@@ -1,6 +1,6 @@
 import {Emitter} from 'event-kit';
 
-import StubItem from '../../lib/atom-items/stub-item';
+import StubItem from '../../lib/items/stub-item';
 
 class RealItem {
   constructor() {

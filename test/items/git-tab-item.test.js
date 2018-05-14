@@ -3,7 +3,7 @@ import {mount} from 'enzyme';
 import until from 'test-until';
 
 import DockItem from '../../lib/atom/dock-item';
-import GitTabItem from '../../lib/atom-items/git-tab-item';
+import GitTabItem from '../../lib/items/git-tab-item';
 import RefHolder from '../../lib/models/ref-holder';
 import {cloneRepository, buildRepository} from '../helpers';
 import {gitTabItemProps} from '../fixtures/props/git-tab-props';
