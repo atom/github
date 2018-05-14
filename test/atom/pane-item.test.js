@@ -3,7 +3,7 @@ import {shallow, mount} from 'enzyme';
 import PropTypes from 'prop-types';
 
 import PaneItem from '../../lib/atom/pane-item';
-import StubItem from '../../lib/atom-items/stub-item';
+import StubItem from '../../lib/items/stub-item';
 
 class Component extends React.Component {
   static propTypes = {
