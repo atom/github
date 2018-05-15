@@ -87,6 +87,16 @@ describe('CommitController', function() {
       assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some message');
     });
 
+    it('repository.didUpdate is not called when commit message changes', function() {
+      repository.setCommitMessage('some message');
+      const wrapper = shallow(app, {disableLifecycleMethods: true}).instance();
+      sinon.spy(wrapper.props.repository.state, 'didUpdate');
+      assert.strictEqual(wrapper.getCommitMessage(), 'some message');
+      wrapper.handleMessageChange('new message');
+      assert.strictEqual(wrapper.getCommitMessage(), 'new message');
+      assert.isFalse(wrapper.props.repository.state.didUpdate.called);
+    });
+
     describe('when a merge message is defined', function() {
       it('is set to the merge message when merging', function() {
         app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
