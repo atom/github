@@ -87,7 +87,7 @@ describe('CommitController', function() {
       assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some message');
     });
 
-    it('changing commit message does not cause the repository to update', function() {
+    it('does not cause the repository to update when commit message changes', function() {
       repository.setCommitMessage('some message');
       const wrapper = shallow(app, {disableLifecycleMethods: true}).instance();
       sinon.spy(wrapper.props.repository.state, 'didUpdate');
