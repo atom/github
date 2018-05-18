@@ -1,11 +1,11 @@
 import dedent from 'dedent-js';
 
 import UserStore, {NO_REPLY_GITHUB_EMAIL} from '../../lib/models/user-store';
-
+import RelayNetworkLayerManager, {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
 describe('UserStore', function() {
-  it('loads store with users and committer in repo upon construction', async function() {
+  it('loads store with local git users and committer in a repo with no GitHub remote', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const store = new UserStore({repository});
@@ -22,6 +22,46 @@ describe('UserStore', function() {
     ]);
     await assert.async.deepEqual(store.committer, FAKE_USER);
   });
+
+  it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
+    await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
+
+    const {resolve, promise} = expectRelayQuery({name: 'MentionableUserQuery'}, {
+      repository: {
+        mentionableUsers: {
+          nodes: [
+            {login: 'kuychaco', email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
+            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+          ],
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: null,
+          },
+        },
+      },
+    });
+
+    const store = new UserStore({repository});
+    assert.deepEqual(store.getUsers(), []);
+
+    resolve();
+    await promise;
+
+    assert.deepEqual(store.getUsers(), [
+      {login: 'kuychaco', email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
+      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+    ]);
+  });
+
+  it('infers no-reply emails for users without a public email address');
 
   it('excludes committer and no reply user from `getUsers`', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
