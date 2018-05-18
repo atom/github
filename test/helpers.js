@@ -7,13 +7,14 @@ import transpiler from 'atom-babel6-transpiler';
 import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
+import {Directory} from 'atom';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
-import {Directory} from 'atom';
+import {clearRelayExpectations} from '../lib/relay-network-layer-manager';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -248,6 +249,8 @@ afterEach(function() {
   ContextMenuInterceptor.dispose();
 
   global.sinon.restore();
+
+  clearRelayExpectations();
 });
 
 // eslint-disable-next-line jasmine/no-global-setup
