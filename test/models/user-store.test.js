@@ -38,9 +38,9 @@ describe('UserStore', function() {
       repository: {
         mentionableUsers: {
           nodes: [
-            {login: 'kuychaco', email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
-            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
             {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
           ],
           pageInfo: {
             hasNextPage: false,
@@ -57,8 +57,8 @@ describe('UserStore', function() {
 
     await assert.async.deepEqual(store.getUsers(), [
       {email: 'smashwilson@github.com', name: 'Ash Wilson'},
-      {email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
       {email: 'mona@lisa.com', name: 'Mona Lisa'},
+      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
     ]);
   });
 
