@@ -24,6 +24,8 @@ describe('UserStore', function() {
   });
 
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
+    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
@@ -32,7 +34,7 @@ describe('UserStore', function() {
     await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
     await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
 
-    const {resolve, promise} = expectRelayQuery({name: 'MentionableUserQuery'}, {
+    const {resolve} = expectRelayQuery({name: 'GetMentionableUsers'}, {
       repository: {
         mentionableUsers: {
           nodes: [
@@ -52,12 +54,11 @@ describe('UserStore', function() {
     assert.deepEqual(store.getUsers(), []);
 
     resolve();
-    await promise;
 
-    assert.deepEqual(store.getUsers(), [
-      {login: 'kuychaco', email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
-      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
-      {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+    await assert.async.deepEqual(store.getUsers(), [
+      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {email: 'kuychaco@github.com', name: 'Katrina Uychaco'},
+      {email: 'mona@lisa.com', name: 'Mona Lisa'},
     ]);
   });
 
