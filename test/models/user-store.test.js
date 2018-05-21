@@ -73,8 +73,6 @@ describe('UserStore', function() {
 
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
-    await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
-    await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
 
     const {resolve: resolve0} = expectRelayQuery({
       name: 'GetMentionableUsers',
@@ -133,7 +131,39 @@ describe('UserStore', function() {
     ]);
   });
 
-  it('infers no-reply emails for users without a public email address');
+  it('infers no-reply emails for users without a public email address', async function() {
+    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+    const {resolve} = expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
+    }, {
+      repository: {
+        mentionableUsers: {
+          nodes: [
+            {login: 'simurai', email: '', name: 'simurai'},
+          ],
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: null,
+          },
+        },
+      },
+    });
+
+    const store = new UserStore({repository});
+
+    resolve();
+    await assert.async.deepEqual(store.getUsers(), [
+      {email: 'simurai@users.noreply.github.com', name: 'simurai'},
+    ]);
+  });
 
   it('excludes committer and no reply user from `getUsers`', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
