@@ -34,7 +34,10 @@ describe('UserStore', function() {
     await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
     await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
 
-    const {resolve} = expectRelayQuery({name: 'GetMentionableUsers'}, {
+    const {resolve} = expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
+    }, {
       repository: {
         mentionableUsers: {
           nodes: [
@@ -59,6 +62,74 @@ describe('UserStore', function() {
       {email: 'smashwilson@github.com', name: 'Ash Wilson'},
       {email: 'mona@lisa.com', name: 'Mona Lisa'},
       {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+    ]);
+  });
+
+  it('loads users from multiple pages from the GitHub API', async function() {
+    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
+    await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
+
+    const {resolve: resolve0} = expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
+    }, {
+      repository: {
+        mentionableUsers: {
+          nodes: [
+            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+          ],
+          pageInfo: {
+            hasNextPage: true,
+            endCursor: 'foo',
+          },
+        },
+      },
+    });
+
+    const {resolve: resolve1} = expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {owner: 'me', name: 'stuff', first: 100, after: 'foo'},
+    }, {
+      repository: {
+        mentionableUsers: {
+          nodes: [
+            {login: 'zzz', email: 'zzz@github.com', name: 'Zzzzz'},
+            {login: 'aaa', email: 'aaa@github.com', name: 'Aahhhhh'},
+          ],
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: 'bar',
+          },
+        },
+      },
+    });
+
+    const store = new UserStore({repository});
+    assert.deepEqual(store.getUsers(), []);
+
+    resolve0();
+    await assert.async.deepEqual(store.getUsers(), [
+      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {email: 'mona@lisa.com', name: 'Mona Lisa'},
+      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+    ]);
+
+    resolve1();
+    await assert.async.deepEqual(store.getUsers(), [
+      {email: 'aaa@github.com', name: 'Aahhhhh'},
+      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {email: 'mona@lisa.com', name: 'Mona Lisa'},
+      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      {email: 'zzz@github.com', name: 'Zzzzz'},
     ]);
   });
 
