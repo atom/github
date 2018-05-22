@@ -167,7 +167,7 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     const store = new UserStore({repository});
-    await store.loadUsersFromLocalRepo();
+    await assert.async.lengthOf(store.getUsers(), 1);
 
     sinon.spy(store, 'addUsers');
     // make a commit with FAKE_USER as committer
