@@ -514,13 +514,14 @@ describe('Repository', function() {
       const workingDirPath = await cloneRepository('three-files');
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
-      assert.deepEqual(await repository.getCommitter(), {
-        name: FAKE_USER.name,
-        email: FAKE_USER.email,
-      });
+
+      const committer = await repository.getCommitter();
+      assert.isTrue(committer.isPresent());
+      assert.strictEqual(committer.getFullName(), FAKE_USER.name);
+      assert.strictEqual(committer.getEmail(), FAKE_USER.email);
     });
 
-    it('returns empty object if user name or email do not exist', async function() {
+    it('returns a null object if user name or email do not exist', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
@@ -529,10 +530,8 @@ describe('Repository', function() {
 
       // getting the local config for testing purposes only because we don't
       // want to blow away global config when running tests.
-      assert.deepEqual(await repository.getCommitter({local: true}), {
-        name: null,
-        email: null,
-      });
+      const committer = await repository.getCommitter({local: true});
+      assert.isFalse(committer.isPresent());
     });
   });
 
