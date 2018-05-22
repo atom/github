@@ -1,20 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-
 import React from 'react';
 import {mount} from 'enzyme';
-
 import dedent from 'dedent-js';
 import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
-
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline, initRepository} from '../helpers';
 import Repository from '../../lib/models/repository';
-import {GitError} from '../../lib/git-shell-out-strategy';
-
+import Author from '../../lib/models/author';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import {GitError} from '../../lib/git-shell-out-strategy';
 
 describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
