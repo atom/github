@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
+import UserStore from '../../lib/models/user-store';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
@@ -24,6 +25,7 @@ describe('CommitController', function() {
 
     lastCommit = new Commit({sha: 'a1e23fd45', message: 'last commit message'});
     const noop = () => {};
+    const store = new UserStore({});
 
     app = (
       <CommitController
@@ -40,6 +42,7 @@ describe('CommitController', function() {
         mergeMessage={''}
         lastCommit={lastCommit}
         currentBranch={nullBranch}
+        userStore={store}
         prepareToCommit={noop}
         commit={noop}
         abortMerge={noop}
