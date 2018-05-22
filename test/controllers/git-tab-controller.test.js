@@ -169,8 +169,8 @@ describe('GitTabController', function() {
       const repository = await buildRepository(workdirPath);
 
       const wrapper = mount(await buildApp(repository));
-      const coAuthors = [{name: 'Mona Lisa', email: 'mona@lisa.com'}];
-      const newAuthor = {name: 'Mr. Hubot', email: 'hubot@github.com'};
+      const coAuthors = [new Author('mona@lisa.com', 'Mona Lisa')];
+      const newAuthor = new Author('hubot@github.com', 'Mr. Hubot');
 
       wrapper.instance().updateSelectedCoAuthors(coAuthors, newAuthor);
 
