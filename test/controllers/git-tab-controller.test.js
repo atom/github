@@ -609,7 +609,7 @@ describe('GitTabController', function() {
           assert.deepEqual(commitBeforeAmend.coAuthors, []);
 
           // add co author
-          const author = {email: 'foo@bar.com', name: 'foo bar'};
+          const author = new Author('foo@bar.com', 'foo bar');
           const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
@@ -621,7 +621,7 @@ describe('GitTabController', function() {
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
-          assert.deepEqual(getLastCommit().coAuthors, [author]);
+          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
           assert.strictEqual(getLastCommit().getMessageSubject(), commitBeforeAmend.getMessageSubject());
         });
 
