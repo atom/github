@@ -65,6 +65,9 @@ describe('GitTabController', function() {
     assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
 
+    await repository.getLoadPromise();
+    await updateWrapper(repository, wrapper);
+
     await assert.async.isFalse(wrapper.update().find('.github-Panel').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
