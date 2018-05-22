@@ -1,6 +1,7 @@
 import dedent from 'dedent-js';
 
-import UserStore, {NO_REPLY_GITHUB_EMAIL} from '../../lib/models/user-store';
+import UserStore from '../../lib/models/user-store';
+import Author, {nullAuthor} from '../../lib/models/author';
 import RelayNetworkLayerManager, {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
@@ -11,16 +12,13 @@ describe('UserStore', function() {
     const store = new UserStore({repository});
 
     assert.deepEqual(store.getUsers(), []);
-    assert.deepEqual(store.committer, {});
+    assert.strictEqual(store.committer, nullAuthor);
 
     // Store is populated asynchronously
     await assert.async.deepEqual(store.getUsers(), [
-      {
-        email: 'kuychaco@github.com',
-        name: 'Katrina Uychaco',
-      },
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
-    await assert.async.deepEqual(store.committer, FAKE_USER);
+    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
   });
 
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
@@ -59,9 +57,9 @@ describe('UserStore', function() {
     resolve();
 
     await assert.async.deepEqual(store.getUsers(), [
-      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
-      {email: 'mona@lisa.com', name: 'Mona Lisa'},
-      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
+      new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+      new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
     ]);
   });
 
@@ -116,18 +114,18 @@ describe('UserStore', function() {
 
     resolve0();
     await assert.async.deepEqual(store.getUsers(), [
-      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
-      {email: 'mona@lisa.com', name: 'Mona Lisa'},
-      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
+      new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+      new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
     ]);
 
     resolve1();
     await assert.async.deepEqual(store.getUsers(), [
-      {email: 'aaa@github.com', name: 'Aahhhhh'},
-      {email: 'smashwilson@github.com', name: 'Ash Wilson'},
-      {email: 'mona@lisa.com', name: 'Mona Lisa'},
-      {email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
-      {email: 'zzz@github.com', name: 'Zzzzz'},
+      new Author('aaa@github.com', 'Aahhhhh', 'aaa'),
+      new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
+      new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+      new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
+      new Author('zzz@github.com', 'Zzzzz', 'zzz'),
     ]);
   });
 
@@ -161,7 +159,7 @@ describe('UserStore', function() {
 
     resolve();
     await assert.async.deepEqual(store.getUsers(), [
-      {email: 'simurai@users.noreply.github.com', name: 'simurai'},
+      new Author('simurai@users.noreply.github.com', 'simurai', 'simurai'),
     ]);
   });
 
@@ -182,12 +180,10 @@ describe('UserStore', function() {
 
     // verify that FAKE_USER is not in users returned from `getUsers`
     const users = store.getUsers();
-    const committerFromStore = users.find(user => user.email === FAKE_USER.email);
-    assert.isUndefined(committerFromStore);
+    assert.isFalse(users.some(user => user.getEmail() === FAKE_USER.email));
 
     // verify that no-reply email address is not in users array
-    const noReplyUser = users.find(user => user.email === NO_REPLY_GITHUB_EMAIL);
-    assert.isUndefined(noReplyUser);
+    assert.isFalse(users.some(user => user.isNoReply()));
   });
 
   describe('addUsers', function() {
@@ -198,24 +194,15 @@ describe('UserStore', function() {
 
       await assert.async.lengthOf(store.getUsers(), 1);
 
-      store.addUsers({
-        'mona@lisa.com': 'Mona Lisa',
-        'hubot@github.com': 'Hubot Robot',
-      });
+      store.addUsers([
+        new Author('mona@lisa.com', 'Mona Lisa'),
+        new Author('hubot@github.com', 'Hubot Robot'),
+      ]);
 
-      await assert.async.deepEqual(store.getUsers(), [
-        {
-          name: 'Hubot Robot',
-          email: 'hubot@github.com',
-        },
-        {
-          name: 'Katrina Uychaco',
-          email: 'kuychaco@github.com',
-        },
-        {
-          name: 'Mona Lisa',
-          email: 'mona@lisa.com',
-        },
+      assert.deepEqual(store.getUsers(), [
+        new Author('hubot@github.com', 'Hubot Robot'),
+        new Author('kuychaco@github.com', 'Katrina Uychaco'),
+        new Author('mona@lisa.com', 'Mona Lisa'),
       ]);
     });
   });
@@ -225,18 +212,18 @@ describe('UserStore', function() {
     const repository = await buildRepository(workdirPath);
 
     const store = new UserStore({repository});
-    await assert.async.deepEqual(store.committer, FAKE_USER);
+    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
 
     const newEmail = 'foo@bar.com';
     await repository.setConfig('user.email', newEmail);
 
     repository.refresh();
-    await assert.async.deepEqual(store.committer, {name: FAKE_USER.name, email: newEmail});
+    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
 
     const newName = 'Foo Bar';
     await repository.setConfig('user.name', newName);
     repository.refresh();
-    await assert.async.deepEqual(store.committer, {name: newName, email: newEmail});
+    await assert.async.deepEqual(store.committer, new Author(newEmail, newName));
   });
 
   it('refetches users when HEAD changes', async function() {
@@ -249,10 +236,7 @@ describe('UserStore', function() {
 
     const store = new UserStore({repository});
     await assert.async.deepEqual(store.getUsers(), [
-      {
-        email: 'kuychaco@github.com',
-        name: 'Katrina Uychaco',
-      },
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
 
     sinon.spy(store, 'addUsers');
@@ -265,8 +249,8 @@ describe('UserStore', function() {
     `, {allowEmpty: true});
 
     await assert.async.equal(store.addUsers.callCount, 1);
-    assert.isOk(store.getUsers().find(user => {
-      return user.name === 'New Author' && user.email === 'new-author@email.com';
+    assert.isTrue(store.getUsers().some(user => {
+      return user.getFullName() === 'New Author' && user.getEmail() === 'new-author@email.com';
     }));
 
     // Change head due to branch checkout
