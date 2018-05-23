@@ -1,6 +1,6 @@
 import dedent from 'dedent-js';
 
-import UserStore from '../../lib/models/user-store';
+import UserStore, {source} from '../../lib/models/user-store';
 import Author, {nullAuthor} from '../../lib/models/author';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
@@ -219,13 +219,14 @@ describe('UserStore', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
       const store = new UserStore({repository});
+      await nextUpdatePromise(store);
 
-      await assert.async.lengthOf(store.getUsers(), 1);
+      assert.lengthOf(store.getUsers(), 1);
 
       store.addUsers([
         new Author('mona@lisa.com', 'Mona Lisa'),
         new Author('hubot@github.com', 'Hubot Robot'),
-      ]);
+      ], source.GITLOG);
 
       assert.deepEqual(store.getUsers(), [
         new Author('hubot@github.com', 'Hubot Robot'),
