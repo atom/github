@@ -329,25 +329,20 @@ describe('UserStore', function() {
 
     const store = new UserStore({repository, login});
     await nextUpdatePromise(store);
-    console.log('initial load complete');
 
     assert.deepEqual(store.getUsers(), gitAuthors);
 
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-    console.log('about to refresh repository');
     repository.refresh();
-    console.log('updated after repository refresh');
 
     // Token is not available, so authors are still queried from git
     assert.deepEqual(store.getUsers(), gitAuthors);
 
-    console.log('about to fire login update');
     await login.setToken('https://api.github.com', '1234');
 
     await nextUpdatePromise(store);
-    console.log('updated after login update');
     assert.deepEqual(store.getUsers(), graphqlAuthors);
   });
 });
