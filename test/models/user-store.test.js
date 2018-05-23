@@ -345,4 +345,38 @@ describe('UserStore', function() {
     await nextUpdatePromise(store);
     assert.deepEqual(store.getUsers(), graphqlAuthors);
   });
+
+  it('refetches users when the repository changes', async function() {
+    const workdirPath0 = await cloneRepository('multiple-commits');
+    const repository0 = await buildRepository(workdirPath0);
+    await repository0.setConfig('user.email', 'committer0@github.com');
+    await repository0.setConfig('user.name', 'committer0');
+    await repository0.commit('on repo 0', {allowEmpty: true});
+    await repository0.setConfig('user.email', 'committer@github.com');
+    await repository0.setConfig('user.name', 'committer');
+
+    const workdirPath1 = await cloneRepository('multiple-commits');
+    const repository1 = await buildRepository(workdirPath1);
+    await repository1.setConfig('user.email', 'committer1@github.com');
+    await repository1.setConfig('user.name', 'committer1');
+    await repository1.commit('on repo 1', {allowEmpty: true});
+    await repository1.setConfig('user.email', 'committer@github.com');
+    await repository1.setConfig('user.name', 'committer');
+
+    const store = new UserStore({repository: repository0});
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.getUsers(), [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+      new Author('committer0@github.com', 'committer0'),
+    ]);
+
+    store.setRepository(repository1);
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.getUsers(), [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+      new Author('committer1@github.com', 'committer1'),
+    ]);
+  });
 });
