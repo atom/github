@@ -2,10 +2,27 @@ import dedent from 'dedent-js';
 
 import UserStore from '../../lib/models/user-store';
 import Author, {nullAuthor} from '../../lib/models/author';
-import RelayNetworkLayerManager, {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
 describe('UserStore', function() {
+  let login;
+
+  function nextUpdatePromise(store) {
+    return new Promise(resolve => {
+      const sub = store.onDidUpdate(() => {
+        sub.dispose();
+        resolve();
+      });
+    });
+  }
+
+  beforeEach(function() {
+    login = new GithubLoginModel(InMemoryStrategy);
+  });
+
   it('loads store with local git users and committer in a repo with no GitHub remote', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
@@ -15,14 +32,15 @@ describe('UserStore', function() {
     assert.strictEqual(store.committer, nullAuthor);
 
     // Store is populated asynchronously
-    await assert.async.deepEqual(store.getUsers(), [
+    await nextUpdatePromise(store);
+    assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
-    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
+    assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
   });
 
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
-    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+    await login.setToken('https://api.github.com', '1234');
 
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
@@ -51,12 +69,13 @@ describe('UserStore', function() {
       },
     });
 
-    const store = new UserStore({repository});
-    assert.deepEqual(store.getUsers(), []);
+    const store = new UserStore({repository, login});
+    await nextUpdatePromise(store);
 
     resolve();
+    await nextUpdatePromise(store);
 
-    await assert.async.deepEqual(store.getUsers(), [
+    assert.deepEqual(store.getUsers(), [
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
       new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
       new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
@@ -64,7 +83,7 @@ describe('UserStore', function() {
   });
 
   it('loads users from multiple pages from the GitHub API', async function() {
-    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+    await login.setToken('https://api.github.com', '1234');
 
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
@@ -109,18 +128,24 @@ describe('UserStore', function() {
       },
     });
 
-    const store = new UserStore({repository});
+    const store = new UserStore({repository, login});
+
+    await nextUpdatePromise(store);
     assert.deepEqual(store.getUsers(), []);
 
     resolve0();
-    await assert.async.deepEqual(store.getUsers(), [
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.getUsers(), [
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
       new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
       new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
     ]);
 
     resolve1();
-    await assert.async.deepEqual(store.getUsers(), [
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.getUsers(), [
       new Author('aaa@github.com', 'Aahhhhh', 'aaa'),
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
       new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
@@ -130,7 +155,7 @@ describe('UserStore', function() {
   });
 
   it('infers no-reply emails for users without a public email address', async function() {
-    RelayNetworkLayerManager.getEnvironmentForHost('https://api.github.com', '1234');
+    await login.setToken('https://api.github.com', '1234');
 
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
@@ -155,10 +180,13 @@ describe('UserStore', function() {
       },
     });
 
-    const store = new UserStore({repository});
+    const store = new UserStore({repository, login});
+    await nextUpdatePromise(store);
 
     resolve();
-    await assert.async.deepEqual(store.getUsers(), [
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.getUsers(), [
       new Author('simurai@users.noreply.github.com', 'simurai', 'simurai'),
     ]);
   });
@@ -212,18 +240,18 @@ describe('UserStore', function() {
     const repository = await buildRepository(workdirPath);
 
     const store = new UserStore({repository});
-    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
+    await nextUpdatePromise(store);
+    assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
 
     const newEmail = 'foo@bar.com';
-    await repository.setConfig('user.email', newEmail);
-
-    repository.refresh();
-    await assert.async.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
-
     const newName = 'Foo Bar';
+
+    await repository.setConfig('user.email', newEmail);
     await repository.setConfig('user.name', newName);
     repository.refresh();
-    await assert.async.deepEqual(store.committer, new Author(newEmail, newName));
+    await nextUpdatePromise(store);
+
+    assert.deepEqual(store.committer, new Author(newEmail, newName));
   });
 
   it('refetches users when HEAD changes', async function() {
@@ -235,7 +263,8 @@ describe('UserStore', function() {
     await repository.checkout('master');
 
     const store = new UserStore({repository});
-    await assert.async.deepEqual(store.getUsers(), [
+    await nextUpdatePromise(store);
+    assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
 
@@ -248,13 +277,76 @@ describe('UserStore', function() {
       Co-authored-by: New Author <new-author@email.com>
     `, {allowEmpty: true});
 
-    await assert.async.equal(store.addUsers.callCount, 1);
+    repository.refresh();
+    await nextUpdatePromise(store);
+
+    await assert.strictEqual(store.addUsers.callCount, 1);
     assert.isTrue(store.getUsers().some(user => {
       return user.getFullName() === 'New Author' && user.getEmail() === 'new-author@email.com';
     }));
 
     // Change head due to branch checkout
     await repository.checkout('new-branch');
-    await assert.async.equal(store.addUsers.callCount, 2);
+    repository.refresh();
+
+    await assert.async.strictEqual(store.addUsers.callCount, 2);
+  });
+
+  it('refetches users when a token becomes available', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    const gitAuthors = [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+    ];
+
+    const graphqlAuthors = [
+      new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
+      new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+      new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
+    ];
+
+    const {resolve} = expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
+    }, {
+      repository: {
+        mentionableUsers: {
+          nodes: [
+            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+          ],
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: null,
+          },
+        },
+      },
+    });
+    resolve();
+
+    const store = new UserStore({repository, login});
+    await nextUpdatePromise(store);
+    console.log('initial load complete');
+
+    assert.deepEqual(store.getUsers(), gitAuthors);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+    console.log('about to refresh repository');
+    repository.refresh();
+    console.log('updated after repository refresh');
+
+    // Token is not available, so authors are still queried from git
+    assert.deepEqual(store.getUsers(), gitAuthors);
+
+    console.log('about to fire login update');
+    await login.setToken('https://api.github.com', '1234');
+
+    await nextUpdatePromise(store);
+    console.log('updated after login update');
+    assert.deepEqual(store.getUsers(), graphqlAuthors);
   });
 });
