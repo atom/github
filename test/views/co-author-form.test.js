@@ -2,6 +2,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import CoAuthorForm from '../../lib/views/co-author-form';
+import Author from '../../lib/models/author';
 
 describe('CoAuthorForm', function() {
   let atomEnv;
@@ -50,10 +51,7 @@ describe('CoAuthorForm', function() {
 
       wrapper.find('.btn-primary').simulate('click');
 
-      assert.deepEqual(didSubmit.firstCall.args[0], {
-        name,
-        email,
-      });
+      assert.deepEqual(didSubmit.firstCall.args[0], new Author(email, name));
     });
 
     it('submit button is initially disabled', function() {
