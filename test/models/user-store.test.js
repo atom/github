@@ -31,7 +31,7 @@ describe('UserStore', function() {
       const isLast = index === pages.length - 1;
       const nextCursor = isLast ? null : `page-${index + 1}`;
 
-      const {resolve} = expectRelayQuery({
+      const result = expectRelayQuery({
         name: 'GetMentionableUsers',
         variables: {owner: opts.owner, name: opts.name, first: 100, after: lastCursor},
       }, {
@@ -47,7 +47,7 @@ describe('UserStore', function() {
       });
 
       lastCursor = nextCursor;
-      return resolve;
+      return result;
     });
   }
 
@@ -82,7 +82,7 @@ describe('UserStore', function() {
     await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
     await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
 
-    const [resolve] = expectPagedRelayQueries({}, [
+    const [{resolve}] = expectPagedRelayQueries({}, [
       {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
       {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
       {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
@@ -110,7 +110,7 @@ describe('UserStore', function() {
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-    const [resolve0, resolve1] = expectPagedRelayQueries({},
+    const [{resolve: resolve0}, {resolve: resolve1}] = expectPagedRelayQueries({},
       [
         {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
         {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
@@ -157,7 +157,7 @@ describe('UserStore', function() {
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-    const [resolve] = expectPagedRelayQueries({}, [
+    const [{resolve}] = expectPagedRelayQueries({}, [
       {login: 'simurai', email: '', name: 'simurai'},
     ]);
 
@@ -288,7 +288,7 @@ describe('UserStore', function() {
       new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
     ];
 
-    const [resolve] = expectPagedRelayQueries({}, [
+    const [{resolve}] = expectPagedRelayQueries({}, [
       {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
       {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
       {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
@@ -346,5 +346,88 @@ describe('UserStore', function() {
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
       new Author('committer1@github.com', 'committer1'),
     ]);
+  });
+
+  describe('GraphQL response caching', function() {
+    it('caches mentionable users acquired from GraphQL', async function() {
+      await login.setToken('https://api.github.com', '1234');
+
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+      await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+      const [{resolve, disable}] = expectPagedRelayQueries({}, [
+        {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+        {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+        {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      ]);
+      resolve();
+
+      const store = new UserStore({repository, login});
+      sinon.spy(store, 'loadUsers');
+
+      // The first update is triggered by the commiter, the second from GraphQL results arriving.
+      await nextUpdatePromise(store);
+      await nextUpdatePromise(store);
+
+      disable();
+
+      repository.refresh();
+
+      await assert.async.strictEqual(store.loadUsers.callCount, 2);
+      await store.loadUsers.returnValues[1];
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
+        new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+        new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
+      ]);
+    });
+
+    it('re-uses cached users per repository', async function() {
+      await login.setToken('https://api.github.com', '1234');
+
+      const workdirPath0 = await cloneRepository('multiple-commits');
+      const repository0 = await buildRepository(workdirPath0);
+      await repository0.setConfig('remote.origin.url', 'git@github.com:me/zero.git');
+      await repository0.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+      const workdirPath1 = await cloneRepository('multiple-commits');
+      const repository1 = await buildRepository(workdirPath1);
+      await repository1.setConfig('remote.origin.url', 'git@github.com:me/one.git');
+      await repository1.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+      const results = id => [
+        {login: 'aaa', email: `aaa-${id}@a.com`, name: 'AAA'},
+        {login: 'bbb', email: `bbb-${id}@b.com`, name: 'BBB'},
+        {login: 'ccc', email: `ccc-${id}@c.com`, name: 'CCC'},
+      ];
+      const [{resolve: resolve0, disable: disable0}] = expectPagedRelayQueries({name: 'zero'}, results('0'));
+      const [{resolve: resolve1, disable: disable1}] = expectPagedRelayQueries({name: 'one'}, results('1'));
+      resolve0();
+      resolve1();
+
+      const store = new UserStore({repository: repository0, login});
+      await nextUpdatePromise(store);
+      await nextUpdatePromise(store);
+
+      store.setRepository(repository1);
+      await nextUpdatePromise(store);
+
+      sinon.spy(store, 'loadUsers');
+      disable0();
+      disable1();
+
+      store.setRepository(repository0);
+      await nextUpdatePromise(store);
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('aaa-0@a.com', 'AAA', 'aaa'),
+        new Author('bbb-0@b.com', 'BBB', 'bbb'),
+        new Author('ccc-0@c.com', 'CCC', 'ccc'),
+      ]);
+    });
   });
 });
