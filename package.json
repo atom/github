@@ -79,7 +79,7 @@
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
     "relay-compiler": "1.6.0",
-    "sinon": "5.0.6",
+    "sinon": "5.0.10",
     "test-until": "1.1.1"
   },
   "consumedServices": {
