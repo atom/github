@@ -48,7 +48,7 @@
     "lodash.memoize": "4.1.2",
     "moment": "2.22.1",
     "prop-types": "15.6.1",
-    "react": "16.3.2",
+    "react": "16.4.0",
     "react-dom": "16.3.2",
     "react-relay": "1.6.0",
     "react-select": "1.2.1",
