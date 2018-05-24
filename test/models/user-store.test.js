@@ -19,6 +19,38 @@ describe('UserStore', function() {
     });
   }
 
+  function expectPagedRelayQueries(options, ...pages) {
+    const opts = {
+      owner: 'me',
+      name: 'stuff',
+      ...options,
+    };
+
+    let lastCursor = null;
+    return pages.map((page, index) => {
+      const isLast = index === pages.length - 1;
+      const nextCursor = isLast ? null : `page-${index + 1}`;
+
+      const {resolve} = expectRelayQuery({
+        name: 'GetMentionableUsers',
+        variables: {owner: opts.owner, name: opts.name, first: 100, after: lastCursor},
+      }, {
+        repository: {
+          mentionableUsers: {
+            nodes: page,
+            pageInfo: {
+              hasNextPage: !isLast,
+              endCursor: nextCursor,
+            },
+          },
+        },
+      });
+
+      lastCursor = nextCursor;
+      return resolve;
+    });
+  }
+
   beforeEach(function() {
     login = new GithubLoginModel(InMemoryStrategy);
   });
@@ -50,24 +82,11 @@ describe('UserStore', function() {
     await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
     await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
 
-    const {resolve} = expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [
-            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
-            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
-          ],
-          pageInfo: {
-            hasNextPage: false,
-            endCursor: null,
-          },
-        },
-      },
-    });
+    const [resolve] = expectPagedRelayQueries({}, [
+      {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+    ]);
 
     const store = new UserStore({repository, login});
     await nextUpdatePromise(store);
@@ -91,42 +110,17 @@ describe('UserStore', function() {
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-    const {resolve: resolve0} = expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [
-            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
-            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
-          ],
-          pageInfo: {
-            hasNextPage: true,
-            endCursor: 'foo',
-          },
-        },
-      },
-    });
-
-    const {resolve: resolve1} = expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {owner: 'me', name: 'stuff', first: 100, after: 'foo'},
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [
-            {login: 'zzz', email: 'zzz@github.com', name: 'Zzzzz'},
-            {login: 'aaa', email: 'aaa@github.com', name: 'Aahhhhh'},
-          ],
-          pageInfo: {
-            hasNextPage: false,
-            endCursor: 'bar',
-          },
-        },
-      },
-    });
+    const [resolve0, resolve1] = expectPagedRelayQueries({},
+      [
+        {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+        {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+        {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      ],
+      [
+        {login: 'zzz', email: 'zzz@github.com', name: 'Zzzzz'},
+        {login: 'aaa', email: 'aaa@github.com', name: 'Aahhhhh'},
+      ],
+    );
 
     const store = new UserStore({repository, login});
 
@@ -163,22 +157,9 @@ describe('UserStore', function() {
     await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
     await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
 
-    const {resolve} = expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [
-            {login: 'simurai', email: '', name: 'simurai'},
-          ],
-          pageInfo: {
-            hasNextPage: false,
-            endCursor: null,
-          },
-        },
-      },
-    });
+    const [resolve] = expectPagedRelayQueries({}, [
+      {login: 'simurai', email: '', name: 'simurai'},
+    ]);
 
     const store = new UserStore({repository, login});
     await nextUpdatePromise(store);
@@ -307,24 +288,11 @@ describe('UserStore', function() {
       new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
     ];
 
-    const {resolve} = expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {owner: 'me', name: 'stuff', first: 100, after: null},
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [
-            {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
-            {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-            {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
-          ],
-          pageInfo: {
-            hasNextPage: false,
-            endCursor: null,
-          },
-        },
-      },
-    });
+    const [resolve] = expectPagedRelayQueries({}, [
+      {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+    ]);
     resolve();
 
     const store = new UserStore({repository, login});
