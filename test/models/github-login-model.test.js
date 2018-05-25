@@ -39,19 +39,19 @@ describe('GithubLoginModel', function() {
     });
 
     it('returns INSUFFICIENT if scopes are present', async function() {
-      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo']));
+      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org']));
 
       assert.strictEqual(await loginModel.getToken('https://api.github.com'), INSUFFICIENT);
     });
 
     it('returns the token if at least the required scopes are present', async function() {
-      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'user:email', 'extra']));
+      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org', 'user:email', 'extra']));
 
       assert.strictEqual(await loginModel.getToken('https://api.github.com'), '1234');
     });
 
     it('caches checked tokens', async function() {
-      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'user:email']));
+      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org', 'user:email']));
 
       assert.strictEqual(await loginModel.getToken('https://api.github.com'), '1234');
       assert.strictEqual(loginModel.getScopes.callCount, 1);
