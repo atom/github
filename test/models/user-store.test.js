@@ -53,6 +53,7 @@ describe('UserStore', function() {
 
   beforeEach(function() {
     login = new GithubLoginModel(InMemoryStrategy);
+    sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
   });
 
   it('loads store with local git users and committer in a repo with no GitHub remote', async function() {
