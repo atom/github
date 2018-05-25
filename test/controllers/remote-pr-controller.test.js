@@ -65,7 +65,10 @@ describe('RemotePrController', function() {
     const wrapper = mount(createApp());
 
     await assert.async.isTrue(wrapper.update().find('GithubLoginView').exists());
-    assert.isFalse(wrapper.find('GithubLoginView').prop('scopeExpansion'));
+    assert.strictEqual(
+      wrapper.find('GithubLoginView').find('p').text(),
+      'Log in to GitHub to access PR information and more!',
+    );
   });
 
   it('shows the login view if more scopes are required', async function() {
@@ -75,7 +78,10 @@ describe('RemotePrController', function() {
     const wrapper = mount(createApp());
 
     await assert.async.isTrue(wrapper.update().find('GithubLoginView').exists());
-    assert.isTrue(wrapper.find('GithubLoginView').prop('scopeExpansion'));
+    assert.strictEqual(
+      wrapper.find('GithubLoginView').find('p').text(),
+      'Your token no longer has sufficient authorizations. Please re-authenticate and generate a new one.',
+    );
   });
 
   it('renders pull request info if authenticated', async function() {
