@@ -8,9 +8,24 @@ import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
 describe('UserStore', function() {
-  let login;
+  let login, atomEnv, config, store;
 
-  function nextUpdatePromise(store) {
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+    config = atomEnv.config;
+
+    login = new GithubLoginModel(InMemoryStrategy);
+    sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
+  });
+
+  afterEach(function() {
+    if (store) {
+      store.dispose();
+    }
+    atomEnv.destroy();
+  });
+
+  function nextUpdatePromise() {
     return new Promise(resolve => {
       const sub = store.onDidUpdate(() => {
         sub.dispose();
@@ -51,21 +66,30 @@ describe('UserStore', function() {
     });
   }
 
-  beforeEach(function() {
-    login = new GithubLoginModel(InMemoryStrategy);
-    sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
-  });
+  async function commitAs(repository, ...accounts) {
+    const committerName = await repository.getConfig('user.name');
+    const committerEmail = await repository.getConfig('user.email');
+
+    for (const {name, email} of accounts) {
+      await repository.setConfig('user.name', name);
+      await repository.setConfig('user.email', email);
+      await repository.commit('message', {allowEmpty: true});
+    }
+
+    await repository.setConfig('user.name', committerName);
+    await repository.setConfig('user.email', committerEmail);
+  }
 
   it('loads store with local git users and committer in a repo with no GitHub remote', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
-    const store = new UserStore({repository});
+    store = new UserStore({repository, config});
 
     assert.deepEqual(store.getUsers(), []);
     assert.strictEqual(store.committer, nullAuthor);
 
     // Store is populated asynchronously
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
     assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
@@ -89,11 +113,11 @@ describe('UserStore', function() {
       {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
     ]);
 
-    const store = new UserStore({repository, login});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository, login, config});
+    await nextUpdatePromise();
 
     resolve();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
@@ -123,13 +147,13 @@ describe('UserStore', function() {
       ],
     );
 
-    const store = new UserStore({repository, login});
+    store = new UserStore({repository, login, config});
 
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
     assert.deepEqual(store.getUsers(), []);
 
     resolve0();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
@@ -138,7 +162,7 @@ describe('UserStore', function() {
     ]);
 
     resolve1();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('aaa@github.com', 'Aahhhhh', 'aaa'),
@@ -162,11 +186,11 @@ describe('UserStore', function() {
       {login: 'simurai', email: '', name: 'simurai'},
     ]);
 
-    const store = new UserStore({repository, login});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository, login, config});
+    await nextUpdatePromise();
 
     resolve();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('simurai@users.noreply.github.com', 'simurai', 'simurai'),
@@ -176,7 +200,7 @@ describe('UserStore', function() {
   it('excludes committer and no reply user from `getUsers`', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
-    const store = new UserStore({repository});
+    store = new UserStore({repository, config});
     await assert.async.lengthOf(store.getUsers(), 1);
 
     sinon.spy(store, 'addUsers');
@@ -200,8 +224,8 @@ describe('UserStore', function() {
     it('adds specified users and does not overwrite existing users', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
-      const store = new UserStore({repository});
-      await nextUpdatePromise(store);
+      store = new UserStore({repository, config});
+      await nextUpdatePromise();
 
       assert.lengthOf(store.getUsers(), 1);
 
@@ -222,8 +246,8 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    const store = new UserStore({repository});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository, config});
+    await nextUpdatePromise();
     assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
 
     const newEmail = 'foo@bar.com';
@@ -232,7 +256,7 @@ describe('UserStore', function() {
     await repository.setConfig('user.email', newEmail);
     await repository.setConfig('user.name', newName);
     repository.refresh();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.committer, new Author(newEmail, newName));
   });
@@ -245,8 +269,8 @@ describe('UserStore', function() {
     await repository.commit('commit 2', {allowEmpty: true});
     await repository.checkout('master');
 
-    const store = new UserStore({repository});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository, config});
+    await nextUpdatePromise();
     assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
@@ -261,7 +285,7 @@ describe('UserStore', function() {
     `, {allowEmpty: true});
 
     repository.refresh();
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     await assert.strictEqual(store.addUsers.callCount, 1);
     assert.isTrue(store.getUsers().some(user => {
@@ -296,8 +320,8 @@ describe('UserStore', function() {
     ]);
     resolve();
 
-    const store = new UserStore({repository, login});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository, login, config});
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), gitAuthors);
 
@@ -311,29 +335,21 @@ describe('UserStore', function() {
 
     await login.setToken('https://api.github.com', '1234');
 
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
     assert.deepEqual(store.getUsers(), graphqlAuthors);
   });
 
   it('refetches users when the repository changes', async function() {
     const workdirPath0 = await cloneRepository('multiple-commits');
     const repository0 = await buildRepository(workdirPath0);
-    await repository0.setConfig('user.email', 'committer0@github.com');
-    await repository0.setConfig('user.name', 'committer0');
-    await repository0.commit('on repo 0', {allowEmpty: true});
-    await repository0.setConfig('user.email', 'committer@github.com');
-    await repository0.setConfig('user.name', 'committer');
+    await commitAs(repository0, {name: 'committer0', email: 'committer0@github.com'});
 
     const workdirPath1 = await cloneRepository('multiple-commits');
     const repository1 = await buildRepository(workdirPath1);
-    await repository1.setConfig('user.email', 'committer1@github.com');
-    await repository1.setConfig('user.name', 'committer1');
-    await repository1.commit('on repo 1', {allowEmpty: true});
-    await repository1.setConfig('user.email', 'committer@github.com');
-    await repository1.setConfig('user.name', 'committer');
+    await commitAs(repository1, {name: 'committer1', email: 'committer1@github.com'});
 
-    const store = new UserStore({repository: repository0});
-    await nextUpdatePromise(store);
+    store = new UserStore({repository: repository0, config});
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
@@ -341,7 +357,7 @@ describe('UserStore', function() {
     ]);
 
     store.setRepository(repository1);
-    await nextUpdatePromise(store);
+    await nextUpdatePromise();
 
     assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
@@ -366,12 +382,12 @@ describe('UserStore', function() {
       ]);
       resolve();
 
-      const store = new UserStore({repository, login});
+      store = new UserStore({repository, login, config});
       sinon.spy(store, 'loadUsers');
 
       // The first update is triggered by the commiter, the second from GraphQL results arriving.
-      await nextUpdatePromise(store);
-      await nextUpdatePromise(store);
+      await nextUpdatePromise();
+      await nextUpdatePromise();
 
       disable();
 
@@ -410,24 +426,98 @@ describe('UserStore', function() {
       resolve0();
       resolve1();
 
-      const store = new UserStore({repository: repository0, login});
-      await nextUpdatePromise(store);
-      await nextUpdatePromise(store);
+      store = new UserStore({repository: repository0, login, config});
+      await nextUpdatePromise();
+      await nextUpdatePromise();
 
       store.setRepository(repository1);
-      await nextUpdatePromise(store);
+      await nextUpdatePromise();
 
       sinon.spy(store, 'loadUsers');
       disable0();
       disable1();
 
       store.setRepository(repository0);
-      await nextUpdatePromise(store);
+      await nextUpdatePromise();
 
       assert.deepEqual(store.getUsers(), [
         new Author('aaa-0@a.com', 'AAA', 'aaa'),
         new Author('bbb-0@b.com', 'BBB', 'bbb'),
         new Author('ccc-0@c.com', 'CCC', 'ccc'),
+      ]);
+    });
+  });
+
+  describe('excluded users', function() {
+    it('do not appear in the list from git', async function() {
+      config.set('github.excludedUsers', 'evil@evilcorp.org');
+
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+      await commitAs(repository,
+        {name: 'evil0', email: 'evil@evilcorp.org'},
+        {name: 'ok', email: 'ok@somewhere.net'},
+        {name: 'evil1', email: 'evil@evilcorp.org'},
+      );
+
+      store = new UserStore({repository, config});
+      await nextUpdatePromise();
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('kuychaco@github.com', 'Katrina Uychaco'),
+        new Author('ok@somewhere.net', 'ok'),
+      ]);
+    });
+
+    it('do not appear in the list from GraphQL', async function() {
+      config.set('github.excludedUsers', 'evil@evilcorp.org, other@evilcorp.org');
+      await login.setToken('https://api.github.com', '1234');
+
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+      await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+      const [{resolve}] = expectPagedRelayQueries({}, [
+        {login: 'evil0', email: 'evil@evilcorp.org', name: 'evil0'},
+        {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
+      ]);
+      resolve();
+
+      store = new UserStore({repository, login, config});
+      await nextUpdatePromise();
+      await nextUpdatePromise();
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('mona@lisa.com', 'Mona Lisa', 'octocat'),
+      ]);
+    });
+
+    it('are updated when the config option changes', async function() {
+      config.set('github.excludedUsers', 'evil0@evilcorp.org');
+
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+      await commitAs(repository,
+        {name: 'evil0', email: 'evil0@evilcorp.org'},
+        {name: 'ok', email: 'ok@somewhere.net'},
+        {name: 'evil1', email: 'evil1@evilcorp.org'},
+      );
+
+      store = new UserStore({repository, config});
+      await nextUpdatePromise();
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('kuychaco@github.com', 'Katrina Uychaco'),
+        new Author('evil1@evilcorp.org', 'evil1'),
+        new Author('ok@somewhere.net', 'ok'),
+      ]);
+
+      config.set('github.excludedUsers', 'evil0@evilcorp.org, evil1@evilcorp.org');
+
+      assert.deepEqual(store.getUsers(), [
+        new Author('kuychaco@github.com', 'Katrina Uychaco'),
+        new Author('ok@somewhere.net', 'ok'),
       ]);
     });
   });
