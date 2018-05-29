@@ -331,6 +331,7 @@ describe('StagingView', function() {
         const wrapper = mount(React.cloneElement(app, {
           unstagedChanges: filePatches,
         }));
+        sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
         const getPanesWithStalePendingFilePatchItem = sinon.stub(
           wrapper.instance(),
@@ -401,6 +402,7 @@ describe('StagingView', function() {
         const wrapper = mount(React.cloneElement(app, {
           unstagedChanges: filePatches,
         }));
+        sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
         const getPanesWithStalePendingFilePatchItem = sinon.stub(
           wrapper.instance(),
@@ -482,6 +484,7 @@ describe('StagingView', function() {
       const wrapper = mount(React.cloneElement(app, {
         unstagedChanges: filePatches,
       }));
+      sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
       let selectedItems = wrapper.instance().getSelectedItems();
       assert.lengthOf(selectedItems, 1);
@@ -501,6 +504,7 @@ describe('StagingView', function() {
       const wrapper = mount(React.cloneElement(app, {
         unstagedChanges: [{filePath: 'a.txt', status: 'modified'}],
       }));
+      sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
       sinon.stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem').returns(['item1']);
       wrapper.setProps({unstagedChanges: []}); // when repo is changed, lists are cleared out and data is fetched for new repo
