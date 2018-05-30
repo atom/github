@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -40,7 +40,7 @@
     "babel-preset-react": "6.24.1",
     "classnames": "2.2.5",
     "compare-sets": "1.0.1",
-    "dugite": "1.64.0",
+    "dugite": "1.65.0",
     "event-kit": "2.5.0",
     "fs-extra": "4.0.3",
     "graphql": "0.13.2",
