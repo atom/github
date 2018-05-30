@@ -20,7 +20,7 @@ describe('CommitView', function() {
     lastCommit = new Commit({sha: '1234abcd', message: 'commit message'});
     const noop = () => {};
     const returnTruthyPromise = () => Promise.resolve(true);
-    const store = new UserStore({});
+    const store = new UserStore({config});
 
     app = (
       <CommitView

@@ -25,7 +25,7 @@ describe('CommitController', function() {
 
     lastCommit = new Commit({sha: 'a1e23fd45', message: 'last commit message'});
     const noop = () => {};
-    const store = new UserStore({});
+    const store = new UserStore({config});
 
     app = (
       <CommitController
