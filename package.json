@@ -150,6 +150,11 @@
       "type": "boolean",
       "default": true,
       "description": "Resolve merge conflicts with in-editor controls"
+    },
+    "excludedUsers": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated list of email addresses to exclude from the co-author selection list"
     }
   },
   "deserializers": {

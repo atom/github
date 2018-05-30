@@ -4,6 +4,7 @@ import {shallow, mount} from 'enzyme';
 import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
 import Branch, {nullBranch} from '../../lib/models/branch';
+import UserStore from '../../lib/models/user-store';
 import CommitView from '../../lib/views/commit-view';
 
 describe('CommitView', function() {
@@ -19,6 +20,7 @@ describe('CommitView', function() {
     lastCommit = new Commit({sha: '1234abcd', message: 'commit message'});
     const noop = () => {};
     const returnTruthyPromise = () => Promise.resolve(true);
+    const store = new UserStore({config});
 
     app = (
       <CommitView
@@ -26,6 +28,7 @@ describe('CommitView', function() {
         tooltips={tooltips}
         config={config}
         lastCommit={lastCommit}
+        userStore={store}
         currentBranch={nullBranch}
         isMerging={false}
         stagedChangesExist={false}

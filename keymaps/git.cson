@@ -70,3 +70,4 @@
   'home': 'github:co-author:home'
   'end': 'github:co-author:end'
   'delete': 'github:co-author:delete'
+  'shift-backspace': 'github:co-author-exclude'

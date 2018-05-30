@@ -1,20 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-
 import React from 'react';
 import {mount} from 'enzyme';
-
 import dedent from 'dedent-js';
 import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
-
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline, initRepository} from '../helpers';
 import Repository from '../../lib/models/repository';
-import {GitError} from '../../lib/git-shell-out-strategy';
-
+import Author from '../../lib/models/author';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import {GitError} from '../../lib/git-shell-out-strategy';
 
 describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
@@ -67,6 +64,9 @@ describe('GitTabController', function() {
     assert.isTrue(wrapper.find('.github-Panel').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
+
+    await repository.getLoadPromise();
+    await updateWrapper(repository, wrapper);
 
     await assert.async.isFalse(wrapper.update().find('.github-Panel').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('StagingView'), 1);
@@ -169,8 +169,8 @@ describe('GitTabController', function() {
       const repository = await buildRepository(workdirPath);
 
       const wrapper = mount(await buildApp(repository));
-      const coAuthors = [{name: 'Mona Lisa', email: 'mona@lisa.com'}];
-      const newAuthor = {name: 'Mr. Hubot', email: 'hubot@github.com'};
+      const coAuthors = [new Author('mona@lisa.com', 'Mona Lisa')];
+      const newAuthor = new Author('hubot@github.com', 'Mr. Hubot');
 
       wrapper.instance().updateSelectedCoAuthors(coAuthors, newAuthor);
 
@@ -609,7 +609,7 @@ describe('GitTabController', function() {
           assert.deepEqual(commitBeforeAmend.coAuthors, []);
 
           // add co author
-          const author = {email: 'foo@bar.com', name: 'foo bar'};
+          const author = new Author('foo@bar.com', 'foo bar');
           const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
@@ -621,7 +621,7 @@ describe('GitTabController', function() {
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
-          assert.deepEqual(getLastCommit().coAuthors, [author]);
+          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
           assert.strictEqual(getLastCommit().getMessageSubject(), commitBeforeAmend.getMessageSubject());
         });
 
@@ -631,7 +631,7 @@ describe('GitTabController', function() {
           assert.deepEqual(commitBeforeAmend.coAuthors, []);
 
           // add co author
-          const author = {email: 'foo@bar.com', name: 'foo bar'};
+          const author = new Author('foo@bar.com', 'foo bar');
           const commitView = wrapper.find('CommitView').instance();
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
@@ -645,7 +645,7 @@ describe('GitTabController', function() {
           await updateWrapper(repository, wrapper);
 
           // verify that commit message has coauthor
-          assert.deepEqual(getLastCommit().coAuthors, [author]);
+          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
           assert.strictEqual(getLastCommit().getMessageSubject(), newMessage);
         });
 

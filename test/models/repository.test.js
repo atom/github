@@ -514,13 +514,14 @@ describe('Repository', function() {
       const workingDirPath = await cloneRepository('three-files');
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
-      assert.deepEqual(await repository.getCommitter(), {
-        name: FAKE_USER.name,
-        email: FAKE_USER.email,
-      });
+
+      const committer = await repository.getCommitter();
+      assert.isTrue(committer.isPresent());
+      assert.strictEqual(committer.getFullName(), FAKE_USER.name);
+      assert.strictEqual(committer.getEmail(), FAKE_USER.email);
     });
 
-    it('returns empty object if user name or email do not exist', async function() {
+    it('returns a null object if user name or email do not exist', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
@@ -529,10 +530,43 @@ describe('Repository', function() {
 
       // getting the local config for testing purposes only because we don't
       // want to blow away global config when running tests.
-      assert.deepEqual(await repository.getCommitter({local: true}), {
-        name: null,
-        email: null,
-      });
+      const committer = await repository.getCommitter({local: true});
+      assert.isFalse(committer.isPresent());
+    });
+  });
+
+  describe('getAuthors', function() {
+    it('returns user names and emails', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+
+      await repository.git.exec(['config', 'user.name', 'Mona Lisa']);
+      await repository.git.exec(['config', 'user.email', 'mona@lisa.com']);
+      await repository.git.commit('Commit from Mona', {allowEmpty: true});
+
+      await repository.git.exec(['config', 'user.name', 'Hubot']);
+      await repository.git.exec(['config', 'user.email', 'hubot@github.com']);
+      await repository.git.commit('Commit from Hubot', {allowEmpty: true});
+
+      await repository.git.exec(['config', 'user.name', 'Me']);
+      await repository.git.exec(['config', 'user.email', 'me@github.com']);
+      await repository.git.commit('Commit from me', {allowEmpty: true});
+
+      const authors = await repository.getAuthors({max: 3});
+      assert.lengthOf(authors, 3);
+
+      const expected = [
+        ['mona@lisa.com', 'Mona Lisa'],
+        ['hubot@github.com', 'Hubot'],
+        ['me@github.com', 'Me'],
+      ];
+      for (const [email, fullName] of expected) {
+        assert.isTrue(
+          authors.some(author => author.getEmail() === email && author.getFullName() === fullName),
+          `getAuthors() output includes ${fullName} <${email}>`,
+        );
+      }
     });
   });
 
