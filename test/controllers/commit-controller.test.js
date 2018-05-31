@@ -159,44 +159,53 @@ describe('CommitController', function() {
     });
 
     describe('message formatting', function() {
-      let commitSpy;
+      let commitSpy, wrapper;
+
       beforeEach(function() {
         commitSpy = sinon.stub().returns(Promise.resolve());
         app = React.cloneElement(app, {commit: commitSpy});
+        wrapper = shallow(app, {disableLifecycleMethods: true});
       });
 
-      it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
-        config.set('github.automaticCommitMessageWrapping', false);
+      describe('with automatic wrapping disabled', function() {
+        beforeEach(function() {
+          config.set('github.automaticCommitMessageWrapping', false);
+        });
 
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
+        it('passes commit messages through unchanged', async function() {
+          await wrapper.instance().commit([
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
 
-        await wrapper.instance().commit([
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ].join('\n'));
+          assert.strictEqual(commitSpy.args[0][0], [
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
+        });
+      });
 
-        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ]);
+      describe('with automatic wrapping enabled', function() {
+        beforeEach(function() {
+          config.set('github.automaticCommitMessageWrapping', true);
+        });
 
-        commitSpy.reset();
-        config.set('github.automaticCommitMessageWrapping', true);
+        it('wraps lines within the commit body at 72 characters', async function() {
+          await wrapper.instance().commit([
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
 
-        await wrapper.instance().commit([
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ].join('\n'));
-
-        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
-          'ut aliquip ex ea commodo consequat.',
-        ]);
+          assert.strictEqual(commitSpy.args[0][0], [
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
+            'ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
+        });
       });
     });
 
