@@ -791,6 +791,17 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           assert.notDeepEqual(lastCommit, amendedCommit);
           assert.deepEqual(lastCommitParent, amendedCommitParent);
         });
+
+        it('leaves the commit message unchanged', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+          await git.commit('first\n\nsecond\n\nthird', {allowEmpty: true});
+
+          await git.commit('', {amend: true, allowEmpty: true});
+          const amendedCommit = await git.getHeadCommit();
+          assert.strictEqual(amendedCommit.messageSubject, 'first');
+          assert.strictEqual(amendedCommit.messageBody, 'second\n\nthird');
+        });
       });
     });
 
