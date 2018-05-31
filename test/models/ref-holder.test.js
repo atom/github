@@ -52,6 +52,17 @@ describe('RefHolder', function() {
     assert.isTrue(callback.calledWith(12));
   });
 
+  it('resolves a promise when it becomes available', async function() {
+    const thing = Symbol('Thing');
+    const h = new RefHolder();
+
+    const promise = h.getPromise();
+
+    h.setter(thing);
+    assert.strictEqual(await promise, thing);
+    assert.strictEqual(await h.getPromise(), thing);
+  });
+
   describe('.on()', function() {
     it('returns an existing RefHolder as-is', function() {
       const original = new RefHolder();
