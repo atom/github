@@ -784,7 +784,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
             '',
             'other stuff        ',
             '',
-            '',
+            'and things',
             '',
           ].join('\n');
         });
@@ -792,12 +792,34 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         it('strips out comments and whitespace from message passed', async function() {
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
+          await git.setConfig('commit.cleanup', 'default');
 
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.messageSubject, 'Make a commit');
-          assert.deepEqual(lastCommit.messageBody, 'other stuff');
+          assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.strictEqual(lastCommit.messageBody, 'other stuff\n\nand things');
+        });
+
+        it('passes a message through verbatim', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+          await git.setConfig('commit.cleanup', 'default');
+
+          await git.commit(message, {allowEmpty: true, verbatim: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.strictEqual(lastCommit.messageBody, [
+            '# Comments:',
+            '#  blah blah blah',
+            '',
+            '',
+            '',
+            'other stuff        ',
+            '',
+            'and things',
+          ].join('\n'));
         });
       });
 
