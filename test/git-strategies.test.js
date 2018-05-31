@@ -236,7 +236,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 
           Detailed explanation paragraph 2
           #123 with an issue reference
-        `.trim(), {allowEmpty: true});
+        `.trim(), {allowEmpty: true, verbatim: true});
 
         const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
@@ -960,7 +960,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           command: 'commit',
           progressiveTense: 'committing',
           usesPromptServerAlready: false,
-          action: () => git.commit('message'),
+          action: () => git.commit('message', {verbatim: true}),
         },
         {
           command: 'merge',
