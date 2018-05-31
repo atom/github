@@ -206,6 +206,11 @@ describe('CommitController', function() {
             'ut aliquip ex ea commodo consequat.',
           ].join('\n'));
         });
+
+        it('preserves existing line wraps within the commit body', async function() {
+          await wrapper.instance().commit('a\n\nb\n\nc');
+          assert.strictEqual(commitSpy.args[0][0], 'a\n\nb\n\nc');
+        });
       });
     });
 
