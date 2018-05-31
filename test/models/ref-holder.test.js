@@ -26,6 +26,51 @@ describe('RefHolder', function() {
     assert.strictEqual(h.get(), 1234);
   });
 
+  describe('map', function() {
+    it('returns an empty RefHolder as-is', function() {
+      const h = new RefHolder();
+      assert.strictEqual(h.map(() => 14), h);
+    });
+
+    it('returns a new RefHolder wrapping the value returned from its present block', function() {
+      const h = new RefHolder();
+      h.setter(12);
+      assert.strictEqual(h.map(x => x + 1).get(), 13);
+    });
+
+    it('returns a RefHolder returned from its present block', function() {
+      const h0 = new RefHolder();
+      h0.setter(14);
+
+      const o = h0.map(() => {
+        const h1 = new RefHolder();
+        h1.setter(12);
+        return h1;
+      });
+
+      assert.notStrictEqual(0, h0);
+      assert.strictEqual(o.get(), 12);
+    });
+
+    it('returns a new RefHolder wrapping the value returned from its absent block', function() {
+      const h = new RefHolder();
+
+      const o = h.map(x => 1, () => 2);
+      assert.strictEqual(o.get(), 2);
+    });
+
+    it('returns a RefHolder returned from its absent block', function() {
+      const h0 = new RefHolder();
+
+      const o = h0.map(x => 1, () => {
+        const h1 = new RefHolder();
+        h1.setter(1);
+        return h1;
+      });
+      assert.strictEqual(o.get(), 1);
+    });
+  });
+
   it('notifies subscribers when it becomes available', function() {
     const h = new RefHolder();
     const callback = sinon.spy();
