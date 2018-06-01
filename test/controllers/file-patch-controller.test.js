@@ -97,9 +97,8 @@ describe('FilePatchController', function() {
       getFilePatchForPath = sinon.stub(repository, 'getFilePatchForPath');
     });
 
-    describe('when the FilePatch has many lines', function() {
+    describe('when the FilePatch is too large', function() {
       it('renders a confirmation widget', async function() {
-
         const hunk1 = new Hunk(0, 0, 1, 1, '', [
           new HunkLine('line-1', 'added', 1, 1),
           new HunkLine('line-2', 'added', 2, 2),
@@ -112,9 +111,9 @@ describe('FilePatchController', function() {
 
         getFilePatchForPath.returns(filePatch);
 
-        const wrapper = mount(React.cloneElement(component, {largeDiffLineThreshold: 5}));
+        const wrapper = mount(React.cloneElement(component, {largeDiffByteThreshold: 5}));
 
-        await assert.async.match(wrapper.text(), /large diff/);
+        await assert.async.match(wrapper.text(), /large .+ diff/);
       });
 
       it('renders the full diff when the confirmation is clicked', async function() {
@@ -129,7 +128,7 @@ describe('FilePatchController', function() {
         const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk]);
         getFilePatchForPath.returns(filePatch);
 
-        const wrapper = mount(React.cloneElement(component, {largeDiffLineThreshold: 5}));
+        const wrapper = mount(React.cloneElement(component, {largeDiffByteThreshold: 5}));
 
         await assert.async.isTrue(wrapper.update().find('.large-file-patch').exists());
         wrapper.find('.large-file-patch').find('button').simulate('click');
@@ -152,7 +151,7 @@ describe('FilePatchController', function() {
         getFilePatchForPath.returns(filePatch1);
 
         const wrapper = mount(React.cloneElement(component, {
-          filePath: filePatch1.getPath(), largeDiffLineThreshold: 5,
+          filePath: filePatch1.getPath(), largeDiffByteThreshold: 5,
         }));
 
         await assert.async.isTrue(wrapper.update().find('.large-file-patch').exists());

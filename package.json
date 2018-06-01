@@ -38,6 +38,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-react": "6.24.1",
+    "bytes": "^3.0.0",
     "classnames": "2.2.5",
     "compare-sets": "1.0.1",
     "dugite": "^1.66.0",
