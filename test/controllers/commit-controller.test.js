@@ -117,12 +117,12 @@ describe('CommitController', function() {
   });
 
   describe('committing', function() {
-    let workdirPath, repository;
+    let workdirPath, repository, commit;
 
     beforeEach(async function() {
       workdirPath = await cloneRepository('three-files');
       repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-      const commit = message => repository.commit(message);
+      commit = sinon.stub().callsFake((...args) => repository.commit(...args));
 
       app = React.cloneElement(app, {repository, commit});
     });
@@ -137,6 +137,20 @@ describe('CommitController', function() {
       await wrapper.instance().commit('another message');
 
       assert.strictEqual(repository.getCommitMessage(), '');
+    });
+
+    it('sets the verbatim flag when committing from the mini editor', async function() {
+      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.git.exec(['add', '.']);
+
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      await wrapper.instance().commit('message\n\n#123 do some things');
+
+      assert.isTrue(commit.calledWith('message\n\n#123 do some things', {
+        amend: false,
+        coAuthors: [],
+        verbatim: true,
+      }));
     });
 
     it('issues a notification on failure', async function() {
@@ -159,44 +173,58 @@ describe('CommitController', function() {
     });
 
     describe('message formatting', function() {
-      let commitSpy;
+      let commitSpy, wrapper;
+
       beforeEach(function() {
         commitSpy = sinon.stub().returns(Promise.resolve());
         app = React.cloneElement(app, {commit: commitSpy});
+        wrapper = shallow(app, {disableLifecycleMethods: true});
       });
 
-      it('wraps the commit message body at 72 characters if github.automaticCommitMessageWrapping is true', async function() {
-        config.set('github.automaticCommitMessageWrapping', false);
+      describe('with automatic wrapping disabled', function() {
+        beforeEach(function() {
+          config.set('github.automaticCommitMessageWrapping', false);
+        });
 
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
+        it('passes commit messages through unchanged', async function() {
+          await wrapper.instance().commit([
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
 
-        await wrapper.instance().commit([
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ].join('\n'));
+          assert.strictEqual(commitSpy.args[0][0], [
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
+        });
+      });
 
-        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ]);
+      describe('with automatic wrapping enabled', function() {
+        beforeEach(function() {
+          config.set('github.automaticCommitMessageWrapping', true);
+        });
 
-        commitSpy.reset();
-        config.set('github.automaticCommitMessageWrapping', true);
+        it('wraps lines within the commit body at 72 characters', async function() {
+          await wrapper.instance().commit([
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
 
-        await wrapper.instance().commit([
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-        ].join('\n'));
+          assert.strictEqual(commitSpy.args[0][0], [
+            'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
+            '',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
+            'ut aliquip ex ea commodo consequat.',
+          ].join('\n'));
+        });
 
-        assert.deepEqual(commitSpy.args[0][0].split('\n'), [
-          'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor',
-          '',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ',
-          'ut aliquip ex ea commodo consequat.',
-        ]);
+        it('preserves existing line wraps within the commit body', async function() {
+          await wrapper.instance().commit('a\n\nb\n\nc');
+          assert.strictEqual(commitSpy.args[0][0], 'a\n\nb\n\nc');
+        });
       });
     });
 
@@ -292,10 +320,14 @@ describe('CommitController', function() {
         const editor = workspace.getActiveTextEditor();
         editor.setText('message in editor');
         await editor.save();
-        wrapper.find('CommitView').prop('commit')('message in box');
 
-        await assert.async.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
-        await assert.async.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
+        await wrapper.find('CommitView').prop('commit')('message in box');
+
+        assert.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
+        assert.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
+        assert.isTrue(commit.calledWith('message in editor', {
+          amend: false, coAuthors: [], verbatim: false,
+        }));
       });
 
       it('asks user to confirm if commit editor has unsaved changes', async function() {
