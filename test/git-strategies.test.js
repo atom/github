@@ -133,6 +133,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           assert.lengthOf(commits, 1);
           assert.isTrue(commits[0].unbornRef);
         });
+
         it('returns an empty array when the include unborn option is not passed', async function() {
           const workingDirPath = await initRepository();
           const git = createTestStrategy(workingDirPath);
@@ -222,6 +223,26 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
             email: 'yet-another@example.com',
           },
         ]);
+      });
+
+      it('preserves newlines and whitespace in the original commit body', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        await git.commit(dedent`
+          Implemented feature
+
+          Detailed explanation paragraph 1
+
+          Detailed explanation paragraph 2
+          #123 with an issue reference
+        `.trim(), {allowEmpty: true, verbatim: true});
+
+        const commits = await git.getCommits({max: 1});
+        assert.lengthOf(commits, 1);
+        assert.strictEqual(commits[0].messageSubject, 'Implemented feature');
+        assert.strictEqual(commits[0].messageBody,
+          'Detailed explanation paragraph 1\n\nDetailed explanation paragraph 2\n#123 with an issue reference');
       });
     });
 
@@ -751,6 +772,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
     describe('commit(message, options)', function() {
       describe('formatting commit message', function() {
         let message;
+
         beforeEach(function() {
           message = [
             '    Make a commit    ',
@@ -762,7 +784,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
             '',
             'other stuff        ',
             '',
-            '',
+            'and things',
             '',
           ].join('\n');
         });
@@ -770,12 +792,34 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         it('strips out comments and whitespace from message passed', async function() {
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
+          await git.setConfig('commit.cleanup', 'default');
 
           await git.commit(message, {allowEmpty: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.deepEqual(lastCommit.messageSubject, 'Make a commit');
-          assert.deepEqual(lastCommit.messageBody, 'other stuff');
+          assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.strictEqual(lastCommit.messageBody, 'other stuff\n\nand things');
+        });
+
+        it('passes a message through verbatim', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+          await git.setConfig('commit.cleanup', 'default');
+
+          await git.commit(message, {allowEmpty: true, verbatim: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
+          assert.strictEqual(lastCommit.messageBody, [
+            '# Comments:',
+            '#  blah blah blah',
+            '',
+            '',
+            '',
+            'other stuff        ',
+            '',
+            'and things',
+          ].join('\n'));
         });
       });
 
@@ -788,8 +832,21 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           await git.commit('amend last commit', {amend: true, allowEmpty: true});
           const amendedCommit = await git.getHeadCommit();
           const amendedCommitParent = await git.getCommit('HEAD~');
+
+          assert.strictEqual(amendedCommit.messageSubject, 'amend last commit');
           assert.notDeepEqual(lastCommit, amendedCommit);
           assert.deepEqual(lastCommitParent, amendedCommitParent);
+        });
+
+        it('leaves the commit message unchanged', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+          await git.commit('first\n\nsecond\n\nthird', {allowEmpty: true});
+
+          await git.commit('', {amend: true, allowEmpty: true});
+          const amendedCommit = await git.getHeadCommit();
+          assert.strictEqual(amendedCommit.messageSubject, 'first');
+          assert.strictEqual(amendedCommit.messageBody, 'second\n\nthird');
         });
       });
     });
@@ -903,7 +960,7 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
           command: 'commit',
           progressiveTense: 'committing',
           usesPromptServerAlready: false,
-          action: () => git.commit('message'),
+          action: () => git.commit('message', {verbatim: true}),
         },
         {
           command: 'merge',
