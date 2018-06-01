@@ -572,7 +572,10 @@ describe('GitTabController', function() {
           assert.strictEqual(wrapper.find('CommitView').instance().editor.getText(), '');
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          await assert.async.deepEqual(
+            repository.commit.args[0][1],
+            {amend: true, coAuthors: [], verbatim: true},
+          );
 
           // amending should commit all unstaged changes
           await updateWrapper(repository, wrapper);
@@ -594,7 +597,10 @@ describe('GitTabController', function() {
           assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          await assert.async.deepEqual(
+            repository.commit.args[0][1],
+            {amend: true, coAuthors: [], verbatim: true},
+          );
           await updateWrapper(repository, wrapper);
 
           // new commit message is used
@@ -617,7 +623,10 @@ describe('GitTabController', function() {
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that coAuthor was passed
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
+          await assert.async.deepEqual(
+            repository.commit.args[0][1],
+            {amend: true, coAuthors: [author], verbatim: true},
+          );
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
@@ -640,7 +649,10 @@ describe('GitTabController', function() {
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
 
           // verify that coAuthor was passed
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: [author]});
+          await assert.async.deepEqual(
+            repository.commit.args[0][1],
+            {amend: true, coAuthors: [author], verbatim: true},
+          );
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
@@ -673,7 +685,10 @@ describe('GitTabController', function() {
           // amend again
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that NO coAuthor was passed
-          await assert.async.deepEqual(repository.commit.args[0][1], {amend: true, coAuthors: []});
+          await assert.async.deepEqual(
+            repository.commit.args[0][1],
+            {amend: true, coAuthors: [], verbatim: true},
+          );
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
