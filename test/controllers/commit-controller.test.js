@@ -117,12 +117,12 @@ describe('CommitController', function() {
   });
 
   describe('committing', function() {
-    let workdirPath, repository;
+    let workdirPath, repository, commit;
 
     beforeEach(async function() {
       workdirPath = await cloneRepository('three-files');
       repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-      const commit = message => repository.commit(message);
+      commit = sinon.stub().callsFake((...args) => repository.commit(...args));
 
       app = React.cloneElement(app, {repository, commit});
     });
@@ -137,6 +137,20 @@ describe('CommitController', function() {
       await wrapper.instance().commit('another message');
 
       assert.strictEqual(repository.getCommitMessage(), '');
+    });
+
+    it('sets the verbatim flag when committing from the mini editor', async function() {
+      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.git.exec(['add', '.']);
+
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      await wrapper.instance().commit('message\n\n#123 do some things');
+
+      assert.isTrue(commit.calledWith('message\n\n#123 do some things', {
+        amend: false,
+        coAuthors: [],
+        verbatim: true,
+      }));
     });
 
     it('issues a notification on failure', async function() {
@@ -306,10 +320,14 @@ describe('CommitController', function() {
         const editor = workspace.getActiveTextEditor();
         editor.setText('message in editor');
         await editor.save();
-        wrapper.find('CommitView').prop('commit')('message in box');
 
-        await assert.async.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
-        await assert.async.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
+        await wrapper.find('CommitView').prop('commit')('message in box');
+
+        assert.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
+        assert.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
+        assert.isTrue(commit.calledWith('message in editor', {
+          amend: false, coAuthors: [], verbatim: false,
+        }));
       });
 
       it('asks user to confirm if commit editor has unsaved changes', async function() {
