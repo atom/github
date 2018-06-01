@@ -370,4 +370,21 @@ describe('FilePatch', function() {
       `);
     });
   });
+
+  it('returns the size in bytes from getByteSize()', function() {
+    const filePatch = createFilePatch('a.txt', 'a.txt', 'modified', [
+      new Hunk(1, 1, 1, 3, '', [
+        new HunkLine('line-1', 'added', -1, 1),
+        new HunkLine('line-2', 'added', -1, 2),
+        new HunkLine('line-3', 'unchanged', 1, 3),
+      ]),
+      new Hunk(5, 7, 5, 4, '', [
+        new HunkLine('line-4', 'unchanged', 5, 7),
+        new HunkLine('line-5', 'deleted', 6, -1),
+        new HunkLine('line-6', 'deleted', 7, -1),
+      ]),
+    ]);
+
+    assert.strictEqual(filePatch.getByteSize(), 36);
+  });
 });
