@@ -113,7 +113,7 @@ describe('FilePatchController', function() {
 
         const wrapper = mount(React.cloneElement(component, {largeDiffByteThreshold: 5}));
 
-        await assert.async.match(wrapper.text(), /large diff/);
+        await assert.async.match(wrapper.text(), /large .+ diff/);
       });
 
       it('renders the full diff when the confirmation is clicked', async function() {
