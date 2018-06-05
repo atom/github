@@ -17,7 +17,7 @@ module.exports = createRunner({
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
   const Enzyme = require('enzyme');
-  const Adapter = require('enzyme-adapter-react-16');
+  const Adapter = require('@smashwilson/enzyme-adapter-react-16');
   Enzyme.configure({adapter: new Adapter()});
 
   require('mocha-stress');
