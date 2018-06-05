@@ -1,53 +1,52 @@
 import React from 'react';
-import {shallow, mount} from 'enzyme';
+import {mount} from 'enzyme';
 
 import MarkerLayer from '../../lib/atom/marker-layer';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 
 describe('MarkerLayer', function() {
-  let atomEnv, editor;
+  let atomEnv, editor, layerID;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     editor = await atomEnv.workspace.open(__filename);
   });
 
+  function setLayerID(id) {
+    layerID = id;
+  }
+
   it('adds its layer on mount', function() {
-    const app = (
+    mount(
       <MarkerLayer
         editor={editor}
         maintainHistory={true}
         persistent={true}
-      />
+        handleID={setLayerID}
+      />,
     );
-    const wrapper = shallow(app);
-    const id = wrapper.instance().getID();
 
-    const layer = editor.getMarkerLayer(id);
+    const layer = editor.getMarkerLayer(layerID);
     assert.isTrue(layer.bufferMarkerLayer.maintainHistory);
     assert.isTrue(layer.bufferMarkerLayer.persistent);
   });
 
   it('removes its layer on unmount', function() {
-    const app = <MarkerLayer editor={editor} />;
-    const wrapper = shallow(app);
-    const id = wrapper.instance().getID();
+    const wrapper = mount(<MarkerLayer editor={editor} handleID={setLayerID} />);
 
-    assert.isDefined(editor.getMarkerLayer(id));
+    assert.isDefined(editor.getMarkerLayer(layerID));
     wrapper.unmount();
-    assert.isUndefined(editor.getMarkerLayer(id));
+    assert.isUndefined(editor.getMarkerLayer(layerID));
   });
 
   it('inherits an editor from a parent node', function() {
-    const app = (
+    const wrapper = mount(
       <AtomTextEditor>
-        <MarkerLayer />
-      </AtomTextEditor>
+        <MarkerLayer handleID={setLayerID} />
+      </AtomTextEditor>,
     );
-    const wrapper = mount(app);
     const theEditor = wrapper.instance().getModel();
-    const id = wrapper.find('MarkerLayer').instance().getID();
 
-    assert.isDefined(theEditor.getMarkerLayer(id));
+    assert.isDefined(theEditor.getMarkerLayer(layerID));
   });
 });
