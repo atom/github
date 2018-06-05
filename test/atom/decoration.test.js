@@ -3,11 +3,13 @@ import sinon from 'sinon';
 import {mount} from 'enzyme';
 
 import Decoration from '../../lib/atom/decoration';
+import AtomTextEditor from '../../lib/atom/atom-text-editor';
+import Marker from '../../lib/atom/marker';
 
-describe('Decoration', () => {
+describe('Decoration', function() {
   let atomEnv, editor, marker;
 
-  beforeEach(async () => {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     const workspace = atomEnv.workspace;
 
@@ -15,9 +17,11 @@ describe('Decoration', () => {
     marker = editor.markBufferRange([[2, 0], [6, 0]]);
   });
 
-  afterEach(() => atomEnv.destroy());
+  afterEach(function() {
+    atomEnv.destroy();
+  });
 
-  it('decorates its marker on render', () => {
+  it('decorates its marker on render', function() {
     const app = (
       <Decoration
         editor={editor}
@@ -32,12 +36,12 @@ describe('Decoration', () => {
     assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 1);
   });
 
-  describe('with a subtree', () => {
-    beforeEach(() => {
+  describe('with a subtree', function() {
+    beforeEach(function() {
       sinon.spy(editor, 'decorateMarker');
     });
 
-    it('creates a block decoration', () => {
+    it('creates a block decoration', function() {
       const app = (
         <Decoration editor={editor} marker={marker} type="block">
           <div className="decoration-subtree">
@@ -55,7 +59,7 @@ describe('Decoration', () => {
       assert.equal(child.textContent, 'This is a subtree');
     });
 
-    it('creates an overlay decoration', () => {
+    it('creates an overlay decoration', function() {
       const app = (
         <Decoration editor={editor} marker={marker} type="overlay">
           <div className="decoration-subtree">
@@ -73,7 +77,7 @@ describe('Decoration', () => {
       assert.equal(child.textContent, 'This is a subtree');
     });
 
-    it('creates a gutter decoration', () => {
+    it('creates a gutter decoration', function() {
       const app = (
         <Decoration editor={editor} marker={marker} type="gutter">
           <div className="decoration-subtree">
@@ -92,7 +96,7 @@ describe('Decoration', () => {
     });
   });
 
-  it('destroys its decoration on unmount', () => {
+  it('destroys its decoration on unmount', function() {
     const app = (
       <Decoration
         editor={editor}
@@ -108,5 +112,18 @@ describe('Decoration', () => {
     wrapper.unmount();
 
     assert.lengthOf(editor.getLineDecorations({class: 'whatever'}), 0);
+  });
+
+  it('decorates a parent Marker', function() {
+    const wrapper = mount(
+      <AtomTextEditor>
+        <Marker bufferRange={[[0, 0], [0, 0]]}>
+          <Decoration type="line" className="whatever" position="head" />
+        </Marker>
+      </AtomTextEditor>,
+    );
+    const theEditor = wrapper.instance().getModel();
+
+    assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
   });
 });
