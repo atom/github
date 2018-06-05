@@ -38,7 +38,7 @@ Each list item renders a tile containing a compact set of information about that
 * Pull request state: open, closed, merged
 * Status check summary
 
-_TBD: Tile design_
+![tile](https://user-images.githubusercontent.com/378023/40955959-8458ae7c-68c8-11e8-974e-40441a3b5679.png)
 
 Clicking on a list item opens an issueish pane item for the chosen issueish in the same pane container as the parent component (by default, the right dock). If the issuish pane item is already open, it is activated instead.
 
