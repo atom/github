@@ -12,6 +12,10 @@ describe('MarkerLayer', function() {
     editor = await atomEnv.workspace.open(__filename);
   });
 
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function setLayerID(id) {
     layerID = id;
   }
