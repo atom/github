@@ -61,7 +61,7 @@ For a pull request, the issueish pane shows:
 * Reaction emoji and counts.
 * Details and links for all status checks.
 
-![pane](https://user-images.githubusercontent.com/378023/41007657-cfc8d3c0-6961-11e8-9bf7-7d5b7353199c.png)
+![pane](https://user-images.githubusercontent.com/378023/41007709-0f9ba9a0-6962-11e8-8b2f-bf6aee8cf8fc.png)
 
 ## Drawbacks
 
