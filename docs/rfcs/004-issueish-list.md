@@ -30,6 +30,8 @@ Each list has a "collapse arrow" in its header. Clicking the collapse arrow togg
 
 If either list exceeds 20 items, truncate the list and render a "More" link after its final item. Clicking "more" opens the corresponding search on GitHub.
 
+![Lists](https://user-images.githubusercontent.com/378023/40964722-ceb9d95a-68e6-11e8-90b3-1c155cdc2c00.png)
+
 Each list item renders a tile containing a compact set of information about that pull request:
 
 * Mini author avatar
@@ -38,7 +40,7 @@ Each list item renders a tile containing a compact set of information about that
 * Pull request state: open, closed, merged
 * Status check summary
 
-![tile](https://user-images.githubusercontent.com/378023/40955959-8458ae7c-68c8-11e8-974e-40441a3b5679.png)
+![List item](https://user-images.githubusercontent.com/378023/40964791-f4b28fbc-68e6-11e8-907b-c7d436d0d315.png)
 
 Clicking on a list item opens an issueish pane item for the chosen issueish in the same pane container as the parent component (by default, the right dock). If the issuish pane item is already open, it is activated instead.
 
