@@ -3,6 +3,8 @@ import sinon from 'sinon';
 import {mount} from 'enzyme';
 
 import Decoration from '../../lib/atom/decoration';
+import AtomTextEditor from '../../lib/atom/atom-text-editor';
+import Marker from '../../lib/atom/marker';
 
 describe('Decoration', function() {
   let atomEnv, editor, marker;
@@ -110,5 +112,18 @@ describe('Decoration', function() {
     wrapper.unmount();
 
     assert.lengthOf(editor.getLineDecorations({class: 'whatever'}), 0);
+  });
+
+  it('decorates a parent Marker', function() {
+    const wrapper = mount(
+      <AtomTextEditor>
+        <Marker bufferRange={[[0, 0], [0, 0]]}>
+          <Decoration type="line" className="whatever" position="head" />
+        </Marker>
+      </AtomTextEditor>,
+    );
+    const theEditor = wrapper.instance().getModel();
+
+    assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
   });
 });
