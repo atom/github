@@ -61,7 +61,7 @@ For a pull request, the issueish pane shows:
 * Reaction emoji and counts.
 * Details and links for all status checks.
 
-_TBD: Issueish pane item design_
+![pane](https://user-images.githubusercontent.com/378023/41007657-cfc8d3c0-6961-11e8-9bf7-7d5b7353199c.png)
 
 ## Drawbacks
 
