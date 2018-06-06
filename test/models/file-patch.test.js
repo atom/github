@@ -387,4 +387,87 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getByteSize(), 36);
   });
+
+  describe('present()', function() {
+    let presented;
+
+    beforeEach(function() {
+      const patch = createFilePatch('a.txt', 'a.txt', 'modified', [
+        new Hunk(1, 1, 1, 3, '@@ -1,1 +2,2', [
+          new HunkLine('line-1', 'added', -1, 1),
+          new HunkLine('line-2', 'added', -1, 2),
+          new HunkLine('line-3', 'unchanged', 1, 3),
+        ]),
+        new Hunk(5, 7, 5, 4, '@@ -3,3 +4,4', [
+          new HunkLine('line-4', 'unchanged', 5, 7),
+          new HunkLine('line-5', 'deleted', 6, -1),
+          new HunkLine('line-6', 'deleted', 7, -1),
+          new HunkLine('line-7', 'added', -1, 8),
+          new HunkLine('line-8', 'added', -1, 9),
+          new HunkLine('line-9', 'added', -1, 10),
+          new HunkLine('line-10', 'deleted', 8, -1),
+          new HunkLine('line-11', 'deleted', 9, -1),
+          new HunkLine('line-12', 'unchanged', 5, 7),
+        ]),
+        new Hunk(20, 19, 2, 2, '@@ -5,5 +6,6', [
+          new HunkLine('line-13', 'deleted', 20, -1),
+          new HunkLine('line-14', 'added', -1, 19),
+          new HunkLine('line-15', 'unchanged', 21, 20),
+          new HunkLine('No newline at end of file', 'nonewline', -1, -1),
+        ]),
+      ]);
+
+      presented = patch.present();
+    });
+
+    function assertPositions(actualPositions, expectedPositions) {
+      assert.lengthOf(actualPositions, expectedPositions.length);
+      for (let i = 0; i < expectedPositions.length; i++) {
+        const actual = actualPositions[i];
+        const expected = expectedPositions[i];
+
+        assert.isTrue(actual.isEqual(expected),
+          `range ${i}: ${actual.toString()} does not equal [${expected.map(e => e.toString()).join(', ')}]`);
+      }
+    }
+
+    it('unifies hunks into a continuous, unadorned string of text', function() {
+      const actualText = presented.getText();
+      const expectedText =
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => `line-${num}\n`).join('') +
+        'No newline at end of file\n';
+
+      assert.strictEqual(actualText, expectedText);
+    });
+
+    it("returns the buffer positions corresponding to each hunk's beginning", function() {
+      assertPositions(presented.getHunkStartPositions(), [
+        [0, 0], [3, 0], [12, 0],
+      ]);
+    });
+
+    it('returns the buffer positions corresponding to unchanged lines', function() {
+      assertPositions(presented.getUnchangedBufferPositions(), [
+        [2, 0], [3, 0], [11, 0], [14, 0],
+      ]);
+    });
+
+    it('returns the buffer positions corresponding to added lines', function() {
+      assertPositions(presented.getAddedBufferPositions(), [
+        [0, 0], [1, 0], [6, 0], [7, 0], [8, 0], [13, 0],
+      ]);
+    });
+
+    it('returns the buffer positions corresponding to deleted lines', function() {
+      assertPositions(presented.getDeletedBufferPositions(), [
+        [4, 0], [5, 0], [9, 0], [10, 0], [12, 0],
+      ]);
+    });
+
+    it('returns the buffer position of a "no newline" trailer', function() {
+      assertPositions(presented.getNoNewlineBufferPositions(), [
+        [15, 0],
+      ]);
+    });
+  });
 });
