@@ -14,8 +14,6 @@ describe('FilePatchContainer', function() {
 
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
-    sinon.spy(repository, 'getFilePatchForPath');
-    sinon.spy(repository, 'isPartiallyStaged');
 
     // a.txt: unstaged changes
     await fs.writeFile(path.join(workdirPath, 'a.txt'), 'changed\n');
