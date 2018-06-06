@@ -5,7 +5,7 @@ import {mount} from 'enzyme';
 import PaneItem from '../../lib/atom/pane-item';
 import FilePatchItem from '../../lib/items/file-patch-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository} from '../helpers';
 
 describe('FilePatchItem', function() {
   let atomEnv, repository, pool;
@@ -14,7 +14,6 @@ describe('FilePatchItem', function() {
     atomEnv = global.buildAtomEnvironment();
 
     const workdirPath = await cloneRepository();
-    repository = await buildRepository(workdirPath);
 
     pool = new WorkdirContextPool({
       workspace: atomEnv.workspace,
