@@ -50,18 +50,24 @@ For a pull request, the issueish pane shows:
 
 * Author avatar
 * Title
+* Link to .com. -> [atom/github#1503](https://github.com/atom/github/pull/1503)
+* PR status badge. -> `Open`.
+* Branches -> `master` < `aw/rfc-pr-list`
+* `Commits` with count, links to .com (for now)
+* `Checks` with count, links to .com (for now)
+* `Files changed` with count, links to .com (for now)
+  * Plus a "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
+* `Conversation` with comment count.
+  * Reaction emoji and counts.
+  * Full description as rendered markdown.
+  * Comments as rendered markdown.
 * Controls for actions:
-  * "Checkout" to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
-  * "Browse" to launch a browser on the corresponding GitHub page.
-  * "Merge" to merge the pull request on GitHub if it is open.
+  * Mergability status -> `Able to merge`, links to the [Merging controls at the bottom](https://github.com/atom/github/pull/1503#partial-pull-merging)
+  * "Merge PR" to merge the pull request on GitHub if it is open.
   * "Close" to close the pull request, unmerged, if it is open.
-  * "Re-open" to re-open a pull request if it is closed.
-* Pull request overview details: commit count, files changed.
-* Full description as rendered markdown.
-* Reaction emoji and counts.
-* Details and links for all status checks.
+  * "Re-open PR" to re-open a pull request if it is closed.
 
-![pane](https://user-images.githubusercontent.com/378023/41007709-0f9ba9a0-6962-11e8-8b2f-bf6aee8cf8fc.png)
+![pane](https://user-images.githubusercontent.com/378023/41033008-0900b4ec-69c0-11e8-9def-68e6f5b40901.png)
 
 ## Drawbacks
 
