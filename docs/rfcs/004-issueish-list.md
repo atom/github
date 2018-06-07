@@ -68,9 +68,17 @@ For a pull request, the issueish pane shows:
 
 ![detail](https://user-images.githubusercontent.com/378023/41097077-ba228d00-6a91-11e8-9445-a9557c03e6b6.png)
 
+## New PR
+
+If no current PR can be found, an "open new pull request" button is shown. If needed it also offers to "Publish" or "Push".
+
+![new pr](https://user-images.githubusercontent.com/378023/41100932-9a3cd7be-6a9d-11e8-85c4-c995b71548c7.png)
+
+When the current branch is the default branch, e.g. `master`, a message is shown that suggests to "Create a new branch".
+
 ## Drawbacks
 
-This does not offer a mechanism to create _new_ pull requests, which we have now. We also lose timeline events on the pull request.
+None!
 
 ## Rationale and alternatives
 
@@ -90,7 +98,6 @@ With that said, the choices for the specific lists we show are a bit arbitrary. 
 
 ### Before RFC merge:
 
-- [ ] How can we still offer "push/publish+new pull request"?
 - [ ] What else from the existing issueish pane should we keep? Comments, timeline events?
 - [ ] Are there other pull request actions it would be useful to support?
 
