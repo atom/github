@@ -7,13 +7,13 @@ import {cloneRepository, buildRepository} from '../helpers';
 import FilePatchView from '../../lib/views/file-patch-view';
 
 describe('FilePatchView', function() {
-  let atomEnv, filePatch;
+  let atomEnv, repository, filePatch;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
 
     const workdirPath = await cloneRepository();
-    const repository = await buildRepository(workdirPath);
+    repository = await buildRepository(workdirPath);
 
     // a.txt: unstaged changes
     await fs.writeFile(path.join(workdirPath, 'a.txt'), 'changed\n');
@@ -26,10 +26,18 @@ describe('FilePatchView', function() {
 
   function buildApp(overrideProps = {}) {
     const props = {
+      relPath: 'a.txt',
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
       filePatch,
+      repository,
       tooltips: atomEnv.tooltips,
+
+      undoLastDiscard: () => {},
+      diveIntoMirrorPatch: () => {},
+      openFile: () => {},
+      toggleFile: () => {},
+
       ...overrideProps,
     };
 
@@ -38,7 +46,7 @@ describe('FilePatchView', function() {
 
   it('renders the file header', function() {
     const wrapper = mount(buildApp());
-    assert.isTrue(wrapper.find('FilePatchHeader').exists());
+    assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
   });
 
   it('renders the file patch within an editor', function() {
