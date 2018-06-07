@@ -30,7 +30,7 @@ Each list has a "collapse arrow" in its header. Clicking the collapse arrow togg
 
 If either list exceeds 20 items, truncate the list and render a "More" link after its final item. Clicking "more" opens the corresponding search on GitHub.
 
-![Lists](https://user-images.githubusercontent.com/378023/40964722-ceb9d95a-68e6-11e8-90b3-1c155cdc2c00.png)
+![list](https://user-images.githubusercontent.com/378023/41097007-7a32992e-6a91-11e8-9c4b-2417cf94dce9.png)
 
 Each list item renders a tile containing a compact set of information about that pull request:
 
@@ -48,26 +48,25 @@ Clicking on a list item opens an issueish pane item for the chosen issueish in t
 
 For a pull request, the issueish pane shows:
 
+* PR status badge. -> `Open`.
+* Link to .com. -> [atom/github#1503](https://github.com/atom/github/pull/1503)
 * Author avatar
 * Title
-* Link to .com. -> [atom/github#1503](https://github.com/atom/github/pull/1503)
-* PR status badge. -> `Open`.
 * Branches -> `master` < `aw/rfc-pr-list`
-* `Commits` with count, links to .com (for now)
+* "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
+* `Commits` with count, links to .com (for now), optional with avatars
 * `Checks` with count, links to .com (for now)
-* `Files changed` with count, links to .com (for now)
-  * Plus a "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
-* `Conversation` with comment count.
-  * Reaction emoji and counts.
-  * Full description as rendered markdown.
-  * Comments as rendered markdown.
+* `Files changed` with count, links to .com (for now), optional with "+-" bar
 * Controls for actions:
   * Mergability status -> `Able to merge`, links to the [Merging controls at the bottom](https://github.com/atom/github/pull/1503#partial-pull-merging)
   * "Merge PR" to merge the pull request on GitHub if it is open.
   * "Close" to close the pull request, unmerged, if it is open.
   * "Re-open PR" to re-open a pull request if it is closed.
+* `Conversation` with comment count, opens the current PR timeline in a center pane.
+  * Reaction emoji and counts.
+  * Description (PR body) as rendered markdown.
 
-![pane](https://user-images.githubusercontent.com/378023/41033008-0900b4ec-69c0-11e8-9def-68e6f5b40901.png)
+![detail](https://user-images.githubusercontent.com/378023/41097077-ba228d00-6a91-11e8-9445-a9557c03e6b6.png)
 
 ## Drawbacks
 
