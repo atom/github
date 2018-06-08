@@ -30,17 +30,17 @@ Each list has a "collapse arrow" in its header. Clicking the collapse arrow togg
 
 If either list exceeds 20 items, truncate the list and render a "More" link after its final item. Clicking "more" opens the corresponding search on GitHub.
 
-![list](https://user-images.githubusercontent.com/378023/41097007-7a32992e-6a91-11e8-9c4b-2417cf94dce9.png)
+![list](https://user-images.githubusercontent.com/378023/41136538-ad5c461c-6b11-11e8-9e1d-e4a674f628cd.png)
 
 Each list item renders a tile containing a compact set of information about that pull request:
 
 * Mini author avatar
 * Title, truncated if necessary
-* Terse relative timestamp (1d, 2h, 30m)
-* Pull request state: open, closed, merged
+* PR number (`#1503`)
 * Status check summary
+* Terse relative timestamp (1d, 2h, 30m)
 
-![List item](https://user-images.githubusercontent.com/378023/40964791-f4b28fbc-68e6-11e8-907b-c7d436d0d315.png)
+![list item](https://user-images.githubusercontent.com/378023/41136622-1102db54-6b12-11e8-8b9b-49ecc45ac98f.png)
 
 Clicking on a list item opens an issueish pane item for the chosen issueish in the same pane container as the parent component (by default, the right dock). If the issuish pane item is already open, it is activated instead.
 
@@ -72,7 +72,7 @@ For a pull request, the issueish pane shows:
 
 If no current PR can be found, an "open new pull request" button is shown. If needed it also offers to "Publish" or "Push".
 
-![new pr](https://user-images.githubusercontent.com/378023/41136021-33249004-6b0f-11e8-9cf0-08bf4a9a2767.png)
+![new pr](https://user-images.githubusercontent.com/378023/41136463-5d8dd3da-6b11-11e8-8e28-72275a691430.png)
 
 When the current branch is the default branch, e.g. `master`, a message is shown that suggests to "Create a new branch".
 
