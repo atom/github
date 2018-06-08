@@ -72,7 +72,7 @@ For a pull request, the issueish pane shows:
 
 If no current PR can be found, an "open new pull request" button is shown. If needed it also offers to "Publish" or "Push".
 
-![new pr](https://user-images.githubusercontent.com/378023/41100932-9a3cd7be-6a9d-11e8-85c4-c995b71548c7.png)
+![new pr](https://user-images.githubusercontent.com/378023/41136021-33249004-6b0f-11e8-9cf0-08bf4a9a2767.png)
 
 When the current branch is the default branch, e.g. `master`, a message is shown that suggests to "Create a new branch".
 
