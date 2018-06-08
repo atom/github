@@ -56,9 +56,9 @@ For a pull request, the issueish pane shows:
 * "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
 * `Commits` with count, links to .com (for now), optional with avatars
 * `Checks` with count, links to .com (for now)
+  * CI status, each item links to the detail page
 * `Files changed` with count, links to .com (for now), optional with "+-" bar
-* Controls for actions:
-  * Mergability status -> `Able to merge`, links to the [Merging controls at the bottom](https://github.com/atom/github/pull/1503#partial-pull-merging)
+* Mergability status -> `Able to merge`, links to the [Merging controls at the bottom](https://github.com/atom/github/pull/1503#partial-pull-merging)
   * "Merge PR" to merge the pull request on GitHub if it is open.
   * "Close" to close the pull request, unmerged, if it is open.
   * "Re-open PR" to re-open a pull request if it is closed.
@@ -66,7 +66,7 @@ For a pull request, the issueish pane shows:
   * Reaction emoji and counts.
   * Description (PR body) as rendered markdown.
 
-![detail](https://user-images.githubusercontent.com/378023/41097077-ba228d00-6a91-11e8-9445-a9557c03e6b6.png)
+![detail](https://user-images.githubusercontent.com/378023/41140383-368c45d4-6b28-11e8-87c2-d4bc0b47fbe1.png)
 
 ## New PR
 
