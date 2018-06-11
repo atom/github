@@ -4,6 +4,8 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import Hunk from '../../lib/models/hunk';
+import HunkLine from '../../lib/models/hunk-line';
 import FilePatchView from '../../lib/views/file-patch-view';
 
 describe('FilePatchView', function() {
@@ -179,10 +181,59 @@ describe('FilePatchView', function() {
   });
 
   describe('hunk lines', function() {
-    it('decorates added lines');
+    it('decorates added lines', function() {
+      const hunks = [
+        new Hunk(0, 0, 1, 1, 'hunk 0', [
+          new HunkLine('line 0', 'added', 0, 1, 0),
+          new HunkLine('line 1', 'deleted', 0, 1, 0),
+        ]),
+      ];
+      sinon.stub(filePatch, 'getHunks').returns(hunks);
 
-    it('decorates deleted lines');
+      const wrapper = mount(buildApp());
+      assert.lengthOf(
+        wrapper.find('Decoration').filterWhere(h => {
+          return h.prop('type') === 'line' && h.prop('className') === 'github-FilePatchView-line--added';
+        }),
+        1,
+      );
+    });
 
-    it('decorates the nonewlines line');
+    it('decorates deleted lines', function() {
+      const hunks = [
+        new Hunk(0, 0, 1, 1, 'hunk 0', [
+          new HunkLine('line 0', 'added', 0, 1, 0),
+          new HunkLine('line 1', 'deleted', 0, 1, 0),
+        ]),
+      ];
+      sinon.stub(filePatch, 'getHunks').returns(hunks);
+
+      const wrapper = mount(buildApp());
+      assert.lengthOf(
+        wrapper.find('Decoration').filterWhere(h => {
+          return h.prop('type') === 'line' && h.prop('className') === 'github-FilePatchView-line--deleted';
+        }),
+        1,
+      );
+    });
+
+    it('decorates the nonewline line', function() {
+      const hunks = [
+        new Hunk(0, 0, 1, 1, 'hunk 0', [
+          new HunkLine('line 0', 'added', 0, 1, 0),
+          new HunkLine('line 1', 'deleted', 0, 1, 0),
+          new HunkLine('no newline', 'nonewline', 0, 1, 0),
+        ]),
+      ];
+      sinon.stub(filePatch, 'getHunks').returns(hunks);
+
+      const wrapper = mount(buildApp());
+      assert.lengthOf(
+        wrapper.find('Decoration').filterWhere(h => {
+          return h.prop('type') === 'line' && h.prop('className') === 'github-FilePatchView-line--nonewline';
+        }),
+        1,
+      );
+    });
   });
 });
