@@ -78,7 +78,8 @@ When the current branch is the default branch, e.g. `master`, a message is shown
 
 ## Drawbacks
 
-None!
+* "All pull requests" could easily be overwhelming on moderate to high traffic repositories. Stay tuned for more refinements on this front.
+* Opening a pane item for each pull request click is heavyweight from a navigational standpoint. We may explore showing a popup as an intermediate state.
 
 ## Rationale and alternatives
 
