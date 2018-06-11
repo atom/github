@@ -22,7 +22,7 @@ As an initial building block toward a pull request review workflow.
 
 Within the GitHub panel, render a vertical stack of two collapsible lists of _issueish_ (pull request or issue) items:
 
-_First list: current pull request_. If the active branch is associated with one or more open pull requests on the GitHub repository, render an item for each.
+_First list: current pull request_. If the active branch is associated with one or more open pull requests on a GitHub repository, render an item for each. "Associated with" means that the pull request's head ref and head repository matches the upstream remote ref for the current branch in the active git repository.
 
 _Second list: all open pull requests_. List all open pull requests on the GitHub repository.
 
