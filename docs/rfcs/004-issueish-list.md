@@ -24,7 +24,7 @@ Within the GitHub panel, render a vertical stack of two collapsible lists of _is
 
 _First list: current pull request_. If the active branch is associated with one or more open pull requests on a GitHub repository, render an item for each. "Associated with" means that the pull request's head ref and head repository matches the upstream remote ref for the current branch in the active git repository.
 
-_Second list: all open pull requests_. List all open pull requests on the GitHub repository.
+_Second list: all open pull requests_. List all open pull requests on the GitHub repository, ordered by decreasing creation date.
 
 Each list has a "collapse arrow" in its header. Clicking the collapse arrow toggles the visibility of that list's items, accordion-style.
 
