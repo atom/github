@@ -5,6 +5,7 @@ import {mount} from 'enzyme';
 import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
+import MarkerLayer from '../../lib/atom/marker-layer';
 
 describe('Decoration', function() {
   let atomEnv, editor, marker;
@@ -125,5 +126,16 @@ describe('Decoration', function() {
     const theEditor = wrapper.instance().getModel();
 
     assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
+  });
+
+  it('decorates a parent MarkerLayer', function() {
+    mount(
+      <AtomTextEditor>
+        <MarkerLayer>
+          <Marker bufferPosition={[0, 0]} />
+          <Decoration type="line" className="something" />
+        </MarkerLayer>
+      </AtomTextEditor>,
+    );
   });
 });
