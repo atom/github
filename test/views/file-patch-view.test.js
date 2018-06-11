@@ -166,7 +166,17 @@ describe('FilePatchView', function() {
     });
   });
 
-  it('renders a header for each hunk');
+  it('renders a header for each hunk', function() {
+    const hunks = [
+      new Hunk(0, 0, 5, 5, 'hunk 0', []),
+      new Hunk(10, 10, 15, 15, 'hunk 1', []),
+    ];
+    sinon.stub(filePatch, 'getHunks').returns(hunks);
+
+    const wrapper = mount(buildApp());
+    assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
+    assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
+  });
 
   describe('hunk lines', function() {
     it('decorates added lines');
