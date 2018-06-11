@@ -99,8 +99,8 @@ With that said, the choices for the specific lists we show are a bit arbitrary. 
 
 ### Before RFC merge:
 
-- [ ] What else from the existing issueish pane should we keep? Comments, timeline events?
-- [ ] Are there other pull request actions it would be useful to support?
+- [x] What else from the existing issueish pane should we keep? Comments, timeline events?
+- [x] Are there other pull request actions it would be useful to support?
 
 ### Out of scope:
 
