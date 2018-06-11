@@ -1,5 +1,8 @@
 @import "variables";
 
+@hunk-fg-color: @text-color-subtle;
+@hunk-bg-color: @pane-item-background-color;
+
 .github-FilePatchView {
   display: flex;
   flex-direction: column;
@@ -136,4 +139,21 @@
     }
   }
 
+  // Line decorations
+
+  &-line {
+    // mixin
+    .hunk-line-mixin(@fg; @bg) {
+      color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
+      background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 20%);
+    }
+
+    &--deleted {
+      .hunk-line-mixin(@text-color-error, @background-color-error);
+    }
+
+    &--added {
+      .hunk-line-mixin(@text-color-success, @background-color-success);
+    }
+  }
 }
