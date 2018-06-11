@@ -42,7 +42,7 @@ Each list item renders a tile containing a compact set of information about that
 
 ![list item](https://user-images.githubusercontent.com/378023/41136622-1102db54-6b12-11e8-8b9b-49ecc45ac98f.png)
 
-Clicking on a list item opens an issueish pane item for the chosen issueish in the same pane container as the parent component (by default, the right dock). If the issuish pane item is already open, it is activated instead.
+Clicking on a list item opens an issueish pane item for the chosen issueish. If the issueish pane item is already open, it is activated instead.
 
 ### Issueish Pane Item: Pull Request
 
