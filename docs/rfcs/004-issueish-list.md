@@ -106,6 +106,7 @@ With that said, the choices for the specific lists we show are a bit arbitrary. 
 
 - [ ] How can we allow a user to customize the lists?
 - [ ] How can we notify a user about updated activity on a visible PR?
+- [ ] Where should you be able to merge, close, or re-open pull requests?
 
 ## Implementation phases
 
