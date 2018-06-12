@@ -5,7 +5,7 @@ import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import Search from '../../lib/models/search';
 import IssueishListContainer from '../../lib/containers/issueish-list-container';
 
-describe.only('IssueishListContainer', function() {
+describe('IssueishListContainer', function() {
   function buildApp(overrideProps = {}) {
     return (
       <IssueishListContainer
