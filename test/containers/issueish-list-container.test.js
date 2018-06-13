@@ -2,7 +2,7 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
-import Search from '../../lib/models/search';
+import Search, {nullSearch} from '../../lib/models/search';
 import IssueishListContainer from '../../lib/containers/issueish-list-container';
 
 describe('IssueishListContainer', function() {
@@ -38,6 +38,16 @@ describe('IssueishListContainer', function() {
       },
     };
   }
+
+  it('performs no query for a null Search', function() {
+    const wrapper = shallow(buildApp({search: nullSearch}));
+
+    assert.isFalse(wrapper.find('ReactRelayQueryRenderer').exists());
+    const list = wrapper.find('Relay(IssueishListController)');
+    assert.isTrue(list.exists());
+    assert.isFalse(list.prop('isLoading'));
+    assert.isNull(list.prop('results'));
+  });
 
   it('renders a query for the Search', function() {
     const {resolve} = expectRelayQuery({
