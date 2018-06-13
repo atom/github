@@ -2,12 +2,12 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import Issueish from '../../lib/models/issueish';
-import {IssueishListController} from '../../lib/controllers/issueish-list-controller';
+import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
 
 describe('IssueishListController', function() {
   function buildApp(overrideProps = {}) {
     return (
-      <IssueishListController
+      <BareIssueishListController
         results={null}
         {...overrideProps}
       />

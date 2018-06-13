@@ -43,10 +43,13 @@ describe('IssueishListContainer', function() {
     const wrapper = shallow(buildApp({search: nullSearch}));
 
     assert.isFalse(wrapper.find('ReactRelayQueryRenderer').exists());
-    const list = wrapper.find('Relay(IssueishListController)');
+    const list = wrapper.find('BareIssueishListController');
     assert.isTrue(list.exists());
     assert.isFalse(list.prop('isLoading'));
-    assert.isNull(list.prop('results'));
+    assert.deepEqual(list.prop('results'), {
+      issueCount: 0,
+      nodes: [],
+    });
   });
 
   it('renders a query for the Search', function() {
@@ -78,7 +81,7 @@ describe('IssueishListContainer', function() {
     const search = new Search('pull requests', 'type:pr author:me');
     const wrapper = mount(buildApp({search}));
 
-    const controller = wrapper.find('IssueishListController');
+    const controller = wrapper.find('BareIssueishListController');
     assert.isTrue(controller.prop('isLoading'));
 
     resolve();
@@ -106,7 +109,7 @@ describe('IssueishListContainer', function() {
     resolve();
     await promise;
 
-    const controller = wrapper.update().find('IssueishListController');
+    const controller = wrapper.update().find('BareIssueishListController');
     assert.isFalse(controller.prop('isLoading'));
   });
 });
