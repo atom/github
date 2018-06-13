@@ -31,6 +31,10 @@ describe('Search', function() {
       assert.isFalse(s.isNull());
       assert.strictEqual(s.createQuery(), 'repo:atom/github type:pr head:master');
     });
+
+    it('uses a PR creation empty list tile when the Branch has no upstream', function() {
+      assert.isTrue(Search.forCurrentPR(origin, local).showCreateOnEmpty());
+    });
   });
 
   describe('when scoped to a remote', function() {
@@ -45,6 +49,10 @@ describe('Search', function() {
       assert.isFalse(s.isNull());
       assert.strictEqual(s.getName(), 'name');
       assert.strictEqual(s.createQuery(), 'repo:atom/github query');
+    });
+
+    it('uses a default empty list tile', function() {
+      assert.isFalse(Search.inRemote(origin, 'name', 'query').showCreateOnEmpty());
     });
   });
 });
