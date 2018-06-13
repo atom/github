@@ -3,24 +3,27 @@ import {mount} from 'enzyme';
 
 import GithubLoginModel from '../../lib/models/github-login-model';
 import BranchSet from '../../lib/models/branch-set';
+import Branch, {nullBranch} from '../../lib/models/branch';
 import Remote from '../../lib/models/remote';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import RemotePrController from '../../lib/controllers/remote-pr-controller';
 
 describe('RemotePrController', function() {
-  let loginModel, remote, branchSet;
+  let loginModel, remote, branchSet, currentBranch;
 
   beforeEach(function() {
     loginModel = new GithubLoginModel(InMemoryStrategy);
     sinon.stub(loginModel, 'getToken').returns(Promise.resolve('1234'));
 
     remote = new Remote('origin', 'git@github.com:atom/github');
+    currentBranch = new Branch('master', nullBranch, nullBranch, true);
     branchSet = new BranchSet();
+    branchSet.add(currentBranch);
 
     expectRelayQuery({
-      name: 'prInfoControllerByBranchQuery',
-      variables: {repoOwner: 'atom', repoName: 'github', branchName: ''},
+      name: 'issueishListContainerQuery',
+      variables: {query: 'repo:atom/github type:pr state:open'},
     }, {
       repository: {
         defaultBranchRef: {
@@ -84,14 +87,15 @@ describe('RemotePrController', function() {
     );
   });
 
-  it('renders pull request info if authenticated', async function() {
+  it('renders issueish searches if authenticated', async function() {
     const wrapper = mount(createApp());
 
-    await assert.async.isTrue(wrapper.update().find('PrInfoController').exists());
+    await assert.async.isTrue(wrapper.update().find('IssueishSearchController').exists());
 
-    const controller = wrapper.update().find('PrInfoController');
+    const controller = wrapper.update().find('IssueishSearchController');
+    assert.strictEqual(controller.prop('token'), '1234');
+    assert.strictEqual(controller.prop('host'), 'https://api.github.com');
     assert.strictEqual(controller.prop('remote'), remote);
-    assert.strictEqual(controller.prop('branches'), branchSet);
-    assert.strictEqual(controller.prop('loginModel'), loginModel);
+    assert.strictEqual(controller.prop('currentBranch'), currentBranch);
   });
 });
