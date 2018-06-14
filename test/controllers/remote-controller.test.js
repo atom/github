@@ -7,9 +7,9 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import Remote from '../../lib/models/remote';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
-import RemotePrController from '../../lib/controllers/remote-pr-controller';
+import RemoteController from '../../lib/controllers/remote-controller';
 
-describe('RemotePrController', function() {
+describe('RemoteController', function() {
   let loginModel, remote, branchSet, currentBranch;
 
   beforeEach(function() {
@@ -43,7 +43,7 @@ describe('RemotePrController', function() {
     const noop = () => {};
 
     return (
-      <RemotePrController
+      <RemoteController
         loginModel={loginModel}
         host="https://api.github.com"
 
