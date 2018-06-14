@@ -26,6 +26,8 @@ describe('IssueishListContainer', function() {
         aheadCount={0}
         pushInProgress={false}
 
+        onCreatePr={() => {}}
+
         {...overrideProps}
       />
     );
