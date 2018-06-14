@@ -60,6 +60,20 @@ describe('RemoteContainer', function() {
     });
   }
 
+  function expectEmptyIssueishQuery() {
+    return expectRelayQuery({
+      name: 'issueishListContainerQuery',
+      variables: {
+        query: 'repo:atom/github type:pr state:open',
+      },
+    }, {
+      search: {
+        issueCount: 0,
+        nodes: [],
+      },
+    });
+  }
+
   it('renders a loading spinner while the token is being fetched', function() {
     const wrapper = mount(buildApp());
     assert.isTrue(wrapper.find('LoadingView').exists());
@@ -99,6 +113,7 @@ describe('RemoteContainer', function() {
 
   it('renders the controller once results have arrived', async function() {
     const {resolve} = expectSuccessfulQuery();
+    expectEmptyIssueishQuery();
     model.setToken('https://api.github.com', '1234');
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
 
