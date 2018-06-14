@@ -17,8 +17,10 @@ describe('IssueishListContainer', function() {
 
     return (
       <IssueishListContainer
-        token={'1234'}
-        host={'https://api.github.com/'}
+        token="1234"
+        host="https://api.github.com/"
+
+        repository={null}
 
         search={new Search('default', 'type:pr')}
         remote={origin}

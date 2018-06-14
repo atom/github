@@ -19,6 +19,7 @@ describe('IssueishSearchController', function() {
       <IssueishSearchController
         token="1234"
         host="https://api.github.com"
+        repository={null}
 
         remote={origin}
         branches={branches}
