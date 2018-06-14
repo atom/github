@@ -45,7 +45,15 @@
     }
 
     &--status {
-
+      &:before {
+        margin-right: 0;
+      }
+      &.icon-check {
+        color: @text-color-success;
+      }
+      &.icon-x {
+        color: @text-color-error;
+      }
     }
 
     &--age {
