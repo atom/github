@@ -23,6 +23,7 @@ describe('IssueishListController', function() {
         branches={branches}
         aheadCount={0}
         pushInProgress={false}
+        isLoading={false}
 
         onCreatePr={() => {}}
 
@@ -32,7 +33,7 @@ describe('IssueishListController', function() {
   }
 
   it('renders an IssueishListView in a loading state', function() {
-    const wrapper = shallow(buildApp());
+    const wrapper = shallow(buildApp({isLoading: true}));
 
     const view = wrapper.find('IssueishListView');
     assert.isTrue(view.prop('isLoading'));
