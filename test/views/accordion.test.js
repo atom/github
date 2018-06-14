@@ -51,8 +51,10 @@ describe('Accordion', function() {
 
   it('toggles expansion state on a header click', function() {
     const wrapper = shallow(buildApp());
-    wrapper.find('.github-Accordion-header').simulate('click');
+    const e = {preventDefault: sinon.stub()};
+    wrapper.find('.github-Accordion-header').simulate('click', e);
     assert.isFalse(wrapper.find('details.github-Accordion[open="false"]').exists());
+    assert.isTrue(e.preventDefault.called);
   });
 
   describe('while loading', function() {
