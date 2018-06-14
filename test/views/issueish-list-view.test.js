@@ -1,17 +1,34 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import Remote from '../../lib/models/remote';
+import Branch, {nullBranch} from '../../lib/models/branch';
+import BranchSet from '../../lib/models/branch-set';
 import Search from '../../lib/models/search';
 import IssueishListView from '../../lib/views/issueish-list-view';
 
 describe('IssueishListView', function() {
   function buildApp(overrideProps = {}) {
+    const origin = new Remote('origin', 'git@github.com:atom/github.git');
+    const branch = new Branch('master', nullBranch, nullBranch, true);
+    const branchSet = new BranchSet();
+    branchSet.add(branch);
+
     return (
       <IssueishListView
         search={new Search('aaa', 'bbb')}
         isLoading={true}
         total={0}
         issueishes={[]}
+
+        repository={null}
+        remote={origin}
+        branches={branchSet}
+        aheadCount={0}
+        pushInProgress={false}
+
+        onCreatePr={() => {}}
+
         {...overrideProps}
       />
     );

@@ -3,15 +3,29 @@ import {shallow, mount} from 'enzyme';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import Search, {nullSearch} from '../../lib/models/search';
+import Remote from '../../lib/models/remote';
+import Branch, {nullBranch} from '../../lib/models/branch';
+import BranchSet from '../../lib/models/branch-set';
 import IssueishListContainer from '../../lib/containers/issueish-list-container';
 
 describe('IssueishListContainer', function() {
   function buildApp(overrideProps = {}) {
+    const origin = new Remote('origin', 'git@github.com:atom/github.git');
+    const branch = new Branch('master', nullBranch, nullBranch, true);
+    const branchSet = new BranchSet();
+    branchSet.add(branch);
+
     return (
       <IssueishListContainer
-        search={new Search('default', 'type:pr')}
         token={'1234'}
         host={'https://api.github.com/'}
+
+        search={new Search('default', 'type:pr')}
+        remote={origin}
+        branches={branchSet}
+        aheadCount={0}
+        pushInProgress={false}
+
         {...overrideProps}
       />
     );

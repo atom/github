@@ -4,6 +4,7 @@ import {shallow} from 'enzyme';
 import IssueishSearchController from '../../lib/controllers/issueish-search-controller';
 import Remote from '../../lib/models/remote';
 import Branch from '../../lib/models/branch';
+import BranchSet from '../../lib/models/branch-set';
 
 describe('IssueishSearchController', function() {
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
@@ -11,13 +12,20 @@ describe('IssueishSearchController', function() {
   const master = new Branch('master', upstreamMaster);
 
   function buildApp(overloadProps = {}) {
+    const branches = new BranchSet();
+    branches.add(master);
+
     return (
       <IssueishSearchController
         token="1234"
         host="https://api.github.com"
 
         remote={origin}
-        currentBranch={master}
+        branches={branches}
+        aheadCount={0}
+        pushInProgress={false}
+
+        onCreatePr={() => {}}
 
         {...overloadProps}
       />

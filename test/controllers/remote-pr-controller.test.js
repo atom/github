@@ -44,13 +44,17 @@ describe('RemotePrController', function() {
 
     return (
       <RemotePrController
-        remote={remote}
         loginModel={loginModel}
+        host="https://api.github.com"
+
+        remote={remote}
         branches={branchSet}
+
+        aheadCount={0}
         pushInProgress={false}
-        onSelectPr={noop}
-        onUnpinPr={noop}
+
         onPushBranch={noop}
+
         {...props}
       />
     );
@@ -96,6 +100,6 @@ describe('RemotePrController', function() {
     assert.strictEqual(controller.prop('token'), '1234');
     assert.strictEqual(controller.prop('host'), 'https://api.github.com');
     assert.strictEqual(controller.prop('remote'), remote);
-    assert.strictEqual(controller.prop('currentBranch'), currentBranch);
+    assert.strictEqual(controller.prop('branches'), branchSet);
   });
 });
