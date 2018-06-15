@@ -70,6 +70,30 @@ const allRed = new Issueish({
   commits: makeCommit('FAILURE', 'ERROR', 'FAILURE'),
 });
 
+const noStatus = new Issueish({
+  number: 4,
+  title: 'Four',
+  url: 'https://github.com/atom/github/pulls/4',
+  author: {
+    login: 'me',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/100?v=24',
+  },
+  createdAt: '2018-06-12T14:50:08Z',
+  headRefName: 'head-ref',
+  headRepository: {
+    nameWithOwner: 'me/github',
+  },
+  commits: {
+    nodes: [
+      {
+        commit: {
+          status: null,
+        },
+      },
+    ],
+  },
+});
+
 describe('IssueishListView', function() {
   let origin, branch, branchSet;
 
@@ -157,6 +181,11 @@ describe('IssueishListView', function() {
       assert.strictEqual(chart.prop('pending'), 1);
       assert.strictEqual(chart.prop('failure'), 1);
       assert.strictEqual(chart.prop('success'), 1);
+    });
+
+    it('renders nothing with no status checks are present', function() {
+      const wrapper = mount(buildApp({isLoading: false, total: 1, issueishes: [noStatus]}));
+      assert.isTrue(wrapper.find('span.github-IssueishList-item--status').hasClass('icon-dash'));
     });
   });
 });
