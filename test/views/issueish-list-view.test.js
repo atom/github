@@ -203,5 +203,19 @@ describe('IssueishListView', function() {
       wrapper.find('.github-Accordion-listItem').at(1).simulate('click');
       assert.isTrue(onIssueishClick.calledWith(mixed));
     });
+
+    it('calls its onMoreClick handler when a "more" component is clicked', function() {
+      const issueishes = [allGreen, mixed, allRed];
+      const onMoreClick = sinon.stub();
+      const wrapper = mount(buildApp({
+        isLoading: false,
+        total: 4,
+        issueishes,
+        onMoreClick,
+      }));
+
+      wrapper.find('a.github-IssueishList-more').simulate('click');
+      assert.isTrue(onMoreClick.called);
+    });
   });
 });
