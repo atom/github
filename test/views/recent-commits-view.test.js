@@ -119,7 +119,7 @@ describe('RecentCommitsView', function() {
       wrapper.find('.github-RecentCommit-message').prop('title'),
       '❤️\n\nand a commit body',
     );
-  })
+  });
 
   it('renders the full commit message in a title attribute', function() {
     const commit = new Commit({
