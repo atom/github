@@ -32,4 +32,16 @@
     color: @text-color-highlight;
   }
 
+  &-listItem {
+    display: flex;
+    align-items: center;
+    padding: @component-padding / 4;
+    border-bottom: 1px solid @base-border-color;
+    background-color: @base-background-color;
+
+    &:active {
+      background-color: @background-color-highlight;
+    }
+  }
+
 }
