@@ -55,6 +55,15 @@ describe('IssueishListController', function() {
       headRepository: {
         nameWithOwner: 'atom/github',
       },
+      commits: {
+        nodes: [
+          {
+            commit: {
+              status: null,
+            },
+          },
+        ],
+      },
     };
 
     const wrapper = shallow(buildApp({

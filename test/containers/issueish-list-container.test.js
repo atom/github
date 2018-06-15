@@ -54,6 +54,18 @@ describe('IssueishListContainer', function() {
         id: 'r0',
         nameWithOwner: 'atom/github',
       },
+      commits: {
+        id: 'cs0',
+        nodes: [
+          {
+            id: 'n0',
+            commit: {
+              id: 'c0',
+              status: null,
+            },
+          },
+        ],
+      },
     };
   }
 
