@@ -33,8 +33,17 @@
       &.icon-x {
         color: @text-color-error;
       }
-      height: 1em;
-      width: 1em;
+      svg& {
+        height: 16px;
+        width: 16px;
+
+        circle {
+          cx: 8;
+          cy: 8;
+          r: 5.5;
+          stroke-width: 3;
+        }
+      }
     }
 
     &--age {
