@@ -10,6 +10,14 @@ describe('Search', function() {
   const local = new Branch('local');
   const tracksLocal = new Branch('tracks-local', local);
 
+  it('generates a dotcom URL', function() {
+    const s = new Search('foo', 'repo:smashwilson/remote-repo type:pr something with spaces');
+    assert.strictEqual(
+      s.getWebURL(origin),
+      'https://github.com/search?q=repo%3Asmashwilson%2Fremote-repo%20type%3Apr%20something%20with%20spaces',
+    );
+  });
+
   describe('for the current pull request', function() {
     it('is a null search when the Branch has no upstream', function() {
       const s = Search.forCurrentPR(origin, local);
