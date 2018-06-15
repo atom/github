@@ -119,6 +119,8 @@ describe('IssueishListView', function() {
         pushInProgress={false}
 
         onCreatePr={() => {}}
+        onIssueishClick={() => {}}
+        onMoreClick={() => {}}
 
         {...overrideProps}
       />

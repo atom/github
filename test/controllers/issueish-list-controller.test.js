@@ -37,6 +37,8 @@ describe('IssueishListController', function() {
         isLoading={false}
 
         onCreatePr={() => {}}
+        onOpenIssueish={() => {}}
+        onOpenSearch={() => {}}
 
         {...overrideProps}
       />

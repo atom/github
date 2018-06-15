@@ -28,6 +28,8 @@ describe('IssueishListContainer', function() {
         aheadCount={0}
         pushInProgress={false}
 
+        onOpenIssueish={() => {}}
+        onOpenSearch={() => {}}
         onCreatePr={() => {}}
 
         {...overrideProps}
