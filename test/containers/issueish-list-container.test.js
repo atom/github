@@ -105,6 +105,7 @@ describe('IssueishListContainer', function() {
       name: 'issueishListContainerQuery',
       variables: {
         query: 'type:pr author:me',
+        first: 20,
       },
     }, {
       search: {issueCount: 0, nodes: []},
@@ -124,6 +125,7 @@ describe('IssueishListContainer', function() {
       name: 'issueishListContainerQuery',
       variables: {
         query: 'type:pr author:me',
+        first: 20,
       },
     }, {
       search: {
