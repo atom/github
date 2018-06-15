@@ -214,7 +214,7 @@ describe('IssueishListView', function() {
         onMoreClick,
       }));
 
-      wrapper.find('a.github-IssueishList-more').simulate('click');
+      wrapper.find('.github-IssueishList-more a').simulate('click');
       assert.isTrue(onMoreClick.called);
     });
   });
