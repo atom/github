@@ -187,5 +187,19 @@ describe('IssueishListView', function() {
       const wrapper = mount(buildApp({isLoading: false, total: 1, issueishes: [noStatus]}));
       assert.isTrue(wrapper.find('span.github-IssueishList-item--status').hasClass('icon-dash'));
     });
+
+    it('calls its onIssueishClick handler when an item is clicked', function() {
+      const issueishes = [allGreen, mixed, allRed];
+      const onIssueishClick = sinon.stub();
+      const wrapper = mount(buildApp({
+        isLoading: false,
+        total: 3,
+        issueishes,
+        onIssueishClick,
+      }));
+
+      wrapper.find('.github-Accordion-listItem').at(1).simulate('click');
+      assert.isTrue(onIssueishClick.calledWith(mixed));
+    });
   });
 });
