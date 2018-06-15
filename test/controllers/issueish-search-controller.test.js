@@ -7,9 +7,18 @@ import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 
 describe('IssueishSearchController', function() {
+  let atomEnv;
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
   const upstreamMaster = Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master');
   const master = new Branch('master', upstreamMaster);
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
 
   function buildApp(overloadProps = {}) {
     const branches = new BranchSet();
@@ -21,6 +30,7 @@ describe('IssueishSearchController', function() {
         host="https://api.github.com"
         repository={null}
 
+        workspace={atomEnv.workspace}
         remote={origin}
         branches={branches}
         aheadCount={0}

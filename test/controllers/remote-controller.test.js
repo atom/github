@@ -7,13 +7,19 @@ import Remote from '../../lib/models/remote';
 import RemoteController from '../../lib/controllers/remote-controller';
 
 describe('RemoteController', function() {
-  let remote, branchSet, currentBranch;
+  let atomEnv, remote, branchSet, currentBranch;
 
   beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+
     remote = new Remote('origin', 'git@github.com:atom/github');
     currentBranch = new Branch('master', nullBranch, nullBranch, true);
     branchSet = new BranchSet();
     branchSet.add(currentBranch);
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
   });
 
   function createApp(props = {}) {
@@ -26,6 +32,7 @@ describe('RemoteController', function() {
 
         repository={null}
 
+        workspace={atomEnv.workspace}
         remote={remote}
         branches={branchSet}
 

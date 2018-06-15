@@ -9,6 +9,16 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
 
 describe('IssueishListController', function() {
+  let atomEnv;
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(overrideProps = {}) {
     const branches = new BranchSet();
     branches.add(new Branch('master', nullBranch, nullBranch, true));
@@ -19,6 +29,7 @@ describe('IssueishListController', function() {
         repository={null}
 
         search={new Search('aaa', 'bbb')}
+        workspace={atomEnv.workspace}
         remote={new Remote('origin', 'git@github.com:atom/github.git')}
         branches={branches}
         aheadCount={0}

@@ -10,10 +10,15 @@ import RemoteContainer from '../../lib/containers/remote-container';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 
 describe('RemoteContainer', function() {
-  let model;
+  let atomEnv, model;
 
   beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
     model = new GithubLoginModel(InMemoryStrategy);
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
   });
 
   function buildApp(overrideProps = {}) {
@@ -28,6 +33,7 @@ describe('RemoteContainer', function() {
 
         host="https://api.github.com"
 
+        workspace={atomEnv.workspace}
         remote={origin}
         branches={branchSet}
 
