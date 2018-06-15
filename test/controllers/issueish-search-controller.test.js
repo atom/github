@@ -57,6 +57,8 @@ describe('IssueishSearchController', function() {
   });
 
   it('passes a handler to open an issueish pane', async function() {
+    sinon.spy(atomEnv.workspace, 'open');
+
     const wrapper = shallow(buildApp());
     const container = wrapper.find('IssueishListContainer').at(0);
 
@@ -76,7 +78,12 @@ describe('IssueishSearchController', function() {
       commits: {nodes: []},
     });
 
-    const item = await container.prop('onOpenIssueish')(issueish);
-    assert.strictEqual(item.getURI(), 'atom-github:/issueish/https%3A%2F%2Fapi.github.com/atom/github/123');
+    await container.prop('onOpenIssueish')(issueish);
+    assert.isTrue(
+      atomEnv.workspace.open.calledWith(
+        'atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123',
+        {pending: true, searchAllPanes: true},
+      ),
+    );
   });
 });
