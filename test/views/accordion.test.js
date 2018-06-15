@@ -107,5 +107,23 @@ describe('Accordion', function() {
         assert.isTrue(wrapper.find('CustomChild').someWhere(c => c.prop('item') === i));
       }
     });
+
+    it('passes an onClick handler to each item', function() {
+      const results = [1, 2, 3];
+      const handler = sinon.stub();
+      const wrapper = shallow(buildApp({
+        results,
+        loadingComponent: WrongChild,
+        emptyComponent: WrongChild,
+        onClickItem: handler,
+        children: each => <CustomChild item={each} />,
+      }));
+
+      wrapper.find('.github-Accordion-listItem').at(1).simulate('click');
+      assert.isTrue(handler.calledWith(2));
+
+      wrapper.find('.github-Accordion-listItem').at(2).simulate('click');
+      assert.isTrue(handler.calledWith(3));
+    });
   });
 });
