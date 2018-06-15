@@ -21,6 +21,7 @@ describe('Accordion', function() {
       <Accordion
         leftTitle=""
         results={[]}
+        total={0}
         isLoading={false}
         children={() => null}
         {...overrideProps}
@@ -124,6 +125,21 @@ describe('Accordion', function() {
 
       wrapper.find('.github-Accordion-listItem').at(2).simulate('click');
       assert.isTrue(handler.calledWith(3));
+    });
+
+    it('renders a more tile when the results have been truncated', function() {
+      const results = [1, 2, 3];
+      const wrapper = shallow(buildApp({
+        results,
+        total: 3,
+        moreComponent: CustomChild,
+      }));
+
+      assert.isFalse(wrapper.find('CustomChild').exists());
+
+      wrapper.setProps({total: 4});
+
+      assert.isTrue(wrapper.find('CustomChild').exists());
     });
   });
 });
