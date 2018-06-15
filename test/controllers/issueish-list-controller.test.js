@@ -79,11 +79,18 @@ describe('IssueishListController', function() {
       },
     };
 
+    const search = new Search('aaa', 'zzz');
+    const onOpenIssueish = sinon.stub();
+    const onOpenSearch = sinon.stub();
+
     const wrapper = shallow(buildApp({
       results: {
         issueCount: 1,
         nodes: [mockPullRequest],
       },
+      search,
+      onOpenIssueish,
+      onOpenSearch,
     }));
 
     const view = wrapper.find('IssueishListView');
@@ -93,5 +100,12 @@ describe('IssueishListController', function() {
     assert.deepEqual(view.prop('issueishes'), [
       new Issueish(mockPullRequest),
     ]);
+
+    const payload = Symbol('payload');
+    view.prop('onIssueishClick')(payload);
+    assert.isTrue(onOpenIssueish.calledWith(payload));
+
+    view.prop('onMoreClick')();
+    assert.isTrue(onOpenSearch.calledWith(search));
   });
 });
