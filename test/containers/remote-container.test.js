@@ -33,6 +33,7 @@ describe('RemoteContainer', function() {
 
         host="https://api.github.com"
 
+        notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}
         branches={branchSet}
@@ -47,7 +48,7 @@ describe('RemoteContainer', function() {
     );
   }
 
-  function expectSuccessfulQuery() {
+  function expectRepositoryQuery() {
     return expectRelayQuery({
       name: 'remoteContainerQuery',
       variables: {
@@ -71,6 +72,7 @@ describe('RemoteContainer', function() {
       name: 'issueishListContainerQuery',
       variables: {
         query: 'repo:atom/github type:pr state:open',
+        first: 20,
       },
     }, {
       search: {
@@ -86,7 +88,7 @@ describe('RemoteContainer', function() {
   });
 
   it('renders a loading spinner while the GraphQL query is being performed', async function() {
-    expectSuccessfulQuery();
+    expectRepositoryQuery();
     model.setToken('https://api.github.com', '1234');
     sinon.spy(model, 'getToken');
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
@@ -117,8 +119,23 @@ describe('RemoteContainer', function() {
     assert.match(wrapper.update().find('GithubLoginView').find('p').text(), /sufficient/);
   });
 
+  it('renders an error message if the GraphQL query fails', async function() {
+    const {reject} = expectRepositoryQuery();
+    const e = new Error('oh shit!');
+    e.rawStack = e.stack;
+    reject(e);
+    model.setToken('https://api.github.com', '1234');
+    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+
+    const wrapper = mount(buildApp());
+    await assert.async.isTrue(wrapper.update().find('QueryErrorView').exists());
+
+    const qev = wrapper.find('QueryErrorView');
+    assert.strictEqual(qev.prop('error'), e);
+  });
+
   it('renders the controller once results have arrived', async function() {
-    const {resolve} = expectSuccessfulQuery();
+    const {resolve} = expectRepositoryQuery();
     expectEmptyIssueishQuery();
     model.setToken('https://api.github.com', '1234');
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
