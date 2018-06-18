@@ -40,6 +40,18 @@ describe('RecentCommitsView', function() {
     assert.deepEqual(wrapper.find('RecentCommitView').map(w => w.prop('commit')), commits);
   });
 
+  it('renders emojis in the commit subject', function() {
+    const commits = [new Commit({
+      sha: '1111111111',
+      authorEmail: 'pizza@unicorn.com',
+      authorDate: 0,
+      messageSubject: ':heart: :shirt: :smile:',
+    })];
+    app = React.cloneElement(app, {commits});
+    const wrapper = mount(app);
+    assert.deepEqual(wrapper.find('.github-RecentCommit-message').text(), '❤️ 👕 😄');
+  });
+
   it('renders an avatar corresponding to the GitHub user who authored the commit', function() {
     const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map((authorEmail, i) => {
       return new Commit({sha: '1111111111' + i, authorEmail, authorDate: 0, message: 'x'});
@@ -89,6 +101,24 @@ describe('RecentCommitsView', function() {
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
     assert.isTrue(wrapper.find('Timeago').prop('time').isSame(1519848555000));
+  });
+
+  it('renders emoji in the title attribute', function() {
+    const commit = new Commit({
+      sha: '1111111111',
+      authorEmail: 'me@hooray.horse',
+      authorDate: 0,
+      messageSubject: ':heart:',
+      messageBody: 'and a commit body',
+    });
+
+    app = React.cloneElement(app, {commits: [commit]});
+    const wrapper = mount(app);
+
+    assert.strictEqual(
+      wrapper.find('.github-RecentCommit-message').prop('title'),
+      '❤️\n\nand a commit body',
+    );
   });
 
   it('renders the full commit message in a title attribute', function() {
