@@ -52,6 +52,11 @@
     &--age {
       color: @text-color-subtle;
       font-size: .9em;
+
+      // Better balance for 3 characters (10M)
+      margin-left: 0;
+      min-width: 3ch;
+      text-align: center;
     }
 
   }
