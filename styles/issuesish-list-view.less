@@ -24,8 +24,11 @@
     }
 
     &--status {
+      @size: 20px;
+
       &:before {
         margin-right: 0;
+        width: @size;
       }
       &.icon-check {
         color: @text-color-success;
@@ -37,12 +40,12 @@
         color: @text-color-subtle;
       }
       svg& {
-        height: 16px;
-        width: 16px;
+        height: @size;
+        width: @size;
 
         circle {
-          cx: 8;
-          cy: 8;
+          cx: @size/2;
+          cy: @size/2;
           r: 5.5;
           stroke-width: 3;
         }
