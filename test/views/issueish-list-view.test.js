@@ -153,6 +153,14 @@ describe('IssueishListView', function() {
 
       assert.isTrue(wrapper.find('CreatePullRequestTile').exists());
     });
+
+    it('renders an error tile if an error is present', function() {
+      const error = new Error('error');
+      error.rawStack = error.stack;
+      const wrapper = mount(buildApp({isLoading: false, error}));
+
+      assert.isTrue(wrapper.find('QueryErrorTile').exists());
+    });
   });
 
   describe('with nonempty results', function() {

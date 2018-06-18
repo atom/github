@@ -120,6 +120,31 @@ describe('IssueishListContainer', function() {
     resolve();
   });
 
+  it('passes an empty result list and an error prop to the controller when errored', async function() {
+    const {reject} = expectRelayQuery({
+      name: 'issueishListContainerQuery',
+      variables: {
+        query: 'type:pr',
+        first: 20,
+      },
+    }, {});
+    const e = new Error('error');
+    e.rawStack = e.stack;
+    reject(e);
+
+    const wrapper = mount(buildApp({}));
+
+    await assert.async.isTrue(
+      wrapper.update().find('BareIssueishListController').filterWhere(n => !n.prop('isLoading')).exists(),
+    );
+    const controller = wrapper.find('BareIssueishListController');
+    assert.strictEqual(controller.prop('error'), e);
+    assert.deepEqual(controller.prop('results'), {
+      issueCount: 0,
+      nodes: [],
+    });
+  });
+
   it('passes results to the controller', async function() {
     const {promise, resolve} = expectRelayQuery({
       name: 'issueishListContainerQuery',
