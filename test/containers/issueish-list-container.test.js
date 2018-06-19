@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
+import {Emitter} from 'event-kit';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import Search, {nullSearch} from '../../lib/models/search';
@@ -9,6 +10,30 @@ import BranchSet from '../../lib/models/branch-set';
 import IssueishListContainer from '../../lib/containers/issueish-list-container';
 
 describe('IssueishListContainer', function() {
+  let observer;
+
+  beforeEach(function() {
+    observer = {
+      emitter: new Emitter(),
+
+      onDidComplete(callback) {
+        return this.emitter.on('did-complete', callback);
+      },
+
+      trigger() {
+        this.emitter.emit('did-complete');
+      },
+
+      dispose() {
+        this.emitter.dispose();
+      },
+    };
+  });
+
+  afterEach(function() {
+    observer.dispose();
+  });
+
   function buildApp(overrideProps = {}) {
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
     const branch = new Branch('master', nullBranch, nullBranch, true);
@@ -21,6 +46,7 @@ describe('IssueishListContainer', function() {
         host="https://api.github.com/"
 
         repository={null}
+        remoteOperationObserver={observer}
 
         search={new Search('default', 'type:pr')}
         remote={origin}
@@ -170,5 +196,56 @@ describe('IssueishListContainer', function() {
 
     const controller = wrapper.update().find('BareIssueishListController');
     assert.isFalse(controller.prop('isLoading'));
+  });
+
+  it('performs the query again when a remote operation completes', async function() {
+    const {promise: promise0, resolve: resolve0, disable: disable0} = expectRelayQuery({
+      name: 'issueishListContainerQuery',
+      variables: {
+        query: 'type:pr author:me',
+        first: 20,
+      },
+    }, {
+      search: {
+        issueCount: 1,
+        nodes: [createPullRequest(1)],
+      },
+    });
+
+    const search = new Search('pull requests', 'type:pr author:me');
+    const wrapper = mount(buildApp({search}));
+    resolve0();
+    await promise0;
+
+    assert.isTrue(
+      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 1),
+    );
+
+    disable0();
+    const {promise: promise1, resolve: resolve1} = expectRelayQuery({
+      name: 'issueishListContainerQuery',
+      variables: {
+        query: 'type:pr author:me',
+        first: 20,
+      },
+    }, {
+      search: {
+        issueCount: 1,
+        nodes: [createPullRequest(2)],
+      },
+    });
+
+    resolve1();
+    await promise1;
+
+    assert.isTrue(
+      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 1),
+    );
+
+    observer.trigger();
+
+    await assert.async.isTrue(
+      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 2),
+    );
   });
 });
