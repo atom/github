@@ -1,62 +1,28 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
-import {Emitter} from 'event-kit';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import Search, {nullSearch} from '../../lib/models/search';
-import Remote from '../../lib/models/remote';
-import Branch, {nullBranch} from '../../lib/models/branch';
-import BranchSet from '../../lib/models/branch-set';
-import IssueishListContainer from '../../lib/containers/issueish-list-container';
+import IssueishSearchContainer from '../../lib/containers/issueish-search-container';
+import {ManualStateObserver} from '../helpers';
 
-describe('IssueishListContainer', function() {
+describe('IssueishSearchContainer', function() {
   let observer;
 
   beforeEach(function() {
-    observer = {
-      emitter: new Emitter(),
-
-      onDidComplete(callback) {
-        return this.emitter.on('did-complete', callback);
-      },
-
-      trigger() {
-        this.emitter.emit('did-complete');
-      },
-
-      dispose() {
-        this.emitter.dispose();
-      },
-    };
-  });
-
-  afterEach(function() {
-    observer.dispose();
+    observer = new ManualStateObserver();
   });
 
   function buildApp(overrideProps = {}) {
-    const origin = new Remote('origin', 'git@github.com:atom/github.git');
-    const branch = new Branch('master', nullBranch, nullBranch, true);
-    const branchSet = new BranchSet();
-    branchSet.add(branch);
-
     return (
-      <IssueishListContainer
+      <IssueishSearchContainer
         token="1234"
         host="https://api.github.com/"
-
-        repository={null}
-        remoteOperationObserver={observer}
-
         search={new Search('default', 'type:pr')}
-        remote={origin}
-        branches={branchSet}
-        aheadCount={0}
-        pushInProgress={false}
+        remoteOperationObserver={observer}
 
         onOpenIssueish={() => {}}
         onOpenSearch={() => {}}
-        onCreatePr={() => {}}
 
         {...overrideProps}
       />
@@ -104,15 +70,13 @@ describe('IssueishListContainer', function() {
     const list = wrapper.find('BareIssueishListController');
     assert.isTrue(list.exists());
     assert.isFalse(list.prop('isLoading'));
-    assert.deepEqual(list.prop('results'), {
-      issueCount: 0,
-      nodes: [],
-    });
+    assert.strictEqual(list.prop('total'), 0);
+    assert.lengthOf(list.prop('results'), 0);
   });
 
-  it('renders a query for the Search', function() {
-    const {resolve} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+  it('renders a query for the Search', async function() {
+    const {resolve, promise} = expectRelayQuery({
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr author:me',
       },
@@ -124,11 +88,12 @@ describe('IssueishListContainer', function() {
     const wrapper = shallow(buildApp({search}));
     assert.strictEqual(wrapper.find('ReactRelayQueryRenderer').prop('variables').query, 'type:pr author:me');
     resolve();
+    await promise;
   });
 
-  it('passes an empty result list and an isLoading prop to the controller while loading', function() {
-    const {resolve} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+  it('passes an empty result list and an isLoading prop to the controller while loading', async function() {
+    const {resolve, promise} = expectRelayQuery({
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr author:me',
         first: 20,
@@ -144,11 +109,12 @@ describe('IssueishListContainer', function() {
     assert.isTrue(controller.prop('isLoading'));
 
     resolve();
+    await promise;
   });
 
   it('passes an empty result list and an error prop to the controller when errored', async function() {
     const {reject} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr',
         first: 20,
@@ -165,15 +131,12 @@ describe('IssueishListContainer', function() {
     );
     const controller = wrapper.find('BareIssueishListController');
     assert.strictEqual(controller.prop('error'), e);
-    assert.deepEqual(controller.prop('results'), {
-      issueCount: 0,
-      nodes: [],
-    });
+    assert.lengthOf(controller.prop('results'), 0);
   });
 
   it('passes results to the controller', async function() {
     const {promise, resolve} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr author:me',
         first: 20,
@@ -196,11 +159,14 @@ describe('IssueishListContainer', function() {
 
     const controller = wrapper.update().find('BareIssueishListController');
     assert.isFalse(controller.prop('isLoading'));
+    assert.strictEqual(controller.prop('total'), 2);
+    assert.isTrue(controller.prop('results').some(node => node.number === 1));
+    assert.isTrue(controller.prop('results').some(node => node.number === 2));
   });
 
   it('performs the query again when a remote operation completes', async function() {
     const {promise: promise0, resolve: resolve0, disable: disable0} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr author:me',
         first: 20,
@@ -218,12 +184,12 @@ describe('IssueishListContainer', function() {
     await promise0;
 
     assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 1),
+      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
     );
 
     disable0();
     const {promise: promise1, resolve: resolve1} = expectRelayQuery({
-      name: 'issueishListContainerQuery',
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr author:me',
         first: 20,
@@ -239,13 +205,13 @@ describe('IssueishListContainer', function() {
     await promise1;
 
     assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 1),
+      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
     );
 
     observer.trigger();
 
     await assert.async.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').nodes.some(node => node.number === 2),
+      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 2),
     );
   });
 });

@@ -2,10 +2,6 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import Issueish from '../../lib/models/issueish';
-import Search from '../../lib/models/search';
-import Remote from '../../lib/models/remote';
-import BranchSet from '../../lib/models/branch-set';
-import Branch, {nullBranch} from '../../lib/models/branch';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
 
 describe('IssueishListController', function() {
@@ -20,25 +16,16 @@ describe('IssueishListController', function() {
   });
 
   function buildApp(overrideProps = {}) {
-    const branches = new BranchSet();
-    branches.add(new Branch('master', nullBranch, nullBranch, true));
-
     return (
       <BareIssueishListController
+        title="title"
         results={null}
         repository={null}
 
-        search={new Search('aaa', 'bbb')}
-        workspace={atomEnv.workspace}
-        remote={new Remote('origin', 'git@github.com:atom/github.git')}
-        branches={branches}
-        aheadCount={0}
-        pushInProgress={false}
         isLoading={false}
 
-        onCreatePr={() => {}}
         onOpenIssueish={() => {}}
-        onOpenSearch={() => {}}
+        onOpenMore={() => {}}
 
         {...overrideProps}
       />
@@ -79,18 +66,14 @@ describe('IssueishListController', function() {
       },
     };
 
-    const search = new Search('aaa', 'zzz');
     const onOpenIssueish = sinon.stub();
-    const onOpenSearch = sinon.stub();
+    const onOpenMore = sinon.stub();
 
     const wrapper = shallow(buildApp({
-      results: {
-        issueCount: 1,
-        nodes: [mockPullRequest],
-      },
-      search,
+      results: [mockPullRequest],
+      total: 1,
       onOpenIssueish,
-      onOpenSearch,
+      onOpenMore,
     }));
 
     const view = wrapper.find('IssueishListView');
@@ -105,7 +88,7 @@ describe('IssueishListController', function() {
     view.prop('onIssueishClick')(payload);
     assert.isTrue(onOpenIssueish.calledWith(payload));
 
-    view.prop('onMoreClick')();
-    assert.isTrue(onOpenSearch.calledWith(search));
+    view.prop('onMoreClick')(payload);
+    assert.isTrue(onOpenMore.calledWith(payload));
   });
 });

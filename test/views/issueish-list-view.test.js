@@ -4,7 +4,6 @@ import {shallow, mount} from 'enzyme';
 import Remote from '../../lib/models/remote';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
-import Search from '../../lib/models/search';
 import Issueish from '../../lib/models/issueish';
 import IssueishListView from '../../lib/views/issueish-list-view';
 
@@ -94,6 +93,12 @@ const noStatus = new Issueish({
   },
 });
 
+class CustomComponent extends React.Component {
+  render() {
+    return <div className="custom" />;
+  }
+}
+
 describe('IssueishListView', function() {
   let origin, branch, branchSet;
 
@@ -107,16 +112,10 @@ describe('IssueishListView', function() {
   function buildApp(overrideProps = {}) {
     return (
       <IssueishListView
-        search={new Search('aaa', 'bbb')}
+        title="aaa"
         isLoading={true}
         total={0}
         issueishes={[]}
-
-        repository={null}
-        remote={origin}
-        branches={branchSet}
-        aheadCount={0}
-        pushInProgress={false}
 
         onCreatePr={() => {}}
         onIssueishClick={() => {}}
@@ -127,9 +126,9 @@ describe('IssueishListView', function() {
     );
   }
 
-  it('sets the accordion title to the Search name', function() {
+  it('sets the accordion title to the search name', function() {
     const wrapper = shallow(buildApp({
-      search: new Search('the search name', ''),
+      title: 'the search name',
     }));
     assert.strictEqual(wrapper.find('Accordion').prop('leftTitle'), 'the search name');
   });
@@ -147,11 +146,10 @@ describe('IssueishListView', function() {
   });
 
   describe('with empty results', function() {
-    it('uses a custom EmptyComponent if the search requests one', function() {
-      const search = Search.forCurrentPR(origin, branch);
-      const wrapper = mount(buildApp({isLoading: false, search}));
+    it('uses a custom EmptyComponent if one is provided', function() {
+      const wrapper = mount(buildApp({isLoading: false, emptyComponent: CustomComponent}));
 
-      assert.isTrue(wrapper.find('CreatePullRequestTile').exists());
+      assert.isTrue(wrapper.find('CustomComponent').exists());
     });
 
     it('renders an error tile if an error is present', function() {

@@ -51,7 +51,7 @@ describe('RemoteController', function() {
   it('renders issueish searches', function() {
     const wrapper = shallow(createApp());
 
-    const controller = wrapper.update().find('IssueishSearchController');
+    const controller = wrapper.update().find('IssueishSearchesController');
     assert.strictEqual(controller.prop('token'), '1234');
     assert.strictEqual(controller.prop('host'), 'https://api.github.com');
     assert.strictEqual(controller.prop('remote'), remote);

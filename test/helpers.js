@@ -8,6 +8,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
 import {Directory} from 'atom';
+import {Emitter} from 'event-kit';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
@@ -259,3 +260,21 @@ after(() => {
     WorkerManager.reset(true);
   }
 });
+
+export class ManualStateObserver {
+  constructor() {
+    this.emitter = new Emitter();
+  }
+
+  onDidComplete(callback) {
+    return this.emitter.on('did-complete', callback);
+  }
+
+  trigger() {
+    this.emitter.emit('did-complete');
+  }
+
+  dispose() {
+    this.emitter.dispose();
+  }
+}

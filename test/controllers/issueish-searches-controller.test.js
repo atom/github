@@ -1,14 +1,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import IssueishSearchController from '../../lib/controllers/issueish-search-controller';
+import IssueishSearchesController from '../../lib/controllers/issueish-searches-controller';
 import Remote from '../../lib/models/remote';
 import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 
-describe('IssueishSearchController', function() {
+describe('IssueishSearchesController', function() {
   let atomEnv;
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
   const upstreamMaster = Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master');
@@ -27,7 +27,7 @@ describe('IssueishSearchController', function() {
     branches.add(master);
 
     return (
-      <IssueishSearchController
+      <IssueishSearchesController
         token="1234"
         host="https://api.github.com"
         repository={null}
@@ -46,12 +46,12 @@ describe('IssueishSearchController', function() {
     );
   }
 
-  it('renders an IssueishListContainer for each Search', function() {
+  it('renders an IssueishSearchContainer for each Search', function() {
     const wrapper = shallow(buildApp());
     assert.isTrue(wrapper.state('searches').length > 0);
 
     for (const search of wrapper.state('searches')) {
-      const list = wrapper.find('IssueishListContainer').filterWhere(w => w.prop('search') === search);
+      const list = wrapper.find('IssueishSearchContainer').filterWhere(w => w.prop('search') === search);
       assert.isTrue(list.exists());
       assert.strictEqual(list.prop('token'), '1234');
       assert.strictEqual(list.prop('host'), 'https://api.github.com');
@@ -62,7 +62,7 @@ describe('IssueishSearchController', function() {
     sinon.spy(atomEnv.workspace, 'open');
 
     const wrapper = shallow(buildApp());
-    const container = wrapper.find('IssueishListContainer').at(0);
+    const container = wrapper.find('IssueishSearchContainer').at(0);
 
     const issueish = new Issueish({
       number: 123,
