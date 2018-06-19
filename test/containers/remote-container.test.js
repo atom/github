@@ -5,6 +5,7 @@ import Remote from '../../lib/models/remote';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
+import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import RemoteContainer from '../../lib/containers/remote-container';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
@@ -33,6 +34,7 @@ describe('RemoteContainer', function() {
 
         host="https://api.github.com"
 
+        remoteOperationObserver={nullOperationStateObserver}
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}

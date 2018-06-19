@@ -4,6 +4,7 @@ import {shallow} from 'enzyme';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import Remote from '../../lib/models/remote';
+import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import RemoteController from '../../lib/controllers/remote-controller';
 
 describe('RemoteController', function() {
@@ -32,6 +33,7 @@ describe('RemoteController', function() {
 
         repository={null}
 
+        remoteOperationObserver={nullOperationStateObserver}
         workspace={atomEnv.workspace}
         remote={remote}
         branches={branchSet}

@@ -6,6 +6,7 @@ import Remote from '../../lib/models/remote';
 import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
+import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 
 describe('IssueishSearchController', function() {
   let atomEnv;
@@ -31,6 +32,7 @@ describe('IssueishSearchController', function() {
         host="https://api.github.com"
         repository={null}
 
+        remoteOperationObserver={nullOperationStateObserver}
         workspace={atomEnv.workspace}
         remote={origin}
         branches={branches}
