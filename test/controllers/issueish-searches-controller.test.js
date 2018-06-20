@@ -1,6 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import IssueishSearchesController from '../../lib/controllers/issueish-searches-controller';
 import Remote from '../../lib/models/remote';
 import Branch from '../../lib/models/branch';
@@ -30,12 +31,12 @@ describe('IssueishSearchesController', function() {
       <IssueishSearchesController
         token="1234"
         host="https://api.github.com"
-        repository={null}
+        repository={createRepositoryResult()}
 
         remoteOperationObserver={nullOperationStateObserver}
         workspace={atomEnv.workspace}
         remote={origin}
-        remotesByName={new Map()}
+        remotesByName={new Map([['origin', origin]])}
         branches={branches}
         aheadCount={0}
         pushInProgress={false}
@@ -46,6 +47,30 @@ describe('IssueishSearchesController', function() {
       />
     );
   }
+
+  it('renders a CurrentPullRequestContainer', function() {
+    const branches = new BranchSet();
+    branches.add(master);
+
+    const p = {
+      token: '4321',
+      host: 'https://mygithub.com',
+      repository: createRepositoryResult(),
+      remote: origin,
+      remotesByName: new Map([['origin', origin]]),
+      branches,
+      aheadCount: 4,
+      pushInProgress: true,
+    };
+
+    const wrapper = shallow(buildApp(p));
+    const container = wrapper.find('CurrentPullRequestContainer');
+    assert.isTrue(container.exists());
+
+    for (const key in p) {
+      assert.strictEqual(container.prop(key), p[key], `expected prop ${key} to be passed`);
+    }
+  });
 
   it('renders an IssueishSearchContainer for each Search', function() {
     const wrapper = shallow(buildApp());
