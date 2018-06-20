@@ -92,3 +92,23 @@
     text-align: center;
   }
 }
+
+.github-QueryErrorTile {
+  padding: @component-padding;
+  display: flex;
+  color: @text-color-error;
+
+  &-messages {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1
+  }
+
+  .icon-alert {
+    vertical-align: text-top;
+  }
+
+  &-message {
+    font-weight: bold;
+  }
+}
