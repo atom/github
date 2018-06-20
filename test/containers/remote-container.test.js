@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
+import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import Remote from '../../lib/models/remote';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
@@ -59,14 +60,7 @@ describe('RemoteContainer', function() {
         name: 'github',
       },
     }, {
-      repository: {
-        defaultBranchRef: {
-          prefix: 'refs/heads/',
-          name: 'master',
-          id: 'ref0',
-        },
-        id: 'repo0',
-      },
+      repository: createRepositoryResult(),
     });
   }
 
@@ -151,6 +145,7 @@ describe('RemoteContainer', function() {
     const controller = wrapper.find('RemoteController');
     assert.strictEqual(controller.prop('token'), '1234');
     assert.deepEqual(controller.prop('repository'), {
+      id: 'repository0',
       defaultBranchRef: {
         prefix: 'refs/heads/',
         name: 'master',
