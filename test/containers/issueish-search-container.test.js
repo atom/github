@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Search, {nullSearch} from '../../lib/models/search';
 import IssueishSearchContainer from '../../lib/containers/issueish-search-container';
 import {ManualStateObserver} from '../helpers';
@@ -27,40 +28,6 @@ describe('IssueishSearchContainer', function() {
         {...overrideProps}
       />
     );
-  }
-
-  function createPullRequest(number) {
-    return {
-      __typename: 'PullRequest',
-      id: number.toString(),
-      number,
-      title: 'One',
-      url: 'https://github.com/atom/github/1',
-      author: {
-        __typename: 'User',
-        id: 'u0',
-        login: 'smashwilson',
-        avatarUrl: 'https://avatar.com/yes.jpg',
-      },
-      createdAt: '2018-06-12T14:50:08Z',
-      headRefName: 'aw/something',
-      headRepository: {
-        id: 'r0',
-        nameWithOwner: 'atom/github',
-      },
-      commits: {
-        id: 'cs0',
-        nodes: [
-          {
-            id: 'n0',
-            commit: {
-              id: 'c0',
-              status: null,
-            },
-          },
-        ],
-      },
-    };
   }
 
   it('performs no query for a null Search', function() {
@@ -145,8 +112,8 @@ describe('IssueishSearchContainer', function() {
       search: {
         issueCount: 2,
         nodes: [
-          createPullRequest(1),
-          createPullRequest(2),
+          createPullRequestResult({number: 1}),
+          createPullRequestResult({number: 2}),
         ],
       },
     });
@@ -174,7 +141,7 @@ describe('IssueishSearchContainer', function() {
     }, {
       search: {
         issueCount: 1,
-        nodes: [createPullRequest(1)],
+        nodes: [createPullRequestResult({number: 1})],
       },
     });
 
@@ -197,7 +164,7 @@ describe('IssueishSearchContainer', function() {
     }, {
       search: {
         issueCount: 1,
-        nodes: [createPullRequest(2)],
+        nodes: [createPullRequestResult({number: 2})],
       },
     });
 
