@@ -38,6 +38,7 @@ describe('RemoteContainer', function() {
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}
+        remotesByName={new Map()}
         branches={branchSet}
 
         aheadCount={0}

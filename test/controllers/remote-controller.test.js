@@ -36,6 +36,7 @@ describe('RemoteController', function() {
         remoteOperationObserver={nullOperationStateObserver}
         workspace={atomEnv.workspace}
         remote={remote}
+        remotesByName={new Map()}
         branches={branchSet}
 
         aheadCount={0}

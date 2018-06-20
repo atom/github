@@ -35,6 +35,7 @@ describe('IssueishSearchesController', function() {
         remoteOperationObserver={nullOperationStateObserver}
         workspace={atomEnv.workspace}
         remote={origin}
+        remotesByName={new Map()}
         branches={branches}
         aheadCount={0}
         pushInProgress={false}
