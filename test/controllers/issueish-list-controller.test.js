@@ -5,16 +5,6 @@ import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
 
 describe('IssueishListController', function() {
-  let atomEnv;
-
-  beforeEach(function() {
-    atomEnv = global.buildAtomEnvironment();
-  });
-
-  afterEach(function() {
-    atomEnv.destroy();
-  });
-
   function buildApp(overrideProps = {}) {
     return (
       <BareIssueishListController
