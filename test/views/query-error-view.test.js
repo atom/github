@@ -45,8 +45,8 @@ describe('QueryErrorView', function() {
     const error = new Error('GraphQL error');
     error.response = {
       status: 500,
-      text: () => 'response text',
     };
+    error.responseText = 'response text';
     error.rawStack = error.stack;
 
     const wrapper = shallow(buildApp({error}));
