@@ -1,97 +1,16 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
-import Remote from '../../lib/models/remote';
+import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
 import IssueishListView from '../../lib/views/issueish-list-view';
 
-function makeCommit(...states) {
-  return {
-    nodes: [
-      {
-        commit: {
-          status: {
-            contexts: states.map(state => ({state})),
-          },
-        },
-      },
-    ],
-  };
-}
-
-const allGreen = new Issueish({
-  number: 1,
-  title: 'One',
-  url: 'https://github.com/atom/github/pulls/1',
-  author: {
-    login: 'me',
-    avatarUrl: 'https://avatars.githubusercontent.com/u/100?v=24',
-  },
-  createdAt: '2018-06-12T14:50:08Z',
-  headRefName: 'head-ref',
-  headRepository: {
-    nameWithOwner: 'me/github',
-  },
-  commits: makeCommit('SUCCESS', 'SUCCESS', 'SUCCESS'),
-});
-
-const mixed = new Issueish({
-  number: 2,
-  title: 'Two',
-  url: 'https://github.com/atom/github/pulls/2',
-  author: {
-    login: 'me',
-    avatarUrl: 'https://avatars.githubusercontent.com/u/100?v=24',
-  },
-  createdAt: '2018-06-12T14:50:08Z',
-  headRefName: 'head-ref',
-  headRepository: {
-    nameWithOwner: 'me/github',
-  },
-  commits: makeCommit('SUCCESS', 'PENDING', 'FAILURE'),
-});
-
-const allRed = new Issueish({
-  number: 3,
-  title: 'Three',
-  url: 'https://github.com/atom/github/pulls/3',
-  author: {
-    login: 'me',
-    avatarUrl: 'https://avatars.githubusercontent.com/u/100?v=24',
-  },
-  createdAt: '2018-06-12T14:50:08Z',
-  headRefName: 'head-ref',
-  headRepository: {
-    nameWithOwner: 'me/github',
-  },
-  commits: makeCommit('FAILURE', 'ERROR', 'FAILURE'),
-});
-
-const noStatus = new Issueish({
-  number: 4,
-  title: 'Four',
-  url: 'https://github.com/atom/github/pulls/4',
-  author: {
-    login: 'me',
-    avatarUrl: 'https://avatars.githubusercontent.com/u/100?v=24',
-  },
-  createdAt: '2018-06-12T14:50:08Z',
-  headRefName: 'head-ref',
-  headRepository: {
-    nameWithOwner: 'me/github',
-  },
-  commits: {
-    nodes: [
-      {
-        commit: {
-          status: null,
-        },
-      },
-    ],
-  },
-});
+const allGreen = new Issueish(createPullRequestResult({number: 1, states: ['SUCCESS', 'SUCCESS', 'SUCCESS']}));
+const mixed = new Issueish(createPullRequestResult({number: 2, states: ['SUCCESS', 'PENDING', 'FAILURE']}));
+const allRed = new Issueish(createPullRequestResult({number: 3, states: ['FAILURE', 'ERROR', 'FAILURE']}));
+const noStatus = new Issueish(createPullRequestResult({number: 4, states: null}));
 
 class CustomComponent extends React.Component {
   render() {
@@ -100,10 +19,9 @@ class CustomComponent extends React.Component {
 }
 
 describe('IssueishListView', function() {
-  let origin, branch, branchSet;
+  let branch, branchSet;
 
   beforeEach(function() {
-    origin = new Remote('origin', 'git@github.com:atom/github.git');
     branch = new Branch('master', nullBranch, nullBranch, true);
     branchSet = new BranchSet();
     branchSet.add(branch);
