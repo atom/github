@@ -11,10 +11,11 @@ function createCommitResult(attrs = {}) {
 export function createPullRequestResult(attrs = {}) {
   const o = {
     number: 0,
-    states: [],
+    repositoryID: 'repository0',
+    states: null,
     headRefName: 'master',
     ...attrs,
-  }
+  };
 
   const commit = {
     id: 'commit0',
@@ -41,6 +42,10 @@ export function createPullRequestResult(attrs = {}) {
     },
     createdAt: '2018-06-12T14:50:08Z',
     headRefName: o.headRefName,
+
+    repository: {
+      id: o.repositoryID,
+    },
 
     commits: {nodes: [{commit, id: 'node0'}]},
   }
