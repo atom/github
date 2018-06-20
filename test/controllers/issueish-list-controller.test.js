@@ -1,6 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
 
@@ -32,29 +33,7 @@ describe('IssueishListController', function() {
   });
 
   it('renders an IssueishListView with issueish results', function() {
-    const mockPullRequest = {
-      number: 1,
-      title: 'One',
-      url: 'https://github.com/atom/github/pulls/1',
-      author: {
-        login: 'smashwilson',
-        avatarUrl: 'https://avatars2.githubusercontent.com/u/17565?v=4',
-      },
-      createdAt: '2018-06-12T14:50:08Z',
-      headRefName: 'aw/accordion-solo',
-      headRepository: {
-        nameWithOwner: 'atom/github',
-      },
-      commits: {
-        nodes: [
-          {
-            commit: {
-              status: null,
-            },
-          },
-        ],
-      },
-    };
+    const mockPullRequest = createPullRequestResult({number: 1});
 
     const onOpenIssueish = sinon.stub();
     const onOpenMore = sinon.stub();
