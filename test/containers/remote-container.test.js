@@ -66,7 +66,7 @@ describe('RemoteContainer', function() {
 
   function expectEmptyIssueishQuery() {
     return expectRelayQuery({
-      name: 'issueishListContainerQuery',
+      name: 'issueishSearchContainerQuery',
       variables: {
         query: 'repo:atom/github type:pr state:open',
         first: 20,
