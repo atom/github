@@ -17,11 +17,15 @@ export function createPullRequestResult(attrs = {}) {
   }
 
   const commit = {
-    status: {
+    id: 'commit0',
+  };
+
+  if (o.states === null) {
+    commit.status = null;
+  } else {
+    commit.status = {
       contexts: o.states.map((state, id) => ({state, id: `state${id}`})),
-      id: 'status0',
-    },
-    id: 'commit0'
+    };
   }
 
   return {
