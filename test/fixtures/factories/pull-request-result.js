@@ -1,4 +1,4 @@
-function createCommitResult(attrs) {
+function createCommitResult(attrs = {}) {
   return {
     commit: {
       status: {
@@ -8,7 +8,7 @@ function createCommitResult(attrs) {
   };
 }
 
-export function createPullRequestResult(attrs) {
+export function createPullRequestResult(attrs = {}) {
   const o = {
     number: 0,
     states: [],
