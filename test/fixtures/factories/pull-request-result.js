@@ -30,6 +30,7 @@ export function createPullRequestResult(attrs = {}) {
   }
 
   return {
+    __typename: 'PullRequest',
     id: `pullrequest${o.number}`,
     number: o.number,
     title: `Pull Request ${o.number}`,
