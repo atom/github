@@ -3,6 +3,7 @@ import {mount} from 'enzyme';
 
 import {ManualStateObserver} from '../helpers';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
+import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import Remote from '../../lib/models/remote';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
@@ -73,11 +74,11 @@ describe('CurrentPullRequestContainer', function() {
 
     return (
       <CurrentPullRequestContainer
+        repository={createRepositoryResult()}
+
         token="1234"
         host="https://api.github.com/"
-
         remoteOperationObserver={observer}
-
         remote={origin}
         remotesByName={remotesByName}
         branches={branchSet}
@@ -156,6 +157,23 @@ describe('CurrentPullRequestContainer', function() {
     const controller = wrapper.update().find('BareIssueishListController');
     assert.strictEqual(controller.prop('total'), 1);
     assert.deepEqual(controller.prop('results').map(result => result.number), [10]);
+  });
+
+  it('filters out pull requests opened on different repositories', async function() {
+    const repository = createRepositoryResult({id: 'upstream-repo'});
+
+    const {resolve, promise} = useResults(
+      {number: 11, repositoryID: 'upstream-repo'},
+      {number: 22, repositoryID: 'someones-fork'},
+    );
+
+    const wrapper = mount(buildApp({repository}));
+    resolve();
+    await promise;
+    wrapper.update();
+
+    const numbers = wrapper.find('.github-IssueishList-item--number').map(n => n.text());
+    assert.deepEqual(numbers, ['#11']);
   });
 
   it('performs the query again when a remote operation completes', async function() {
