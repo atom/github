@@ -60,4 +60,16 @@ describe('IssueishListController', function() {
     view.prop('onMoreClick')(payload);
     assert.isTrue(onOpenMore.calledWith(payload));
   });
+
+  it('applies a resultFilter to limit its results', function() {
+    const wrapper = shallow(buildApp({
+      resultFilter: issueish => issueish.getNumber() > 10,
+      results: [0, 11, 13, 5, 12].map(number => createPullRequestResult({number})),
+      total: 5,
+    }));
+
+    const view = wrapper.find('IssueishListView');
+    assert.strictEqual(view.prop('total'), 5);
+    assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
+  });
 });
