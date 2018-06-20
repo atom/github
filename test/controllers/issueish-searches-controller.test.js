@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
+import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import IssueishSearchesController from '../../lib/controllers/issueish-searches-controller';
 import Remote from '../../lib/models/remote';
 import Branch from '../../lib/models/branch';
@@ -90,21 +91,7 @@ describe('IssueishSearchesController', function() {
     const wrapper = shallow(buildApp());
     const container = wrapper.find('IssueishSearchContainer').at(0);
 
-    const issueish = new Issueish({
-      number: 123,
-      title: 'This is the title',
-      url: 'https://github.com/atom/github/pulls/123',
-      author: {
-        login: 'me',
-        avatarUrl: 'https://avatars2.githubusercontent.com/u/1234?v=6',
-      },
-      createdAt: '2018-06-12T14:50:08Z',
-      refHeadName: 'feature',
-      headRepository: {
-        nameWithOwner: 'smashwilson/github',
-      },
-      commits: {nodes: []},
-    });
+    const issueish = new Issueish(createPullRequestResult({number: 123}));
 
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
