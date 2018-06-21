@@ -26,7 +26,7 @@
           ".babelrc",
           "assert-messages-plugin.js",
           "graphql/schema.graphql",
-          "one-up"
+          ".nycrc.json"
         ],
         "setBabelEnv": false
       }
