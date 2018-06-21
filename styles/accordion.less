@@ -16,6 +16,9 @@
   }
 
   &-content {
+    border-bottom: 1px solid @base-border-color;
+    background-color: @base-background-color;
+
     // Add an "Empty" label for empty items
     &:empty::before {
       content: "Empty";
@@ -41,7 +44,10 @@
     align-items: center;
     padding: @component-padding / 4;
     border-bottom: 1px solid @base-border-color;
-    background-color: @base-background-color;
+
+    &:last-child {
+      border: none;
+    }
 
     &:active {
       background-color: @background-color-highlight;
