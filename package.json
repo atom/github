@@ -86,7 +86,7 @@
     "mocha-junit-and-console-reporter": "1.6.0",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
-    "nyc": "^13.0.0",
+    "nyc": "13.0.0",
     "relay-compiler": "1.6.0",
     "sinon": "6.0.0",
     "test-until": "1.1.1"
