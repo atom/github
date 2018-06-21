@@ -13,6 +13,13 @@ describe('Search', function() {
     );
   });
 
+  it('throws an error when attempting to generate a dotcom URL from a non-dotcom remote', function() {
+    const nonDotCom = new Remote('elsewhere', 'git://git.gnupg.org/gnupg.git');
+
+    const s = new Search('zzz', 'type:pr is:open');
+    assert.throws(() => s.getWebURL(nonDotCom), /non-GitHub remote/);
+  });
+
   describe('when scoped to a remote', function() {
     it('is a null search when the remote is not present', function() {
       const s = Search.inRemote(nullRemote, 'name', 'query');
