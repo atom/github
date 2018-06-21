@@ -3,7 +3,7 @@
 
 const {spawnSync} = require('child_process');
 const atomPath = process.env.ATOM_SCRIPT_PATH || 'atom';
-process.env.BABEL_ENV = 'coverage';
+process.env.ATOM_GITHUB_BABEL_ENV = 'coverage';
 
 spawnSync(atomPath, ['--test', 'test'], {
   stdio: 'inherit',
