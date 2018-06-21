@@ -6,7 +6,7 @@
   "repository": "https://github.com/atom/github",
   "license": "MIT",
   "scripts": {
-    "test": "atom --test test",
+    "test": "cross-env BABEL_ENV=test nyc --show-process-tree script/intermediate",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
@@ -24,8 +24,10 @@
           "package.json",
           ".babelrc",
           "assert-messages-plugin.js",
-          "graphql/schema.graphql"
-        ]
+          "graphql/schema.graphql",
+          "one-up"
+        ],
+        "setBabelEnv": false
       }
     }
   ],
@@ -66,8 +68,10 @@
     "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "atom-mocha-test-runner": "1.2.0",
     "babel-eslint": "8.2.3",
+    "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
+    "cross-env": "5.2.0",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.3.0",
@@ -80,7 +84,7 @@
     "mocha-junit-and-console-reporter": "1.6.0",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
-    "nyc": "^12.0.2",
+    "nyc": "^13.0.0",
     "relay-compiler": "1.6.0",
     "sinon": "6.0.0",
     "test-until": "1.1.1"
