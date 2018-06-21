@@ -32,6 +32,15 @@ describe('IssueishListController', function() {
     assert.lengthOf(view.prop('issueishes'), 0);
   });
 
+  it('renders an IssueishListView in an error state', function() {
+    const error = new Error("d'oh");
+    error.rawStack = error.stack;
+    const wrapper = shallow(buildApp({error}));
+
+    const view = wrapper.find('IssueishListView');
+    assert.strictEqual(view.prop('error'), error);
+  });
+
   it('renders an IssueishListView with issueish results', function() {
     const mockPullRequest = createPullRequestResult({number: 1});
 
