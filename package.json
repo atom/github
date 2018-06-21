@@ -63,6 +63,7 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
+    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "atom-mocha-test-runner": "1.2.0",
     "babel-eslint": "8.2.3",
     "chai": "4.1.2",
@@ -70,7 +71,6 @@
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.3.0",
-    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "eslint": "4.19.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "hock": "1.3.2",
@@ -80,6 +80,7 @@
     "mocha-junit-and-console-reporter": "1.6.0",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
+    "nyc": "^12.0.2",
     "relay-compiler": "1.6.0",
     "sinon": "6.0.0",
     "test-until": "1.1.1"
