@@ -168,7 +168,7 @@ function runTests {
   if [ $LINT_RESULT -ne 0 ]; then echo ">>> LINTING FAILED! <<< Continuing on to tests..."; fi
 
   echo "Running specs..."
-  "$ATOM_SCRIPT_PATH" --test test
+  npm run test:coverage
   TEST_RESULT=$?
 
   echo "=================="
