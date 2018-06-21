@@ -6,7 +6,8 @@
   "repository": "https://github.com/atom/github",
   "license": "MIT",
   "scripts": {
-    "test": "cross-env BABEL_ENV=test nyc --show-process-tree script/intermediate",
+    "test": "atom --test test",
+    "test:coverage": "nyc script/capture-env",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
