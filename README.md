@@ -1,6 +1,6 @@
 # Atom GitHub Package
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/) [![Coverage Status](https://coveralls.io/repos/github/atom/github/badge.svg?branch=master)](https://coveralls.io/github/atom/github?branch=master)
 
 | Windows | Mac | Linux | Dependency Status |
 |---------|-----|-------|-------------------|

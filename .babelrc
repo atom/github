@@ -11,5 +11,10 @@
   ],
   "presets": [
     "react",
-  ]
+  ],
+  "env": {
+    "coverage": {
+      "plugins": ["istanbul"]
+    }
+  }
 }
