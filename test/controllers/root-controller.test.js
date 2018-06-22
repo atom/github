@@ -115,7 +115,7 @@ describe('RootController', function() {
 
   ['git', 'github'].forEach(function(tabName) {
     describe(`${tabName} tab tracker`, function() {
-      let wrapper, tabTracker, mockDockItem;
+      let wrapper, tabTracker;
 
       beforeEach(async function() {
         const workdirPath = await cloneRepository('multiple-commits');
@@ -128,19 +128,7 @@ describe('RootController', function() {
         sinon.stub(tabTracker, 'focus');
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        const FAKE_PANE_ITEM = Symbol('fake pane item');
-        mockDockItem = {
-          getDockItem() {
-            return FAKE_PANE_ITEM;
-          },
-        };
-
-        wrapper.instance()[`${tabName}DockItem`] = mockDockItem;
-
         sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
-        sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => [{
-          getActiveItem() { return mockDockItem.active ? FAKE_PANE_ITEM : null; },
-        }]);
       });
 
       describe('reveal', function() {
