@@ -1,10 +1,8 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import until from 'test-until';
 
-import DockItem from '../../lib/atom/dock-item';
+import PaneItem from '../../lib/atom/pane-item';
 import GitTabItem from '../../lib/items/git-tab-item';
-import RefHolder from '../../lib/models/ref-holder';
 import {cloneRepository, buildRepository} from '../helpers';
 import {gitTabItemProps} from '../fixtures/props/git-tab-props';
 
@@ -24,32 +22,34 @@ describe('GitTabItem', function() {
 
   function buildApp(overrideProps = {}) {
     const props = gitTabItemProps(atomEnv, repository, overrideProps);
-    const itemHolder = new RefHolder();
 
     return (
-      <DockItem workspace={props.workspace} itemHolder={itemHolder}>
-        <GitTabItem ref={itemHolder.setter} {...props} />
-      </DockItem>
+      <PaneItem workspace={props.workspace} uriPattern={GitTabItem.buildURI()}>
+        {({itemHolder}) => (
+          <GitTabItem
+            ref={itemHolder.setter}
+            {...props}
+          />
+        )}
+      </PaneItem>
     );
   }
 
-  it('forwards all props to the GitTabContainer', function() {
+  it('forwards all props to the GitTabContainer', async function() {
     const extraProp = Symbol('extra');
     const wrapper = mount(buildApp({extraProp}));
+    await atomEnv.workspace.open(GitTabItem.buildURI());
 
-    assert.strictEqual(wrapper.find('GitTabContainer').prop('extraProp'), extraProp);
+    assert.strictEqual(wrapper.update().find('GitTabContainer').prop('extraProp'), extraProp);
   });
 
   it('renders within the dock with the component as its owner', async function() {
     mount(buildApp());
 
-    let paneItem;
-    await until('the item is opened', () => {
-      paneItem = atomEnv.workspace.getRightDock().getPaneItems()
-        .find(item => item.getURI() === 'atom-github://dock-item/git');
-      return paneItem !== undefined;
-    });
+    await atomEnv.workspace.open(GitTabItem.buildURI());
 
+    const paneItem = atomEnv.workspace.getRightDock().getPaneItems()
+      .find(item => item.getURI() === 'atom-github://dock-item/git');
     assert.strictEqual(paneItem.getTitle(), 'Git');
   });
 });
