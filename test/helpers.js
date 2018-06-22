@@ -259,6 +259,10 @@ after(() => {
   if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
     WorkerManager.reset(true);
   }
+
+  if (global._nyc) {
+    global._nyc.writeCoverageFile();
+  }
 });
 
 export class ManualStateObserver {

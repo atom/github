@@ -4,12 +4,27 @@ import chaiAsPromised from 'chai-as-promised';
 import path from 'path';
 
 import until from 'test-until';
+import NYC from 'nyc';
 
 chai.use(chaiAsPromised);
 global.assert = chai.assert;
 
 // Give tests that rely on filesystem event delivery lots of breathing room.
 until.setDefaultTimeout(parseInt(process.env.UNTIL_TIMEOUT || '3000', 10));
+
+if (process.env.NYC_CONFIG) {
+  const parentPid = process.env.NYC_PARENT_PID || '0';
+  process.env.NYC_PARENT_PID = process.pid;
+
+  const config = JSON.parse(process.env.NYC_CONFIG);
+  config.isChildProcess = true;
+  config._processInfo = {
+    ppid: parentPid,
+    root: process.env.NYC_ROOT_ID,
+  };
+  global._nyc = new NYC(config);
+  global._nyc.wrap();
+}
 
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,

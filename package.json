@@ -7,6 +7,8 @@
   "license": "MIT",
   "scripts": {
     "test": "atom --test test",
+    "test:coverage": "nyc script/capture-env",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
@@ -24,13 +26,15 @@
           "package.json",
           ".babelrc",
           "assert-messages-plugin.js",
-          "graphql/schema.graphql"
-        ]
+          "graphql/schema.graphql",
+          ".nycrc.json"
+        ],
+        "setBabelEnv": "ATOM_GITHUB_BABEL_ENV"
       }
     }
   ],
   "dependencies": {
-    "atom-babel6-transpiler": "1.1.3",
+    "atom-babel6-transpiler": "1.2.0",
     "babel-generator": "6.26.1",
     "babel-plugin-chai-assert-async": "0.1.0",
     "babel-plugin-relay": "1.6.0",
@@ -48,9 +52,10 @@
     "keytar": "4.2.1",
     "lodash.memoize": "4.1.2",
     "moment": "2.22.2",
-    "prop-types": "15.6.1",
-    "react": "16.4.0",
-    "react-dom": "16.4.0",
+    "node-emoji": "^1.8.1",
+    "prop-types": "15.6.2",
+    "react": "16.4.1",
+    "react-dom": "16.4.1",
     "react-relay": "1.6.0",
     "react-select": "1.2.1",
     "relay-runtime": "1.6.0",
@@ -62,14 +67,16 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
+    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "atom-mocha-test-runner": "1.2.0",
     "babel-eslint": "8.2.3",
+    "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
+    "coveralls": "^3.0.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.3.0",
-    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "eslint": "4.19.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "hock": "1.3.2",
@@ -79,6 +86,7 @@
     "mocha-junit-and-console-reporter": "1.6.0",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.1.2",
+    "nyc": "13.0.0",
     "relay-compiler": "1.6.0",
     "sinon": "6.0.0",
     "test-until": "1.1.1"
