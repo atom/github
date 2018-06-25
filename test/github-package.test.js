@@ -33,7 +33,7 @@ describe('GithubPackage', function() {
       workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
       confirm, getLoadSettings,
       configDirPath,
-      renderFn: sinon.stub().callsFake(callback => {
+      renderFn: sinon.stub().callsFake((component, element, callback) => {
         if (callback) {
           process.nextTick(callback);
         }
