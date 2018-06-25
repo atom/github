@@ -22,62 +22,73 @@
     margin: 0 auto;
   }
 
-  // Badge and link ------------------------
-  .issueish-badge-and-link {
+
+  // Header ------------------------
+
+  &-header {
+    display: flex; // TODO: Use grid
+    justify-content: space-between;
+    flex-wrap: wrap;
+    border-bottom: 1px solid @base-border-color;
+    margin-bottom: @component-padding;
+  }
+
+  &-headerGroup {
     display: flex;
     align-items: center;
-    margin-bottom: @component-padding * 2;
+    margin-bottom: @component-padding;
 
-    :last-child {
-      flex: 1;
-      text-align: right;
+    &.is-fullWidth {
+      flex: 1 1 100%;
     }
   }
 
-  .issueish-link a {
+  &-headerLink {
     color: @text-color-subtle;
   }
 
-  .pr-build-status-icon {
+  &-headerStatus {
     margin-left: @component-padding;
   }
 
-  .refresh-button {
-    .icon {
-      color: @text-color-subtle;
-      cursor: pointer;
 
-      &.refreshing::before {
-        @keyframes github-RefreshButton-animation {
-          100% { transform: rotate(360deg); }
-        }
-        animation: github-RefreshButton-animation 2s linear 30; // limit to 1min in case something gets stuck
+  // Refresh Button ------------------------
+
+  &-headerRefreshButton {
+    color: @text-color-subtle;
+    cursor: pointer;
+
+    &::before {
+      display: block;
+      width: 16px;
+      height: 16px;
+      line-height: .9;
+      margin-right: 0;
+      text-align: center;
+    }
+    &.refreshing::before {
+      @keyframes github-IssueishPaneItemView-headerRefreshButtonAnimation {
+        100% { transform: rotate(360deg); }
       }
+      animation: github-IssueishPaneItemView-headerRefreshButtonAnimation 2s linear 30; // limit to 1min in case something gets stuck
     }
   }
 
 
   // Avatar and title ------------------------
 
-  .issueish-avatar-and-title {
-    display: flex;
-    align-items: center;
-    margin-bottom: @component-padding * 2;
-    padding-bottom: @component-padding;
-    border-bottom: 1px solid @base-border-color;
-  }
-
-  .author-avatar-link {
+  &-avatar {
     margin-right: @component-padding;
-    align-self: flex-start;
   }
 
-  .author-avatar {
-    max-height: 32px;
+  &-avatarImage {
+    width: 32px;
+    height: 32px;
     border-radius: @component-border-radius;
   }
 
-  .issueish-title {
+  &-title {
+    display: inline-block;
     margin: 0;
     font-size: 1.5em;
     font-weight: 500;
