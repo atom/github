@@ -74,7 +74,7 @@ describe('GithubPackage', function() {
 
       githubPackage1 = new GithubPackage({
         workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
-        confirm, getLoadSettings1,
+        confirm, getLoadSettings: getLoadSettings1,
         configDirPath,
       });
     }
