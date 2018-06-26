@@ -4,144 +4,95 @@ import path from 'path';
 import {setup, teardown} from './helpers';
 
 describe('Package initialization', function() {
-  let context, atomEnv;
+  let context;
 
   afterEach(async function() {
     context && await teardown(context);
   });
 
-  // beforeEach helpers
-  // Pass these to the initAtomEnv or initConfigDir arguments of setup() to assert a common pre-launch state.
-
-  function welcomePackageActive(env) {
-    env.config.set('welcome.showOnStartup', true);
-  }
-
-  function welcomePackageDismissed(env) {
-    env.config.set('welcome.showOnStartup', false);
-  }
-
-  async function onFirstRun(configDirPath) {
-    await fs.remove(path.join(configDirPath, 'github.cson'));
-  }
-
-  async function onLaterRuns(configDirPath) {
-    await fs.writeFile(path.join(configDirPath, 'github.cson'), '#');
-  }
-
-  // test body helpers
-
-  function placesGitAndGitHubTabsIntoRightDock() {
-    const paneItemURIs = atomEnv.workspace.getRightDock().getPaneItems().map(paneItem => {
-      return (typeof paneItem.getURI === 'function') ? paneItem.getURI() : null;
-    });
-
-    assert.includeMembers(
-      paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github'],
-      'Git and GitHub pane items present in the right dock',
-    );
-  }
-
-  function hidesRightDock() {
-    assert.isFalse(atomEnv.workspace.getRightDock().isVisible());
-  }
-
-  function revealsRightDock() {
-    assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-  }
-
-  async function keepsPreviouslyClosedGitAndGitHubTabsClosed() {
-    const prevContext = await setup(this.currentTest);
-    for (const uri of ['atom-github://dock-item/git', 'atom-github://dock-item/github']) {
-      prevContext.atomEnv.workspace.hide(uri);
-    }
-    const prevState = prevContext.atomEnv.serialize();
-    await teardown(prevContext);
-
+  it.only('reveals the tabs on first run when the welcome package has been dismissed', async function() {
     context = await setup(this.currentTest, {
-      initAtomEnv: env => env.deserialize(prevState),
+      initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
+      initAtomEnv: env => env.config.set('welcome.showOnStartup', false),
     });
 
-    const paneItems = context.atomEnv.workspace.getRightDock().getPaneItems();
-    assert.lengthOf(paneItems, 0);
-
-    const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(paneItem => {
-      return (typeof paneItem.getURI === 'function') ? paneItem.getURI() : null;
-    });
-
-    for (const uri of ['atom-github://dock-item/git', 'atom-github://dock-item/github']) {
-      assert.notInclude(paneItemURIs, uri, `Tab ${uri} should not be present`);
-    }
-  }
-
-  async function keepsPreviouslyOpenGitAndGitHubTabsOpened() {
-    const prevContext = await setup(this.currentTest);
-    await prevContext.atomEnv.workspace.open('atom-github://dock-item/git', {searchAllPanes: true});
-    await prevContext.atomEnv.workspace.open('atom-github://dock-item/github', {searchAllPanes: true});
-    const prevState = prevContext.atomEnv.serialize();
-    await teardown(prevContext);
-
-    context = await setup(this.currentTest);
-    atomEnv = context.atomEnv;
-    await atomEnv.deserialize(prevState);
-
-    placesGitAndGitHubTabsIntoRightDock();
-  }
-
-  describe('on the very first run with the GitHub package present', function() {
-    describe('with no serialized project state', function() {
-      describe('with the welcome package active', function() {
-        beforeEach(async function() {
-          context = await setup(this.currentTest, {
-            initAtomEnv: welcomePackageActive,
-            initConfigDir: onFirstRun,
-          });
-          atomEnv = context.atomEnv;
-        });
-
-        it('places the git and github tabs into the right dock', placesGitAndGitHubTabsIntoRightDock);
-
-        it('hides the right dock', hidesRightDock);
-      });
-
-      describe('with the welcome package dismissed', function() {
-        beforeEach(async function() {
-          context = await setup(this.currentTest, {
-            initAtomEnv: welcomePackageDismissed,
-            initConfigDir: onFirstRun,
-          });
-          atomEnv = context.atomEnv;
-        });
-
-        it('places the git and github tabs into the right dock', placesGitAndGitHubTabsIntoRightDock);
-
-        it('reveals the right dock', revealsRightDock);
-      });
-    });
-
-    describe('with serialized project state', function() {
-      //
-    });
+    const rightDock = context.atomEnv.workspace.getRightDock();
+    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
+    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    assert.isTrue(rightDock.isVisible());
   });
 
-  describe('on a run when the GitHub package was present before', function() {
-    describe('with no serialized project state', function() {
-      beforeEach(async function() {
-        context = await setup(this.currentTest, {
-          initConfigDir: onLaterRuns,
-        });
-        atomEnv = context.atomEnv;
-      });
-
-      it('places the git and github tabs into the right dock', placesGitAndGitHubTabsIntoRightDock);
-
-      it('hides the right dock', hidesRightDock);
+  it('renders but does not reveal the tabs on first run when the welcome package has not been dismissed', async function() {
+    context = await setup(this.currentTest, {
+      initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
+      initAtomEnv: env => env.config.set('welcome.showOnStartup', true),
     });
 
-    describe('with serialized project state', function() {
-      it('keeps previously closed git and github tabs closed', keepsPreviouslyClosedGitAndGitHubTabsClosed);
+    const rightDock = context.atomEnv.workspace.getRightDock();
+    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
+    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    assert.isFalse(rightDock.isVisible());
+  });
 
-      it('keeps previously open git and github tabs opened', keepsPreviouslyOpenGitAndGitHubTabsOpened);
+  it('renders but does not reveal the tabs on new projects after the first run', async function() {
+    context = await setup(this.currentTest, {
+      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
+      state: {},
     });
+
+    const rightDock = context.atomEnv.workspace.getRightDock();
+    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
+    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    assert.isFalse(rightDock.isVisible());
+  });
+
+  it('respects serialized state on existing projects after the first run', async function() {
+    const nonFirstRun = {
+      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
+      state: {newProject: false},
+    };
+
+    const prevContext = await setup(this.currentTest, nonFirstRun);
+
+    const prevWorkspace = prevContext.atomEnv.workspace;
+    await prevWorkspace.open('atom-github://dock-item/github', {searchAllPanes: true});
+
+    const prevState = prevContext.atomEnv.serialize();
+
+    await teardown(prevContext);
+
+    context = await setup(this.currentTest, nonFirstRun);
+    await context.atomEnv.deserialize(prevState);
+
+    const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
+    assert.include(paneItemURIs, 'atom-github://dock-item/github');
+    assert.notInclude(paneItemURIs, 'atom-github://dock-item/git');
+  });
+
+  it('honors firstRun from legacy serialized state', async function() {
+    // Previous versions of this package used a {firstRun} key in their serialized state to determine whether or not
+    // the tabs should be open by default. I've renamed it to {newProject} to distinguish it from the firstRun prop
+    // we're setting based on the presence or absence of `${ATOM_HOME}/github.cson`.
+
+    const nonFirstRun = {
+      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
+      state: {firstRun: false},
+    };
+
+    const prevContext = await setup(this.currentTest, nonFirstRun);
+
+    const prevWorkspace = prevContext.atomEnv.workspace;
+    await prevWorkspace.open('atom-github://dock-item/github', {searchAllPanes: true});
+
+    const prevState = prevContext.atomEnv.serialize();
+
+    await teardown(prevContext);
+
+    context = await setup(this.currentTest, nonFirstRun);
+    await context.atomEnv.deserialize(prevState);
+
+    const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
+    assert.include(paneItemURIs, 'atom-github://dock-item/github');
+    assert.notInclude(paneItemURIs, 'atom-github://dock-item/git');
   });
 });
