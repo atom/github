@@ -80,11 +80,11 @@ describe('RootController', function() {
       };
     });
 
-    it('is rendered but not activated when startOpen prop is false', async function() {
+    it('does not reveal the dock when startRevealed prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: false});
+      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startRevealed: false});
       const wrapper = shallow(app);
 
       const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
@@ -96,11 +96,11 @@ describe('RootController', function() {
       assert.isNotTrue(githubDockItem.prop('activate'));
     });
 
-    it('is initially activated when the startOpen prop is true', async function() {
+    it('is initially activated when the startRevealed prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: true});
+      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startRevealed: true});
       const wrapper = shallow(app);
 
       const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
