@@ -12,11 +12,6 @@
   line-height: 1.5;
   background-color: @base-background-color;
 
-  * {
-    user-select: text;
-    -webkit-user-select: text;
-  }
-
   &-container {
     max-width: 48em;
     margin: 0 auto;
@@ -129,19 +124,4 @@
     border-radius: @component-border-radius;
   }
 
-
-  // Elements ------------------------
-
-  .badge .icon:before {
-    vertical-align: text-top;
-  }
-
-  blockquote {
-    font-size: inherit;
-    padding-top: 0;
-    padding-left: @component-padding;
-    padding-bottom: 0;
-    color: @text-color-subtle;
-    border-left: 2px solid @text-color-subtle;
-  }
 }
