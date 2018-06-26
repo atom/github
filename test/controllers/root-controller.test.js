@@ -67,11 +67,11 @@ describe('RootController', function() {
   });
 
   describe('initial dock item visibility', function() {
-    it('is not activated when startOpen prop is false', async function() {
+    it('does not reveal the dock when startRevealed prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startOpen: false});
+      app = React.cloneElement(app, {repository, startRevealed: false});
       const wrapper = mount(app);
 
       assert.isFalse(wrapper.update().find('GitTabItem').exists());
@@ -83,11 +83,11 @@ describe('RootController', function() {
       assert.isFalse(workspace.getRightDock().isVisible());
     });
 
-    it('is initially visible, but not focused, when the startOpen prop is true', async function() {
+    it('is initially visible, but not focused, when the startRevealed prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startOpen: true});
+      app = React.cloneElement(app, {repository, startRevealed: true});
       const wrapper = mount(app);
 
       await assert.async.isTrue(workspace.getRightDock().isVisible());
