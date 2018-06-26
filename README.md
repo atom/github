@@ -19,7 +19,7 @@ The Atom GitHub package provides Git and GitHub integration for Atom. Check out 
 This package is bundled with Atom starting in version 1.18, and does not need to be installed separately.
 
 ## License
-
+ 
 The MIT license grant is not for GitHub's trademarks, which include the logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks.
 
 GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
