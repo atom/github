@@ -50,6 +50,7 @@ describe('RootController', function() {
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
+        startRevealed={false}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
       />
     );
@@ -64,7 +65,7 @@ describe('RootController', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startRevealed: false});
+      app = React.cloneElement(app, {repository, startOpen: false, startRevealed: false});
       const wrapper = mount(app);
 
       assert.isFalse(wrapper.update().find('GitTabItem').exists());
@@ -80,7 +81,7 @@ describe('RootController', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, startRevealed: true});
+      app = React.cloneElement(app, {repository, startOpen: true, startRevealed: true});
       const wrapper = mount(app);
 
       await assert.async.isTrue(workspace.getRightDock().isVisible());
