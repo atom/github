@@ -29,15 +29,15 @@ describe('GithubPackage', function() {
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
-    githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-      deserializers, configDirPath, getLoadSettings,
-    );
-
-    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
-      if (callback) {
-        process.nextTick(callback);
-      }
+    githubPackage = new GithubPackage({
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+      confirm, getLoadSettings,
+      configDirPath,
+      renderFn: sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      }),
     });
 
     contextPool = githubPackage.getContextPool();
@@ -72,10 +72,11 @@ describe('GithubPackage', function() {
       project.setPaths(realProjectPaths);
       const getLoadSettings1 = () => ({initialPaths});
 
-      githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-        deserializers, configDirPath, getLoadSettings1,
-      );
+      githubPackage1 = new GithubPackage({
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+        confirm, getLoadSettings: getLoadSettings1,
+        configDirPath,
+      });
     }
 
     function assertAbsentLike() {
