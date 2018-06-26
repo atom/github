@@ -17,7 +17,7 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
+  let getRepositoryForWorkdir;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -31,9 +31,6 @@ describe('RootController', function() {
     project = atomEnv.project;
 
     getRepositoryForWorkdir = sinon.stub();
-    destroyGitTabItem = sinon.spy();
-    destroyGithubTabItem = sinon.spy();
-    removeFilePatchItem = sinon.spy();
 
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
@@ -53,11 +50,7 @@ describe('RootController', function() {
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
-        filePatchItems={[]}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
-        destroyGitTabItem={destroyGitTabItem}
-        destroyGithubTabItem={destroyGithubTabItem}
-        removeFilePatchItem={removeFilePatchItem}
       />
     );
   });
