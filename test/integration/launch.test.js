@@ -2,6 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import {setup, teardown} from './helpers';
+import GitTabItem from '../../lib/items/git-tab-item';
+import GithubTabController from '../../lib/controllers/github-tab-controller';
 
 describe('Package initialization', function() {
   let context;
@@ -10,15 +12,18 @@ describe('Package initialization', function() {
     context && await teardown(context);
   });
 
-  it.only('reveals the tabs on first run when the welcome package has been dismissed', async function() {
+  it('reveals the tabs on first run when the welcome package has been dismissed', async function() {
     context = await setup(this.currentTest, {
       initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
       initAtomEnv: env => env.config.set('welcome.showOnStartup', false),
     });
 
     const rightDock = context.atomEnv.workspace.getRightDock();
-    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
-    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    const getPaneItemURIs = () => {
+      return rightDock.getPaneItems().map(i => i.getURI());
+    };
+
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
     assert.isTrue(rightDock.isVisible());
   });
 
@@ -29,8 +34,11 @@ describe('Package initialization', function() {
     });
 
     const rightDock = context.atomEnv.workspace.getRightDock();
-    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
-    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    const getPaneItemURIs = () => {
+      return rightDock.getPaneItems().map(i => i.getURI());
+    };
+
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
     assert.isFalse(rightDock.isVisible());
   });
 
@@ -41,8 +49,11 @@ describe('Package initialization', function() {
     });
 
     const rightDock = context.atomEnv.workspace.getRightDock();
-    const paneItemURIs = rightDock.getPaneItems().map(i => i.getURI());
-    assert.includeMembers(paneItemURIs, ['atom-github://dock-item/git', 'atom-github://dock-item/github']);
+    const getPaneItemURIs = () => {
+      return rightDock.getPaneItems().map(i => i.getURI());
+    };
+
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
     assert.isFalse(rightDock.isVisible());
   });
 
@@ -55,7 +66,8 @@ describe('Package initialization', function() {
     const prevContext = await setup(this.currentTest, nonFirstRun);
 
     const prevWorkspace = prevContext.atomEnv.workspace;
-    await prevWorkspace.open('atom-github://dock-item/github', {searchAllPanes: true});
+    await prevWorkspace.open(GithubTabController.buildURI(), {searchAllPanes: true});
+    prevWorkspace.hide(GitTabItem.buildURI());
 
     const prevState = prevContext.atomEnv.serialize();
 
@@ -65,8 +77,8 @@ describe('Package initialization', function() {
     await context.atomEnv.deserialize(prevState);
 
     const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
-    assert.include(paneItemURIs, 'atom-github://dock-item/github');
-    assert.notInclude(paneItemURIs, 'atom-github://dock-item/git');
+    assert.include(paneItemURIs, GithubTabController.buildURI());
+    assert.notInclude(paneItemURIs, GitTabItem.buildURI());
   });
 
   it('honors firstRun from legacy serialized state', async function() {
@@ -74,25 +86,33 @@ describe('Package initialization', function() {
     // the tabs should be open by default. I've renamed it to {newProject} to distinguish it from the firstRun prop
     // we're setting based on the presence or absence of `${ATOM_HOME}/github.cson`.
 
-    const nonFirstRun = {
-      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
-      state: {firstRun: false},
-    };
+    const getPaneItemURIs = ctx => ctx.atomEnv.workspace.getPaneItems().map(i => i.getURI());
 
-    const prevContext = await setup(this.currentTest, nonFirstRun);
+    const prevContext = await setup(this.currentTest, {
+      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
+      state: {firstRun: true},
+    });
+
+    await assert.async.includeMembers(
+      getPaneItemURIs(prevContext),
+      [GitTabItem.buildURI(), GithubTabController.buildURI()],
+    );
 
     const prevWorkspace = prevContext.atomEnv.workspace;
-    await prevWorkspace.open('atom-github://dock-item/github', {searchAllPanes: true});
+    const item = prevWorkspace.getPaneItems().find(i => i.getURI() === GitTabItem.buildURI());
+    const pane = prevWorkspace.paneForURI(GitTabItem.buildURI());
+    pane.destroyItem(item);
 
     const prevState = prevContext.atomEnv.serialize();
-
     await teardown(prevContext);
 
-    context = await setup(this.currentTest, nonFirstRun);
+    context = await setup(this.currentTest, {
+      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
+      state: {firstRun: false},
+    });
     await context.atomEnv.deserialize(prevState);
 
-    const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
-    assert.include(paneItemURIs, 'atom-github://dock-item/github');
-    assert.notInclude(paneItemURIs, 'atom-github://dock-item/git');
+    await assert.async.include(getPaneItemURIs(context), GithubTabController.buildURI());
+    assert.notInclude(getPaneItemURIs(context), GitTabItem.buildURI());
   });
 });
