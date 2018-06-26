@@ -41,6 +41,15 @@ export async function setup(currentTest, options = {}) {
 
   const atomEnv = global.buildAtomEnvironment();
 
+  let suiteRoot = document.getElementById('github-IntegrationSuite');
+  if (!suiteRoot) {
+    suiteRoot = document.createElement('div');
+    suiteRoot.id = 'github-IntegrationSuite';
+    document.body.appendChild(suiteRoot);
+  }
+  suiteRoot.appendChild(atomEnv.workspace.getElement());
+  atomEnv.workspace.getElement().focus();
+
   await opts.initAtomEnv(atomEnv);
 
   const projectDirs = await Promise.all(
@@ -78,6 +87,7 @@ export async function setup(currentTest, options = {}) {
     renderFn: (component, node, callback) => {
       if (!domRoot && node) {
         domRoot = node;
+        document.body.appendChild(domRoot);
       }
       if (!wrapper) {
         wrapper = mount(component, {
@@ -107,11 +117,13 @@ export async function setup(currentTest, options = {}) {
     githubPackage,
     wrapper,
     domRoot,
+    suiteRoot,
   };
 }
 
 export async function teardown(context) {
   await context.githubPackage.deactivate();
 
+  context.suiteRoot.removeChild(context.atomEnv.workspace.getElement());
   context.atomEnv.destroy();
 }
