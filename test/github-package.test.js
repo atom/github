@@ -29,15 +29,15 @@ describe('GithubPackage', function() {
     getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
-    githubPackage = new GithubPackage(
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-      deserializers, configDirPath, getLoadSettings,
-    );
-
-    sinon.stub(githubPackage, 'rerender').callsFake(callback => {
-      if (callback) {
-        process.nextTick(callback);
-      }
+    githubPackage = new GithubPackage({
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+      confirm, getLoadSettings,
+      configDirPath,
+      renderFn: sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      }),
     });
 
     contextPool = githubPackage.getContextPool();
@@ -72,10 +72,11 @@ describe('GithubPackage', function() {
       project.setPaths(realProjectPaths);
       const getLoadSettings1 = () => ({initialPaths});
 
-      githubPackage1 = new GithubPackage(
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, confirm, config,
-        deserializers, configDirPath, getLoadSettings1,
-      );
+      githubPackage1 = new GithubPackage({
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+        confirm, getLoadSettings: getLoadSettings1,
+        configDirPath,
+      });
     }
 
     function assertAbsentLike() {
@@ -282,7 +283,7 @@ describe('GithubPackage', function() {
       assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), 3);
     });
 
-    describe('startOpen', function() {
+    describe('startOpen and startRevealed', function() {
       let confFile;
 
       beforeEach(async function() {
@@ -290,27 +291,39 @@ describe('GithubPackage', function() {
         await fs.remove(confFile);
       });
 
-      it('renders with startOpen on the first run', async function() {
+      it('renders with startOpen and startRevealed on the first run with the welcome package dismissed', async function() {
         config.set('welcome.showOnStartup', false);
         await githubPackage.activate();
 
         assert.isTrue(githubPackage.startOpen);
+        assert.isTrue(githubPackage.startRevealed);
         assert.isTrue(await fileExists(confFile));
       });
 
-      it('renders without startOpen on non-first runs', async function() {
-        await fs.writeFile(confFile, '', {encoding: 'utf8'});
-        await githubPackage.activate();
-
-        assert.isFalse(githubPackage.startOpen);
-        assert.isTrue(await fileExists(confFile));
-      });
-
-      it('renders without startOpen on the first run if the welcome pane is shown', async function() {
+      it('renders with startOpen but not startRevealed on the first run with the welcome package undismissed', async function() {
         config.set('welcome.showOnStartup', true);
         await githubPackage.activate();
 
+        assert.isTrue(githubPackage.startOpen);
+        assert.isFalse(githubPackage.startRevealed);
+        assert.isTrue(await fileExists(confFile));
+      });
+
+      it('renders with startOpen but not startRevealed on non-first runs on new projects', async function() {
+        await fs.writeFile(confFile, '', {encoding: 'utf8'});
+        await githubPackage.activate();
+
+        assert.isTrue(githubPackage.startOpen);
+        assert.isFalse(githubPackage.startRevealed);
+        assert.isTrue(await fileExists(confFile));
+      });
+
+      it('renders without startOpen or startRevealed on non-first runs on existing projects', async function() {
+        await fs.writeFile(confFile, '', {encoding: 'utf8'});
+        await githubPackage.activate({newProject: false});
+
         assert.isFalse(githubPackage.startOpen);
+        assert.isFalse(githubPackage.startRevealed);
         assert.isTrue(await fileExists(confFile));
       });
     });

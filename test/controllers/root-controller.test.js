@@ -8,6 +8,8 @@ import dedent from 'dedent-js';
 import {cloneRepository, buildRepository} from '../helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
+import GitTabItem from '../../lib/items/git-tab-item';
+import GithubTabController from '../../lib/controllers/github-tab-controller';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -15,7 +17,7 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
+  let getRepositoryForWorkdir;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -29,9 +31,6 @@ describe('RootController', function() {
     project = atomEnv.project;
 
     getRepositoryForWorkdir = sinon.stub();
-    destroyGitTabItem = sinon.spy();
-    destroyGithubTabItem = sinon.spy();
-    removeFilePatchItem = sinon.spy();
 
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
@@ -51,11 +50,8 @@ describe('RootController', function() {
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
-        filePatchItems={[]}
+        startRevealed={false}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
-        destroyGitTabItem={destroyGitTabItem}
-        destroyGithubTabItem={destroyGithubTabItem}
-        removeFilePatchItem={removeFilePatchItem}
       />
     );
   });
@@ -64,58 +60,40 @@ describe('RootController', function() {
     atomEnv.destroy();
   });
 
-  describe('initial panel visibility', function() {
-    let gitTabStubItem, githubTabStubItem;
-    beforeEach(function() {
-      const FAKE_PANE_ITEM = Symbol('fake pane item');
-      gitTabStubItem = {
-        getDockItem() {
-          return FAKE_PANE_ITEM;
-        },
-      };
-      githubTabStubItem = {
-        getDockItem() {
-          return FAKE_PANE_ITEM;
-        },
-      };
-    });
-
-    it('is rendered but not activated when startOpen prop is false', async function() {
+  describe('initial dock item visibility', function() {
+    it('does not reveal the dock when startRevealed prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: false});
-      const wrapper = shallow(app);
+      app = React.cloneElement(app, {repository, startOpen: false, startRevealed: false});
+      const wrapper = mount(app);
 
-      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
-      assert.isTrue(gitDockItem.exists());
-      assert.isFalse(gitDockItem.prop('activate'));
+      assert.isFalse(wrapper.update().find('GitTabItem').exists());
+      assert.isUndefined(workspace.paneForURI(GitTabItem.buildURI()));
+      assert.isFalse(wrapper.update().find('GithubTabController').exists());
+      assert.isUndefined(workspace.paneForURI(GithubTabController.buildURI()));
 
-      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
-      assert.isTrue(githubDockItem.exists());
-      assert.isNotTrue(githubDockItem.prop('activate'));
+      assert.isUndefined(workspace.getActivePaneItem());
+      assert.isFalse(workspace.getRightDock().isVisible());
     });
 
-    it('is initially activated when the startOpen prop is true', async function() {
+    it('is initially visible, but not focused, when the startRevealed prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: true});
-      const wrapper = shallow(app);
+      app = React.cloneElement(app, {repository, startOpen: true, startRevealed: true});
+      const wrapper = mount(app);
 
-      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
-      assert.isTrue(gitDockItem.exists());
-      assert.isTrue(gitDockItem.prop('activate'));
-
-      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
-      assert.isTrue(githubDockItem.exists());
-      assert.isNotTrue(githubDockItem.prop('activate'));
+      await assert.async.isTrue(workspace.getRightDock().isVisible());
+      assert.isTrue(wrapper.find('GitTabItem').exists());
+      assert.isTrue(wrapper.find('GithubTabController').exists());
+      assert.isUndefined(workspace.getActivePaneItem());
     });
   });
 
   ['git', 'github'].forEach(function(tabName) {
     describe(`${tabName} tab tracker`, function() {
-      let wrapper, tabTracker, mockDockItem;
+      let wrapper, tabTracker;
 
       beforeEach(async function() {
         const workdirPath = await cloneRepository('multiple-commits');
@@ -128,19 +106,7 @@ describe('RootController', function() {
         sinon.stub(tabTracker, 'focus');
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        const FAKE_PANE_ITEM = Symbol('fake pane item');
-        mockDockItem = {
-          getDockItem() {
-            return FAKE_PANE_ITEM;
-          },
-        };
-
-        wrapper.instance()[`${tabName}DockItem`] = mockDockItem;
-
         sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
-        sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => [{
-          getActiveItem() { return mockDockItem.active ? FAKE_PANE_ITEM : null; },
-        }]);
       });
 
       describe('reveal', function() {
