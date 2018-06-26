@@ -103,17 +103,19 @@
 
   // Reactions ------------------------
 
-  .reactions {
-    width: fit-content;
-    padding-top: @component-padding;
-    .reaction-group {
+  &-reactions {
+    margin-top: @component-padding;
+
+    &:empty {
+      display: none;
+    }
+
+    &Group {
+      display: inline-block;
       margin-right: @component-padding;
-      padding: @component-padding;
+      padding: @component-padding/2 @component-padding;
       border: 1px solid @base-border-color;
       border-radius: @component-border-radius;
-    }
-    &:empty {
-      all: unset;
     }
   }
 
