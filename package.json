@@ -8,6 +8,7 @@
   "scripts": {
     "test": "atom --test test",
     "test:coverage": "nyc script/capture-env",
+    "test:coverage:lcov": "npm run test:coverage && nyc report --reporter=lcovonly",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
