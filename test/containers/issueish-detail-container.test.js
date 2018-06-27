@@ -110,9 +110,9 @@ describe('IssueishDetailContainer', function() {
     const wrapper = mount(buildApp());
     resolve();
 
-    await assert.async.isTrue(wrapper.update().find('IssueishLookupByNumber').exists());
+    await assert.async.isTrue(wrapper.update().find('BareIssueishDetailController').exists());
 
-    const controller = wrapper.find('IssueishLookupByNumber');
+    const controller = wrapper.find('BareIssueishDetailController');
     assert.isDefined(controller.prop('repository'));
     assert.strictEqual(controller.prop('issueishNumber'), 1);
   });
