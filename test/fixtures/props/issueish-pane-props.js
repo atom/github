@@ -55,20 +55,29 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
 
 export function issueishDetailViewProps(opts, overrides = {}) {
   const o = {
-    issueishKind: 'PullRequest',
-
     repositoryName: 'repository',
     ownerLogin: 'owner',
 
+    issueishKind: 'PullRequest',
     issueishTitle: 'title',
     issueishBodyHTML: '<p>body</p>',
     issueishAuthorLogin: 'author',
     issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
     issueishState: 'OPEN',
+    issueishReactions: [],
 
     relayRefetch: () => {},
     ...opts,
+  };
+
+  const buildReaction = reaction => {
+    return {
+      content: reaction.content,
+      users: {
+        totalCount: reaction.count,
+      },
+    };
   };
 
   return {
@@ -88,6 +97,9 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       id: 'pr0',
       __typename: o.issueishKind,
       title: o.issueishTitle,
+      url: o.issueishKind === 'PullRequest'
+        ? `https://github.com/${o.ownerLogin}/${o.repositoryName}/pull/${o.issueishNumber}`
+        : `https://github.com/${o.ownerLogin}/${o.repositoryName}/issues/${o.issueishNumber}`,
       bodyHTML: o.issueishBodyHTML,
       number: o.issueishNumber,
       state: o.issueishState,
@@ -96,7 +108,7 @@ export function issueishDetailViewProps(opts, overrides = {}) {
         avatarUrl: o.issueishAuthorAvatarURL,
         url: `https://github.com/${o.issueishAuthorLogin}`,
       },
-      reactionGroups: [],
+      reactionGroups: o.issueishReactions.map(buildReaction),
     },
 
     switchToIssueish: () => {},
