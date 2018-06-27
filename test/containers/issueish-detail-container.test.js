@@ -8,7 +8,7 @@ import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import IssueishDetailContainer from '../../lib/containers/issueish-detail-container';
 
-describe.only('IssueishDetailContainer', function() {
+describe('IssueishDetailContainer', function() {
   let loginModel;
 
   beforeEach(function() {
