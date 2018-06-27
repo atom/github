@@ -49,5 +49,69 @@ export function createPullRequestResult(attrs = {}) {
     },
 
     commits: {nodes: [{commit, id: 'node0'}]},
+
   }
+}
+
+export function createPullRequestDetailResult(attrs = {}) {
+  const o = {
+    number: 0,
+    title: 'title',
+    state: 'OPEN',
+    authorLogin: 'me',
+    authorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
+    headRefName: 'headref',
+    headRepositoryLogin: 'headlogin',
+    baseRepositoryLogin: 'baseLogin',
+    ...attrs,
+  };
+
+  const commit = {
+    id: 'commit0',
+    status: null,
+  };
+
+  return {
+    __typename: 'PullRequest',
+    id: `pullrequest${o.number}`,
+    title: o.title,
+    number: o.number,
+    state: o.state,
+    bodyHTML: '<p>body</p>',
+    author: {
+      __typename: 'User',
+      id: `user${o.authorLogin}`,
+      login: o.authorLogin,
+      avatarUrl: o.authorAvatarURL,
+      url: `https://github.com/${o.authorLogin}`,
+    },
+    url: `https://github.com/owner/repo/pull/${o.number}`,
+    reactionGroups: [],
+    commits: {
+      edges: [{
+        node: {commit, id: 'node0'}
+      }],
+    },
+    timeline: {
+      pageInfo: {
+        endCursor: 'end',
+        hasNextPage: false,
+      },
+      edges: [],
+    },
+    headRefName: o.headRefName,
+    headRepositoryOwner: {
+      __typename: 'User',
+      id: `user${o.headRepositoryLogin}`,
+      login: o.headRepositoryLogin,
+    },
+    repository: {
+      owner: {
+        __typename: 'User',
+        id: `user${o.baseRepositoryLogin}`,
+        login: o.baseRepositoryLogin,
+      },
+      id: 'baserepository',
+    }
+  };
 }

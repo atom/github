@@ -7,3 +7,19 @@ export function issueishPaneItemProps(overrides = {}) {
     ...overrides,
   };
 }
+
+export function issueishDetailContainerProps(overrides = {}) {
+  return {
+    host: 'https://api.github.com',
+    owner: 'owner',
+    repo: 'repo',
+    issueishNumber: 1,
+
+    loginModel: new GithubLoginModel(InMemoryStrategy),
+
+    switchToIssueish: () => {},
+    onTitleChange: () => {},
+
+    ...overrides,
+  };
+}
