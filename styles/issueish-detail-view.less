@@ -1,6 +1,6 @@
 @import 'variables';
 
-.github-IssueishPaneItemView {
+.github-IssueishDetailView {
   padding: @component-padding * 3;
   overflow: auto;
   position: absolute;
@@ -66,10 +66,10 @@
       text-align: center;
     }
     &.refreshing::before {
-      @keyframes github-IssueishPaneItemView-headerRefreshButtonAnimation {
+      @keyframes github-IssueishDetailView-headerRefreshButtonAnimation {
         100% { transform: rotate(360deg); }
       }
-      animation: github-IssueishPaneItemView-headerRefreshButtonAnimation 2s linear 30; // limit to 1min in case something gets stuck
+      animation: github-IssueishDetailView-headerRefreshButtonAnimation 2s linear 30; // limit to 1min in case something gets stuck
     }
   }
 
