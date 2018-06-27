@@ -55,15 +55,15 @@ describe('IssueishPaneItem', function() {
     const wrapper = mount(buildApp({}));
     await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1));
 
-    const before = wrapper.update().find('IssueishPaneItemController');
+    const before = wrapper.update().find('IssueishDetailContainer');
     assert.strictEqual(before.prop('host'), 'host.com');
     assert.strictEqual(before.prop('owner'), 'me');
     assert.strictEqual(before.prop('repo'), 'original');
     assert.strictEqual(before.prop('issueishNumber'), 1);
 
-    wrapper.find('IssueishPaneItemController').prop('switchToIssueish')('you', 'switched', 2);
+    wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('you', 'switched', 2);
 
-    const after = wrapper.update().find('IssueishPaneItemController');
+    const after = wrapper.update().find('IssueishDetailContainer');
     assert.strictEqual(after.prop('host'), 'host.com');
     assert.strictEqual(after.prop('owner'), 'you');
     assert.strictEqual(after.prop('repo'), 'switched');
@@ -78,7 +78,7 @@ describe('IssueishPaneItem', function() {
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
 
-    wrapper.update().find('IssueishPaneItemController').prop('switchToIssueish')('you', 'switched', 2);
+    wrapper.update().find('IssueishDetailContainer').prop('switchToIssueish')('you', 'switched', 2);
 
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
@@ -92,11 +92,11 @@ describe('IssueishPaneItem', function() {
     const handler = sinon.stub();
     subs.add(item.onDidChangeTitle(handler));
 
-    wrapper.update().find('IssueishPaneItemController').prop('onTitleChange')('SUP');
+    wrapper.update().find('IssueishDetailContainer').prop('onTitleChange')('SUP');
     assert.strictEqual(handler.callCount, 1);
     assert.strictEqual(item.getTitle(), 'SUP');
 
-    wrapper.update().find('IssueishPaneItemController').prop('onTitleChange')('SUP');
+    wrapper.update().find('IssueishDetailContainer').prop('onTitleChange')('SUP');
     assert.strictEqual(handler.callCount, 1);
   });
 
