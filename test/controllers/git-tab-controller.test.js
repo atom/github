@@ -713,13 +713,15 @@ describe('GitTabController', function() {
         const repository = await buildRepository(workdirPath);
         sinon.spy(repository, 'undoLastCommit');
         fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
+        const coAuthorName = 'Janelle Monae';
+        const coAuthorEmail = 'janellemonae@github.com';
 
         await repository.stageFiles(['new-file.txt']);
         const commitSubject = 'Commit some stuff';
         const commitMessage = dedent`
           ${commitSubject}
 
-          Co-authored-by: Foo Bar <foo@bar.com>
+          Co-authored-by: ${coAuthorName} <${coAuthorEmail}>
         `;
         await repository.commit(commitMessage);
 
@@ -745,10 +747,9 @@ describe('GitTabController', function() {
         commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
         assert.deepEqual(commitMessages, ['Initial commit']);
 
+        const expectedCoAuthor = new Author(coAuthorName, coAuthorEmail);
         assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
-        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [
-          {name: 'Foo Bar', email: 'foo@bar.com'},
-        ]);
+        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
       });
     });
   });
