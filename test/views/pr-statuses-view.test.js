@@ -115,7 +115,7 @@ describe('PrStatusesView', function() {
 
   it('constructs a PeriodicRefresher to update the status checks', function() {
     const refetch = sinon.stub();
-    const wrapper = shallow(buildApp({summaryState: 'PENDING', states: ['PENDING', 'PENDING']}, {
+    const wrapper = shallow(buildApp({id: 'pullrequest0', summaryState: 'PENDING', states: ['PENDING', 'PENDING']}, {
       relay: {
         refetch,
       },
