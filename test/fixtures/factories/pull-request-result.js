@@ -12,10 +12,16 @@ export function createPullRequestResult(attrs = {}) {
   const o = {
     number: 0,
     repositoryID: 'repository0',
+    summaryState: null,
     states: null,
     headRefName: 'master',
+    includeEdges: false,
     ...attrs,
   };
+
+  if (o.summaryState && !o.states) {
+    o.states = [o.summaryState];
+  }
 
   const commit = {
     id: 'commit0',
@@ -25,9 +31,14 @@ export function createPullRequestResult(attrs = {}) {
     commit.status = null;
   } else {
     commit.status = {
+      state: o.summaryState,
       contexts: o.states.map((state, id) => ({state, id: `state${id}`})),
     };
   }
+
+  const commits = o.includeEdges
+    ? {edges: [{node: {id: 'node0', commit}}]}
+    : {nodes: [{commit, id: 'node0'}]};
 
   return {
     __typename: 'PullRequest',
@@ -48,8 +59,7 @@ export function createPullRequestResult(attrs = {}) {
       id: o.repositoryID,
     },
 
-    commits: {nodes: [{commit, id: 'node0'}]},
-
+    commits,
   }
 }
 
