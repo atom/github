@@ -7,7 +7,7 @@ export function createCommitComment(opts = {}) {
     id: idGen.generate('comment-comment'),
     commitOid: '1234abcd',
     authorLogin: 'author0',
-    authorAvatar: 'https://avatars2.githubusercontent.com/u/0?v=12',
+    authorAvatarUrl: 'https://avatars2.githubusercontent.com/u/0?v=12',
     bodyHTML: '<p>body</p>',
     createdAt: '2018-06-28T15:04:05Z',
     commentPath: null,
@@ -20,12 +20,12 @@ export function createCommitComment(opts = {}) {
       __typename: 'User',
       id: idGen.generate('user'),
       login: o.authorLogin,
-      avatarUrl: o.authorAvatar,
+      avatarUrl: o.authorAvatarUrl,
     },
     commit: {
       oid: o.commitOid,
     },
-    bodyHtml: o.bodyHtml,
+    bodyHTML: o.bodyHTML,
     createdAt: o.createdAt,
     path: o.commentPath,
   };
