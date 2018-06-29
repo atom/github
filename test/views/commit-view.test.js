@@ -1,9 +1,12 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
+import Author from '../../lib/models/author'
+import CoAuthorForm from '../../lib/views/co-author-form';
 import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
 import Branch, {nullBranch} from '../../lib/models/branch';
+import ObserveModel from '../../lib/views/observe-model';
 import UserStore from '../../lib/models/user-store';
 import CommitView from '../../lib/views/commit-view';
 
@@ -42,12 +45,50 @@ describe('CommitView', function() {
         abortMerge={noop}
         onChangeMessage={noop}
         toggleExpandedCommitMessageEditor={noop}
+        updateSelectedCoAuthors={noop}
       />
     );
   });
 
   afterEach(function() {
     atomEnv.destroy();
+  });
+
+  describe('coauthor stuff', function() {
+    let wrapper;
+    beforeEach(function() {
+      wrapper = shallow(app);
+    })
+    it('on initial load, renders co-author toggle but not input or form', function() {
+      const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
+      assert.deepEqual(coAuthorButton.length, 1);
+      assert.isFalse(coAuthorButton.hasClass('focused'));
+
+      const coAuthorInput = wrapper.find('github-CommitView-coAuthorEditor');
+      assert.deepEqual(coAuthorInput.length, 0);
+
+      const coAuthorForm = wrapper.find(CoAuthorForm);
+      assert.deepEqual(coAuthorForm.length, 0);
+    });
+    it('renders co-author input when toggle is clicked', function() {
+      const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
+      coAuthorButton.simulate('click');
+
+      const coAuthorInput = wrapper.find(ObserveModel);
+      assert.deepEqual(coAuthorInput.length, 1);
+    });
+    it('renders co-author form when a new co-author is added', function() {
+      const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
+      coAuthorButton.simulate('click');
+
+      const newAuthor = Author.createNew('pizza@unicorn.party', 'Pizza Unicorn');
+      wrapper.instance().onSelectedCoAuthorsChanged([newAuthor]);
+      wrapper.update();
+
+      const coAuthorForm = wrapper.find(CoAuthorForm);
+      assert.deepEqual(coAuthorForm.length, 1);
+    });
+
   });
 
   describe('when the repo is loading', function() {
