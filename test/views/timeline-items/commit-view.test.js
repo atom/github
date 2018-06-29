@@ -1,9 +1,9 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {Commit} from '../../lib/containers/timeline-items/commit-container';
+import {BareCommitView} from '../../../lib/views/timeline-items/commit-view';
 
-describe('CommitContainer', function() {
+describe('CommitView', function() {
   it('prefers displaying usernames from `user.login`', function() {
     const item = {
       author: {
@@ -22,7 +22,7 @@ describe('CommitContainer', function() {
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -47,7 +47,7 @@ describe('CommitContainer', function() {
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_name" />),
@@ -74,7 +74,7 @@ describe('CommitContainer', function() {
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -101,7 +101,7 @@ describe('CommitContainer', function() {
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -130,7 +130,7 @@ describe('CommitContainer', function() {
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img src="URL1" />),
@@ -157,7 +157,7 @@ describe('CommitContainer', function() {
       message: 'full message',
       messageHeadlineHTML: '<h1>html</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<span title="full message" />),
@@ -181,7 +181,7 @@ describe('CommitContainer', function() {
       message: 'full message',
       messageHeadlineHTML: '<h1>inner HTML</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.match(instance.html(), /<h1>inner HTML<\/h1>/);
   });
@@ -203,7 +203,7 @@ describe('CommitContainer', function() {
       message: 'full message',
       messageHeadlineHTML: '<h1>inner HTML</h1>',
     };
-    const app = <Commit item={item} />;
+    const app = <BareCommitView item={item} />;
     const instance = shallow(app);
     assert.match(instance.text(), /e6c80aa3/);
   });
