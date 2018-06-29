@@ -708,7 +708,7 @@ describe('GitTabController', function() {
         await assert.isFulfilled(wrapper.instance().undoLastCommit());
       });
 
-      it('restores to the state prior to committing', async function() {
+      it.only('restores to the state prior to committing', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
         sinon.spy(repository, 'undoLastCommit');
@@ -747,7 +747,7 @@ describe('GitTabController', function() {
         commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
         assert.deepEqual(commitMessages, ['Initial commit']);
 
-        const expectedCoAuthor = new Author(coAuthorName, coAuthorEmail);
+        const expectedCoAuthor = new Author(coAuthorEmail, coAuthorName);
         assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
       });
