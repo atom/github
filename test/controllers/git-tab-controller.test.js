@@ -708,7 +708,7 @@ describe('GitTabController', function() {
         await assert.isFulfilled(wrapper.instance().undoLastCommit());
       });
 
-      it.only('restores to the state prior to committing', async function() {
+      it('restores to the state prior to committing', async function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
         sinon.spy(repository, 'undoLastCommit');
