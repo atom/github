@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
-import Author from '../../lib/models/author'
+import Author from '../../lib/models/author';
 import CoAuthorForm from '../../lib/views/co-author-form';
 import {cloneRepository, buildRepository} from '../helpers';
 import Commit, {nullCommit} from '../../lib/models/commit';
@@ -58,7 +58,7 @@ describe('CommitView', function() {
     let wrapper;
     beforeEach(function() {
       wrapper = shallow(app);
-    })
+    });
     it('on initial load, renders co-author toggle but not input or form', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
       assert.deepEqual(coAuthorButton.length, 1);
