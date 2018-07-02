@@ -13,6 +13,13 @@
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
+  "consumedServices": {
+    "metrics-reporter": {
+      "versions": {
+        "^1.1.0": "consumeReporter"
+      }
+    }
+  },
   "engines": {
     "atom": ">=1.18.0"
   },
