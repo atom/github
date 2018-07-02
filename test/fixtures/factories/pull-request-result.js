@@ -137,7 +137,7 @@ export function createPullRequestDetailResult(attrs = {}) {
     bodyHTML: '<p>body</p>',
     author: {
       __typename: 'User',
-      id: idGen('user'),
+      id: idGen.generate('user'),
       login: o.authorLogin,
       avatarUrl: o.authorAvatarURL,
       url: `https://github.com/${o.authorLogin}`,
