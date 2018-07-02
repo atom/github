@@ -159,7 +159,7 @@ describe('CurrentPullRequestContainer', function() {
     assert.deepEqual(controller.prop('results').map(result => result.number), [10]);
   });
 
-  it('filters out pull requests opened on different repositories', async function() {
+  it.only('filters out pull requests opened on different repositories', async function() {
     const repository = createRepositoryResult({id: 'upstream-repo'});
 
     const {resolve, promise} = useResults(
@@ -172,7 +172,7 @@ describe('CurrentPullRequestContainer', function() {
     await promise;
     wrapper.update();
 
-    const numbers = wrapper.find('.github-IssueishList-item--number').map(n => n.text());
+    const numbers = wrapper.find('IssueishListView').prop('issueishes').map(i => i.number());
     assert.deepEqual(numbers, ['#11']);
   });
 

@@ -24,7 +24,7 @@ describe('CommitCommentThreadView', function() {
       ],
     }));
 
-    const commentViews = wrapper.find('Relay(CommitComment)');
+    const commentViews = wrapper.find('Relay(BareCommitCommentView)');
 
     assert.deepEqual(commentViews.map(c => c.prop('item').author.login), ['user0', 'user1', 'user2']);
 
