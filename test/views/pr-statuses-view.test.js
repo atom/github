@@ -109,7 +109,7 @@ describe('PrStatusesView', function() {
   it('renders a context view for each status context', function() {
     const wrapper = shallow(buildApp({summaryState: 'FAILURE', states: ['SUCCESS', 'FAILURE', 'ERROR']}));
 
-    const contextViews = wrapper.find('Relay(PrStatusContext)');
+    const contextViews = wrapper.find('Relay(BarePrStatusContextView)');
     assert.deepEqual(contextViews.map(v => v.prop('context').state), ['SUCCESS', 'FAILURE', 'ERROR']);
   });
 
