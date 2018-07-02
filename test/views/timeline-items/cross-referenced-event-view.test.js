@@ -50,6 +50,6 @@ describe('CrossReferencedEventView', function() {
       repositoryIsPrivate: true,
     }));
 
-    assert.isTrue(wrapper.find('.cross-referenced-event-private Octicon[icon="lock"]'));
+    assert.isTrue(wrapper.find('.cross-referenced-event-private Octicon[icon="lock"]').exists());
   });
 });
