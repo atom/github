@@ -32,7 +32,7 @@ describe('IssueishDetailView', function() {
     assert.strictEqual(link.text(), 'user0/repo#100');
     assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
 
-    assert.isDefined(wrapper.find('Relay(PrStatuses)[displayType="check"]').prop('pullRequest'));
+    assert.isDefined(wrapper.find('Relay(BarePrStatusesView)[displayType="check"]').prop('pullRequest'));
 
     const avatarLink = wrapper.find('.github-IssueishDetailView-avatar');
     assert.strictEqual(avatarLink.prop('href'), 'https://github.com/author0');
@@ -51,7 +51,7 @@ describe('IssueishDetailView', function() {
 
     assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
-    assert.isNotNull(wrapper.find('Relay(PrStatuses)[displayType="full"]').prop('pullRequest'));
+    assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
   });
 
   it('renders issue information', function() {
