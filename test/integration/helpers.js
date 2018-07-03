@@ -3,6 +3,8 @@ import {mount} from 'enzyme';
 import {getTempDir} from '../../lib/helpers';
 import {cloneRepository} from '../helpers';
 import GithubPackage from '../../lib/github-package';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import metadata from '../../package.json';
 
 /**
@@ -47,8 +49,9 @@ export async function setup(currentTest, options = {}) {
     suiteRoot.id = 'github-IntegrationSuite';
     document.body.appendChild(suiteRoot);
   }
-  suiteRoot.appendChild(atomEnv.workspace.getElement());
-  atomEnv.workspace.getElement().focus();
+  const workspaceElement = atomEnv.workspace.getElement();
+  suiteRoot.appendChild(workspaceElement);
+  workspaceElement.focus();
 
   await opts.initAtomEnv(atomEnv);
 
@@ -59,6 +62,8 @@ export async function setup(currentTest, options = {}) {
   );
 
   atomEnv.project.setPaths(projectDirs, {mustExist: true, exact: true});
+
+  const loginModel = new GithubLoginModel(InMemoryStrategy);
 
   let configDirPath = null;
   if (opts.isolateConfigDir) {
@@ -81,6 +86,7 @@ export async function setup(currentTest, options = {}) {
     grammars: atomEnv.grammars,
     config: atomEnv.config,
     deserializers: atomEnv.deserializers,
+    loginModel,
     confirm: atomEnv.confirm.bind(atomEnv),
     getLoadSettings: atomEnv.getLoadSettings.bind(atomEnv),
     configDirPath,
@@ -115,9 +121,11 @@ export async function setup(currentTest, options = {}) {
   return {
     atomEnv,
     githubPackage,
+    loginModel,
     wrapper,
     domRoot,
     suiteRoot,
+    workspaceElement,
   };
 }
 
