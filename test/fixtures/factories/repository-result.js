@@ -1,6 +1,10 @@
+import IDGenerator from './id-generator';
+
 export function createRepositoryResult(attrs = {}) {
+  const idGen = IDGenerator.fromOpts(attrs);
+
   const o = {
-    id: 'repository0',
+    id: idGen.generate('repository'),
     defaultRefPrefix: 'refs/heads/',
     defaultRefName: 'master',
     defaultRefID: 'ref0',

@@ -112,8 +112,8 @@ describe('IssueishSearchContainer', function() {
       search: {
         issueCount: 2,
         nodes: [
-          createPullRequestResult({number: 1}),
-          createPullRequestResult({number: 2}),
+          createPullRequestResult({id: 'pr0', number: 1}),
+          createPullRequestResult({id: 'pr1', number: 2}),
         ],
       },
     });

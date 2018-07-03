@@ -24,7 +24,7 @@ describe('GitTabItem', function() {
     const props = gitTabItemProps(atomEnv, repository, overrideProps);
 
     return (
-      <PaneItem workspace={props.workspace} uriPattern={GitTabItem.buildURI()}>
+      <PaneItem workspace={props.workspace} uriPattern={GitTabItem.uriPattern}>
         {({itemHolder}) => (
           <GitTabItem
             ref={itemHolder.setter}
