@@ -107,6 +107,15 @@ export function createPullRequestResult(attrs = {}) {
   }
 }
 
+export function createPullRequestsResult(...attrs) {
+  const idGen = IDGenerator.fromOpts({});
+  const embed = idGen.embed();
+
+  return attrs.map(attr => {
+    return createPullRequestResult({...attr, ...embed});
+  });
+}
+
 export function createPullRequestDetailResult(attrs = {}) {
   const idGen = IDGenerator.fromOpts(attrs);
 
