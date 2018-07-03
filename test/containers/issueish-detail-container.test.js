@@ -5,7 +5,7 @@ import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {issueishDetailContainerProps} from '../fixtures/props/issueish-pane-props';
 import {createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
 import GithubLoginModel from '../../lib/models/github-login-model';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 import IssueishDetailContainer from '../../lib/containers/issueish-detail-container';
 
 describe('IssueishDetailContainer', function() {
@@ -99,7 +99,12 @@ describe('IssueishDetailContainer', function() {
     await promise.catch(() => {});
 
     await assert.async.isTrue(wrapper.update().find('QueryErrorView').exists());
-    assert.strictEqual(wrapper.find('QueryErrorView').prop('error'), e);
+    const ev = wrapper.find('QueryErrorView');
+    assert.strictEqual(ev.prop('error'), e);
+
+    assert.strictEqual(await loginModel.getToken('https://api.github.com'), '1234');
+    await ev.prop('logout')();
+    assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
   });
 
   it('passes GraphQL query results to an IssueishDetailController', async function() {
