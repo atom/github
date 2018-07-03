@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import Remote from '../../lib/models/remote';
 import Branch, {nullBranch} from '../../lib/models/branch';
@@ -129,6 +130,28 @@ describe('RemoteContainer', function() {
 
     const qev = wrapper.find('QueryErrorView');
     assert.strictEqual(qev.prop('error'), e);
+  });
+
+  it('increments a counter on login', async function() {
+    const token = '1234';
+    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+    const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+
+    const wrapper = mount(buildApp());
+    wrapper.instance().handleLogin(token);
+    assert.isTrue(incrementCounterStub.calledOnceWith('github-login'));
+  });
+
+  it('increments a counter on logout', async function() {
+    const token = '1234';
+    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+
+    const wrapper = mount(buildApp());
+    wrapper.instance().handleLogin(token);
+
+    const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+    wrapper.instance().handleLogout();
+    assert.isTrue(incrementCounterStub.calledOnceWith('github-logout'));
   });
 
   it('renders the controller once results have arrived', async function() {
