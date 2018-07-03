@@ -84,7 +84,7 @@ describe('CommitView', function() {
     );
   });
 
-  it('ignores committer when it authored by GitHub', function() {
+  it('ignores the committer when it is authored by GitHub', function() {
     const item = {
       author: {
         name: 'author_name', avatarUrl: '',
@@ -94,6 +94,33 @@ describe('CommitView', function() {
       },
       committer: {
         name: 'GitHub', avatarUrl: '',
+        user: null,
+      },
+      oid: 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5',
+      authoredByCommitter: false,
+      message: 'commit message',
+      messageHeadlineHTML: '<h1>html</h1>',
+    };
+    const app = <BareCommitView item={item} />;
+    const instance = shallow(app);
+    assert.isTrue(
+      instance.containsMatchingElement(<img title="author_login" />),
+    );
+    assert.isFalse(
+      instance.containsMatchingElement(<img title="GitHub" />),
+    );
+  });
+
+  it('ignores the committer when it uses the GitHub no-reply address', function() {
+    const item = {
+      author: {
+        name: 'author_name', avatarUrl: '',
+        user: {
+          login: 'author_login',
+        },
+      },
+      committer: {
+        name: 'Someone', email: 'noreply@github.com', avatarUrl: '',
         user: null,
       },
       oid: 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5',
