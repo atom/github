@@ -28,6 +28,8 @@ To run tests, open the command palette and select "Run Package Specs". This will
 
 To re-run tests, you can refresh that window by pressing `Cmd + R` in DevTools.
 
+You can also run them on the command line with `npm run test`.
+
 ### Async Tests
 
 Sometimes it's necessary to test async operations. For example, imagine the following test:
