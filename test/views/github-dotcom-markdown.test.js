@@ -52,8 +52,6 @@ describe('GithubDotcomMarkdown', function() {
       handleClickEvent,
     }));
 
-    wrapper.update();
-
     const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
     issueishLink.dispatchEvent(new MouseEvent('click', {
       bubbles: true,
@@ -70,6 +68,10 @@ describe('GithubDotcomMarkdown', function() {
 
     assert.strictEqual(handleClickEvent.callCount, 1);
 
+    // Force a componentDidUpdate to exercise tooltip handler re-registration
+    wrapper.setProps({});
+
+    // Unmount to unsubscribe
     wrapper.unmount();
   });
 
