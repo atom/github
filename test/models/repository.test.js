@@ -570,6 +570,36 @@ describe('Repository', function() {
     });
   });
 
+  describe('getRemotes()', function() {
+    it('returns an empty RemoteSet before the repository has loaded', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      assert.isTrue(repository.isLoading());
+
+      const remotes = await repository.getRemotes();
+      assert.isTrue(remotes.isEmpty());
+    });
+
+    it('returns a RemoteSet that indexes remotes by name', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await repository.setConfig('remote.origin.url', 'git@github.com:smashwilson/atom.git');
+      await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+      await repository.setConfig('remote.upstream.url', 'git@github.com:atom/atom.git');
+      await repository.setConfig('remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*');
+
+      const remotes = await repository.getRemotes();
+      assert.isFalse(remotes.isEmpty());
+
+      const origin = remotes.withName('origin');
+      assert.strictEqual(origin.getName(), 'origin');
+      assert.strictEqual(origin.getUrl(), 'git@github.com:smashwilson/atom.git');
+    });
+  });
+
   describe('pull()', function() {
     it('updates the remote branch and merges into local branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
