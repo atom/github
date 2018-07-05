@@ -26,7 +26,7 @@ describe('reporterProxy', function() {
     reporterProxy.events = [];
     reporterProxy.timings = [];
     reporterProxy.counters = [];
-  })
+  });
 
   describe('before reporter has been set', function() {
     it('adds event to queue when addEvent is called', function() {
@@ -34,9 +34,9 @@ describe('reporterProxy', function() {
 
       const events = reporterProxy.events;
       assert.deepEqual(events.length, 1);
-      const actualEvent = events[0]
+      const actualEvent = events[0];
       assert.deepEqual(actualEvent.eventType, eventType);
-      assert.deepEqual(actualEvent.event, { coAuthorCount: 2, gitHubPackageVersion: version});
+      assert.deepEqual(actualEvent.event, {coAuthorCount: 2, gitHubPackageVersion: version});
     });
 
     it('adds timing to queue when addTiming is called', function() {
@@ -48,8 +48,8 @@ describe('reporterProxy', function() {
 
       assert.deepEqual(timing.eventType, timingEventType);
       assert.deepEqual(timing.durationInMilliseconds, durationInMilliseconds);
-      assert.deepEqual(timing.metadata, { gitHubPackageVersion: version });
-    })
+      assert.deepEqual(timing.metadata, {gitHubPackageVersion: version});
+    });
 
     it('adds counter to queue when incrementCounter is called', function() {
       incrementCounter(counterName);
@@ -65,7 +65,7 @@ describe('reporterProxy', function() {
       addCustomEventStub = sinon.stub(fakeReporter, 'addCustomEvent');
       addTimingStub = sinon.stub(fakeReporter, 'addTiming');
       incrementCounterStub = sinon.stub(fakeReporter, 'incrementCounter');
-    })
+    });
     it('empties all queues', function() {
       addEvent(eventType, event);
       addTiming(timingEventType, durationInMilliseconds);
@@ -88,7 +88,7 @@ describe('reporterProxy', function() {
       const addTimingArgs = addTimingStub.lastCall.args;
       assert.deepEqual(addTimingArgs[0], timingEventType);
       assert.deepEqual(addTimingArgs[1], durationInMilliseconds);
-      assert.deepEqual(addTimingArgs[2], { gitHubPackageVersion: version });
+      assert.deepEqual(addTimingArgs[2], {gitHubPackageVersion: version});
 
       assert.deepEqual(incrementCounterStub.lastCall.args, [counterName]);
     });
@@ -113,7 +113,7 @@ describe('reporterProxy', function() {
       const addTimingArgs = addTimingStub.lastCall.args;
       assert.deepEqual(addTimingArgs[0], timingEventType);
       assert.deepEqual(addTimingArgs[1], durationInMilliseconds);
-      assert.deepEqual(addTimingArgs[2], { gitHubPackageVersion: version });
+      assert.deepEqual(addTimingArgs[2], {gitHubPackageVersion: version});
     });
     it('calls incrementCounter directly, bypassing queue', function() {
       assert.isFalse(incrementCounterStub.called);
