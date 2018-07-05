@@ -17,9 +17,6 @@ describe('GithubLoginModel', function() {
           loginModel.onDidUpdate(callback);
           const TOKEN = 'TOKEN';
 
-          const existing = await loginModel.getToken('test-account');
-          console.info(`*** Existing: ${existing.toString()} ***`)
-
           await loginModel.setToken('test-account', TOKEN);
           assert.equal(callback.callCount, 1);
           assert.equal(await loginModel.getToken('test-account'), TOKEN);
