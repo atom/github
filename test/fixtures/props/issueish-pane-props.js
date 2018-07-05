@@ -1,9 +1,12 @@
 import GithubLoginModel from '../../../lib/models/github-login-model';
+import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 
 export function issueishPaneItemProps(overrides = {}) {
   return {
     loginModel: new GithubLoginModel(InMemoryStrategy),
+    workdirContextPool: new WorkdirContextPool(),
+    workingDirectory: __dirname,
     ...overrides,
   };
 }

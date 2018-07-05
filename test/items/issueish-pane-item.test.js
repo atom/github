@@ -39,7 +39,7 @@ describe('IssueishPaneItem', function() {
   it('renders within the workspace center', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishPaneItem.buildURI('one.com', 'me', 'code', 400);
+    const uri = IssueishPaneItem.buildURI('one.com', 'me', 'code', 400, __dirname);
     const item = await atomEnv.workspace.open(uri);
 
     assert.lengthOf(wrapper.update().find('IssueishPaneItem'), 1);
@@ -53,7 +53,7 @@ describe('IssueishPaneItem', function() {
 
   it('switches to a different issueish', async function() {
     const wrapper = mount(buildApp({}));
-    await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1));
+    await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
 
     const before = wrapper.update().find('IssueishDetailContainer');
     assert.strictEqual(before.prop('host'), 'host.com');
@@ -73,7 +73,7 @@ describe('IssueishPaneItem', function() {
   it('reconstitutes its original URI', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishPaneItem.buildURI('host.com', 'me', 'original', 1);
+    const uri = IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname);
     const item = await atomEnv.workspace.open(uri);
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
@@ -86,7 +86,7 @@ describe('IssueishPaneItem', function() {
 
   it('broadcasts title changes', async function() {
     const wrapper = mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1));
+    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
     assert.strictEqual(item.getTitle(), 'user/repo#1');
 
     const handler = sinon.stub();
@@ -102,7 +102,7 @@ describe('IssueishPaneItem', function() {
 
   it('tracks pending state termination', async function() {
     mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1));
+    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
 
     const handler = sinon.stub();
     subs.add(item.onDidTerminatePendingState(handler));
