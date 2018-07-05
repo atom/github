@@ -132,7 +132,7 @@ describe('RemoteContainer', function() {
     assert.strictEqual(qev.prop('error'), e);
   });
 
-  it('increments a counter on login', async function() {
+  it('increments a counter on login', function() {
     const token = '1234';
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
     const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
@@ -142,7 +142,7 @@ describe('RemoteContainer', function() {
     assert.isTrue(incrementCounterStub.calledOnceWith('github-login'));
   });
 
-  it('increments a counter on logout', async function() {
+  it('increments a counter on logout', function() {
     const token = '1234';
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
 
