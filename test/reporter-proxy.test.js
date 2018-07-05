@@ -21,7 +21,7 @@ describe('reporterProxy', function() {
   const durationInMilliseconds = 42;
 
   const counterName = 'push';
-  afterEach(function() {
+  beforeEach(function() {
     // let's not leak state between tests, dawg.
     reporterProxy.events = [];
     reporterProxy.timings = [];
