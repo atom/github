@@ -620,6 +620,22 @@ describe('Repository', function() {
     });
   });
 
+  describe('addRemote()', function() {
+    it('adds a remote to the repository', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      assert.isFalse((await repository.getRemotes()).withName('ccc').isPresent());
+
+      const remote = await repository.addRemote('ccc', 'git@github.com:aaa/bbb');
+      assert.strictEqual(remote.getName(), 'ccc');
+      assert.strictEqual(remote.getSlug(), 'aaa/bbb');
+
+      assert.isTrue((await repository.getRemotes()).withName('ccc').isPresent());
+    });
+  });
+
   describe('pull()', function() {
     it('updates the remote branch and merges into local branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
@@ -1442,6 +1458,17 @@ describe('Repository', function() {
 
         await assertCorrectInvalidation({repository}, async () => {
           await repository.discardWorkDirChangesForPaths(['a.txt', 'c.txt']);
+        });
+      });
+
+      it('when adding a remote', async function() {
+        const workdir = await cloneRepository('multi-commits-files');
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        const optionNames = ['core.editor', 'remotes.aaa.fetch', 'remotes.aaa.url'];
+        await assertCorrectInvalidation({repository, optionNames}, async () => {
+          await repository.addRemote('aaa', 'git@github.com:aaa/bbb.git');
         });
       });
     });
