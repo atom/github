@@ -1305,7 +1305,6 @@ import * as reporterProxy from '../lib/reporter-proxy';
         workingDirPath = await cloneRepository('three-files');
         git = createTestStrategy(workingDirPath);
         incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
-        // sinon.stub(GitProcess, 'exec').resolves('yay');
       });
       it('does not call incrementCounter when git command is on the ignore list', async function() {
         await git.exec(['status']);
