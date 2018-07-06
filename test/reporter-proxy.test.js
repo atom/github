@@ -5,7 +5,7 @@ const version = pjson.version;
 
 const fakeReporter = new FakeReporter();
 
-describe.only('reporterProxy', function() {
+describe('reporterProxy', function() {
   const event = {coAuthorCount: 2};
   const eventType = 'commits';
 
