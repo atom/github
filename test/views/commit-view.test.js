@@ -9,6 +9,7 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import ObserveModel from '../../lib/views/observe-model';
 import UserStore from '../../lib/models/user-store';
 import CommitView from '../../lib/views/commit-view';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitView', function() {
   let atomEnv, commandRegistry, tooltips, config, lastCommit;
@@ -52,6 +53,16 @@ describe('CommitView', function() {
 
   afterEach(function() {
     atomEnv.destroy();
+  });
+  describe('amend', function() {
+    it('increments a counter when amend is called', function() {
+      const wrapper = shallow(app);
+      wrapper.setProps({message: 'yo dawg I heard you like amending'});
+      sinon.stub(reporterProxy, 'incrementCounter');
+      wrapper.instance().amendLastCommit();
+
+      assert.equal(reporterProxy.incrementCounter.callCount, 1);
+    });
   });
 
   describe('coauthor stuff', function() {
