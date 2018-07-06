@@ -53,7 +53,7 @@ describe('RemoteController', function() {
 
   it('increments a counter when onCreatePr is called', async function() {
     const wrapper = shallow(createApp());
-    sinon.stub(shell, 'openExternal').resolves();
+    sinon.stub(shell, 'openExternal').callsArg(2);
     sinon.stub(reporterProxy, 'incrementCounter');
 
     await wrapper.instance().onCreatePr();
@@ -63,7 +63,7 @@ describe('RemoteController', function() {
 
   it('handles error when onCreatePr fails', async function() {
     const wrapper = shallow(createApp());
-    sinon.stub(shell, 'openExternal').rejects(new Error('oh noes'));
+    sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
     sinon.stub(reporterProxy, 'incrementCounter');
 
     try {
