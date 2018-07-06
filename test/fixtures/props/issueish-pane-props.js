@@ -3,6 +3,7 @@ import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import BranchSet from '../../../lib/models/branch-set';
 import RemoteSet from '../../../lib/models/remote-set';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
+import EnableableOperation from '../../../lib/models/enableable-operation';
 
 export function issueishPaneItemProps(overrides = {}) {
   return {
@@ -137,6 +138,7 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       reactionGroups: o.issueishReactions.map(buildReaction),
     },
 
+    checkoutOp: new EnableableOperation(() => {}),
     switchToIssueish: () => {},
 
     ...overrides,
