@@ -66,9 +66,10 @@ describe('CommitView', function() {
   });
 
   describe('coauthor stuff', function() {
-    let wrapper;
+    let wrapper, incrementCounterStub;
     beforeEach(function() {
       wrapper = shallow(app);
+      incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
     });
     it('on initial load, renders co-author toggle but not input or form', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
@@ -80,6 +81,8 @@ describe('CommitView', function() {
 
       const coAuthorForm = wrapper.find(CoAuthorForm);
       assert.deepEqual(coAuthorForm.length, 0);
+
+      assert.isFalse(incrementCounterStub.called);
     });
     it('renders co-author input when toggle is clicked', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
@@ -87,6 +90,18 @@ describe('CommitView', function() {
 
       const coAuthorInput = wrapper.find(ObserveModel);
       assert.deepEqual(coAuthorInput.length, 1);
+      assert.isTrue(incrementCounterStub.calledOnce);
+      assert.deepEqual(incrementCounterStub.lastCall.args, ['show-co-author-input']);
+    });
+    it('hides co-author input when toggle is clicked twice', function() {
+      const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
+      coAuthorButton.simulate('click');
+      coAuthorButton.simulate('click');
+
+      const coAuthorInput = wrapper.find(ObserveModel);
+      assert.deepEqual(coAuthorInput.length, 0);
+      assert.isTrue(incrementCounterStub.calledTwice);
+      assert.deepEqual(incrementCounterStub.lastCall.args, ['hide-co-author-input']);
     });
     it('renders co-author form when a new co-author is added', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
@@ -98,6 +113,9 @@ describe('CommitView', function() {
 
       const coAuthorForm = wrapper.find(CoAuthorForm);
       assert.deepEqual(coAuthorForm.length, 1);
+
+      assert.isTrue(incrementCounterStub.calledTwice);
+      assert.deepEqual(incrementCounterStub.lastCall.args, ['selected-co-authors-changed']);
     });
 
   });
