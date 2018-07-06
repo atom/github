@@ -9,7 +9,7 @@ import {nullOperationStateObserver} from '../../lib/models/operation-state-obser
 import RemoteController from '../../lib/controllers/remote-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe('RemoteController', async function() {
+describe('RemoteController', function() {
   let atomEnv, remote, branchSet, currentBranch;
 
   beforeEach(function() {
