@@ -1,4 +1,4 @@
-import MaybeOperation from '../../lib/models/maybe-operation';
+import EnableableOperation from '../../lib/models/enableable-operation';
 
 class ComponentLike {
   constructor() {
@@ -23,13 +23,13 @@ class ComponentLike {
   }
 }
 
-describe('MaybeOperation', function() {
+describe('EnableableOperation', function() {
   let callback, op;
   const REASON = Symbol('reason');
 
   beforeEach(function() {
     callback = sinon.stub();
-    op = new MaybeOperation(callback);
+    op = new EnableableOperation(callback);
   });
 
   it('defaults to being enabled', async function() {
