@@ -44,4 +44,48 @@ describe('RemoteSet', function() {
     assert.isTrue(set1.withName('upstream').isPresent());
     assert.isFalse(set1.withName('origin1').isPresent());
   });
+
+  it('identifies all remotes that correspond to a GitHub repository', function() {
+    const set = new RemoteSet([
+      new Remote('no0', 'git@github.com:aaa/bbb.git'),
+      new Remote('yes1', 'git@github.com:xxx/yyy.git'),
+      new Remote('yes2', 'https://github.com/xxx/yyy.git'),
+      new Remote('no3', 'git@github.com:aaa/yyy.git'),
+      new Remote('no4', 'git@elsewhere.com:nnn/qqq.git'),
+    ]);
+
+    const chosen = set.matchingGitHubRepository('xxx', 'yyy');
+    assert.sameMembers(chosen.map(remote => remote.getName()), ['yes1', 'yes2']);
+
+    assert.lengthOf(set.matchingGitHubRepository('no', 'no'), 0);
+  });
+
+  describe('the most-used protocol', function() {
+    it('defaults to the first option if no remotes are present', function() {
+      assert.strictEqual(new RemoteSet().mostUsedProtocol(['https', 'ssh']), 'https');
+      assert.strictEqual(new RemoteSet().mostUsedProtocol(['ssh', 'https']), 'ssh');
+    });
+
+    it('returns the most frequently occurring protocol', function() {
+      const set = new RemoteSet([
+        new Remote('one', 'https://github.com/aaa/bbb.git'),
+        new Remote('two', 'https://github.com/aaa/ccc.git'),
+        new Remote('four', 'git@github.com:aaa/bbb.git'),
+        new Remote('five', 'git@github.com:ddd/zzz.git'),
+        new Remote('six', 'ssh://git@github.com:aaa/bbb.git'),
+      ]);
+      assert.strictEqual(set.mostUsedProtocol(['https', 'ssh']), 'ssh');
+    });
+
+    it('ignores protocols not in the provided set', function() {
+      const set = new RemoteSet([
+        new Remote('one', 'http://github.com/aaa/bbb.git'),
+        new Remote('two', 'http://github.com/aaa/ccc.git'),
+        new Remote('three', 'git@github.com:aaa/bbb.git'),
+        new Remote('four', 'git://github.com:aaa/bbb.git'),
+        new Remote('five', 'git://github.com:ccc/ddd.git'),
+      ]);
+      assert.strictEqual(set.mostUsedProtocol(['https', 'ssh']), 'ssh');
+    });
+  });
 });
