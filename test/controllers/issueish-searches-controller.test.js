@@ -98,7 +98,7 @@ describe('IssueishSearchesController', function() {
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
       atomEnv.workspace.open.calledWith(
-        'atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123',
+        `atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123?workdir=${encodeURIComponent(__dirname)}`,
         {pending: true, searchAllPanes: true},
       ),
     );
