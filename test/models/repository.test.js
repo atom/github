@@ -489,7 +489,7 @@ describe('Repository', function() {
     });
   });
 
-  describe('fetch(branchName, remoteName)', function() {
+  describe('fetch(branchName, {remoteName})', function() {
     it('brings commits from the remote and updates remote branch, and does not update branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
       const localRepo = new Repository(localRepoPath);
@@ -519,7 +519,7 @@ describe('Repository', function() {
       assert.strictEqual(remoteHead.messageSubject, 'second commit');
       assert.strictEqual(localHead.messageSubject, 'second commit');
 
-      await localRepo.fetch('+refs/heads/master:refs/somewhere/master', 'origin');
+      await localRepo.fetch('+refs/heads/master:refs/somewhere/master', {remoteName: 'origin'});
       remoteHead = await localRepo.git.getCommit('origin/master');
       localHead = await localRepo.git.getCommit('master');
       const fetchHead = await localRepo.git.getCommit('somewhere/master');
