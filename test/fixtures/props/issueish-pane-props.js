@@ -1,5 +1,7 @@
 import GithubLoginModel from '../../../lib/models/github-login-model';
 import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
+import BranchSet from '../../../lib/models/branch-set';
+import RemoteSet from '../../../lib/models/remote-set';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 
 export function issueishPaneItemProps(overrides = {}) {
@@ -49,6 +51,15 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     },
     issueishNumber: o.issueishNumber,
 
+    branches: new BranchSet(),
+    remotes: new RemoteSet(),
+    isMerging: false,
+    isRebasing: false,
+
+    fetch: () => {},
+    checkout: () => {},
+    pull: () => {},
+    addRemote: () => {},
     onTitleChange: () => {},
     switchToIssueish: () => {},
 
@@ -68,6 +79,9 @@ export function issueishDetailViewProps(opts, overrides = {}) {
     issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
     issueishState: 'OPEN',
+    issueishHeadRef: 'aw/feature',
+    issueishHeadRepoOwner: 'head-owner',
+    issueishHeadRepoName: 'head-name',
     issueishReactions: [],
 
     relayRefetch: () => {},
@@ -106,6 +120,15 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       bodyHTML: o.issueishBodyHTML,
       number: o.issueishNumber,
       state: o.issueishState,
+      headRefName: o.issueishHeadRef,
+      headRepository: {
+        name: o.issueishHeadRepoName,
+        owner: {
+          login: o.issueishHeadRepoOwner,
+        },
+        url: `https://github.com/${o.issueishHeadRepoOwner}/${o.issueishHeadRepoName}`,
+        sshUrl: `git@github.com:${o.issueishHeadRepoOwner}/${o.issueishHeadRepoName}.git`,
+      },
       author: {
         login: o.issueishAuthorLogin,
         avatarUrl: o.issueishAuthorAvatarURL,
