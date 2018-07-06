@@ -54,7 +54,7 @@ describe('Remote', function() {
     assert.isTrue(remote.isPresent());
     assert.strictEqual(remote.getName(), 'origin');
     assert.strictEqual(remote.getNameOr('else'), 'origin');
-    assert.isNull(remote.getUrl());
+    assert.isUndefined(remote.getUrl());
     assert.isFalse(remote.isGithubRepo());
     assert.isNull(remote.getDomain());
     assert.isNull(remote.getOwner());
