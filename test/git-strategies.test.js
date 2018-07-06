@@ -663,6 +663,28 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         await git.checkout('newBranch', {createNew: true});
         assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'newBranch');
       });
+
+      it('specifies a different starting point with startPoint', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.checkout('new-branch', {createNew: true, startPoint: 'HEAD^'});
+
+        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        const commit = await git.getCommit('HEAD');
+        assert.strictEqual(commit.messageSubject, 'second commit');
+      });
+
+      it('establishes a tracking relationship with track', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.checkout('other-branch', {createNew: true, startPoint: 'HEAD^^'});
+        await git.checkout('new-branch', {createNew: true, startPoint: 'other-branch', track: true});
+
+        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        const commit = await git.getCommit('HEAD');
+        assert.strictEqual(commit.messageSubject, 'first commit');
+        assert.strictEqual(await git.getConfig('branch.new-branch.merge'), 'refs/heads/other-branch');
+      });
     });
 
     describe('reset()', function() {
