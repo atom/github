@@ -36,6 +36,7 @@ describe('RemoteContainer', function() {
         host="https://api.github.com"
 
         remoteOperationObserver={nullOperationStateObserver}
+        workingDirectory={__dirname}
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}

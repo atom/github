@@ -36,6 +36,7 @@ describe('IssueishSearchesController', function() {
         repository={createRepositoryResult()}
 
         remoteOperationObserver={nullOperationStateObserver}
+        workingDirectory={__dirname}
         workspace={atomEnv.workspace}
         remote={origin}
         remotes={new RemoteSet([origin])}
