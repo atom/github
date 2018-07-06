@@ -1,19 +1,11 @@
-import {addEvent, addTiming, incrementCounter, reporterProxy} from '../lib/reporter-proxy';
+import {addEvent, addTiming, FIVE_MINUTES_IN_MILLISECONDS, FakeReporter, incrementCounter, reporterProxy} from '../lib/reporter-proxy';
 const pjson = require('../package.json');
 
 const version = pjson.version;
 
-class FakeReporter {
-  addCustomEvent() {}
-
-  addTiming() {}
-
-  incrementCounter() {}
-}
-
 const fakeReporter = new FakeReporter();
 
-describe('reporterProxy', function() {
+describe.only('reporterProxy', function() {
   const event = {coAuthorCount: 2};
   const eventType = 'commits';
 
@@ -57,6 +49,32 @@ describe('reporterProxy', function() {
       const counters = reporterProxy.counters;
       assert.deepEqual(counters.length, 1);
       assert.deepEqual(counters[0], counterName);
+    });
+  });
+  describe('if reporter is never set', function() {
+    it('sets the reporter to no op class once interval has passed', function() {
+      const clock = sinon.useFakeTimers();
+      const setReporterSpy = sinon.spy(reporterProxy, 'setReporter');
+
+      addEvent(eventType, event);
+      addTiming(timingEventType, durationInMilliseconds);
+      incrementCounter(counterName);
+
+      assert.deepEqual(reporterProxy.events.length, 1);
+      assert.deepEqual(reporterProxy.timings.length, 1);
+      assert.deepEqual(reporterProxy.counters.length, 1);
+      assert.isFalse(setReporterSpy.called);
+      assert.isNull(reporterProxy.reporter);
+
+      setTimeout(() => {
+        assert.isTrue(reporterProxy.reporter);
+        assert.isTrue(setReporterSpy.called);
+        assert.deepEqual(reporterProxy.events.length, 0);
+        assert.deepEqual(reporterProxy.timings.length, 0);
+        assert.deepEqual(reporterProxy.counters.length, 0);
+      }, FIVE_MINUTES_IN_MILLISECONDS);
+
+      clock.restore();
     });
   });
   describe('after reporter has been set', function() {
