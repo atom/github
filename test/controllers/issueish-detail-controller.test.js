@@ -80,6 +80,23 @@ describe('IssueishDetailController', function() {
       assert.strictEqual(op.getMessage(), 'Cannot check out an issue');
     });
 
+    it('is disabled if the repository is loading or absent', function() {
+      const wrapper = shallow(buildApp({}, {isAbsent: true}));
+      const op = wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp');
+      assert.isFalse(op.isEnabled());
+      assert.strictEqual(op.getMessage(), 'No repository found');
+
+      wrapper.setProps({isAbsent: false, isLoading: true});
+      const op1 = wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp');
+      assert.isFalse(op1.isEnabled());
+      assert.strictEqual(op1.getMessage(), 'Loading');
+
+      wrapper.setProps({isAbsent: false, isLoading: false, isPresent: false});
+      const op2 = wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp');
+      assert.isFalse(op2.isEnabled());
+      assert.strictEqual(op2.getMessage(), 'No repository found');
+    });
+
     it('is disabled if the local repository is merging or rebasing', function() {
       const wrapper = shallow(buildApp({}, {isMerging: true}));
       const op0 = wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp');
@@ -105,6 +122,32 @@ describe('IssueishDetailController', function() {
         issueishHeadRef: 'feature',
         issueishHeadRepoOwner: 'aaa',
         issueishHeadRepoName: 'bbb',
+      }, {
+        branches,
+        remotes,
+      }));
+
+      const op = wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp');
+      assert.isFalse(op.isEnabled());
+      assert.strictEqual(op.getMessage(), 'Current');
+    });
+
+    it('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
+      const upstream = Branch.createRemoteTracking('remotes/origin/pull/123/head', 'origin', 'refs/pull/123/head');
+      const branches = new BranchSet([
+        new Branch('current', upstream, upstream, true),
+      ]);
+      const remotes = new RemoteSet([
+        new Remote('origin', 'git@github.com:aaa/bbb.git'),
+      ]);
+
+      const wrapper = shallow(buildApp({
+        repositoryName: 'bbb',
+        ownerLogin: 'aaa',
+        issueishHeadRef: 'feature',
+        issueishNumber: 123,
+        issueishHeadRepoOwner: 'ccc',
+        issueishHeadRepoName: 'ddd',
       }, {
         branches,
         remotes,
