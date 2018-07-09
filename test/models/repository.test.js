@@ -7,6 +7,8 @@ import isEqual from 'lodash.isequal';
 import {CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../../lib/models/repository';
+import {nullCommit} from '../../lib/models/commit';
+import {nullOperationStates} from '../../lib/models/operation-states';
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
 import {
@@ -46,6 +48,90 @@ describe('Repository', function() {
       assert.isTrue(repository.isInState('LoadingGuess'));
       assert.isTrue(repository.showGitTabLoading());
       assert.isFalse(repository.showGitTabInit());
+    });
+  });
+
+  describe('inherited State methods', function() {
+    let repository;
+
+    beforeEach(function() {
+      repository = Repository.absent();
+      repository.destroy();
+    });
+
+    it('returns a null object', async function() {
+      // Methods that default to "false"
+      for (const method of [
+        'isLoadingGuess', 'isAbsentGuess', 'isAbsent', 'isLoading', 'isEmpty', 'isPresent', 'isTooLarge',
+        'isUndetermined', 'showGitTabInit', 'showGitTabInitInProgress', 'showGitTabLoading', 'showStatusBarTiles',
+        'hasDiscardHistory', 'isMerging', 'isRebasing',
+      ]) {
+        assert.isFalse(await repository[method]());
+      }
+
+      // Methods that resolve to null
+      for (const method of [
+        'getFilePatchForPath', 'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
+      ]) {
+        assert.isNull(await repository[method]());
+      }
+
+      // Methods that resolve to an empty array
+      for (const method of [
+        'getRecentCommits', 'getAuthors', 'getDiscardHistory',
+      ]) {
+        assert.lengthOf(await repository[method](), 0);
+      }
+
+      assert.deepEqual(await repository.getStatusBundle(), {
+        stagedFiles: {},
+        unstagedFiles: {},
+        mergeConflictFiles: {},
+        branch: {
+          oid: null,
+          head: null,
+          upstream: null,
+          aheadBehind: {
+            ahead: null,
+            behind: null,
+          },
+        },
+      });
+
+      assert.deepEqual(await repository.getStatusesForChangedFiles(), {
+        stagedFiles: [],
+        unstagedFiles: [],
+        mergeConflictFiles: [],
+      });
+
+      assert.strictEqual(await repository.getLastCommit(), nullCommit);
+      assert.lengthOf((await repository.getBranches()).getNames(), 0);
+      assert.isTrue((await repository.getRemotes()).isEmpty());
+      assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
+      assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
+      assert.strictEqual(await repository.getCommitMessage(), '');
+    });
+
+    it('returns a rejecting promise', async function() {
+      for (const method of [
+        'init', 'clone', 'stageFiles', 'unstageFiles', 'stageFilesFromParentCommit', 'applyPatchToIndex',
+        'applyPatchToWorkdir', 'commit', 'merge', 'abortMerge', 'checkoutSide', 'mergeFile',
+        'writeMergeConflictToIndex', 'checkout', 'checkoutPathsAtRevision', 'undoLastCommit', 'fetch', 'pull',
+        'push', 'setConfig', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
+        'updateDiscardHistory', 'storeBeforeAndAfterBlobs', 'restoreLastDiscardInTempFiles', 'popDiscardHistory',
+        'clearDiscardHistory', 'discardWorkDirChangesForPaths', 'addRemote', 'setCommitMessage',
+      ]) {
+        await assert.isRejected(repository[method](), new RegExp(`${method} is not available in Destroyed state`));
+      }
+
+      await assert.isRejected(
+        repository.readFileFromIndex('file'),
+        /fatal: Path file does not exist \(neither on disk nor in the index\)\./,
+      );
+      await assert.isRejected(
+        repository.getBlobContents('abcd'),
+        /fatal: Not a valid object name abcd/,
+      );
     });
   });
 
@@ -527,6 +613,26 @@ describe('Repository', function() {
       assert.strictEqual(localHead.messageSubject, 'second commit');
       assert.strictEqual(fetchHead.messageSubject, 'third commit');
     });
+
+    it('is a noop with neither a manually specified source branch or a tracking branch', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+      const localRepo = new Repository(localRepoPath);
+      await localRepo.getLoadPromise();
+      await localRepo.checkout('branch', {createNew: true});
+
+      let remoteHead, localHead;
+      remoteHead = await localRepo.git.getCommit('origin/master');
+      localHead = await localRepo.git.getCommit('branch');
+      assert.strictEqual(remoteHead.messageSubject, 'second commit');
+      assert.strictEqual(localHead.messageSubject, 'second commit');
+
+      assert.isNull(await localRepo.fetch('branch'));
+
+      remoteHead = await localRepo.git.getCommit('origin/master');
+      localHead = await localRepo.git.getCommit('branch');
+      assert.strictEqual(remoteHead.messageSubject, 'second commit');
+      assert.strictEqual(localHead.messageSubject, 'second commit');
+    });
   });
 
   describe('getCommitter', function() {
@@ -653,6 +759,27 @@ describe('Repository', function() {
       localHead = await localRepo.git.getCommit('master');
       assert.equal(remoteHead.messageSubject, 'third commit');
       assert.equal(localHead.messageSubject, 'third commit');
+    });
+
+    it('only performs a fast-forward merge with ffOnly', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+      const localRepo = new Repository(localRepoPath);
+      await localRepo.getLoadPromise();
+
+      await localRepo.commit('fourth commit', {allowEmpty: true});
+
+      let remoteHead, localHead;
+      remoteHead = await localRepo.git.getCommit('origin/master');
+      localHead = await localRepo.git.getCommit('master');
+      assert.equal(remoteHead.messageSubject, 'second commit');
+      assert.equal(localHead.messageSubject, 'fourth commit');
+
+      await assert.isRejected(localRepo.pull('master', {ffOnly: true}), /Not possible to fast-forward/);
+
+      remoteHead = await localRepo.git.getCommit('origin/master');
+      localHead = await localRepo.git.getCommit('master');
+      assert.equal(remoteHead.messageSubject, 'third commit');
+      assert.equal(localHead.messageSubject, 'fourth commit');
     });
   });
 
