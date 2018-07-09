@@ -97,6 +97,11 @@
       "versions": {
         "^1.0.0": "consumeStatusBar"
       }
+    },
+    "metrics-reporter": {
+      "versions": {
+        "^1.1.0": "consumeReporter"
+      }
     }
   },
   "configSchema": {

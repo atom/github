@@ -11,6 +11,7 @@ import Repository from '../../lib/models/repository';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GithubTabController from '../../lib/controllers/github-tab-controller';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
 
@@ -120,6 +121,14 @@ describe('RootController', function() {
             {searchAllPanes: true, activateItem: true, activatePane: true},
           ]);
         });
+        it('increments counter with correct name', function() {
+          sinon.stub(workspace, 'open');
+          const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+
+          tabTracker.reveal();
+          assert.equal(incrementCounterStub.callCount, 1);
+          assert.deepEqual(incrementCounterStub.lastCall.args, [`${tabName}-tab-open`]);
+        });
       });
 
       describe('hide', function() {
@@ -131,6 +140,14 @@ describe('RootController', function() {
           assert.deepEqual(workspace.hide.args[0], [
             `atom-github://dock-item/${tabName}`,
           ]);
+        });
+        it('increments counter with correct name', function() {
+          sinon.stub(workspace, 'hide');
+          const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+
+          tabTracker.hide();
+          assert.equal(incrementCounterStub.callCount, 1);
+          assert.deepEqual(incrementCounterStub.lastCall.args, [`${tabName}-tab-close`]);
         });
       });
 
