@@ -9,7 +9,6 @@ export function issueishPaneItemProps(overrides = {}) {
   return {
     loginModel: new GithubLoginModel(InMemoryStrategy),
     workdirContextPool: new WorkdirContextPool(),
-    workingDirectory: __dirname,
     ...overrides,
   };
 }
