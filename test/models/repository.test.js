@@ -729,6 +729,22 @@ describe('Repository', function() {
     });
   });
 
+  describe('hasGitHubRemote(host, name, owner)', function() {
+    it('returns true if the repo has at least one matching remote', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await repository.addRemote('yes0', 'git@github.com:atom/github.git');
+      await repository.addRemote('yes1', 'git@github.com:smashwilson/github.git');
+      await repository.addRemote('no0', 'https://sourceforge.net/some/repo.git');
+
+      assert.isTrue(await repository.hasGitHubRemote('github.com', 'smashwilson', 'github'));
+      assert.isFalse(await repository.hasGitHubRemote('github.com', 'nope', 'no'));
+      assert.isFalse(await repository.hasGitHubRemote('github.com', 'some', 'repo'));
+    });
+  });
+
   describe('merge conflicts', function() {
     describe('getMergeConflicts()', function() {
       it('returns a promise resolving to an array of MergeConflict objects', async function() {
