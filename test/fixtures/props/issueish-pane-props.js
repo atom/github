@@ -55,6 +55,9 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     remotes: new RemoteSet(),
     isMerging: false,
     isRebasing: false,
+    isAbsent: false,
+    isLoading: false,
+    isPresent: true,
 
     fetch: () => {},
     checkout: () => {},
