@@ -62,7 +62,7 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     fetch: () => {},
     checkout: () => {},
     pull: () => {},
-    setConfig: () => {},
+    addRemote: () => {},
     onTitleChange: () => {},
     switchToIssueish: () => {},
 
