@@ -94,7 +94,6 @@ describe('IssueishPaneItem', function() {
       await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
 
       wrapper.update();
-      assert.isTrue(wrapper.find('IssueishDetailContainer').prop('repository').isLoading());
 
       await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'github', 2);
       wrapper.update();
@@ -123,7 +122,6 @@ describe('IssueishPaneItem', function() {
       const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('github.com', 'another', 'repo', 5, __dirname));
 
       wrapper.update();
-      assert.isTrue(wrapper.find('IssueishDetailContainer').prop('repository').isLoading());
 
       const {resolve: resolve0, started: started0} = deferSetState(item.getRealItem());
       const swap0 = wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'github', 100);
