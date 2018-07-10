@@ -1,6 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
@@ -184,6 +185,7 @@ describe('IssueishDetailController', function() {
         checkout,
       }));
 
+      sinon.spy(reporterProxy, 'incrementCounter');
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
       assert.isTrue(addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
@@ -193,6 +195,8 @@ describe('IssueishDetailController', function() {
         track: true,
         startPoint: 'refs/remotes/ccc/feature',
       }));
+
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
     });
 
     it('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
@@ -219,6 +223,7 @@ describe('IssueishDetailController', function() {
         checkout,
       }));
 
+      sinon.spy(reporterProxy, 'incrementCounter');
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
       assert.isTrue(fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
@@ -227,6 +232,8 @@ describe('IssueishDetailController', function() {
         track: true,
         startPoint: 'refs/remotes/existing/clever-name',
       }));
+
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
     });
 
     it('checks out an existing local branch that corresponds to the pull request', async function() {
@@ -259,10 +266,12 @@ describe('IssueishDetailController', function() {
         checkout,
       }));
 
+      sinon.spy(reporterProxy, 'incrementCounter');
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
       assert.isTrue(checkout.calledWith('existing'));
       assert.isTrue(pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-existing-pr'));
     });
   });
 });
