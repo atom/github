@@ -271,7 +271,7 @@ describe('IssueishDetailController', function() {
 
       assert.isTrue(checkout.calledWith('existing'));
       assert.isTrue(pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
-      assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-existing-pr'));
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
     });
   });
 });
