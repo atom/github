@@ -62,7 +62,7 @@ describe('RemoteContainer', function() {
         name: 'github',
       },
     }, {
-      repository: createRepositoryResult(),
+      repository: createRepositoryResult({id: 'repository0'}),
     });
   }
 

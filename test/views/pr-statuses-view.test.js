@@ -124,7 +124,7 @@ describe('PrStatusesView', function() {
     assert.strictEqual(refresher.options.interval(), BarePrStatusesView.PENDING_REFRESH_TIMEOUT);
 
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'FAILURE', state: ['FAILURE', 'SUCCESS']}),
+      pullRequest: buildPullRequestResult({id: 'pullrequest0', summaryState: 'FAILURE', state: ['FAILURE', 'SUCCESS']}),
     });
     assert.strictEqual(refresher.options.interval(), BarePrStatusesView.SUCCESS_REFRESH_TIMEOUT);
 
