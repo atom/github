@@ -19,6 +19,11 @@ jobs:
     steps:
     - checkout
     - run:
+        name: create and set the default keychain
+        command: |
+          security create-keychain -p "" temporary
+          security default-keychain -s temporary
+    - run:
         name: download build-package.sh
         command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
     - run:
