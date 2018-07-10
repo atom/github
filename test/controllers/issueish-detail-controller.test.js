@@ -188,7 +188,7 @@ describe('IssueishDetailController', function() {
 
       assert.isTrue(addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
       assert.isTrue(fetch.calledWith('refs/heads/feature', {remoteName: 'ccc'}));
-      assert.isTrue(checkout.calledWith('pr-456/feature', {
+      assert.isTrue(checkout.calledWith('pr-456/ccc/feature', {
         createNew: true,
         track: true,
         startPoint: 'refs/remotes/ccc/feature',
@@ -222,7 +222,7 @@ describe('IssueishDetailController', function() {
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
       assert.isTrue(fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
-      assert.isTrue(checkout.calledWith('pr-789/clever-name', {
+      assert.isTrue(checkout.calledWith('pr-789/ccc/clever-name', {
         createNew: true,
         track: true,
         startPoint: 'refs/remotes/existing/clever-name',
