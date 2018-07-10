@@ -4,7 +4,6 @@ import {mount} from 'enzyme';
 import {cloneRepository, initRepository, buildRepository} from '../helpers';
 import GithubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
-import Branch from '../../lib/models/branch';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 
