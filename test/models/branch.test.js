@@ -1,7 +1,7 @@
 import Branch, {nullBranch} from '../../lib/models/branch';
 import util from 'util';
 
-describe.only('Branch', function() {
+describe('Branch', function() {
   it('creates a branch with no upstream', function() {
     const b = new Branch('feature');
     assert.strictEqual(b.getName(), 'feature');
