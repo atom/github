@@ -1,7 +1,7 @@
 import Branch, {nullBranch} from '../../lib/models/branch';
 import util from 'util';
 
-describe('Branch', function() {
+describe.only('Branch', function() {
   it('creates a branch with no upstream', function() {
     const b = new Branch('feature');
     assert.strictEqual(b.getName(), 'feature');
@@ -73,8 +73,32 @@ describe('Branch', function() {
     assert.strictEqual(r2.getFullRef(), 'refs/remotes/origin/feature');
   });
 
+  it('getRemoteName() returns the name of a remote', function() {
+    assert.strictEqual(
+      Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master').getRemoteName(),
+      'origin',
+    );
+    assert.strictEqual(
+      Branch.createRemoteTracking('origin/master', undefined, 'refs/heads/master').getRemoteName(),
+      '',
+    );
+  });
+
+  it('getRemoteRef() returns the name of the remote ref', function() {
+    assert.strictEqual(
+      Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master').getRemoteRef(),
+      'refs/heads/master',
+    );
+    assert.strictEqual(
+      Branch.createRemoteTracking('origin/master', 'origin', undefined).getRemoteRef(),
+      '',
+    );
+  });
+
   it('has a null object', function() {
-    for (const method of ['getName', 'getFullRef', 'getSha', 'getRemoteName', 'getRemoteRef']) {
+    for (const method of [
+      'getName', 'getFullRef', 'getShortRef', 'getSha', 'getRemoteName', 'getRemoteRef', 'getShortRemoteRef',
+    ]) {
       assert.strictEqual(nullBranch[method](), '');
     }
 
