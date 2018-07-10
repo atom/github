@@ -1,17 +1,15 @@
 const IDGEN = Symbol('id-generator');
 
 export default class IDGenerator {
+  static nextID = 0;
+
   static fromOpts(opts = {}) {
     return opts[IDGEN] || new this();
   }
 
-  constructor() {
-    this.current = 0;
-  }
-
   generate(prefix = '') {
-    const id = this.current;
-    this.current++;
+    const id = this.constructor.nextID;
+    this.constructor.nextID++;
     return `${prefix}${id}`;
   }
 
