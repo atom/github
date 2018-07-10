@@ -200,7 +200,7 @@ describe('check out a pull request', function() {
     // Ensure that the correct ref has been fetched and checked out
     const branches = await git.getBranches();
     const head = branches.find(b => b.head);
-    assert.strictEqual(head.name, 'pr-1/pr-head');
+    assert.strictEqual(head.name, 'pr-1/owner/pr-head');
 
     await assert.async.isTrue(wrapper.update().find('.github-IssueishDetailView-checkoutButton--current').exists());
   });

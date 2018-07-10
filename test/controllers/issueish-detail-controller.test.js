@@ -158,7 +158,7 @@ describe('IssueishDetailController', function() {
       assert.strictEqual(op.getMessage(), 'Current');
     });
 
-    it('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
+    it('fetches the PR branch and checks it out into a new local branch', async function() {
       const upstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
       const branches = new BranchSet([
         new Branch('current', upstream, upstream, true),
@@ -167,9 +167,9 @@ describe('IssueishDetailController', function() {
         new Remote('origin', 'git@github.com:aaa/bbb.git'),
       ]);
 
-      const addRemote = sinon.stub().resolves(new Remote('ccc', 'git@github.com:ccc/ddd.git'));
       const fetch = sinon.stub().resolves();
       const checkout = sinon.stub().resolves();
+      const setConfig = sinon.stub().resolves();
 
       const wrapper = shallow(buildApp({
         issueishNumber: 456,
@@ -179,20 +179,20 @@ describe('IssueishDetailController', function() {
       }, {
         branches,
         remotes,
-        addRemote,
+        setConfig,
         fetch,
         checkout,
       }));
 
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
-      assert.isTrue(addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
-      assert.isTrue(fetch.calledWith('refs/heads/feature', {remoteName: 'ccc'}));
-      assert.isTrue(checkout.calledWith('pr-456/feature', {
+      assert.isTrue(fetch.calledWith('refs/heads/feature', {remoteName: 'git@github.com:ccc/ddd.git'}));
+      assert.isTrue(checkout.calledWith('pr-456/ccc/feature', {
         createNew: true,
-        track: true,
-        startPoint: 'refs/remotes/ccc/feature',
+        startPoint: 'FETCH_HEAD',
       }));
+      assert.isTrue(setConfig.calledWith('branch.pr-456/ccc/feature.remote'), 'git@github.com:ccc/ddd.git');
+      assert.isTrue(setConfig.calledWith('branch.pr-456/ccc/feature.merge'), 'refs/heads/feature');
     });
 
     it('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
@@ -206,6 +206,7 @@ describe('IssueishDetailController', function() {
 
       const fetch = sinon.stub().resolves();
       const checkout = sinon.stub().resolves();
+      const setConfig = sinon.stub().resolves();
 
       const wrapper = shallow(buildApp({
         issueishNumber: 789,
@@ -217,16 +218,15 @@ describe('IssueishDetailController', function() {
         remotes,
         fetch,
         checkout,
+        setConfig,
       }));
 
       await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
 
       assert.isTrue(fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
-      assert.isTrue(checkout.calledWith('pr-789/clever-name', {
-        createNew: true,
-        track: true,
-        startPoint: 'refs/remotes/existing/clever-name',
-      }));
+      assert.isTrue(checkout.calledWith('pr-789/ccc/clever-name', {createNew: true, startPoint: 'FETCH_HEAD'}));
+      assert.isTrue(setConfig.calledWith('branch.pr-789/ccc/clever-name.remote', 'existing'));
+      assert.isTrue(setConfig.calledWith('branch.pr-789/ccc/clever-name.merge', 'refs/heads/clever-name'));
     });
 
     it('checks out an existing local branch that corresponds to the pull request', async function() {
