@@ -70,6 +70,19 @@ describe('IssueishPaneItem', function() {
       await atomAtomRepo.addRemote('upstream', 'https://github.com/atom/atom.git');
     });
 
+    it('automatically switches when opened with an empty workdir', async function() {
+      const wrapper = mount(buildApp({workdirContextPool}));
+      const uri = IssueishPaneItem.buildURI('host.com', 'atom', 'atom', 500);
+      await atomEnv.workspace.open(uri);
+
+      const item = wrapper.update().find('IssueishPaneItem');
+      assert.strictEqual(item.prop('workingDirectory'), '');
+      await assert.async.strictEqual(
+        wrapper.update().find('IssueishDetailContainer').prop('repository'),
+        atomAtomRepo,
+      );
+    });
+
     it('switches to a different issueish', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
       await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
