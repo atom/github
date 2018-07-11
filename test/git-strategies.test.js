@@ -13,6 +13,7 @@ import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
+import * as reporterProxy from '../lib/reporter-proxy';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -1298,7 +1299,24 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         });
       });
     });
+    describe('exec', function() {
+      let workingDirPath, git, incrementCounterStub;
+      beforeEach(async function() {
+        workingDirPath = await cloneRepository('three-files');
+        git = createTestStrategy(workingDirPath);
+        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+      });
+      it('does not call incrementCounter when git command is on the ignore list', async function() {
+        await git.exec(['status']);
+        assert.equal(incrementCounterStub.callCount, 0);
+      });
+      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
+        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
 
+        assert.equal(incrementCounterStub.callCount, 1);
+        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
+      });
+    });
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
         if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {

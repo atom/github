@@ -5,3 +5,4 @@ spec/fixtures/a/
 spec/fixtures/b/
 .tern-project
 .nyc_output/
+coverage/

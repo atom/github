@@ -163,8 +163,8 @@ describe('CurrentPullRequestContainer', function() {
     const repository = createRepositoryResult({id: 'upstream-repo'});
 
     const {resolve, promise} = useResults(
-      {number: 11, repositoryID: 'upstream-repo'},
-      {number: 22, repositoryID: 'someones-fork'},
+      {id: 'pr0', number: 11, repositoryID: 'upstream-repo'},
+      {id: 'pr1', number: 22, repositoryID: 'someones-fork'},
     );
 
     const wrapper = mount(buildApp({repository}));
@@ -172,8 +172,8 @@ describe('CurrentPullRequestContainer', function() {
     await promise;
     wrapper.update();
 
-    const numbers = wrapper.find('.github-IssueishList-item--number').map(n => n.text());
-    assert.deepEqual(numbers, ['#11']);
+    const numbers = wrapper.find('IssueishListView').prop('issueishes').map(i => i.getNumber());
+    assert.deepEqual(numbers, [11]);
   });
 
   it('performs the query again when a remote operation completes', async function() {

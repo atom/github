@@ -105,6 +105,17 @@ describe('PaneItem', function() {
       assert.strictEqual(item.getTitle(), 'Component with: a prop');
     });
 
+    it('adds a CSS class to the root element', async function() {
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern" className="root">
+          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" />}
+        </PaneItem>,
+      );
+
+      const item = await workspace.open('atom-github://pattern');
+      assert.isTrue(item.getElement().classList.contains('root'));
+    });
+
     it('renders a child item', async function() {
       const wrapper = mount(
         <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
@@ -239,6 +250,23 @@ describe('PaneItem', function() {
       );
 
       assert.strictEqual(stub.getText(), '10');
+    });
+
+    it('adds a CSS class to the stub root', function() {
+      const stub = StubItem.create(
+        'some-component',
+        {title: 'Component'},
+        'atom-github://pattern/root/10',
+      );
+      workspace.getActivePane().addItem(stub);
+
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}" className="added">
+          {({params, itemHolder}) => <Component ref={itemHolder.setter} text={params.id} />}
+        </PaneItem>,
+      );
+
+      assert.isTrue(stub.getElement().classList.contains('added'));
     });
   });
 });
