@@ -1,0 +1,56 @@
+// This styles Markdown used in issueish panes.
+
+.github-DotComMarkdownHtml {
+  a {
+    color: @text-color-info;
+  }
+
+  p {
+    line-height: 1.5;
+  }
+
+  hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-top: 1px solid @text-color;
+    width: 100%
+  }
+
+  ul {
+    margin-left: -10px;
+  }
+
+  ol {
+    margin-left: -20px;
+  }
+
+  li {
+    font-size: .9em;
+    padding-top: .1em;
+    padding-bottom: .1em;
+
+    li {
+      font-size: 1em;
+    }
+  }
+
+  blockquote {
+    font-size: .9em;
+    padding: .4em .8em;
+    color: @text-color-subtle;
+    border-left: 2px solid @base-border-color;
+  }
+
+  pre > code {
+    white-space: pre;
+  }
+
+  // indent task lists
+  .task-list-item {
+    list-style: none;
+    .task-list-item-checkbox {
+      position: absolute;
+      margin-left: -20px;
+    }
+  }
+}
