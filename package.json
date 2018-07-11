@@ -70,7 +70,6 @@
   "devDependencies": {
     "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "atom-mocha-test-runner": "1.2.0",
-    "babel-eslint": "8.2.5",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
