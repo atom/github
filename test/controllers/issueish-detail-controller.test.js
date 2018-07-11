@@ -6,6 +6,7 @@ import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
+import {GitError} from '../../lib/git-shell-out-strategy';
 import {BareIssueishDetailController} from '../../lib/controllers/issueish-detail-controller';
 import {issueishDetailControllerProps} from '../fixtures/props/issueish-pane-props';
 
@@ -272,6 +273,26 @@ describe('IssueishDetailController', function() {
       assert.isTrue(checkout.calledWith('existing'));
       assert.isTrue(pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
       assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
+    });
+
+    it('squelches git errors', async function() {
+      const addRemote = sinon.stub().rejects(new GitError('handled by the pipeline'));
+      const wrapper = shallow(buildApp({}, {addRemote}));
+
+      // Should not throw
+      await wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run();
+      assert.isTrue(addRemote.called);
+    });
+
+    it('propagates non-git errors', async function() {
+      const addRemote = sinon.stub().rejects(new Error('not handled by the pipeline'));
+      const wrapper = shallow(buildApp({}, {addRemote}));
+
+      await assert.isRejected(
+        wrapper.find('Relay(BareIssueishDetailView)').prop('checkoutOp').run(),
+        /not handled by the pipeline/,
+      );
+      assert.isTrue(addRemote.called);
     });
   });
 });
