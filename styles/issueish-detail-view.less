@@ -8,7 +8,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  font-size: 1.25em;
+  font-size: 1.166666em;
   line-height: 1.5;
   background-color: @base-background-color;
 
@@ -24,14 +24,15 @@
     display: flex; // TODO: Use grid
     justify-content: space-between;
     flex-wrap: wrap;
-    border-bottom: 1px solid @base-border-color;
-    margin-bottom: @component-padding;
+    padding: @component-padding/2;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
   }
 
   &-headerGroup {
     display: flex;
     align-items: center;
-    margin-bottom: @component-padding;
+    margin: @component-padding/2;
 
     &.is-fullWidth {
       flex: 1 1 100%;
@@ -122,6 +123,10 @@
     padding: @component-padding;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
+
+    &:empty {
+      display: none;
+    }
   }
 
 }
