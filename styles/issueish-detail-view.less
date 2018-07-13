@@ -130,3 +130,50 @@
   }
 
 }
+
+
+// Dock Overrides ------------------------
+// When the IssueishDetailView is shown as a Dock item
+
+atom-dock .github-IssueishDetailView {
+  padding: @component-padding;
+  font-size: @font-size;
+  background-color: @tool-panel-background-color;
+
+  &-header {
+    margin-bottom: @component-padding*1.5;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+  }
+
+  &-headerGroup {
+    margin: 0;
+  }
+
+  &-avatarImage {
+    width: 24px;
+    height: 24px;
+    border-radius: @component-border-radius;
+  }
+
+  &-title {
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .timeline-item {
+    margin: 0;
+    padding: @component-padding*1.5 0;
+  }
+
+  .pre-timeline-item-icon {
+    position: relative;
+    margin: 0;
+    &:before {
+      vertical-align: middle;
+    }
+  }
+
+}
