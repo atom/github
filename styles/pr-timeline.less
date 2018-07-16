@@ -116,6 +116,11 @@
     }
   }
 
+  .comment-message-header {
+    font-size: .9em;
+    color: @text-color-subtle;
+  }
+
   .cross-referenced-events {
     // provides spacing between cross-referenced-event rows
     border-spacing: 0 @component-padding / 2;
@@ -130,6 +135,11 @@
 
     &:last-child {
       margin-bottom: 0;
+    }
+
+    &-header {
+      font-size: .9em;
+      color: @text-color-subtle;
     }
 
     &-label {
@@ -198,10 +208,6 @@
 
     .info-row {
       margin-bottom: @component-padding/1.5;
-    }
-    .comment-message-header {
-      font-size: .9em;
-      color: @text-color-subtle;
     }
 
     .github-DotComMarkdownHtml {
