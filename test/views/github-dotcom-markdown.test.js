@@ -1,12 +1,20 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
-import GithubDotcomMarkdown from '../../lib/views/github-dotcom-markdown';
+import {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
+import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
 
 describe('GithubDotcomMarkdown', function() {
+  let relayEnvironment;
+
+  beforeEach(function() {
+    relayEnvironment = RelayNetworkLayerManager.getEnvironmentForHost('https://api.somehost.com', '1234');
+  });
+
   function buildApp(overloadProps = {}) {
     return (
-      <GithubDotcomMarkdown
+      <BareGithubDotcomMarkdown
+        relayEnvironment={relayEnvironment}
         html={'<p>content</p>'}
         switchToIssueish={() => {}}
         handleClickEvent={() => {}}
