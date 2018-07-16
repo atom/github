@@ -100,18 +100,15 @@
   // Reactions ------------------------
 
   &-reactions {
-    margin-top: @component-padding;
+    padding-top: @component-padding*3;
+    border-top: 1px solid @base-border-color;
 
     &:empty {
       display: none;
     }
 
     &Group {
-      display: inline-block;
-      margin-right: @component-padding;
-      padding: @component-padding/2 @component-padding;
-      border: 1px solid @base-border-color;
-      border-radius: @component-border-radius;
+      margin-right: @component-padding*2;
     }
   }
 
@@ -167,12 +164,20 @@ atom-dock .github-IssueishDetailView {
     line-height: 1.3;
   }
 
+  &-reactions {
+    padding-top: @component-padding;
+  }
+
   &-buildStatus {
     margin: @component-padding 0;
 
     &:empty {
       display: none;
     }
+  }
+
+  .github-PrTimeline {
+    margin-top: @component-padding;
   }
 
   .timeline-item {
