@@ -8,9 +8,13 @@ import dedent from 'dedent-js';
 import {cloneRepository, buildRepository} from '../helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
+import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GithubTabController from '../../lib/controllers/github-tab-controller';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import IssueishPaneItem from '../../lib/items/issueish-pane-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -18,7 +22,7 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let getRepositoryForWorkdir;
+  let workdirContextPool, getRepositoryForWorkdir;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -31,8 +35,10 @@ describe('RootController', function() {
     config = atomEnv.config;
     project = atomEnv.project;
 
+    workdirContextPool = new WorkdirContextPool();
     getRepositoryForWorkdir = sinon.stub();
 
+    const loginModel = new GithubLoginModel(InMemoryStrategy);
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
 
@@ -48,10 +54,12 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         project={project}
+        loginModel={loginModel}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
         startRevealed={false}
+        workdirContextPool={workdirContextPool}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
       />
     );
@@ -1052,6 +1060,17 @@ describe('RootController', function() {
         await wrapper.instance().viewStagedChangesForCurrentFile();
         assert.isFalse(workspace.open.called);
       });
+    });
+  });
+
+  describe('opening an IssueishPaneItem', function() {
+    it('registers an opener for IssueishPaneItems', async function() {
+      const uri = IssueishPaneItem.buildURI('https://api.github.com', 'owner', 'repo', 123, __dirname);
+      const wrapper = mount(app);
+
+      const item = await atomEnv.workspace.open(uri);
+      assert.strictEqual(item.getTitle(), 'owner/repo#123');
+      assert.lengthOf(wrapper.update().find('IssueishPaneItem'), 1);
     });
   });
 });

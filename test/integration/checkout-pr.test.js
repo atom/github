@@ -1,11 +1,14 @@
+import hock from 'hock';
+import http from 'http';
+
 import {setup, teardown} from './helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
 
-describe('viewing an issue or pull request', function() {
-  let context, wrapper, atomEnv, workspaceElement;
+describe('check out a pull request', function() {
+  let context, wrapper, atomEnv, workspaceElement, git;
 
   beforeEach(async function() {
     context = await setup(this.currentTest, {
@@ -18,8 +21,32 @@ describe('viewing an issue or pull request', function() {
     await context.loginModel.setToken('https://api.github.com', 'good-token');
 
     const root = atomEnv.project.getPaths()[0];
-    const git = new GitShellOutStrategy(root);
-    await git.exec(['remote', 'add', 'dotcom', 'git@github.com:owner/repo.git']);
+    git = new GitShellOutStrategy(root);
+    await git.exec(['remote', 'add', 'dotcom', 'https://github.com/owner/repo.git']);
+
+    const mockGitServer = hock.createHock();
+
+    const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
+      '0000' +
+      '005b66d11860af6d28eb38349ef83de475597cb0e8b4 HEAD\0multi_ack symref=HEAD:refs/heads/pr-head\n' +
+      '004066d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/pr-head\n' +
+      '0000';
+
+    mockGitServer
+      .get('/owner/repo.git/info/refs?service=git-upload-pack')
+      .reply(200, uploadPackAdvertisement, {'Content-Type': 'application/x-git-upload-pack-advertisement'})
+      .get('/owner/repo.git/info/refs?service=git-upload-pack')
+      .reply(400);
+
+    const server = http.createServer(mockGitServer.handler);
+    return new Promise(resolve => {
+      server.listen(0, '127.0.0.1', async () => {
+        const {address, port} = server.address();
+        await git.setConfig(`url.http://${address}:${port}/.insteadOf`, 'https://github.com/');
+
+        resolve();
+      });
+    });
   });
 
   afterEach(async function() {
@@ -35,6 +62,27 @@ describe('viewing an issue or pull request', function() {
       },
     }, {
       repository: createRepositoryResult(),
+    });
+  }
+
+  function expectCurrentPullRequestQuery() {
+    return expectRelayQuery({
+      name: 'currentPullRequestContainerQuery',
+      variables: {
+        headOwner: 'owner',
+        headName: 'repo',
+        headRef: 'refs/heads/pr-head',
+        first: 5,
+      },
+    }, {
+      repository: {
+        ref: {
+          associatedPullRequests: {
+            totalCount: 0,
+            nodes: [],
+          },
+        },
+      },
     });
   }
 
@@ -70,11 +118,12 @@ describe('viewing an issue or pull request', function() {
         issueish: createPullRequestDetailResult({
           number: 1,
           title: 'Pull Request 1',
+          headRefName: 'pr-head',
+          headRepositoryName: 'repo',
+          headRepositoryLogin: 'owner',
         }),
       },
     };
-
-    // console.log(result);
 
     return expectRelayQuery({
       name: 'issueishDetailContainerQuery',
@@ -124,6 +173,10 @@ describe('viewing an issue or pull request', function() {
     resolve3();
     await promise3;
 
+    const {resolve: resolve4, promise: promise4} = expectCurrentPullRequestQuery();
+    resolve4();
+    await promise4;
+
     // Open the GitHub tab and wait for results to be rendered
     await atomEnv.commands.dispatch(workspaceElement, 'github:toggle-github-tab');
     await assert.async.isTrue(wrapper.update().find('.github-IssueishList-item').exists());
@@ -139,7 +192,16 @@ describe('viewing an issue or pull request', function() {
       atomEnv.workspace.getActivePaneItem().getTitle(),
       'PR: owner/repo#1 — Pull Request 1',
     );
-
     assert.strictEqual(wrapper.update().find('.github-IssueishDetailView-title').text(), 'Pull Request 1');
+
+    // Click on the "Checkout" button
+    await wrapper.find('.github-IssueishDetailView-checkoutButton').prop('onClick')();
+
+    // Ensure that the correct ref has been fetched and checked out
+    const branches = await git.getBranches();
+    const head = branches.find(b => b.head);
+    assert.strictEqual(head.name, 'pr-1/owner/pr-head');
+
+    await assert.async.isTrue(wrapper.update().find('.github-IssueishDetailView-checkoutButton--current').exists());
   });
 });

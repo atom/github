@@ -127,6 +127,7 @@ export function createPullRequestDetailResult(attrs = {}) {
     authorLogin: 'me',
     authorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     headRefName: 'headref',
+    headRepositoryName: 'headrepo',
     headRepositoryLogin: 'headlogin',
     baseRepositoryLogin: 'baseLogin',
     ...attrs,
@@ -166,6 +167,17 @@ export function createPullRequestDetailResult(attrs = {}) {
       edges: [],
     },
     headRefName: o.headRefName,
+    headRepository: {
+      id: idGen.generate('repo'),
+      name: o.headRepositoryName,
+      owner: {
+        __typename: 'User',
+        id: idGen.generate('user'),
+        login: o.headRepositoryLogin,
+      },
+      url: `https://github.com/${o.headRepositoryLogin}/${o.headRepositoryName}`,
+      sshUrl: `git@github.com:${o.headRepositoryLogin}/${o.headRepositoryName}`,
+    },
     headRepositoryOwner: {
       __typename: 'User',
       id: idGen.generate('user'),

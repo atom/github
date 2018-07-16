@@ -5,6 +5,7 @@ import {ManualStateObserver} from '../helpers';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import Remote from '../../lib/models/remote';
+import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
@@ -70,7 +71,7 @@ describe('CurrentPullRequestContainer', function() {
     const branchSet = new BranchSet();
     branchSet.add(branch);
 
-    const remotesByName = new Map([['origin', origin]]);
+    const remotes = new RemoteSet([origin]);
 
     return (
       <CurrentPullRequestContainer
@@ -80,7 +81,7 @@ describe('CurrentPullRequestContainer', function() {
         host="https://api.github.com/"
         remoteOperationObserver={observer}
         remote={origin}
-        remotesByName={remotesByName}
+        remotes={remotes}
         branches={branchSet}
         aheadCount={0}
         pushInProgress={false}

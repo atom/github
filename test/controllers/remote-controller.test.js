@@ -36,6 +36,7 @@ describe('RemoteController', function() {
         repository={null}
 
         remoteOperationObserver={nullOperationStateObserver}
+        workingDirectory={__dirname}
         workspace={atomEnv.workspace}
         remote={remote}
         remotesByName={new Map()}

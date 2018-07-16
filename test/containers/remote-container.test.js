@@ -37,6 +37,7 @@ describe('RemoteContainer', function() {
         host="https://api.github.com"
 
         remoteOperationObserver={nullOperationStateObserver}
+        workingDirectory={__dirname}
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}
@@ -61,7 +62,7 @@ describe('RemoteContainer', function() {
         name: 'github',
       },
     }, {
-      repository: createRepositoryResult(),
+      repository: createRepositoryResult({id: 'repository0'}),
     });
   }
 

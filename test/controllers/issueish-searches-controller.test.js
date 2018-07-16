@@ -5,6 +5,7 @@ import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import IssueishSearchesController from '../../lib/controllers/issueish-searches-controller';
 import Remote from '../../lib/models/remote';
+import RemoteSet from '../../lib/models/remote-set';
 import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
@@ -35,9 +36,10 @@ describe('IssueishSearchesController', function() {
         repository={createRepositoryResult()}
 
         remoteOperationObserver={nullOperationStateObserver}
+        workingDirectory={__dirname}
         workspace={atomEnv.workspace}
         remote={origin}
-        remotesByName={new Map([['origin', origin]])}
+        remotes={new RemoteSet([origin])}
         branches={branches}
         aheadCount={0}
         pushInProgress={false}
@@ -58,7 +60,7 @@ describe('IssueishSearchesController', function() {
       host: 'https://mygithub.com',
       repository: createRepositoryResult(),
       remote: origin,
-      remotesByName: new Map([['origin', origin]]),
+      remotes: new RemoteSet([origin]),
       branches,
       aheadCount: 4,
       pushInProgress: true,
@@ -96,7 +98,7 @@ describe('IssueishSearchesController', function() {
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
       atomEnv.workspace.open.calledWith(
-        'atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123',
+        `atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123?workdir=${encodeURIComponent(__dirname)}`,
         {pending: true, searchAllPanes: true},
       ),
     );

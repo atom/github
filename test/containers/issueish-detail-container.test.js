@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
+import {cloneRepository, buildRepository} from '../helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {issueishDetailContainerProps} from '../fixtures/props/issueish-pane-props';
 import {createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
@@ -9,10 +10,13 @@ import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strateg
 import IssueishDetailContainer from '../../lib/containers/issueish-detail-container';
 
 describe('IssueishDetailContainer', function() {
-  let loginModel;
+  let loginModel, repository;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     loginModel = new GithubLoginModel(InMemoryStrategy);
+
+    const workDir = await cloneRepository();
+    repository = await buildRepository(workDir);
   });
 
   function useResult() {
@@ -40,7 +44,7 @@ describe('IssueishDetailContainer', function() {
   }
 
   function buildApp(overrideProps = {}) {
-    return <IssueishDetailContainer {...issueishDetailContainerProps({loginModel, ...overrideProps})} />;
+    return <IssueishDetailContainer {...issueishDetailContainerProps({loginModel, repository, ...overrideProps})} />;
   }
 
   it('renders a spinner while the token is being fetched', function() {
