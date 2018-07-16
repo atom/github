@@ -313,6 +313,10 @@ after(() => {
 
   if (global._nyc) {
     global._nyc.writeCoverageFile();
+
+    if (global._nycInProcess) {
+      global._nyc.report();
+    }
   }
 });
 

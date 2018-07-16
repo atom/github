@@ -70,7 +70,6 @@
   "devDependencies": {
     "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "atom-mocha-test-runner": "1.2.0",
-    "babel-eslint": "8.2.3",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
@@ -78,7 +77,7 @@
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.3.0",
-    "eslint": "4.19.1",
+    "eslint": "5.0.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "hock": "1.3.2",
     "lodash.isequal": "4.5.0",
