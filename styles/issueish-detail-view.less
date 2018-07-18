@@ -21,26 +21,25 @@
   // Header ------------------------
 
   &-header {
-    display: flex; // TODO: Use grid
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding: @component-padding/2;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
+  }
+
+  &-headerRow {
+    display: flex; // TODO: Use grid
+    justify-content: space-between;
+    margin: @component-padding;
   }
 
   &-headerGroup {
     display: flex;
     align-items: center;
-    margin: @component-padding/2;
-
-    &.is-fullWidth {
-      flex: 1 1 100%;
-    }
   }
 
   &-headerBadge {
     margin-right: @component-padding;
+    padding: 0 0.75em;
+    line-height: 2em;
   }
 
   &-headerLink {
@@ -54,12 +53,13 @@
   // Checkout button -----------------------
 
   &-checkoutButton {
-    margin-right: @component-padding;
+    margin-left: @component-padding;
   }
 
   // Refresh Button ------------------------
 
   &-headerRefreshButton {
+    align-self: flex-start;
     color: @text-color-subtle;
     cursor: pointer;
 
@@ -83,6 +83,7 @@
   // Avatar and title ------------------------
 
   &-avatar {
+    align-self: flex-start;
     margin-right: @component-padding;
   }
 
