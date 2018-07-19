@@ -1,8 +1,9 @@
 @import 'variables';
 
 .github-IssueishTooltip {
-  max-width: 500px;
   text-align: left;
+  font-size: .9em;
+  padding: @component-padding/2;
 
   .issueish-badge-and-link {
     padding-bottom: @component-padding;
@@ -36,19 +37,32 @@
     }
   }
 
+  .issueish-link {
+    color: @text-color-subtle;
+  }
+
   .issueish-title {
+    display: block;
     margin: 0;
     padding-bottom: @component-padding;
-    line-height: 1.2;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 1.1em;
+    font-weight: 600;
+    line-height: 1.3;
+    color: @text-color-highlight;
+    white-space: initial;
+  }
+
+  .issueish-avatar-and-title {
+    strong {
+      font-weight: normal;
+      color: @text-color-subtle;
+    }
   }
 
   .author-avatar {
-    margin-right: 10px;
+    margin-right: @component-padding/2;
     width: 20px;
     height: 20px;
+    border-radius: @component-border-radius;
   }
 }
