@@ -11,7 +11,10 @@
       "atom"
     ]
   },
-  "extends": ["fbjs-opensource"],
+  "plugins": [
+    "jsx-a11y"
+  ],
+  "extends": ["fbjs-opensource", "plugin:jsx-a11y/recommended"],
   "rules": {
     "linebreak-style": 0,
     "no-param-reassign": 0,
