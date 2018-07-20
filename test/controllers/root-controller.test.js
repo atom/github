@@ -12,7 +12,7 @@ import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GitTabItem from '../../lib/items/git-tab-item';
-import GithubTabController from '../../lib/controllers/github-tab-controller';
+import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishPaneItem from '../../lib/items/issueish-pane-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -79,8 +79,8 @@ describe('RootController', function() {
 
       assert.isFalse(wrapper.update().find('GitTabItem').exists());
       assert.isUndefined(workspace.paneForURI(GitTabItem.buildURI()));
-      assert.isFalse(wrapper.update().find('GithubTabController').exists());
-      assert.isUndefined(workspace.paneForURI(GithubTabController.buildURI()));
+      assert.isFalse(wrapper.update().find('GitHubTabItem').exists());
+      assert.isUndefined(workspace.paneForURI(GitHubTabItem.buildURI()));
 
       assert.isUndefined(workspace.getActivePaneItem());
       assert.isFalse(workspace.getRightDock().isVisible());
@@ -95,7 +95,7 @@ describe('RootController', function() {
 
       await assert.async.isTrue(workspace.getRightDock().isVisible());
       assert.isTrue(wrapper.find('GitTabItem').exists());
-      assert.isTrue(wrapper.find('GithubTabController').exists());
+      assert.isTrue(wrapper.find('GitHubTabItem').exists());
       assert.isUndefined(workspace.getActivePaneItem());
     });
   });
