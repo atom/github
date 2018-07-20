@@ -36,3 +36,26 @@ export function gitHubTabControllerProps(atomEnv, repository, overrides = {}) {
     ...overrides,
   };
 }
+
+export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
+  return {
+    workspace: atomEnv.workspace,
+    remoteOperationObserver: new OperationStateObserver(repository, PUSH, PULL, FETCH),
+    loginModel: new GithubLoginModel(InMemoryStrategy),
+    rootHolder: new RefHolder(),
+
+    workingDirectory: repository.getWorkingDirectoryPath(),
+    branches: new BranchSet(),
+    currentBranch: nullBranch,
+    remotes: new RemoteSet(),
+    currentRemote: nullRemote,
+    manyRemotesAvailable: false,
+    aheadCount: 0,
+    pushInProgress: false,
+
+    handlePushBranch: () => {},
+    handleRemoteSelect: () => {},
+
+    ...overrides,
+  };
+}
