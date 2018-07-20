@@ -6,7 +6,7 @@ import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSelectorView from '../../lib/views/remote-selector-view';
 
-describe.only('RemoteSelectorView', function() {
+describe('RemoteSelectorView', function() {
   function buildApp(overrideProps = {}) {
     const props = {
       remotes: new RemoteSet(),
