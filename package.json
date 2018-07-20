@@ -173,6 +173,7 @@
   },
   "deserializers": {
     "GitTimingsView": "createGitTimingsView",
+    "IssueishDetailItem": "createIssueishPaneItemStub",
     "IssueishPaneItem": "createIssueishPaneItemStub",
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
