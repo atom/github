@@ -47,12 +47,12 @@ describe('GitHubTabContainer', function() {
   });
 
   describe('while loading', function() {
-    it('renders a loading spinner', async function() {
+    it('passes isLoading to its view', async function() {
       const repository = new Repository(await cloneRepository());
       assert.isTrue(repository.isLoading());
       const wrapper = mount(buildApp({repository}));
 
-      assert.isTrue(wrapper.find('LoadingView').exists());
+      assert.isTrue(wrapper.find('GitHubTabController').prop('isLoading'));
     });
   });
 
@@ -63,7 +63,7 @@ describe('GitHubTabContainer', function() {
       await repository.getLoadPromise();
       const wrapper = mount(buildApp({repository}));
 
-      await assert.async.isTrue(wrapper.update().find('GitHubTabController').exists());
+      await assert.async.isFalse(wrapper.update().find('GitHubTabController').prop('isLoading'));
       assert.strictEqual(wrapper.find('GitHubTabController').prop('workingDirectory'), workdir);
     });
   });

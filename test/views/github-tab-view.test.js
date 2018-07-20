@@ -24,6 +24,11 @@ describe('GitHubTabView', function() {
     return <GitHubTabView {...props} />;
   }
 
+  it('renders a LoadingView if data is still loading', function() {
+    const wrapper = shallow(buildApp({isLoading: true}));
+    assert.isTrue(wrapper.find('LoadingView').exists());
+  });
+
   it('renders a RemoteContainer if a remote has been chosen', function() {
     const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const currentBranch = new Branch('bbb');
