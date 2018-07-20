@@ -32,12 +32,12 @@ describe('RemoteSelectorView', function() {
 
     const wrapper = shallow(buildApp({remotes, selectRemote}));
 
-    const zero = wrapper.find('li').filterWhere(w => w.key() === 'zero').find('a');
+    const zero = wrapper.find('li').filterWhere(w => w.key() === 'zero').find('button');
     assert.strictEqual(zero.text(), 'zero (aaa/bbb)');
     zero.simulate('click', 'event0');
     assert.isTrue(selectRemote.calledWith('event0', remote0));
 
-    const one = wrapper.find('li').filterWhere(w => w.key() === 'one').find('a');
+    const one = wrapper.find('li').filterWhere(w => w.key() === 'one').find('button');
     assert.strictEqual(one.text(), 'one (ccc/ddd)');
     one.simulate('click', 'event1');
     assert.isTrue(selectRemote.calledWith('event1', remote1));
