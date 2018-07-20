@@ -76,7 +76,7 @@ if (process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' && !process.env.NYC_CONFIG)
 
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
-  reporter: process.env.MOCHA_REPORTER || 'spec',
+  reporter: process.env.MOCHA_REPORTER || 'list',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
   const Enzyme = require('enzyme');
@@ -88,14 +88,20 @@ module.exports = createRunner({
   mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
 
   if (process.env.TEST_JUNIT_XML_PATH) {
-    mocha.reporter(require('mocha-junit-and-console-reporter'), {
-      mochaFile: process.env.TEST_JUNIT_XML_PATH,
+    mocha.reporter(require('mocha-multi-reporters'), {
+      reportersEnabled: 'xunit, list',
+      xunitReporterOptions: {
+        output: process.env.TEST_JUNIT_XML_PATH,
+      },
     });
   } else if (process.env.APPVEYOR_API_URL) {
     mocha.reporter(require('mocha-appveyor-reporter'));
   } else if (process.env.CIRCLECI === 'true') {
-    mocha.reporter(require('mocha-junit-and-console-reporter'), {
-      mochaFile: path.join('test-results', 'mocha', 'test-results.xml'),
+    mocha.reporter(require('mocha-multi-reporters'), {
+      reportersEnabled: 'xunit, list',
+      xunitReporterOptions: {
+        output: path.join('test-results', 'mocha', 'test-results.xml'),
+      },
     });
   }
 });
