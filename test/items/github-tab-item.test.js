@@ -69,11 +69,11 @@ describe('GitHubTabItem', function() {
       documentActiveElement: () => activeElement,
     }));
     const item = await atomEnv.workspace.open(GitHubTabItem.buildURI());
-    await assert.async.isTrue(wrapper.update().find('.github-GithubTabController').exists());
+    await assert.async.isTrue(wrapper.update().find('.github-GitHub').exists());
 
     assert.isFalse(item.hasFocus());
 
-    activeElement = wrapper.find('.github-GithubTabController').getDOMNode();
+    activeElement = wrapper.find('.github-GitHub').getDOMNode();
     assert.isTrue(item.hasFocus());
   });
 });

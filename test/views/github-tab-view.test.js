@@ -56,6 +56,6 @@ describe('GitHubTabView', function() {
 
   it('renders a static message when no remotes are available', function() {
     const wrapper = shallow(buildApp({currentRemote: nullRemote, manyRemotesAvailable: false}));
-    assert.isTrue(wrapper.find('.github-GithubTabController-no-remotes').exists());
+    assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
   });
 });

@@ -2,14 +2,14 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {gitHubTabControllerProps} from '../fixtures/props/github-tab-props';
-import GithubTabController from '../../lib/controllers/github-tab-controller';
+import GitHubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
 
-describe('GithubTabController', function() {
+describe('GitHubTabController', function() {
   let atomEnv;
 
   beforeEach(function() {
@@ -26,7 +26,7 @@ describe('GithubTabController', function() {
       ...overrideProps,
     };
 
-    return <GithubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
+    return <GitHubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
   }
 
   describe('derived view props', function() {
