@@ -13,6 +13,7 @@ import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
+import * as reporterProxy from '../lib/reporter-proxy';
 
 /**
  * KU Thoughts: The GitShellOutStrategy methods are tested in Repository tests for the most part
@@ -663,6 +664,28 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         await git.checkout('newBranch', {createNew: true});
         assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'newBranch');
       });
+
+      it('specifies a different starting point with startPoint', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.checkout('new-branch', {createNew: true, startPoint: 'HEAD^'});
+
+        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        const commit = await git.getCommit('HEAD');
+        assert.strictEqual(commit.messageSubject, 'second commit');
+      });
+
+      it('establishes a tracking relationship with track', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        await git.checkout('other-branch', {createNew: true, startPoint: 'HEAD^^'});
+        await git.checkout('new-branch', {createNew: true, startPoint: 'other-branch', track: true});
+
+        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        const commit = await git.getCommit('HEAD');
+        assert.strictEqual(commit.messageSubject, 'first commit');
+        assert.strictEqual(await git.getConfig('branch.new-branch.merge'), 'refs/heads/other-branch');
+      });
     });
 
     describe('reset()', function() {
@@ -1298,7 +1321,24 @@ import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
         });
       });
     });
+    describe('exec', function() {
+      let workingDirPath, git, incrementCounterStub;
+      beforeEach(async function() {
+        workingDirPath = await cloneRepository('three-files');
+        git = createTestStrategy(workingDirPath);
+        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+      });
+      it('does not call incrementCounter when git command is on the ignore list', async function() {
+        await git.exec(['status']);
+        assert.equal(incrementCounterStub.callCount, 0);
+      });
+      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
+        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
 
+        assert.equal(incrementCounterStub.callCount, 1);
+        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
+      });
+    });
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
         if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {

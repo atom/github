@@ -1,0 +1,41 @@
+.github-StubItem-github,
+.github-GitHub-root {
+  flex: 1;
+  display: flex;
+}
+
+.github-GitHub {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  &-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-noRemotes {
+    margin: 10px;
+    font-size: @font-size * 1.25;
+  }
+
+  .github-RemoteSelector {
+    font-size: @font-size * 1.25;
+
+    p {
+      text-align: center;
+      margin: 10px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 1em;
+    }
+
+    button {
+      margin-bottom: 10px;
+    }
+  }
+}

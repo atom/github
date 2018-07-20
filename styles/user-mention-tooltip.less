@@ -4,26 +4,38 @@
   display: flex;
 
   &-avatar {
-    flex-basis: 50px;
-    padding-right: @component-padding;
+    margin: @component-padding/2;
 
     > img {
-      width: 90px;
-      height: 90px;
-      border-radius: @component-border-radius / 2;
+      width: 60px;
+      height: 60px;
+      border-radius: @component-border-radius;
     }
   }
 
   &-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: @component-padding/2 @component-padding;
+    font-size: @font-size;
+    line-height: 20px;
     text-align: left;
-    line-height: 1.6;
 
     > div {
       white-space: nowrap;
     }
     .icon {
+      color: @text-color-subtle;
       vertical-align: middle;
+    }
+
+    &-username {
+      font-size: 1.2em;
+      strong {
+        font-weight: 600;
+      }
     }
   }
 }

@@ -1,10 +1,13 @@
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
+import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
+import GithubLoginModel from '../../../lib/models/github-login-model';
 
 function noop() {}
 
 export function gitTabItemProps(atomEnv, repository, overrides = {}) {
   return {
     repository,
+    loginModel: new GithubLoginModel(InMemoryStrategy),
     workspace: atomEnv.workspace,
     commandRegistry: atomEnv.commands,
     grammars: atomEnv.grammars,

@@ -61,14 +61,14 @@ describe('GitTabController', function() {
 
     const wrapper = mount(await buildApp(repository));
 
-    assert.isTrue(wrapper.find('.github-Panel').hasClass('is-loading'));
+    assert.isTrue(wrapper.find('.github-Git').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
 
     await repository.getLoadPromise();
     await updateWrapper(repository, wrapper);
 
-    await assert.async.isFalse(wrapper.update().find('.github-Panel').hasClass('is-loading'));
+    await assert.async.isFalse(wrapper.update().find('.github-Git').hasClass('is-loading'));
     assert.lengthOf(wrapper.find('StagingView'), 1);
     assert.lengthOf(wrapper.find('CommitController'), 1);
   });
@@ -292,7 +292,7 @@ describe('GitTabController', function() {
       it('blurs on tool-panel:unfocus', function() {
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        commandRegistry.dispatch(wrapper.find('.github-Panel').getDOMNode(), 'tool-panel:unfocus');
+        commandRegistry.dispatch(wrapper.find('.github-Git').getDOMNode(), 'tool-panel:unfocus');
 
         assert.isTrue(workspace.getActivePane().activate.called);
       });
@@ -713,13 +713,15 @@ describe('GitTabController', function() {
         const repository = await buildRepository(workdirPath);
         sinon.spy(repository, 'undoLastCommit');
         fs.writeFileSync(path.join(workdirPath, 'new-file.txt'), 'foo\nbar\nbaz\n');
+        const coAuthorName = 'Janelle Monae';
+        const coAuthorEmail = 'janellemonae@github.com';
 
         await repository.stageFiles(['new-file.txt']);
         const commitSubject = 'Commit some stuff';
         const commitMessage = dedent`
           ${commitSubject}
 
-          Co-authored-by: Foo Bar <foo@bar.com>
+          Co-authored-by: ${coAuthorName} <${coAuthorEmail}>
         `;
         await repository.commit(commitMessage);
 
@@ -745,10 +747,9 @@ describe('GitTabController', function() {
         commitMessages = wrapper.find('.github-RecentCommit-message').map(node => node.text());
         assert.deepEqual(commitMessages, ['Initial commit']);
 
+        const expectedCoAuthor = new Author(coAuthorEmail, coAuthorName);
         assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
-        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [
-          {name: 'Foo Bar', email: 'foo@bar.com'},
-        ]);
+        assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
       });
     });
   });

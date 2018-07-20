@@ -17,7 +17,7 @@
   'alt-m enter': 'github:resolve-as-current'
   'alt-m r': 'github:revert-current'
 
-'.github-Panel':
+'.github-Git':
   'cmd-enter': 'github:commit'
   'ctrl-enter': 'github:commit'
 

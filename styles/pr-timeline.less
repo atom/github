@@ -23,6 +23,7 @@
     width: @avatar-size;
     height: @avatar-size;
     margin-right: 5px;
+    border-radius: @component-border-radius;
   }
 
   .pre-timeline-item-icon {
@@ -58,19 +59,45 @@
     }
 
     .commit-author {
-      display: table-cell;
-      white-space: nowrap;
-      text-align: right;
+      position: absolute;
+      display: flex;
     }
 
     .author-avatar {
-      flex-basis: @avatar-size;
+      @size: 20px;
+      position: relative;
+      margin-right: -@size + 4px;
+      width: @size;
+      height: @size;
+      border-radius: @component-border-radius;
+      background-color: mix(@text-color, @base-background-color, 15%);
+      box-shadow: 1px 0 @base-background-color;
+      transition: margin .12s cubic-bezier(.5,.1,0,1);
+
+      &:nth-child(1) { z-index: 3; }
+      &:nth-child(2) { z-index: 2; opacity: .7; }
+      &:nth-child(3) { z-index: 1; opacity: .4; }
+      &:nth-child(n+4) {
+        display: none;
+      }
+      &:only-child,
+      &:last-child {
+        box-shadow: none;
+      }
+    }
+
+    .commit-author:hover .author-avatar {
+      display: inline-block;
+      margin-right: 1px;
+      opacity: 1;
     }
 
     .commit-message-headline {
       display: table-cell;
       font-size: .9em;
+      line-height: @avatar-size + 4px;
       padding: 0 @component-padding/3;
+      padding-left: @avatar-size + @component-padding;
       max-height: @avatar-size;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -86,6 +113,14 @@
       padding-left: 5px;
       font-size: .85em;
       color: @text-color-subtle;
+    }
+  }
+
+  .comment-message-header {
+    font-size: .9em;
+    color: @text-color-subtle;
+    a {
+      color: inherit;
     }
   }
 
@@ -105,6 +140,11 @@
       margin-bottom: 0;
     }
 
+    &-header {
+      font-size: .9em;
+      color: @text-color-subtle;
+    }
+
     &-label {
       display: table-cell;
       width: 100%;
@@ -117,6 +157,7 @@
         display: inline;
         margin-left: 5px;
         white-space: nowrap;
+        color: @text-color-subtle;
       }
     }
 
@@ -171,17 +212,8 @@
     .info-row {
       margin-bottom: @component-padding/1.5;
     }
-    .comment-message-header {
-      font-size: .9em;
-      color: @text-color-subtle;
-    }
 
     .github-DotComMarkdownHtml {
-
-      p:last-child {
-        margin-bottom: 0;
-      }
-
       pre > code {
         white-space: pre;
       }

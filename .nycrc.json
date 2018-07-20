@@ -1,0 +1,7 @@
+{
+  "instrument": false,
+  "source-map": false,
+  "include": [
+    "lib/**/*.js"
+  ]
+}

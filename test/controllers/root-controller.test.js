@@ -8,14 +8,21 @@ import dedent from 'dedent-js';
 import {cloneRepository, buildRepository} from '../helpers';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
+import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import GitTabItem from '../../lib/items/git-tab-item';
+import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
 
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let getRepositoryForWorkdir, destroyGitTabItem, destroyGithubTabItem, removeFilePatchItem;
+  let workdirContextPool, getRepositoryForWorkdir;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -28,11 +35,10 @@ describe('RootController', function() {
     config = atomEnv.config;
     project = atomEnv.project;
 
+    workdirContextPool = new WorkdirContextPool();
     getRepositoryForWorkdir = sinon.stub();
-    destroyGitTabItem = sinon.spy();
-    destroyGithubTabItem = sinon.spy();
-    removeFilePatchItem = sinon.spy();
 
+    const loginModel = new GithubLoginModel(InMemoryStrategy);
     const absentRepository = Repository.absent();
     const emptyResolutionProgress = new ResolutionProgress();
 
@@ -48,14 +54,13 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         project={project}
+        loginModel={loginModel}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
-        filePatchItems={[]}
+        startRevealed={false}
+        workdirContextPool={workdirContextPool}
         getRepositoryForWorkdir={getRepositoryForWorkdir}
-        destroyGitTabItem={destroyGitTabItem}
-        destroyGithubTabItem={destroyGithubTabItem}
-        removeFilePatchItem={removeFilePatchItem}
       />
     );
   });
@@ -64,58 +69,40 @@ describe('RootController', function() {
     atomEnv.destroy();
   });
 
-  describe('initial panel visibility', function() {
-    let gitTabStubItem, githubTabStubItem;
-    beforeEach(function() {
-      const FAKE_PANE_ITEM = Symbol('fake pane item');
-      gitTabStubItem = {
-        getDockItem() {
-          return FAKE_PANE_ITEM;
-        },
-      };
-      githubTabStubItem = {
-        getDockItem() {
-          return FAKE_PANE_ITEM;
-        },
-      };
-    });
-
-    it('is rendered but not activated when startOpen prop is false', async function() {
+  describe('initial dock item visibility', function() {
+    it('does not reveal the dock when startRevealed prop is false', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: false});
-      const wrapper = shallow(app);
+      app = React.cloneElement(app, {repository, startOpen: false, startRevealed: false});
+      const wrapper = mount(app);
 
-      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
-      assert.isTrue(gitDockItem.exists());
-      assert.isFalse(gitDockItem.prop('activate'));
+      assert.isFalse(wrapper.update().find('GitTabItem').exists());
+      assert.isUndefined(workspace.paneForURI(GitTabItem.buildURI()));
+      assert.isFalse(wrapper.update().find('GitHubTabItem').exists());
+      assert.isUndefined(workspace.paneForURI(GitHubTabItem.buildURI()));
 
-      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
-      assert.isTrue(githubDockItem.exists());
-      assert.isNotTrue(githubDockItem.prop('activate'));
+      assert.isUndefined(workspace.getActivePaneItem());
+      assert.isFalse(workspace.getRightDock().isVisible());
     });
 
-    it('is initially activated when the startOpen prop is true', async function() {
+    it('is initially visible, but not focused, when the startRevealed prop is true', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      app = React.cloneElement(app, {repository, gitTabStubItem, githubTabStubItem, startOpen: true});
-      const wrapper = shallow(app);
+      app = React.cloneElement(app, {repository, startOpen: true, startRevealed: true});
+      const wrapper = mount(app);
 
-      const gitDockItem = wrapper.find('DockItem').find({stubItem: gitTabStubItem});
-      assert.isTrue(gitDockItem.exists());
-      assert.isTrue(gitDockItem.prop('activate'));
-
-      const githubDockItem = wrapper.find('DockItem').find({stubItem: githubTabStubItem});
-      assert.isTrue(githubDockItem.exists());
-      assert.isNotTrue(githubDockItem.prop('activate'));
+      await assert.async.isTrue(workspace.getRightDock().isVisible());
+      assert.isTrue(wrapper.find('GitTabItem').exists());
+      assert.isTrue(wrapper.find('GitHubTabItem').exists());
+      assert.isUndefined(workspace.getActivePaneItem());
     });
   });
 
   ['git', 'github'].forEach(function(tabName) {
     describe(`${tabName} tab tracker`, function() {
-      let wrapper, tabTracker, mockDockItem;
+      let wrapper, tabTracker;
 
       beforeEach(async function() {
         const workdirPath = await cloneRepository('multiple-commits');
@@ -128,19 +115,7 @@ describe('RootController', function() {
         sinon.stub(tabTracker, 'focus');
         sinon.spy(workspace.getActivePane(), 'activate');
 
-        const FAKE_PANE_ITEM = Symbol('fake pane item');
-        mockDockItem = {
-          getDockItem() {
-            return FAKE_PANE_ITEM;
-          },
-        };
-
-        wrapper.instance()[`${tabName}DockItem`] = mockDockItem;
-
         sinon.stub(workspace.getRightDock(), 'isVisible').returns(true);
-        sinon.stub(workspace.getRightDock(), 'getPanes').callsFake(() => [{
-          getActiveItem() { return mockDockItem.active ? FAKE_PANE_ITEM : null; },
-        }]);
       });
 
       describe('reveal', function() {
@@ -154,6 +129,14 @@ describe('RootController', function() {
             {searchAllPanes: true, activateItem: true, activatePane: true},
           ]);
         });
+        it('increments counter with correct name', function() {
+          sinon.stub(workspace, 'open');
+          const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+
+          tabTracker.reveal();
+          assert.equal(incrementCounterStub.callCount, 1);
+          assert.deepEqual(incrementCounterStub.lastCall.args, [`${tabName}-tab-open`]);
+        });
       });
 
       describe('hide', function() {
@@ -165,6 +148,14 @@ describe('RootController', function() {
           assert.deepEqual(workspace.hide.args[0], [
             `atom-github://dock-item/${tabName}`,
           ]);
+        });
+        it('increments counter with correct name', function() {
+          sinon.stub(workspace, 'hide');
+          const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+
+          tabTracker.hide();
+          assert.equal(incrementCounterStub.callCount, 1);
+          assert.deepEqual(incrementCounterStub.lastCall.args, [`${tabName}-tab-close`]);
         });
       });
 
@@ -1069,6 +1060,17 @@ describe('RootController', function() {
         await wrapper.instance().viewStagedChangesForCurrentFile();
         assert.isFalse(workspace.open.called);
       });
+    });
+  });
+
+  describe('opening an IssueishDetailItem', function() {
+    it('registers an opener for IssueishPaneItems', async function() {
+      const uri = IssueishDetailItem.buildURI('https://api.github.com', 'owner', 'repo', 123, __dirname);
+      const wrapper = mount(app);
+
+      const item = await atomEnv.workspace.open(uri);
+      assert.strictEqual(item.getTitle(), 'owner/repo#123');
+      assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
     });
   });
 });

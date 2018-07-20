@@ -1,6 +1,6 @@
 # Atom GitHub Package
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/) [![Coverage Status](https://coveralls.io/repos/github/atom/github/badge.svg?branch=master)](https://coveralls.io/github/atom/github?branch=master)
 
 | Windows | Mac | Linux | Dependency Status |
 |---------|-----|-------|-------------------|
@@ -8,11 +8,11 @@
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
-<img width="1171" alt="git-integration" src="https://user-images.githubusercontent.com/378023/27811906-e154f422-60a5-11e7-81a8-ba0e030b672e.png">
+<img width="880" alt="git-integration" src="https://user-images.githubusercontent.com/378023/42010937-0961e420-7acc-11e8-9aaa-417514317206.png">
 
-<img width="1171" alt="github-integration" src="https://user-images.githubusercontent.com/378023/27811908-e157a014-60a5-11e7-82bd-083f9156865f.png">
+<img width="880" alt="merge-conflicts" src="https://user-images.githubusercontent.com/378023/42010938-098e3430-7acc-11e8-95dd-770409785471.png">
 
-<img width="1172" alt="merge-conflicts" src="https://user-images.githubusercontent.com/378023/27811907-e1573fca-60a5-11e7-9401-1315e4750eb9.png">
+<img width="880" alt="github-integration" src="https://user-images.githubusercontent.com/378023/42010939-09b90dea-7acc-11e8-899c-99fc7faeba8e.png">
 
 ## Installation
 

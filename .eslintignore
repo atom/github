@@ -1,1 +1,3 @@
-test/fixtures/**/*
+/test/fixtures/**/*
+!/test/fixtures/factories/**
+!/test/fixtures/props/**

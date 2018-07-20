@@ -8,6 +8,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
 import {Directory} from 'atom';
+import {Emitter} from 'event-kit';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
@@ -236,6 +237,57 @@ export function transpile(...relPaths) {
   );
 }
 
+// Manually defer the next setState() call performed on a React component instance until a returned resolution method
+// is called. This is useful for testing code paths that will only be triggered if a setState call is asynchronous,
+// which React can choose to do at any time, but Enzyme will never do on its own.
+//
+// This function will also return a pair of Promises which will be resolved when the stubbed setState call has begun
+// and when it has completed. Be sure to await the `started` Promise before calling `deferSetState` again.
+//
+// Examples:
+//
+// ```
+// const {resolve} = deferSetState(wrapper.instance());
+// wrapper.instance().doStateChange();
+// assert.isFalse(wrapper.update().find('Child').prop('changed'));
+// resolve();
+// assert.isTrue(wrapper.update().find('Child').prop('changed'));
+// ```
+//
+// ```
+// const {resolve: resolve0, started: started0} = deferSetState(wrapper.instance());
+// /* ... */
+// await started0;
+// const {resolve: resolve1} = deferSetState(wrapper.instance());
+// /* ... */
+// resolve1();
+// resolve0();
+// ```
+export function deferSetState(instance) {
+  if (!instance.__deferOriginalSetState) {
+    instance.__deferOriginalSetState = instance.setState;
+  }
+  let resolve, resolveStarted, resolveCompleted;
+  const started = new Promise(r => { resolveStarted = r; });
+  const completed = new Promise(r => { resolveCompleted = r; });
+  const resolved = new Promise(r => { resolve = r; });
+
+  const stub = function(updater, callback) {
+    resolveStarted();
+    resolved.then(() => {
+      instance.__deferOriginalSetState(updater, () => {
+        if (callback) {
+          callback();
+        }
+        resolveCompleted();
+      });
+    });
+  };
+  instance.setState = stub;
+
+  return {resolve, started, completed};
+}
+
 // eslint-disable-next-line jasmine/no-global-setup
 beforeEach(function() {
   global.sinon = sinon.createSandbox();
@@ -258,4 +310,30 @@ after(() => {
   if (!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW) {
     WorkerManager.reset(true);
   }
+
+  if (global._nyc) {
+    global._nyc.writeCoverageFile();
+
+    if (global._nycInProcess) {
+      global._nyc.report();
+    }
+  }
 });
+
+export class ManualStateObserver {
+  constructor() {
+    this.emitter = new Emitter();
+  }
+
+  onDidComplete(callback) {
+    return this.emitter.on('did-complete', callback);
+  }
+
+  trigger() {
+    this.emitter.emit('did-complete');
+  }
+
+  dispose() {
+    this.emitter.dispose();
+  }
+}
