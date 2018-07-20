@@ -5,10 +5,11 @@ import {setup, teardown} from './helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
+import IDGenerator from '../fixtures/factories/id-generator';
 import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
 
 describe('check out a pull request', function() {
-  let context, wrapper, atomEnv, workspaceElement, git;
+  let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
 
   beforeEach(async function() {
     context = await setup(this.currentTest, {
@@ -17,6 +18,8 @@ describe('check out a pull request', function() {
     wrapper = context.wrapper;
     atomEnv = context.atomEnv;
     workspaceElement = context.workspaceElement;
+    idGen = new IDGenerator();
+    repositoryID = idGen.generate('repository');
 
     await context.loginModel.setToken('https://api.github.com', 'good-token');
 
@@ -61,7 +64,7 @@ describe('check out a pull request', function() {
         name: 'repo',
       },
     }, {
-      repository: createRepositoryResult(),
+      repository: createRepositoryResult({id: repositoryID}),
     });
   }
 
@@ -76,7 +79,9 @@ describe('check out a pull request', function() {
       },
     }, {
       repository: {
+        id: repositoryID,
         ref: {
+          id: idGen.generate('ref'),
           associatedPullRequests: {
             totalCount: 0,
             nodes: [],
@@ -108,7 +113,7 @@ describe('check out a pull request', function() {
   function expectIssueishDetailQuery() {
     const result = {
       repository: {
-        id: 'repository0',
+        id: repositoryID,
         name: 'repo',
         owner: {
           __typename: 'User',
