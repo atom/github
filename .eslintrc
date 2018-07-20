@@ -14,10 +14,12 @@
   "plugins": [
     "jsx-a11y"
   ],
-  "extends": ["fbjs-opensource", "plugin:jsx-a11y/recommended"],
+  "extends": ["fbjs-opensource"],
   "rules": {
     "linebreak-style": 0,
     "no-param-reassign": 0,
+    "jsx-a11y/alt-text": 2,
+    "jsx-a11y/anchor-is-valid": 2,
     "indent": ["error", 2]
   },
   "globals": {
