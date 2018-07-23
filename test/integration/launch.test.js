@@ -3,7 +3,7 @@ import path from 'path';
 
 import {setup, teardown} from './helpers';
 import GitTabItem from '../../lib/items/git-tab-item';
-import GithubTabController from '../../lib/controllers/github-tab-controller';
+import GitHubTabItem from '../../lib/items/github-tab-item';
 
 describe('Package initialization', function() {
   let context;
@@ -23,7 +23,7 @@ describe('Package initialization', function() {
       return rightDock.getPaneItems().map(i => i.getURI());
     };
 
-    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GitHubTabItem.buildURI()]);
     assert.isTrue(rightDock.isVisible());
   });
 
@@ -38,7 +38,7 @@ describe('Package initialization', function() {
       return rightDock.getPaneItems().map(i => i.getURI());
     };
 
-    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GitHubTabItem.buildURI()]);
     assert.isFalse(rightDock.isVisible());
   });
 
@@ -53,7 +53,7 @@ describe('Package initialization', function() {
       return rightDock.getPaneItems().map(i => i.getURI());
     };
 
-    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GithubTabController.buildURI()]);
+    await assert.async.includeMembers(getPaneItemURIs(), [GitTabItem.buildURI(), GitHubTabItem.buildURI()]);
     assert.isFalse(rightDock.isVisible());
   });
 
@@ -66,7 +66,7 @@ describe('Package initialization', function() {
     const prevContext = await setup(this.currentTest, nonFirstRun);
 
     const prevWorkspace = prevContext.atomEnv.workspace;
-    await prevWorkspace.open(GithubTabController.buildURI(), {searchAllPanes: true});
+    await prevWorkspace.open(GitHubTabItem.buildURI(), {searchAllPanes: true});
     prevWorkspace.hide(GitTabItem.buildURI());
 
     const prevState = prevContext.atomEnv.serialize();
@@ -77,7 +77,7 @@ describe('Package initialization', function() {
     await context.atomEnv.deserialize(prevState);
 
     const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
-    assert.include(paneItemURIs, GithubTabController.buildURI());
+    assert.include(paneItemURIs, GitHubTabItem.buildURI());
     assert.notInclude(paneItemURIs, GitTabItem.buildURI());
   });
 
@@ -95,7 +95,7 @@ describe('Package initialization', function() {
 
     await assert.async.includeMembers(
       getPaneItemURIs(prevContext),
-      [GitTabItem.buildURI(), GithubTabController.buildURI()],
+      [GitTabItem.buildURI(), GitHubTabItem.buildURI()],
     );
 
     const prevWorkspace = prevContext.atomEnv.workspace;
@@ -112,7 +112,7 @@ describe('Package initialization', function() {
     });
     await context.atomEnv.deserialize(prevState);
 
-    await assert.async.include(getPaneItemURIs(context), GithubTabController.buildURI());
+    await assert.async.include(getPaneItemURIs(context), GitHubTabItem.buildURI());
     assert.notInclude(getPaneItemURIs(context), GitTabItem.buildURI());
   });
 });

@@ -1,18 +1,19 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 
-import {cloneRepository, initRepository, buildRepository} from '../helpers';
-import GithubTabController from '../../lib/controllers/github-tab-controller';
+import {gitHubTabControllerProps} from '../fixtures/props/github-tab-props';
+import GitHubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
-import GithubLoginModel from '../../lib/models/github-login-model';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import BranchSet from '../../lib/models/branch-set';
+import Branch, {nullBranch} from '../../lib/models/branch';
+import RemoteSet from '../../lib/models/remote-set';
+import Remote from '../../lib/models/remote';
 
-describe('GithubTabController', function() {
-  let atomEnv, loginModel;
+describe('GitHubTabController', function() {
+  let atomEnv;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    loginModel = new GithubLoginModel(InMemoryStrategy);
   });
 
   afterEach(function() {
@@ -20,80 +21,84 @@ describe('GithubTabController', function() {
   });
 
   function buildApp(overrideProps = {}) {
-    return (
-      <GithubTabController
-        repository={Repository.absent()}
-        workspace={atomEnv.workspace}
-        loginModel={loginModel}
-        {...overrideProps}
-      />
-    );
+    const props = {
+      repository: Repository.absent(),
+      ...overrideProps,
+    };
+
+    return <GitHubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
   }
 
-  it('renders nothing when the repository is absent', async function() {
-    const wrapper = mount(buildApp({repository: Repository.absent()}));
-    await assert.async.lengthOf(wrapper.update().find('ObserveModel').children(), 0);
+  describe('derived view props', function() {
+    const dotcom0 = new Remote('yes0', 'git@github.com:aaa/bbb.git');
+    const dotcom1 = new Remote('yes1', 'https://github.com/ccc/ddd.git');
+    const nonDotcom = new Remote('no0', 'git@sourceforge.net:eee/fff.git');
+
+    it('passes the current branch', function() {
+      const currentBranch = new Branch('aaa', nullBranch, nullBranch, true);
+      const otherBranch = new Branch('bbb');
+      const branches = new BranchSet([currentBranch, otherBranch]);
+      const wrapper = shallow(buildApp({branches}));
+
+      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentBranch'), currentBranch);
+    });
+
+    it('passes remotes hosted on GitHub', function() {
+      const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
+      const wrapper = shallow(buildApp({allRemotes}));
+
+      const passed = wrapper.find('GitHubTabView').prop('remotes');
+      assert.isTrue(passed.withName('yes0').isPresent());
+      assert.isTrue(passed.withName('yes1').isPresent());
+      assert.isFalse(passed.withName('no0').isPresent());
+    });
+
+    it('detects an explicitly specified current remote', function() {
+      const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
+      const wrapper = shallow(buildApp({allRemotes, selectedRemoteName: 'yes1'}));
+      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom1);
+      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+    });
+
+    it('uses a single GitHub-hosted remote', function() {
+      const allRemotes = new RemoteSet([dotcom0, nonDotcom]);
+      const wrapper = shallow(buildApp({allRemotes}));
+      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom0);
+      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+    });
+
+    it('indicates when multiple remotes are available', function() {
+      const allRemotes = new RemoteSet([dotcom0, dotcom1]);
+      const wrapper = shallow(buildApp({allRemotes}));
+      assert.isFalse(wrapper.find('GitHubTabView').prop('currentRemote').isPresent());
+      assert.isTrue(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+    });
   });
 
-  it('renders a RemoteContainer when only a single dotcom Remote is present', async function() {
-    const repository = await buildRepository(await cloneRepository());
-    await repository.addRemote('single', 'git@github.com:owner/name.git');
-    await repository.addRemote('nondotcom', 'git@sourceforge.net:owner/name.git');
+  describe('actions', function() {
+    it('pushes a branch', async function() {
+      const repository = Repository.absent();
+      sinon.stub(repository, 'push').resolves(true);
+      const wrapper = shallow(buildApp({repository}));
 
-    const wrapper = mount(buildApp({repository}));
-    await assert.async.isTrue(wrapper.update().find('RemoteContainer').exists());
+      const branch = new Branch('abc');
+      const remote = new Remote('def', 'git@github.com:def/ghi.git');
+      assert.isTrue(await wrapper.find('GitHubTabView').prop('handlePushBranch')(branch, remote));
 
-    const container = wrapper.find('RemoteContainer');
-    assert.strictEqual(container.prop('loginModel'), loginModel);
-    assert.strictEqual(container.prop('workspace'), atomEnv.workspace);
-    assert.strictEqual(container.prop('workingDirectory'), repository.getWorkingDirectoryPath());
-    assert.strictEqual(container.prop('remote').getName(), 'single');
+      assert.isTrue(repository.push.calledWith('abc', {remote, setUpstream: true}));
+    });
 
-    sinon.stub(repository, 'push').resolves();
-    await container.prop('onPushBranch')();
+    it('chooses a remote', async function() {
+      const repository = Repository.absent();
+      sinon.stub(repository, 'setConfig').resolves(true);
+      const wrapper = shallow(buildApp({repository}));
 
-    assert.isTrue(repository.push.calledWith('master', {remote: container.prop('remote'), setUpstream: true}));
-  });
+      const remote = new Remote('aaa', 'git@github.com:aaa/aaa.git');
+      const event = {preventDefault: sinon.spy()};
+      assert.isTrue(await wrapper.find('GitHubTabView').prop('handleRemoteSelect')(event, remote));
 
-  it('renders a RemoteSelectorView when multiple Remotes are present', async function() {
-    const repository = await buildRepository(await cloneRepository());
-    await repository.addRemote('one', 'git@github.com:owner/name.git');
-    await repository.addRemote('nondotcom', 'git@sourceforge.net:owner/name.git');
-    await repository.addRemote('two', 'git@github.com:owner/name.git');
-    const chosen = await repository.addRemote('three', 'git@github.com:owner/name.git');
-
-    const wrapper = mount(buildApp({repository}));
-    await assert.async.isTrue(wrapper.update().find('RemoteSelectorView').exists());
-
-    const view = wrapper.find('RemoteSelectorView');
-    assert.strictEqual(view.prop('remotes').size(), 3);
-
-    const e = {preventDefault: sinon.spy()};
-    await view.prop('selectRemote')(e, chosen);
-
-    assert.isTrue(e.preventDefault.called);
-    assert.strictEqual(await repository.getConfig('atomGithub.currentRemote'), 'three');
-  });
-
-  it('renders a RemoteContainer when multiple Remotes are present, but one has been selected', async function() {
-    const repository = await buildRepository(await cloneRepository());
-    await repository.addRemote('one', 'git@github.com:owner/name.git');
-    await repository.addRemote('two', 'git@github.com:owner/name.git');
-    await repository.addRemote('nondotcom', 'git@sourceforge.net:owner/name.git');
-    await repository.addRemote('three', 'git@github.com:owner/name.git');
-    await repository.setConfig('atomGithub.currentRemote', 'two');
-
-    const wrapper = mount(buildApp({repository}));
-    await assert.async.isTrue(wrapper.update().find('RemoteContainer').exists());
-    const container = wrapper.find('RemoteContainer');
-    assert.strictEqual(container.prop('remote').getName(), 'two');
-  });
-
-  it('renders a static message when no dotcom remotes are present', async function() {
-    const repository = await buildRepository(await initRepository());
-    await repository.addRemote('nondotcom', 'git@sourceforge.net:owner/name.git');
-
-    const wrapper = mount(buildApp({repository}));
-    await assert.async.isTrue(wrapper.update().find('.github-GithubTabController-no-remotes').exists());
+      assert.isTrue(event.preventDefault.called);
+      assert.isTrue(repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+    });
   });
 });
