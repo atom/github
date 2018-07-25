@@ -11,6 +11,7 @@
   font-size: .9em;
   background-color: @panel-heading-background-color;
   border-bottom: 1px solid @panel-heading-border-color;
+  cursor: default;
 
   &-title {
     flex: 1;
@@ -81,29 +82,28 @@
   &-lineText {
      display: inline-block;
      text-indent: 0;
- }
+  }
 }
-
 
 //
 // States
 // -------------------------------
 
-.github-HunkView.is-selected.is-hunkMode .github-HunkView-header {
-  background-color: @background-color-selected;
-  .github-HunkView-title {
-    color: @text-color;
+.github-HunkHeaderView--isSelected.github-HunkHeaderView--isHunkMode {
+  background-color: @button-background-color-selected;
+  .github-HunkHeaderView-title {
+    color: contrast(@button-background-color-selected);
   }
-  .github-HunkView-stageButton, .github-HunkView-discardButton {
+  .github-HunkHeaderView-stageButton, .github-HunkHeaderView-discardButton {
     border-color: mix(@text-color, @background-color-selected, 25%);
   }
 }
 
-.github-HunkView-title:hover {
+.github-HunkHeaderView-title:hover {
   color: @text-color-highlight;
 }
 
-.github-HunkView-line {
+.github-HunkHeaderView-line {
 
   // mixin
   .hunk-line-mixin(@fg; @bg) {
@@ -114,12 +114,12 @@
       color: @text-color;
       background-color: @background-color-selected;
     }
-    .github-HunkView-lineContent {
+    .github-HunkHeaderView-lineContent {
       color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
       background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 20%);
     }
     // hightlight when focused + selected
-    .github-FilePatchView:focus &.is-selected .github-HunkView-lineContent  {
+    .github-FilePatchView:focus &.is-selected .github-HunkHeaderView-lineContent  {
       color: saturate( mix(@fg, @text-color-highlight, 10%), 10%);
       background-color: saturate( mix(@bg, @hunk-bg-color, 25%), 10%);
     }
@@ -134,7 +134,7 @@
   }
 
   // divider line between added and deleted lines
-  &.is-deleted + .is-added .github-HunkView-lineContent {
+  &.is-deleted + .is-added .github-HunkHeaderView-lineContent {
     box-shadow: 0 -1px 0 hsla(0,0%,50%,.1);
   }
 
@@ -142,16 +142,16 @@
 
 // focus colors
 .github-FilePatchView:focus {
-  .github-HunkView.is-selected.is-hunkMode .github-HunkView-title,
-  .github-HunkView.is-selected.is-hunkMode .github-HunkView-header,
-  .github-HunkView-line.is-selected .github-HunkView-lineNumber {
+  .github-HunkHeaderView.is-selected.is-hunkMode .github-HunkHeaderView-title,
+  .github-HunkHeaderView.is-selected.is-hunkMode .github-HunkHeaderView-header,
+  .github-HunkHeaderView-line.is-selected .github-HunkHeaderView-lineNumber {
     color: contrast(@button-background-color-selected);
     background: @button-background-color-selected;
   }
-  .github-HunkView-line.is-selected .github-HunkView-lineNumber {
+  .github-HunkHeaderView-line.is-selected .github-HunkHeaderView-lineNumber {
     border-color: mix(@button-border-color, @button-background-color-selected, 25%);
   }
-  .github-HunkView.is-selected.is-hunkMode .github-HunkView {
+  .github-HunkHeaderView.is-selected.is-hunkMode .github-HunkHeaderView {
     &-stageButton,
     &-discardButton {
       border-color: mix(@hunk-bg-color, @button-background-color-selected, 30%);

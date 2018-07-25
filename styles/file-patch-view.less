@@ -164,18 +164,19 @@
   }
 }
 
-.gutter.old {
+.gutter.old, .gutter.new {
   width: 5em;
 
-  .line-number {
-    opacity: 1;
+  div {
+    width: 100%;
   }
-}
-
-.gutter.new {
-  width: 5em;
 
   .line-number {
     opacity: 1;
+
+    &.github-FilePatchView-line--selected {
+      color: contrast(@button-background-color-selected);
+      background: @button-background-color-selected;
+    }
   }
 }
