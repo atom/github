@@ -152,6 +152,11 @@
     .hunk-line-mixin(@fg; @bg) {
       color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
       background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 20%);
+
+      &.line.cursor-line {
+        color: saturate( mix(@fg, @text-color-highlight, 20%), 80%);
+        background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 80%);
+      }
     }
 
     &--deleted {
