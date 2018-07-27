@@ -6,6 +6,7 @@ import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
+import {fromBufferRange, fromBufferPosition} from '../../lib/models/marker-position';
 
 describe('Decoration', function() {
   let atomEnv, editor, marker;
@@ -118,7 +119,7 @@ describe('Decoration', function() {
   it('decorates a parent Marker', function() {
     const wrapper = mount(
       <AtomTextEditor>
-        <Marker bufferRange={[[0, 0], [0, 0]]}>
+        <Marker position={fromBufferRange([[0, 0], [0, 0]])}>
           <Decoration type="line" className="whatever" position="head" />
         </Marker>
       </AtomTextEditor>,
@@ -132,7 +133,7 @@ describe('Decoration', function() {
     mount(
       <AtomTextEditor>
         <MarkerLayer>
-          <Marker bufferPosition={[0, 0]} />
+          <Marker position={fromBufferPosition([0, 0])} />
           <Decoration type="line" className="something" />
         </MarkerLayer>
       </AtomTextEditor>,
