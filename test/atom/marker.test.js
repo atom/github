@@ -4,6 +4,7 @@ import {mount} from 'enzyme';
 import Marker from '../../lib/atom/marker';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import MarkerLayer from '../../lib/atom/marker-layer';
+import {fromBufferRange, fromScreenRange, fromBufferPosition} from '../../lib/models/marker-position';
 
 describe('Marker', function() {
   let atomEnv, editor, markerID;
@@ -23,7 +24,7 @@ describe('Marker', function() {
 
   it('adds its marker on mount with default properties', function() {
     mount(
-      <Marker editor={editor} bufferRange={[[0, 0], [10, 0]]} handleID={setMarkerID} />,
+      <Marker editor={editor} position={fromBufferRange([[0, 0], [10, 0]])} handleID={setMarkerID} />,
     );
 
     const marker = editor.getMarker(markerID);
@@ -37,7 +38,7 @@ describe('Marker', function() {
       <Marker
         editor={editor}
         handleID={setMarkerID}
-        screenRange={[[1, 2], [3, 4]]}
+        position={fromScreenRange([[1, 2], [3, 4]])}
         reversed={true}
         invalidate={'never'}
         exclusive={true}
@@ -58,7 +59,7 @@ describe('Marker', function() {
         editor={editor}
         layer={layer}
         handleID={setMarkerID}
-        bufferRange={[[0, 0], [1, 0]]}
+        position={fromBufferRange([[0, 0], [1, 0]])}
       />,
     );
 
@@ -67,7 +68,7 @@ describe('Marker', function() {
   });
 
   it('destroys its marker on unmount', function() {
-    const wrapper = mount(<Marker editor={editor} handleID={setMarkerID} bufferPosition={[0, 0]} />);
+    const wrapper = mount(<Marker editor={editor} handleID={setMarkerID} position={fromBufferPosition([0, 0])} />);
 
     assert.isDefined(editor.getMarker(markerID));
     wrapper.unmount();
@@ -77,7 +78,7 @@ describe('Marker', function() {
   it('marks an editor from a parent node', function() {
     const wrapper = mount(
       <AtomTextEditor>
-        <Marker handleID={setMarkerID} bufferRange={[[0, 0], [0, 0]]} />
+        <Marker handleID={setMarkerID} position={fromBufferRange([[0, 0], [0, 0]])} />
       </AtomTextEditor>,
     );
 
@@ -91,7 +92,7 @@ describe('Marker', function() {
     const wrapper = mount(
       <AtomTextEditor>
         <MarkerLayer handleID={id => { layerID = id; }}>
-          <Marker handleID={setMarkerID} bufferRange={[[0, 0], [0, 0]]} />
+          <Marker handleID={setMarkerID} position={fromBufferRange([[0, 0], [0, 0]])} />
         </MarkerLayer>
       </AtomTextEditor>,
     );
