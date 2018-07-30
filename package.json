@@ -57,7 +57,7 @@
     "prop-types": "15.6.2",
     "react": "16.4.0",
     "react-dom": "16.4.0",
-    "react-relay": "1.6.0",
+    "react-relay": "1.6.1",
     "react-select": "1.2.1",
     "relay-runtime": "1.6.0",
     "temp": "0.8.3",
