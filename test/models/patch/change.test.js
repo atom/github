@@ -1,5 +1,5 @@
-import Change from '../../../lib/models/patch/change';
-import {fromBufferRange} from '../../../lib/models/marker-position';
+import Change, {nullChange} from '../../../lib/models/patch/change';
+import {fromBufferRange, nullPosition} from '../../../lib/models/marker-position';
 
 describe('Change', function() {
   it('delegates methods to its MarkerPosition', function() {
@@ -64,5 +64,13 @@ describe('Change', function() {
 
     const int2 = intersections[2];
     assert.strictEqual(int2.toStringIn(buffer, '+'), '+8888\n');
+  });
+
+  it('returns appropriate values from nullChange methods', function() {
+    assert.deepEqual(nullChange.intersectRowsIn(new Set([0, 1, 2]), ''), []);
+    assert.strictEqual(nullChange.toStringIn('', '+'), '');
+    assert.strictEqual(nullChange.markOn(), nullPosition.markOn());
+    assert.strictEqual(nullChange.setIn(), nullPosition.setIn());
+    assert.strictEqual(nullChange.bufferRowCount(), 0);
   });
 });
