@@ -16,6 +16,8 @@ describe('Change', function() {
     const marker = {setBufferRange: sinon.stub().returns(1)};
     assert.strictEqual(ch.setIn(marker), 1);
     assert.deepEqual(marker.setBufferRange.firstCall.args[0].serialize(), [[0, 0], [1, 0]]);
+
+    assert.deepEqual(ch.bufferRowCount(), 2);
   });
 
   it('extracts its offset range from buffer text with toStringIn()', function() {
