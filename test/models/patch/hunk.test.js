@@ -209,7 +209,7 @@ describe('Hunk', function() {
     });
 
     it('renders a hunk without a nonewline', function() {
-      const buffer = '0000\n1111\n2222\n3333\n';
+      const buffer = '0000\n1111\n2222\n3333\n4444\n';
 
       const h = new Hunk({
         ...attrs,
