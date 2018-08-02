@@ -5,7 +5,7 @@ describe('buildFilePatch', function() {
 
   function assertHunkChanges(changes, expectedStrings, expectedRanges) {
     const actualStrings = changes.map(change => change.toStringIn(buffer, '*'));
-    const actualRanges = changes.map(change => change.position.serialize());
+    const actualRanges = changes.map(change => change.bufferRange.serialize());
 
     assert.deepEqual(
       {strings: actualStrings, ranges: actualRanges},
@@ -13,9 +13,8 @@ describe('buildFilePatch', function() {
     );
   }
 
-  function assertHunk(hunk, {startPosition, startOffset, header, deletions, additions, noNewline}) {
-    assert.deepEqual(hunk.getBufferStartPosition().serialize(), startPosition);
-    assert.strictEqual(hunk.getBufferStartOffset(), startOffset);
+  function assertHunk(hunk, {startRow, header, deletions, additions, noNewline}) {
+    assert.deepEqual(hunk.getStartRange().serialize(), [[startRow, 0], [startRow, 0]]);
     assert.strictEqual(hunk.getHeader(), header);
 
     assertHunkChanges(hunk.getDeletions(), deletions.strings, deletions.ranges);
@@ -104,9 +103,8 @@ describe('buildFilePatch', function() {
 
       assert.lengthOf(p.getHunks(), 3);
       assertHunk(p.getHunks()[0], {
-        startPosition: [[0, 0], [0, 0]],
-        startOffset: 0,
-        header: '@@ -0,7 +0,6 @@\n',
+        startRow: 0,
+        header: '@@ -0,7 +0,6 @@',
         deletions: {
           strings: ['*line-1\n*line-2\n*line-3\n'],
           ranges: [[[1, 0], [3, 0]]],
@@ -118,9 +116,8 @@ describe('buildFilePatch', function() {
       });
 
       assertHunk(p.getHunks()[1], {
-        startPosition: [[9, 0], [9, 0]],
-        startOffset: 63,
-        header: '@@ -10,3 +11,3 @@\n',
+        startRow: 9,
+        header: '@@ -10,3 +11,3 @@',
         deletions: {
           strings: ['*line-9\n'],
           ranges: [[[9, 0], [9, 0]]],
@@ -132,9 +129,8 @@ describe('buildFilePatch', function() {
       });
 
       assertHunk(p.getHunks()[2], {
-        startPosition: [[13, 0], [13, 0]],
-        startOffset: 94,
-        header: '@@ -20,4 +21,4 @@\n',
+        startRow: 13,
+        header: '@@ -20,4 +21,4 @@',
         deletions: {
           strings: ['*line-14\n*line-15\n'],
           ranges: [[[14, 0], [15, 0]]],
@@ -246,9 +242,8 @@ describe('buildFilePatch', function() {
 
       assert.lengthOf(p.getHunks(), 1);
       assertHunk(p.getHunks()[0], {
-        startPosition: [[0, 0], [0, 0]],
-        startOffset: 0,
-        header: '@@ -0,1 +0,1 @@\n',
+        startRow: 0,
+        header: '@@ -0,1 +0,1 @@',
         additions: {strings: ['*line-0\n'], ranges: [[[0, 0], [0, 0]]]},
         deletions: {strings: ['*line-1\n'], ranges: [[[1, 0], [1, 0]]]},
         noNewline: {string: '*No newline at end of file\n', range: [[2, 0], [2, 0]]},
@@ -320,9 +315,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), buffer);
       assert.lengthOf(p.getHunks(), 1);
       assertHunk(p.getHunks()[0], {
-        startPosition: [[0, 0], [0, 0]],
-        startOffset: 0,
-        header: '@@ -0,0 +0,2 @@\n',
+        startRow: 0,
+        header: '@@ -0,0 +0,2 @@',
         deletions: {strings: [], ranges: []},
         additions: {
           strings: ['*line-0\n*line-1\n'],
@@ -379,9 +373,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), buffer);
       assert.lengthOf(p.getHunks(), 1);
       assertHunk(p.getHunks()[0], {
-        startPosition: [[0, 0], [0, 0]],
-        startOffset: 0,
-        header: '@@ -0,2 +0,0 @@\n',
+        startRow: 0,
+        header: '@@ -0,2 +0,0 @@',
         deletions: {
           strings: ['*line-0\n*line-1\n'],
           ranges: [[[0, 0], [1, 0]]],
@@ -437,9 +430,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), buffer);
       assert.lengthOf(p.getHunks(), 1);
       assertHunk(p.getHunks()[0], {
-        startPosition: [[0, 0], [0, 0]],
-        startOffset: 0,
-        header: '@@ -0,0 +0,2 @@\n',
+        startRow: 0,
+        header: '@@ -0,0 +0,2 @@',
         deletions: {strings: [], ranges: []},
         additions: {
           strings: ['*line-0\n*line-1\n'],
