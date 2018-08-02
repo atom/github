@@ -11,6 +11,24 @@ describe('IndexedRowRange', function() {
     assert.deepEqual(range.bufferRowCount(), 2);
   });
 
+  it('returns an array of the covered rows', function() {
+    const range = new IndexedRowRange({
+      bufferRange: [[2, 0], [8, 0]],
+      startOffset: 0,
+      endOffset: 10,
+    });
+    assert.sameMembers(range.getBufferRows(), [2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('creates a Range from its first line', function() {
+    const range = new IndexedRowRange({
+      bufferRange: [[2, 0], [8, 0]],
+      startOffset: 0,
+      endOffset: 10,
+    });
+    assert.deepEqual(range.getStartRange().serialize(), [[2, 0], [2, 0]]);
+  });
+
   it('extracts its offset range from buffer text with toStringIn()', function() {
     const buffer = '0000\n1111\n2222\n3333\n4444\n5555\n';
     const range = new IndexedRowRange({
