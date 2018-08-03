@@ -123,6 +123,8 @@ export function buildRepositoryWithPipeline(workingDirPath, options) {
   return buildRepository(workingDirPath, {pipelineManager});
 }
 
+// Custom assertions
+
 export function assertDeepPropertyVals(actual, expected) {
   function extractObjectSubset(actualValue, expectedValue) {
     if (actualValue !== Object(actualValue)) { return actualValue; }
@@ -148,6 +150,57 @@ export function assertEqualSets(a, b) {
 export function assertEqualSortedArraysByKey(arr1, arr2, key) {
   const sortFn = (a, b) => a[key] < b[key];
   assert.deepEqual(arr1.sort(sortFn), arr2.sort(sortFn));
+}
+
+// Helpers for test/models/patch classes
+
+class PatchBufferAssertions {
+  constructor(patch) {
+    this.patch = patch;
+  }
+
+  hunkChanges(changes, expectedStrings, expectedRanges) {
+    const actualStrings = changes.map(change => change.toStringIn(this.patch.getBufferText(), '*'));
+    const actualRanges = changes.map(change => change.bufferRange.serialize());
+
+    assert.deepEqual(
+      {strings: actualStrings, ranges: actualRanges},
+      {strings: expectedStrings, ranges: expectedRanges},
+    );
+  }
+
+  hunk(hunkIndex, {startRow, header, deletions, additions, noNewline}) {
+    const hunk = this.patch.getHunks()[hunkIndex];
+    assert.isDefined(hunk);
+
+    assert.deepEqual(hunk.getStartRange().serialize(), [[startRow, 0], [startRow, 0]]);
+    assert.strictEqual(hunk.getHeader(), header);
+
+    this.hunkChanges(hunk.getDeletions(), deletions.strings, deletions.ranges);
+    this.hunkChanges(hunk.getAdditions(), additions.strings, additions.ranges);
+
+    const noNewlineChange = hunk.getNoNewline();
+    if (noNewlineChange.isPresent()) {
+      this.hunkChanges([noNewlineChange], [noNewline.string], [noNewline.range]);
+    } else {
+      assert.isUndefined(noNewline);
+    }
+  }
+
+  hunks(...specs) {
+    assert.lengthOf(this.patch.getHunks(), specs.length);
+    for (let i = 0; i < specs.length; i++) {
+      this.hunk(i, specs[i]);
+    }
+  }
+}
+
+export function assertInPatch(patch) {
+  return new PatchBufferAssertions(patch);
+}
+
+export function assertInFilePatch(filePatch) {
+  return assertInPatch(filePatch.getPatch());
 }
 
 let activeRenderers = [];

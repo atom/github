@@ -1,33 +1,7 @@
 import {buildFilePatch} from '../../../lib/models/patch';
+import {assertInPatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
-  let buffer;
-
-  function assertHunkChanges(changes, expectedStrings, expectedRanges) {
-    const actualStrings = changes.map(change => change.toStringIn(buffer, '*'));
-    const actualRanges = changes.map(change => change.bufferRange.serialize());
-
-    assert.deepEqual(
-      {strings: actualStrings, ranges: actualRanges},
-      {strings: expectedStrings, ranges: expectedRanges},
-    );
-  }
-
-  function assertHunk(hunk, {startRow, header, deletions, additions, noNewline}) {
-    assert.deepEqual(hunk.getStartRange().serialize(), [[startRow, 0], [startRow, 0]]);
-    assert.strictEqual(hunk.getHeader(), header);
-
-    assertHunkChanges(hunk.getDeletions(), deletions.strings, deletions.ranges);
-    assertHunkChanges(hunk.getAdditions(), additions.strings, additions.ranges);
-
-    const noNewlineChange = hunk.getNoNewline();
-    if (noNewlineChange.isPresent()) {
-      assertHunkChanges([noNewlineChange], [noNewline.string], [noNewline.range]);
-    } else {
-      assert.isUndefined(noNewline);
-    }
-  }
-
   it('returns a null patch for an empty diff list', function() {
     const p = buildFilePatch([]);
     assert.isFalse(p.getOldFile().isPresent());
@@ -96,50 +70,49 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewMode(), '100755');
       assert.strictEqual(p.getPatch().getStatus(), 'modified');
 
-      buffer =
+      const buffer =
         'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\nline-7\nline-8\nline-9\nline-10\n' +
         'line-11\nline-12\nline-13\nline-14\nline-15\nline-16\nline-17\nline-18\n';
       assert.strictEqual(p.getBufferText(), buffer);
 
-      assert.lengthOf(p.getHunks(), 3);
-      assertHunk(p.getHunks()[0], {
-        startRow: 0,
-        header: '@@ -0,7 +0,6 @@',
-        deletions: {
-          strings: ['*line-1\n*line-2\n*line-3\n'],
-          ranges: [[[1, 0], [3, 0]]],
+      assertInPatch(p).hunks(
+        {
+          startRow: 0,
+          header: '@@ -0,7 +0,6 @@',
+          deletions: {
+            strings: ['*line-1\n*line-2\n*line-3\n'],
+            ranges: [[[1, 0], [3, 0]]],
+          },
+          additions: {
+            strings: ['*line-5\n*line-6\n'],
+            ranges: [[[5, 0], [6, 0]]],
+          },
         },
-        additions: {
-          strings: ['*line-5\n*line-6\n'],
-          ranges: [[[5, 0], [6, 0]]],
+        {
+          startRow: 9,
+          header: '@@ -10,3 +11,3 @@',
+          deletions: {
+            strings: ['*line-9\n'],
+            ranges: [[[9, 0], [9, 0]]],
+          },
+          additions: {
+            strings: ['*line-12\n'],
+            ranges: [[[12, 0], [12, 0]]],
+          },
         },
-      });
-
-      assertHunk(p.getHunks()[1], {
-        startRow: 9,
-        header: '@@ -10,3 +11,3 @@',
-        deletions: {
-          strings: ['*line-9\n'],
-          ranges: [[[9, 0], [9, 0]]],
+        {
+          startRow: 13,
+          header: '@@ -20,4 +21,4 @@',
+          deletions: {
+            strings: ['*line-14\n*line-15\n'],
+            ranges: [[[14, 0], [15, 0]]],
+          },
+          additions: {
+            strings: ['*line-16\n*line-17\n'],
+            ranges: [[[16, 0], [17, 0]]],
+          },
         },
-        additions: {
-          strings: ['*line-12\n'],
-          ranges: [[[12, 0], [12, 0]]],
-        },
-      });
-
-      assertHunk(p.getHunks()[2], {
-        startRow: 13,
-        header: '@@ -20,4 +21,4 @@',
-        deletions: {
-          strings: ['*line-14\n*line-15\n'],
-          ranges: [[[14, 0], [15, 0]]],
-        },
-        additions: {
-          strings: ['*line-16\n*line-17\n'],
-          ranges: [[[16, 0], [17, 0]]],
-        },
-      });
+      );
     });
 
     it("sets the old file's symlink destination", function() {
@@ -237,11 +210,9 @@ describe('buildFilePatch', function() {
         ]}],
       }]);
 
-      buffer = 'line-0\nline-1\nNo newline at end of file\n';
-      assert.strictEqual(p.getBufferText(), buffer);
+      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\nNo newline at end of file\n');
 
-      assert.lengthOf(p.getHunks(), 1);
-      assertHunk(p.getHunks()[0], {
+      assertInPatch(p).hunks({
         startRow: 0,
         header: '@@ -0,1 +0,1 @@',
         additions: {strings: ['*line-0\n'], ranges: [[[0, 0], [0, 0]]]},
@@ -311,10 +282,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      buffer = 'line-0\nline-1\n';
-      assert.strictEqual(p.getBufferText(), buffer);
-      assert.lengthOf(p.getHunks(), 1);
-      assertHunk(p.getHunks()[0], {
+      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
+      assertInPatch(p).hunks({
         startRow: 0,
         header: '@@ -0,0 +0,2 @@',
         deletions: {strings: [], ranges: []},
@@ -369,10 +338,8 @@ describe('buildFilePatch', function() {
       assert.isNull(p.getNewSymlink());
       assert.strictEqual(p.getStatus(), 'added');
 
-      buffer = 'line-0\nline-1\n';
-      assert.strictEqual(p.getBufferText(), buffer);
-      assert.lengthOf(p.getHunks(), 1);
-      assertHunk(p.getHunks()[0], {
+      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
+      assertInPatch(p).hunks({
         startRow: 0,
         header: '@@ -0,2 +0,0 @@',
         deletions: {
@@ -426,10 +393,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      buffer = 'line-0\nline-1\n';
-      assert.strictEqual(p.getBufferText(), buffer);
-      assert.lengthOf(p.getHunks(), 1);
-      assertHunk(p.getHunks()[0], {
+      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
+      assertInPatch(p).hunks({
         startRow: 0,
         header: '@@ -0,0 +0,2 @@',
         deletions: {strings: [], ranges: []},
