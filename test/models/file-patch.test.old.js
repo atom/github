@@ -16,6 +16,8 @@ function createFilePatch(oldFilePath, newFilePath, status, hunks) {
   return new FilePatch(oldFile, newFile, patch);
 }
 
+// oldStartRow, newStartRow, oldRowCount, newRowCount, sectionHeading, lines
+
 describe('FilePatch', function() {
   describe('getStagePatchForLines()', function() {
     it('returns a new FilePatch that applies only the specified lines', function() {
