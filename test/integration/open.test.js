@@ -81,7 +81,7 @@ describe('opening and closing tabs', function() {
 
     assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    assert.isFalse(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
+    await assert.async.isFalse(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();
