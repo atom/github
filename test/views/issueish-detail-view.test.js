@@ -70,28 +70,17 @@ describe('IssueishDetailView', function() {
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
-  it.only('renders pull request information for cross repository PR', function() {
-    const commitCount = 11;
-    const fileCount = 22;
+
+  it('renders pull request information for cross repository PR', function() {
     const baseRefName = 'master';
     const headRefName = 'tt-heck-yes';
     const ownerLogin = 'user0';
     const authorLogin = 'author0';
     const wrapper = shallow(buildApp({
-      repositoryName: 'repo',
       ownerLogin,
-      issueishKind: 'PullRequest',
-      issueishTitle: 'PR title',
       issueishBaseRef: baseRefName,
       issueishHeadRef: headRefName,
-      issueishBodyHTML: '<code>stuff</code>',
       issueishAuthorLogin: authorLogin,
-      issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
-      issueishNumber: 100,
-      issueishState: 'MERGED',
-      issueishCommitCount: commitCount,
-      issueishChangedFileCount: fileCount,
-      issueishReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
       issueishCrossRepository: true,
     }));
 
