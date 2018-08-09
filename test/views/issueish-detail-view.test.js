@@ -12,6 +12,7 @@ describe('IssueishDetailView', function() {
 
   it('renders pull request information', function() {
     const commitCount = 11;
+    const fileCount = 22;
     const wrapper = shallow(buildApp({
       repositoryName: 'repo',
       ownerLogin: 'user0',
@@ -24,6 +25,7 @@ describe('IssueishDetailView', function() {
       issueishNumber: 100,
       issueishState: 'MERGED',
       issueishCommitCount: commitCount,
+      issueishChangedFileCount: fileCount,
       issueishReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
     }));
 
@@ -59,6 +61,7 @@ describe('IssueishDetailView', function() {
     assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-fileCount').text(), `${fileCount} changed files`);
   });
 
   it('renders issue information', function() {
