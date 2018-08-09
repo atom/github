@@ -321,6 +321,21 @@ describe('CommitView', function() {
     assert.isTrue(abortMerge.calledOnce);
   });
 
+  it('detects when the component has focus', function() {
+    const wrapper = mount(app);
+    const rootElement = wrapper.find('.github-CommitView').getDOMNode();
+
+    sinon.stub(rootElement, 'contains').returns(true);
+    assert.isTrue(wrapper.instance().hasFocus());
+
+    rootElement.contains.returns(false);
+    assert.isFalse(wrapper.instance().hasFocus());
+
+    rootElement.contains.returns(true);
+    wrapper.prop('refRoot').setter(null);
+    assert.isFalse(wrapper.instance().hasFocus());
+  });
+
   it('detects when the editor has focus', function() {
     const wrapper = mount(app);
 
