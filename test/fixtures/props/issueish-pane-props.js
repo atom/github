@@ -86,6 +86,7 @@ export function issueishDetailViewProps(opts, overrides = {}) {
     issueishHeadRepoOwner: 'head-owner',
     issueishHeadRepoName: 'head-name',
     issueishReactions: [],
+    issueishCommitCount: 0,
 
     relayRefetch: () => {},
     ...opts,
@@ -123,6 +124,9 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       bodyHTML: o.issueishBodyHTML,
       number: o.issueishNumber,
       state: o.issueishState,
+      countedCommits: {
+        totalCount: o.issueishCommitCount,
+      },
       headRefName: o.issueishHeadRef,
       headRepository: {
         name: o.issueishHeadRepoName,

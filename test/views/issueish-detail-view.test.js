@@ -11,6 +11,7 @@ describe('IssueishDetailView', function() {
   }
 
   it('renders pull request information', function() {
+    const commitCount = 11;
     const wrapper = shallow(buildApp({
       repositoryName: 'repo',
       ownerLogin: 'user0',
@@ -22,6 +23,7 @@ describe('IssueishDetailView', function() {
       issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
       issueishNumber: 100,
       issueishState: 'MERGED',
+      issueishCommitCount: commitCount,
       issueishReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
     }));
 
@@ -55,6 +57,8 @@ describe('IssueishDetailView', function() {
     assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
     assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
   });
 
   it('renders issue information', function() {
