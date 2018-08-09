@@ -13,12 +13,16 @@ describe('IssueishDetailView', function() {
   it('renders pull request information', function() {
     const commitCount = 11;
     const fileCount = 22;
+    const baseRefName = 'master';
+    const headRefName = 'tt/heck-yes';
     const wrapper = shallow(buildApp({
       repositoryName: 'repo',
       ownerLogin: 'user0',
 
       issueishKind: 'PullRequest',
       issueishTitle: 'PR title',
+      issueishBaseRef: baseRefName,
+      issueishHeadRef: headRefName,
       issueishBodyHTML: '<code>stuff</code>',
       issueishAuthorLogin: 'author0',
       issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
@@ -62,6 +66,9 @@ describe('IssueishDetailView', function() {
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-fileCount').text(), `${fileCount} changed files`);
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
 
   it('renders issue information', function() {
