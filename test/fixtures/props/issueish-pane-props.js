@@ -78,6 +78,7 @@ export function issueishDetailViewProps(opts, overrides = {}) {
     issueishKind: 'PullRequest',
     issueishTitle: 'title',
     issueishBodyHTML: '<p>body</p>',
+    issueishBaseRef: 'master',
     issueishAuthorLogin: 'author',
     issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
@@ -86,6 +87,9 @@ export function issueishDetailViewProps(opts, overrides = {}) {
     issueishHeadRepoOwner: 'head-owner',
     issueishHeadRepoName: 'head-name',
     issueishReactions: [],
+    issueishCommitCount: 0,
+    issueishChangedFileCount: 0,
+    issueishCrossRepository: false,
 
     relayRefetch: () => {},
     ...opts,
@@ -123,6 +127,12 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       bodyHTML: o.issueishBodyHTML,
       number: o.issueishNumber,
       state: o.issueishState,
+      countedCommits: {
+        totalCount: o.issueishCommitCount,
+      },
+      isCrossRepository: o.issueishCrossRepository,
+      changedFiles: o.issueishChangedFileCount,
+      baseRefName: o.issueishBaseRef,
       headRefName: o.issueishHeadRef,
       headRepository: {
         name: o.issueishHeadRepoName,
