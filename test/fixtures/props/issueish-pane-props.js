@@ -130,7 +130,7 @@ export function issueishDetailViewProps(opts, overrides = {}) {
       countedCommits: {
         totalCount: o.issueishCommitCount,
       },
-      isCrossRepository: o.isCrossRepository,
+      isCrossRepository: o.issueishCrossRepository,
       changedFiles: o.issueishChangedFileCount,
       baseRefName: o.issueishBaseRef,
       headRefName: o.issueishHeadRef,
