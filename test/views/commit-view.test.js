@@ -332,7 +332,7 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.instance().hasFocus());
 
     rootElement.contains.returns(true);
-    wrapper.prop('refRoot').setter(null);
+    wrapper.instance().refRoot.setter(null);
     assert.isFalse(wrapper.instance().hasFocus());
   });
 
