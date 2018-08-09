@@ -206,6 +206,38 @@ describe('GitTabController', function() {
   });
 
   describe('focus management', function() {
+    it('remembers the last focus reported by the view', async function() {
+      const repository = await buildRepository(await cloneRepository());
+      const wrapper = mount(await buildApp(repository));
+      const view = wrapper.instance().refView.get();
+      const editorElement = wrapper.find('atom-text-editor').getDOMNode();
+      const commitElement = wrapper.find('.github-CommitView-commit').getDOMNode();
+
+      wrapper.instance().rememberLastFocus({target: editorElement});
+
+      sinon.spy(view, 'setFocus');
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.EDITOR));
+
+      wrapper.instance().rememberLastFocus({target: commitElement});
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.COMMIT_BUTTON));
+
+      wrapper.instance().rememberLastFocus({target: document.body});
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.STAGING));
+
+      wrapper.instance().refView.setter(null);
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isFalse(view.setFocus.called);
+    });
+
     it('does nothing on an absent repository', async function() {
       const repository = Repository.absent();
 
