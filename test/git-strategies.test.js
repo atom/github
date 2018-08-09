@@ -714,6 +714,31 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('deleteRef()', function() {
+      it('soft-resets an initial commit', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        // Ensure that three-files still has only a single commit
+        assert.lengthOf(await git.getCommits({max: 10}), 1);
+
+        // Put something into the index to ensure it doesn't get lost
+        fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'zzz\n', 'utf8');
+        await git.exec(['add', '.']);
+
+        await git.deleteRef('HEAD');
+
+        const after = await git.getCommit('HEAD');
+        assert.isTrue(after.unbornRef);
+
+        const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+        assert.lengthOf(stagedChanges, 1);
+        const stagedChange = stagedChanges[0];
+        assert.strictEqual(stagedChange.newPath, 'a.txt');
+        assert.deepEqual(stagedChange.hunks[0].lines, ['+foo', '+zzz']);
+      });
+    });
+
     describe('getBranches()', function() {
       const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
 
