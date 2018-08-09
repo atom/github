@@ -130,6 +130,9 @@ export function createPullRequestDetailResult(attrs = {}) {
     headRepositoryName: 'headrepo',
     headRepositoryLogin: 'headlogin',
     baseRepositoryLogin: 'baseLogin',
+    changedFileCount: 0,
+    commitCount: 0,
+    baseRefName: 'baseRefName',
     ...attrs,
   };
 
@@ -143,8 +146,13 @@ export function createPullRequestDetailResult(attrs = {}) {
     id: o.id,
     title: o.title,
     number: o.number,
+    countedCommits: {
+      totalCount: o.commitCount
+    },
+    changedFiles: o.changedFileCount,
     state: o.state,
     bodyHTML: '<p>body</p>',
+    baseRefName: o.baseRefName,
     author: {
       __typename: 'User',
       id: idGen.generate('user'),
