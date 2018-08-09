@@ -740,4 +740,49 @@ describe('StagingView', function() {
       });
     });
   }
+
+  it('remembers the current focus', function() {
+    const wrapper = mount(app);
+    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+
+    assert.strictEqual(wrapper.instance().rememberFocus({target: rootElement}), StagingView.focus.STAGING);
+    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+
+    wrapper.instance().refRoot.setter(null);
+    assert.isNull(wrapper.instance().rememberFocus({target: rootElement}));
+  });
+
+  it('sets a new focus', function() {
+    const wrapper = mount(app);
+    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+
+    sinon.stub(rootElement, 'focus');
+
+    assert.isFalse(wrapper.instance().setFocus(Symbol('nope')));
+    assert.isFalse(rootElement.focus.called);
+
+    assert.isTrue(wrapper.instance().setFocus(StagingView.focus.STAGING));
+    assert.isTrue(rootElement.focus.called);
+
+    wrapper.instance().refRoot.setter(null);
+    rootElement.focus.resetHistory();
+    assert.isTrue(wrapper.instance().setFocus(StagingView.focus.STAGING));
+    assert.isFalse(rootElement.focus.called);
+  });
+
+  it('detects when the component does have focus', function() {
+    const wrapper = mount(app);
+    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+    sinon.stub(rootElement, 'contains');
+
+    rootElement.contains.returns(true);
+    assert.isTrue(wrapper.instance().hasFocus());
+
+    rootElement.contains.returns(false);
+    assert.isFalse(wrapper.instance().hasFocus());
+
+    rootElement.contains.returns(true);
+    wrapper.instance().refRoot.setter(null);
+    assert.isFalse(wrapper.instance().hasFocus());
+  });
 });
