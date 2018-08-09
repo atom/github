@@ -26,12 +26,12 @@ describe('opening and closing tabs', function() {
 
   it('opens but does not focus the git tab on github:toggle-git-tab', async function() {
     const editor = await atomEnv.workspace.open(__filename);
-    assert.isFalse(wrapper.find('.github-Panel').exists());
+    assert.isFalse(wrapper.find('.github-Git').exists());
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
 
     wrapper.update();
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
 
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
     await assert.async.strictEqual(atomEnv.workspace.getActivePaneItem(), editor);
@@ -41,12 +41,12 @@ describe('opening and closing tabs', function() {
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
     atomEnv.workspace.getRightDock().hide();
     wrapper.update();
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
   });
 
@@ -54,13 +54,13 @@ describe('opening and closing tabs', function() {
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isFalse(atomEnv.workspace.getRightDock().isVisible());
   });
 
@@ -70,18 +70,18 @@ describe('opening and closing tabs', function() {
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    assert.isTrue(wrapper.find('.github-Panel[tabIndex]').getDOMNode().contains(document.activeElement));
+    assert.isTrue(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
   });
 
   it('focuses a blurred git tab on github:toggle-git-tab-focus', async function() {
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-Panel').exists());
+    assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    assert.isFalse(wrapper.find('.github-Panel[tabIndex]').getDOMNode().contains(document.activeElement));
+    await assert.async.isFalse(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();

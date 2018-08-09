@@ -1,12 +1,12 @@
 @import "variables";
 
-.github-StubItem-git-tab-controller,
-.github-GitTabItem-root {
+.github-StubItem-git,
+.github-Git-root {
   flex: 1;
   display: flex;
 }
 
-.github-Panel {
+.github-Git {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -47,7 +47,7 @@
 }
 
 atom-dock.bottom {
-  .github-Panel {
+  .github-Git {
     flex-direction: row;
   }
 
@@ -55,7 +55,7 @@ atom-dock.bottom {
     display: contents; // make these invisible to layout
   }
 
-  .github-Panel > div {
+  .github-Git > div {
     flex: 1;
   }
 

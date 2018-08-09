@@ -18,6 +18,7 @@ describe('IssueCommentView', function() {
       item: {
         bodyHTML: o.bodyHTML,
         createdAt: o.createdAt,
+        url: 'https://github.com/aaa/bbb/issues/123',
       },
       switchToIssueish: () => {},
       ...overrideProps,

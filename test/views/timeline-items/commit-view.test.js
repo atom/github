@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 import {shallow} from 'enzyme';
 
@@ -21,6 +22,7 @@ describe('CommitView', function() {
       oid: 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5',
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -46,6 +48,7 @@ describe('CommitView', function() {
       authoredByCommitter: false,
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -73,6 +76,7 @@ describe('CommitView', function() {
       authoredByCommitter: true,
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -100,6 +104,7 @@ describe('CommitView', function() {
       authoredByCommitter: false,
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -127,6 +132,7 @@ describe('CommitView', function() {
       authoredByCommitter: false,
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -156,6 +162,7 @@ describe('CommitView', function() {
       authoredByCommitter: false,
       message: 'commit message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -183,6 +190,7 @@ describe('CommitView', function() {
       authoredByCommitter: true,
       message: 'full message',
       messageHeadlineHTML: '<h1>html</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -207,6 +215,7 @@ describe('CommitView', function() {
       authoredByCommitter: true,
       message: 'full message',
       messageHeadlineHTML: '<h1>inner HTML</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);
@@ -229,6 +238,7 @@ describe('CommitView', function() {
       authoredByCommitter: true,
       message: 'full message',
       messageHeadlineHTML: '<h1>inner HTML</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
     const app = <BareCommitView item={item} />;
     const instance = shallow(app);

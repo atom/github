@@ -3,12 +3,12 @@ import {mount} from 'enzyme';
 import {CompositeDisposable} from 'event-kit';
 
 import {cloneRepository, deferSetState} from '../helpers';
-import IssueishPaneItem from '../../lib/items/issueish-pane-item';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import PaneItem from '../../lib/atom/pane-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {issueishPaneItemProps} from '../fixtures/props/issueish-pane-props';
 
-describe('IssueishPaneItem', function() {
+describe('IssueishDetailItem', function() {
   let atomEnv, subs;
 
   beforeEach(function() {
@@ -25,9 +25,9 @@ describe('IssueishPaneItem', function() {
     const props = issueishPaneItemProps(overrideProps);
 
     return (
-      <PaneItem workspace={atomEnv.workspace} uriPattern={IssueishPaneItem.uriPattern}>
+      <PaneItem workspace={atomEnv.workspace} uriPattern={IssueishDetailItem.uriPattern}>
         {({itemHolder, params}) => (
-          <IssueishPaneItem
+          <IssueishDetailItem
             ref={itemHolder.setter}
             {...params}
             issueishNumber={parseInt(params.issueishNumber, 10)}
@@ -41,10 +41,10 @@ describe('IssueishPaneItem', function() {
   it('renders within the workspace center', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishPaneItem.buildURI('one.com', 'me', 'code', 400, __dirname);
+    const uri = IssueishDetailItem.buildURI('one.com', 'me', 'code', 400, __dirname);
     const item = await atomEnv.workspace.open(uri);
 
-    assert.lengthOf(wrapper.update().find('IssueishPaneItem'), 1);
+    assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
 
     const centerPaneItems = atomEnv.workspace.getCenter().getPaneItems();
     assert.include(centerPaneItems.map(i => i.getURI()), uri);
@@ -72,10 +72,10 @@ describe('IssueishPaneItem', function() {
 
     it('automatically switches when opened with an empty workdir', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      const uri = IssueishPaneItem.buildURI('host.com', 'atom', 'atom', 500);
+      const uri = IssueishDetailItem.buildURI('host.com', 'atom', 'atom', 500);
       await atomEnv.workspace.open(uri);
 
-      const item = wrapper.update().find('IssueishPaneItem');
+      const item = wrapper.update().find('IssueishDetailItem');
       assert.strictEqual(item.prop('workingDirectory'), '');
       await assert.async.strictEqual(
         wrapper.update().find('IssueishDetailContainer').prop('repository'),
@@ -85,7 +85,7 @@ describe('IssueishPaneItem', function() {
 
     it('switches to a different issueish', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
 
       const before = wrapper.update().find('IssueishDetailContainer');
       assert.strictEqual(before.prop('host'), 'host.com');
@@ -104,7 +104,7 @@ describe('IssueishPaneItem', function() {
 
     it('changes the active repository when its issueish changes', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
 
       wrapper.update();
 
@@ -120,7 +120,7 @@ describe('IssueishPaneItem', function() {
     it('reverts to an absent repository when no matching repository is found', async function() {
       const workdir = atomAtomRepo.getWorkingDirectoryPath();
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishPaneItem.buildURI('github.com', 'atom', 'atom', 5, workdir));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'atom', 'atom', 5, workdir));
 
       wrapper.update();
       assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('repository'), atomAtomRepo);
@@ -132,7 +132,7 @@ describe('IssueishPaneItem', function() {
 
     it('aborts a repository swap when pre-empted', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('github.com', 'another', 'repo', 5, __dirname));
+      const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'another', 'repo', 5, __dirname));
 
       wrapper.update();
 
@@ -159,7 +159,7 @@ describe('IssueishPaneItem', function() {
       await repo.addRemote('upstream', 'https://github.com/atom/atom.git');
 
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
       wrapper.update();
 
       await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'atom', 100);
@@ -175,7 +175,7 @@ describe('IssueishPaneItem', function() {
   it('reconstitutes its original URI', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishPaneItem.buildURI('host.com', 'me', 'original', 1, __dirname);
+    const uri = IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname);
     const item = await atomEnv.workspace.open(uri);
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
@@ -188,7 +188,7 @@ describe('IssueishPaneItem', function() {
 
   it('broadcasts title changes', async function() {
     const wrapper = mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
+    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
     assert.strictEqual(item.getTitle(), 'user/repo#1');
 
     const handler = sinon.stub();
@@ -204,7 +204,7 @@ describe('IssueishPaneItem', function() {
 
   it('tracks pending state termination', async function() {
     mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishPaneItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
+    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
 
     const handler = sinon.stub();
     subs.add(item.onDidTerminatePendingState(handler));
