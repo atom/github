@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
@@ -353,6 +353,40 @@ describe('CommitController', function() {
         await assert.async.equal(repository.git.commit.callCount, 1);
         await assert.async.lengthOf(workspace.getTextEditors(), 0);
       });
+    });
+
+    it('delegates focus management to its view', function() {
+      const wrapper = mount(app);
+      const viewHolder = wrapper.instance().refCommitView;
+      assert.isFalse(viewHolder.isEmpty());
+      const view = viewHolder.get();
+
+      sinon.spy(view, 'rememberFocus');
+      sinon.spy(view, 'setFocus');
+      sinon.spy(view, 'hasFocus');
+      sinon.spy(view, 'hasFocusEditor');
+
+      wrapper.instance().rememberFocus({target: wrapper.find('atom-text-editor').getDOMNode()});
+      assert.isTrue(view.rememberFocus.called);
+
+      wrapper.instance().setFocus(CommitController.focus.EDITOR);
+      assert.isTrue(view.setFocus.called);
+
+      wrapper.instance().hasFocus();
+      assert.isTrue(view.hasFocus.called);
+
+      wrapper.instance().hasFocusEditor();
+      assert.isTrue(view.hasFocusEditor.called);
+    });
+
+    it('no-ops focus management methods when the view ref is unassigned', function() {
+      const wrapper = shallow(app);
+      assert.isTrue(wrapper.instance().refCommitView.isEmpty());
+
+      assert.isNull(wrapper.instance().rememberFocus({}));
+      assert.isFalse(wrapper.instance().setFocus(CommitController.focus.EDITOR));
+      assert.isFalse(wrapper.instance().hasFocus());
+      assert.isFalse(wrapper.instance().hasFocusEditor());
     });
   });
 });
