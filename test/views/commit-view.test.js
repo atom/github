@@ -321,13 +321,113 @@ describe('CommitView', function() {
     assert.isTrue(abortMerge.calledOnce);
   });
 
+  it('detects when the editor has focus', function() {
+    const wrapper = mount(app);
+
+    const editorNode = wrapper.find('atom-text-editor').getDOMNode();
+    sinon.stub(editorNode, 'contains').returns(true);
+    assert.isTrue(wrapper.instance().hasFocusEditor());
+
+    editorNode.contains.returns(false);
+    assert.isFalse(wrapper.instance().hasFocusEditor());
+
+    editorNode.contains.returns(true);
+    wrapper.instance().refEditor.setter(null);
+    assert.isFalse(wrapper.instance().hasFocusEditor());
+  });
+
+  it('remembers the current focus', function() {
+    const wrapper = mount(React.cloneElement(app, {isMerging: true}));
+    wrapper.instance().toggleCoAuthorInput();
+    wrapper.update();
+
+    const foci = [
+      ['atom-text-editor', CommitView.focus.EDITOR],
+      ['.github-CommitView-abortMerge', CommitView.focus.ABORT_MERGE_BUTTON],
+      ['.github-CommitView-commit', CommitView.focus.COMMIT_BUTTON],
+      ['.github-CommitView-coAuthorEditor input', CommitView.focus.COAUTHOR_INPUT],
+    ];
+    for (const [selector, focus] of foci) {
+      const event = {target: wrapper.find(selector).getDOMNode()};
+      assert.strictEqual(wrapper.instance().rememberFocus(event), focus);
+    }
+
+    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+
+    const holders = [
+      'refEditor', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+    ].map(ivar => wrapper.instance()[ivar]);
+    for (const holder of holders) {
+      holder.setter(null);
+    }
+    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+  });
+
   describe('restoring focus', function() {
+    it('to the editor', function() {
+      const wrapper = mount(app);
+      sinon.spy(wrapper.find('atom-text-editor').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
+      assert.isTrue(wrapper.find('atom-text-editor').getDOMNode().focus.called);
+    });
+
+    it('to the abort merge button', function() {
+      const wrapper = mount(React.cloneElement(app, {isMerging: true}));
+      sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON));
+      assert.isTrue(wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called);
+    });
+
     it('to the commit button', function() {
       const wrapper = mount(app);
-      sinon.spy(wrapper.instance().refCommitButton.get(), 'focus');
+      sinon.spy(wrapper.find('.github-CommitView-commit').getDOMNode(), 'focus');
 
-      wrapper.instance().setFocus(CommitView.focus.COMMIT_BUTTON);
-      assert.isTrue(wrapper.instance().refCommitButton.get().focus.called);
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_BUTTON));
+      assert.isTrue(wrapper.find('.github-CommitView-commit').getDOMNode().focus.called);
+    });
+
+    it('to the co-author input', function() {
+      const wrapper = mount(app);
+      wrapper.instance().toggleCoAuthorInput();
+
+      sinon.spy(wrapper.update().find('.github-CommitView-coAuthorEditor input').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
+      assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+    });
+
+    it('with an unrecognized symbol', function() {
+      const wrapper = mount(app);
+      assert.isFalse(wrapper.instance().setFocus(Symbol('lolno')));
+    });
+
+    it('when the named element is no longer rendered', function() {
+      const wrapper = mount(app);
+      sinon.spy(wrapper.find('atom-text-editor').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON));
+      assert.strictEqual(wrapper.find('atom-text-editor').getDOMNode().focus.callCount, 1);
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
+      assert.strictEqual(wrapper.find('atom-text-editor').getDOMNode().focus.callCount, 2);
+    });
+
+    it('when refs have not been assigned yet', function() {
+      const wrapper = mount(app);
+
+      // Simulate an unmounted component by clearing out RefHolders manually.
+      const holders = [
+        'refEditor', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+      ].map(ivar => wrapper.instance()[ivar]);
+      for (const holder of holders) {
+        holder.setter(null);
+      }
+
+      for (const focusKey of Object.keys(CommitView.focus)) {
+        assert.isFalse(wrapper.instance().setFocus(CommitView.focus[focusKey]));
+      }
     });
   });
 });
