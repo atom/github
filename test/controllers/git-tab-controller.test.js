@@ -196,11 +196,19 @@ describe('GitTabController', function() {
 
     sinon.spy(stagingView, 'setFocus');
 
+    await controller.quietlySelectItem('unstaged-3.txt', 'unstaged');
+
+    const selections0 = Array.from(stagingView.state.selection.getSelectedItems());
+    assert.lengthOf(selections0, 1);
+    assert.equal(selections0[0].filePath, 'unstaged-3.txt');
+
+    assert.isFalse(stagingView.setFocus.called);
+
     await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
-    const selections = Array.from(stagingView.state.selection.getSelectedItems());
-    assert.lengthOf(selections, 1);
-    assert.equal(selections[0].filePath, 'unstaged-2.txt');
+    const selections1 = Array.from(stagingView.state.selection.getSelectedItems());
+    assert.lengthOf(selections1, 1);
+    assert.equal(selections1[0].filePath, 'unstaged-2.txt');
 
     assert.equal(stagingView.setFocus.callCount, 1);
   });
@@ -236,6 +244,23 @@ describe('GitTabController', function() {
       view.setFocus.resetHistory();
       wrapper.instance().restoreFocus();
       assert.isFalse(view.setFocus.called);
+    });
+
+    it('detects focus', async function() {
+      const repository = await buildRepository(await cloneRepository());
+      const wrapper = mount(await buildApp(repository));
+      const rootElement = wrapper.instance().refRoot.get();
+      sinon.stub(rootElement, 'contains');
+
+      rootElement.contains.returns(true);
+      assert.isTrue(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(false);
+      assert.isFalse(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(true);
+      wrapper.instance().refRoot.setter(null);
+      assert.isFalse(wrapper.instance().hasFocus());
     });
 
     it('does nothing on an absent repository', async function() {
