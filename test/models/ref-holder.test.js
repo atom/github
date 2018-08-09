@@ -97,6 +97,25 @@ describe('RefHolder', function() {
     assert.isTrue(callback.calledWith(12));
   });
 
+  it('does not notify subscribers when it becomes empty', function() {
+    const h = new RefHolder();
+    h.setter(12);
+    assert.isFalse(h.isEmpty());
+
+    const callback = sinon.spy();
+    sub = h.observe(callback);
+
+    callback.resetHistory();
+    h.setter(null);
+    assert.isTrue(h.isEmpty());
+    assert.isFalse(callback.called);
+
+    callback.resetHistory();
+    h.setter(undefined);
+    assert.isTrue(h.isEmpty());
+    assert.isFalse(callback.called);
+  });
+
   it('resolves a promise when it becomes available', async function() {
     const thing = Symbol('Thing');
     const h = new RefHolder();
