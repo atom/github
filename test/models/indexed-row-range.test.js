@@ -45,14 +45,22 @@ describe('IndexedRowRange', function() {
     const buffer = '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n';
     // 0000.1111.2222.3333.4444.5555.6666.7777.8888.9999.
 
-    it('returns an empty array with no intersection rows', function() {
+    function assertIntersections(actual, expected) {
+      const serialized = actual.map(({intersection, gap}) => ({intersection: intersection.serialize(), gap}));
+      assert.deepEqual(serialized, expected);
+    }
+
+    it('returns an array containing all gaps with no intersection rows', function() {
       const range = new IndexedRowRange({
         bufferRange: [[1, 0], [3, 0]],
         startOffset: 5,
         endOffset: 20,
       });
 
-      assert.deepEqual(range.intersectRowsIn(new Set([0, 5, 6]), buffer), []);
+      assertIntersections(range.intersectRowsIn(new Set([0, 5, 6]), buffer, false), []);
+      assertIntersections(range.intersectRowsIn(new Set([0, 5, 6]), buffer, true), [
+        {intersection: {bufferRange: [[1, 0], [3, 0]], startOffset: 5, endOffset: 20}, gap: true},
+      ]);
     });
 
     it('detects an intersection at the beginning of the range', function() {
@@ -63,8 +71,12 @@ describe('IndexedRowRange', function() {
       });
       const rowSet = new Set([0, 1, 2, 3]);
 
-      assert.deepEqual(range.intersectRowsIn(rowSet, buffer).map(i => i.serialize()), [
-        {bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20},
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, false), [
+        {intersection: {bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20}, gap: false},
+      ]);
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, true), [
+        {intersection: {bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20}, gap: false},
+        {intersection: {bufferRange: [[4, 0], [6, 0]], startOffset: 20, endOffset: 35}, gap: true},
       ]);
     });
 
@@ -76,8 +88,13 @@ describe('IndexedRowRange', function() {
       });
       const rowSet = new Set([0, 3, 4, 8, 9]);
 
-      assert.deepEqual(range.intersectRowsIn(rowSet, buffer).map(i => i.serialize()), [
-        {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25},
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, false), [
+        {intersection: {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25}, gap: false},
+      ]);
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, true), [
+        {intersection: {bufferRange: [[2, 0], [2, 0]], startOffset: 10, endOffset: 15}, gap: true},
+        {intersection: {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25}, gap: false},
+        {intersection: {bufferRange: [[5, 0], [6, 0]], startOffset: 25, endOffset: 35}, gap: true},
       ]);
     });
 
@@ -89,8 +106,12 @@ describe('IndexedRowRange', function() {
       });
       const rowSet = new Set([4, 5, 6, 7, 10, 11]);
 
-      assert.deepEqual(range.intersectRowsIn(rowSet, buffer).map(i => i.serialize()), [
-        {bufferRange: [[4, 0], [6, 0]], startOffset: 20, endOffset: 35},
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, false), [
+        {intersection: {bufferRange: [[4, 0], [6, 0]], startOffset: 20, endOffset: 35}, gap: false},
+      ]);
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, true), [
+        {intersection: {bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20}, gap: true},
+        {intersection: {bufferRange: [[4, 0], [6, 0]], startOffset: 20, endOffset: 35}, gap: false},
       ]);
     });
 
@@ -102,14 +123,22 @@ describe('IndexedRowRange', function() {
       });
       const rowSet = new Set([0, 3, 4, 6, 7, 10]);
 
-      assert.deepEqual(range.intersectRowsIn(rowSet, buffer).map(i => i.serialize()), [
-        {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25},
-        {bufferRange: [[6, 0], [7, 0]], startOffset: 30, endOffset: 40},
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, false), [
+        {intersection: {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25}, gap: false},
+        {intersection: {bufferRange: [[6, 0], [7, 0]], startOffset: 30, endOffset: 40}, gap: false},
+      ]);
+      assertIntersections(range.intersectRowsIn(rowSet, buffer, true), [
+        {intersection: {bufferRange: [[2, 0], [2, 0]], startOffset: 10, endOffset: 15}, gap: true},
+        {intersection: {bufferRange: [[3, 0], [4, 0]], startOffset: 15, endOffset: 25}, gap: false},
+        {intersection: {bufferRange: [[5, 0], [5, 0]], startOffset: 25, endOffset: 30}, gap: true},
+        {intersection: {bufferRange: [[6, 0], [7, 0]], startOffset: 30, endOffset: 40}, gap: false},
+        {intersection: {bufferRange: [[8, 0], [8, 0]], startOffset: 40, endOffset: 45}, gap: true},
       ]);
     });
 
     it('returns an empty array for the null range', function() {
-      assert.deepEqual(nullIndexedRowRange.intersectRowsIn(new Set([1, 2, 3]), buffer), []);
+      assertIntersections(nullIndexedRowRange.intersectRowsIn(new Set([1, 2, 3]), buffer, true), []);
+      assertIntersections(nullIndexedRowRange.intersectRowsIn(new Set([1, 2, 3]), buffer, false), []);
     });
   });
 
