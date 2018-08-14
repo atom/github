@@ -70,8 +70,8 @@ To introduce brand-new functionality into the package, follow this guide.
 
 ##### Process
 
-1. On a feature branch, write a proposal as a markdown document beneath [`docs/rfcs`]() in this repository. Copy the [template]() to begin. Open a pull request. The RFC document should include:
-   * A description of the feature, writted as though it already exists;
+1. On a feature branch, write a proposal as a markdown document beneath [`docs/rfcs`](/docs/rfcs) in this repository. Copy the [template](/docs/rfcs/000-template.md) to begin. Open a pull request. The RFC document should include:
+   * A description of the feature, written as though it already exists;
    * An analysis of the risks and drawbacks;
    * A specification of when the feature will be considered "done";
    * Unresolved questions or possible follow-on work;
