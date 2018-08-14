@@ -6,6 +6,10 @@ This is an attempt to make explicit the way that the core team plans, designs, a
 
 Process should serve the developers who use it and not the other way around. This is a live document! As our needs change and as we find that something here isn't bringing us the value we want, we should send pull requests to change it.
 
+## Planning
+
+Our short-term planning is done in a series of [Project boards on this repository](https://github.com/atom/github/projects). Each project board is associated with a three-week period of time and a target version of the package. Our goal is to release a minor version of the package to atom/atom corresponding to the "Merged" column of its project board - in other words, it is less important to us to have an accurate Planned column before the sprint begins than it is to have an accurate Merged column after it's complete.
+
 ## Kinds of change
 
 One size does not fit all, and accordingly, we do not prescribe the same amount of rigor for every pull request. These options lay out a spectrum of approaches to be followed for changes of increasing complexity and scope. Not everything will fall neatly into one of these categories; we trust each other's judgement in choosing which is appropriate for any given effort. When in doubt, ask and we can decide together.
