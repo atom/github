@@ -192,21 +192,77 @@ describe('GitTabController', function() {
     await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 3);
 
     const controller = wrapper.instance();
-    const gitTab = controller.refView;
-    const stagingView = gitTab.refStagingView;
+    const stagingView = controller.refStagingView.get();
 
     sinon.spy(stagingView, 'setFocus');
 
+    await controller.quietlySelectItem('unstaged-3.txt', 'unstaged');
+
+    const selections0 = Array.from(stagingView.state.selection.getSelectedItems());
+    assert.lengthOf(selections0, 1);
+    assert.equal(selections0[0].filePath, 'unstaged-3.txt');
+
+    assert.isFalse(stagingView.setFocus.called);
+
     await controller.focusAndSelectStagingItem('unstaged-2.txt', 'unstaged');
 
-    const selections = Array.from(stagingView.state.selection.getSelectedItems());
-    assert.lengthOf(selections, 1);
-    assert.equal(selections[0].filePath, 'unstaged-2.txt');
+    const selections1 = Array.from(stagingView.state.selection.getSelectedItems());
+    assert.lengthOf(selections1, 1);
+    assert.equal(selections1[0].filePath, 'unstaged-2.txt');
 
     assert.equal(stagingView.setFocus.callCount, 1);
   });
 
   describe('focus management', function() {
+    it('remembers the last focus reported by the view', async function() {
+      const repository = await buildRepository(await cloneRepository());
+      const wrapper = mount(await buildApp(repository));
+      const view = wrapper.instance().refView.get();
+      const editorElement = wrapper.find('atom-text-editor').getDOMNode();
+      const commitElement = wrapper.find('.github-CommitView-commit').getDOMNode();
+
+      wrapper.instance().rememberLastFocus({target: editorElement});
+
+      sinon.spy(view, 'setFocus');
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.EDITOR));
+
+      wrapper.instance().rememberLastFocus({target: commitElement});
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.COMMIT_BUTTON));
+
+      wrapper.instance().rememberLastFocus({target: document.body});
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isTrue(view.setFocus.calledWith(GitTabController.focus.STAGING));
+
+      wrapper.instance().refView.setter(null);
+
+      view.setFocus.resetHistory();
+      wrapper.instance().restoreFocus();
+      assert.isFalse(view.setFocus.called);
+    });
+
+    it('detects focus', async function() {
+      const repository = await buildRepository(await cloneRepository());
+      const wrapper = mount(await buildApp(repository));
+      const rootElement = wrapper.instance().refRoot.get();
+      sinon.stub(rootElement, 'contains');
+
+      rootElement.contains.returns(true);
+      assert.isTrue(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(false);
+      assert.isFalse(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(true);
+      wrapper.instance().refRoot.setter(null);
+      assert.isFalse(wrapper.instance().hasFocus());
+    });
+
     it('does nothing on an absent repository', async function() {
       const repository = Repository.absent();
 
@@ -222,14 +278,15 @@ describe('GitTabController', function() {
   });
 
   describe('keyboard navigation commands', function() {
-    let wrapper, gitTab, stagingView, commitView, commitController, focusElement;
+    let wrapper, rootElement, gitTab, stagingView, commitView, commitController, focusElement;
     const focuses = GitTabController.focus;
 
     const extractReferences = () => {
-      gitTab = wrapper.instance().refView;
-      stagingView = gitTab.refStagingView;
-      commitController = gitTab.refCommitController;
-      commitView = commitController.refCommitView;
+      rootElement = wrapper.instance().refRoot.get();
+      gitTab = wrapper.instance().refView.get();
+      stagingView = wrapper.instance().refStagingView.get();
+      commitController = gitTab.refCommitController.get();
+      commitView = commitController.refCommitView.get();
       focusElement = stagingView.element;
 
       const commitViewElements = [];
@@ -242,7 +299,7 @@ describe('GitTabController', function() {
           focusElement = element;
         });
       };
-      stubFocus(stagingView.refRoot);
+      stubFocus(stagingView.refRoot.get());
       for (const e of commitViewElements) {
         stubFocus(e);
       }
@@ -300,18 +357,18 @@ describe('GitTabController', function() {
       it('advances focus through StagingView groups and CommitView, but does not cycle', async function() {
         assertSelected(['unstaged-1.txt']);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
+        commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['conflict-1.txt']);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
+        commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['staged-1.txt']);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
+        commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['staged-1.txt']);
         await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-next');
+        commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['staged-1.txt']);
         assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
       });
@@ -320,18 +377,18 @@ describe('GitTabController', function() {
         gitTab.setFocus(focuses.EDITOR);
         sinon.stub(commitView, 'hasFocusEditor').returns(true);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
-        await assert.async.strictEqual(focusElement, stagingView.refRoot);
+        commandRegistry.dispatch(rootElement, 'core:focus-previous');
+        await assert.async.strictEqual(focusElement, stagingView.refRoot.get());
         assertSelected(['staged-1.txt']);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
+        commandRegistry.dispatch(rootElement, 'core:focus-previous');
         await assertAsyncSelected(['conflict-1.txt']);
 
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
+        commandRegistry.dispatch(rootElement, 'core:focus-previous');
         await assertAsyncSelected(['unstaged-1.txt']);
 
         // This should be a no-op.
-        commandRegistry.dispatch(gitTab.refRoot, 'core:focus-previous');
+        commandRegistry.dispatch(rootElement, 'core:focus-previous');
         await assertAsyncSelected(['unstaged-1.txt']);
       });
     });
@@ -391,8 +448,7 @@ describe('GitTabController', function() {
 
       await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 2);
 
-      const gitTab = wrapper.instance().refView;
-      const stagingView = gitTab.refStagingView;
+      const stagingView = wrapper.instance().refStagingView.get();
       const commitView = wrapper.find('CommitView');
 
       assert.lengthOf(stagingView.props.unstagedChanges, 2);
@@ -433,7 +489,7 @@ describe('GitTabController', function() {
       const wrapper = mount(await buildApp(repository, props));
 
       assert.lengthOf(wrapper.find('GitTabView').prop('mergeConflicts'), 5);
-      const stagingView = wrapper.instance().refView.refStagingView;
+      const stagingView = wrapper.instance().refStagingView.get();
 
       assert.equal(stagingView.props.mergeConflicts.length, 5);
       assert.equal(stagingView.props.stagedChanges.length, 0);
@@ -482,7 +538,7 @@ describe('GitTabController', function() {
 
       const wrapper = mount(await buildApp(repository));
 
-      const stagingView = wrapper.instance().refView.refStagingView;
+      const stagingView = wrapper.instance().refStagingView.get();
       assert.lengthOf(stagingView.props.unstagedChanges, 2);
 
       // ensure staging the same file twice does not cause issues
@@ -509,7 +565,7 @@ describe('GitTabController', function() {
 
       const wrapper = mount(await buildApp(repository));
 
-      const stagingView = wrapper.instance().refView.refStagingView;
+      const stagingView = wrapper.instance().refStagingView.get();
       assert.include(stagingView.props.unstagedChanges.map(c => c.filePath), 'new-file.txt');
 
       const [addedFilePatch] = stagingView.props.unstagedChanges;

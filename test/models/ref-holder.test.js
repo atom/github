@@ -71,6 +71,21 @@ describe('RefHolder', function() {
     });
   });
 
+  describe('getOr', function() {
+    it("returns the RefHolder's value if it is non-empty", function() {
+      const h = new RefHolder();
+      h.setter(1234);
+
+      assert.strictEqual(h.getOr(5678), 1234);
+    });
+
+    it('returns its argument if the RefHolder is empty', function() {
+      const h = new RefHolder();
+
+      assert.strictEqual(h.getOr(5678), 5678);
+    });
+  });
+
   it('notifies subscribers when it becomes available', function() {
     const h = new RefHolder();
     const callback = sinon.spy();
@@ -95,6 +110,37 @@ describe('RefHolder', function() {
     const callback = sinon.spy();
     sub = h.observe(callback);
     assert.isTrue(callback.calledWith(12));
+  });
+
+  it('does not notify subscribers when it is assigned the same value', function() {
+    const h = new RefHolder();
+    h.setter(12);
+
+    const callback = sinon.spy();
+    sub = h.observe(callback);
+
+    callback.resetHistory();
+    h.setter(12);
+    assert.isFalse(callback.called);
+  });
+
+  it('does not notify subscribers when it becomes empty', function() {
+    const h = new RefHolder();
+    h.setter(12);
+    assert.isFalse(h.isEmpty());
+
+    const callback = sinon.spy();
+    sub = h.observe(callback);
+
+    callback.resetHistory();
+    h.setter(null);
+    assert.isTrue(h.isEmpty());
+    assert.isFalse(callback.called);
+
+    callback.resetHistory();
+    h.setter(undefined);
+    assert.isTrue(h.isEmpty());
+    assert.isFalse(callback.called);
   });
 
   it('resolves a promise when it becomes available', async function() {

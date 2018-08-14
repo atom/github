@@ -575,6 +575,63 @@ describe('Repository', function() {
     });
   });
 
+  describe('undoLastCommit()', function() {
+    it('performs a soft reset', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      fs.appendFileSync(path.join(workingDirPath, 'file.txt'), 'qqq\n', 'utf8');
+      await repo.git.exec(['add', '.']);
+      await repo.git.commit('add stuff');
+
+      const parentCommit = await repo.git.getCommit('HEAD~');
+
+      await repo.undoLastCommit();
+
+      const commitAfterReset = await repo.git.getCommit('HEAD');
+      assert.strictEqual(commitAfterReset.sha, parentCommit.sha);
+
+      const fp = await repo.getFilePatchForPath('file.txt', {staged: true});
+      assert.strictEqual(
+        fp.toString(),
+        dedent`
+          diff --git a/file.txt b/file.txt
+          --- a/file.txt
+          +++ b/file.txt
+          @@ -1,1 +1,2 @@
+           three
+          +qqq\n
+        `,
+      );
+    });
+
+    it('deletes the HEAD ref when only a single commit is present', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      fs.appendFileSync(path.join(workingDirPath, 'b.txt'), 'qqq\n', 'utf8');
+      await repo.git.exec(['add', '.']);
+
+      await repo.undoLastCommit();
+
+      const fp = await repo.getFilePatchForPath('b.txt', {staged: true});
+      assert.strictEqual(
+        fp.toString(),
+        dedent`
+          diff --git a/b.txt b/b.txt
+          new file mode 100644
+          --- /dev/null
+          +++ b/b.txt
+          @@ -0,0 +1,2 @@
+          +bar
+          +qqq\n
+        `,
+      );
+    });
+  });
+
   describe('fetch(branchName, {remoteName})', function() {
     it('brings commits from the remote and updates remote branch, and does not update branch', async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
