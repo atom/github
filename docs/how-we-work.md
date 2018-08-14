@@ -118,20 +118,28 @@ When finalizing your review:
 
 The github package ships as a bundled part of Atom, which affects the way that our progress is delivered to users. After using `apm` to publish a new version, we also need to add a commit to [Atom's `package.json` file](https://github.com/atom/atom/blob/master/package.json#L114) to make our work available.
 
-When the team is preparing to ship a new version of Atom, run `apm publish minor` and update `package.json` on Atom's master branch to reference the new version. This will ship our work to Atom's [beta channel](https://atom.io/beta) and allow a smaller subset of our users to discover regressions before we release it to the full Atom user population.
+At the end of each development sprint:
 
-When you update Atom's `package.json`, make sure you wait for Atom to build before you merge your changes. In particular, we've had issues with snapshot tests. You can either do `apm publish pre` on the branch with the fix, then modify `package.json` in your local atom and try a `script/build`.  Or you can open a pull requests and let the CI tests run for you.
+1. _In your atom/github repository:_ run `apm publish preminor` to create the first prerelease version or `apm publish prerelease` to increment an existing prerelease version. Note the generated version number and ensure that it's correct. If the currently deployed version is `v0.19.2`, the first prerelease should be `v0.20.0-0`; if the existing prerelease is `v0.20.0-0`, the next prerelease should be `v0.20.0-1`.
+2. _In your atom/atom repository:_ create a new branch and edit `package.json` in its root directory. Change the version of the `"github"` entry beneath `packageDependencies` to match the prerelease you just published.
+3. _In your atom/atom repository:_ Run `script/build --install`. This will update Atom's `package-lock.json` files and produce a local development build of Atom with your prerelease version of atom/github bundled.
+  * :boom: _If the build fails,_ correct any bugs and begin again at (1) with a new prerelease version.
+4. Run `apm uninstall github` and `apm uninstall --dev github` to ensure that you don't have any [locally installed atom/github versions](/CONTRIBUTING.md#living-on-the-edge) that would override the bundled one.
+5. _In your atom/atom repository:_ Push your branch to atom/atom and open a pull request to start running CI.
+6. Create a [QA issue](https://github.com/atom/github/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquality) in the atom/github repository. Its title should be "_prerelease version_ QA Review" and it should have the "quality" label applied. Populate the issue body with a checklist containing the pull requests that were included in this release; these should be the ones in the "Merged" column of the project board. Omit pull requests that don't have verification steps (like renames, refactoring, or dependency upgrades, for example). Add a final entry for a clean CI check on the atom/atom pull request.
+7. Use your `atom-dev` build to verify each and check it off the list.
+  * :boom: _If verification fails,_ note the failure in an issue comment. Close the issue. Correct the failure with more work in the current sprint board, then begin again at (1).
+  * :white_check_mark: _Otherwise,_ comment in and close the issue, then continue.
+8. _In your atom/github repository:_ run `apm publish minor` to publish the next minor version.
+9. _In your atom/github repository:_ create a release branch for this minor version with `git checkout -b 0.${MINOR}-releases`. Push it to atom/github.
+9. _In your atom/atom repository:_ update the version of the `"github"` entry beneath `packageDependencies` in `package.json`  to match the published minor version. Run `script/build` to update `package-lock.json` files. Commit and push these changes.
+10. When the CI build for your atom/atom pull request is successful, merge it.
 
-When you've merged substantial new functionality, consider running `apm publish minor` and updating `package.json` on Atom's master branch outside of the Atom release cycle, to give the rest of the Atom team time to dogfood the change internally and weigh in with opinions.
+Now cherry-pick any suitably minor or low-risk bugfix PRs from this release to the previous one:
 
-After shipping a minor version release for either of the above situations, create and push a release branch from that version's tag:
+1. _In your atom/github repository:_ run `git checkout 0.${LASTMINOR}-releases`. For example, if the current release is v0.19.0, the target release branch should be `0.18-releases`.
+2. _In your atom/github repository:_ identify the merge SHA of each pull request eligible for backporting. One way to do this is to run `git log --oneline --first-parent master ^HEAD` and identify commits by the "Merge pull request #..." commit messages.
+3. _In your atom/github repository:_ cherry-pick each merge commit onto the release branch with `git cherry-pick -m 1 ${SHA}`. Resolve any merge conflicts that arise.
+4. Follow the instructions above to publish a new patch version of the package. (Use `apm publish prepatch` / `apm publish prerelease` to generate the correct version numbers.)
 
-```sh
-$ apm publish minor
-version 0.11.0
-$ git branch 0.11-releases && git push -u origin 0.11-releases
-```
-
-When you merge a fix for a bug, cherry-pick the merge commit onto to the most recent release branch, then run `apm publish patch` and update `package.json` on the most recent beta release branch on the `atom/atom` repository. This will ensure bug fixes are delivered to users on Atom's stable channel as part of the next release.
-
-When you merge a fix for a **security problem**, a **data loss bug**, or fix a **crash** or a **lock-up** that affect a large portion of the user population, cherry-pick the merge commit onto the most recent beta _and_ stable release branches of atom/github that contain the bug, then run `apm publish patch` on both and update `package.json` on the affected release branches on the `atom/atom` repository. Consider advocating for a hotfix release of Atom to deliver these fixes to the user population as soon as possible.
+For _really_ urgent fixes, like security problems, data loss bugs, or frequently occurring crashes or lock-ups, consider repeating the cherry-pick instructions for the minor version sequence published on Atom stable, and advocating for an Atom hotfix to deliver it as soon as possible.
