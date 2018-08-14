@@ -26,7 +26,7 @@ This includes work like typos in comments or documentation, localized work, or r
 
 ##### Process
 
-1. Isolate work on a feature branch in the `atom/github` repository and open a pull request. Title-only pull requests are fine. If it's _really_ minor, like a one-line diff, committing directly to `master` is also perfectly acceptable.
+1. Isolate work on a feature branch in the `atom/github` repository and open a pull request. Remember to add the pull request to the current sprint board. Title-only pull requests are fine. If it's _really_ minor, like a one-line diff, committing directly to `master` is also perfectly acceptable.
 2. Ensure that our CI remains green across platforms.
 3. Merge your own pull request; no code review necessary.
 
@@ -38,8 +38,8 @@ Addressing unhandled exceptions, lock-ups, or correcting other unintended behavi
 
 1. Open an issue on `atom/github` describing the bug if there isn't one already.
 2. Identify the root cause of the bug and leave a description of it as an issue comment. If necessary, modify the issue body and title to clarify the bug as you go.
-3. When you're ready to begin writing the fix, assign the issue to yourself and move it to the "in progress" column on the [short-term roadmap project](https://github.com/atom/github/projects/8). :rainbow: _This signals to the team and to the community that it's actively being addressed, and keeps us from colliding._
-4. Work on a feature branch in the `atom/github` repository and open a pull request.
+3. When you're ready to begin writing the fix, assign the issue to yourself and move it to the "in progress" column on the current active sprint project. :rainbow: _This signals to the team and to the community that it's actively being addressed, and keeps us from colliding._
+4. Work on a feature branch in the `atom/github` repository and open a pull request. Remember to add the pull request to the current sprint project.
 5. Write a failing test case that demonstrates the bug (or a rationale for why it isn't worth it -- but bias toward writing one).
 6. Iteratively make whatever changes are necessary to make the test suite pass on that branch.
 7. Merge your own pull request and close the issue.
@@ -63,8 +63,8 @@ Major, cross-cutting refactoring efforts fit within this category. Our goals wit
 2. Capture the context of the change in an issue, which can then be prioritized accordingly within our normal channels.
     * Should we stop or delay existing work in favor of a refactoring?
     * Should we leave it as-is until we complete other work that's more impactful?
-3. When you're ready to begin refactoring, assign the issue to yourself and move it to "in progress" column on the [short-term roadmap project](https://github.com/atom/github/projects/8).
-4. Work in a feature branch in the `atom/github` repository and open a pull request to track your progress.
+3. When you're ready to begin refactoring, assign the issue to yourself and move it to "in progress" column on the current sprint project.
+4. Work in a feature branch in the `atom/github` repository and open a pull request to track your progress. Remember to add the pull request to the current sprint project board.
 5. Iteratively change code and tests until the change is complete and CI builds are green.
 6. Merge your own pull request and close the issue.
 
@@ -83,7 +83,7 @@ To introduce brand-new functionality into the package, follow this guide.
    * The acceptance criteria for the RFC itself, as chosen by your current understanding of its scope and impact. Some options you may use here include _(a)_ you're satisfied with its state; _(b)_ the pull request has collected a predetermined number of :+1: votes from core team members; or _(c)_ unanimous :+1: votes from the full core team.
 2. @-mention @simurai on the open pull request for design input. Begin hashing out mock-ups, look and feel, specific user interaction details, and decide on a high-level direction for the feature.
 3. The RFC's author is responsible for recognizing when its acceptance criteria have been met and merging its pull request. :rainbow: _Our intent here is to give the feature's advocate the ability to cut [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) short and accept responsibility for guiding it forward._
-4. Work on the RFC's implementation is performed in one or more pull requests.
+4. Work on the RFC's implementation is performed in one or more pull requests. Remember to add each pull request to the current sprint project.
    * Consider gating your work behind a feature flag or a configuration option.
    * Write tests for your new work.
    * Optionally [request reviewers](#how-we-review) if you want feedback. Ping @simurai for ongoing UI/UX considerations if appropriate.
