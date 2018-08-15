@@ -143,9 +143,32 @@ describe('IndexedRowRange', function() {
   });
 
   describe('offsetBy()', function() {
-    it('returns the receiver as-is when there is no change');
+    let original;
 
-    it('modifies the buffer range and the buffer offset');
+    beforeEach(function() {
+      original = new IndexedRowRange({
+        bufferRange: [[3, 0], [5, 0]],
+        startOffset: 15,
+        endOffset: 25,
+      });
+    });
+
+    it('returns the receiver as-is when there is no change', function() {
+      assert.strictEqual(original.offsetBy(0, 0), original);
+    });
+
+    it('modifies the buffer range and the buffer offset', function() {
+      const changed = original.offsetBy(10, 3);
+      assert.deepEqual(changed.serialize(), {
+        bufferRange: [[6, 0], [8, 0]],
+        startOffset: 25,
+        endOffset: 35,
+      });
+    });
+
+    it('is a no-op on a nullIndexedRowRange', function() {
+      assert.strictEqual(nullIndexedRowRange.offsetBy(100, 200), nullIndexedRowRange);
+    });
   });
 
   it('returns appropriate values from nullIndexedRowRange methods', function() {
