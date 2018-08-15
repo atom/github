@@ -1,5 +1,6 @@
 import Hunk from '../../../lib/models/patch/hunk';
-import IndexedRowRange, {nullIndexedRowRange} from '../../../lib/models/indexed-row-range';
+import IndexedRowRange from '../../../lib/models/indexed-row-range';
+import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/change';
 
 describe('Hunk', function() {
   const attrs = {
@@ -13,14 +14,11 @@ describe('Hunk', function() {
       startOffset: 5,
       endOffset: 100,
     }),
-    additions: [
-      new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 6, endOffset: 7}),
+    changes: [
+      new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 6, endOffset: 7})),
+      new Deletion(new IndexedRowRange({bufferRange: [[3, 0], [4, 0]], startOffset: 8, endOffset: 9})),
+      new Deletion(new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 10, endOffset: 11})),
     ],
-    deletions: [
-      new IndexedRowRange({bufferRange: [[3, 0], [4, 0]], startOffset: 8, endOffset: 9}),
-      new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 10, endOffset: 11}),
-    ],
-    noNewline: nullIndexedRowRange,
   };
 
   it('has some basic accessors', function() {
@@ -35,14 +33,11 @@ describe('Hunk', function() {
         startOffset: 0,
         endOffset: 100,
       }),
-      additions: [
-        new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 6, endOffset: 7}),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 6, endOffset: 7})),
+        new Deletion(new IndexedRowRange({bufferRange: [[3, 0], [4, 0]], startOffset: 8, endOffset: 9})),
+        new Deletion(new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 10, endOffset: 11})),
       ],
-      deletions: [
-        new IndexedRowRange({bufferRange: [[3, 0], [4, 0]], startOffset: 8, endOffset: 9}),
-        new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 10, endOffset: 11}),
-      ],
-      noNewline: nullIndexedRowRange,
     });
 
     assert.strictEqual(h.getOldStartRow(), 0);
@@ -50,6 +45,13 @@ describe('Hunk', function() {
     assert.strictEqual(h.getOldRowCount(), 2);
     assert.strictEqual(h.getNewRowCount(), 3);
     assert.strictEqual(h.getSectionHeading(), 'sectionHeading');
+    assert.deepEqual(h.getRowRange().serialize(), {
+      bufferRange: [[0, 0], [10, 0]],
+      startOffset: 0,
+      endOffset: 100,
+    });
+    assert.strictEqual(h.bufferRowCount(), 11);
+    assert.lengthOf(h.getChanges(), 3);
     assert.lengthOf(h.getAdditions(), 1);
     assert.lengthOf(h.getDeletions(), 2);
     assert.isFalse(h.getNoNewline().isPresent());
@@ -95,22 +97,18 @@ describe('Hunk', function() {
   it('computes the total number of changed lines', function() {
     const h0 = new Hunk({
       ...attrs,
-      additions: [
-        new IndexedRowRange({bufferRange: [[2, 0], [4, 0]], startOffset: 0, endOffset: 0}),
-        new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 0, endOffset: 0}),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[2, 0], [4, 0]], startOffset: 0, endOffset: 0})),
+        new Addition(new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 0, endOffset: 0})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [10, 0]], startOffset: 0, endOffset: 0})),
+        new NoNewline(new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0})),
       ],
-      deletions: [
-        new IndexedRowRange({bufferRange: [[7, 0], [10, 0]], startOffset: 0, endOffset: 0}),
-      ],
-      noNewline: new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0}),
     });
-    assert.strictEqual(h0.changedLineCount(), 9);
+    assert.strictEqual(h0.changedLineCount(), 8);
 
     const h1 = new Hunk({
       ...attrs,
-      additions: [],
-      deletions: [],
-      noNewline: nullIndexedRowRange,
+      changes: [],
     });
     assert.strictEqual(h1.changedLineCount(), 0);
   });
@@ -123,14 +121,12 @@ describe('Hunk', function() {
       oldRowCount: 2,
       newRowCount: 3,
       sectionHeading: 'the-heading',
-      additions: [
-        new IndexedRowRange({bufferRange: [[2, 0], [4, 0]], startOffset: 0, endOffset: 0}),
-        new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 0, endOffset: 0}),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[2, 0], [4, 0]], startOffset: 0, endOffset: 0})),
+        new Addition(new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 0, endOffset: 0})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [10, 0]], startOffset: 0, endOffset: 0})),
+        new NoNewline(new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0})),
       ],
-      deletions: [
-        new IndexedRowRange({bufferRange: [[7, 0], [10, 0]], startOffset: 0, endOffset: 0}),
-      ],
-      noNewline: new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0}),
     });
 
     const inverted = original.invert();
@@ -139,9 +135,9 @@ describe('Hunk', function() {
     assert.strictEqual(inverted.getOldRowCount(), 3);
     assert.strictEqual(inverted.getNewRowCount(), 2);
     assert.strictEqual(inverted.getSectionHeading(), 'the-heading');
-    assert.lengthOf(inverted.additions, 1);
-    assert.lengthOf(inverted.deletions, 2);
-    assert.isTrue(inverted.noNewline.isPresent());
+    assert.lengthOf(inverted.getAdditions(), 1);
+    assert.lengthOf(inverted.getDeletions(), 2);
+    assert.isTrue(inverted.getNoNewline().isPresent());
   });
 
   describe('toStringIn()', function() {
@@ -152,9 +148,7 @@ describe('Hunk', function() {
         newStartRow: 1,
         oldRowCount: 2,
         newRowCount: 3,
-        additions: [],
-        deletions: [],
-        noNewline: nullIndexedRowRange,
+        changes: [],
       });
 
       assert.strictEqual(h.toStringIn(''), '@@ -0,2 +1,3 @@\n');
@@ -178,16 +172,14 @@ describe('Hunk', function() {
           startOffset: 5,
           endOffset: 91,
         }),
-        additions: [
-          new IndexedRowRange({bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20}),
-          new IndexedRowRange({bufferRange: [[7, 0], [7, 0]], startOffset: 35, endOffset: 40}),
-          new IndexedRowRange({bufferRange: [[10, 0], [10, 0]], startOffset: 50, endOffset: 55}),
+        changes: [
+          new Addition(new IndexedRowRange({bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20})),
+          new Deletion(new IndexedRowRange({bufferRange: [[5, 0], [5, 0]], startOffset: 25, endOffset: 30})),
+          new Addition(new IndexedRowRange({bufferRange: [[7, 0], [7, 0]], startOffset: 35, endOffset: 40})),
+          new Deletion(new IndexedRowRange({bufferRange: [[8, 0], [9, 0]], startOffset: 40, endOffset: 50})),
+          new Addition(new IndexedRowRange({bufferRange: [[10, 0], [10, 0]], startOffset: 50, endOffset: 55})),
+          new NoNewline(new IndexedRowRange({bufferRange: [[13, 0], [13, 0]], startOffset: 65, endOffset: 91})),
         ],
-        deletions: [
-          new IndexedRowRange({bufferRange: [[5, 0], [5, 0]], startOffset: 25, endOffset: 30}),
-          new IndexedRowRange({bufferRange: [[8, 0], [9, 0]], startOffset: 40, endOffset: 50}),
-        ],
-        noNewline: new IndexedRowRange({bufferRange: [[13, 0], [13, 0]], startOffset: 65, endOffset: 91}),
       });
 
       assert.strictEqual(h.toStringIn(buffer), [
@@ -204,7 +196,7 @@ describe('Hunk', function() {
         '+1000\n',
         ' 1111\n',
         ' 1222\n',
-        '\\No newline at end of file\n',
+        '\\ No newline at end of file\n',
       ].join(''));
     });
 
@@ -218,13 +210,10 @@ describe('Hunk', function() {
         oldRowCount: 1,
         newRowCount: 1,
         rowRange: new IndexedRowRange({bufferRange: [[0, 0], [3, 0]], startOffset: 0, endOffset: 20}),
-        additions: [
-          new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10}),
+        changes: [
+          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
+          new Deletion(new IndexedRowRange({bufferRange: [[2, 0], [2, 0]], startOffset: 10, endOffset: 15})),
         ],
-        deletions: [
-          new IndexedRowRange({bufferRange: [[2, 0], [2, 0]], startOffset: 10, endOffset: 15}),
-        ],
-        noNewline: nullIndexedRowRange,
       });
 
       assert.strictEqual(h.toStringIn(buffer), [
