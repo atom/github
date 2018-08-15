@@ -1,4 +1,5 @@
-import {addEvent, addTiming, FIVE_MINUTES_IN_MILLISECONDS, FakeReporter, incrementCounter, reporterProxy} from '../lib/reporter-proxy';
+import {addEvent, addTiming, FIVE_MINUTES_IN_MILLISECONDS,
+  FakeReporter, incrementCounter, reporterProxy, setGitHubUser} from '../lib/reporter-proxy';
 const pjson = require('../package.json');
 
 const version = pjson.version;
@@ -18,6 +19,7 @@ describe('reporterProxy', function() {
     reporterProxy.events = [];
     reporterProxy.timings = [];
     reporterProxy.counters = [];
+    reporterProxy.gitHubUser = null;
   });
 
   describe('before reporter has been set', function() {
@@ -50,6 +52,12 @@ describe('reporterProxy', function() {
       assert.deepEqual(counters.length, 1);
       assert.deepEqual(counters[0], counterName);
     });
+
+    it('sets gitHubUser when setGitHubUser is called', function() {
+      const gitHubUser = 'annthurium';
+      reporterProxy.setGitHubUser(gitHubUser);
+      assert.deepEqual(reporterProxy.gitHubUser, gitHubUser);
+    })
   });
   describe('if reporter is never set', function() {
     it('sets the reporter to no op class once interval has passed', function() {
@@ -142,5 +150,24 @@ describe('reporterProxy', function() {
 
       assert.deepEqual(incrementCounterStub.lastCall.args, [counterName]);
     });
+    it('sets reporter.gitHubUser after reporter is set', function() {
+      const gitHubUser = 'annthurium';
+      const setGitHubUserStub = sinon.stub(fakeReporter, 'setGitHubUser');
+      assert.isFalse(setGitHubUserStub.called);
+      reporterProxy.setGitHubUser(gitHubUser);
+      assert.deepEqual(reporterProxy.gitHubUser, gitHubUser);
+      reporterProxy.setReporter(fakeReporter);
+      const args = setGitHubUserStub.lastCall.args;
+      assert.deepEqual(args[0], gitHubUser);
+    });
+
+    it('does not set reporter.gitHubUser if gitHubUser is null', function() {
+      assert.isNull(reporterProxy.gitHubUser);
+      const setGitHubUserStub = sinon.stub(fakeReporter, 'setGitHubUser');
+      assert.isFalse(setGitHubUserStub.called);
+      reporterProxy.setReporter(fakeReporter);
+      assert.isFalse(setGitHubUserStub.called);
+    });
+
   });
 });
