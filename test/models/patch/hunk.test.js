@@ -158,8 +158,8 @@ describe('Hunk', function() {
       const buffer =
         '0000\n0111\n0222\n0333\n0444\n0555\n0666\n0777\n0888\n0999\n' +
         '1000\n1111\n1222\n' +
-        'No newline at end of file\n';
-      // 0000.0111.0222.0333.0444.0555.0666.0777.0888.0999.1000.1111.1222.No newline at end of file.
+        ' No newline at end of file\n';
+      // 0000.0111.0222.0333.0444.0555.0666.0777.0888.0999.1000.1111.1222. No newline at end of file.
 
       const h = new Hunk({
         ...attrs,
@@ -178,7 +178,7 @@ describe('Hunk', function() {
           new Addition(new IndexedRowRange({bufferRange: [[7, 0], [7, 0]], startOffset: 35, endOffset: 40})),
           new Deletion(new IndexedRowRange({bufferRange: [[8, 0], [9, 0]], startOffset: 40, endOffset: 50})),
           new Addition(new IndexedRowRange({bufferRange: [[10, 0], [10, 0]], startOffset: 50, endOffset: 55})),
-          new NoNewline(new IndexedRowRange({bufferRange: [[13, 0], [13, 0]], startOffset: 65, endOffset: 91})),
+          new NoNewline(new IndexedRowRange({bufferRange: [[13, 0], [13, 0]], startOffset: 65, endOffset: 92})),
         ],
       });
 

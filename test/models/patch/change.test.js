@@ -155,8 +155,8 @@ describe('Changes', function() {
       assert.isUndefined(result);
     });
 
-    it('uses "\\ " as a prefix for toStringIn()', function() {
-      assert.strictEqual(noNewline.toStringIn(buffer), '\\ 1111\n\\ 2222\n\\ 3333\n');
+    it('uses "\\" as a prefix for toStringIn()', function() {
+      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333\n');
     });
 
     it('inverts as itself', function() {
