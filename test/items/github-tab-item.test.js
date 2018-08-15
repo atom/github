@@ -42,7 +42,7 @@ describe('GitHubTabItem', function() {
 
     const paneItem = atomEnv.workspace.getRightDock().getPaneItems()
       .find(item => item.getURI() === 'atom-github://dock-item/github');
-    assert.strictEqual(paneItem.getTitle(), 'GitHub (preview)');
+    assert.strictEqual(paneItem.getTitle(), 'GitHub');
     assert.strictEqual(paneItem.getIconName(), 'octoface');
   });
 

@@ -1,6 +1,8 @@
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../../lib/models/github-login-model';
+import RefHolder from '../../../lib/models/ref-holder';
+import UserStore from '../../../lib/models/user-store';
 
 function noop() {}
 
@@ -50,4 +52,61 @@ export async function gitTabControllerProps(atomEnv, repository, overrides = {})
   repoProps.mergeMessage = repoProps.isMerging ? await repository.getMergeMessage() : null;
 
   return gitTabContainerProps(atomEnv, repository, repoProps);
+}
+
+export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
+  const props = {
+    refRoot: new RefHolder(),
+    refStagingView: new RefHolder(),
+
+    repository,
+    isLoading: false,
+
+    lastCommit: await repository.getLastCommit(),
+    currentBranch: await repository.getCurrentBranch(),
+    recentCommits: await repository.getRecentCommits({max: 10}),
+    isMerging: await repository.isMerging(),
+    isRebasing: await repository.isRebasing(),
+    hasUndoHistory: await repository.hasDiscardHistory(),
+    unstagedChanges: await repository.getUnstagedChanges(),
+    stagedChanges: await repository.getStagedChanges(),
+    mergeConflicts: await repository.getMergeConflicts(),
+    workingDirectoryPath: repository.getWorkingDirectoryPath(),
+
+    selectedCoAuthors: [],
+    updateSelectedCoAuthors: () => {},
+    resolutionProgress: new ResolutionProgress(),
+
+    workspace: atomEnv.workspace,
+    commandRegistry: atomEnv.commands,
+    grammars: atomEnv.grammars,
+    notificationManager: atomEnv.notifications,
+    config: atomEnv.config,
+    project: atomEnv.project,
+    tooltips: atomEnv.tooltips,
+
+    initializeRepo: () => {},
+    abortMerge: () => {},
+    commit: () => {},
+    undoLastCommit: () => {},
+    prepareToCommit: () => {},
+    resolveAsOurs: () => {},
+    resolveAsTheirs: () => {},
+    undoLastDiscard: () => {},
+    attemptStageAllOperation: () => {},
+    attemptFileStageOperation: () => {},
+    discardWorkDirChangesForPaths: () => {},
+    openFiles: () => {},
+
+    ...overrides,
+  };
+
+  props.mergeMessage = props.isMerging ? await repository.getMergeMessage() : null;
+  props.userStore = new UserStore({
+    repository: props.repository,
+    login: new GithubLoginModel(InMemoryStrategy),
+    config: props.config,
+  });
+
+  return props;
 }

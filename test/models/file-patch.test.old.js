@@ -19,6 +19,38 @@ function createFilePatch(oldFilePath, newFilePath, status, hunks) {
 // oldStartRow, newStartRow, oldRowCount, newRowCount, sectionHeading, lines
 
 describe('FilePatch', function() {
+  it('detects executable mode changes', function() {
+    const of0 = new FilePatch.File({path: 'a.txt', mode: '100644'});
+    const nf0 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const p0 = new FilePatch.Patch({status: 'modified', hunks: []});
+    const fp0 = new FilePatch(of0, nf0, p0);
+    assert.isTrue(fp0.didChangeExecutableMode());
+
+    const of1 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const nf1 = new FilePatch.File({path: 'a.txt', mode: '100644'});
+    const p1 = new FilePatch.Patch({status: 'modified', hunks: []});
+    const fp1 = new FilePatch(of1, nf1, p1);
+    assert.isTrue(fp1.didChangeExecutableMode());
+
+    const of2 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const nf2 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const p2 = new FilePatch.Patch({status: 'modified', hunks: []});
+    const fp2 = new FilePatch(of2, nf2, p2);
+    assert.isFalse(fp2.didChangeExecutableMode());
+
+    const of3 = FilePatch.File.empty();
+    const nf3 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const p3 = new FilePatch.Patch({status: 'modified', hunks: []});
+    const fp3 = new FilePatch(of3, nf3, p3);
+    assert.isFalse(fp3.didChangeExecutableMode());
+
+    const of4 = FilePatch.File.empty();
+    const nf4 = new FilePatch.File({path: 'a.txt', mode: '100755'});
+    const p4 = new FilePatch.Patch({status: 'modified', hunks: []});
+    const fp4 = new FilePatch(of4, nf4, p4);
+    assert.isFalse(fp4.didChangeExecutableMode());
+  });
+
   describe('getStagePatchForLines()', function() {
     it('returns a new FilePatch that applies only the specified lines', function() {
       const filePatch = createFilePatch('a.txt', 'a.txt', 'modified', [

@@ -11,17 +11,25 @@ describe('IssueishDetailView', function() {
   }
 
   it('renders pull request information', function() {
+    const commitCount = 11;
+    const fileCount = 22;
+    const baseRefName = 'master';
+    const headRefName = 'tt/heck-yes';
     const wrapper = shallow(buildApp({
       repositoryName: 'repo',
       ownerLogin: 'user0',
 
       issueishKind: 'PullRequest',
       issueishTitle: 'PR title',
+      issueishBaseRef: baseRefName,
+      issueishHeadRef: headRefName,
       issueishBodyHTML: '<code>stuff</code>',
       issueishAuthorLogin: 'author0',
       issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
       issueishNumber: 100,
       issueishState: 'MERGED',
+      issueishCommitCount: commitCount,
+      issueishChangedFileCount: fileCount,
       issueishReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
     }));
 
@@ -55,6 +63,29 @@ describe('IssueishDetailView', function() {
     assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
     assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-fileCount').text(), `${fileCount} changed files`);
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
+  });
+
+  it('renders pull request information for cross repository PR', function() {
+    const baseRefName = 'master';
+    const headRefName = 'tt-heck-yes';
+    const ownerLogin = 'user0';
+    const authorLogin = 'author0';
+    const wrapper = shallow(buildApp({
+      ownerLogin,
+      issueishBaseRef: baseRefName,
+      issueishHeadRef: headRefName,
+      issueishAuthorLogin: authorLogin,
+      issueishCrossRepository: true,
+    }));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), `${ownerLogin}/${baseRefName}`);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), `${authorLogin}/${headRefName}`);
   });
 
   it('renders issue information', function() {

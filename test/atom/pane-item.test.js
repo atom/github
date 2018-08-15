@@ -8,6 +8,11 @@ import StubItem from '../../lib/items/stub-item';
 class Component extends React.Component {
   static propTypes = {
     text: PropTypes.string.isRequired,
+    didFocus: PropTypes.func,
+  }
+
+  static defaultProps = {
+    didFocus: () => {},
   }
 
   render() {
@@ -22,6 +27,10 @@ class Component extends React.Component {
 
   getText() {
     return this.props.text;
+  }
+
+  focus() {
+    return this.props.didFocus();
   }
 }
 
@@ -190,6 +199,19 @@ describe('PaneItem', function() {
       calledWith = null;
       await workspace.open('atom-github://pattern/456');
       assert.strictEqual(calledWith, 'atom-github://pattern/456');
+    });
+
+    it('calls focus() on the child item when focus() is called', async function() {
+      const didFocus = sinon.spy();
+      mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
+          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" didFocus={didFocus} />}
+        </PaneItem>,
+      );
+      const item = await workspace.open('atom-github://pattern');
+      item.getElement().dispatchEvent(new FocusEvent('focus'));
+
+      assert.isTrue(didFocus.called);
     });
 
     it('removes a child when its pane is destroyed', async function() {
