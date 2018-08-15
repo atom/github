@@ -3,18 +3,18 @@ import GithubLoginModel from '../lib/models/github-login-model';
 import {InMemoryStrategy} from '../lib/shared/keytar-strategy';
 import {expectRelayQuery} from '../lib/relay-network-layer-manager';
 
-describe.only('getGitHubUser', function() {
+describe('getGitHubUser', function() {
   let login;
   const gitHubUser = 'annthurium';
   function useResult() {
     return expectRelayQuery({name: 'GetGitHubUser', variables: {}}, {
-      viewer: {login: gitHubUser}
+      viewer: {login: gitHubUser},
     });
   }
   beforeEach(function() {
     login = new GithubLoginModel(InMemoryStrategy);
   });
-  describe('sufficiently scoped tokens', async function() {
+  describe('sufficiently scoped tokens', function() {
     beforeEach(async function() {
       sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
       await login.setToken('https://api.github.com', '1234');
@@ -25,13 +25,14 @@ describe.only('getGitHubUser', function() {
       const user = await getGitHubUser(login);
       await assert.async.deepEqual(user, gitHubUser);
     });
-    it.only('handles graphql error gracefully', async function() {
-      // sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
-      const {reject, promise} = useResult();
-      const e = new Error('wat');
-      e.rawStack = e.stack;
-      reject(e);
-      await promise.catch(() => {});
+    it('handles graphql error gracefully', async function() {
+      function useErrorResult() {
+        return expectRelayQuery({name: 'GetGitHubUser', variables: {}}, {
+          errors: ['oh', 'emgee'],
+        });
+      }
+      const {resolve} = useErrorResult();
+      resolve();
       const user = await getGitHubUser(login);
       await assert.async.isNull(user);
     });
@@ -47,16 +48,6 @@ describe.only('getGitHubUser', function() {
   });
   it('returns null if token has insufficient scope', async function() {
     sinon.stub(login, 'getScopes').resolves(['not-enough']);
-    const user = await getGitHubUser(login);
-    await assert.async.isNull(user);
-  });
-  it('handles graphql error gracefully', async function() {
-    sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
-    const {reject, promise} = useResult();
-    const e = new Error('wat');
-    e.rawStack = e.stack;
-    reject(e);
-    await promise.catch(() => {});
     const user = await getGitHubUser(login);
     await assert.async.isNull(user);
   });
