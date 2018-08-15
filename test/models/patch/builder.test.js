@@ -78,39 +78,30 @@ describe('buildFilePatch', function() {
       assertInPatch(p).hunks(
         {
           startRow: 0,
+          endRow: 8,
           header: '@@ -0,7 +0,6 @@',
-          deletions: {
-            strings: ['*line-1\n*line-2\n*line-3\n'],
-            ranges: [[[1, 0], [3, 0]]],
-          },
-          additions: {
-            strings: ['*line-5\n*line-6\n'],
-            ranges: [[[5, 0], [6, 0]]],
-          },
+          changes: [
+            {kind: 'deletion', string: '-line-1\n-line-2\n-line-3\n', range: [[1, 0], [3, 0]]},
+            {kind: 'addition', string: '+line-5\n+line-6\n', range: [[5, 0], [6, 0]]},
+          ],
         },
         {
           startRow: 9,
+          endRow: 12,
           header: '@@ -10,3 +11,3 @@',
-          deletions: {
-            strings: ['*line-9\n'],
-            ranges: [[[9, 0], [9, 0]]],
-          },
-          additions: {
-            strings: ['*line-12\n'],
-            ranges: [[[12, 0], [12, 0]]],
-          },
+          changes: [
+            {kind: 'deletion', string: '-line-9\n', range: [[9, 0], [9, 0]]},
+            {kind: 'addition', string: '+line-12\n', range: [[12, 0], [12, 0]]},
+          ],
         },
         {
           startRow: 13,
+          endRow: 18,
           header: '@@ -20,4 +21,4 @@',
-          deletions: {
-            strings: ['*line-14\n*line-15\n'],
-            ranges: [[[14, 0], [15, 0]]],
-          },
-          additions: {
-            strings: ['*line-16\n*line-17\n'],
-            ranges: [[[16, 0], [17, 0]]],
-          },
+          changes: [
+            {kind: 'deletion', string: '-line-14\n-line-15\n', range: [[14, 0], [15, 0]]},
+            {kind: 'addition', string: '+line-16\n+line-17\n', range: [[16, 0], [17, 0]]},
+          ],
         },
       );
     });
@@ -206,34 +197,22 @@ describe('buildFilePatch', function() {
         newMode: '100644',
         status: 'modified',
         hunks: [{oldStartLine: 0, newStartLine: 0, oldLineCount: 1, newLineCount: 1, lines: [
-          '+line-0', '-line-1', '\\No newline at end of file',
+          '+line-0', '-line-1', '\\ No newline at end of file',
         ]}],
       }]);
 
-      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\nNo newline at end of file\n');
+      assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n No newline at end of file\n');
 
       assertInPatch(p).hunks({
         startRow: 0,
+        endRow: 2,
         header: '@@ -0,1 +0,1 @@',
-        additions: {strings: ['*line-0\n'], ranges: [[[0, 0], [0, 0]]]},
-        deletions: {strings: ['*line-1\n'], ranges: [[[1, 0], [1, 0]]]},
-        noNewline: {string: '*No newline at end of file\n', range: [[2, 0], [2, 0]]},
+        changes: [
+          {kind: 'addition', string: '+line-0\n', range: [[0, 0], [0, 0]]},
+          {kind: 'deletion', string: '-line-1\n', range: [[1, 0], [1, 0]]},
+          {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[2, 0], [2, 0]]},
+        ],
       });
-    });
-
-    it('throws an error when multiple no-newline markers are encountered', function() {
-      assert.throws(() => {
-        buildFilePatch([{
-          oldPath: 'old/path',
-          oldMode: '100644',
-          newPath: 'new/path',
-          newMode: '100644',
-          status: 'modified',
-          hunks: [{oldStartLine: 0, newStartLine: 0, oldLineCount: 1, newLineCount: 1, lines: [
-            '\\No newline at end of file', ' unchanged', '\\No newline at end of file',
-          ]}],
-        }]);
-      }, /Multiple nonewline/);
     });
   });
 
@@ -285,12 +264,11 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
       assertInPatch(p).hunks({
         startRow: 0,
+        endRow: 1,
         header: '@@ -0,0 +0,2 @@',
-        deletions: {strings: [], ranges: []},
-        additions: {
-          strings: ['*line-0\n*line-1\n'],
-          ranges: [[[0, 0], [1, 0]]],
-        },
+        changes: [
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 0]]},
+        ],
       });
     });
 
@@ -341,12 +319,11 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
       assertInPatch(p).hunks({
         startRow: 0,
+        endRow: 1,
         header: '@@ -0,2 +0,0 @@',
-        deletions: {
-          strings: ['*line-0\n*line-1\n'],
-          ranges: [[[0, 0], [1, 0]]],
-        },
-        additions: {strings: [], ranges: []},
+        changes: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[0, 0], [1, 0]]},
+        ],
       });
     });
 
@@ -396,12 +373,11 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getBufferText(), 'line-0\nline-1\n');
       assertInPatch(p).hunks({
         startRow: 0,
+        endRow: 1,
         header: '@@ -0,0 +0,2 @@',
-        deletions: {strings: [], ranges: []},
-        additions: {
-          strings: ['*line-0\n*line-1\n'],
-          ranges: [[[0, 0], [1, 0]]],
-        },
+        changes: [
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 0]]},
+        ],
       });
     });
 
