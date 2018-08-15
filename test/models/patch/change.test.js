@@ -56,6 +56,12 @@ describe('Changes', function() {
     it('uses "+" as a prefix for toStringIn()', function() {
       assert.strictEqual(addition.toStringIn(buffer), '+1111\n+2222\n+3333\n');
     });
+
+    it('inverts to a deletion', function() {
+      const inverted = addition.invert();
+      assert.isTrue(inverted.isDeletion());
+      assert.strictEqual(inverted.getRange(), addition.getRange());
+    });
   });
 
   describe('Deletion', function() {
@@ -101,6 +107,12 @@ describe('Changes', function() {
     it('uses "-" as a prefix for toStringIn()', function() {
       assert.strictEqual(deletion.toStringIn(buffer), '-1111\n-2222\n-3333\n');
     });
+
+    it('inverts to an addition', function() {
+      const inverted = deletion.invert();
+      assert.isTrue(inverted.isAddition());
+      assert.strictEqual(inverted.getRange(), deletion.getRange());
+    });
   });
 
   describe('NoNewline', function() {
@@ -145,6 +157,10 @@ describe('Changes', function() {
 
     it('uses "\\ " as a prefix for toStringIn()', function() {
       assert.strictEqual(noNewline.toStringIn(buffer), '\\ 1111\n\\ 2222\n\\ 3333\n');
+    });
+
+    it('inverts as itself', function() {
+      assert.strictEqual(noNewline.invert(), noNewline);
     });
   });
 });
