@@ -173,7 +173,7 @@ class PatchBufferAssertions {
 
       assert.strictEqual(change.constructor.name.toLowerCase(), spec.kind);
       assert.strictEqual(change.toStringIn(this.patch.getBufferText()), spec.string);
-      assert.deepEqual(change.getRange().bufferRange.serialize(), spec.range);
+      assert.deepEqual(change.getRowRange().bufferRange.serialize(), spec.range);
     }
   }
 

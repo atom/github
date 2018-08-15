@@ -17,7 +17,13 @@ describe('Changes', function() {
     });
 
     it('has a range accessor', function() {
-      assert.strictEqual(addition.getRange(), range);
+      assert.strictEqual(addition.getRowRange(), range);
+    });
+
+    it('delegates some methods to its row range', function() {
+      assert.sameMembers(Array.from(addition.getBufferRows()), [1, 2, 3]);
+      assert.deepEqual(addition.getStartRange().serialize(), [[1, 0], [1, 0]]);
+      assert.strictEqual(addition.bufferRowCount(), 3);
     });
 
     it('can be recognized by the isAddition predicate', function() {
@@ -60,7 +66,7 @@ describe('Changes', function() {
     it('inverts to a deletion', function() {
       const inverted = addition.invert();
       assert.isTrue(inverted.isDeletion());
-      assert.strictEqual(inverted.getRange(), addition.getRange());
+      assert.strictEqual(inverted.getRowRange(), addition.getRowRange());
     });
   });
 
@@ -111,7 +117,7 @@ describe('Changes', function() {
     it('inverts to an addition', function() {
       const inverted = deletion.invert();
       assert.isTrue(inverted.isAddition());
-      assert.strictEqual(inverted.getRange(), deletion.getRange());
+      assert.strictEqual(inverted.getRowRange(), deletion.getRowRange());
     });
   });
 
