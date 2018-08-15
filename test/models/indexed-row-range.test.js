@@ -1,6 +1,6 @@
 import IndexedRowRange, {nullIndexedRowRange} from '../../lib/models/indexed-row-range';
 
-describe.only('IndexedRowRange', function() {
+describe('IndexedRowRange', function() {
   it('computes its row count', function() {
     const range = new IndexedRowRange({
       bufferRange: [[0, 0], [1, 0]],
