@@ -1,0 +1,15 @@
+dif --git a/a.txt b/a.txt
+--- a/a.txt
++++ b/a.txt
+@@ -8,4 +8,4 @@
+ line-3
++line-4
++line-5
+-line-6
+-line-7
+ line-8
+@@ -22,2 +22,2 @@
++line-11
+-line-12
+ line-13
+\ No newline at end of file

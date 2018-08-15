@@ -169,14 +169,14 @@ class PatchBufferAssertions {
     );
   }
 
-  hunk(hunkIndex, {startRow, header, deletions, additions, noNewline}) {
+  hunk(hunkIndex, {startRow, endRow, header, deletions, additions, noNewline}) {
     const hunk = this.patch.getHunks()[hunkIndex];
     assert.isDefined(hunk);
 
     deletions = deletions !== undefined ? deletions : {strings: [], ranges: []};
     additions = additions !== undefined ? additions : {strings: [], ranges: []};
 
-    assert.deepEqual(hunk.getStartRange().serialize(), [[startRow, 0], [startRow, 0]]);
+    assert.deepEqual(hunk.getRowRange().serialize().bufferRange, [[startRow, 0], [endRow, 0]]);
     assert.strictEqual(hunk.getHeader(), header);
 
     this.hunkChanges(hunk.getDeletions(), deletions.strings, deletions.ranges);

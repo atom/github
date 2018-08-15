@@ -1,6 +1,6 @@
 import IndexedRowRange, {nullIndexedRowRange} from '../../lib/models/indexed-row-range';
 
-describe('IndexedRowRange', function() {
+describe.only('IndexedRowRange', function() {
   it('computes its row count', function() {
     const range = new IndexedRowRange({
       bufferRange: [[0, 0], [1, 0]],
@@ -140,6 +140,12 @@ describe('IndexedRowRange', function() {
       assertIntersections(nullIndexedRowRange.intersectRowsIn(new Set([1, 2, 3]), buffer, true), []);
       assertIntersections(nullIndexedRowRange.intersectRowsIn(new Set([1, 2, 3]), buffer, false), []);
     });
+  });
+
+  describe('offsetBy()', function() {
+    it('returns the receiver as-is when there is no change');
+
+    it('modifies the buffer range and the buffer offset');
   });
 
   it('returns appropriate values from nullIndexedRowRange methods', function() {

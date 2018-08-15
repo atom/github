@@ -1,0 +1,20 @@
+dif --git a/a.txt b/a.txt
+--- a/a.txt
++++ b/a.txt
+@@ -2,1 +2,3 @@
++line-0
++line-1
+ line-2
+@@ -6,5 +8,4 @@
+ line-3
+-line-4 -
+-line-5 -
++line-6 -
++line-7 -
++line-8
+-line-9
+-line-10
+@@ -20,2 +21,2 @@
+-line-11 -
++line-12 -
+ line-13 -
