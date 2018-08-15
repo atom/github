@@ -53,11 +53,11 @@ describe('reporterProxy', function() {
       assert.deepEqual(counters[0], counterName);
     });
 
-    it('sets gitHubUser when setGitHubUser is called', function() {
+    it.only('sets gitHubUser when setGitHubUser is called', function() {
       const gitHubUser = 'annthurium';
-      reporterProxy.setGitHubUser(gitHubUser);
+      setGitHubUser(gitHubUser);
       assert.deepEqual(reporterProxy.gitHubUser, gitHubUser);
-    })
+    });
   });
   describe('if reporter is never set', function() {
     it('sets the reporter to no op class once interval has passed', function() {
