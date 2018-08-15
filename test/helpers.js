@@ -159,34 +159,21 @@ class PatchBufferAssertions {
     this.patch = patch;
   }
 
-  hunkChanges(changes, expectedStrings, expectedRanges) {
-    const actualStrings = changes.map(change => change.toStringIn(this.patch.getBufferText(), '*'));
-    const actualRanges = changes.map(change => change.bufferRange.serialize());
-
-    assert.deepEqual(
-      {strings: actualStrings, ranges: actualRanges},
-      {strings: expectedStrings, ranges: expectedRanges},
-    );
-  }
-
-  hunk(hunkIndex, {startRow, endRow, header, deletions, additions, noNewline}) {
+  hunk(hunkIndex, {startRow, endRow, header, changes}) {
     const hunk = this.patch.getHunks()[hunkIndex];
     assert.isDefined(hunk);
 
-    deletions = deletions !== undefined ? deletions : {strings: [], ranges: []};
-    additions = additions !== undefined ? additions : {strings: [], ranges: []};
-
     assert.deepEqual(hunk.getRowRange().serialize().bufferRange, [[startRow, 0], [endRow, 0]]);
     assert.strictEqual(hunk.getHeader(), header);
+    assert.lengthOf(hunk.getChanges(), changes.length);
 
-    this.hunkChanges(hunk.getDeletions(), deletions.strings, deletions.ranges);
-    this.hunkChanges(hunk.getAdditions(), additions.strings, additions.ranges);
+    for (let i = 0; i < changes.length; i++) {
+      const change = hunk.getChanges()[i];
+      const spec = changes[i];
 
-    const noNewlineChange = hunk.getNoNewline();
-    if (noNewlineChange.isPresent()) {
-      this.hunkChanges([noNewlineChange], [noNewline.string], [noNewline.range]);
-    } else {
-      assert.isUndefined(noNewline);
+      assert.strictEqual(change.constructor.name.toLowerCase(), spec.kind);
+      assert.strictEqual(change.toStringIn(this.patch.getBufferText()), spec.string);
+      assert.deepEqual(change.getRange().bufferRange.serialize(), spec.range);
     }
   }
 
