@@ -76,7 +76,7 @@
     "coveralls": "^3.0.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
-    "enzyme": "3.3.0",
+    "enzyme": "3.4.1",
     "eslint": "5.0.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
