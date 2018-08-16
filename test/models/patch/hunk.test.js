@@ -52,9 +52,9 @@ describe('Hunk', function() {
     });
     assert.strictEqual(h.bufferRowCount(), 11);
     assert.lengthOf(h.getChanges(), 3);
-    assert.lengthOf(h.getAdditions(), 1);
-    assert.lengthOf(h.getDeletions(), 2);
-    assert.isFalse(h.getNoNewline().isPresent());
+    assert.lengthOf(h.getAdditionRanges(), 1);
+    assert.lengthOf(h.getDeletionRanges(), 2);
+    assert.isFalse(h.getNoNewlineRange().isPresent());
   });
 
   it('creates its start range for decoration placement', function() {
@@ -80,6 +80,74 @@ describe('Hunk', function() {
     });
 
     assert.strictEqual(h.getHeader(), '@@ -0,2 +1,3 @@');
+  });
+
+  it('returns a full set of covered regions, including unchanged', function() {
+    const h = new Hunk({
+      ...attrs,
+      rowRange: new IndexedRowRange({
+        bufferRange: [[0, 0], [11, 0]],
+        startOffset: 0,
+        endOffset: 120,
+      }),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[1, 0], [3, 0]], startOffset: 10, endOffset: 40})),
+        new Deletion(new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 50, endOffset: 70})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [9, 0]], startOffset: 70, endOffset: 100})),
+      ],
+    });
+
+    const regions = h.getRegions();
+    assert.lengthOf(regions, 6);
+
+    assert.isTrue(regions[0].isUnchanged());
+    assert.deepEqual(regions[0].range.serialize(), {bufferRange: [[0, 0], [0, 0]], startOffset: 0, endOffset: 10});
+
+    assert.isTrue(regions[1].isAddition());
+    assert.deepEqual(regions[1].range.serialize(), {bufferRange: [[1, 0], [3, 0]], startOffset: 10, endOffset: 40});
+
+    assert.isTrue(regions[2].isUnchanged());
+    assert.deepEqual(regions[2].range.serialize(), {bufferRange: [[4, 0], [4, 0]], startOffset: 40, endOffset: 50});
+
+    assert.isTrue(regions[3].isDeletion());
+    assert.deepEqual(regions[3].range.serialize(), {bufferRange: [[5, 0], [6, 0]], startOffset: 50, endOffset: 70});
+
+    assert.isTrue(regions[4].isDeletion());
+    assert.deepEqual(regions[4].range.serialize(), {bufferRange: [[7, 0], [9, 0]], startOffset: 70, endOffset: 100});
+
+    assert.isTrue(regions[5].isUnchanged());
+    assert.deepEqual(regions[5].range.serialize(), {bufferRange: [[10, 0], [11, 0]], startOffset: 100, endOffset: 120});
+  });
+
+  it('omits empty regions at the hunk beginning and end', function() {
+    const h = new Hunk({
+      ...attrs,
+      rowRange: new IndexedRowRange({
+        bufferRange: [[1, 0], [9, 0]],
+        startOffset: 10,
+        endOffset: 100,
+      }),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[1, 0], [3, 0]], startOffset: 10, endOffset: 40})),
+        new Deletion(new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 50, endOffset: 70})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [9, 0]], startOffset: 70, endOffset: 100})),
+      ],
+    });
+
+    const regions = h.getRegions();
+    assert.lengthOf(regions, 4);
+
+    assert.isTrue(regions[0].isAddition());
+    assert.deepEqual(regions[0].range.serialize(), {bufferRange: [[1, 0], [3, 0]], startOffset: 10, endOffset: 40});
+
+    assert.isTrue(regions[1].isUnchanged());
+    assert.deepEqual(regions[1].range.serialize(), {bufferRange: [[4, 0], [4, 0]], startOffset: 40, endOffset: 50});
+
+    assert.isTrue(regions[2].isDeletion());
+    assert.deepEqual(regions[2].range.serialize(), {bufferRange: [[5, 0], [6, 0]], startOffset: 50, endOffset: 70});
+
+    assert.isTrue(regions[3].isDeletion());
+    assert.deepEqual(regions[3].range.serialize(), {bufferRange: [[7, 0], [9, 0]], startOffset: 70, endOffset: 100});
   });
 
   it('returns a set of covered buffer rows', function() {
@@ -135,9 +203,9 @@ describe('Hunk', function() {
     assert.strictEqual(inverted.getOldRowCount(), 3);
     assert.strictEqual(inverted.getNewRowCount(), 2);
     assert.strictEqual(inverted.getSectionHeading(), 'the-heading');
-    assert.lengthOf(inverted.getAdditions(), 1);
-    assert.lengthOf(inverted.getDeletions(), 2);
-    assert.isTrue(inverted.getNoNewline().isPresent());
+    assert.lengthOf(inverted.getAdditionRanges(), 1);
+    assert.lengthOf(inverted.getDeletionRanges(), 2);
+    assert.isTrue(inverted.getNoNewlineRange().isPresent());
   });
 
   describe('toStringIn()', function() {
