@@ -160,7 +160,7 @@ describe('Patch', function() {
         {
           startRow: 15,
           endRow: 17,
-          header: '@@ -31,1 +30,2 @@',
+          header: '@@ -32,1 +31,2 @@',
           changes: [
             {kind: 'addition', string: '+0025\n', range: [[16, 0], [16, 0]]},
             {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[17, 0], [17, 0]]},
@@ -202,7 +202,122 @@ describe('Patch', function() {
         },
       );
     });
+
+    it('returns a nullPatch as a nullPatch', function() {
+      assert.strictEqual(nullPatch.getStagePatchForLines(new Set([1, 2, 3])), nullPatch);
+    });
   });
+
+  describe('unstage patch generation', function() {
+    it('creates a patch that updates the index to unapply selected lines from a single hunk', function() {
+      const patch = buildPatchFixture();
+      const unstagePatch = patch.getUnstagePatchForLines(new Set([8, 12, 13]));
+      assert.strictEqual(
+        unstagePatch.getBufferText(),
+        // 0   1     2     3     4     5     6     7     8
+        '0007\n0008\n0009\n0010\n0011\n0012\n0013\n0017\n0018\n',
+      );
+      assertInPatch(unstagePatch).hunks(
+        {
+          startRow: 0,
+          endRow: 8,
+          header: '@@ -13,7 +13,8 @@',
+          changes: [
+            {kind: 'deletion', string: '-0008\n', range: [[1, 0], [1, 0]]},
+            {kind: 'addition', string: '+0012\n+0013\n', range: [[5, 0], [6, 0]]},
+          ],
+        },
+      );
+    });
+
+    it('creates a patch that updates the index to unapply lines from several hunks', function() {
+      const patch = buildPatchFixture();
+      const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 4, 5, 16, 17, 20, 25]));
+      assert.strictEqual(
+        unstagePatch.getBufferText(),
+        // 0   1     2     3     4     5
+        '0000\n0001\n0003\n0004\n0005\n0006\n' +
+        // 6   7     8     9     10    11    12    13
+        '0007\n0008\n0009\n0010\n0011\n0016\n0017\n0018\n' +
+        // 14  15    16
+        '0019\n0020\n0023\n' +
+        // 17  18    19
+        '0024\n0025\n No newline at end of file\n',
+      );
+      assertInPatch(unstagePatch).hunks(
+        {
+          startRow: 0,
+          endRow: 5,
+          header: '@@ -3,5 +3,4 @@',
+          changes: [
+            {kind: 'addition', string: '+0001\n', range: [[1, 0], [1, 0]]},
+            {kind: 'deletion', string: '-0004\n-0005\n', range: [[3, 0], [4, 0]]},
+          ],
+        },
+        {
+          startRow: 6,
+          endRow: 13,
+          header: '@@ -13,7 +12,7 @@',
+          changes: [
+            {kind: 'addition', string: '+0016\n', range: [[11, 0], [11, 0]]},
+            {kind: 'deletion', string: '-0017\n', range: [[12, 0], [12, 0]]},
+          ],
+        },
+        {
+          startRow: 14,
+          endRow: 16,
+          header: '@@ -25,3 +24,2 @@',
+          changes: [
+            {kind: 'deletion', string: '-0020\n', range: [[15, 0], [15, 0]]},
+          ],
+        },
+        {
+          startRow: 17,
+          endRow: 19,
+          header: '@@ -30,2 +28,1 @@',
+          changes: [
+            {kind: 'deletion', string: '-0025\n', range: [[18, 0], [18, 0]]},
+            {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[19, 0], [19, 0]]},
+          ],
+        },
+      );
+    });
+
+    it('returns a modification if original patch is an addition', function() {
+      const bufferText = '0000\n0001\n0002\n';
+      const hunks = [
+        new Hunk({
+          oldStartRow: 1,
+          oldRowCount: 0,
+          newStartRow: 1,
+          newRowCount: 3,
+          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+          changes: [
+            new Addition(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+          ],
+        }),
+      ];
+      const patch = new Patch({status: 'added', hunks, bufferText});
+      const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 2]));
+      assert.strictEqual(unstagePatch.getStatus(), 'modified');
+      assert.strictEqual(unstagePatch.getBufferText(), '0000\n0001\n0002\n');
+      assertInPatch(unstagePatch).hunks(
+        {
+          startRow: 0,
+          endRow: 2,
+          header: '@@ -1,3 +1,1 @@',
+          changes: [
+            {kind: 'deletion', string: '-0001\n-0002\n', range: [[1, 0], [2, 0]]},
+          ],
+        },
+      );
+    });
+
+    it('returns a nullPatch as a nullPatch', function() {
+      assert.strictEqual(nullPatch.getUnstagePatchForLines(new Set([1, 2, 3])), nullPatch);
+    });
+  });
+
   it('prints itself as an apply-ready string', function() {
     const bufferText = '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n';
     // old: 0000.2222.3333.4444.5555.6666.7777.8888.9999.
@@ -254,6 +369,7 @@ describe('Patch', function() {
     assert.strictEqual(nullPatch.getBufferText(), '');
     assert.strictEqual(nullPatch.getByteSize(), 0);
     assert.isFalse(nullPatch.isPresent());
+    assert.strictEqual(nullPatch.toString(), '');
   });
 });
 
@@ -292,9 +408,9 @@ function buildPatchFixture() {
     }),
     new Hunk({
       oldStartRow: 26,
-      oldRowCount: 3,
+      oldRowCount: 4,
       newStartRow: 25,
-      newRowCount: 4,
+      newRowCount: 3,
       sectionHeading: 'two',
       rowRange: new IndexedRowRange({bufferRange: [[19, 0], [23, 0]], startOffset: 95, endOffset: 120}),
       changes: [
@@ -303,9 +419,9 @@ function buildPatchFixture() {
       ],
     }),
     new Hunk({
-      oldStartRow: 31,
+      oldStartRow: 32,
       oldRowCount: 1,
-      newStartRow: 31,
+      newStartRow: 30,
       newRowCount: 2,
       sectionHeading: 'three',
       rowRange: new IndexedRowRange({bufferRange: [[24, 0], [26, 0]], startOffset: 120, endOffset: 157}),
