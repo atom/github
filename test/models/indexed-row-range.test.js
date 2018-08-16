@@ -166,6 +166,15 @@ describe('IndexedRowRange', function() {
       });
     });
 
+    it('may specify separate start and end offsets', function() {
+      const changed = original.offsetBy(10, 2, 30, 4);
+      assert.deepEqual(changed.serialize(), {
+        bufferRange: [[5, 0], [9, 0]],
+        startOffset: 25,
+        endOffset: 55,
+      });
+    });
+
     it('is a no-op on a nullIndexedRowRange', function() {
       assert.strictEqual(nullIndexedRowRange.offsetBy(100, 200), nullIndexedRowRange);
     });
