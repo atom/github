@@ -53,7 +53,7 @@ describe('reporterProxy', function() {
       assert.deepEqual(counters[0], counterName);
     });
 
-    it.only('sets gitHubUser when setGitHubUser is called', function() {
+    it('sets gitHubUser when setGitHubUser is called', function() {
       const gitHubUser = 'annthurium';
       setGitHubUser(gitHubUser);
       assert.deepEqual(reporterProxy.gitHubUser, gitHubUser);
