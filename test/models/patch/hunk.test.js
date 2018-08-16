@@ -1,6 +1,6 @@
 import Hunk from '../../../lib/models/patch/hunk';
 import IndexedRowRange from '../../../lib/models/indexed-row-range';
-import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/change';
+import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 
 describe('Hunk', function() {
   const attrs = {

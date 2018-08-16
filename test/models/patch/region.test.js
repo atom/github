@@ -1,7 +1,7 @@
-import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/change';
+import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
 import IndexedRowRange from '../../../lib/models/indexed-row-range';
 
-describe('Changes', function() {
+describe('Regions', function() {
   let buffer, range;
 
   beforeEach(function() {
@@ -29,13 +29,17 @@ describe('Changes', function() {
     it('can be recognized by the isAddition predicate', function() {
       assert.isTrue(addition.isAddition());
       assert.isFalse(addition.isDeletion());
+      assert.isFalse(addition.isUnchanged());
       assert.isFalse(addition.isNoNewline());
+
+      assert.isTrue(addition.isChange());
     });
 
     it('executes the "addition" branch of a when() call', function() {
       const result = addition.when({
         addition: () => 'correct',
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
         default: () => 'wrong: default',
       });
@@ -45,6 +49,7 @@ describe('Changes', function() {
     it('executes the "default" branch of a when() call when no "addition" is provided', function() {
       const result = addition.when({
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
         default: () => 'correct',
       });
@@ -54,6 +59,7 @@ describe('Changes', function() {
     it('returns undefined from when() if neither "addition" nor "default" are provided', function() {
       const result = addition.when({
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
       });
       assert.isUndefined(result);
@@ -80,13 +86,17 @@ describe('Changes', function() {
     it('can be recognized by the isDeletion predicate', function() {
       assert.isFalse(deletion.isAddition());
       assert.isTrue(deletion.isDeletion());
+      assert.isFalse(deletion.isUnchanged());
       assert.isFalse(deletion.isNoNewline());
+
+      assert.isTrue(deletion.isChange());
     });
 
     it('executes the "deletion" branch of a when() call', function() {
       const result = deletion.when({
         addition: () => 'wrong: addition',
         deletion: () => 'correct',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
         default: () => 'wrong: default',
       });
@@ -96,6 +106,7 @@ describe('Changes', function() {
     it('executes the "default" branch of a when() call when no "deletion" is provided', function() {
       const result = deletion.when({
         addition: () => 'wrong: addition',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
         default: () => 'correct',
       });
@@ -105,6 +116,7 @@ describe('Changes', function() {
     it('returns undefined from when() if neither "deletion" nor "default" are provided', function() {
       const result = deletion.when({
         addition: () => 'wrong: addition',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'wrong: nonewline',
       });
       assert.isUndefined(result);
@@ -121,6 +133,61 @@ describe('Changes', function() {
     });
   });
 
+  describe('Unchanged', function() {
+    let unchanged;
+
+    beforeEach(function() {
+      unchanged = new Unchanged(range);
+    });
+
+    it('can be recognized by the isUnchanged predicate', function() {
+      assert.isFalse(unchanged.isAddition());
+      assert.isFalse(unchanged.isDeletion());
+      assert.isTrue(unchanged.isUnchanged());
+      assert.isFalse(unchanged.isNoNewline());
+
+      assert.isFalse(unchanged.isChange());
+    });
+
+    it('executes the "unchanged" branch of a when() call', function() {
+      const result = unchanged.when({
+        addition: () => 'wrong: addition',
+        deletion: () => 'wrong: deletion',
+        unchanged: () => 'correct',
+        nonewline: () => 'wrong: nonewline',
+        default: () => 'wrong: default',
+      });
+      assert.strictEqual(result, 'correct');
+    });
+
+    it('executes the "default" branch of a when() call when no "unchanged" is provided', function() {
+      const result = unchanged.when({
+        addition: () => 'wrong: addition',
+        deletion: () => 'wrong: deletion',
+        nonewline: () => 'wrong: nonewline',
+        default: () => 'correct',
+      });
+      assert.strictEqual(result, 'correct');
+    });
+
+    it('returns undefined from when() if neither "unchanged" nor "default" are provided', function() {
+      const result = unchanged.when({
+        addition: () => 'wrong: addition',
+        deletion: () => 'wrong: deletion',
+        nonewline: () => 'wrong: nonewline',
+      });
+      assert.isUndefined(result);
+    });
+
+    it('uses " " as a prefix for toStringIn()', function() {
+      assert.strictEqual(unchanged.toStringIn(buffer), ' 1111\n 2222\n 3333\n');
+    });
+
+    it('inverts as itself', function() {
+      assert.strictEqual(unchanged.invert(), unchanged);
+    });
+  });
+
   describe('NoNewline', function() {
     let noNewline;
 
@@ -131,13 +198,17 @@ describe('Changes', function() {
     it('can be recognized by the isNoNewline predicate', function() {
       assert.isFalse(noNewline.isAddition());
       assert.isFalse(noNewline.isDeletion());
+      assert.isFalse(noNewline.isUnchanged());
       assert.isTrue(noNewline.isNoNewline());
+
+      assert.isFalse(noNewline.isChange());
     });
 
     it('executes the "nonewline" branch of a when() call', function() {
       const result = noNewline.when({
         addition: () => 'wrong: addition',
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
         nonewline: () => 'correct',
         default: () => 'wrong: default',
       });
@@ -148,6 +219,7 @@ describe('Changes', function() {
       const result = noNewline.when({
         addition: () => 'wrong: addition',
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
         default: () => 'correct',
       });
       assert.strictEqual(result, 'correct');
@@ -157,6 +229,7 @@ describe('Changes', function() {
       const result = noNewline.when({
         addition: () => 'wrong: addition',
         deletion: () => 'wrong: deletion',
+        unchanged: () => 'wrong: unchanged',
       });
       assert.isUndefined(result);
     });
