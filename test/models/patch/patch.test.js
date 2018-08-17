@@ -404,6 +404,7 @@ describe('Patch', function() {
 
     it('returns a nullPatch as a nullPatch', function() {
       assert.strictEqual(nullPatch.getUnstagePatchForLines(new Set([1, 2, 3])), nullPatch);
+      assert.strictEqual(nullPatch.getFullUnstagedPatch(), nullPatch);
     });
   });
 
