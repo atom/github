@@ -71,7 +71,7 @@ describe('Repository', function() {
 
       // Methods that resolve to null
       for (const method of [
-        'getFilePatchForPath', 'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
+        'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
       ]) {
         assert.isNull(await repository[method]());
       }
@@ -110,6 +110,7 @@ describe('Repository', function() {
       assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
       assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
       assert.strictEqual(await repository.getCommitMessage(), '');
+      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).isPresent());
     });
 
     it('returns a rejecting promise', async function() {
@@ -402,6 +403,15 @@ describe('Repository', function() {
       assert.notEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
       assert.deepEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
     });
+
+    it('returns a nullFilePatch for unknown paths', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const patch = await repo.getFilePatchForPath('no.txt');
+      assert.isFalse(patch.isPresent());
+    });
   });
 
   describe('isPartiallyStaged(filePath)', function() {
@@ -468,7 +478,7 @@ describe('Repository', function() {
       assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
       assert.deepEqual(stagedChanges, [path.join('subdir-1', 'a.txt')]);
 
-      await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch());
+      await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatchForLines(new Set([0, 1, 2])));
       repo.refresh();
       const unstagedPatch3 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
       assert.deepEqual(unstagedPatch3, unstagedPatch2);
@@ -1513,7 +1523,7 @@ describe('Repository', function() {
         await repository.getLoadPromise();
 
         await fs.writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n', {encoding: 'utf8'});
-        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
+        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatchForLines(new Set([0, 1]));
 
         await assertCorrectInvalidation({repository}, async () => {
           await repository.applyPatchToWorkdir(patch);
@@ -1792,7 +1802,7 @@ describe('Repository', function() {
         const {repository, observer} = await wireUpObserver();
 
         await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
-        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
+        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatchForLines(new Set([0]));
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
