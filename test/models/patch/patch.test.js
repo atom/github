@@ -303,6 +303,52 @@ describe('Patch', function() {
       );
     });
 
+    it('unstages an entire patch at once', function() {
+      const patch = buildPatchFixture();
+      const unstagedPatch = patch.getFullUnstagedPatch();
+
+      assert.strictEqual(unstagedPatch.getBufferText(), patch.getBufferText());
+      assertInPatch(unstagedPatch).hunks(
+        {
+          startRow: 0,
+          endRow: 6,
+          header: '@@ -3,5 +3,4 @@',
+          changes: [
+            {kind: 'addition', string: '+0001\n+0002\n', range: [[1, 0], [2, 0]]},
+            {kind: 'deletion', string: '-0003\n-0004\n-0005\n', range: [[3, 0], [5, 0]]},
+          ],
+        },
+        {
+          startRow: 7,
+          endRow: 18,
+          header: '@@ -13,7 +12,9 @@',
+          changes: [
+            {kind: 'deletion', string: '-0008\n-0009\n', range: [[8, 0], [9, 0]]},
+            {kind: 'addition', string: '+0012\n+0013\n+0014\n+0015\n+0016\n', range: [[12, 0], [16, 0]]},
+            {kind: 'deletion', string: '-0017\n', range: [[17, 0], [17, 0]]},
+          ],
+        },
+        {
+          startRow: 19,
+          endRow: 23,
+          header: '@@ -25,3 +26,4 @@',
+          changes: [
+            {kind: 'deletion', string: '-0020\n', range: [[20, 0], [20, 0]]},
+            {kind: 'addition', string: '+0021\n+0022\n', range: [[21, 0], [22, 0]]},
+          ],
+        },
+        {
+          startRow: 24,
+          endRow: 26,
+          header: '@@ -30,2 +32,1 @@',
+          changes: [
+            {kind: 'deletion', string: '-0025\n', range: [[25, 0], [25, 0]]},
+            {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[26, 0], [26, 0]]},
+          ],
+        },
+      );
+    });
+
     it('returns a modification if original patch is an addition', function() {
       const bufferText = '0000\n0001\n0002\n';
       const hunks = [
