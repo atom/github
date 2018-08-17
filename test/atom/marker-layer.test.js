@@ -5,7 +5,7 @@ import MarkerLayer from '../../lib/atom/marker-layer';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 
 describe('MarkerLayer', function() {
-  let atomEnv, editor, layerID;
+  let atomEnv, editor, layer, layerID;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -15,6 +15,10 @@ describe('MarkerLayer', function() {
   afterEach(function() {
     atomEnv.destroy();
   });
+
+  function setLayer(object) {
+    layer = object;
+  }
 
   function setLayerID(id) {
     layerID = id;
@@ -27,20 +31,24 @@ describe('MarkerLayer', function() {
         maintainHistory={true}
         persistent={true}
         handleID={setLayerID}
+        handleLayer={setLayer}
       />,
     );
 
-    const layer = editor.getMarkerLayer(layerID);
-    assert.isTrue(layer.bufferMarkerLayer.maintainHistory);
-    assert.isTrue(layer.bufferMarkerLayer.persistent);
+    const theLayer = editor.getMarkerLayer(layerID);
+    assert.strictEqual(theLayer, layer);
+    assert.isTrue(theLayer.bufferMarkerLayer.maintainHistory);
+    assert.isTrue(theLayer.bufferMarkerLayer.persistent);
   });
 
   it('removes its layer on unmount', function() {
-    const wrapper = mount(<MarkerLayer editor={editor} handleID={setLayerID} />);
+    const wrapper = mount(<MarkerLayer editor={editor} handleID={setLayerID} handleLayer={setLayer} />);
 
     assert.isDefined(editor.getMarkerLayer(layerID));
+    assert.isDefined(layer);
     wrapper.unmount();
     assert.isUndefined(editor.getMarkerLayer(layerID));
+    assert.isUndefined(layer);
   });
 
   it('inherits an editor from a parent node', function() {
