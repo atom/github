@@ -203,6 +203,26 @@ describe('Patch', function() {
       );
     });
 
+    it('returns an deletion when staging an entire deletion patch', function() {
+      const bufferText = '0000\n0001\n0002\n';
+      const hunks = [
+        new Hunk({
+          oldStartRow: 1,
+          oldRowCount: 3,
+          newStartRow: 1,
+          newRowCount: 0,
+          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+          changes: [
+            new Deletion(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+          ],
+        }),
+      ];
+      const patch = new Patch({status: 'deleted', hunks, bufferText});
+
+      const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
+      assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
+    });
+
     it('returns a nullPatch as a nullPatch', function() {
       assert.strictEqual(nullPatch.getStagePatchForLines(new Set([1, 2, 3])), nullPatch);
     });
@@ -311,6 +331,29 @@ describe('Patch', function() {
           ],
         },
       );
+    });
+
+    it('returns a deletion when unstaging an entire addition patch', function() {
+      const bufferText = '0000\n0001\n0002\n';
+      const hunks = [
+        new Hunk({
+          oldStartRow: 1,
+          oldRowCount: 0,
+          newStartRow: 1,
+          newRowCount: 3,
+          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+          changes: [
+            new Addition(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+          ],
+        }),
+      ];
+      const patch = new Patch({status: 'added', hunks, bufferText});
+
+      const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
+      assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
+
+      const unstagePatch1 = patch.getFullUnstagedPatch();
+      assert.strictEqual(unstagePatch1.getStatus(), 'deleted');
     });
 
     it('returns a nullPatch as a nullPatch', function() {
