@@ -54,7 +54,7 @@ describe('Hunk', function() {
     assert.lengthOf(h.getChanges(), 3);
     assert.lengthOf(h.getAdditionRanges(), 1);
     assert.lengthOf(h.getDeletionRanges(), 2);
-    assert.isFalse(h.getNoNewlineRange().isPresent());
+    assert.isNull(h.getNoNewlineRange());
   });
 
   it('creates its start range for decoration placement', function() {
@@ -205,7 +205,7 @@ describe('Hunk', function() {
     assert.strictEqual(inverted.getSectionHeading(), 'the-heading');
     assert.lengthOf(inverted.getAdditionRanges(), 1);
     assert.lengthOf(inverted.getDeletionRanges(), 2);
-    assert.isTrue(inverted.getNoNewlineRange().isPresent());
+    assert.deepEqual(inverted.getNoNewlineRange().serialize(), [[12, 0], [12, 0]]);
   });
 
   describe('toStringIn()', function() {
