@@ -460,6 +460,7 @@ describe('Patch', function() {
     assert.strictEqual(nullPatch.getByteSize(), 0);
     assert.isFalse(nullPatch.isPresent());
     assert.strictEqual(nullPatch.toString(), '');
+    assert.strictEqual(nullPatch.getChangedLineCount(), 0);
   });
 });
 
