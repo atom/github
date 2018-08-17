@@ -14,6 +14,13 @@ describe('File', function() {
     assert.isFalse(nullFile.isRegularFile());
   });
 
+  it("detects when it's executable", function() {
+    assert.isTrue(new File({path: 'path', mode: '100755', symlink: null}).isExecutable());
+    assert.isFalse(new File({path: 'path', mode: '100644', symlink: null}).isExecutable());
+    assert.isFalse(new File({path: 'path', mode: '120000', symlink: null}).isExecutable());
+    assert.isFalse(nullFile.isExecutable());
+  });
+
   it('clones itself with possible overrides', function() {
     const original = new File({path: 'original', mode: '100644', symlink: null});
 
