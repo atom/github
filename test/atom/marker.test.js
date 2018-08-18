@@ -7,7 +7,7 @@ import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import MarkerLayer from '../../lib/atom/marker-layer';
 
 describe('Marker', function() {
-  let atomEnv, editor, markerID;
+  let atomEnv, editor, marker, markerID;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -18,19 +18,29 @@ describe('Marker', function() {
     atomEnv.destroy();
   });
 
+  function setMarker(m) {
+    marker = m;
+  }
+
   function setMarkerID(id) {
     markerID = id;
   }
 
   it('adds its marker on mount with default properties', function() {
     mount(
-      <Marker editor={editor} bufferRange={Range.fromObject([[0, 0], [10, 0]])} handleID={setMarkerID} />,
+      <Marker
+        editor={editor}
+        bufferRange={Range.fromObject([[0, 0], [10, 0]])}
+        handleID={setMarkerID}
+        handleMarker={setMarker}
+      />,
     );
 
-    const marker = editor.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [10, 0]]));
-    assert.strictEqual(marker.bufferMarker.invalidate, 'overlap');
-    assert.isFalse(marker.isReversed());
+    const theMarker = editor.getMarker(markerID);
+    assert.strictEqual(theMarker, marker);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [10, 0]]));
+    assert.strictEqual(theMarker.bufferMarker.invalidate, 'overlap');
+    assert.isFalse(theMarker.isReversed());
   });
 
   it('configures its marker', function() {
@@ -45,10 +55,10 @@ describe('Marker', function() {
       />,
     );
 
-    const marker = editor.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[1, 2], [4, 5]]));
-    assert.isTrue(marker.isReversed());
-    assert.strictEqual(marker.bufferMarker.invalidate, 'never');
+    const theMarker = editor.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[1, 2], [4, 5]]));
+    assert.isTrue(theMarker.isReversed());
+    assert.strictEqual(theMarker.bufferMarker.invalidate, 'never');
   });
 
   it('prefers marking a MarkerLayer to a TextEditor', function() {
@@ -63,8 +73,8 @@ describe('Marker', function() {
       />,
     );
 
-    const marker = layer.getMarker(markerID);
-    assert.strictEqual(marker.layer, layer);
+    const theMarker = layer.getMarker(markerID);
+    assert.strictEqual(theMarker.layer, layer);
   });
 
   it('destroys its marker on unmount', function() {
@@ -85,8 +95,8 @@ describe('Marker', function() {
     );
 
     const theEditor = wrapper.instance().getModel();
-    const marker = theEditor.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [0, 0]]));
+    const theMarker = theEditor.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [0, 0]]));
   });
 
   it('marks a marker layer from a parent node', function() {
@@ -101,7 +111,7 @@ describe('Marker', function() {
 
     const theEditor = wrapper.instance().getModel();
     const layer = theEditor.getMarkerLayer(layerID);
-    const marker = layer.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [0, 0]]));
+    const theMarker = layer.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [0, 0]]));
   });
 });
