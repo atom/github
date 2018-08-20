@@ -29,7 +29,10 @@ describe('FilePatchItem', function() {
   function buildPaneApp(overrideProps = {}) {
     const props = {
       workdirContextPool: pool,
+      workspace: atomEnv.workspace,
       tooltips: atomEnv.tooltips,
+      discardLines: () => {},
+      undoLastDiscard: () => {},
       ...overrideProps,
     };
 
