@@ -72,7 +72,7 @@ describe('Hunk', function() {
     assert.deepEqual(nl.serialize(), [[10, 0], [10, 0]]);
   });
 
-  it('creates its start range for decoration placement', function() {
+  it('creates its row range for decoration placement', function() {
     const h = new Hunk({
       ...attrs,
       rowRange: new IndexedRowRange({
@@ -82,7 +82,7 @@ describe('Hunk', function() {
       }),
     });
 
-    assert.deepEqual(h.getStartRange().serialize(), [[3, 0], [3, 0]]);
+    assert.deepEqual(h.getBufferRange().serialize(), [[3, 0], [6, 0]]);
   });
 
   it('generates a patch section header', function() {
