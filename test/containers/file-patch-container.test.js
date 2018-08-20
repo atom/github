@@ -34,6 +34,11 @@ describe('FilePatchContainer', function() {
       repository,
       stagingStatus: 'unstaged',
       relPath: 'a.txt',
+      workspace: atomEnv.workspace,
+      tooltips: atomEnv.tooltips,
+      discardLines: () => {},
+      undoLastDiscard: () => {},
+      destroy: () => {},
       ...overrideProps,
     };
 
@@ -43,11 +48,6 @@ describe('FilePatchContainer', function() {
   it('renders a loading spinner before file patch data arrives', function() {
     const wrapper = mount(buildApp());
     assert.isTrue(wrapper.find('LoadingView').exists());
-  });
-
-  it('renders a message for an empty patch', async function() {
-    const wrapper = mount(buildApp({relPath: 'c.txt'}));
-    await assert.async.isTrue(wrapper.update().find('span.icon-info').exists());
   });
 
   it('renders a FilePatchView', async function() {
