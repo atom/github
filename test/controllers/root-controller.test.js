@@ -22,7 +22,7 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let workdirContextPool, getRepositoryForWorkdir;
+  let workdirContextPool;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -36,7 +36,6 @@ describe('RootController', function() {
     project = atomEnv.project;
 
     workdirContextPool = new WorkdirContextPool();
-    getRepositoryForWorkdir = sinon.stub();
 
     const loginModel = new GithubLoginModel(InMemoryStrategy);
     const absentRepository = Repository.absent();
@@ -60,7 +59,6 @@ describe('RootController', function() {
         startOpen={false}
         startRevealed={false}
         workdirContextPool={workdirContextPool}
-        getRepositoryForWorkdir={getRepositoryForWorkdir}
       />
     );
   });
