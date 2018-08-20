@@ -162,6 +162,23 @@ describe('Hunk', function() {
     assert.sameMembers(Array.from(h.getBufferRows()), [6, 7, 8, 9, 10]);
   });
 
+  it('determines if a buffer row is part of this hunk', function() {
+    const h = new Hunk({
+      ...attrs,
+      rowRange: new IndexedRowRange({
+        bufferRange: [[3, 0], [5, 0]],
+        startOffset: 30,
+        endOffset: 55,
+      }),
+    });
+
+    assert.isFalse(h.includesBufferRow(2));
+    assert.isTrue(h.includesBufferRow(3));
+    assert.isTrue(h.includesBufferRow(4));
+    assert.isTrue(h.includesBufferRow(5));
+    assert.isFalse(h.includesBufferRow(6));
+  });
+
   it('computes the total number of changed lines', function() {
     const h0 = new Hunk({
       ...attrs,
