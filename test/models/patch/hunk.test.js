@@ -251,6 +251,26 @@ describe('Hunk', function() {
     assert.strictEqual(h1.changedLineCount(), 0);
   });
 
+  it('determines the maximum number of digits necessary to represent a diff line number', function() {
+    const h0 = new Hunk({
+      ...attrs,
+      oldStartRow: 200,
+      oldRowCount: 10,
+      newStartRow: 999,
+      newRowCount: 1,
+    });
+    assert.strictEqual(h0.getMaxLineNumberWidth(), 4);
+
+    const h1 = new Hunk({
+      ...attrs,
+      oldStartRow: 5000,
+      oldRowCount: 10,
+      newStartRow: 20000,
+      newRowCount: 20,
+    });
+    assert.strictEqual(h1.getMaxLineNumberWidth(), 5);
+  });
+
   describe('toStringIn()', function() {
     it('prints its header', function() {
       const h = new Hunk({

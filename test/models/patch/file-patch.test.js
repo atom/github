@@ -38,6 +38,7 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getByteSize(), 10);
     assert.strictEqual(filePatch.getBufferText(), bufferText);
+    assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
   });
 
   it('accesses a file path from either side of the patch', function() {

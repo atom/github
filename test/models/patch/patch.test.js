@@ -51,6 +51,34 @@ describe('Patch', function() {
     assert.strictEqual(p.getChangedLineCount(), 10);
   });
 
+  it('computes the maximum number of digits needed to display a diff line number', function() {
+    const hunks = [
+      new Hunk({
+        oldStartRow: 0,
+        oldRowCount: 1,
+        newStartRow: 0,
+        newRowCount: 1,
+        sectionHeading: 'zero',
+        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [5, 0]], startOffset: 0, endOffset: 30}),
+        changes: [],
+      }),
+      new Hunk({
+        oldStartRow: 98,
+        oldRowCount: 5,
+        newStartRow: 95,
+        newRowCount: 3,
+        sectionHeading: 'one',
+        rowRange: new IndexedRowRange({bufferRange: [[6, 0], [15, 0]], startOffset: 30, endOffset: 80}),
+        changes: [],
+      }),
+    ];
+    const p0 = new Patch({status: 'modified', hunks, bufferText: 'bufferText'});
+    assert.strictEqual(p0.getMaxLineNumberWidth(), 3);
+
+    const p1 = new Patch({status: 'deleted', hunks: [], bufferText: ''});
+    assert.strictEqual(p1.getMaxLineNumberWidth(), 0);
+  });
+
   it('clones itself with optionally overridden properties', function() {
     const original = new Patch({status: 'modified', hunks: [], bufferText: 'bufferText'});
 
