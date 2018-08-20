@@ -57,6 +57,21 @@ describe('Hunk', function() {
     assert.isNull(h.getNoNewlineRange());
   });
 
+  it('returns the range of a no-newline region', function() {
+    const h = new Hunk({
+      ...attrs,
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 6, endOffset: 7})),
+        new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [5, 0]], startOffset: 8, endOffset: 9})),
+        new NoNewline(new IndexedRowRange({bufferRange: [[10, 0], [10, 0]], startOffset: 100, endOffset: 120})),
+      ],
+    });
+
+    const nl = h.getNoNewlineRange();
+    assert.isNotNull(nl);
+    assert.deepEqual(nl.serialize(), [[10, 0], [10, 0]]);
+  });
+
   it('creates its start range for decoration placement', function() {
     const h = new Hunk({
       ...attrs,
