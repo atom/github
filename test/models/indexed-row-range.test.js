@@ -198,6 +198,7 @@ describe('IndexedRowRange', function() {
     assert.deepEqual(nullIndexedRowRange.intersectRowsIn(new Set([0, 1, 2]), ''), []);
     assert.strictEqual(nullIndexedRowRange.toStringIn('', '+'), '');
     assert.strictEqual(nullIndexedRowRange.bufferRowCount(), 0);
+    assert.lengthOf(nullIndexedRowRange.getBufferRows(), 0);
     assert.isFalse(nullIndexedRowRange.includesRow(4));
     assert.isFalse(nullIndexedRowRange.isPresent());
   });
