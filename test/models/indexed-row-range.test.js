@@ -11,6 +11,15 @@ describe('IndexedRowRange', function() {
     assert.deepEqual(range.bufferRowCount(), 2);
   });
 
+  it('returns its starting buffer row', function() {
+    const range = new IndexedRowRange({
+      bufferRange: [[2, 0], [8, 0]],
+      startOffset: 0,
+      endOffset: 10,
+    });
+    assert.strictEqual(range.getStartBufferRow(), 2);
+  });
+
   it('returns an array of the covered rows', function() {
     const range = new IndexedRowRange({
       bufferRange: [[2, 0], [8, 0]],
@@ -186,11 +195,13 @@ describe('IndexedRowRange', function() {
   });
 
   it('returns appropriate values from nullIndexedRowRange methods', function() {
-    assert.deepEqual(nullIndexedRowRange.intersectRowsIn(new Set([0, 1, 2]), ''), []);
-    assert.strictEqual(nullIndexedRowRange.toStringIn('', '+'), '');
-    assert.strictEqual(nullIndexedRowRange.bufferRowCount(), 0);
+    assert.isNull(nullIndexedRowRange.getStartBufferRow());
     assert.lengthOf(nullIndexedRowRange.getBufferRows(), 0);
+    assert.strictEqual(nullIndexedRowRange.bufferRowCount(), 0);
     assert.isFalse(nullIndexedRowRange.includesRow(4));
+    assert.strictEqual(nullIndexedRowRange.toStringIn('', '+'), '');
+    assert.deepEqual(nullIndexedRowRange.intersectRowsIn(new Set([0, 1, 2]), ''), []);
+    assert.isNull(nullIndexedRowRange.serialize());
     assert.isFalse(nullIndexedRowRange.isPresent());
   });
 });
