@@ -20,6 +20,20 @@ describe('IndexedRowRange', function() {
     assert.sameMembers(range.getBufferRows(), [2, 3, 4, 5, 6, 7, 8]);
   });
 
+  it('has a buffer row inclusion predicate', function() {
+    const range = new IndexedRowRange({
+      bufferRange: [[2, 0], [4, 0]],
+      startOffset: 0,
+      endOffset: 10,
+    });
+
+    assert.isFalse(range.includesRow(1));
+    assert.isTrue(range.includesRow(2));
+    assert.isTrue(range.includesRow(3));
+    assert.isTrue(range.includesRow(4));
+    assert.isFalse(range.includesRow(5));
+  });
+
   it('creates a Range from its first line', function() {
     const range = new IndexedRowRange({
       bufferRange: [[2, 0], [8, 0]],
@@ -184,6 +198,7 @@ describe('IndexedRowRange', function() {
     assert.deepEqual(nullIndexedRowRange.intersectRowsIn(new Set([0, 1, 2]), ''), []);
     assert.strictEqual(nullIndexedRowRange.toStringIn('', '+'), '');
     assert.strictEqual(nullIndexedRowRange.bufferRowCount(), 0);
+    assert.isFalse(nullIndexedRowRange.includesRow(4));
     assert.isFalse(nullIndexedRowRange.isPresent());
   });
 });
