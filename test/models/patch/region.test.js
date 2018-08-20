@@ -16,14 +16,15 @@ describe('Regions', function() {
       addition = new Addition(range);
     });
 
-    it('has a range accessor', function() {
+    it('has range accessors', function() {
       assert.strictEqual(addition.getRowRange(), range);
+      assert.strictEqual(addition.getStartBufferRow(), 1);
     });
 
     it('delegates some methods to its row range', function() {
       assert.sameMembers(Array.from(addition.getBufferRows()), [1, 2, 3]);
-      assert.deepEqual(addition.getStartRange().serialize(), [[1, 0], [1, 0]]);
       assert.strictEqual(addition.bufferRowCount(), 3);
+      assert.isTrue(addition.includesBufferRow(2));
     });
 
     it('can be recognized by the isAddition predicate', function() {
