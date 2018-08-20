@@ -194,6 +194,44 @@ describe('Hunk', function() {
     assert.isFalse(h.includesBufferRow(6));
   });
 
+  it('computes the old file row for a buffer row', function() {
+    const h = new Hunk({
+      ...attrs,
+      rowRange: new IndexedRowRange({
+        bufferRange: [[2, 0], [10, 0]],
+        startOffset: 10,
+        endOffset: 100,
+      }),
+      oldStartRow: 10,
+      oldRowCount: 4,
+      newStartRow: 20,
+      newRowCount: 6,
+    });
+
+    assert.strictEqual(h.getOldRowAt(2), 10);
+    assert.strictEqual(h.getOldRowAt(3), 11);
+    assert.strictEqual(h.getOldRowAt(10), 18);
+  });
+
+  it('computes the new file row for a buffer row', function() {
+    const h = new Hunk({
+      ...attrs,
+      rowRange: new IndexedRowRange({
+        bufferRange: [[2, 0], [10, 0]],
+        startOffset: 10,
+        endOffset: 100,
+      }),
+      oldStartRow: 10,
+      oldRowCount: 4,
+      newStartRow: 20,
+      newRowCount: 6,
+    });
+
+    assert.strictEqual(h.getNewRowAt(2), 20);
+    assert.strictEqual(h.getNewRowAt(3), 21);
+    assert.strictEqual(h.getNewRowAt(10), 28);
+  });
+
   it('computes the total number of changed lines', function() {
     const h0 = new Hunk({
       ...attrs,
