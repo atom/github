@@ -197,39 +197,61 @@ describe('Hunk', function() {
   it('computes the old file row for a buffer row', function() {
     const h = new Hunk({
       ...attrs,
-      rowRange: new IndexedRowRange({
-        bufferRange: [[2, 0], [10, 0]],
-        startOffset: 10,
-        endOffset: 100,
-      }),
       oldStartRow: 10,
-      oldRowCount: 4,
+      oldRowCount: 6,
       newStartRow: 20,
-      newRowCount: 6,
+      newRowCount: 7,
+      rowRange: new IndexedRowRange({bufferRange: [[2, 0], [12, 0]], startOffset: 0, endOffset: 0}),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[3, 0], [5, 0]], startOffset: 0, endOffset: 0})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [9, 0]], startOffset: 0, endOffset: 0})),
+        new Addition(new IndexedRowRange({bufferRange: [[11, 0], [11, 0]], startOffset: 0, endOffset: 0})),
+        new NoNewline(new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0})),
+      ],
     });
 
     assert.strictEqual(h.getOldRowAt(2), 10);
-    assert.strictEqual(h.getOldRowAt(3), 11);
-    assert.strictEqual(h.getOldRowAt(10), 18);
+    assert.isNull(h.getOldRowAt(3));
+    assert.isNull(h.getOldRowAt(4));
+    assert.isNull(h.getOldRowAt(5));
+    assert.strictEqual(h.getOldRowAt(6), 11);
+    assert.strictEqual(h.getOldRowAt(7), 12);
+    assert.strictEqual(h.getOldRowAt(8), 13);
+    assert.strictEqual(h.getOldRowAt(9), 14);
+    assert.strictEqual(h.getOldRowAt(10), 15);
+    assert.isNull(h.getOldRowAt(11));
+    assert.isNull(h.getOldRowAt(12));
+    assert.isNull(h.getOldRowAt(13));
   });
 
   it('computes the new file row for a buffer row', function() {
     const h = new Hunk({
       ...attrs,
-      rowRange: new IndexedRowRange({
-        bufferRange: [[2, 0], [10, 0]],
-        startOffset: 10,
-        endOffset: 100,
-      }),
       oldStartRow: 10,
-      oldRowCount: 4,
+      oldRowCount: 6,
       newStartRow: 20,
-      newRowCount: 6,
+      newRowCount: 7,
+      rowRange: new IndexedRowRange({bufferRange: [[2, 0], [12, 0]], startOffset: 0, endOffset: 0}),
+      changes: [
+        new Addition(new IndexedRowRange({bufferRange: [[3, 0], [5, 0]], startOffset: 0, endOffset: 0})),
+        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [9, 0]], startOffset: 0, endOffset: 0})),
+        new Addition(new IndexedRowRange({bufferRange: [[11, 0], [11, 0]], startOffset: 0, endOffset: 0})),
+        new NoNewline(new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0})),
+      ],
     });
 
     assert.strictEqual(h.getNewRowAt(2), 20);
     assert.strictEqual(h.getNewRowAt(3), 21);
-    assert.strictEqual(h.getNewRowAt(10), 28);
+    assert.strictEqual(h.getNewRowAt(4), 22);
+    assert.strictEqual(h.getNewRowAt(5), 23);
+    assert.strictEqual(h.getNewRowAt(6), 24);
+    assert.isNull(h.getNewRowAt(7));
+    assert.isNull(h.getNewRowAt(8));
+    assert.isNull(h.getNewRowAt(9));
+    assert.strictEqual(h.getNewRowAt(10), 25);
+    assert.strictEqual(h.getNewRowAt(11), 26);
+    assert.isNull(h.getNewRowAt(12));
+    assert.isNull(h.getNewRowAt(13));
   });
 
   it('computes the total number of changed lines', function() {
