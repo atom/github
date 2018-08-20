@@ -213,33 +213,6 @@ describe('Hunk', function() {
     assert.strictEqual(h1.changedLineCount(), 0);
   });
 
-  it('computes an inverted hunk', function() {
-    const original = new Hunk({
-      ...attrs,
-      oldStartRow: 0,
-      newStartRow: 1,
-      oldRowCount: 2,
-      newRowCount: 3,
-      sectionHeading: 'the-heading',
-      changes: [
-        new Addition(new IndexedRowRange({bufferRange: [[2, 0], [4, 0]], startOffset: 0, endOffset: 0})),
-        new Addition(new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 0, endOffset: 0})),
-        new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [10, 0]], startOffset: 0, endOffset: 0})),
-        new NoNewline(new IndexedRowRange({bufferRange: [[12, 0], [12, 0]], startOffset: 0, endOffset: 0})),
-      ],
-    });
-
-    const inverted = original.invert();
-    assert.strictEqual(inverted.getOldStartRow(), 1);
-    assert.strictEqual(inverted.getNewStartRow(), 0);
-    assert.strictEqual(inverted.getOldRowCount(), 3);
-    assert.strictEqual(inverted.getNewRowCount(), 2);
-    assert.strictEqual(inverted.getSectionHeading(), 'the-heading');
-    assert.lengthOf(inverted.getAdditionRanges(), 1);
-    assert.lengthOf(inverted.getDeletionRanges(), 2);
-    assert.deepEqual(inverted.getNoNewlineRange().serialize(), [[12, 0], [12, 0]]);
-  });
-
   describe('toStringIn()', function() {
     it('prints its header', function() {
       const h = new Hunk({
