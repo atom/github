@@ -176,6 +176,93 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'new/destination');
     });
 
+    it('assembles a patch from a file deletion', function() {
+      const p = buildFilePatch([{
+        oldPath: 'old/path',
+        oldMode: '100644',
+        newPath: null,
+        newMode: null,
+        status: 'deleted',
+        hunks: [
+          {
+            oldStartLine: 1,
+            oldLineCount: 4,
+            newStartLine: 0,
+            newLineCount: 0,
+            lines: [
+              '-line-0',
+              '-line-1',
+              '-line-2',
+              '-line-3',
+            ],
+          },
+        ],
+      }]);
+
+      assert.isTrue(p.getOldFile().isPresent());
+      assert.strictEqual(p.getOldPath(), 'old/path');
+      assert.strictEqual(p.getOldMode(), '100644');
+      assert.isFalse(p.getNewFile().isPresent());
+      assert.strictEqual(p.getPatch().getStatus(), 'deleted');
+
+      const buffer = 'line-0\nline-1\nline-2\nline-3\n';
+      assert.strictEqual(p.getBufferText(), buffer);
+
+      assertInPatch(p).hunks(
+        {
+          startRow: 0,
+          endRow: 3,
+          header: '@@ -1,4 +0,0 @@',
+          changes: [
+            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n', range: [[0, 0], [3, 0]]},
+          ],
+        },
+      );
+    });
+
+    it('assembles a patch from a file addition', function() {
+      const p = buildFilePatch([{
+        oldPath: null,
+        oldMode: null,
+        newPath: 'new/path',
+        newMode: '100755',
+        status: 'added',
+        hunks: [
+          {
+            oldStartLine: 0,
+            oldLineCount: 0,
+            newStartLine: 1,
+            newLineCount: 3,
+            lines: [
+              '+line-0',
+              '+line-1',
+              '+line-2',
+            ],
+          },
+        ],
+      }]);
+
+      assert.isFalse(p.getOldFile().isPresent());
+      assert.isTrue(p.getNewFile().isPresent());
+      assert.strictEqual(p.getNewPath(), 'new/path');
+      assert.strictEqual(p.getNewMode(), '100755');
+      assert.strictEqual(p.getPatch().getStatus(), 'added');
+
+      const buffer = 'line-0\nline-1\nline-2\n';
+      assert.strictEqual(p.getBufferText(), buffer);
+
+      assertInPatch(p).hunks(
+        {
+          startRow: 0,
+          endRow: 2,
+          header: '@@ -0,0 +1,3 @@',
+          changes: [
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[0, 0], [2, 0]]},
+          ],
+        },
+      );
+    });
+
     it('throws an error with an unknown diff status character', function() {
       assert.throws(() => {
         buildFilePatch([{
