@@ -36,7 +36,7 @@ describe('ChangedFilesCountView', function() {
     assert.deepEqual(reporterProxy.addEvent.callCount, 1);
     const args = reporterProxy.addEvent.lastCall.args;
     assert.deepEqual(args[0], 'click');
-    assert.deepEqual(args[1], {package: "github", component: "ChangedFileCountView"});
+    assert.deepEqual(args[1], {package: 'github', component: 'ChangedFileCountView'});
   });
 
 });
