@@ -489,6 +489,7 @@ describe('Patch', function() {
     assert.isFalse(nullPatch.isPresent());
     assert.strictEqual(nullPatch.toString(), '');
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
+    assert.strictEqual(nullPatch.getMaxLineNumberWidth(), 0);
   });
 });
 
