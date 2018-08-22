@@ -27,9 +27,16 @@ describe('FilePatchController', function() {
 
   function buildApp(overrideProps = {}) {
     const props = {
+      repository,
       stagingStatus: 'unstaged',
+      relPath: 'a.txt',
       isPartiallyStaged: false,
       filePatch,
+      workspace: atomEnv.workspace,
+      tooltips: atomEnv.tooltips,
+      destroy: () => {},
+      discardLines: () => {},
+      undoLastDiscard: () => {},
       ...overrideProps,
     };
 
