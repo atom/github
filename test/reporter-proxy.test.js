@@ -109,6 +109,11 @@ describe('reporterProxy', function() {
       assert.deepEqual(addTimingArgs[2], {gitHubPackageVersion: version});
 
       assert.deepEqual(incrementCounterStub.lastCall.args, [counterName]);
+
+      assert.deepEqual(reporterProxy.events.length, 0);
+      assert.deepEqual(reporterProxy.timings.length, 0);
+      assert.deepEqual(reporterProxy.counters.length, 0);
+
     });
     it('calls addCustomEvent directly, bypassing queue', function() {
       assert.isFalse(addCustomEventStub.called);
