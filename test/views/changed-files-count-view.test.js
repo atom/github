@@ -7,7 +7,6 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('ChangedFilesCountView', function() {
   let wrapper;
-  sinon.stub(reporterProxy, 'addEvent');
 
   it('renders diff icon', function() {
     wrapper = shallow(<ChangedFilesCountView />);
@@ -30,6 +29,8 @@ describe('ChangedFilesCountView', function() {
   });
 
   it('records an event on click', function() {
+    sinon.stub(reporterProxy, 'addEvent');
+    reporterProxy.addEvent.reset();
     wrapper = shallow(<ChangedFilesCountView />);
     assert.deepEqual(reporterProxy.addEvent.callCount, 0);
     wrapper.simulate('click');
@@ -38,5 +39,4 @@ describe('ChangedFilesCountView', function() {
     assert.deepEqual(args[0], 'click');
     assert.deepEqual(args[1], {package: 'github', component: 'ChangedFileCountView'});
   });
-
 });
