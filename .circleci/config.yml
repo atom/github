@@ -12,7 +12,7 @@ defaults: &defaults
         security default-keychain -s temporary
   - run:
       name: download build-package.sh
-      command: curl -s -O https://raw.githubusercontent.com/atom/ci/aw/circle-dev/build-package.sh
+      command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
   - run:
       name: chmod build-package.sh
       command: chmod u+x build-package.sh
