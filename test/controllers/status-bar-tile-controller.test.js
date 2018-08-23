@@ -647,24 +647,6 @@ describe('StatusBarTileController', function() {
   });
 
   describe('changed files', function() {
-    it('shows the changed files count view when the repository data is loaded', async function() {
-      const workdirPath = await cloneRepository('three-files');
-      const repository = await buildRepository(workdirPath);
-
-      const toggleGitTab = sinon.spy();
-
-      const wrapper = await mountAndLoad(buildApp({repository, toggleGitTab}));
-
-      assert.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '0 files');
-
-      fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'a change\n');
-      fs.unlinkSync(path.join(workdirPath, 'b.txt'));
-
-      await repository.stageFiles(['a.txt']);
-      repository.refresh();
-
-      await assert.async.equal(wrapper.find('.github-ChangedFilesCount').render().text(), '2 files');
-    });
 
     it('toggles the git panel when clicked', async function() {
       const workdirPath = await cloneRepository('three-files');
