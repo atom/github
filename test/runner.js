@@ -5,6 +5,7 @@ import path from 'path';
 
 import until from 'test-until';
 import NYC from 'nyc';
+import semver from 'semver';
 
 chai.use(chaiAsPromised);
 global.assert = chai.assert;
@@ -79,6 +80,24 @@ module.exports = createRunner({
   reporter: process.env.MOCHA_REPORTER || 'list',
   overrideTestPaths: [/spec$/, /test/],
 }, mocha => {
+  // Ensure that we expect to be deployable to this version of Atom.
+  const engineRange = require('../package.json').engines.atom;
+  const atomEnv = global.buildAtomEnvironment();
+  const atomVersion = atomEnv.getVersion();
+  const atomReleaseChannel = atomEnv.getReleaseChannel();
+  atomEnv.destroy();
+
+  if (!semver.satisfies(atomVersion, engineRange)) {
+    process.stderr.write(
+      `Atom version ${atomVersion} does not satisfy the range "${engineRange}" specified in package.json.\n` +
+      `This version of atom/github is currently incompatible with the ${atomReleaseChannel} ` +
+      'Atom release channel.\n',
+    );
+    // A regular expression that matches nothing.
+    mocha.grep(/.^/);
+    return;
+  }
+
   const Enzyme = require('enzyme');
   const Adapter = require('@smashwilson/enzyme-adapter-react-16');
   Enzyme.configure({adapter: new Adapter()});
