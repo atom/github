@@ -14,10 +14,6 @@ describe('firstImplementer', function() {
   const a = new A();
   const b = new B();
 
-  it('fails horribly', function() {
-    assert.isTrue(false, 'NOTICE ME TRAVIS SENPAI');
-  });
-
   it('calls methods from the first target that has the method', function() {
     const target = firstImplementer(a, b);
     assert.equal(target.one, a.one);
