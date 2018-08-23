@@ -16,10 +16,13 @@ defaults: &defaults
   - run:
       name: chmod build-package.sh
       command: chmod u+x build-package.sh
-  - save_cache:
-      key: v1-source-{{ .Environment.CIRCLE_SHA1 }}
-      paths:
-      - build-package.sh
+  - run:
+      name: tests
+      command: caffeinate -s ./build-package.sh
+  - store_test_results:
+      path: test-results
+  - store_artifacts:
+      path: test-results
 
 jobs:
   stable:
