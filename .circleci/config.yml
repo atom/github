@@ -18,7 +18,7 @@ defaults: &defaults
       command: chmod u+x build-package.sh
   - run:
       name: tests
-      command: set -x ; caffeinate -s ./build-package.sh
+      command: caffeinate -s ./build-package.sh
   - store_test_results:
       path: test-results
   - store_artifacts:
