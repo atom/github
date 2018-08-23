@@ -17,7 +17,7 @@
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
   "engines": {
-    "atom": ">=1.18.0"
+    "atom": ">=1.99.0"
   },
   "atomTestRunner": "./test/runner",
   "atomTranspilers": [
