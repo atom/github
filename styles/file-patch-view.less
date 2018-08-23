@@ -12,9 +12,14 @@
   min-width: 0;
   height: 100%;
 
-  &.is-blank {
-    text-align: center;
+  &--blank &-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    text-align: center;
+    font-size: 1.2em;
+    padding: @component-padding;
   }
 
   &-header {
@@ -49,7 +54,6 @@
     height: 100%;
     flex-direction: column;
 
-    .is-blank,
     .large-file-patch {
       flex: 1;
       display: flex;
@@ -69,7 +73,6 @@
       height: 100%;
     }
   }
-
 
   // Meta section
 

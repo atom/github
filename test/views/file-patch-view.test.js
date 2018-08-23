@@ -6,6 +6,7 @@ import {shallow, mount} from 'enzyme';
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatchView from '../../lib/views/file-patch-view';
 import FilePatchSelection from '../../lib/models/file-patch-selection';
+import {nullFilePatch} from '../../lib/models/patch/file-patch';
 import {nullFile} from '../../lib/models/patch/file';
 import Hunk from '../../lib/models/patch/hunk';
 import {Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
@@ -305,6 +306,19 @@ describe('FilePatchView', function() {
       assert.deepEqual(markers, [
         [[17, 0], [17, 0]],
       ]);
+    });
+  });
+
+  describe('when viewing an empty patch', function() {
+    it('renders an empty patch message', function() {
+      const wrapper = shallow(buildApp({filePatch: nullFilePatch}));
+      assert.isTrue(wrapper.find('.github-FilePatchView').hasClass('github-FilePatchView--blank'));
+      assert.isTrue(wrapper.find('.github-FilePatchView-message').exists());
+    });
+
+    it('shows navigation controls', function() {
+      const wrapper = shallow(buildApp({filePatch: nullFilePatch}));
+      assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
     });
   });
 });
