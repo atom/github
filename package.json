@@ -7,8 +7,10 @@
   "license": "MIT",
   "scripts": {
     "test": "atom --test test",
-    "test:coverage": "nyc script/capture-env",
-    "test:coverage:lcov": "nyc --reporter=lcovonly script/capture-env npm run test:coverage",
+    "test:coverage": "cross-env ATOM_GITHUB_BABEL_ENV=coverage npm run test",
+    "test:coverage:text": "nyc --reporter=text npm run test:coverage",
+    "test:coverage:html": "nyc --reporter=html npm run test:coverage",
+    "test:coverage:lcov": "npm run test:coverage",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
