@@ -6,7 +6,7 @@
   "repository": "https://github.com/atom/github",
   "license": "MIT",
   "scripts": {
-    "test": "atom --test test",
+    "test": "cross-env-shell \"${ATOM_SCRIPT_PATH:-atom} --test test\"",
     "test:coverage": "cross-env ATOM_GITHUB_BABEL_ENV=coverage npm run test",
     "test:coverage:text": "nyc --reporter=text npm run test:coverage",
     "test:coverage:html": "nyc --reporter=html npm run test:coverage",
