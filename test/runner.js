@@ -87,7 +87,7 @@ module.exports = createRunner({
   const atomReleaseChannel = atomEnv.getReleaseChannel();
   atomEnv.destroy();
 
-  if (!semver.satisfies(atomVersion, engineRange)) {
+  if (!semver.satisfies(semver.coerce(atomVersion), engineRange)) {
     process.stderr.write(
       `Atom version ${atomVersion} does not satisfy the range "${engineRange}" specified in package.json.\n` +
       `This version of atom/github is currently incompatible with the ${atomReleaseChannel} ` +
