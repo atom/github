@@ -68,12 +68,13 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
-    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "@smashwilson/atom-mocha-test-runner": "1.2.1",
+    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
     "coveralls": "^3.0.1",
+    "cross-env": "5.2.0",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.4.1",
