@@ -30,6 +30,7 @@ describe('FilePatchItem', function() {
     const props = {
       workdirContextPool: pool,
       workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
       discardLines: () => {},
       undoLastDiscard: () => {},

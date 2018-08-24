@@ -33,6 +33,7 @@ describe('FilePatchController', function() {
       isPartiallyStaged: false,
       filePatch,
       workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
       destroy: () => {},
       discardLines: () => {},
