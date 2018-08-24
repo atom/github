@@ -35,6 +35,7 @@ describe('FilePatchContainer', function() {
       stagingStatus: 'unstaged',
       relPath: 'a.txt',
       workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
       discardLines: () => {},
       undoLastDiscard: () => {},
