@@ -25,7 +25,7 @@ describe('reporterProxy', function() {
       addEvent(eventType, event);
 
       const events = reporterProxy.events;
-      assert.deepEqual(events.length, 1);
+      assert.lengthOf(events, 1);
       const actualEvent = events[0];
       assert.deepEqual(actualEvent.eventType, eventType);
       assert.deepEqual(actualEvent.event, {coAuthorCount: 2, gitHubPackageVersion: version});
@@ -35,7 +35,7 @@ describe('reporterProxy', function() {
       addTiming(timingEventType, durationInMilliseconds);
 
       const timings = reporterProxy.timings;
-      assert.deepEqual(timings.length, 1);
+      assert.lengthOf(timings, 1);
       const timing = timings[0];
 
       assert.deepEqual(timing.eventType, timingEventType);
@@ -47,7 +47,7 @@ describe('reporterProxy', function() {
       incrementCounter(counterName);
 
       const counters = reporterProxy.counters;
-      assert.deepEqual(counters.length, 1);
+      assert.lengthOf(counters, 1);
       assert.deepEqual(counters[0], counterName);
     });
   });
@@ -60,18 +60,18 @@ describe('reporterProxy', function() {
       addTiming(timingEventType, durationInMilliseconds);
       incrementCounter(counterName);
 
-      assert.deepEqual(reporterProxy.events.length, 1);
-      assert.deepEqual(reporterProxy.timings.length, 1);
-      assert.deepEqual(reporterProxy.counters.length, 1);
+      assert.lengthOf(reporterProxy.events, 1);
+      assert.lengthOf(reporterProxy.timings, 1);
+      assert.lengthOf(reporterProxy.counters, 1);
       assert.isFalse(setReporterSpy.called);
       assert.isNull(reporterProxy.reporter);
 
       setTimeout(() => {
         assert.isTrue(reporterProxy.reporter);
         assert.isTrue(setReporterSpy.called);
-        assert.deepEqual(reporterProxy.events.length, 0);
-        assert.deepEqual(reporterProxy.timings.length, 0);
-        assert.deepEqual(reporterProxy.counters.length, 0);
+        assert.lengthOf(reporterProxy.events, 0);
+        assert.lengthOf(reporterProxy.timings, 0);
+        assert.lengthOf(reporterProxy.counters, 0);
       }, FIVE_MINUTES_IN_MILLISECONDS);
 
       clock.restore();
@@ -93,9 +93,9 @@ describe('reporterProxy', function() {
       assert.isFalse(addTimingStub.called);
       assert.isFalse(incrementCounterStub.called);
 
-      assert.deepEqual(reporterProxy.events.length, 1);
-      assert.deepEqual(reporterProxy.timings.length, 1);
-      assert.deepEqual(reporterProxy.counters.length, 1);
+      assert.lengthOf(reporterProxy.events, 1);
+      assert.lengthOf(reporterProxy.timings, 1);
+      assert.lengthOf(reporterProxy.counters, 1);
 
       reporterProxy.setReporter(fakeReporter);
 
@@ -109,13 +109,18 @@ describe('reporterProxy', function() {
       assert.deepEqual(addTimingArgs[2], {gitHubPackageVersion: version});
 
       assert.deepEqual(incrementCounterStub.lastCall.args, [counterName]);
+
+      assert.lengthOf(reporterProxy.events, 0);
+      assert.lengthOf(reporterProxy.timings, 0);
+      assert.lengthOf(reporterProxy.counters, 0);
+
     });
     it('calls addCustomEvent directly, bypassing queue', function() {
       assert.isFalse(addCustomEventStub.called);
       reporterProxy.setReporter(fakeReporter);
 
       addEvent(eventType, event);
-      assert.deepEqual(reporterProxy.events.length, 0);
+      assert.lengthOf(reporterProxy.events, 0);
 
       const addCustomEventArgs = addCustomEventStub.lastCall.args;
       assert.deepEqual(addCustomEventArgs[0], eventType);
@@ -126,7 +131,7 @@ describe('reporterProxy', function() {
       reporterProxy.setReporter(fakeReporter);
 
       addTiming(timingEventType, durationInMilliseconds);
-      assert.deepEqual(reporterProxy.timings.length, 0);
+      assert.lengthOf(reporterProxy.timings, 0);
 
       const addTimingArgs = addTimingStub.lastCall.args;
       assert.deepEqual(addTimingArgs[0], timingEventType);
@@ -138,7 +143,7 @@ describe('reporterProxy', function() {
       reporterProxy.setReporter(fakeReporter);
 
       incrementCounter(counterName);
-      assert.deepEqual(reporterProxy.counters.length, 0);
+      assert.lengthOf(reporterProxy.counters, 0);
 
       assert.deepEqual(incrementCounterStub.lastCall.args, [counterName]);
     });

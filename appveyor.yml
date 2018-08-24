@@ -19,6 +19,7 @@ environment:
   matrix:
   - ATOM_CHANNEL: stable
   - ATOM_CHANNEL: beta
+  - ATOM_CHANNEL: dev
 
 install:
   - ps: Install-Product node 6
