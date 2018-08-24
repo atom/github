@@ -20,6 +20,15 @@ describe('IndexedRowRange', function() {
     assert.strictEqual(range.getStartBufferRow(), 2);
   });
 
+  it('returns its ending buffer row', function() {
+    const range = new IndexedRowRange({
+      bufferRange: [[2, 0], [8, 0]],
+      startOffset: 0,
+      endOffset: 10,
+    });
+    assert.strictEqual(range.getEndBufferRow(), 8);
+  });
+
   it('returns an array of the covered rows', function() {
     const range = new IndexedRowRange({
       bufferRange: [[2, 0], [8, 0]],
