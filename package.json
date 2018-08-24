@@ -70,7 +70,7 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
-    "@smashwilson/atom-mocha-test-runner": "1.2.1",
+    "@smashwilson/atom-mocha-test-runner": "1.4.0",
     "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
