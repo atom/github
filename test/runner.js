@@ -79,7 +79,7 @@ module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
   reporter: process.env.MOCHA_REPORTER || 'list',
   overrideTestPaths: [/spec$/, /test/],
-}, mocha => {
+}, (mocha, {terminate}) => {
   // Ensure that we expect to be deployable to this version of Atom.
   const engineRange = require('../package.json').engines.atom;
   const atomEnv = global.buildAtomEnvironment();
@@ -93,9 +93,8 @@ module.exports = createRunner({
       `This version of atom/github is currently incompatible with the ${atomReleaseChannel} ` +
       'Atom release channel.\n',
     );
-    // A regular expression that matches nothing.
-    mocha.grep(/.^/);
-    return;
+
+    terminate(0);
   }
 
   const Enzyme = require('enzyme');
