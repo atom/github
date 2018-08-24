@@ -96,6 +96,18 @@ describe('FilePatchController', function() {
 
       getFilePatchForPath = sinon.stub(repository, 'getFilePatchForPath');
     });
+    describe('buildURI', function() {
+      it('correctly uri encodes all components', function() {
+        const filePath = '???.txt';
+        const stagingStatus = 'staged';
+        const URI = FilePatchController.buildURI(filePath, workdirPath, stagingStatus);
+        assert.isTrue(URI.includes(encodeURIComponent(filePath)));
+        assert.isTrue(URI.includes(encodeURIComponent(workdirPath)));
+        assert.isTrue(URI.includes(encodeURIComponent(stagingStatus)));
+      });
+
+    });
+
 
     describe('when the FilePatch is too large', function() {
       it('renders a confirmation widget', async function() {
