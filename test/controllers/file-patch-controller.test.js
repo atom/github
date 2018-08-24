@@ -98,10 +98,10 @@ describe('FilePatchController', function() {
     });
     describe('buildURI', function() {
       it('correctly uri encodes all components', function() {
-        const filePath = '???.txt';
+        const filePathWithSpecialChars = '???.txt';
         const stagingStatus = 'staged';
-        const URI = FilePatchController.buildURI(filePath, workdirPath, stagingStatus);
-        assert.isTrue(URI.includes(encodeURIComponent(filePath)));
+        const URI = FilePatchController.buildURI(filePathWithSpecialChars, workdirPath, stagingStatus);
+        assert.isTrue(URI.includes(encodeURIComponent(filePathWithSpecialChars)));
         assert.isTrue(URI.includes(encodeURIComponent(workdirPath)));
         assert.isTrue(URI.includes(encodeURIComponent(stagingStatus)));
       });
