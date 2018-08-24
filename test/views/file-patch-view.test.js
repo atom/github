@@ -39,6 +39,7 @@ describe('FilePatchView', function() {
       selection: new FilePatchSelection(filePatch.getHunks()),
       repository,
 
+      commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
 
       mouseDownOnHeader: () => {},
@@ -56,6 +57,9 @@ describe('FilePatchView', function() {
       undoLastDiscard: () => {},
       discardLines: () => {},
       selectAndDiscardHunk: () => {},
+      selectNextHunk: () => {},
+      selectPreviousHunk: () => {},
+      togglePatchSelectionMode: () => {},
 
       ...overrideProps,
     };
@@ -319,6 +323,133 @@ describe('FilePatchView', function() {
     it('shows navigation controls', function() {
       const wrapper = shallow(buildApp({filePatch: nullFilePatch}));
       assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
+    });
+  });
+
+  describe('registers Atom commands', function() {
+    it('toggles the patch selection mode', function() {
+      const togglePatchSelectionMode = sinon.spy();
+      const wrapper = mount(buildApp({togglePatchSelectionMode}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(togglePatchSelectionMode.called);
+    });
+
+    it('toggles the current selection', function() {
+      const toggleLines = sinon.spy();
+      const wrapper = mount(buildApp({toggleLines}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
+
+      assert.isTrue(toggleLines.called);
+    });
+
+    it('selects the next hunk', function() {
+      const selectNextHunk = sinon.spy();
+      const wrapper = mount(buildApp({selectNextHunk}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
+
+      assert.isTrue(selectNextHunk.called);
+    });
+
+    it('selects the previous hunk', function() {
+      const selectPreviousHunk = sinon.spy();
+      const wrapper = mount(buildApp({selectPreviousHunk}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
+
+      assert.isTrue(selectPreviousHunk.called);
+    });
+
+    describe('opening the file', function() {
+      let fp;
+
+      beforeEach(function() {
+        const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n';
+        const hunks = [
+          new Hunk({
+            oldStartRow: 2, oldRowCount: 2, newStartRow: 2, newRowCount: 3,
+            sectionHeading: 'first hunk',
+            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+            changes: [
+              new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
+            ],
+          }),
+          new Hunk({
+            oldStartRow: 10, oldRowCount: 6, newStartRow: 11, newRowCount: 3,
+            sectionHeading: 'second hunk',
+            rowRange: new IndexedRowRange({bufferRange: [[3, 0], [8, 0]], startOffset: 15, endOffset: 45}),
+            changes: [
+              new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 20, endOffset: 25})),
+              new Deletion(new IndexedRowRange({bufferRange: [[6, 0], [7, 0]], startOffset: 30, endOffset: 40})),
+            ],
+          }),
+        ];
+        fp = filePatch.clone({
+          patch: filePatch.getPatch().clone({hunks, bufferText}),
+        });
+      });
+
+      it('opens the file at the current unchanged row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        editor.setCursorBufferPosition([3, 2]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[11, 2]]));
+      });
+
+      it('opens the file at a current added row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        editor.setCursorBufferPosition([1, 3]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[3, 3]]));
+      });
+
+      it('opens the file at the beginning of the previous added or unchanged row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        editor.setCursorBufferPosition([4, 2]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[11, 0]]));
+      });
+
+      it('preserves multiple cursors', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        editor.setCursorBufferPosition([3, 2]);
+        editor.addCursorAtBufferPosition([4, 2]);
+        editor.addCursorAtBufferPosition([1, 3]);
+        editor.addCursorAtBufferPosition([6, 2]);
+        editor.addCursorAtBufferPosition([7, 1]);
+
+        // The cursors at [6, 2] and [7, 1] are both collapsed to a single one on the unchanged line.
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([
+          [11, 2],
+          [11, 0],
+          [3, 3],
+          [12, 0],
+        ]));
+      });
     });
   });
 });
