@@ -1,10 +1,32 @@
 version: 2
 
-jobs:
-  build:
-    macos:
-      xcode: "9.0"
+defaults: &defaults
+  macos:
+    xcode: "9.0"
+  steps:
+  - checkout
+  - run:
+      name: create and set the default keychain
+      command: |
+        security create-keychain -p "" temporary
+        security default-keychain -s temporary
+  - run:
+      name: download build-package.sh
+      command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+  - run:
+      name: chmod build-package.sh
+      command: chmod u+x build-package.sh
+  - run:
+      name: tests
+      command: caffeinate -s ./build-package.sh
+  - store_test_results:
+      path: test-results
+  - store_artifacts:
+      path: test-results
 
+jobs:
+  stable:
+    <<: *defaults
     environment:
     - ATOM_LINT_WITH_BUNDLED_NODE: "true"
     - APM_TEST_PACKAGES: ""
@@ -15,24 +37,38 @@ jobs:
     - MOCHA_TIMEOUT: "60000"
     - UNTIL_TIMEOUT: "30000"
     - CIRCLE_BUILD_IMAGE: osx
+    - ATOM_CHANNEL: stable
+  beta:
+    <<: *defaults
+    environment:
+    - ATOM_LINT_WITH_BUNDLED_NODE: "true"
+    - APM_TEST_PACKAGES: ""
+    - npm_config_clang: "1"
+    - CC: clang
+    - CXX: clang++
+    - ATOM_GITHUB_FS_EVENT_LOG: "1"
+    - MOCHA_TIMEOUT: "60000"
+    - UNTIL_TIMEOUT: "30000"
+    - CIRCLE_BUILD_IMAGE: osx
+    - ATOM_CHANNEL: beta
+  dev:
+    <<: *defaults
+    environment:
+    - ATOM_LINT_WITH_BUNDLED_NODE: "true"
+    - APM_TEST_PACKAGES: ""
+    - npm_config_clang: "1"
+    - CC: clang
+    - CXX: clang++
+    - ATOM_GITHUB_FS_EVENT_LOG: "1"
+    - MOCHA_TIMEOUT: "60000"
+    - UNTIL_TIMEOUT: "30000"
+    - CIRCLE_BUILD_IMAGE: osx
+    - ATOM_CHANNEL: dev
 
-    steps:
-    - checkout
-    - run:
-        name: create and set the default keychain
-        command: |
-          security create-keychain -p "" temporary
-          security default-keychain -s temporary
-    - run:
-        name: download build-package.sh
-        command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
-    - run:
-        name: chmod build-package.sh
-        command: chmod u+x build-package.sh
-    - run:
-        name: tests
-        command: caffeinate -s ./build-package.sh
-    - store_test_results:
-        path: test-results
-    - store_artifacts:
-        path: test-results
+workflows:
+  version: 2
+  build:
+    jobs:
+    - stable
+    - beta
+    - dev
