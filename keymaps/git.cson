@@ -36,14 +36,14 @@
   'ctrl-enter': 'github:commit'
   'shift-tab': 'core:focus-previous'
 
-'.github-FilePatchView':
-  '/': 'github:toggle-patch-selection-mode'
-  'tab': 'github:select-next-hunk'
-  'shift-tab': 'github:select-previous-hunk'
-  'right': 'core:move-right'
-  'o': 'github:open-file'
+'.github-FilePatchView atom-text-editor:not([mini])':
+  'cmd-/': 'github:toggle-patch-selection-mode'
   'cmd-backspace': 'github:discard-selected-lines'
-  'ctrl-backspace': 'github:discard-selected-lines'
+  'cmd-enter': 'core:confirm'
+  'cmd-right': 'github:surface-file'
+  'cmd-o': 'github:open-file'
+  'alt-tab': 'github:select-next-hunk'
+  'alt-shift-tab': 'github:select-previous-hunk'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'
