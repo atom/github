@@ -22,7 +22,7 @@ describe('FilePatchView', function() {
     repository = await buildRepository(workdirPath);
 
     // a.txt: unstaged changes
-    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'changed\n');
+    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'zero\none\ntwo\nthree\nfour\n');
     filePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
   });
 
@@ -46,6 +46,7 @@ describe('FilePatchView', function() {
       mouseDownOnLineNumber: () => {},
       mouseMoveOnLineNumber: () => {},
       mouseUp: () => {},
+      selectedRowsChanged: () => {},
 
       diveIntoMirrorPatch: () => {},
       openFile: () => {},
@@ -311,6 +312,18 @@ describe('FilePatchView', function() {
         [[17, 0], [17, 0]],
       ]);
     });
+  });
+
+  it('notifies a callback when the editor selection changes', function() {
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({selectedRowsChanged}));
+    const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+
+    assert.isFalse(selectedRowsChanged.called);
+
+    editor.addSelectionForBufferRange([[3, 1], [4, 0]]);
+
+    assert.isTrue(selectedRowsChanged.calledWith(new Set([3, 4])));
   });
 
   describe('when viewing an empty patch', function() {
