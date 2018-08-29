@@ -376,7 +376,8 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      const zFilePath = path.join(workingDirPath, 'z-dir', 'a.txt');
+      const zShortPath = path.join('z-dir', 'a.txt');
+      const zFilePath = path.join(workingDirPath, zShortPath);
       const wFilePath = path.join(workingDirPath, 'w.txt');
       fs.mkdirSync(path.join(workingDirPath, 'z-dir'));
       fs.renameSync(path.join(workingDirPath, 'a.txt'), zFilePath);
@@ -384,14 +385,14 @@ describe('Repository', function() {
       const unstagedChanges = await repo.getUnstagedChanges();
       const unstagedPaths = unstagedChanges.map(change => change.filePath);
 
-      assert.deepStrictEqual(unstagedPaths, ['a.txt', 'b.txt', 'w.txt', 'z-dir/a.txt']);
+      assert.deepStrictEqual(unstagedPaths, ['a.txt', 'b.txt', 'w.txt', zShortPath]);
 
       await repo.stageFiles([zFilePath]);
       await repo.stageFiles([wFilePath]);
       const stagedChanges = await repo.getStagedChanges();
       const stagedPaths = stagedChanges.map(change => change.filePath);
 
-      assert.deepStrictEqual(stagedPaths, ['w.txt', 'z-dir/a.txt']);
+      assert.deepStrictEqual(stagedPaths, ['w.txt', zShortPath]);
     });
   });
 
