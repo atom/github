@@ -157,22 +157,22 @@
 
   &-line {
     // mixin
-    .hunk-line-mixin(@fg; @bg) {
-      color: saturate( mix(@fg, @text-color-highlight, 20%), 20%);
-      background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 20%);
+    .hunk-line-mixin(@fg; @bg; @sat) {
+      color: saturate( mix(@fg, @text-color-highlight, 20%), @sat);
+      background-color: saturate( mix(@bg, @hunk-bg-color, 15%), @sat);
 
-      &.line.cursor-line {
-        color: saturate( mix(@fg, @text-color-highlight, 20%), 80%);
-        background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 80%);
+      &.line.github-FilePatchView-line--selected {
+        color: saturate( mix(@fg, @text-color-highlight, 20%), 100% - @sat);
+        background-color: saturate( mix(@bg, @hunk-bg-color, 15%), 100% - @sat);
       }
     }
 
     &--deleted {
-      .hunk-line-mixin(@text-color-error, @background-color-error);
+      .hunk-line-mixin(@text-color-error, @background-color-error, 20%);
     }
 
     &--added {
-      .hunk-line-mixin(@text-color-success, @background-color-success);
+      .hunk-line-mixin(@text-color-success, @background-color-success, 20%);
     }
   }
 }
