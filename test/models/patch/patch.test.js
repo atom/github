@@ -436,6 +436,67 @@ describe('Patch', function() {
     });
   });
 
+  describe('next selection range derivation', function() {
+    it('selects the first change region after the highest buffer row', function() {
+      const lastPatch = buildPatchFixture();
+      // Selected:
+      //  deletions (1-2) and partial addition (4 from 3-5) from hunk 0
+      //  one deletion row (13 from 12-16) from the middle of hunk 1;
+      //  nothing in hunks 2 or 3
+      const lastSelectedRows = new Set([1, 2, 4, 5, 13]);
+
+      const nBufferText =
+        // 0   1     2     3     4
+        '0000\n0003\n0004\n0005\n0006\n' +
+        // 5   6     7     8     9     10    11    12    13    14   15
+        '0007\n0008\n0009\n0010\n0011\n0012\n0014\n0015\n0016\n0017\n0018\n' +
+        // 16  17    18    19    20
+        '0019\n0020\n0021\n0022\n0023\n' +
+        // 21  22     23
+        '0024\n0025\n No newline at end of file\n';
+      const nHunks = [
+        new Hunk({
+          oldStartRow: 3, oldRowCount: 3, newStartRow: 3, newRowCount: 5, // next row drift = +2
+          rowRange: buildRange(0, 4), // context: 0, 2, 4
+          changes: [
+            new Addition(buildRange(1)), // + 1
+            new Addition(buildRange(3)), // + 3
+          ],
+        }),
+        new Hunk({
+          oldStartRow: 12, oldRowCount: 9, newStartRow: 14, newRowCount: 7, // next row drift = +2 -2 = 0
+          rowRange: buildRange(5, 15), // context: 5, 7, 8, 9, 15
+          changes: [
+            new Addition(buildRange(6)), // +6
+            new Deletion(buildRange(10, 13)), // -10 -11 -12 -13
+            new Addition(buildRange(14)), // +14
+          ],
+        }),
+        new Hunk({
+          oldStartRow: 26, oldRowCount: 4, newStartRow: 26, newRowCount: 3, // next row drift = 0 -1 = -1
+          rowRange: buildRange(16, 20), // context: 16, 20
+          changes: [
+            new Addition(buildRange(17)), // +17
+            new Deletion(buildRange(18, 19)), // -18 -19
+          ],
+        }),
+        new Hunk({
+          oldStartRow: 32, oldRowCount: 1, newStartRow: 31, newRowCount: 2,
+          rowRange: buildRange(22, 24), // context: 22
+          changes: [
+            new Addition(buildRange(23)), // +23
+            new NoNewline(buildRange(24)),
+          ],
+        }),
+      ];
+      const nextPatch = new Patch({status: 'modified', hunks: nHunks, bufferText: nBufferText});
+
+      const nextRange = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
+      // Original buffer row 14 = the next changed row = new buffer row 11
+      assert.deepEqual(nextRange, [[11, 0], [11, 0]]);
+    });
+  });
+
   it('prints itself as an apply-ready string', function() {
     const bufferText = '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n';
     // old: 0000.2222.3333.4444.5555.6666.7777.8888.9999.
@@ -492,6 +553,14 @@ describe('Patch', function() {
     assert.strictEqual(nullPatch.getMaxLineNumberWidth(), 0);
   });
 });
+
+function buildRange(startRow, endRow = startRow, rowLength = 5) {
+  return new IndexedRowRange({
+    bufferRange: [[startRow, 0], [endRow, 0]],
+    startOffset: startRow * rowLength,
+    endOffset: (endRow + 1) * rowLength,
+  });
+}
 
 function buildPatchFixture() {
   const bufferText =
