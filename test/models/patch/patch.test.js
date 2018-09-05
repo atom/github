@@ -1,8 +1,7 @@
 import Patch, {nullPatch} from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
-import IndexedRowRange from '../../../lib/models/indexed-row-range';
 import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
-import {assertInPatch} from '../../helpers';
+import {assertInPatch, buildRange} from '../../helpers';
 
 describe('Patch', function() {
   it('has some standard accessors', function() {
@@ -624,14 +623,6 @@ describe('Patch', function() {
     assert.deepEqual(nullPatch.getNextSelectionRange(), [[0, 0], [0, 0]]);
   });
 });
-
-function buildRange(startRow, endRow = startRow, rowLength = 5, endRowLength = rowLength) {
-  return new IndexedRowRange({
-    bufferRange: [[startRow, 0], [endRow, endRowLength - 1]],
-    startOffset: startRow * rowLength,
-    endOffset: endRow * rowLength + endRowLength,
-  });
-}
 
 function buildPatchFixture() {
   const bufferText =

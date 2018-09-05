@@ -16,6 +16,7 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {clearRelayExpectations} from '../lib/relay-network-layer-manager';
+import IndexedRowRange from '../lib/models/indexed-row-range';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -153,6 +154,16 @@ export function assertEqualSortedArraysByKey(arr1, arr2, key) {
 }
 
 // Helpers for test/models/patch classes
+
+// Quickly construct an IndexedRowRange into a buffer that has uniform line lengths (except for possibly the final
+// line.) The default parameters are chosen to match buffers of the form "0000\n0001\n0002\n....".
+export function buildRange(startRow, endRow = startRow, rowLength = 5, endRowLength = rowLength) {
+  return new IndexedRowRange({
+    bufferRange: [[startRow, 0], [endRow, endRowLength - 1]],
+    startOffset: startRow * rowLength,
+    endOffset: endRow * rowLength + endRowLength,
+  });
+}
 
 class PatchBufferAssertions {
   constructor(patch) {

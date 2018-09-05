@@ -3,21 +3,17 @@ import File, {nullFile} from '../../../lib/models/patch/file';
 import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
-import IndexedRowRange from '../../../lib/models/indexed-row-range';
-import {assertInFilePatch} from '../../helpers';
+import {assertInFilePatch, buildRange} from '../../helpers';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
-    const bufferText = '0000\n0001\n';
+    const bufferText = '0000\n0001\n0002\n';
     const hunks = [
       new Hunk({
-        oldStartRow: 2,
-        oldRowCount: 1,
-        newStartRow: 2,
-        newRowCount: 2,
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [1, 0]], startOffset: 0, endOffset: 10}),
+        oldStartRow: 2, oldRowCount: 1, newStartRow: 2, newRowCount: 3,
+        rowRange: buildRange(0, 2),
         changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
+          new Addition(buildRange(1, 2)),
         ],
       }),
     ];
@@ -36,9 +32,27 @@ describe('FilePatch', function() {
     assert.strictEqual(filePatch.getNewMode(), '100755');
     assert.isUndefined(filePatch.getNewSymlink());
 
-    assert.strictEqual(filePatch.getByteSize(), 10);
+    assert.strictEqual(filePatch.getByteSize(), 15);
     assert.strictEqual(filePatch.getBufferText(), bufferText);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
+
+    assert.deepEqual(filePatch.getFirstChangeRange(), [[1, 0], [1, Infinity]]);
+
+    const nBufferText = '0001\n0002\n';
+    const nHunks = [
+      new Hunk({
+        oldStartRow: 3, oldRowCount: 1, newStartRow: 3, newRowCount: 2,
+        rowRange: buildRange(0, 1),
+        changes: [
+          new Addition(buildRange(1)),
+        ],
+      }),
+    ];
+    const nPatch = new Patch({status: 'modified', hunks: nHunks, bufferText: nBufferText});
+    const nFilePatch = new FilePatch(oldFile, newFile, nPatch);
+
+    const range = nFilePatch.getNextSelectionRange(filePatch, new Set([1]));
+    assert.deepEqual(range, [[1, 0], [1, Infinity]]);
   });
 
   it('accesses a file path from either side of the patch', function() {
@@ -56,18 +70,15 @@ describe('FilePatch', function() {
     const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n';
     const hunks = [
       new Hunk({
-        oldStartRow: 1,
-        oldRowCount: 0,
-        newStartRow: 1,
-        newRowCount: 0,
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [9, 0]], startOffset: 0, endOffset: 50}),
+        oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 0,
+        rowRange: buildRange(0, 9),
         changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
-          new Addition(new IndexedRowRange({bufferRange: [[3, 0], [3, 0]], startOffset: 15, endOffset: 20})),
-          new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 20, endOffset: 25})),
-          new Addition(new IndexedRowRange({bufferRange: [[5, 0], [6, 0]], startOffset: 25, endOffset: 35})),
-          new Deletion(new IndexedRowRange({bufferRange: [[7, 0], [7, 0]], startOffset: 35, endOffset: 40})),
-          new Addition(new IndexedRowRange({bufferRange: [[8, 0], [8, 0]], startOffset: 40, endOffset: 45})),
+          new Addition(buildRange(1)),
+          new Addition(buildRange(3)),
+          new Deletion(buildRange(4)),
+          new Addition(buildRange(5, 6)),
+          new Deletion(buildRange(7)),
+          new Addition(buildRange(8)),
         ],
       }),
     ];
@@ -78,16 +89,16 @@ describe('FilePatch', function() {
 
     const additionRanges = filePatch.getAdditionRanges();
     assert.deepEqual(additionRanges.map(range => range.serialize()), [
-      [[1, 0], [1, 0]],
-      [[3, 0], [3, 0]],
-      [[5, 0], [6, 0]],
-      [[8, 0], [8, 0]],
+      [[1, 0], [1, 4]],
+      [[3, 0], [3, 4]],
+      [[5, 0], [6, 4]],
+      [[8, 0], [8, 4]],
     ]);
 
     const deletionRanges = filePatch.getDeletionRanges();
     assert.deepEqual(deletionRanges.map(range => range.serialize()), [
-      [[4, 0], [4, 0]],
-      [[7, 0], [7, 0]],
+      [[4, 0], [4, 4]],
+      [[7, 0], [7, 4]],
     ]);
 
     const noNewlineRanges = filePatch.getNoNewlineRanges();
@@ -107,14 +118,11 @@ describe('FilePatch', function() {
     const bufferText = '0000\n No newline at end of file\n';
     const hunks = [
       new Hunk({
-        oldStartRow: 1,
-        oldRowCount: 0,
-        newStartRow: 1,
-        newRowCount: 0,
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [1, 0]], startOffset: 0, endOffset: 32}),
+        oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 0,
+        rowRange: buildRange(0, 1),
         changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[0, 0], [0, 0]], startOffset: 0, endOffset: 5})),
-          new NoNewline(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 32})),
+          new Addition(buildRange(0)),
+          new NoNewline(buildRange(1, 1, 5, 26)),
         ],
       }),
     ];
@@ -125,7 +133,7 @@ describe('FilePatch', function() {
 
     const noNewlineRanges = filePatch.getNoNewlineRanges();
     assert.deepEqual(noNewlineRanges.map(range => range.serialize()), [
-      [[1, 0], [1, 0]],
+      [[1, 0], [1, 25]],
     ]);
   });
 
@@ -213,14 +221,11 @@ describe('FilePatch', function() {
       const bufferText = '0000\n0001\n0002\n0003\n0004\n';
       const hunks = [
         new Hunk({
-          oldStartRow: 5,
-          oldRowCount: 3,
-          newStartRow: 5,
-          newRowCount: 4,
-          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [4, 0]], startOffset: 0, endOffset: 25}),
+          oldStartRow: 5, oldRowCount: 3, newStartRow: 5, newRowCount: 4,
+          rowRange: buildRange(0, 4),
           changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 5, endOffset: 15})),
-            new Deletion(new IndexedRowRange({bufferRange: [[3, 0], [3, 0]], startOffset: 15, endOffset: 20})),
+            new Addition(buildRange(1, 2)),
+            new Deletion(buildRange(3)),
           ],
         }),
       ];
@@ -242,8 +247,8 @@ describe('FilePatch', function() {
           endRow: 3,
           header: '@@ -5,3 +5,3 @@',
           changes: [
-            {kind: 'addition', string: '+0001\n', range: [[1, 0], [1, 0]]},
-            {kind: 'deletion', string: '-0003\n', range: [[2, 0], [2, 0]]},
+            {kind: 'addition', string: '+0001\n', range: [[1, 0], [1, Infinity]]},
+            {kind: 'deletion', string: '-0003\n', range: [[2, 0], [2, Infinity]]},
           ],
         },
       );
@@ -256,13 +261,10 @@ describe('FilePatch', function() {
         const bufferText = '0000\n0001\n0002\n';
         const hunks = [
           new Hunk({
-            oldStartRow: 1,
-            oldRowCount: 3,
-            newStartRow: 1,
-            newRowCount: 0,
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+            oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
+            rowRange: buildRange(0, 2),
             changes: [
-              new Deletion(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+              new Deletion(buildRange(0, 2)),
             ],
           }),
         ];
@@ -286,7 +288,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,1 @@',
             changes: [
-              {kind: 'deletion', string: '-0001\n-0002\n', range: [[1, 0], [2, 0]]},
+              {kind: 'deletion', string: '-0001\n-0002\n', range: [[1, 0], [2, Infinity]]},
             ],
           },
         );
@@ -305,7 +307,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             changes: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 0]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -315,13 +317,10 @@ describe('FilePatch', function() {
         const bufferText = '0000\n0001\n0002\n';
         const hunks = [
           new Hunk({
-            oldStartRow: 1,
-            oldRowCount: 3,
-            newStartRow: 1,
-            newRowCount: 0,
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+            oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
+            rowRange: buildRange(0, 2),
             changes: [
-              new Deletion(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+              new Deletion(buildRange(0, 2)),
             ],
           }),
         ];
@@ -341,13 +340,10 @@ describe('FilePatch', function() {
     const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n';
     const hunks = [
       new Hunk({
-        oldStartRow: 10,
-        oldRowCount: 2,
-        newStartRow: 10,
-        newRowCount: 3,
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+        oldStartRow: 10, oldRowCount: 2, newStartRow: 10, newRowCount: 3,
+        rowRange: buildRange(0, 2),
         changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
+          new Addition(buildRange(1)),
         ],
       }),
       new Hunk({
@@ -355,9 +351,9 @@ describe('FilePatch', function() {
         oldRowCount: 3,
         newStartRow: 19,
         newRowCount: 2,
-        rowRange: new IndexedRowRange({bufferRange: [[3, 0], [5, 0]], startOffset: 15, endOffset: 35}),
+        rowRange: buildRange(3, 5),
         changes: [
-          new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 20, endOffset: 25})),
+          new Deletion(buildRange(4)),
         ],
       }),
     ];
@@ -374,7 +370,7 @@ describe('FilePatch', function() {
         endRow: 2,
         header: '@@ -20,3 +18,2 @@',
         changes: [
-          {kind: 'deletion', string: '-0004\n', range: [[1, 0], [1, 0]]},
+          {kind: 'deletion', string: '-0004\n', range: [[1, 0], [1, Infinity]]},
         ],
       },
     );
@@ -385,14 +381,11 @@ describe('FilePatch', function() {
       const bufferText = '0000\n0001\n0002\n0003\n0004\n';
       const hunks = [
         new Hunk({
-          oldStartRow: 5,
-          oldRowCount: 3,
-          newStartRow: 5,
-          newRowCount: 4,
-          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [4, 0]], startOffset: 0, endOffset: 25}),
+          oldStartRow: 5, oldRowCount: 3, newStartRow: 5, newRowCount: 4,
+          rowRange: buildRange(0, 4),
           changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 5, endOffset: 15})),
-            new Deletion(new IndexedRowRange({bufferRange: [[3, 0], [3, 0]], startOffset: 15, endOffset: 20})),
+            new Addition(buildRange(1, 2)),
+            new Deletion(buildRange(3)),
           ],
         }),
       ];
@@ -414,8 +407,8 @@ describe('FilePatch', function() {
           endRow: 4,
           header: '@@ -5,4 +5,4 @@',
           changes: [
-            {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, 0]]},
-            {kind: 'addition', string: '+0003\n', range: [[3, 0], [3, 0]]},
+            {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, Infinity]]},
+            {kind: 'addition', string: '+0003\n', range: [[3, 0], [3, Infinity]]},
           ],
         },
       );
@@ -428,13 +421,10 @@ describe('FilePatch', function() {
         const bufferText = '0000\n0001\n0002\n';
         const hunks = [
           new Hunk({
-            oldStartRow: 1,
-            oldRowCount: 0,
-            newStartRow: 1,
-            newRowCount: 3,
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+            oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 3,
+            rowRange: buildRange(0, 2),
             changes: [
-              new Addition(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15})),
+              new Addition(buildRange(0, 2)),
             ],
           }),
         ];
@@ -452,7 +442,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,2 @@',
             changes: [
-              {kind: 'deletion', string: '-0002\n', range: [[2, 0], [2, 0]]},
+              {kind: 'deletion', string: '-0002\n', range: [[2, 0], [2, Infinity]]},
             ],
           },
         );
@@ -467,7 +457,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             changes: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 0]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -484,7 +474,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             changes: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 0]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -496,23 +486,17 @@ describe('FilePatch', function() {
     const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n';
     const hunks = [
       new Hunk({
-        oldStartRow: 10,
-        oldRowCount: 2,
-        newStartRow: 10,
-        newRowCount: 3,
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
+        oldStartRow: 10, oldRowCount: 2, newStartRow: 10, newRowCount: 3,
+        rowRange: buildRange(0, 2),
         changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
+          new Addition(buildRange(1)),
         ],
       }),
       new Hunk({
-        oldStartRow: 20,
-        oldRowCount: 3,
-        newStartRow: 19,
-        newRowCount: 2,
-        rowRange: new IndexedRowRange({bufferRange: [[3, 0], [5, 0]], startOffset: 15, endOffset: 35}),
+        oldStartRow: 20, oldRowCount: 3, newStartRow: 19, newRowCount: 2,
+        rowRange: buildRange(3, 5),
         changes: [
-          new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 20, endOffset: 25})),
+          new Deletion(buildRange(4)),
         ],
       }),
     ];
@@ -529,7 +513,7 @@ describe('FilePatch', function() {
         endRow: 2,
         header: '@@ -10,3 +10,2 @@',
         changes: [
-          {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, 0]]},
+          {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, Infinity]]},
         ],
       },
     );
@@ -540,24 +524,18 @@ describe('FilePatch', function() {
       const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n';
       const hunks = [
         new Hunk({
-          oldStartRow: 10,
-          oldRowCount: 4,
-          newStartRow: 10,
-          newRowCount: 3,
-          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [4, 0]], startOffset: 0, endOffset: 25}),
+          oldStartRow: 10, oldRowCount: 4, newStartRow: 10, newRowCount: 3,
+          rowRange: buildRange(0, 4),
           changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
-            new Deletion(new IndexedRowRange({bufferRange: [[2, 0], [3, 0]], startOffset: 10, endOffset: 20})),
+            new Addition(buildRange(1)),
+            new Deletion(buildRange(2, 3)),
           ],
         }),
         new Hunk({
-          oldStartRow: 20,
-          oldRowCount: 2,
-          newStartRow: 20,
-          newRowCount: 3,
-          rowRange: new IndexedRowRange({bufferRange: [[5, 0], [7, 0]], startOffset: 25, endOffset: 40}),
+          oldStartRow: 20, oldRowCount: 2, newStartRow: 20, newRowCount: 3,
+          rowRange: buildRange(5, 7),
           changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[6, 0], [6, 0]], startOffset: 30, endOffset: 35})),
+            new Addition(buildRange(6)),
           ],
         }),
       ];
@@ -587,14 +565,11 @@ describe('FilePatch', function() {
       const bufferText = '0000\n0001\n No newline at end of file\n';
       const hunks = [
         new Hunk({
-          oldStartRow: 1,
-          oldRowCount: 1,
-          newStartRow: 1,
-          newRowCount: 2,
-          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 37}),
+          oldStartRow: 1, oldRowCount: 1, newStartRow: 1, newRowCount: 2,
+          rowRange: buildRange(0, 2),
           changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
-            new NoNewline(new IndexedRowRange({bufferRange: [[2, 0], [2, 0]], startOffset: 10, endOffset: 37})),
+            new Addition(buildRange(1)),
+            new NoNewline(buildRange(2, 2, 5, 27)),
           ],
         }),
       ];
@@ -619,13 +594,10 @@ describe('FilePatch', function() {
         const bufferText = '0000\n0001\n';
         const hunks = [
           new Hunk({
-            oldStartRow: 1,
-            oldRowCount: 0,
-            newStartRow: 1,
-            newRowCount: 2,
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 10}),
+            oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 2,
+            rowRange: buildRange(0, 2),
             changes: [
-              new Addition(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 10})),
+              new Addition(buildRange(0, 2)),
             ],
           }),
         ];
@@ -656,13 +628,10 @@ describe('FilePatch', function() {
         const bufferText = '0000\n0001\n';
         const hunks = [
           new Hunk({
-            oldStartRow: 1,
-            oldRowCount: 2,
-            newStartRow: 1,
-            newRowCount: 0,
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 10}),
+            oldStartRow: 1, oldRowCount: 2, newStartRow: 1, newRowCount: 0,
+            rowRange: buildRange(0, 2),
             changes: [
-              new Deletion(new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 10})),
+              new Deletion(buildRange(0, 2)),
             ],
           }),
         ];
@@ -692,7 +661,7 @@ describe('FilePatch', function() {
   });
 
   it('has a nullFilePatch that stubs all FilePatch methods', function() {
-    const rowRange = new IndexedRowRange({bufferRange: [[0, 0], [1, 0]], startOffset: 0, endOffset: 10});
+    const rowRange = buildRange(0, 1);
 
     assert.isFalse(nullFilePatch.isPresent());
     assert.isFalse(nullFilePatch.getOldFile().isPresent());
