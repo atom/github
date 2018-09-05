@@ -102,4 +102,59 @@ describe('FilePatchItem', function() {
       assert.strictEqual(item.getTitle(), 'Staged Changes: a.txt');
     });
   });
+
+  it('terminates pending state', async function() {
+    const wrapper = mount(buildPaneApp());
+
+    const item = await open(wrapper);
+    const callback = sinon.spy();
+    const sub = item.onDidTerminatePendingState(callback);
+
+    assert.strictEqual(callback.callCount, 0);
+    item.terminatePendingState();
+    assert.strictEqual(callback.callCount, 1);
+    item.terminatePendingState();
+    assert.strictEqual(callback.callCount, 1);
+
+    sub.dispose();
+  });
+
+  it('may be destroyed once', async function() {
+    const wrapper = mount(buildPaneApp());
+
+    const item = await open(wrapper);
+    const callback = sinon.spy();
+    const sub = item.onDidDestroy(callback);
+
+    assert.strictEqual(callback.callCount, 0);
+    item.destroy();
+    assert.strictEqual(callback.callCount, 1);
+
+    sub.dispose();
+  });
+
+  it('serializes itself as a FilePatchControllerStub', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item0 = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir0', stagingStatus: 'unstaged'});
+    assert.deepEqual(item0.serialize(), {
+      deserializer: 'FilePatchControllerStub',
+      uri: 'atom-github://file-patch/a.txt?workdir=%2Fdir0&stagingStatus=unstaged',
+    });
+
+    const item1 = await open(wrapper, {relPath: 'b.txt', workingDirectory: '/dir1', stagingStatus: 'staged'});
+    assert.deepEqual(item1.serialize(), {
+      deserializer: 'FilePatchControllerStub',
+      uri: 'atom-github://file-patch/b.txt?workdir=%2Fdir1&stagingStatus=staged',
+    });
+  });
+
+  it('has some item-level accessors', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir', stagingStatus: 'unstaged'});
+
+    assert.strictEqual(item.getStagingStatus(), 'unstaged');
+    assert.strictEqual(item.getFilePath(), 'a.txt');
+    assert.strictEqual(item.getWorkingDirectory(), '/dir');
+    assert.isTrue(item.isFilePatchItem());
+  });
 });
