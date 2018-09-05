@@ -163,7 +163,8 @@ class PatchBufferAssertions {
     const hunk = this.patch.getHunks()[hunkIndex];
     assert.isDefined(hunk);
 
-    assert.deepEqual(hunk.getRowRange().serialize().bufferRange, [[startRow, 0], [endRow, 0]]);
+    assert.strictEqual(hunk.getRowRange().getStartBufferRow(), startRow);
+    assert.strictEqual(hunk.getRowRange().getEndBufferRow(), endRow);
     assert.strictEqual(hunk.getHeader(), header);
     assert.lengthOf(hunk.getChanges(), changes.length);
 
