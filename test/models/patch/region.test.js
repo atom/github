@@ -6,7 +6,7 @@ describe('Regions', function() {
 
   beforeEach(function() {
     buffer = '0000\n1111\n2222\n3333\n4444\n5555\n';
-    range = new IndexedRowRange({bufferRange: [[1, 0], [3, 0]], startOffset: 5, endOffset: 20});
+    range = new IndexedRowRange({bufferRange: [[1, 0], [3, Infinity]], startOffset: 5, endOffset: 20});
   });
 
   describe('Addition', function() {
@@ -19,6 +19,7 @@ describe('Regions', function() {
     it('has range accessors', function() {
       assert.strictEqual(addition.getRowRange(), range);
       assert.strictEqual(addition.getStartBufferRow(), 1);
+      assert.strictEqual(addition.getEndBufferRow(), 3);
     });
 
     it('delegates some methods to its row range', function() {
