@@ -1,16 +1,11 @@
-import path from 'path';
-import fs from 'fs-extra';
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import FilePatchView from '../../lib/views/file-patch-view';
-import FilePatchSelection from '../../lib/models/file-patch-selection';
-import {nullFilePatch} from '../../lib/models/patch/file-patch';
+import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
-import Hunk from '../../lib/models/patch/hunk';
-import {Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
-import IndexedRowRange from '../../lib/models/indexed-row-range';
+import {nullFilePatch} from '../../lib/models/patch/file-patch';
 
 describe('FilePatchView', function() {
   let atomEnv, repository, filePatch;
@@ -22,8 +17,20 @@ describe('FilePatchView', function() {
     repository = await buildRepository(workdirPath);
 
     // a.txt: unstaged changes
-    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'zero\none\ntwo\nthree\nfour\n');
-    filePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
+    filePatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
+          heading: 'heading',
+          lines: [' 0000', '+0001', '-0002', ' 0003'],
+        },
+      ],
+    }]);
   });
 
   afterEach(function() {
@@ -32,35 +39,26 @@ describe('FilePatchView', function() {
 
   function buildApp(overrideProps = {}) {
     const props = {
-      relPath: 'a.txt',
+      relPath: 'path.txt',
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
       filePatch,
-      selection: new FilePatchSelection(filePatch.getHunks()),
+      selectedRows: new Set(),
       repository,
 
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
 
-      mouseDownOnHeader: () => {},
-      mouseDownOnLineNumber: () => {},
-      mouseMoveOnLineNumber: () => {},
-      mouseUp: () => {},
       selectedRowsChanged: () => {},
 
       diveIntoMirrorPatch: () => {},
       openFile: () => {},
       toggleFile: () => {},
-      selectAndToggleHunk: () => {},
-      toggleLines: () => {},
+      toggleRows: () => {},
       toggleModeChange: () => {},
       toggleSymlinkChange: () => {},
       undoLastDiscard: () => {},
-      discardLines: () => {},
-      selectAndDiscardHunk: () => {},
-      selectNextHunk: () => {},
-      selectPreviousHunk: () => {},
-      togglePatchSelectionMode: () => {},
+      discardRows: () => {},
 
       ...overrideProps,
     };
@@ -203,28 +201,27 @@ describe('FilePatchView', function() {
   });
 
   it('renders a header for each hunk', function() {
-    const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n';
-    const hunks = [
-      new Hunk({
-        oldStartRow: 1, oldRowCount: 2, newStartRow: 1, newRowCount: 3,
-        sectionHeading: 'first hunk',
-        rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
-        changes: [
-          new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
-        ],
-      }),
-      new Hunk({
-        oldStartRow: 10, oldRowCount: 3, newStartRow: 11, newRowCount: 2,
-        sectionHeading: 'second hunk',
-        rowRange: new IndexedRowRange({bufferRange: [[3, 0], [5, 0]], startOffset: 15, endOffset: 30}),
-        changes: [
-          new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 5, endOffset: 10})),
-        ],
-      }),
-    ];
-    const fp = filePatch.clone({
-      patch: filePatch.getPatch().clone({hunks, bufferText}),
-    });
+    const fp = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+          heading: 'first hunk',
+          lines: [' 0000', '+0001', ' 0002'],
+        },
+        {
+          oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+          heading: 'second hunk',
+          lines: [' 0003', '-0004', ' 0005'],
+        },
+      ],
+    }]);
+    const hunks = fp.getHunks();
+
     const wrapper = mount(buildApp({filePatch: fp}));
     assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
     assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
@@ -234,37 +231,28 @@ describe('FilePatchView', function() {
     let linesPatch;
 
     beforeEach(function() {
-      const bufferText =
-        '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n' +
-        '0010\n0011\n0012\n0013\n0014\n0015\n0016\n' +
-        ' No newline at end of file\n';
-      const hunks = [
-        new Hunk({
-          oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 6,
-          sectionHeading: 'first hunk',
-          rowRange: new IndexedRowRange({bufferRange: [[0, 0], [6, 0]], startOffset: 0, endOffset: 35}),
-          changes: [
-            new Addition(new IndexedRowRange({bufferRange: [[1, 0], [2, 0]], startOffset: 5, endOffset: 15})),
-            new Deletion(new IndexedRowRange({bufferRange: [[3, 0], [3, 0]], startOffset: 15, endOffset: 20})),
-            new Addition(new IndexedRowRange({bufferRange: [[4, 0], [5, 0]], startOffset: 20, endOffset: 30})),
-          ],
-        }),
-        new Hunk({
-          oldStartRow: 10, oldRowCount: 0, newStartRow: 13, newRowCount: 0,
-          sectionHeading: 'second hunk',
-          rowRange: new IndexedRowRange({bufferRange: [[7, 0], [17, 0]], startOffset: 35, endOffset: 112}),
-          changes: [
-            new Deletion(new IndexedRowRange({bufferRange: [[8, 0], [10, 0]], startOffset: 40, endOffset: 55})),
-            new Addition(new IndexedRowRange({bufferRange: [[12, 0], [14, 0]], startOffset: 60, endOffset: 75})),
-            new Deletion(new IndexedRowRange({bufferRange: [[15, 0], [15, 0]], startOffset: 75, endOffset: 80})),
-            new NoNewline(new IndexedRowRange({bufferRange: [[17, 0], [17, 0]], startOffset: 85, endOffset: 112})),
-          ],
-        }),
-      ];
-
-      linesPatch = filePatch.clone({
-        patch: filePatch.getPatch().clone({hunks, bufferText}),
-      });
+      linesPatch = buildFilePatch([{
+        oldPath: 'file.txt',
+        oldMode: '100644',
+        newPath: 'file.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 6,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', '+0002', '-0003', '+0004', '+0005', ' 0006'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 0, newStartLine: 13, newLineCount: 0,
+            heading: 'second hunk',
+            lines: [
+              ' 0007', '-0008', '-0009', '-0010', ' 0011', '+0012', '+0013', '+0014', '-0015', ' 0016',
+              '\\ No newline at end of file',
+            ],
+          },
+        ],
+      }]);
     });
 
     it('decorates added lines', function() {
@@ -277,9 +265,9 @@ describe('FilePatchView', function() {
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
       const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
       assert.deepEqual(markers, [
-        [[1, 0], [2, 0]],
-        [[4, 0], [5, 0]],
-        [[12, 0], [14, 0]],
+        [[1, 0], [2, 3]],
+        [[4, 0], [5, 3]],
+        [[12, 0], [14, 3]],
       ]);
     });
 
@@ -293,9 +281,9 @@ describe('FilePatchView', function() {
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
       const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
       assert.deepEqual(markers, [
-        [[3, 0], [3, 0]],
-        [[8, 0], [10, 0]],
-        [[15, 0], [15, 0]],
+        [[3, 0], [3, 3]],
+        [[8, 0], [10, 3]],
+        [[15, 0], [15, 3]],
       ]);
     });
 
@@ -309,7 +297,7 @@ describe('FilePatchView', function() {
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
       const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
       assert.deepEqual(markers, [
-        [[17, 0], [17, 0]],
+        [[17, 0], [17, 25]],
       ]);
     });
   });
@@ -319,7 +307,7 @@ describe('FilePatchView', function() {
     const wrapper = mount(buildApp({selectedRowsChanged}));
     const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
 
-    assert.isFalse(selectedRowsChanged.called);
+    selectedRowsChanged.resetHistory();
 
     editor.addSelectionForBufferRange([[3, 1], [4, 0]]);
 
@@ -340,69 +328,38 @@ describe('FilePatchView', function() {
   });
 
   describe('registers Atom commands', function() {
-    it('toggles the patch selection mode', function() {
-      const togglePatchSelectionMode = sinon.spy();
-      const wrapper = mount(buildApp({togglePatchSelectionMode}));
-
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
-
-      assert.isTrue(togglePatchSelectionMode.called);
-    });
-
     it('toggles the current selection', function() {
-      const toggleLines = sinon.spy();
-      const wrapper = mount(buildApp({toggleLines}));
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({toggleRows}));
 
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
-      assert.isTrue(toggleLines.called);
-    });
-
-    it('selects the next hunk', function() {
-      const selectNextHunk = sinon.spy();
-      const wrapper = mount(buildApp({selectNextHunk}));
-
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
-
-      assert.isTrue(selectNextHunk.called);
-    });
-
-    it('selects the previous hunk', function() {
-      const selectPreviousHunk = sinon.spy();
-      const wrapper = mount(buildApp({selectPreviousHunk}));
-
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
-
-      assert.isTrue(selectPreviousHunk.called);
+      assert.isTrue(toggleRows.called);
     });
 
     describe('opening the file', function() {
       let fp;
 
       beforeEach(function() {
-        const bufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n';
-        const hunks = [
-          new Hunk({
-            oldStartRow: 2, oldRowCount: 2, newStartRow: 2, newRowCount: 3,
-            sectionHeading: 'first hunk',
-            rowRange: new IndexedRowRange({bufferRange: [[0, 0], [2, 0]], startOffset: 0, endOffset: 15}),
-            changes: [
-              new Addition(new IndexedRowRange({bufferRange: [[1, 0], [1, 0]], startOffset: 5, endOffset: 10})),
-            ],
-          }),
-          new Hunk({
-            oldStartRow: 10, oldRowCount: 6, newStartRow: 11, newRowCount: 3,
-            sectionHeading: 'second hunk',
-            rowRange: new IndexedRowRange({bufferRange: [[3, 0], [8, 0]], startOffset: 15, endOffset: 45}),
-            changes: [
-              new Deletion(new IndexedRowRange({bufferRange: [[4, 0], [4, 0]], startOffset: 20, endOffset: 25})),
-              new Deletion(new IndexedRowRange({bufferRange: [[6, 0], [7, 0]], startOffset: 30, endOffset: 40})),
-            ],
-          }),
-        ];
-        fp = filePatch.clone({
-          patch: filePatch.getPatch().clone({hunks, bufferText}),
-        });
+        fp = buildFilePatch([{
+          oldPath: 'path.txt',
+          oldMode: '100644',
+          newPath: 'path.txt',
+          newMode: '100644',
+          status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 2, oldLineCount: 2, newStartLine: 2, newLineCount: 3,
+              heading: 'first hunk',
+              lines: [' 0000', '+0001', ' 0002'],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 6, newStartLine: 11, newLineCount: 3,
+              heading: 'second hunk',
+              lines: [' 0003', '-0004', ' 0005', '-0006', '-0007', ' 0008'],
+            },
+          ],
+        }]);
       });
 
       it('opens the file at the current unchanged row', function() {
