@@ -290,7 +290,7 @@ describe('GitTabController', function() {
       focusElement = stagingView.element;
 
       const commitViewElements = [];
-      commitView.refEditor.map(c => c.refElement.map(e => commitViewElements.push(e)));
+      commitView.refEditorComponent.map(e => commitViewElements.push(e));
       commitView.refAbortMergeButton.map(e => commitViewElements.push(e));
       commitView.refCommitButton.map(e => commitViewElements.push(e));
 
@@ -647,7 +647,7 @@ describe('GitTabController', function() {
           // new commit message
           const newMessage = 'such new very message';
           const commitView = wrapper.find('CommitView');
-          commitView.instance().editor.setText(newMessage);
+          commitView.instance().refEditorModel.map(e => e.setText(newMessage));
 
           // no staged changes
           assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
@@ -701,7 +701,7 @@ describe('GitTabController', function() {
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
           const newMessage = 'Star Wars: A New Message';
-          commitView.editor.setText(newMessage);
+          commitView.refEditorModel.map(e => e.setText(newMessage));
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
 
           // verify that coAuthor was passed
@@ -735,7 +735,7 @@ describe('GitTabController', function() {
 
           // buh bye co author
           const commitView = wrapper.find('CommitView').instance();
-          assert.strictEqual(commitView.editor.getText(), '');
+          assert.strictEqual(commitView.refEditorModel.map(e => e.getText()).getOr(''), '');
           commitView.onSelectedCoAuthorsChanged([]);
 
           // amend again
