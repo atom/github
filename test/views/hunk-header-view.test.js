@@ -2,14 +2,16 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import HunkHeaderView from '../../lib/views/hunk-header-view';
-import Hunk from '../../lib/models/hunk';
+import Hunk from '../../lib/models/patch/hunk';
 
 describe('HunkHeaderView', function() {
   let atomEnv, hunk;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    hunk = new Hunk(0, 1, 10, 11, 'section heading', []);
+    hunk = new Hunk({
+      oldStartRow: 0, oldRowCount: 10, newStartRow: 1, newRowCount: 11, sectionHeading: 'section heading', changes: [],
+    });
   });
 
   afterEach(function() {
@@ -38,18 +40,18 @@ describe('HunkHeaderView', function() {
 
   it('applies a CSS class when selected', function() {
     const wrapper = shallow(buildApp({isSelected: true}));
-    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('is-selected'));
+    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isSelected'));
 
     wrapper.setProps({isSelected: false});
-    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('is-selected'));
+    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isSelected'));
   });
 
   it('applies a CSS class in hunk selection mode', function() {
     const wrapper = shallow(buildApp({selectionMode: 'hunk'}));
-    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('is-hunkMode'));
+    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isHunkMode'));
 
     wrapper.setProps({selectionMode: 'line'});
-    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('is-hunkMode'));
+    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isHunkMode'));
   });
 
   it('renders the hunk header title', function() {
@@ -74,5 +76,25 @@ describe('HunkHeaderView', function() {
     assert.isTrue(wrapper.find('Tooltip[title="Nope"]').exists());
     button.simulate('click');
     assert.isTrue(discardSelection.called);
+  });
+
+  it('triggers the mousedown handler', function() {
+    const mouseDown = sinon.spy();
+    const wrapper = shallow(buildApp({mouseDown}));
+
+    wrapper.find('.github-HunkHeaderView').simulate('mousedown');
+
+    assert.isTrue(mouseDown.called);
+  });
+
+  it('stops mousedown events on the toggle button from propagating', function() {
+    const mouseDown = sinon.spy();
+    const wrapper = shallow(buildApp({mouseDown}));
+
+    const evt = {stopPropagation: sinon.spy()};
+    wrapper.find('.github-HunkHeaderView-stageButton').simulate('mousedown', evt);
+
+    assert.isFalse(mouseDown.called);
+    assert.isTrue(evt.stopPropagation.called);
   });
 });
