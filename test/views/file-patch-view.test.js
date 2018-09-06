@@ -16,7 +16,7 @@ describe('FilePatchView', function() {
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
 
-    // a.txt: unstaged changes
+    // path.txt: unstaged changes
     filePatch = buildFilePatch([{
       oldPath: 'path.txt',
       oldMode: '100644',
@@ -25,9 +25,14 @@ describe('FilePatchView', function() {
       status: 'modified',
       hunks: [
         {
-          oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
-          heading: 'heading',
-          lines: [' 0000', '+0001', '-0002', ' 0003'],
+          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
+          heading: 'zero',
+          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
+          heading: 'one',
+          lines: [' 0005', '+0006', '-0007', ' 0008'],
         },
       ],
     }]);
@@ -76,6 +81,74 @@ describe('FilePatchView', function() {
 
     const editor = wrapper.find('AtomTextEditor');
     assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBufferText());
+  });
+
+  it('preserves the selection index when a new file patch arrives', function() {
+    let lastSelectedRows = new Set([2]);
+    const selectedRowsChanged = sinon.stub().callsFake(rows => {
+      lastSelectedRows = rows;
+    });
+    const wrapper = mount(buildApp({selectedRows: new Set([2]), selectedRowsChanged}));
+
+    const nextPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 5, oldLineCount: 4, newStartLine: 5, newLineCount: 3,
+          heading: 'heading',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+      ],
+    }]);
+
+    wrapper.setProps({filePatch: nextPatch});
+    assert.sameMembers(Array.from(lastSelectedRows), [3]);
+
+    selectedRowsChanged.resetHistory();
+    wrapper.setProps({isPartiallyStaged: true});
+    assert.isFalse(selectedRowsChanged.called);
+  });
+
+  it('unregisters the mouseup handler on unmount', function() {
+    sinon.spy(window, 'addEventListener');
+    sinon.spy(window, 'removeEventListener');
+
+    const wrapper = shallow(buildApp());
+    assert.strictEqual(window.addEventListener.callCount, 1);
+    const addCall = window.addEventListener.getCall(0);
+    assert.strictEqual(addCall.args[0], 'mouseup');
+    const handler = window.addEventListener.getCall(0).args[1];
+
+    wrapper.unmount();
+
+    assert.isTrue(window.removeEventListener.calledWith('mouseup', handler));
+  });
+
+  it('locates hunks for a buffer row with or without markers', function() {
+    const [hunk0, hunk1] = filePatch.getHunks();
+    const instance = mount(buildApp()).instance();
+
+    for (let i = 0; i <= 4; i++) {
+      assert.strictEqual(instance.getHunkAt(i), hunk0, `buffer row ${i} should retrieve hunk 0 with markers`);
+    }
+    for (let j = 5; j <= 8; j++) {
+      assert.strictEqual(instance.getHunkAt(j), hunk1, `buffer row ${j} should retrieve hunk 1 with markers`);
+    }
+    assert.isUndefined(instance.getHunkAt(9));
+
+    instance.hunkMarkerLayerHolder.map(layer => layer.destroy());
+
+    for (let i = 0; i <= 4; i++) {
+      assert.strictEqual(instance.getHunkAt(i), hunk0, `buffer row ${i} should retrieve hunk 0 without markers`);
+    }
+    for (let j = 5; j <= 8; j++) {
+      assert.strictEqual(instance.getHunkAt(j), hunk1, `buffer row ${j} should retrieve hunk 1 without markers`);
+    }
+    assert.isUndefined(instance.getHunkAt(9));
   });
 
   describe('executable mode changes', function() {
@@ -200,31 +273,292 @@ describe('FilePatchView', function() {
     });
   });
 
-  it('renders a header for each hunk', function() {
-    const fp = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
-          heading: 'first hunk',
-          lines: [' 0000', '+0001', ' 0002'],
-        },
-        {
-          oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-          heading: 'second hunk',
-          lines: [' 0003', '-0004', ' 0005'],
-        },
-      ],
-    }]);
-    const hunks = fp.getHunks();
+  describe('hunk headers', function() {
+    it('renders one for each hunk', function() {
+      const fp = buildFilePatch([{
+        oldPath: 'path.txt',
+        oldMode: '100644',
+        newPath: 'path.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', ' 0002'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+            heading: 'second hunk',
+            lines: [' 0003', '-0004', ' 0005'],
+          },
+        ],
+      }]);
+      const hunks = fp.getHunks();
 
-    const wrapper = mount(buildApp({filePatch: fp}));
-    assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
-    assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
+      const wrapper = mount(buildApp({filePatch: fp}));
+      assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
+      assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
+    });
+
+    it('pluralizes the toggle and discard button labels', function() {
+      const wrapper = shallow(buildApp({selectedRows: new Set([2])}));
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Change');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Change');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3])});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Changes');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Changes');
+    });
+
+    it('uses the appropriate staging action verb in hunk header button labels', function() {
+      const wrapper = shallow(buildApp({selectedRows: new Set([2]), stagingStatus: 'unstaged'}));
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Change');
+
+      wrapper.setProps({stagingStatus: 'staged'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Unstage Selected Change');
+    });
+
+    it('handles mousedown as a selection event', function() {
+      const fp = buildFilePatch([{
+        oldPath: 'path.txt',
+        oldMode: '100644',
+        newPath: 'path.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', ' 0002'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+            heading: 'second hunk',
+            lines: [' 0003', '-0004', ' 0005'],
+          },
+        ],
+      }]);
+
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, fp.getHunks()[1]);
+
+      assert.isTrue(selectedRowsChanged.calledWith(new Set([4])));
+    });
+  });
+
+  describe('custom gutters', function() {
+    let wrapper, instance, editor;
+
+    beforeEach(function() {
+      wrapper = mount(buildApp());
+      instance = wrapper.instance();
+      editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+    });
+
+    it('computes the old line number for a buffer row', function() {
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 5, softWrapped: false}), '\u00a08');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 6, softWrapped: false}), '\u00a0\u00a0');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 6, softWrapped: true}), '\u00a0\u00a0');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 7, softWrapped: false}), '\u00a09');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 8, softWrapped: false}), '10');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 8, softWrapped: true}), '\u00a0•');
+
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 999, softWrapped: false}), '\u00a0\u00a0');
+    });
+
+    it('computes the new line number for a buffer row', function() {
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 5, softWrapped: false}), '\u00a09');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 6, softWrapped: false}), '10');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 6, softWrapped: true}), '\u00a0•');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 7, softWrapped: false}), '\u00a0\u00a0');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 7, softWrapped: true}), '\u00a0\u00a0');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 8, softWrapped: false}), '11');
+
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 999, softWrapped: false}), '\u00a0\u00a0');
+    });
+
+    it('selects a single line on click', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
+      ]);
+    });
+
+    it('ignores right clicks', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 1}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[1, 0], [1, 4]],
+      ]);
+    });
+
+    if (process.platform !== 'win32') {
+      it('ignores ctrl-clicks on non-Windows platforms', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0, ctrlKey: true}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[1, 0], [1, 4]],
+        ]);
+      });
+    }
+
+    it('selects a range of lines on click and drag', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
+      ]);
+
+      instance.didMouseMoveOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
+      ]);
+
+      instance.didMouseMoveOnLineNumber({bufferRow: 3, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [3, 4]],
+      ]);
+
+      instance.didMouseMoveOnLineNumber({bufferRow: 3, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [3, 4]],
+      ]);
+
+      instance.didMouseMoveOnLineNumber({bufferRow: 4, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
+
+      instance.didMouseUp();
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
+
+      instance.didMouseMoveOnLineNumber({bufferRow: 5, domEvent: {button: 0}});
+      // Unchanged after mouse up
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
+    });
+
+    describe('shift-click', function() {
+      it('selects a range of lines', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [2, 4]],
+        ]);
+        instance.didMouseUp();
+
+        instance.didMouseDownOnLineNumber({bufferRow: 4, domEvent: {shiftKey: true, button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [4, 4]],
+        ]);
+      });
+
+      it("extends to the range's beginning when the selection is reversed", function() {
+        editor.setSelectedBufferRange([[4, 4], [2, 0]], {reversed: true});
+
+        instance.didMouseDownOnLineNumber({bufferRow: 6, domEvent: {shiftKey: true, button: 0}});
+        assert.isFalse(editor.getLastSelection().isReversed());
+        assert.deepEqual(editor.getLastSelection().getBufferRange().serialize(), [[2, 0], [6, 4]]);
+      });
+
+      it('reverses the selection if the extension line is before the existing selection', function() {
+        editor.setSelectedBufferRange([[3, 0], [4, 4]]);
+
+        instance.didMouseDownOnLineNumber({bufferRow: 1, domEvent: {shiftKey: true, button: 0}});
+        assert.isTrue(editor.getLastSelection().isReversed());
+        assert.deepEqual(editor.getLastSelection().getBufferRange().serialize(), [[1, 0], [4, 4]]);
+      });
+    });
+
+    describe('ctrl- or meta-click', function() {
+      beforeEach(function() {
+        // Select an initial row range.
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+        instance.didMouseDownOnLineNumber({bufferRow: 5, domEvent: {shiftKey: true, button: 0}});
+        instance.didMouseUp();
+        // [[2, 0], [5, 4]]
+      });
+
+      it('deselects a line at the beginning of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[3, 0], [5, 4]],
+        ]);
+      });
+
+      it('deselects a line within an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 3, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [2, 4]],
+          [[4, 0], [5, 4]],
+        ]);
+      });
+
+      it('deselects a line at the end of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 5, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [4, 4]],
+        ]);
+      });
+
+      it('selects a line outside of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 8, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+          [[8, 0], [8, 4]],
+        ]);
+      });
+
+      it('deselects the only line within an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+          [[7, 0], [7, 4]],
+        ]);
+
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+        ]);
+      });
+
+      it('cannot deselect the only selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[7, 0], [7, 4]],
+        ]);
+
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[7, 0], [7, 4]],
+        ]);
+      });
+
+      it('bonus points: understands ranges that do not cleanly align with editor rows', function() {
+        instance.handleSelectionEvent({metaKey: true, button: 0}, [[3, 1], [5, 2]]);
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [3, 1]],
+          [[5, 2], [5, 4]],
+        ]);
+      });
+    });
+
+    it('does nothing on a click without a buffer row', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: NaN, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[1, 0], [1, 4]],
+      ]);
+
+      instance.didMouseDownOnLineNumber({bufferRow: undefined, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[1, 0], [1, 4]],
+      ]);
+    });
   });
 
   describe('hunk lines', function() {
@@ -351,12 +685,14 @@ describe('FilePatchView', function() {
             {
               oldStartLine: 2, oldLineCount: 2, newStartLine: 2, newLineCount: 3,
               heading: 'first hunk',
+              //        2        3        4
               lines: [' 0000', '+0001', ' 0002'],
             },
             {
-              oldStartLine: 10, oldLineCount: 6, newStartLine: 11, newLineCount: 3,
+              oldStartLine: 10, oldLineCount: 5, newStartLine: 11, newLineCount: 6,
               heading: 'second hunk',
-              lines: [' 0003', '-0004', ' 0005', '-0006', '-0007', ' 0008'],
+              //        11       12       13                14       15                16
+              lines: [' 0003', '+0004', '+0005', '-0006', ' 0007', '+0008', '-0009', ' 0010'],
             },
           ],
         }]);
@@ -367,11 +703,11 @@ describe('FilePatchView', function() {
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
         const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
-        editor.setCursorBufferPosition([3, 2]);
+        editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([[11, 2]]));
+        assert.isTrue(openFile.calledWith([[14, 2]]));
       });
 
       it('opens the file at a current added row', function() {
@@ -379,11 +715,11 @@ describe('FilePatchView', function() {
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
         const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
-        editor.setCursorBufferPosition([1, 3]);
+        editor.setCursorBufferPosition([8, 3]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([[3, 3]]));
+        assert.isTrue(openFile.calledWith([[15, 3]]));
       });
 
       it('opens the file at the beginning of the previous added or unchanged row', function() {
@@ -391,11 +727,11 @@ describe('FilePatchView', function() {
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
         const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
-        editor.setCursorBufferPosition([4, 2]);
+        editor.setCursorBufferPosition([9, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([[11, 0]]));
+        assert.isTrue(openFile.calledWith([[15, 0]]));
       });
 
       it('preserves multiple cursors', function() {
@@ -406,18 +742,18 @@ describe('FilePatchView', function() {
         editor.setCursorBufferPosition([3, 2]);
         editor.addCursorAtBufferPosition([4, 2]);
         editor.addCursorAtBufferPosition([1, 3]);
-        editor.addCursorAtBufferPosition([6, 2]);
-        editor.addCursorAtBufferPosition([7, 1]);
+        editor.addCursorAtBufferPosition([9, 2]);
+        editor.addCursorAtBufferPosition([9, 3]);
 
-        // The cursors at [6, 2] and [7, 1] are both collapsed to a single one on the unchanged line.
+        // [9, 2] and [9, 3] should be collapsed into a single cursor at [15, 0]
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
         assert.isTrue(openFile.calledWith([
           [11, 2],
-          [11, 0],
+          [12, 2],
           [3, 3],
-          [12, 0],
+          [15, 0],
         ]));
       });
     });
