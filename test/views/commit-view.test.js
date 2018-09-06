@@ -137,17 +137,22 @@ describe('CommitView', function() {
     const wrapper = mount(app);
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '72');
 
+    // It takes two renders for the remaining characters field to update based on editor state.
+    // FIXME: make sure this doesn't regress in the actual component
     wrapper.setProps({message: 'abcde fghij'});
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '61');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
     wrapper.setProps({message: '\nklmno'});
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
     wrapper.setProps({message: 'abcde\npqrst'});
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
@@ -159,16 +164,19 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
     wrapper.setProps({stagedChangesExist: true, maximumCharacterLimit: 50});
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '45');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'a'.repeat(41)}).update();
+    wrapper.setProps({message: 'a'.repeat(41)});
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '9');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
     wrapper.setProps({message: 'a'.repeat(58)}).update();
+    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '-8');
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
@@ -207,10 +215,12 @@ describe('CommitView', function() {
     });
 
     it('is disabled when the commit message is empty', function() {
-      wrapper.setProps({message: ''}).update();
+      wrapper.setProps({message: ''});
+      wrapper.setProps({});
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
 
-      wrapper.setProps({message: 'Not empty'}).update();
+      wrapper.setProps({message: 'Not empty'});
+      wrapper.setProps({});
       assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
     });
 
@@ -347,7 +357,7 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.instance().hasFocusEditor());
 
     editorNode.contains.returns(true);
-    wrapper.instance().refEditor.setter(null);
+    wrapper.instance().refEditorComponent.setter(null);
     assert.isFalse(wrapper.instance().hasFocusEditor());
   });
 
@@ -370,7 +380,7 @@ describe('CommitView', function() {
     assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
 
     const holders = [
-      'refEditor', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+      'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
     ].map(ivar => wrapper.instance()[ivar]);
     for (const holder of holders) {
       holder.setter(null);
@@ -434,7 +444,7 @@ describe('CommitView', function() {
 
       // Simulate an unmounted component by clearing out RefHolders manually.
       const holders = [
-        'refEditor', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+        'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
       ].map(ivar => wrapper.instance()[ivar]);
       for (const holder of holders) {
         holder.setter(null);
