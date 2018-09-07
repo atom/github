@@ -10,6 +10,7 @@ import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
@@ -653,6 +654,40 @@ describe('Repository', function() {
           +qqq\n
         `,
       );
+    });
+
+    it('records an event', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      sinon.stub(reporterProxy, 'addEvent');
+
+      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+      await repo.undoLastCommit();
+      assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+
+      const args = reporterProxy.addEvent.lastCall.args;
+      assert.deepEqual(args[0], 'undoLastCommit');
+      assert.deepEqual(args[1], {package: 'github'});
+    });
+
+    it('does not record an event if operation fails', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(repo.git, 'reset').throws();
+
+      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+      try {
+        await repo.undoLastCommit();
+      } catch (e) {
+        // expected, do nothing
+      }
+
+      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
     });
   });
 
