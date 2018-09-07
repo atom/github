@@ -22,7 +22,7 @@ environment:
   - ATOM_CHANNEL: dev
 
 install:
-  - ps: Install-Product node 6
+  - ps: Install-Product node 8
 
 build_script:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/atom/ci/master/build-package.ps1'))
