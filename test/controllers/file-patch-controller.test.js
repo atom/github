@@ -242,98 +242,100 @@ describe('FilePatchController', function() {
     });
   });
 
-  describe('toggleSymlinkChange', function() {
-    it('handles an addition and typechange with a special repository method', async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-      const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
-      await fs.writeFile(dest, 'asdf\n', 'utf8');
-      await fs.symlink(dest, p);
+  if (process.platform !== 'win32') {
+    describe('toggleSymlinkChange', function() {
+      it('handles an addition and typechange with a special repository method', async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
+        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        await fs.writeFile(dest, 'asdf\n', 'utf8');
+        await fs.symlink(dest, p);
 
-      await repository.stageFiles(['waslink.txt', 'destination']);
-      await repository.commit('zero');
+        await repository.stageFiles(['waslink.txt', 'destination']);
+        await repository.commit('zero');
 
-      await fs.unlink(p);
-      await fs.writeFile(p, 'fdsa\n', 'utf8');
+        await fs.unlink(p);
+        await fs.writeFile(p, 'fdsa\n', 'utf8');
 
-      repository.refresh();
-      const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-      const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        repository.refresh();
+        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
+        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
 
-      sinon.spy(repository, 'stageFileSymlinkChange');
+        sinon.spy(repository, 'stageFileSymlinkChange');
 
-      await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
+        await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
 
-      assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
+        assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
+      });
+
+      it('stages non-addition typechanges normally', async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
+        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        await fs.writeFile(dest, 'asdf\n', 'utf8');
+        await fs.symlink(dest, p);
+
+        await repository.stageFiles(['waslink.txt', 'destination']);
+        await repository.commit('zero');
+
+        await fs.unlink(p);
+
+        repository.refresh();
+        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
+        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+
+        sinon.spy(repository, 'stageFiles');
+
+        await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
+
+        assert.isTrue(repository.stageFiles.calledWith(['waslink.txt']));
+      });
+
+      it('handles a deletion and typechange with a special repository method', async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
+        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        await fs.writeFile(dest, 'asdf\n', 'utf8');
+        await fs.writeFile(p, 'fdsa\n', 'utf8');
+
+        await repository.stageFiles(['waslink.txt', 'destination']);
+        await repository.commit('zero');
+
+        await fs.unlink(p);
+        await fs.symlink(dest, p);
+        await repository.stageFiles(['waslink.txt']);
+
+        repository.refresh();
+        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
+        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+
+        sinon.spy(repository, 'stageFileSymlinkChange');
+
+        await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
+
+        assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
+      });
+
+      it('unstages non-deletion typechanges normally', async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
+        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        await fs.writeFile(dest, 'asdf\n', 'utf8');
+        await fs.symlink(dest, p);
+
+        await repository.stageFiles(['waslink.txt', 'destination']);
+        await repository.commit('zero');
+
+        await fs.unlink(p);
+
+        repository.refresh();
+        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
+        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+
+        sinon.spy(repository, 'unstageFiles');
+
+        await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
+
+        assert.isTrue(repository.unstageFiles.calledWith(['waslink.txt']));
+      });
     });
-
-    it('stages non-addition typechanges normally', async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-      const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
-      await fs.writeFile(dest, 'asdf\n', 'utf8');
-      await fs.symlink(dest, p);
-
-      await repository.stageFiles(['waslink.txt', 'destination']);
-      await repository.commit('zero');
-
-      await fs.unlink(p);
-
-      repository.refresh();
-      const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-      const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
-
-      sinon.spy(repository, 'stageFiles');
-
-      await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
-
-      assert.isTrue(repository.stageFiles.calledWith(['waslink.txt']));
-    });
-
-    it('handles a deletion and typechange with a special repository method', async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-      const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
-      await fs.writeFile(dest, 'asdf\n', 'utf8');
-      await fs.writeFile(p, 'fdsa\n', 'utf8');
-
-      await repository.stageFiles(['waslink.txt', 'destination']);
-      await repository.commit('zero');
-
-      await fs.unlink(p);
-      await fs.symlink(dest, p);
-      await repository.stageFiles(['waslink.txt']);
-
-      repository.refresh();
-      const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-      const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
-
-      sinon.spy(repository, 'stageFileSymlinkChange');
-
-      await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
-
-      assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
-    });
-
-    it('unstages non-deletion typechanges normally', async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-      const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
-      await fs.writeFile(dest, 'asdf\n', 'utf8');
-      await fs.symlink(dest, p);
-
-      await repository.stageFiles(['waslink.txt', 'destination']);
-      await repository.commit('zero');
-
-      await fs.unlink(p);
-
-      repository.refresh();
-      const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-      const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
-
-      sinon.spy(repository, 'unstageFiles');
-
-      await wrapper.find('FilePatchView').prop('toggleSymlinkChange')();
-
-      assert.isTrue(repository.unstageFiles.calledWith(['waslink.txt']));
-    });
-  });
+  }
 
   it('calls discardLines with selected rows', function() {
     const discardLines = sinon.spy();
