@@ -211,38 +211,38 @@ describe('FilePatchController', function() {
     });
   });
 
-  describe('toggleModeChange()', function() {
-    it("it stages an unstaged file's new mode", async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
-      await fs.chmod(p, 0o755);
-      repository.refresh();
-      const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
-
-      const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'unstaged'}));
-
-      sinon.spy(repository, 'stageFileModeChange');
-      await wrapper.find('FilePatchView').prop('toggleModeChange')();
-
-      assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100755'));
-    });
-
-    it("it stages a staged file's old mode", async function() {
-      const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
-      await fs.chmod(p, 0o755);
-      await repository.stageFiles(['a.txt']);
-      repository.refresh();
-      const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: true});
-
-      const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'staged'}));
-
-      sinon.spy(repository, 'stageFileModeChange');
-      await wrapper.find('FilePatchView').prop('toggleModeChange')();
-
-      assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100644'));
-    });
-  });
-
   if (process.platform !== 'win32') {
+    describe('toggleModeChange()', function() {
+      it("it stages an unstaged file's new mode", async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
+        await fs.chmod(p, 0o755);
+        repository.refresh();
+        const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
+
+        const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'unstaged'}));
+
+        sinon.spy(repository, 'stageFileModeChange');
+        await wrapper.find('FilePatchView').prop('toggleModeChange')();
+
+        assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100755'));
+      });
+
+      it("it stages a staged file's old mode", async function() {
+        const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
+        await fs.chmod(p, 0o755);
+        await repository.stageFiles(['a.txt']);
+        repository.refresh();
+        const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: true});
+
+        const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'staged'}));
+
+        sinon.spy(repository, 'stageFileModeChange');
+        await wrapper.find('FilePatchView').prop('toggleModeChange')();
+
+        assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100644'));
+      });
+    });
+
     describe('toggleSymlinkChange', function() {
       it('handles an addition and typechange with a special repository method', async function() {
         const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
