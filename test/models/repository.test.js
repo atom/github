@@ -642,6 +642,32 @@ describe('Repository', function() {
         assert.isFalse(args[1].partial);
       });
 
+      it('reports number of coAuthors for commit', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Commit with no co-authors', {allowEmpty: true});
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.deepEqual(args[1].coAuthorCount, 0);
+
+        reporterProxy.addEvent.reset();
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Commit with fabulous co-authors', {
+          allowEmpty: true,
+          coAuthors: [new Author('mona@lisa.com', 'Mona Lisa'), new Author('hubot@github.com', 'Mr. Hubot')],
+        });
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.deepEqual(args[1].coAuthorCount, 2);
+      });
+
       it('does not record an event if operation fails', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const repo = new Repository(workingDirPath);
