@@ -10,6 +10,7 @@ import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
+import Author from '../../lib/models/author';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
@@ -597,6 +598,67 @@ describe('Repository', function() {
       process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
 
       await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
+    });
+
+    describe('recording commit event with metadata', function() {
+      it('reports partial commits', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        // stage only subset of total changes
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
+        await repo.stageFiles(['a.txt']);
+        repo.refresh();
+
+        // unstaged changes remain
+        let unstagedChanges = await repo.getUnstagedChanges();
+        assert.equal(unstagedChanges.length, 1);
+
+        // do partial commit
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Partial commit');
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.isTrue(args[1].partial);
+
+        // stage all remaining changes
+        await repo.stageFiles(['b.txt']);
+        repo.refresh();
+        unstagedChanges = await repo.getUnstagedChanges();
+        assert.equal(unstagedChanges.length, 0);
+
+        reporterProxy.addEvent.reset();
+        // do whole commit
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Commit everything');
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.isFalse(args[1].partial);
+      });
+
+      it('does not record an event if operation fails', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+        sinon.stub(repo.git, 'commit').throws();
+
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        try {
+          await repo.commit('Commit yo!');
+        } catch (e) {
+          // expected, do nothing
+        }
+
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+      });
     });
   });
 
