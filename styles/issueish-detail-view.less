@@ -1,5 +1,17 @@
 @import 'variables';
 
+// tabs
+
+.react-tabs__tab {
+  border-radius: @component-border-radius @component-border-radius 0 0;
+  padding: 5px 20px;
+
+  &--selected {
+    border: 1px solid @separator-border-color;
+    border-bottom: none;
+  }
+}
+
 .github-IssueishDetailView {
   padding: @component-padding * 3;
   overflow: auto;
@@ -27,8 +39,9 @@
   // Header ------------------------
 
   &-header {
-    border: 1px solid @base-border-color;
+    border: 1px solid @separator-border-color;
     border-radius: @component-border-radius;
+    margin-bottom: 20px;
   }
 
   &-headerRow {
