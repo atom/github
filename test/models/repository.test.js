@@ -642,6 +642,29 @@ describe('Repository', function() {
         assert.isFalse(args[1].partial);
       });
 
+      it.only('reports if the commit was an amend', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Regular commit', {allowEmpty: true});
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.isFalse(args[1].amend);
+
+        reporterProxy.addEvent.reset();
+        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await repo.commit('Amended commit', {allowEmpty: true, amend: true});
+        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.isTrue(args[1].amend);
+      });
+
       it('reports number of coAuthors for commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const repo = new Repository(workingDirPath);
