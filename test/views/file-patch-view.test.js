@@ -7,7 +7,7 @@ import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import {nullFilePatch} from '../../lib/models/patch/file-patch';
 
-describe('FilePatchView', function() {
+describe.only('FilePatchView', function() {
   let atomEnv, repository, filePatch;
 
   beforeEach(async function() {
@@ -48,6 +48,7 @@ describe('FilePatchView', function() {
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
       filePatch,
+      selectionMode: 'line',
       selectedRows: new Set(),
       repository,
 
@@ -83,12 +84,13 @@ describe('FilePatchView', function() {
     assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBufferText());
   });
 
-  it('preserves the selection index when a new file patch arrives', function() {
-    let lastSelectedRows = new Set([2]);
-    const selectedRowsChanged = sinon.stub().callsFake(rows => {
-      lastSelectedRows = rows;
-    });
-    const wrapper = mount(buildApp({selectedRows: new Set([2]), selectedRowsChanged}));
+  it('preserves the selection index when a new file patch arrives in line selection mode', function() {
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({
+      selectedRows: new Set([2]),
+      selectionMode: 'line',
+      selectedRowsChanged,
+    }));
 
     const nextPatch = buildFilePatch([{
       oldPath: 'path.txt',
@@ -106,11 +108,93 @@ describe('FilePatchView', function() {
     }]);
 
     wrapper.setProps({filePatch: nextPatch});
-    assert.sameMembers(Array.from(lastSelectedRows), [3]);
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+
+    const editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+    assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+      [[3, 0], [3, 4]],
+    ]);
 
     selectedRowsChanged.resetHistory();
     wrapper.setProps({isPartiallyStaged: true});
     assert.isFalse(selectedRowsChanged.called);
+  });
+
+  it.only('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
+    const multiHunkPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
+          heading: '0',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 20, oldLineCount: 3, newStartLine: 20, newLineCount: 4,
+          heading: '1',
+          lines: [' 0005', '+0006', '+0007', '-0008', ' 0009'],
+        },
+        {
+          oldStartLine: 30, oldLineCount: 3, newStartLine: 31, newLineCount: 3,
+          heading: '2',
+          lines: [' 0010', '+0011', '-0012', ' 0013'],
+        },
+        {
+          oldStartLine: 40, oldLineCount: 4, newStartLine: 41, newLineCount: 4,
+          heading: '3',
+          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
+        },
+      ],
+    }]);
+
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({
+      filePatch: multiHunkPatch,
+      selectedRows: new Set([6, 7, 8]),
+      selectionMode: 'hunk',
+      selectedRowsChanged,
+    }));
+
+    const nextPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
+          heading: '0',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 30, oldLineCount: 3, newStartLine: 30, newLineCount: 3,
+          heading: '2',
+          //       5         6        7        8
+          lines: [' 0010', '+0011', '-0012', ' 0013'],
+        },
+        {
+          oldStartLine: 40, oldLineCount: 4, newStartLine: 40, newLineCount: 4,
+          heading: '3',
+          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
+        },
+      ],
+    }]);
+    console.log(nextPatch.getHunks()[1].getBufferRange().toString());
+
+    wrapper.setProps({filePatch: nextPatch});
+
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    const editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+    assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+      [[5, 0], [8, 3]],
+    ]);
   });
 
   it('unregisters the mouseup handler on unmount', function() {
@@ -302,21 +386,59 @@ describe('FilePatchView', function() {
     });
 
     it('pluralizes the toggle and discard button labels', function() {
-      const wrapper = shallow(buildApp({selectedRows: new Set([2])}));
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Change');
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Change');
+      const wrapper = shallow(buildApp({selectedRows: new Set([2]), selectionMode: 'line'}));
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selection');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selection');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
 
-      wrapper.setProps({selectedRows: new Set([1, 2, 3])});
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Changes');
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Changes');
+      wrapper.setProps({selectedRows: new Set([1, 2, 3]), selectionMode: 'line'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selections');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selections');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3]), selectionMode: 'hunk'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3, 6, 7]), selectionMode: 'hunk'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunks');
     });
 
     it('uses the appropriate staging action verb in hunk header button labels', function() {
-      const wrapper = shallow(buildApp({selectedRows: new Set([2]), stagingStatus: 'unstaged'}));
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Change');
+      const wrapper = shallow(buildApp({
+        selectedRows: new Set([2]),
+        stagingStatus: 'unstaged',
+        selectionMode: 'line',
+      }));
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selection');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
 
       wrapper.setProps({stagingStatus: 'staged'});
-      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Unstage Selected Change');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Unstage Selection');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Unstage Hunk');
+    });
+
+    it('uses the appropriate staging action noun in hunk header button labels', function() {
+      const wrapper = shallow(buildApp({
+        selectedRows: new Set([1, 2, 3]),
+        stagingStatus: 'unstaged',
+        selectionMode: 'line',
+      }));
+
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selections');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+
+      wrapper.setProps({selectionMode: 'hunk'});
+
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
     });
 
     it('handles mousedown as a selection event', function() {
@@ -341,11 +463,30 @@ describe('FilePatchView', function() {
       }]);
 
       const selectedRowsChanged = sinon.spy();
-      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged}));
+      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged, selectionMode: 'line'}));
 
       wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, fp.getHunks()[1]);
 
-      assert.isTrue(selectedRowsChanged.calledWith(new Set([4])));
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('handles a toggle click on a hunk containing a selection', function() {
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), toggleRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(0).prop('toggleSelection')();
+      assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [2]);
+      assert.strictEqual(toggleRows.args[1], 'line');
+    });
+
+    it('handles a toggle click on a hunk not containing a selection', function() {
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), toggleRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('toggleSelection')();
+      assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(toggleRows.args[1], 'hunk');
     });
   });
 
@@ -385,6 +526,15 @@ describe('FilePatchView', function() {
       assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
         [[2, 0], [2, 4]],
       ]);
+    });
+
+    it('changes to line selection mode on click', function() {
+      const selectedRowsChanged = sinon.spy();
+      wrapper.setProps({selectedRowsChanged, selectionMode: 'hunk'});
+
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [2]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
     });
 
     it('ignores right clicks', function() {
@@ -645,7 +795,8 @@ describe('FilePatchView', function() {
 
     editor.addSelectionForBufferRange([[3, 1], [4, 0]]);
 
-    assert.isTrue(selectedRowsChanged.calledWith(new Set([3, 4])));
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3, 4]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
   });
 
   describe('when viewing an empty patch', function() {
