@@ -300,19 +300,26 @@ describe('CommitController', function() {
       });
 
       describe('openCommitMessageEditor', function() {
-        it.only('records an event', async function() {
+        it('records an event', async function() {
           const wrapper = shallow(app, {disableLifecycleMethods: true});
 
           sinon.stub(reporterProxy, 'addEvent');
           // open expanded commit message editor
           await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
           assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+          let args = reporterProxy.addEvent.lastCall.args;
+          assert.deepEqual(args[0], 'open-commit-message-editor');
+          assert.deepEqual(args[1], {package: 'github'});
           // close expanded commit message editor
           await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
           assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+          args = reporterProxy.addEvent.lastCall.args;
+          assert.deepEqual(args[0], 'open-commit-message-editor');
           // open expanded commit message editor again
           await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
           assert.deepEqual(reporterProxy.addEvent.callCount, 2);
+          args = reporterProxy.addEvent.lastCall.args;
+          assert.deepEqual(args[0], 'open-commit-message-editor');
         });
       });
     });
