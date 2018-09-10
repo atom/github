@@ -185,7 +185,6 @@ describe.only('FilePatchView', function() {
         },
       ],
     }]);
-    console.log(nextPatch.getHunks()[1].getBufferRange().toString());
 
     wrapper.setProps({filePatch: nextPatch});
 
