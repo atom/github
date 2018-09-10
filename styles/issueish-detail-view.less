@@ -8,7 +8,8 @@
 
   &--selected {
     border: 1px solid @separator-border-color;
-    border-bottom: none;
+    border-bottom: 1px solid @base-background-color;
+    margin-bottom: -1px;
   }
 }
 
@@ -25,9 +26,17 @@
   background-color: @base-background-color;
 
   &-tablist {
+    border-bottom: 1px solid @separator-border-color;
     display: flex;
     justify-content: space-around;
     list-style: none;
+  }
+
+  &-tab-icon {
+    vertical-align: middle;
+    &:before {
+      margin-right: 5px;
+    }
   }
 
   &-container {
