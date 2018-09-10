@@ -371,6 +371,30 @@ describe('Repository', function() {
 
       `);
     });
+
+    it('sorts staged and unstaged files', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const zShortPath = path.join('z-dir', 'a.txt');
+      const zFilePath = path.join(workingDirPath, zShortPath);
+      const wFilePath = path.join(workingDirPath, 'w.txt');
+      fs.mkdirSync(path.join(workingDirPath, 'z-dir'));
+      fs.renameSync(path.join(workingDirPath, 'a.txt'), zFilePath);
+      fs.renameSync(path.join(workingDirPath, 'b.txt'), wFilePath);
+      const unstagedChanges = await repo.getUnstagedChanges();
+      const unstagedPaths = unstagedChanges.map(change => change.filePath);
+
+      assert.deepStrictEqual(unstagedPaths, ['a.txt', 'b.txt', 'w.txt', zShortPath]);
+
+      await repo.stageFiles([zFilePath]);
+      await repo.stageFiles([wFilePath]);
+      const stagedChanges = await repo.getStagedChanges();
+      const stagedPaths = stagedChanges.map(change => change.filePath);
+
+      assert.deepStrictEqual(stagedPaths, ['w.txt', zShortPath]);
+    });
   });
 
   describe('getFilePatchForPath', function() {
