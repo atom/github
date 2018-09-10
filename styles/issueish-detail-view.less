@@ -200,10 +200,24 @@
 // Dock Overrides ------------------------
 // When the IssueishDetailView is shown as a Dock item
 
+atom-dock .react-tabs__tab {
+  padding: none;
+
+  &--selected {
+    border: none;
+    font-weight: bold;
+  }
+}
+
 atom-dock .github-IssueishDetailView {
   padding: @component-padding;
   font-size: @font-size;
   background-color: @tool-panel-background-color;
+
+  &-tablist {
+    border-bottom: none;
+    display: inline;
+  }
 
   &-header {
     margin-bottom: @component-padding*1.5;
