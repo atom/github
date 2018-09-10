@@ -14,6 +14,10 @@ describe('GithubLoginModel', function() {
       // once the underlying problem is solved.  See atom/github#1568 for details.
       if (process.env.CI_PROVIDER === 'VSTS') { return; }
 
+      // NOTE: Native modules, including keytar, are not currently building correctly on
+      // AppVeyor. Re-enable these once the underlying problem is solved.
+      if (process.env.APPVEYOR === 'True') { return; }
+
       it('manages passwords', async function() {
         if (!Strategy || await Strategy.isValid()) {
           const loginModel = new GithubLoginModel(Strategy);
