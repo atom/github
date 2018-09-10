@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
 import {BareIssueishDetailView, checkoutStates} from '../../lib/views/issueish-detail-view';
 import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
@@ -70,6 +71,31 @@ describe('IssueishDetailView', function() {
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
+
+  it('renders tabs', function() {
+    const wrapper = shallow(buildApp({}));
+
+    assert.lengthOf(wrapper.find(Tabs), 1);
+    assert.lengthOf(wrapper.find(TabList), 1);
+
+    const tabs = wrapper.find(Tab).getElements();
+    assert.lengthOf(tabs, 3);
+
+    const tab0Children = tabs[0].props.children;    assert.deepEqual(tab0Children[0].props, {icon: "info", className: "github-IssueishDetailView-tab-icon"});
+    assert.deepEqual(tab0Children[1], "Overview");
+
+    const tab1Children = tabs[1].props.children;
+    assert.deepEqual(tab1Children[0].props, {icon: "checklist", className: "github-IssueishDetailView-tab-icon"});
+    assert.deepEqual(tab1Children[1], "Build Status");
+
+    const tab2Children = tabs[2].props.children;
+    assert.deepEqual(tab2Children[0].props, {icon: "diff", className: "github-IssueishDetailView-tab-icon"});
+    assert.deepEqual(tab2Children[1], "Files Changed");
+
+    assert.lengthOf(wrapper.find(TabPanel), 3);
+  });
+
+
 
   it('renders pull request information for cross repository PR', function() {
     const baseRefName = 'master';
