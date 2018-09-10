@@ -779,7 +779,7 @@ describe('Repository', function() {
       assert.deepEqual(reporterProxy.addEvent.callCount, 1);
 
       const args = reporterProxy.addEvent.lastCall.args;
-      assert.deepEqual(args[0], 'undoLastCommit');
+      assert.deepEqual(args[0], 'undo-last-commit');
       assert.deepEqual(args[1], {package: 'github'});
     });
 
