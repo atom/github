@@ -642,7 +642,7 @@ describe('Repository', function() {
         assert.isFalse(args[1].partial);
       });
 
-      it.only('reports if the commit was an amend', async function() {
+      it('reports if the commit was an amend', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const repo = new Repository(workingDirPath);
         await repo.getLoadPromise();
