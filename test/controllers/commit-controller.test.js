@@ -9,6 +9,7 @@ import UserStore from '../../lib/models/user-store';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitController', function() {
   let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
@@ -296,6 +297,23 @@ describe('CommitController', function() {
         await assert.async.lengthOf(wrapper.instance().getCommitMessageEditors(), 0);
         assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
         await assert.async.strictEqual(wrapper.update().find('CommitView').prop('message'), 'make some new changes');
+      });
+
+      describe('openCommitMessageEditor', function() {
+        it.only('records an event', async function() {
+          const wrapper = shallow(app, {disableLifecycleMethods: true});
+
+          sinon.stub(reporterProxy, 'addEvent');
+          // open expanded commit message editor
+          await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
+          assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+          // close expanded commit message editor
+          await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
+          assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+          // open expanded commit message editor again
+          await wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
+          assert.deepEqual(reporterProxy.addEvent.callCount, 2);
+        });
       });
     });
 
