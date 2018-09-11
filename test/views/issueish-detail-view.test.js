@@ -90,8 +90,8 @@ describe('IssueishDetailView', function() {
     assert.deepEqual(tab1Children[1], 'Build Status');
 
     const tab2Children = tabs[2].props.children;
-    assert.deepEqual(tab2Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
-    assert.deepEqual(tab2Children[1], 'Files Changed');
+    assert.deepEqual(tab2Children[0].props, {icon: 'git-commit', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab2Children[1], 'Commits');
 
     assert.lengthOf(wrapper.find(TabPanel), 3);
   });
