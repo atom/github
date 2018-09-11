@@ -563,11 +563,7 @@ describe('Repository', function() {
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
 
-      try {
-        await repository.git.merge('origin/branch');
-      } catch (e) {
-        // expected
-      }
+      await assert.isRejected(repository.git.merge('origin/branch'));
 
       assert.equal(await repository.isMerging(), true);
       const mergeBase = await repository.getLastCommit();
@@ -619,11 +615,10 @@ describe('Repository', function() {
         assert.equal(unstagedChanges.length, 1);
 
         // do partial commit
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Partial commit');
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         let args = reporterProxy.addEvent.lastCall.args;
-        assert.deepEqual(args[0], 'commit');
+        assert.strictEqual(args[0], 'commit');
         assert.isTrue(args[1].partial);
 
         // stage all remaining changes
@@ -634,11 +629,10 @@ describe('Repository', function() {
 
         reporterProxy.addEvent.reset();
         // do whole commit
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Commit everything');
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         args = reporterProxy.addEvent.lastCall.args;
-        assert.deepEqual(args[0], 'commit');
+        assert.strictEqual(args[0], 'commit');
         assert.isFalse(args[1].partial);
       });
 
@@ -649,17 +643,15 @@ describe('Repository', function() {
 
         sinon.stub(reporterProxy, 'addEvent');
 
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Regular commit', {allowEmpty: true});
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         let args = reporterProxy.addEvent.lastCall.args;
-        assert.deepEqual(args[0], 'commit');
+        assert.strictEqual(args[0], 'commit');
         assert.isFalse(args[1].amend);
 
         reporterProxy.addEvent.reset();
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Amended commit', {allowEmpty: true, amend: true});
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         args = reporterProxy.addEvent.lastCall.args;
         assert.deepEqual(args[0], 'commit');
         assert.isTrue(args[1].amend);
@@ -672,20 +664,18 @@ describe('Repository', function() {
 
         sinon.stub(reporterProxy, 'addEvent');
 
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Commit with no co-authors', {allowEmpty: true});
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         let args = reporterProxy.addEvent.lastCall.args;
         assert.deepEqual(args[0], 'commit');
         assert.deepEqual(args[1].coAuthorCount, 0);
 
         reporterProxy.addEvent.reset();
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
         await repo.commit('Commit with fabulous co-authors', {
           allowEmpty: true,
           coAuthors: [new Author('mona@lisa.com', 'Mona Lisa'), new Author('hubot@github.com', 'Mr. Hubot')],
         });
-        assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+        assert.isTrue(reporterProxy.addEvent.called);
         args = reporterProxy.addEvent.lastCall.args;
         assert.deepEqual(args[0], 'commit');
         assert.deepEqual(args[1].coAuthorCount, 2);
@@ -699,14 +689,8 @@ describe('Repository', function() {
         sinon.stub(reporterProxy, 'addEvent');
         sinon.stub(repo.git, 'commit').throws();
 
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
-        try {
-          await repo.commit('Commit yo!');
-        } catch (e) {
-          // expected, do nothing
-        }
-
-        assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+        await assert.isRejected(repo.commit('Commit yo!'));
+        assert.isFalse(reporterProxy.addEvent.called);
       });
     });
   });
@@ -774,9 +758,8 @@ describe('Repository', function() {
 
       sinon.stub(reporterProxy, 'addEvent');
 
-      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
       await repo.undoLastCommit();
-      assert.deepEqual(reporterProxy.addEvent.callCount, 1);
+      assert.isTrue(reporterProxy.addEvent.called);
 
       const args = reporterProxy.addEvent.lastCall.args;
       assert.deepEqual(args[0], 'undo-last-commit');
@@ -791,14 +774,8 @@ describe('Repository', function() {
       sinon.stub(reporterProxy, 'addEvent');
       sinon.stub(repo.git, 'reset').throws();
 
-      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
-      try {
-        await repo.undoLastCommit();
-      } catch (e) {
-        // expected, do nothing
-      }
-
-      assert.deepEqual(reporterProxy.addEvent.callCount, 0);
+      await assert.isRejected(repo.undoLastCommit());
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 
@@ -1304,12 +1281,8 @@ describe('Repository', function() {
           const unstagedChanges = await repo.getUnstagedChanges();
 
           assert.equal(await repo.isMerging(), true);
-          try {
-            await repo.abortMerge();
-            assert.fail(null, null, 'repo.abortMerge() unexepctedly succeeded');
-          } catch (e) {
-            assert.match(e.command, /^git merge --abort/);
-          }
+          await assert.isRejected(repo.abortMerge(), /^git merge --abort/);
+
           assert.equal(await repo.isMerging(), true);
           assert.deepEqual(await repo.getStagedChanges(), stagedChanges);
           assert.deepEqual(await repo.getUnstagedChanges(), unstagedChanges);
