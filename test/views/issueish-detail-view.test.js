@@ -81,21 +81,20 @@ describe('IssueishDetailView', function() {
     const tabs = wrapper.find(Tab).getElements();
     assert.lengthOf(tabs, 3);
 
-    const tab0Children = tabs[0].props.children;    assert.deepEqual(tab0Children[0].props, {icon: "info", className: "github-IssueishDetailView-tab-icon"});
-    assert.deepEqual(tab0Children[1], "Overview");
+    const tab0Children = tabs[0].props.children;
+    assert.deepEqual(tab0Children[0].props, {icon: 'info', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab0Children[1], 'Overview');
 
     const tab1Children = tabs[1].props.children;
-    assert.deepEqual(tab1Children[0].props, {icon: "checklist", className: "github-IssueishDetailView-tab-icon"});
-    assert.deepEqual(tab1Children[1], "Build Status");
+    assert.deepEqual(tab1Children[0].props, {icon: 'checklist', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab1Children[1], 'Build Status');
 
     const tab2Children = tabs[2].props.children;
-    assert.deepEqual(tab2Children[0].props, {icon: "diff", className: "github-IssueishDetailView-tab-icon"});
-    assert.deepEqual(tab2Children[1], "Files Changed");
+    assert.deepEqual(tab2Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab2Children[1], 'Files Changed');
 
     assert.lengthOf(wrapper.find(TabPanel), 3);
   });
-
-
 
   it('renders pull request information for cross repository PR', function() {
     const baseRefName = 'master';
