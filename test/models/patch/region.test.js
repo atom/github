@@ -244,4 +244,77 @@ describe('Regions', function() {
       assert.strictEqual(noNewline.invert(), noNewline);
     });
   });
+
+  describe('intersectRows()', function() {
+    function assertIntersections(actual, expected) {
+      const serialized = actual.map(({intersection, gap}) => ({intersection: intersection.serialize(), gap}));
+      assert.deepEqual(serialized, expected);
+    }
+
+    it('returns an array containing all gaps with no intersection rows', function() {
+      const region = new Addition(Range.fromObject([[1, 0], [3, Infinity]]));
+
+      assertIntersections(region.intersectRows(new Set([0, 5, 6]), false), []);
+      assertIntersections(region.intersectRows(new Set([0, 5, 6]), true), [
+        {intersection: [[1, 0], [3, Infinity]], gap: true},
+      ]);
+    });
+
+    it('detects an intersection at the beginning of the range', function() {
+      const region = new Deletion(Range.fromObject([[2, 0], [6, Infinity]]));
+      const rowSet = new Set([0, 1, 2, 3]);
+
+      assertIntersections(region.intersectRows(rowSet, false), [
+        {intersection: [[2, 0], [3, Infinity]], gap: false},
+      ]);
+      assertIntersections(region.intersectRows(rowSet, true), [
+        {intersection: [[2, 0], [3, Infinity]], gap: false},
+        {intersection: [[4, 0], [6, Infinity]], gap: true},
+      ]);
+    });
+
+    it('detects an intersection in the middle of the range', function() {
+      const region = new Unchanged(Range.fromObject([[2, 0], [6, Infinity]]));
+      const rowSet = new Set([0, 3, 4, 8, 9]);
+
+      assertIntersections(region.intersectRows(rowSet, false), [
+        {intersection: [[3, 0], [4, Infinity]], gap: false},
+      ]);
+      assertIntersections(region.intersectRows(rowSet, true), [
+        {intersection: [[2, 0], [2, Infinity]], gap: true},
+        {intersection: [[3, 0], [4, Infinity]], gap: false},
+        {intersection: [[5, 0], [6, Infinity]], gap: true},
+      ]);
+    });
+
+    it('detects an intersection at the end of the range', function() {
+      const region = new Addition(Range.fromObject([[2, 0], [6, Infinity]]));
+      const rowSet = new Set([4, 5, 6, 7, 10, 11]);
+
+      assertIntersections(region.intersectRows(rowSet, false), [
+        {intersection: [[4, 0], [6, Infinity]], gap: false},
+      ]);
+      assertIntersections(region.intersectRows(rowSet, true), [
+        {intersection: [[2, 0], [3, Infinity]], gap: true},
+        {intersection: [[4, 0], [6, Infinity]], gap: false},
+      ]);
+    });
+
+    it('detects multiple intersections', function() {
+      const region = new Deletion(Range.fromObject([[2, 0], [8, Infinity]]));
+      const rowSet = new Set([0, 3, 4, 6, 7, 10]);
+
+      assertIntersections(region.intersectRows(rowSet, false), [
+        {intersection: [[3, 0], [4, Infinity]], gap: false},
+        {intersection: [[6, 0], [7, Infinity]], gap: false},
+      ]);
+      assertIntersections(region.intersectRows(rowSet, true), [
+        {intersection: [[2, 0], [2, Infinity]], gap: true},
+        {intersection: [[3, 0], [4, Infinity]], gap: false},
+        {intersection: [[5, 0], [5, Infinity]], gap: true},
+        {intersection: [[6, 0], [7, Infinity]], gap: false},
+        {intersection: [[8, 0], [8, Infinity]], gap: true},
+      ]);
+    });
+  });
 });
