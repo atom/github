@@ -7,7 +7,7 @@ import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import {nullFilePatch} from '../../lib/models/patch/file-patch';
 
-describe.only('FilePatchView', function() {
+describe('FilePatchView', function() {
   let atomEnv, repository, filePatch;
 
   beforeEach(async function() {
@@ -121,7 +121,7 @@ describe.only('FilePatchView', function() {
     assert.isFalse(selectedRowsChanged.called);
   });
 
-  it.only('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
+  it('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
     const multiHunkPatch = buildFilePatch([{
       oldPath: 'path.txt',
       oldMode: '100644',
