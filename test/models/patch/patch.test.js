@@ -1,3 +1,5 @@
+import {TextBuffer} from 'atom';
+
 import Patch, {nullPatch} from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
@@ -5,15 +7,15 @@ import {assertInPatch, buildRange} from '../../helpers';
 
 describe('Patch', function() {
   it('has some standard accessors', function() {
-    const p = new Patch({status: 'modified', hunks: [], bufferText: 'bufferText'});
+    const p = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: 'bufferText'})});
     assert.strictEqual(p.getStatus(), 'modified');
     assert.deepEqual(p.getHunks(), []);
-    assert.strictEqual(p.getBufferText(), 'bufferText');
+    assert.strictEqual(p.getBuffer().getText(), 'bufferText');
     assert.isTrue(p.isPresent());
   });
 
   it('computes the byte size of the total patch data', function() {
-    const p = new Patch({status: 'modified', hunks: [], bufferText: '\u00bd + \u00bc = \u00be'});
+    const p = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: '\u00bd + \u00bc = \u00be'})});
     assert.strictEqual(p.getByteSize(), 12);
   });
 
@@ -39,7 +41,7 @@ describe('Patch', function() {
         ],
       }),
     ];
-    const p = new Patch({status: 'modified', hunks, bufferText: 'bufferText'});
+    const p = new Patch({status: 'modified', hunks, buffer: new TextBuffer({text: 'bufferText'})});
 
     assert.strictEqual(p.getChangedLineCount(), 10);
   });
@@ -62,40 +64,40 @@ describe('Patch', function() {
         changes: [],
       }),
     ];
-    const p0 = new Patch({status: 'modified', hunks, bufferText: 'bufferText'});
+    const p0 = new Patch({status: 'modified', hunks, buffer: new TextBuffer({text: 'bufferText'})});
     assert.strictEqual(p0.getMaxLineNumberWidth(), 3);
 
-    const p1 = new Patch({status: 'deleted', hunks: [], bufferText: ''});
+    const p1 = new Patch({status: 'deleted', hunks: [], buffer: new TextBuffer({text: ''})});
     assert.strictEqual(p1.getMaxLineNumberWidth(), 0);
   });
 
   it('clones itself with optionally overridden properties', function() {
-    const original = new Patch({status: 'modified', hunks: [], bufferText: 'bufferText'});
+    const original = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: 'bufferText'})});
 
     const dup0 = original.clone();
     assert.notStrictEqual(dup0, original);
     assert.strictEqual(dup0.getStatus(), 'modified');
     assert.deepEqual(dup0.getHunks(), []);
-    assert.strictEqual(dup0.getBufferText(), 'bufferText');
+    assert.strictEqual(dup0.getBuffer().getText(), 'bufferText');
 
     const dup1 = original.clone({status: 'added'});
     assert.notStrictEqual(dup1, original);
     assert.strictEqual(dup1.getStatus(), 'added');
     assert.deepEqual(dup1.getHunks(), []);
-    assert.strictEqual(dup1.getBufferText(), 'bufferText');
+    assert.strictEqual(dup1.getBuffer().getText(), 'bufferText');
 
     const hunks = [new Hunk({changes: []})];
     const dup2 = original.clone({hunks});
     assert.notStrictEqual(dup2, original);
     assert.strictEqual(dup2.getStatus(), 'modified');
     assert.deepEqual(dup2.getHunks(), hunks);
-    assert.strictEqual(dup2.getBufferText(), 'bufferText');
+    assert.strictEqual(dup2.getBuffer().getText(), 'bufferText');
 
-    const dup3 = original.clone({bufferText: 'changed'});
+    const dup3 = original.clone({buffer: new TextBuffer({text: 'changed'})});
     assert.notStrictEqual(dup3, original);
     assert.strictEqual(dup3.getStatus(), 'modified');
     assert.deepEqual(dup3.getHunks(), []);
-    assert.strictEqual(dup3.getBufferText(), 'changed');
+    assert.strictEqual(dup3.getBuffer().getText(), 'changed');
   });
 
   it('clones a nullPatch as a nullPatch', function() {
@@ -107,20 +109,20 @@ describe('Patch', function() {
     assert.notStrictEqual(dup0, nullPatch);
     assert.strictEqual(dup0.getStatus(), 'added');
     assert.deepEqual(dup0.getHunks(), []);
-    assert.strictEqual(dup0.getBufferText(), '');
+    assert.strictEqual(dup0.getBuffer().getText(), '');
 
     const hunks = [new Hunk({changes: []})];
     const dup1 = nullPatch.clone({hunks});
     assert.notStrictEqual(dup1, nullPatch);
     assert.isNull(dup1.getStatus());
     assert.deepEqual(dup1.getHunks(), hunks);
-    assert.strictEqual(dup1.getBufferText(), '');
+    assert.strictEqual(dup1.getBuffer().getText(), '');
 
-    const dup2 = nullPatch.clone({bufferText: 'changed'});
+    const dup2 = nullPatch.clone({buffer: new TextBuffer({text: 'changed'})});
     assert.notStrictEqual(dup2, nullPatch);
     assert.isNull(dup2.getStatus());
     assert.deepEqual(dup2.getHunks(), []);
-    assert.strictEqual(dup2.getBufferText(), 'changed');
+    assert.strictEqual(dup2.getBuffer().getText(), 'changed');
   });
 
   describe('stage patch generation', function() {
@@ -129,7 +131,7 @@ describe('Patch', function() {
       const stagePatch = patch.getStagePatchForLines(new Set([8, 13, 14, 16]));
       // buffer rows:             0     1     2     3     4     5     6     7     8     9
       const expectedBufferText = '0007\n0008\n0010\n0011\n0012\n0013\n0014\n0015\n0016\n0018\n';
-      assert.strictEqual(stagePatch.getBufferText(), expectedBufferText);
+      assert.strictEqual(stagePatch.getBuffer().getText(), expectedBufferText);
       assertInPatch(stagePatch).hunks(
         {
           startRow: 0,
@@ -155,7 +157,7 @@ describe('Patch', function() {
           '0007\n0010\n0011\n0012\n0013\n0014\n0015\n0016\n0017\n0018\n' +
           // 15  16    17
           '0024\n0025\n No newline at end of file\n';
-      assert.strictEqual(stagePatch.getBufferText(), expectedBufferText);
+      assert.strictEqual(stagePatch.getBuffer().getText(), expectedBufferText);
       assertInPatch(stagePatch).hunks(
         {
           startRow: 0,
@@ -188,8 +190,7 @@ describe('Patch', function() {
     });
 
     it('returns a modification patch if original patch is a deletion', function() {
-      const bufferText = 'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\n';
-
+      const buffer = new TextBuffer({text: 'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\n'});
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 0,
@@ -201,7 +202,7 @@ describe('Patch', function() {
         }),
       ];
 
-      const patch = new Patch({status: 'deleted', hunks, bufferText});
+      const patch = new Patch({status: 'deleted', hunks, buffer});
 
       const stagedPatch = patch.getStagePatchForLines(new Set([1, 3, 4]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
@@ -219,7 +220,7 @@ describe('Patch', function() {
     });
 
     it('returns an deletion when staging an entire deletion patch', function() {
-      const bufferText = '0000\n0001\n0002\n';
+      const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
@@ -229,7 +230,7 @@ describe('Patch', function() {
           ],
         }),
       ];
-      const patch = new Patch({status: 'deleted', hunks, bufferText});
+      const patch = new Patch({status: 'deleted', hunks, buffer});
 
       const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
       assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
@@ -245,7 +246,7 @@ describe('Patch', function() {
       const patch = buildPatchFixture();
       const unstagePatch = patch.getUnstagePatchForLines(new Set([8, 12, 13]));
       assert.strictEqual(
-        unstagePatch.getBufferText(),
+        unstagePatch.getBuffer().getText(),
         // 0   1     2     3     4     5     6     7     8
         '0007\n0008\n0009\n0010\n0011\n0012\n0013\n0017\n0018\n',
       );
@@ -266,7 +267,7 @@ describe('Patch', function() {
       const patch = buildPatchFixture();
       const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 4, 5, 16, 17, 20, 25]));
       assert.strictEqual(
-        unstagePatch.getBufferText(),
+        unstagePatch.getBuffer().getText(),
         // 0   1     2     3     4     5
         '0000\n0001\n0003\n0004\n0005\n0006\n' +
         // 6   7     8     9     10    11    12    13
@@ -319,7 +320,7 @@ describe('Patch', function() {
       const patch = buildPatchFixture();
       const unstagedPatch = patch.getFullUnstagedPatch();
 
-      assert.strictEqual(unstagedPatch.getBufferText(), patch.getBufferText());
+      assert.strictEqual(unstagedPatch.getBuffer().getText(), patch.getBuffer().getText());
       assertInPatch(unstagedPatch).hunks(
         {
           startRow: 0,
@@ -362,7 +363,7 @@ describe('Patch', function() {
     });
 
     it('returns a modification if original patch is an addition', function() {
-      const bufferText = '0000\n0001\n0002\n';
+      const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 3,
@@ -372,10 +373,10 @@ describe('Patch', function() {
           ],
         }),
       ];
-      const patch = new Patch({status: 'added', hunks, bufferText});
+      const patch = new Patch({status: 'added', hunks, buffer});
       const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 2]));
       assert.strictEqual(unstagePatch.getStatus(), 'modified');
-      assert.strictEqual(unstagePatch.getBufferText(), '0000\n0001\n0002\n');
+      assert.strictEqual(unstagePatch.getBuffer().getText(), '0000\n0001\n0002\n');
       assertInPatch(unstagePatch).hunks(
         {
           startRow: 0,
@@ -389,7 +390,7 @@ describe('Patch', function() {
     });
 
     it('returns a deletion when unstaging an entire addition patch', function() {
-      const bufferText = '0000\n0001\n0002\n';
+      const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
       const hunks = [
         new Hunk({
           oldStartRow: 1,
@@ -402,7 +403,7 @@ describe('Patch', function() {
           ],
         }),
       ];
-      const patch = new Patch({status: 'added', hunks, bufferText});
+      const patch = new Patch({status: 'added', hunks, buffer});
 
       const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
       assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
@@ -431,12 +432,12 @@ describe('Patch', function() {
           changes: [],
         }),
       ];
-      const patch = new Patch({status: 'modified', hunks, bufferText: ''});
+      const patch = new Patch({status: 'modified', hunks, buffer: new TextBuffer({text: ''})});
       assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     });
 
     it('returns the origin if the patch is empty', function() {
-      const patch = new Patch({status: 'modified', hunks: [], bufferText: ''});
+      const patch = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: ''})});
       assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     });
   });
@@ -450,7 +451,7 @@ describe('Patch', function() {
       //  nothing in hunks 2 or 3
       const lastSelectedRows = new Set([1, 2, 4, 5, 13]);
 
-      const nBufferText =
+      const nBuffer = new TextBuffer({text:
         // 0   1     2     3     4
         '0000\n0003\n0004\n0005\n0006\n' +
         // 5   6     7     8     9     10    11    12    13    14   15
@@ -458,7 +459,8 @@ describe('Patch', function() {
         // 16  17    18    19    20
         '0019\n0020\n0021\n0022\n0023\n' +
         // 21  22     23
-        '0024\n0025\n No newline at end of file\n';
+        '0024\n0025\n No newline at end of file\n',
+      });
       const nHunks = [
         new Hunk({
           oldStartRow: 3, oldRowCount: 3, newStartRow: 3, newRowCount: 5, // next row drift = +2
@@ -494,7 +496,7 @@ describe('Patch', function() {
           ],
         }),
       ];
-      const nextPatch = new Patch({status: 'modified', hunks: nHunks, bufferText: nBufferText});
+      const nextPatch = new Patch({status: 'modified', hunks: nHunks, buffer: nBuffer});
 
       const nextRange = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
       // Original buffer row 14 = the next changed row = new buffer row 11
@@ -522,7 +524,7 @@ describe('Patch', function() {
             ],
           }),
         ],
-        bufferText: '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n0010\n0011\n',
+        buffer: new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n0010\n0011\n'}),
       });
       // Select:
       // * all changes from hunk 0
@@ -541,7 +543,7 @@ describe('Patch', function() {
             ],
           }),
         ],
-        bufferText: '0006\n0007\n0008\n0009\n0010\n0011\n',
+        buffer: new TextBuffer({text: '0006\n0007\n0008\n0009\n0010\n0011\n'}),
       });
 
       const range = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
@@ -572,7 +574,7 @@ describe('Patch', function() {
   });
 
   it('prints itself as an apply-ready string', function() {
-    const bufferText = '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n';
+    const buffer = new TextBuffer({text: '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n'});
     // old: 0000.2222.3333.4444.5555.6666.7777.8888.9999.
     // new: 0000.1111.2222.3333.4444.5555.6666.9999.
     // patch buffer: 0000.1111.2222.3333.4444.5555.6666.7777.8888.9999.
@@ -595,7 +597,7 @@ describe('Patch', function() {
       ],
     });
 
-    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], bufferText});
+    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], buffer});
 
     assert.strictEqual(p.toString(), [
       '@@ -0,2 +0,3 @@\n',
@@ -613,7 +615,7 @@ describe('Patch', function() {
   it('has a stubbed nullPatch counterpart', function() {
     assert.isNull(nullPatch.getStatus());
     assert.deepEqual(nullPatch.getHunks(), []);
-    assert.strictEqual(nullPatch.getBufferText(), '');
+    assert.strictEqual(nullPatch.getBuffer().getText(), '');
     assert.strictEqual(nullPatch.getByteSize(), 0);
     assert.isFalse(nullPatch.isPresent());
     assert.strictEqual(nullPatch.toString(), '');
@@ -625,11 +627,13 @@ describe('Patch', function() {
 });
 
 function buildPatchFixture() {
-  const bufferText =
-    '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n' +
-    '0010\n0011\n0012\n0013\n0014\n0015\n0016\n0017\n0018\n0019\n' +
-    '0020\n0021\n0022\n0023\n0024\n0025\n' +
-    ' No newline at end of file\n';
+  const buffer = new TextBuffer({
+    text:
+      '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n' +
+      '0010\n0011\n0012\n0013\n0014\n0015\n0016\n0017\n0018\n0019\n' +
+      '0020\n0021\n0022\n0023\n0024\n0025\n' +
+      ' No newline at end of file\n',
+  });
 
   const hunks = [
     new Hunk({
@@ -671,5 +675,5 @@ function buildPatchFixture() {
     }),
   ];
 
-  return new Patch({status: 'modified', hunks, bufferText});
+  return new Patch({status: 'modified', hunks, buffer});
 }

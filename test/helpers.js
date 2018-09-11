@@ -184,7 +184,7 @@ class PatchBufferAssertions {
       const spec = changes[i];
 
       assert.strictEqual(change.constructor.name.toLowerCase(), spec.kind);
-      assert.strictEqual(change.toStringIn(this.patch.getBufferText()), spec.string);
+      assert.strictEqual(change.toStringIn(this.patch.getBuffer().getText()), spec.string);
       assert.deepEqual(change.getRowRange().bufferRange.serialize(), spec.range);
     }
   }
