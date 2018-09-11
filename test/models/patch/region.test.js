@@ -1,12 +1,12 @@
+import {TextBuffer, Range} from 'atom';
 import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
-import IndexedRowRange from '../../../lib/models/indexed-row-range';
 
 describe('Regions', function() {
   let buffer, range;
 
   beforeEach(function() {
-    buffer = '0000\n1111\n2222\n3333\n4444\n5555\n';
-    range = new IndexedRowRange({bufferRange: [[1, 0], [3, Infinity]], startOffset: 5, endOffset: 20});
+    buffer = new TextBuffer({text: '0000\n1111\n2222\n3333\n4444\n5555\n'});
+    range = Range.fromObject([[1, 0], [3, Infinity]]);
   });
 
   describe('Addition', function() {
@@ -17,7 +17,7 @@ describe('Regions', function() {
     });
 
     it('has range accessors', function() {
-      assert.strictEqual(addition.getRowRange(), range);
+      assert.strictEqual(addition.getRange(), range);
       assert.strictEqual(addition.getStartBufferRow(), 1);
       assert.strictEqual(addition.getEndBufferRow(), 3);
     });
@@ -68,13 +68,13 @@ describe('Regions', function() {
     });
 
     it('uses "+" as a prefix for toStringIn()', function() {
-      assert.strictEqual(addition.toStringIn(buffer), '+1111\n+2222\n+3333\n');
+      assert.strictEqual(addition.toStringIn(buffer), '+1111\n+2222\n+3333');
     });
 
     it('inverts to a deletion', function() {
       const inverted = addition.invert();
       assert.isTrue(inverted.isDeletion());
-      assert.strictEqual(inverted.getRowRange(), addition.getRowRange());
+      assert.strictEqual(inverted.getRange(), addition.getRange());
     });
   });
 
@@ -125,13 +125,13 @@ describe('Regions', function() {
     });
 
     it('uses "-" as a prefix for toStringIn()', function() {
-      assert.strictEqual(deletion.toStringIn(buffer), '-1111\n-2222\n-3333\n');
+      assert.strictEqual(deletion.toStringIn(buffer), '-1111\n-2222\n-3333');
     });
 
     it('inverts to an addition', function() {
       const inverted = deletion.invert();
       assert.isTrue(inverted.isAddition());
-      assert.strictEqual(inverted.getRowRange(), deletion.getRowRange());
+      assert.strictEqual(inverted.getRange(), deletion.getRange());
     });
   });
 
@@ -182,7 +182,7 @@ describe('Regions', function() {
     });
 
     it('uses " " as a prefix for toStringIn()', function() {
-      assert.strictEqual(unchanged.toStringIn(buffer), ' 1111\n 2222\n 3333\n');
+      assert.strictEqual(unchanged.toStringIn(buffer), ' 1111\n 2222\n 3333');
     });
 
     it('inverts as itself', function() {
@@ -237,7 +237,7 @@ describe('Regions', function() {
     });
 
     it('uses "\\" as a prefix for toStringIn()', function() {
-      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333\n');
+      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333');
     });
 
     it('inverts as itself', function() {
