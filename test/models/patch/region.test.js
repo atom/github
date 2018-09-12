@@ -1,23 +1,24 @@
-import {TextBuffer, Range} from 'atom';
+import {TextBuffer} from 'atom';
 import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
 
 describe('Regions', function() {
-  let buffer, range;
+  let buffer, marker;
 
   beforeEach(function() {
-    buffer = new TextBuffer({text: '0000\n1111\n2222\n3333\n4444\n5555\n'});
-    range = Range.fromObject([[1, 0], [3, Infinity]]);
+    buffer = new TextBuffer({text: '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n'});
+    marker = buffer.markRange([[1, 0], [3, 4]]);
   });
 
   describe('Addition', function() {
     let addition;
 
     beforeEach(function() {
-      addition = new Addition(range);
+      addition = new Addition(marker);
     });
 
-    it('has range accessors', function() {
-      assert.strictEqual(addition.getRange(), range);
+    it('has marker and range accessors', function() {
+      assert.strictEqual(addition.getMarker(), marker);
+      assert.deepEqual(addition.getRange().serialize(), [[1, 0], [3, 4]]);
       assert.strictEqual(addition.getStartBufferRow(), 1);
       assert.strictEqual(addition.getEndBufferRow(), 3);
     });
@@ -74,7 +75,7 @@ describe('Regions', function() {
     it('inverts to a deletion', function() {
       const inverted = addition.invert();
       assert.isTrue(inverted.isDeletion());
-      assert.strictEqual(inverted.getRange(), addition.getRange());
+      assert.strictEqual(inverted.getMarker(), addition.getMarker());
     });
   });
 
@@ -82,7 +83,7 @@ describe('Regions', function() {
     let deletion;
 
     beforeEach(function() {
-      deletion = new Deletion(range);
+      deletion = new Deletion(marker);
     });
 
     it('can be recognized by the isDeletion predicate', function() {
@@ -131,7 +132,7 @@ describe('Regions', function() {
     it('inverts to an addition', function() {
       const inverted = deletion.invert();
       assert.isTrue(inverted.isAddition());
-      assert.strictEqual(inverted.getRange(), deletion.getRange());
+      assert.strictEqual(inverted.getMarker(), deletion.getMarker());
     });
   });
 
@@ -139,7 +140,7 @@ describe('Regions', function() {
     let unchanged;
 
     beforeEach(function() {
-      unchanged = new Unchanged(range);
+      unchanged = new Unchanged(marker);
     });
 
     it('can be recognized by the isUnchanged predicate', function() {
@@ -194,7 +195,7 @@ describe('Regions', function() {
     let noNewline;
 
     beforeEach(function() {
-      noNewline = new NoNewline(range);
+      noNewline = new NoNewline(marker);
     });
 
     it('can be recognized by the isNoNewline predicate', function() {
@@ -252,7 +253,7 @@ describe('Regions', function() {
     }
 
     it('returns an array containing all gaps with no intersection rows', function() {
-      const region = new Addition(Range.fromObject([[1, 0], [3, Infinity]]));
+      const region = new Addition(buffer.markRange([[1, 0], [3, Infinity]]));
 
       assertIntersections(region.intersectRows(new Set([0, 5, 6]), false), []);
       assertIntersections(region.intersectRows(new Set([0, 5, 6]), true), [
@@ -261,7 +262,7 @@ describe('Regions', function() {
     });
 
     it('detects an intersection at the beginning of the range', function() {
-      const region = new Deletion(Range.fromObject([[2, 0], [6, Infinity]]));
+      const region = new Deletion(buffer.markRange([[2, 0], [6, Infinity]]));
       const rowSet = new Set([0, 1, 2, 3]);
 
       assertIntersections(region.intersectRows(rowSet, false), [
@@ -274,7 +275,7 @@ describe('Regions', function() {
     });
 
     it('detects an intersection in the middle of the range', function() {
-      const region = new Unchanged(Range.fromObject([[2, 0], [6, Infinity]]));
+      const region = new Unchanged(buffer.markRange([[2, 0], [6, Infinity]]));
       const rowSet = new Set([0, 3, 4, 8, 9]);
 
       assertIntersections(region.intersectRows(rowSet, false), [
@@ -288,7 +289,7 @@ describe('Regions', function() {
     });
 
     it('detects an intersection at the end of the range', function() {
-      const region = new Addition(Range.fromObject([[2, 0], [6, Infinity]]));
+      const region = new Addition(buffer.markRange([[2, 0], [6, Infinity]]));
       const rowSet = new Set([4, 5, 6, 7, 10, 11]);
 
       assertIntersections(region.intersectRows(rowSet, false), [
@@ -301,7 +302,7 @@ describe('Regions', function() {
     });
 
     it('detects multiple intersections', function() {
-      const region = new Deletion(Range.fromObject([[2, 0], [8, Infinity]]));
+      const region = new Deletion(buffer.markRange([[2, 0], [8, Infinity]]));
       const rowSet = new Set([0, 3, 4, 6, 7, 10]);
 
       assertIntersections(region.intersectRows(rowSet, false), [
