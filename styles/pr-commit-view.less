@@ -1,13 +1,16 @@
 @import 'variables';
 
+@default-padding: 5px;
+@avatar-dimensions: 16px;
+
 .github-PrCommitView {
 
   &-btn {
     background-color: inherit;
     border: none;
     font-style: italic;
-    height: 25px;
-    margin-left: 5px;
+    margin-left: @default-padding;
+    padding: 0;
 
     &:hover {
       text-decoration: underline;
@@ -16,14 +19,13 @@
 
   &-avatar {
     border-radius: @component-border-radius;
-    height: 16px;
-    margin-right: 5px;
-    width: 16px;
+    height: @avatar-dimensions;
+    margin-right: @default-padding;
+    width: @avatar-dimensions;
   }
 
   &-text {
-    // make this a variable
-    line-height: 16px;
+    line-height: @avatar-dimensions;
     vertical-align: middle;
   }
 
