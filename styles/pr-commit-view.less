@@ -19,9 +19,17 @@
     border-bottom: none;
     border-radius: @component-border-radius;
     display: flex;
-    height: 75px;
     justify-content: space-between;
+    min-height: 75px;
     padding: 5px;
+
+    &:last-child {
+      border-bottom: 1px solid @separator-border-color;
+    }
+
+    &:first-child {
+      margin-top: 20px;
+    }
 
     &:hover {
       background-color: @background-color-info;
