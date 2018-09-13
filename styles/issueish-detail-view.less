@@ -139,27 +139,31 @@
   // Tabs ------------------------
 
   &-tablist {
-    border-bottom: 1px solid @base-border-color;
     display: flex;
-    justify-content: space-around;
+    padding: 0;
     list-style: none;
   }
 
   &-tab {
+    flex: 1;
+    padding: @component-padding/2 @component-padding;
+    text-align: center;
+    border: 1px solid transparent;
+    border-bottom-color: @base-border-color;
     border-radius: @component-border-radius @component-border-radius 0 0;
-    padding: 5px 20px;
-
+    cursor: default;
+    
     &.react-tabs__tab--selected {
-      border: 1px solid @base-border-color;
-      border-bottom: 1px solid @base-background-color;
-      margin-bottom: -1px;
+      color: @text-color-selected;
+      border-color: @base-border-color;
+      border-bottom-color: transparent;
     }
   }
 
   &-tab-icon {
     vertical-align: middle;
     &:before {
-      margin-right: 5px;
+      margin-right: .4em;
     }
   }
 
