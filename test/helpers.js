@@ -16,7 +16,6 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {clearRelayExpectations} from '../lib/relay-network-layer-manager';
-import IndexedRowRange from '../lib/models/indexed-row-range';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -155,37 +154,27 @@ export function assertEqualSortedArraysByKey(arr1, arr2, key) {
 
 // Helpers for test/models/patch classes
 
-// Quickly construct an IndexedRowRange into a buffer that has uniform line lengths (except for possibly the final
-// line.) The default parameters are chosen to match buffers of the form "0000\n0001\n0002\n....".
-export function buildRange(startRow, endRow = startRow, rowLength = 5, endRowLength = rowLength) {
-  return new IndexedRowRange({
-    bufferRange: [[startRow, 0], [endRow, endRowLength - 1]],
-    startOffset: startRow * rowLength,
-    endOffset: endRow * rowLength + endRowLength,
-  });
-}
-
 class PatchBufferAssertions {
   constructor(patch) {
     this.patch = patch;
   }
 
-  hunk(hunkIndex, {startRow, endRow, header, changes}) {
+  hunk(hunkIndex, {startRow, endRow, header, regions}) {
     const hunk = this.patch.getHunks()[hunkIndex];
     assert.isDefined(hunk);
 
-    assert.strictEqual(hunk.getRowRange().getStartBufferRow(), startRow);
-    assert.strictEqual(hunk.getRowRange().getEndBufferRow(), endRow);
+    assert.strictEqual(hunk.getRange().start.row, startRow);
+    assert.strictEqual(hunk.getRange().end.row, endRow);
     assert.strictEqual(hunk.getHeader(), header);
-    assert.lengthOf(hunk.getChanges(), changes.length);
+    assert.lengthOf(hunk.getRegions(), regions.length);
 
-    for (let i = 0; i < changes.length; i++) {
-      const change = hunk.getChanges()[i];
-      const spec = changes[i];
+    for (let i = 0; i < regions.length; i++) {
+      const region = hunk.getRegions()[i];
+      const spec = regions[i];
 
-      assert.strictEqual(change.constructor.name.toLowerCase(), spec.kind);
-      assert.strictEqual(change.toStringIn(this.patch.getBuffer().getText()), spec.string);
-      assert.deepEqual(change.getRowRange().bufferRange.serialize(), spec.range);
+      assert.strictEqual(region.constructor.name.toLowerCase(), spec.kind);
+      assert.strictEqual(region.toStringIn(this.patch.getBuffer()), spec.string);
+      assert.deepEqual(region.getRange().serialize(), spec.range);
     }
   }
 

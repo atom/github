@@ -73,9 +73,9 @@ describe('Regions', function() {
     });
 
     it('inverts to a deletion', function() {
-      const inverted = addition.invert();
+      const inverted = addition.invertIn(buffer);
       assert.isTrue(inverted.isDeletion());
-      assert.strictEqual(inverted.getMarker(), addition.getMarker());
+      assert.deepEqual(inverted.getRange().serialize(), addition.getRange().serialize());
     });
   });
 
@@ -130,9 +130,9 @@ describe('Regions', function() {
     });
 
     it('inverts to an addition', function() {
-      const inverted = deletion.invert();
+      const inverted = deletion.invertIn(buffer);
       assert.isTrue(inverted.isAddition());
-      assert.strictEqual(inverted.getMarker(), deletion.getMarker());
+      assert.deepEqual(inverted.getRange().serialize(), deletion.getRange().serialize());
     });
   });
 
@@ -187,7 +187,9 @@ describe('Regions', function() {
     });
 
     it('inverts as itself', function() {
-      assert.strictEqual(unchanged.invert(), unchanged);
+      const inverted = unchanged.invertIn(buffer);
+      assert.isTrue(inverted.isUnchanged());
+      assert.deepEqual(inverted.getRange().serialize(), unchanged.getRange().serialize());
     });
   });
 
@@ -241,8 +243,10 @@ describe('Regions', function() {
       assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333');
     });
 
-    it('inverts as itself', function() {
-      assert.strictEqual(noNewline.invert(), noNewline);
+    it('inverts as another nonewline change', function() {
+      const inverted = noNewline.invertIn(buffer);
+      assert.isTrue(inverted.isNoNewline());
+      assert.deepEqual(inverted.getRange().serialize(), noNewline.getRange().serialize());
     });
   });
 
