@@ -7,59 +7,70 @@ import {assertInPatch} from '../../helpers';
 
 describe('Patch', function() {
   it('has some standard accessors', function() {
-    const p = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: 'bufferText'})});
+    const buffer = new TextBuffer({text: 'bufferText'});
+    const layers = buildLayers(buffer);
+    const p = new Patch({status: 'modified', hunks: [], buffer, layers});
     assert.strictEqual(p.getStatus(), 'modified');
     assert.deepEqual(p.getHunks(), []);
     assert.strictEqual(p.getBuffer().getText(), 'bufferText');
     assert.isTrue(p.isPresent());
+
+    assert.strictEqual(p.getUnchangedLayer().getMarkerCount(), 0);
+    assert.strictEqual(p.getAdditionLayer().getMarkerCount(), 0);
+    assert.strictEqual(p.getDeletionLayer().getMarkerCount(), 0);
+    assert.strictEqual(p.getNoNewlineLayer().getMarkerCount(), 0);
   });
 
   it('computes the byte size of the total patch data', function() {
-    const p = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: '\u00bd + \u00bc = \u00be'})});
+    const buffer = new TextBuffer({text: '\u00bd + \u00bc = \u00be'});
+    const layers = buildLayers(buffer);
+    const p = new Patch({status: 'modified', hunks: [], buffer, layers});
     assert.strictEqual(p.getByteSize(), 12);
   });
 
   it('computes the total changed line count', function() {
     const buffer = buildBuffer(15);
+    const layers = buildLayers(buffer);
     const hunks = [
       new Hunk({
         oldStartRow: 0, newStartRow: 0, oldRowCount: 1, newRowCount: 1,
         sectionHeading: 'zero',
-        marker: markRange(buffer, 0, 5),
+        marker: markRange(layers.hunk, 0, 5),
         regions: [
-          new Unchanged(markRange(buffer, 0)),
-          new Addition(markRange(buffer, 1)),
-          new Unchanged(markRange(buffer, 2)),
-          new Deletion(markRange(buffer, 3, 4)),
-          new Unchanged(markRange(buffer, 5)),
+          new Unchanged(markRange(layers.unchanged, 0)),
+          new Addition(markRange(layers.addition, 1)),
+          new Unchanged(markRange(layers.unchanged, 2)),
+          new Deletion(markRange(layers.deletion, 3, 4)),
+          new Unchanged(markRange(layers.unchanged, 5)),
         ],
       }),
       new Hunk({
         oldStartRow: 0, newStartRow: 0, oldRowCount: 1, newRowCount: 1,
         sectionHeading: 'one',
-        marker: markRange(buffer, 6, 15),
+        marker: markRange(layers.hunk, 6, 15),
         regions: [
-          new Unchanged(markRange(buffer, 6)),
-          new Deletion(markRange(buffer, 7)),
-          new Unchanged(markRange(buffer, 8)),
-          new Deletion(markRange(buffer, 9, 11)),
-          new Addition(markRange(buffer, 12, 14)),
-          new Unchanged(markRange(buffer, 15)),
+          new Unchanged(markRange(layers.unchanged, 6)),
+          new Deletion(markRange(layers.deletion, 7)),
+          new Unchanged(markRange(layers.unchanged, 8)),
+          new Deletion(markRange(layers.deletion, 9, 11)),
+          new Addition(markRange(layers.addition, 12, 14)),
+          new Unchanged(markRange(layers.unchanged, 15)),
         ],
       }),
     ];
-    const p = new Patch({status: 'modified', hunks, buffer});
+    const p = new Patch({status: 'modified', hunks, buffer, layers});
 
     assert.strictEqual(p.getChangedLineCount(), 10);
   });
 
   it('computes the maximum number of digits needed to display a diff line number', function() {
     const buffer = buildBuffer(15);
+    const layers = buildLayers(buffer);
     const hunks = [
       new Hunk({
         oldStartRow: 0, oldRowCount: 1, newStartRow: 0, newRowCount: 1,
         sectionHeading: 'zero',
-        marker: markRange(buffer, 0, 5),
+        marker: markRange(layers.hunk, 0, 5),
         regions: [],
       }),
       new Hunk({
@@ -68,19 +79,21 @@ describe('Patch', function() {
         newStartRow: 95,
         newRowCount: 3,
         sectionHeading: 'one',
-        marker: markRange(buffer, 6, 15),
+        marker: markRange(layers.hunk, 6, 15),
         regions: [],
       }),
     ];
-    const p0 = new Patch({status: 'modified', hunks, buffer});
+    const p0 = new Patch({status: 'modified', hunks, buffer, layers});
     assert.strictEqual(p0.getMaxLineNumberWidth(), 3);
 
-    const p1 = new Patch({status: 'deleted', hunks: [], buffer});
+    const p1 = new Patch({status: 'deleted', hunks: [], buffer, layers});
     assert.strictEqual(p1.getMaxLineNumberWidth(), 0);
   });
 
   it('clones itself with optionally overridden properties', function() {
-    const original = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: 'bufferText'})});
+    const buffer = new TextBuffer({text: 'bufferText'});
+    const layers = buildLayers(buffer);
+    const original = new Patch({status: 'modified', hunks: [], buffer, layers});
 
     const dup0 = original.clone();
     assert.notStrictEqual(dup0, original);
@@ -101,7 +114,9 @@ describe('Patch', function() {
     assert.deepEqual(dup2.getHunks(), hunks);
     assert.strictEqual(dup2.getBuffer().getText(), 'bufferText');
 
-    const dup3 = original.clone({buffer: new TextBuffer({text: 'changed'})});
+    const nBuffer = new TextBuffer({text: 'changed'});
+    const nLayers = buildLayers(nBuffer);
+    const dup3 = original.clone({buffer: nBuffer, layers: nLayers});
     assert.notStrictEqual(dup3, original);
     assert.strictEqual(dup3.getStatus(), 'modified');
     assert.deepEqual(dup3.getHunks(), []);
@@ -126,7 +141,9 @@ describe('Patch', function() {
     assert.deepEqual(dup1.getHunks(), hunks);
     assert.strictEqual(dup1.getBuffer().getText(), '');
 
-    const dup2 = nullPatch.clone({buffer: new TextBuffer({text: 'changed'})});
+    const nBuffer = new TextBuffer({text: 'changed'});
+    const nLayers = buildLayers(nBuffer);
+    const dup2 = nullPatch.clone({buffer: nBuffer, layers: nLayers});
     assert.notStrictEqual(dup2, nullPatch);
     assert.isNull(dup2.getStatus());
     assert.deepEqual(dup2.getHunks(), []);
@@ -207,20 +224,65 @@ describe('Patch', function() {
       );
     });
 
+    it('marks ranges for each change region on the correct marker layer', function() {
+      const patch = buildPatchFixture();
+      const stagePatch = patch.getStagePatchForLines(new Set([1, 5, 15, 16, 17, 25]));
+
+      const layerRanges = [
+        ['hunk', stagePatch.getHunkLayer()],
+        ['unchanged', stagePatch.getUnchangedLayer()],
+        ['addition', stagePatch.getAdditionLayer()],
+        ['deletion', stagePatch.getDeletionLayer()],
+        ['noNewline', stagePatch.getNoNewlineLayer()],
+      ].reduce((obj, [key, layer]) => {
+        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        return obj;
+      }, {});
+
+      assert.deepEqual(layerRanges, {
+        hunk: [
+          [[0, 0], [4, 4]],
+          [[5, 0], [14, 4]],
+          [[15, 0], [17, 26]],
+        ],
+        unchanged: [
+          [[0, 0], [0, 4]],
+          [[2, 0], [2, 4]],
+          [[4, 0], [4, 4]],
+          [[5, 0], [10, 4]],
+          [[14, 0], [14, 4]],
+          [[15, 0], [15, 4]],
+        ],
+        addition: [
+          [[3, 0], [3, 4]],
+          [[13, 0], [13, 4]],
+          [[16, 0], [16, 4]],
+        ],
+        deletion: [
+          [[1, 0], [1, 4]],
+          [[11, 0], [12, 4]],
+        ],
+        noNewline: [
+          [[17, 0], [17, 26]],
+        ],
+      });
+    });
+
     it('returns a modification patch if original patch is a deletion', function() {
       const buffer = new TextBuffer({text: 'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\n'});
+      const layers = buildLayers(buffer);
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 0,
           sectionHeading: 'zero',
-          marker: markRange(buffer, 0, 5),
+          marker: markRange(layers.hunk, 0, 5),
           regions: [
-            new Deletion(markRange(buffer, 0, 5)),
+            new Deletion(markRange(layers.deletion, 0, 5)),
           ],
         }),
       ];
 
-      const patch = new Patch({status: 'deleted', hunks, buffer});
+      const patch = new Patch({status: 'deleted', hunks, buffer, layers});
 
       const stagedPatch = patch.getStagePatchForLines(new Set([1, 3, 4]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
@@ -242,16 +304,17 @@ describe('Patch', function() {
 
     it('returns an deletion when staging an entire deletion patch', function() {
       const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+      const layers = buildLayers(buffer);
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
-          marker: markRange(buffer, 0, 2),
+          marker: markRange(layers.hunk, 0, 2),
           regions: [
-            new Deletion(markRange(buffer, 0, 2)),
+            new Deletion(markRange(layers.deletion, 0, 2)),
           ],
         }),
       ];
-      const patch = new Patch({status: 'deleted', hunks, buffer});
+      const patch = new Patch({status: 'deleted', hunks, buffer, layers});
 
       const stagePatch0 = patch.getStagePatchForLines(new Set([0, 1, 2]));
       assert.strictEqual(stagePatch0.getStatus(), 'deleted');
@@ -348,6 +411,54 @@ describe('Patch', function() {
       );
     });
 
+    it('marks ranges for each change region on the correct marker layer', function() {
+      const patch = buildPatchFixture();
+      const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 4, 5, 16, 17, 20, 25]));
+
+      const layerRanges = [
+        ['hunk', unstagePatch.getHunkLayer()],
+        ['unchanged', unstagePatch.getUnchangedLayer()],
+        ['addition', unstagePatch.getAdditionLayer()],
+        ['deletion', unstagePatch.getDeletionLayer()],
+        ['noNewline', unstagePatch.getNoNewlineLayer()],
+      ].reduce((obj, [key, layer]) => {
+        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        return obj;
+      }, {});
+
+      assert.deepEqual(layerRanges, {
+        hunk: [
+          [[0, 0], [5, 4]],
+          [[6, 0], [13, 4]],
+          [[14, 0], [16, 4]],
+          [[17, 0], [19, 26]],
+        ],
+        unchanged: [
+          [[0, 0], [0, 4]],
+          [[2, 0], [2, 4]],
+          [[5, 0], [5, 4]],
+          [[6, 0], [10, 4]],
+          [[13, 0], [13, 4]],
+          [[14, 0], [14, 4]],
+          [[16, 0], [16, 4]],
+          [[17, 0], [17, 4]],
+        ],
+        addition: [
+          [[1, 0], [1, 4]],
+          [[11, 0], [11, 4]],
+        ],
+        deletion: [
+          [[3, 0], [4, 4]],
+          [[12, 0], [12, 4]],
+          [[15, 0], [15, 4]],
+          [[18, 0], [18, 4]],
+        ],
+        noNewline: [
+          [[19, 0], [19, 26]],
+        ],
+      });
+    });
+
     it('unstages an entire patch at once', function() {
       const patch = buildPatchFixture();
       const unstagedPatch = patch.getFullUnstagedPatch();
@@ -404,16 +515,17 @@ describe('Patch', function() {
 
     it('returns a modification if original patch is an addition', function() {
       const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+      const layers = buildLayers(buffer);
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 3,
-          marker: markRange(buffer, 0, 2),
+          marker: markRange(layers.hunk, 0, 2),
           regions: [
-            new Addition(markRange(buffer, 0, 2)),
+            new Addition(markRange(layers.addition, 0, 2)),
           ],
         }),
       ];
-      const patch = new Patch({status: 'added', hunks, buffer});
+      const patch = new Patch({status: 'added', hunks, buffer, layers});
       const unstagePatch = patch.getUnstagePatchForLines(new Set([1, 2]));
       assert.strictEqual(unstagePatch.getStatus(), 'modified');
       assert.strictEqual(unstagePatch.getBuffer().getText(), '0000\n0001\n0002\n');
@@ -432,19 +544,20 @@ describe('Patch', function() {
 
     it('returns a deletion when unstaging an entire addition patch', function() {
       const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+      const layers = buildLayers(buffer);
       const hunks = [
         new Hunk({
           oldStartRow: 1,
           oldRowCount: 0,
           newStartRow: 1,
           newRowCount: 3,
-          marker: markRange(buffer, 0, 2),
+          marker: markRange(layers.hunk, 0, 2),
           regions: [
-            new Addition(markRange(buffer, 0, 2)),
+            new Addition(markRange(layers.addition, 0, 2)),
           ],
         }),
       ];
-      const patch = new Patch({status: 'added', hunks, buffer});
+      const patch = new Patch({status: 'added', hunks, buffer, layers});
 
       const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
       assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
@@ -467,19 +580,22 @@ describe('Patch', function() {
 
     it('returns the origin if the first hunk is empty', function() {
       const buffer = new TextBuffer({text: ''});
+      const layers = buildLayers(buffer);
       const hunks = [
         new Hunk({
           oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 0,
-          marker: markRange(buffer, 0),
+          marker: markRange(layers.hunk, 0),
           regions: [],
         }),
       ];
-      const patch = new Patch({status: 'modified', hunks, buffer});
+      const patch = new Patch({status: 'modified', hunks, buffer, layers});
       assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     });
 
     it('returns the origin if the patch is empty', function() {
-      const patch = new Patch({status: 'modified', hunks: [], buffer: new TextBuffer({text: ''})});
+      const buffer = new TextBuffer({text: ''});
+      const layers = buildLayers(buffer);
+      const patch = new Patch({status: 'modified', hunks: [], buffer, layers});
       assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     });
   });
@@ -503,51 +619,52 @@ describe('Patch', function() {
         // 21  22     23
         '0024\n0025\n No newline at end of file\n',
       });
+      const nLayers = buildLayers(nBuffer);
       const nHunks = [
         new Hunk({
           oldStartRow: 3, oldRowCount: 3, newStartRow: 3, newRowCount: 5, // next row drift = +2
-          marker: markRange(nBuffer, 0, 4),
+          marker: markRange(nLayers.hunk, 0, 4),
           regions: [
-            new Unchanged(markRange(nBuffer, 0)), // 0
-            new Addition(markRange(nBuffer, 1)), // + 1
-            new Unchanged(markRange(nBuffer, 2)), // 2
-            new Addition(markRange(nBuffer, 3)), // + 3
-            new Unchanged(markRange(nBuffer, 4)), // 4
+            new Unchanged(markRange(nLayers.unchanged, 0)), // 0
+            new Addition(markRange(nLayers.addition, 1)), // + 1
+            new Unchanged(markRange(nLayers.unchanged, 2)), // 2
+            new Addition(markRange(nLayers.addition, 3)), // + 3
+            new Unchanged(markRange(nLayers.unchanged, 4)), // 4
           ],
         }),
         new Hunk({
           oldStartRow: 12, oldRowCount: 9, newStartRow: 14, newRowCount: 7, // next row drift = +2 -2 = 0
-          marker: markRange(nBuffer, 5, 15),
+          marker: markRange(nLayers.hunk, 5, 15),
           regions: [
-            new Unchanged(markRange(nBuffer, 5)), // 5
-            new Addition(markRange(nBuffer, 6)), // +6
-            new Unchanged(markRange(nBuffer, 7, 9)), // 7 8 9
-            new Deletion(markRange(nBuffer, 10, 13)), // -10 -11 -12 -13
-            new Addition(markRange(nBuffer, 14)), // +14
-            new Unchanged(markRange(nBuffer, 15)), // 15
+            new Unchanged(markRange(nLayers.unchanged, 5)), // 5
+            new Addition(markRange(nLayers.addition, 6)), // +6
+            new Unchanged(markRange(nLayers.unchanged, 7, 9)), // 7 8 9
+            new Deletion(markRange(nLayers.deletion, 10, 13)), // -10 -11 -12 -13
+            new Addition(markRange(nLayers.addition, 14)), // +14
+            new Unchanged(markRange(nLayers.unchanged, 15)), // 15
           ],
         }),
         new Hunk({
           oldStartRow: 26, oldRowCount: 4, newStartRow: 26, newRowCount: 3, // next row drift = 0 -1 = -1
-          marker: markRange(nBuffer, 16, 20),
+          marker: markRange(nLayers.hunk, 16, 20),
           regions: [
-            new Unchanged(markRange(nBuffer, 16)), // 16
-            new Addition(markRange(nBuffer, 17)), // +17
-            new Deletion(markRange(nBuffer, 18, 19)), // -18 -19
-            new Unchanged(markRange(nBuffer, 20)), // 20
+            new Unchanged(markRange(nLayers.unchanged, 16)), // 16
+            new Addition(markRange(nLayers.addition, 17)), // +17
+            new Deletion(markRange(nLayers.deletion, 18, 19)), // -18 -19
+            new Unchanged(markRange(nLayers.unchanged, 20)), // 20
           ],
         }),
         new Hunk({
           oldStartRow: 32, oldRowCount: 1, newStartRow: 31, newRowCount: 2,
-          marker: markRange(nBuffer, 22, 24),
+          marker: markRange(nLayers.hunk, 22, 24),
           regions: [
-            new Unchanged(markRange(nBuffer, 22)), // 22
-            new Addition(markRange(nBuffer, 23)), // +23
-            new NoNewline(markRange(nBuffer, 24)),
+            new Unchanged(markRange(nLayers.unchanged, 22)), // 22
+            new Addition(markRange(nLayers.addition, 23)), // +23
+            new NoNewline(markRange(nLayers.noNewline, 24)),
           ],
         }),
       ];
-      const nextPatch = new Patch({status: 'modified', hunks: nHunks, buffer: nBuffer});
+      const nextPatch = new Patch({status: 'modified', hunks: nHunks, buffer: nBuffer, layers: nLayers});
 
       const nextRange = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
       // Original buffer row 14 = the next changed row = new buffer row 11
@@ -556,31 +673,33 @@ describe('Patch', function() {
 
     it('offsets the chosen selection index by hunks that were completely selected', function() {
       const buffer = buildBuffer(11);
+      const layers = buildLayers(buffer);
       const lastPatch = new Patch({
         status: 'modified',
         hunks: [
           new Hunk({
             oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 3,
-            marker: markRange(buffer, 0, 5),
+            marker: markRange(layers.hunk, 0, 5),
             regions: [
-              new Unchanged(markRange(buffer, 0)),
-              new Addition(markRange(buffer, 1, 2)),
-              new Deletion(markRange(buffer, 3, 4)),
-              new Unchanged(markRange(buffer, 5)),
+              new Unchanged(markRange(layers.unchanged, 0)),
+              new Addition(markRange(layers.addition, 1, 2)),
+              new Deletion(markRange(layers.deletion, 3, 4)),
+              new Unchanged(markRange(layers.unchanged, 5)),
             ],
           }),
           new Hunk({
             oldStartRow: 5, oldRowCount: 4, newStartRow: 5, newRowCount: 4,
-            marker: markRange(buffer, 6, 11),
+            marker: markRange(layers.hunk, 6, 11),
             regions: [
-              new Unchanged(markRange(buffer, 6)),
-              new Addition(markRange(buffer, 7, 8)),
-              new Deletion(markRange(buffer, 9, 10)),
-              new Unchanged(markRange(buffer, 11)),
+              new Unchanged(markRange(layers.unchanged, 6)),
+              new Addition(markRange(layers.addition, 7, 8)),
+              new Deletion(markRange(layers.deletion, 9, 10)),
+              new Unchanged(markRange(layers.unchanged, 11)),
             ],
           }),
         ],
         buffer,
+        layers,
       });
       // Select:
       // * all changes from hunk 0
@@ -588,21 +707,23 @@ describe('Patch', function() {
       const lastSelectedRows = new Set([1, 2, 3, 4, 8]);
 
       const nextBuffer = new TextBuffer({text: '0006\n0007\n0008\n0009\n0010\n0011\n'});
+      const nextLayers = buildLayers(nextBuffer);
       const nextPatch = new Patch({
         status: 'modified',
         hunks: [
           new Hunk({
             oldStartRow: 5, oldRowCount: 4, newStartRow: 5, newRowCount: 4,
-            marker: markRange(nextBuffer, 0, 5),
+            marker: markRange(nextLayers.hunk, 0, 5),
             regions: [
-              new Unchanged(markRange(nextBuffer, 0)),
-              new Addition(markRange(nextBuffer, 1)),
-              new Deletion(markRange(nextBuffer, 3, 4)),
-              new Unchanged(markRange(nextBuffer, 5)),
+              new Unchanged(markRange(nextLayers.unchanged, 0)),
+              new Addition(markRange(nextLayers.addition, 1)),
+              new Deletion(markRange(nextLayers.deletion, 3, 4)),
+              new Unchanged(markRange(nextLayers.unchanged, 5)),
             ],
           }),
         ],
         buffer: nextBuffer,
+        layers: nextLayers,
       });
 
       const range = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
@@ -614,19 +735,23 @@ describe('Patch', function() {
       const lastSelectedRows = new Set();
 
       const buffer = lastPatch.getBuffer();
+      const layers = buildLayers(buffer);
       const nextPatch = new Patch({
         status: 'modified',
         hunks: [
           new Hunk({
             oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 4,
-            marker: markRange(buffer, 0, 4),
+            marker: markRange(layers.hunk, 0, 4),
             regions: [
-              new Addition(markRange(buffer, 1, 2)),
-              new Deletion(markRange(buffer, 3)),
+              new Unchanged(markRange(layers.unchanged, 0)),
+              new Addition(markRange(layers.addition, 1, 2)),
+              new Deletion(markRange(layers.deletion, 3)),
+              new Unchanged(markRange(layers.unchanged, 4)),
             ],
           }),
         ],
         buffer,
+        layers,
       });
 
       const range = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
@@ -636,30 +761,31 @@ describe('Patch', function() {
 
   it('prints itself as an apply-ready string', function() {
     const buffer = buildBuffer(10);
+    const layers = buildLayers(buffer);
 
     const hunk0 = new Hunk({
       oldStartRow: 0, newStartRow: 0, oldRowCount: 2, newRowCount: 3,
       sectionHeading: 'zero',
-      marker: markRange(buffer, 0, 2),
+      marker: markRange(layers.hunk, 0, 2),
       regions: [
-        new Unchanged(markRange(buffer, 0)),
-        new Addition(markRange(buffer, 1)),
-        new Unchanged(markRange(buffer, 2)),
+        new Unchanged(markRange(layers.unchanged, 0)),
+        new Addition(markRange(layers.addition, 1)),
+        new Unchanged(markRange(layers.unchanged, 2)),
       ],
     });
 
     const hunk1 = new Hunk({
       oldStartRow: 5, newStartRow: 6, oldRowCount: 4, newRowCount: 2,
       sectionHeading: 'one',
-      marker: markRange(buffer, 6, 9),
+      marker: markRange(layers.hunk, 6, 9),
       regions: [
-        new Unchanged(markRange(buffer, 6)),
-        new Deletion(markRange(buffer, 7, 8)),
-        new Unchanged(markRange(buffer, 9)),
+        new Unchanged(markRange(layers.unchanged, 6)),
+        new Deletion(markRange(layers.deletion, 7, 8)),
+        new Unchanged(markRange(layers.unchanged, 9)),
       ],
     });
 
-    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], buffer});
+    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], buffer, layers});
 
     assert.strictEqual(p.toString(), [
       '@@ -0,2 +0,3 @@\n',
@@ -706,60 +832,71 @@ function buildBuffer(lines, noNewline = false) {
   return buffer;
 }
 
+function buildLayers(buffer) {
+  return {
+    hunk: buffer.addMarkerLayer(),
+    unchanged: buffer.addMarkerLayer(),
+    addition: buffer.addMarkerLayer(),
+    deletion: buffer.addMarkerLayer(),
+    noNewline: buffer.addMarkerLayer(),
+  };
+}
+
 function markRange(buffer, start, end = start) {
   return buffer.markRange([[start, 0], [end, Infinity]]);
 }
 
 function buildPatchFixture() {
   const buffer = buildBuffer(26, true);
+  const layers = buildLayers(buffer);
 
   const hunks = [
     new Hunk({
       oldStartRow: 3, oldRowCount: 4, newStartRow: 3, newRowCount: 5,
       sectionHeading: 'zero',
-      marker: markRange(buffer, 0, 6),
+      marker: markRange(layers.hunk, 0, 6),
       regions: [
-        new Unchanged(markRange(buffer, 0)),
-        new Deletion(markRange(buffer, 1, 2)),
-        new Addition(markRange(buffer, 3, 5)),
-        new Unchanged(markRange(buffer, 6)),
+        new Unchanged(markRange(layers.unchanged, 0)),
+        new Deletion(markRange(layers.deletion, 1, 2)),
+        new Addition(markRange(layers.addition, 3, 5)),
+        new Unchanged(markRange(layers.unchanged, 6)),
       ],
     }),
     new Hunk({
       oldStartRow: 12, oldRowCount: 9, newStartRow: 13, newRowCount: 7,
       sectionHeading: 'one',
-      marker: markRange(buffer, 7, 18),
+      marker: markRange(layers.hunk, 7, 18),
       regions: [
-        new Unchanged(markRange(buffer, 7)),
-        new Addition(markRange(buffer, 8, 9)),
-        new Unchanged(markRange(buffer, 10, 11)),
-        new Deletion(markRange(buffer, 12, 16)),
-        new Addition(markRange(buffer, 17, 17)),
-        new Unchanged(markRange(buffer, 18)),
+        new Unchanged(markRange(layers.unchanged, 7)),
+        new Addition(markRange(layers.addition, 8, 9)),
+        new Unchanged(markRange(layers.unchanged, 10, 11)),
+        new Deletion(markRange(layers.deletion, 12, 16)),
+        new Addition(markRange(layers.addition, 17, 17)),
+        new Unchanged(markRange(layers.unchanged, 18)),
       ],
     }),
     new Hunk({
       oldStartRow: 26, oldRowCount: 4, newStartRow: 25, newRowCount: 3,
       sectionHeading: 'two',
-      marker: markRange(buffer, 19, 23),
+      marker: markRange(layers.hunk, 19, 23),
       regions: [
-        new Unchanged(markRange(buffer, 19)),
-        new Addition(markRange(buffer, 20)),
-        new Deletion(markRange(buffer, 21, 22)),
-        new Unchanged(markRange(buffer, 23)),
+        new Unchanged(markRange(layers.unchanged, 19)),
+        new Addition(markRange(layers.addition, 20)),
+        new Deletion(markRange(layers.deletion, 21, 22)),
+        new Unchanged(markRange(layers.unchanged, 23)),
       ],
     }),
     new Hunk({
       oldStartRow: 32, oldRowCount: 1, newStartRow: 30, newRowCount: 2,
       sectionHeading: 'three',
-      marker: markRange(buffer, 24, 26),
+      marker: markRange(layers.hunk, 24, 26),
       regions: [
-        new Unchanged(markRange(buffer, 24)),
-        new Addition(markRange(buffer, 25)),
-        new NoNewline(markRange(buffer, 26)),
+        new Unchanged(markRange(layers.unchanged, 24)),
+        new Addition(markRange(layers.addition, 25)),
+        new NoNewline(markRange(layers.noNewline, 26)),
       ],
     }),
   ];
 
-  return new Patch({status: 'modified', hunks, buffer});
+  return new Patch({status: 'modified', hunks, buffer, layers});
 }
