@@ -30,13 +30,8 @@ describe('ChangedFilesCountView', function() {
 
   it('records an event on click', function() {
     sinon.stub(reporterProxy, 'addEvent');
-    reporterProxy.addEvent.reset();
     wrapper = shallow(<ChangedFilesCountView />);
-    assert.deepEqual(reporterProxy.addEvent.callCount, 0);
     wrapper.simulate('click');
-    assert.deepEqual(reporterProxy.addEvent.callCount, 1);
-    const args = reporterProxy.addEvent.lastCall.args;
-    assert.deepEqual(args[0], 'click');
-    assert.deepEqual(args[1], {package: 'github', component: 'ChangedFileCountView'});
+    assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'ChangedFileCountView'}));
   });
 });
