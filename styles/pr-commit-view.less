@@ -1,53 +1,87 @@
 @import 'variables';
 
-@default-padding: 5px;
+@default-padding: @component-padding;
 @avatar-dimensions: 16px;
 
 .github-PrCommitView {
 
-  &-btn {
-    background-color: inherit;
+  &-container {
+    display: flex;
+    align-items: center;
+    padding: @default-padding;
+    font-size: @font-size;
+    border: 1px solid @base-border-color;
+    border-bottom: none;
+
+    &:first-child {
+      margin-top: @default-padding * 2;
+      border-top-left-radius: @component-border-radius;
+      border-top-right-radius: @component-border-radius;
+    }
+
+    &:last-child {
+      border-bottom: 1px solid @base-border-color;
+      border-bottom-left-radius: @component-border-radius;
+      border-bottom-right-radius: @component-border-radius;
+    }
+  }
+
+  &-commit {
+    flex: 1;
+  }
+
+  &-title {
+    margin: 0 0 .25em 0;
+    font-size: 1.2em;
+    line-height: 1.4;
+  }
+
+  &-avatar {
+    border-radius: @component-border-radius;
+    height: @avatar-dimensions;
+    margin-right: .4em;
+    width: @avatar-dimensions;
+  }
+
+  &-metaText {
+    line-height: @avatar-dimensions;
+    vertical-align: middle;
+    color: @text-color-subtle;
+  }
+
+  &-moreButton {
     border: none;
-    font-style: italic;
-    margin-left: @default-padding;
+    margin-left: @default-padding/2;
     padding: 0;
+    color: @text-color-subtle;
+    font-style: italic;
+    font-size: .85em;
+    background-color: transparent;
 
     &:hover {
       text-decoration: underline;
     }
   }
 
-  &-avatar {
-    border-radius: @component-border-radius;
-    height: @avatar-dimensions;
-    margin-right: @default-padding;
-    width: @avatar-dimensions;
+  &-moreText {
+    margin-top: @default-padding/2;
+    padding: 0;
+    font-size: inherit;
+    font-family: var(--editor-font-family);
+    word-wrap: normal;
+    word-break: normal;
+    white-space: initial;
+    background-color: transparent;
   }
 
-  &-text {
+  &-sha {
+    margin-left: @default-padding;
     line-height: @avatar-dimensions;
     vertical-align: middle;
-  }
-
-  &-container {
-    border: 1px solid @base-border-color;
-    border-bottom: none;
-    border-radius: @component-border-radius;
-    display: flex;
-    justify-content: space-between;
-    min-height: 75px;
-    padding: @default-padding;
-
-    &:last-child {
-      border-bottom: 1px solid @base-border-color;
-    }
-
-    &:first-child {
-      margin-top: 20px;
-    }
-
-    &:hover {
-      background-color: @background-color-info;
+    color: @text-color-info;
+    font-family: var(--editor-font-family);
+    a {
+      color: inherit;
     }
   }
 }
