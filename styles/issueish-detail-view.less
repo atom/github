@@ -1,18 +1,5 @@
 @import 'variables';
 
-// tabs
-
-.react-tabs__tab {
-  border-radius: @component-border-radius @component-border-radius 0 0;
-  padding: 5px 20px;
-
-  &--selected {
-    border: 1px solid @separator-border-color;
-    border-bottom: 1px solid @base-background-color;
-    margin-bottom: -1px;
-  }
-}
-
 .github-IssueishDetailView {
   padding: @component-padding * 3;
   overflow: auto;
@@ -24,20 +11,6 @@
   font-size: 1.166666em;
   line-height: 1.5;
   background-color: @base-background-color;
-
-  &-tablist {
-    border-bottom: 1px solid @separator-border-color;
-    display: flex;
-    justify-content: space-around;
-    list-style: none;
-  }
-
-  &-tab-icon {
-    vertical-align: middle;
-    &:before {
-      margin-right: 5px;
-    }
-  }
 
   &-container {
     max-width: 48em;
@@ -159,6 +132,34 @@
 
     &Author {
       color: inherit;
+    }
+  }
+
+
+  // Tabs ------------------------
+
+  &-tablist {
+    border-bottom: 1px solid @separator-border-color;
+    display: flex;
+    justify-content: space-around;
+    list-style: none;
+  }
+
+  &-tab {
+    border-radius: @component-border-radius @component-border-radius 0 0;
+    padding: 5px 20px;
+
+    &.react-tabs__tab--selected {
+      border: 1px solid @separator-border-color;
+      border-bottom: 1px solid @base-background-color;
+      margin-bottom: -1px;
+    }
+  }
+
+  &-tab-icon {
+    vertical-align: middle;
+    &:before {
+      margin-right: 5px;
     }
   }
 
