@@ -1,13 +1,11 @@
 @import 'variables';
 
 @default-padding: @component-padding;
-@avatar-dimensions: 16px;
+@avatar-dimensions: 20px;
 
 .github-PrCommitView {
 
   &-container {
-    display: flex;
-    align-items: center;
     padding: @default-padding;
     font-size: @font-size;
     border: 1px solid @base-border-color;
@@ -27,26 +25,21 @@
   }
 
   &-commit {
-    flex: 1;
-  }
-
-  &-title {
-    margin: 0 0 .25em 0;
-    font-size: 1.2em;
-    line-height: 1.4;
+    display: flex;
   }
 
   &-avatar {
-    border-radius: @component-border-radius;
-    height: @avatar-dimensions;
-    margin-right: .4em;
     width: @avatar-dimensions;
+    height: @avatar-dimensions;
+    margin-right: @default-padding;
+    border-radius: @component-border-radius;
   }
 
-  &-metaText {
-    line-height: @avatar-dimensions;
-    vertical-align: middle;
-    color: @text-color-subtle;
+  &-title {
+    flex: 1;
+    margin: 0;
+    font-size: 1.2em;
+    line-height: 1.4;
   }
 
   &-moreButton {
@@ -65,8 +58,23 @@
     }
   }
 
+  &-timeAgo {
+    margin-left: @default-padding;
+    color: @text-color-subtle;
+  }
+
+  &-sha {
+    margin-left: @default-padding;
+    color: @text-color-info;
+    font-family: var(--editor-font-family);
+    a {
+      color: inherit;
+    }
+  }
+
   &-moreText {
-    margin-top: @default-padding/2;
+    margin-top: @default-padding;
+    margin-left: @avatar-dimensions + @default-padding;
     padding: 0;
     font-size: inherit;
     font-family: var(--editor-font-family);
@@ -74,16 +82,5 @@
     word-break: break-word;
     white-space: initial;
     background-color: transparent;
-  }
-
-  &-sha {
-    margin-left: @default-padding;
-    line-height: @avatar-dimensions;
-    vertical-align: middle;
-    color: @text-color-info;
-    font-family: var(--editor-font-family);
-    a {
-      color: inherit;
-    }
   }
 }
