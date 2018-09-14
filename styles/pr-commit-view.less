@@ -51,15 +51,17 @@
 
   &-moreButton {
     border: none;
-    margin-left: @default-padding/2;
-    padding: 0;
+    margin-left: @default-padding/1.5;
+    padding: 0em .2em;
     color: @text-color-subtle;
     font-style: italic;
-    font-size: .85em;
-    background-color: transparent;
+    font-size: .8em;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @button-background-color;
 
     &:hover {
-      text-decoration: underline;
+      background-color: @button-background-color-hover
     }
   }
 
