@@ -40,6 +40,8 @@ describe('FilePatch', function() {
     assert.strictEqual(filePatch.getBuffer().getText(), '0000\n0001\n0002\n');
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
 
+    assert.strictEqual(filePatch.getHunkAt(1), hunks[0]);
+
     assert.deepEqual(filePatch.getFirstChangeRange(), [[1, 0], [1, Infinity]]);
 
     const nBuffer = new TextBuffer({text: '0001\n0002\n'});
