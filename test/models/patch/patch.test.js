@@ -151,7 +151,28 @@ describe('Patch', function() {
   });
 
   describe('stage patch generation', function() {
-    it('creates a patch that applies selected lines from only a single hunk', function() {
+    it('creates a patch that applies selected lines from only the first hunk', function() {
+      const patch = buildPatchFixture();
+      const stagePatch = patch.getStagePatchForLines(new Set([2, 3, 4, 5]));
+      // buffer rows:             0     1     2     3     4     5     6
+      const expectedBufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n';
+      assert.strictEqual(stagePatch.getBuffer().getText(), expectedBufferText);
+      assertInPatch(stagePatch).hunks(
+        {
+          startRow: 0,
+          endRow: 6,
+          header: '@@ -3,4 +3,6 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 0000\n 0001', range: [[0, 0], [1, 4]]},
+            {kind: 'deletion', string: '-0002', range: [[2, 0], [2, 4]]},
+            {kind: 'addition', string: '+0003\n+0004\n+0005', range: [[3, 0], [5, 4]]},
+            {kind: 'unchanged', string: ' 0006', range: [[6, 0], [6, 4]]},
+          ],
+        },
+      );
+    });
+
+    it('creates a patch that applies selected lines from a single non-first hunk', function() {
       const patch = buildPatchFixture();
       const stagePatch = patch.getStagePatchForLines(new Set([8, 13, 14, 16]));
       // buffer rows:             0     1     2     3     4     5     6     7     8     9
