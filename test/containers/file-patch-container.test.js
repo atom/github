@@ -56,6 +56,37 @@ describe('FilePatchContainer', function() {
     await assert.async.isTrue(wrapper.update().find('FilePatchView').exists());
   });
 
+  it('adopts the buffer from the previous FilePatch when a new one arrives', async function() {
+    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
+    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+
+    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const prevBuffer = prevPatch.getBuffer();
+
+    await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'changed\nagain\n');
+    repository.refresh();
+
+    await assert.async.notStrictEqual(wrapper.update().find('FilePatchController').prop('filePatch'), prevPatch);
+
+    const nextBuffer = wrapper.find('FilePatchController').prop('filePatch').getBuffer();
+    assert.strictEqual(nextBuffer, prevBuffer);
+  });
+
+  it('does not adopt a buffer from an unchanged patch', async function() {
+    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
+    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+
+    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    sinon.spy(prevPatch, 'adoptBufferFrom');
+
+    wrapper.setProps({});
+
+    assert.isFalse(prevPatch.adoptBufferFrom.called);
+
+    const nextPatch = wrapper.find('FilePatchController').prop('filePatch');
+    assert.strictEqual(nextPatch, prevPatch);
+  });
+
   it('passes unrecognized props to the FilePatchView', async function() {
     const extra = Symbol('extra');
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged', extra}));
