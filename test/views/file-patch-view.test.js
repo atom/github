@@ -8,10 +8,11 @@ import {nullFile} from '../../lib/models/patch/file';
 import {nullFilePatch} from '../../lib/models/patch/file-patch';
 
 describe('FilePatchView', function() {
-  let atomEnv, repository, filePatch;
+  let atomEnv, workspace, repository, filePatch;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+    workspace = atomEnv.workspace;
 
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
@@ -52,6 +53,7 @@ describe('FilePatchView', function() {
       selectedRows: new Set(),
       repository,
 
+      workspace,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
 
@@ -81,7 +83,7 @@ describe('FilePatchView', function() {
     const wrapper = mount(buildApp());
 
     const editor = wrapper.find('AtomTextEditor');
-    assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBufferText());
+    assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
   });
 
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
@@ -111,7 +113,7 @@ describe('FilePatchView', function() {
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
-    const editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
     assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
       [[3, 0], [3, 4]],
     ]);
@@ -190,9 +192,9 @@ describe('FilePatchView', function() {
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
-    const editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
     assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
-      [[5, 0], [8, 3]],
+      [[5, 0], [8, 4]],
     ]);
   });
 
@@ -209,29 +211,6 @@ describe('FilePatchView', function() {
     wrapper.unmount();
 
     assert.isTrue(window.removeEventListener.calledWith('mouseup', handler));
-  });
-
-  it('locates hunks for a buffer row with or without markers', function() {
-    const [hunk0, hunk1] = filePatch.getHunks();
-    const instance = mount(buildApp()).instance();
-
-    for (let i = 0; i <= 4; i++) {
-      assert.strictEqual(instance.getHunkAt(i), hunk0, `buffer row ${i} should retrieve hunk 0 with markers`);
-    }
-    for (let j = 5; j <= 8; j++) {
-      assert.strictEqual(instance.getHunkAt(j), hunk1, `buffer row ${j} should retrieve hunk 1 with markers`);
-    }
-    assert.isUndefined(instance.getHunkAt(9));
-
-    instance.hunkMarkerLayerHolder.map(layer => layer.destroy());
-
-    for (let i = 0; i <= 4; i++) {
-      assert.strictEqual(instance.getHunkAt(i), hunk0, `buffer row ${i} should retrieve hunk 0 without markers`);
-    }
-    for (let j = 5; j <= 8; j++) {
-      assert.strictEqual(instance.getHunkAt(j), hunk1, `buffer row ${j} should retrieve hunk 1 without markers`);
-    }
-    assert.isUndefined(instance.getHunkAt(9));
   });
 
   describe('executable mode changes', function() {
@@ -476,7 +455,7 @@ describe('FilePatchView', function() {
 
       wrapper.find('HunkHeaderView').at(0).prop('toggleSelection')();
       assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [2]);
-      assert.strictEqual(toggleRows.args[1], 'line');
+      assert.strictEqual(toggleRows.lastCall.args[1], 'line');
     });
 
     it('handles a toggle click on a hunk not containing a selection', function() {
@@ -485,7 +464,7 @@ describe('FilePatchView', function() {
 
       wrapper.find('HunkHeaderView').at(1).prop('toggleSelection')();
       assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [6, 7]);
-      assert.strictEqual(toggleRows.args[1], 'hunk');
+      assert.strictEqual(toggleRows.lastCall.args[1], 'hunk');
     });
   });
 
@@ -495,7 +474,7 @@ describe('FilePatchView', function() {
     beforeEach(function() {
       wrapper = mount(buildApp());
       instance = wrapper.instance();
-      editor = wrapper.find('AtomTextEditor').getDOMNode().getModel();
+      editor = wrapper.find('AtomTextEditor').instance().getModel();
     });
 
     it('computes the old line number for a buffer row', function() {
@@ -746,12 +725,7 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
-      assert.deepEqual(markers, [
-        [[1, 0], [2, 3]],
-        [[4, 0], [5, 3]],
-        [[12, 0], [14, 3]],
-      ]);
+      assert.strictEqual(layer.prop('id'), linesPatch.getAdditionLayer().id);
     });
 
     it('decorates deleted lines', function() {
@@ -762,12 +736,7 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
-      assert.deepEqual(markers, [
-        [[3, 0], [3, 3]],
-        [[8, 0], [10, 3]],
-        [[15, 0], [15, 3]],
-      ]);
+      assert.strictEqual(layer.prop('id'), linesPatch.getDeletionLayer().id);
     });
 
     it('decorates the nonewline line', function() {
@@ -778,23 +747,20 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      const markers = layer.find('Marker').map(marker => marker.prop('bufferRange').serialize());
-      assert.deepEqual(markers, [
-        [[17, 0], [17, 25]],
-      ]);
+      assert.strictEqual(layer.prop('id'), linesPatch.getNoNewlineLayer().id);
     });
   });
 
   it('notifies a callback when the editor selection changes', function() {
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({selectedRowsChanged}));
-    const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
 
     selectedRowsChanged.resetHistory();
 
-    editor.addSelectionForBufferRange([[3, 1], [4, 0]]);
+    editor.setSelectedBufferRange([[5, 1], [6, 2]]);
 
-    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3, 4]);
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
   });
 
@@ -852,7 +818,7 @@ describe('FilePatchView', function() {
         const openFile = sinon.spy();
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
-        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
@@ -864,7 +830,7 @@ describe('FilePatchView', function() {
         const openFile = sinon.spy();
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
-        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([8, 3]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
@@ -876,7 +842,7 @@ describe('FilePatchView', function() {
         const openFile = sinon.spy();
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
-        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([9, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
@@ -888,7 +854,7 @@ describe('FilePatchView', function() {
         const openFile = sinon.spy();
         const wrapper = mount(buildApp({filePatch: fp, openFile}));
 
-        const editor = wrapper.find('atom-text-editor').getDOMNode().getModel();
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([3, 2]);
         editor.addCursorAtBufferPosition([4, 2]);
         editor.addCursorAtBufferPosition([1, 3]);
