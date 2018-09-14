@@ -29,6 +29,17 @@ describe('Regions', function() {
       assert.isTrue(addition.includesBufferRow(2));
     });
 
+    it('can be re-marked on a new markable target', function() {
+      assert.strictEqual(addition.getMarker().layer, buffer.getDefaultMarkerLayer());
+
+      const nextBuffer = new TextBuffer({text: buffer.getText()});
+      const nextLayer = nextBuffer.addMarkerLayer();
+      addition.reMarkOn(nextLayer);
+
+      assert.strictEqual(addition.getMarker().layer, nextLayer);
+      assert.deepEqual(addition.getRange().serialize(), [[1, 0], [3, 4]]);
+    });
+
     it('can be recognized by the isAddition predicate', function() {
       assert.isTrue(addition.isAddition());
       assert.isFalse(addition.isDeletion());

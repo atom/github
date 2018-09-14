@@ -212,6 +212,21 @@ describe('Hunk', function() {
     assert.strictEqual(h1.getMaxLineNumberWidth(), 5);
   });
 
+  it('creates a new marker on a different markable target', function() {
+    const h = new Hunk({
+      ...attrs,
+      marker: buffer.markRange([[1, 0], [4, 4]]),
+    });
+
+    assert.strictEqual(h.getMarker().layer, buffer.getDefaultMarkerLayer());
+
+    const nextBuffer = new TextBuffer({text: buffer.getText()});
+    h.reMarkOn(nextBuffer);
+
+    assert.deepEqual(h.getRange().serialize(), [[1, 0], [4, 4]]);
+    assert.strictEqual(h.getMarker().layer, nextBuffer.getDefaultMarkerLayer());
+  });
+
   describe('toStringIn()', function() {
     it('prints its header', function() {
       const h = new Hunk({

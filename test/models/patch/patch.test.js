@@ -812,6 +812,87 @@ describe('Patch', function() {
     assert.deepEqual(nullPatch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getNextSelectionRange(), [[0, 0], [0, 0]]);
   });
+
+  it('adopts a buffer from a previous patch', function() {
+    const patch0 = buildPatchFixture();
+    const buffer0 = patch0.getBuffer();
+    const hunkLayer0 = patch0.getHunkLayer();
+    const unchangedLayer0 = patch0.getUnchangedLayer();
+    const additionLayer0 = patch0.getAdditionLayer();
+    const deletionLayer0 = patch0.getDeletionLayer();
+    const noNewlineLayer0 = patch0.getNoNewlineLayer();
+
+    const buffer1 = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n No newline at end of file'});
+    const layers1 = buildLayers(buffer1);
+    const hunks1 = [
+      new Hunk({
+        oldStartRow: 1, oldRowCount: 2, newStartRow: 1, newRowCount: 3,
+        sectionHeading: '0',
+        marker: markRange(layers1.hunk, 0, 2),
+        regions: [
+          new Unchanged(markRange(layers1.unchanged, 0)),
+          new Addition(markRange(layers1.addition, 1)),
+          new Unchanged(markRange(layers1.unchanged, 2)),
+        ],
+      }),
+      new Hunk({
+        oldStartRow: 5, oldRowCount: 2, newStartRow: 1, newRowCount: 3,
+        sectionHeading: '0',
+        marker: markRange(layers1.hunk, 3, 5),
+        regions: [
+          new Unchanged(markRange(layers1.unchanged, 3)),
+          new Deletion(markRange(layers1.deletion, 4)),
+          new NoNewline(markRange(layers1.noNewline, 5)),
+        ],
+      }),
+    ];
+
+    const patch1 = new Patch({status: 'modified', hunks: hunks1, buffer: buffer1, layers: layers1});
+
+    assert.notStrictEqual(patch1.getBuffer(), patch0.getBuffer());
+    assert.notStrictEqual(patch1.getHunkLayer(), hunkLayer0);
+    assert.notStrictEqual(patch1.getUnchangedLayer(), unchangedLayer0);
+    assert.notStrictEqual(patch1.getAdditionLayer(), additionLayer0);
+    assert.notStrictEqual(patch1.getDeletionLayer(), deletionLayer0);
+    assert.notStrictEqual(patch1.getNoNewlineLayer(), noNewlineLayer0);
+
+    patch1.adoptBufferFrom(patch0);
+
+    assert.strictEqual(patch1.getBuffer(), buffer0);
+
+    const markerRanges = [
+      ['hunk', patch1.getHunkLayer(), hunkLayer0],
+      ['unchanged', patch1.getUnchangedLayer(), unchangedLayer0],
+      ['addition', patch1.getAdditionLayer(), additionLayer0],
+      ['deletion', patch1.getDeletionLayer(), deletionLayer0],
+      ['noNewline', patch1.getNoNewlineLayer(), noNewlineLayer0],
+    ].reduce((obj, [key, layer1, layer0]) => {
+      assert.strictEqual(layer1, layer0, `Layer ${key} not inherited`);
+      obj[key] = layer1.getMarkers().map(marker => marker.getRange().serialize());
+      return obj;
+    }, {});
+
+    assert.deepEqual(markerRanges, {
+      hunk: [
+        [[0, 0], [2, 4]],
+        [[3, 0], [5, 26]],
+      ],
+      unchanged: [
+        [[0, 0], [0, 4]],
+        [[2, 0], [2, 4]],
+        [[3, 0], [3, 4]],
+      ],
+      addition: [
+        [[1, 0], [1, 4]],
+      ],
+      deletion: [
+        [[4, 0], [4, 4]],
+      ],
+      noNewline: [
+        [[5, 0], [5, 26]],
+      ],
+    });
+  });
 });
 
 function buildBuffer(lines, noNewline = false) {
