@@ -1,3 +1,4 @@
+import {TextBuffer} from 'atom';
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
@@ -13,6 +14,7 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitView', function() {
   let atomEnv, commandRegistry, tooltips, config, lastCommit;
+  let messageBuffer;
   let app;
 
   beforeEach(function() {
@@ -26,8 +28,11 @@ describe('CommitView', function() {
     const returnTruthyPromise = () => Promise.resolve(true);
     const store = new UserStore({config});
 
+    messageBuffer = new TextBuffer();
+
     app = (
       <CommitView
+        workspace={atomEnv.workspace}
         commandRegistry={commandRegistry}
         tooltips={tooltips}
         config={config}
@@ -40,11 +45,10 @@ describe('CommitView', function() {
         isCommitting={false}
         deactivateCommitBox={false}
         maximumCharacterLimit={72}
-        message=""
+        messageBuffer={messageBuffer}
         prepareToCommit={returnTruthyPromise}
         commit={noop}
         abortMerge={noop}
-        onChangeMessage={noop}
         toggleExpandedCommitMessageEditor={noop}
         updateSelectedCoAuthors={noop}
       />
@@ -56,8 +60,8 @@ describe('CommitView', function() {
   });
   describe('amend', function() {
     it('increments a counter when amend is called', function() {
+      messageBuffer.setText('yo dawg I heard you like amending');
       const wrapper = shallow(app);
-      wrapper.setProps({message: 'yo dawg I heard you like amending'});
       sinon.stub(reporterProxy, 'incrementCounter');
       wrapper.instance().amendLastCommit();
 
@@ -126,7 +130,7 @@ describe('CommitView', function() {
     });
 
     it('disables the commit button', function() {
-      app = React.cloneElement(app, {message: 'even with text'});
+      messageBuffer.setText('even with text');
       const wrapper = shallow(app);
 
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
@@ -137,46 +141,39 @@ describe('CommitView', function() {
     const wrapper = mount(app);
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '72');
 
-    // It takes two renders for the remaining characters field to update based on editor state.
-    // FIXME: make sure this doesn't regress in the actual component
-    wrapper.setProps({message: 'abcde fghij'});
-    wrapper.setProps({});
+    messageBuffer.setText('abcde fghij');
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '61');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: '\nklmno'});
-    wrapper.setProps({});
+    messageBuffer.setText('\nklmno');
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'abcde\npqrst'});
-    wrapper.setProps({});
+    messageBuffer.setText('abcde\npqrst');
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.find('atom-text-editor').getDOMNode().getModel().setCursorBufferPosition([0, 3]);
-    wrapper.update();
+    wrapper.find('AtomTextEditor').instance().getModel().setCursorBufferPosition([0, 3]);
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '67');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
     wrapper.setProps({stagedChangesExist: true, maximumCharacterLimit: 50});
-    wrapper.setProps({});
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '45');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'a'.repeat(41)});
-    wrapper.setProps({});
+    messageBuffer.setText('a'.repeat(41));
+    wrapper.update();
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '9');
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
 
-    wrapper.setProps({message: 'a'.repeat(58)}).update();
-    wrapper.setProps({});
+    messageBuffer.setText('a'.repeat(58));
+    wrapper.update();
     assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '-8');
     assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
     assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
@@ -189,11 +186,11 @@ describe('CommitView', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
+      messageBuffer.setText('something');
       app = React.cloneElement(app, {
         repository,
         stagedChangesExist: true,
         mergeConflictsExist: false,
-        message: 'something',
       });
       wrapper = mount(app);
     });
@@ -215,12 +212,12 @@ describe('CommitView', function() {
     });
 
     it('is disabled when the commit message is empty', function() {
-      wrapper.setProps({message: ''});
-      wrapper.setProps({});
+      messageBuffer.setText('');
+      wrapper.update();
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
 
-      wrapper.setProps({message: 'Not empty'});
-      wrapper.setProps({});
+      messageBuffer.setText('Not empty');
+      wrapper.update();
       assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
     });
 
@@ -254,10 +251,11 @@ describe('CommitView', function() {
       const prepareToCommit = () => Promise.resolve(prepareToCommitResolution);
 
       commit = sinon.spy();
-      app = React.cloneElement(app, {stagedChangesExist: true, prepareToCommit, commit, message: 'Something'});
+      messageBuffer.setText('Something');
+      app = React.cloneElement(app, {stagedChangesExist: true, prepareToCommit, commit});
       wrapper = mount(app);
 
-      editorElement = wrapper.find('atom-text-editor').getDOMNode();
+      editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
       sinon.spy(editorElement, 'focus');
       editor = editorElement.getModel();
 
@@ -349,7 +347,7 @@ describe('CommitView', function() {
   it('detects when the editor has focus', function() {
     const wrapper = mount(app);
 
-    const editorNode = wrapper.find('atom-text-editor').getDOMNode();
+    const editorNode = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
     sinon.stub(editorNode, 'contains').returns(true);
     assert.isTrue(wrapper.instance().hasFocusEditor());
 
@@ -367,14 +365,17 @@ describe('CommitView', function() {
     wrapper.update();
 
     const foci = [
-      ['atom-text-editor', CommitView.focus.EDITOR],
+      ['AtomTextEditor', CommitView.focus.EDITOR, 'atom-text-editor'],
       ['.github-CommitView-abortMerge', CommitView.focus.ABORT_MERGE_BUTTON],
       ['.github-CommitView-commit', CommitView.focus.COMMIT_BUTTON],
       ['.github-CommitView-coAuthorEditor input', CommitView.focus.COAUTHOR_INPUT],
     ];
-    for (const [selector, focus] of foci) {
-      const event = {target: wrapper.find(selector).getDOMNode()};
-      assert.strictEqual(wrapper.instance().rememberFocus(event), focus);
+    for (const [selector, focus, subselector] of foci) {
+      let target = wrapper.find(selector).getDOMNode();
+      if (subselector) {
+        target = target.querySelector(subselector);
+      }
+      assert.strictEqual(wrapper.instance().rememberFocus({target}), focus);
     }
 
     assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
@@ -391,10 +392,11 @@ describe('CommitView', function() {
   describe('restoring focus', function() {
     it('to the editor', function() {
       const wrapper = mount(app);
-      sinon.spy(wrapper.find('atom-text-editor').getDOMNode(), 'focus');
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
-      assert.isTrue(wrapper.find('atom-text-editor').getDOMNode().focus.called);
+      assert.isTrue(element.focus.called);
     });
 
     it('to the abort merge button', function() {
@@ -430,13 +432,14 @@ describe('CommitView', function() {
 
     it('when the named element is no longer rendered', function() {
       const wrapper = mount(app);
-      sinon.spy(wrapper.find('atom-text-editor').getDOMNode(), 'focus');
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON));
-      assert.strictEqual(wrapper.find('atom-text-editor').getDOMNode().focus.callCount, 1);
+      assert.strictEqual(element.focus.callCount, 1);
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
-      assert.strictEqual(wrapper.find('atom-text-editor').getDOMNode().focus.callCount, 2);
+      assert.strictEqual(element.focus.callCount, 2);
     });
 
     it('when refs have not been assigned yet', function() {
