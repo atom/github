@@ -1,6 +1,6 @@
 import {TextBuffer} from 'atom';
 
-import Patch, {nullPatch} from '../../../lib/models/patch/patch';
+import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInPatch} from '../../helpers';
@@ -161,10 +161,13 @@ describe('Patch', function() {
   });
 
   it('clones a nullPatch as a nullPatch', function() {
+    const nullPatch = Patch.createNull();
     assert.strictEqual(nullPatch, nullPatch.clone());
   });
 
   it('clones a nullPatch to a real Patch if properties are provided', function() {
+    const nullPatch = Patch.createNull();
+
     const dup0 = nullPatch.clone({status: 'added'});
     assert.notStrictEqual(dup0, nullPatch);
     assert.strictEqual(dup0.getStatus(), 'added');
@@ -379,6 +382,7 @@ describe('Patch', function() {
     });
 
     it('returns a nullPatch as a nullPatch', function() {
+      const nullPatch = Patch.createNull();
       assert.strictEqual(nullPatch.getStagePatchForLines(new Set([1, 2, 3])), nullPatch);
     });
   });
@@ -625,6 +629,7 @@ describe('Patch', function() {
     });
 
     it('returns a nullPatch as a nullPatch', function() {
+      const nullPatch = Patch.createNull();
       assert.strictEqual(nullPatch.getUnstagePatchForLines(new Set([1, 2, 3])), nullPatch);
       assert.strictEqual(nullPatch.getFullUnstagedPatch(), nullPatch);
     });
@@ -859,6 +864,7 @@ describe('Patch', function() {
   });
 
   it('has a stubbed nullPatch counterpart', function() {
+    const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
     assert.deepEqual(nullPatch.getHunks(), []);
     assert.strictEqual(nullPatch.getBuffer().getText(), '');
