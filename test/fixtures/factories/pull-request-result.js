@@ -162,7 +162,7 @@ export function createPullRequestDetailResult(attrs = {}) {
     },
     url: `https://github.com/owner/repo/pull/${o.number}`,
     reactionGroups: [],
-    commits: {
+    recentCommits: {
       edges: [{
         node: {commit, id: 'node0'}
       }],
