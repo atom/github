@@ -5,7 +5,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import FilePatchView from '../../lib/views/file-patch-view';
 import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
-import {nullFilePatch} from '../../lib/models/patch/file-patch';
+import FilePatch from '../../lib/models/patch/file-patch';
 
 describe('FilePatchView', function() {
   let atomEnv, workspace, repository, filePatch;
@@ -766,13 +766,13 @@ describe('FilePatchView', function() {
 
   describe('when viewing an empty patch', function() {
     it('renders an empty patch message', function() {
-      const wrapper = shallow(buildApp({filePatch: nullFilePatch}));
+      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
       assert.isTrue(wrapper.find('.github-FilePatchView').hasClass('github-FilePatchView--blank'));
       assert.isTrue(wrapper.find('.github-FilePatchView-message').exists());
     });
 
     it('shows navigation controls', function() {
-      const wrapper = shallow(buildApp({filePatch: nullFilePatch}));
+      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
       assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
     });
   });

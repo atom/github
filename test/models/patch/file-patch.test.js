@@ -1,6 +1,6 @@
 import {TextBuffer} from 'atom';
 
-import FilePatch, {nullFilePatch} from '../../../lib/models/patch/file-patch';
+import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
 import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
@@ -797,6 +797,8 @@ describe('FilePatch', function() {
   it('has a nullFilePatch that stubs all FilePatch methods', function() {
     const buffer = new TextBuffer({text: '0\n1\n2\n3\n'});
     const marker = markRange(buffer, 0, 1);
+
+    const nullFilePatch = FilePatch.createNull();
 
     assert.isFalse(nullFilePatch.isPresent());
     assert.isFalse(nullFilePatch.getOldFile().isPresent());
