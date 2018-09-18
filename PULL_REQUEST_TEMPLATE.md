@@ -43,8 +43,12 @@ We must be able to understand the design of your change from this description. I
 
 <!-- Describe the documentation added or improved -->
 
-### Validation
+### Pre-Release Validation
 
-<!-- What hypothesis need to be validated/invalidated once this change is released? -->
+<!-- What hypotheses need to be validated/invalidated prior to releasing this code change? -->
+
+### Post-Release Validation
+
+<!-- What hypotheses need to be validated/invalidated once this change is released? -->
 
 
