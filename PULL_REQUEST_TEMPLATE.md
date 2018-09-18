@@ -9,6 +9,8 @@
 
 <!--
 
+Please start with a short (5-10 word) description and elaborate and provide context as you see fit.
+
 We must be able to understand the design of your change from this description. If we can't get a good idea of what the code will be doing from the description here, the pull request may be closed at the maintainers' discretion. Keep in mind that the maintainer reviewing this PR may not be familiar with or have worked with the code here recently, so please walk us through the concepts.
 
 -->
@@ -28,3 +30,21 @@ We must be able to understand the design of your change from this description. I
 ### Applicable Issues
 
 <!-- Enter any applicable Issues here -->
+
+### Metrics
+
+<!-- What metrics are associated with this code change and what questions can they help us answer? -->
+
+### Tests
+
+<!-- What tests were added / will be added to help protect against future regressions? -->
+
+### Documentation
+
+<!-- Describe the documentation added or improved -->
+
+### Validation
+
+<!-- What hypothesis need to be validated/invalidated once this change is released? -->
+
+
