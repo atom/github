@@ -874,6 +874,7 @@ describe('Patch', function() {
     assert.strictEqual(nullPatch.toString(), '');
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
     assert.strictEqual(nullPatch.getMaxLineNumberWidth(), 0);
+    assert.isUndefined(nullPatch.getHunkAt(0));
     assert.deepEqual(nullPatch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getNextSelectionRange(), [[0, 0], [0, 0]]);
   });
