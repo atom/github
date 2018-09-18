@@ -1,5 +1,6 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {TextBuffer} from 'atom';
 
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Gutter from '../../lib/atom/gutter';
@@ -43,7 +44,7 @@ describe('Gutter', function() {
 
   it('adds a custom gutter to an editor from a context', function() {
     const app = (
-      <AtomTextEditor>
+      <AtomTextEditor workspace={atomEnv.workspace}>
         <Gutter name="bbb" priority={20} />
       </AtomTextEditor>
     );
@@ -57,11 +58,11 @@ describe('Gutter', function() {
   });
 
   it('uses a function to derive number labels', async function() {
-    const text = '000\n111\n222\n333\n444\n555\n666\n777\n888\n999\n';
+    const buffer = new TextBuffer({text: '000\n111\n222\n333\n444\n555\n666\n777\n888\n999\n'});
     const labelFn = ({bufferRow, screenRow}) => `custom ${bufferRow} ${screenRow}`;
 
     const app = (
-      <AtomTextEditor text={text}>
+      <AtomTextEditor workspace={atomEnv.workspace} buffer={buffer}>
         <Gutter
           name="ccc"
           priority={30}
