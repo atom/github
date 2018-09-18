@@ -807,7 +807,7 @@ describe('GitTabController', function() {
         assert.deepEqual(commitMessages, ['Initial commit']);
 
         const expectedCoAuthor = new Author(coAuthorEmail, coAuthorName);
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
+        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), commitSubject);
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
       });
     });
