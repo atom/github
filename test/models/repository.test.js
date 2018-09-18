@@ -1436,7 +1436,13 @@ describe('Repository', function() {
 
         return new Set(
           syncResults
-            .filter(({aSync, bSync}) => !isEqual(aSync, bSync))
+            .filter(({aSync, bSync}) => {
+              if (aSync && aSync.isEqual) {
+                return !aSync.isEqual(bSync);
+              } else {
+                return !isEqual(aSync, bSync);
+              }
+            })
             .map(({key}) => key),
         );
       };
