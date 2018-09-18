@@ -175,11 +175,21 @@ describe('GithubDotcomMarkdown', function() {
     it('does not record event if opening issueish in pane item fails', function() {
       sinon.stub(atom.workspace, 'open').returns(Promise.reject());
       sinon.stub(reporterProxy, 'addEvent');
-      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-      }));
+
+      // calling `handleClick` directly rather than dispatching event so that we can catch the error thrown and prevent errors in the console
+      assert.isRejected(
+        wrapper.instance().handleClick({
+          bubbles: true,
+          cancelable: true,
+          target: {
+            dataset: {
+              url: 'https://github.com/aaa/bbb/issues/123',
+            },
+          },
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        }),
+      );
 
       assert.isTrue(atom.workspace.open.called);
       assert.isFalse(reporterProxy.addEvent.called);
@@ -232,6 +242,7 @@ describe('GithubDotcomMarkdown', function() {
         }),
       );
 
+      assert.isTrue(shell.openExternal.called);
       assert.isFalse(reporterProxy.addEvent.called);
     });
   });
