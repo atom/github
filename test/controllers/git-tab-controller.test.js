@@ -218,7 +218,7 @@ describe('GitTabController', function() {
       const repository = await buildRepository(await cloneRepository());
       const wrapper = mount(await buildApp(repository));
       const view = wrapper.instance().refView.get();
-      const editorElement = wrapper.find('atom-text-editor').getDOMNode();
+      const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
       const commitElement = wrapper.find('.github-CommitView-commit').getDOMNode();
 
       wrapper.instance().rememberLastFocus({target: editorElement});
@@ -472,7 +472,7 @@ describe('GitTabController', function() {
       assert.lengthOf(stagingView.props.unstagedChanges, 1);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
-      commitView.find('atom-text-editor').instance().getModel().setText('Make it so');
+      commitView.find('AtomTextEditor').instance().getModel().setText('Make it so');
       commitView.find('.github-CommitView-commit').simulate('click');
 
       await assert.async.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
