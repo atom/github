@@ -192,7 +192,7 @@ describe('buildFilePatch', function() {
         hunks: [
           {
             oldStartLine: 1,
-            oldLineCount: 4,
+            oldLineCount: 5,
             newStartLine: 0,
             newLineCount: 0,
             lines: [
@@ -200,6 +200,7 @@ describe('buildFilePatch', function() {
               '-line-1',
               '-line-2',
               '-line-3',
+              '-',
             ],
           },
         ],
@@ -211,16 +212,16 @@ describe('buildFilePatch', function() {
       assert.isFalse(p.getNewFile().isPresent());
       assert.strictEqual(p.getPatch().getStatus(), 'deleted');
 
-      const buffer = 'line-0\nline-1\nline-2\nline-3\n';
+      const buffer = 'line-0\nline-1\nline-2\nline-3\n\n';
       assert.strictEqual(p.getBuffer().getText(), buffer);
 
       assertInPatch(p).hunks(
         {
           startRow: 0,
-          endRow: 3,
-          header: '@@ -1,4 +0,0 @@',
+          endRow: 4,
+          header: '@@ -1,5 +0,0 @@',
           regions: [
-            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3', range: [[0, 0], [3, 6]]},
+            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n-', range: [[0, 0], [4, 0]]},
           ],
         },
       );
