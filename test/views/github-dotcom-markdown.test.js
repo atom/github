@@ -172,6 +172,19 @@ describe('GithubDotcomMarkdown', function() {
       await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-link', target: 'new-tab'}));
     });
 
+    it('does not record event if opening issueish in pane item fails', function() {
+      sinon.stub(atom.workspace, 'open').returns(Promise.reject());
+      sinon.stub(reporterProxy, 'addEvent');
+      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      assert.isTrue(atom.workspace.open.called);
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+
     it('opens item in browser if shift key is pressed', function() {
       sinon.stub(shell, 'openExternal').callsArg(2);
 
@@ -199,6 +212,27 @@ describe('GithubDotcomMarkdown', function() {
       }));
 
       await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', from: 'issueish-link'}));
+    });
+
+    it('does not record event if opening issueish in browser fails', function() {
+      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(reporterProxy, 'addEvent');
+
+      // calling `handleClick` directly rather than dispatching event so that we can catch the error thrown and prevent errors in the console
+      assert.isRejected(
+        wrapper.instance().handleClick({
+          bubbles: true,
+          cancelable: true,
+          shiftKey: true,
+          target: {
+            dataset: {
+              url: 'https://github.com/aaa/bbb/issues/123',
+            },
+          },
+        }),
+      );
+
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 });
