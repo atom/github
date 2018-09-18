@@ -525,6 +525,7 @@ describe('Patch', function() {
       const patch = buildPatchFixture();
       const unstagedPatch = patch.getFullUnstagedPatch();
 
+      assert.notStrictEqual(unstagedPatch.getBuffer(), patch.getBuffer());
       assert.strictEqual(unstagedPatch.getBuffer().getText(), patch.getBuffer().getText());
       assertInPatch(unstagedPatch).hunks(
         {
