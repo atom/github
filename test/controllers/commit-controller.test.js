@@ -92,12 +92,13 @@ describe('CommitController', function() {
 
     it('does not cause the repository to update when commit message changes', function() {
       repository.setCommitMessage('some message');
-      const wrapper = shallow(app, {disableLifecycleMethods: true}).instance();
-      sinon.spy(wrapper.props.repository.state, 'didUpdate');
-      assert.strictEqual(wrapper.getCommitMessage(), 'some message');
-      wrapper.handleMessageChange('new message');
-      assert.strictEqual(wrapper.getCommitMessage(), 'new message');
-      assert.isFalse(wrapper.props.repository.state.didUpdate.called);
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      const instance = wrapper.instance();
+      sinon.spy(repository.state, 'didUpdate');
+      assert.strictEqual(instance.getCommitMessage(), 'some message');
+      wrapper.find('CommitView').prop('messageBuffer').setText('new message');
+      assert.strictEqual(instance.getCommitMessage(), 'new message');
+      assert.isFalse(repository.state.didUpdate.called);
     });
 
     describe('when a merge message is defined', function() {
