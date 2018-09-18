@@ -466,6 +466,24 @@ describe('FilePatchView', function() {
       assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [6, 7]);
       assert.strictEqual(toggleRows.lastCall.args[1], 'hunk');
     });
+
+    it('handles a discard click on a hunk containing a selection', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(0).prop('discardSelection')();
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [2]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'line');
+    });
+
+    it('handles a discard click on a hunk not containing a selection', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('discardSelection')();
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'hunk');
+    });
   });
 
   describe('custom gutters', function() {
