@@ -183,11 +183,13 @@ describe('AtomTextEditor', function() {
       selection.setBufferRange([[2, 2], [2, 3]]);
       assert.isTrue(handler.called);
       const [payload] = handler.lastCall.args;
-      assert.deepEqual(payload.oldBufferRange.serialize(), [[2, 0], [2, 1]]);
-      assert.deepEqual(payload.oldScreenRange.serialize(), [[2, 0], [2, 1]]);
-      assert.deepEqual(payload.newBufferRange.serialize(), [[2, 2], [2, 3]]);
-      assert.deepEqual(payload.newScreenRange.serialize(), [[2, 2], [2, 3]]);
-      assert.strictEqual(payload.selection, selection);
+      if (payload) {
+        assert.deepEqual(payload.oldBufferRange.serialize(), [[2, 0], [2, 1]]);
+        assert.deepEqual(payload.oldScreenRange.serialize(), [[2, 0], [2, 1]]);
+        assert.deepEqual(payload.newBufferRange.serialize(), [[2, 2], [2, 3]]);
+        assert.deepEqual(payload.newScreenRange.serialize(), [[2, 2], [2, 3]]);
+        assert.strictEqual(payload.selection, selection);
+      }
     });
 
     it('triggers didDestroySelection when an existing selection is destroyed', function() {
