@@ -3,8 +3,7 @@
 ### Requirements
 
 * Filling out the template is required. Any pull request that does not include enough information to be reviewed in a timely manner may be closed at the maintainers' discretion.
-* All new code requires tests to ensure against regressions.
-* Some sections may not be applicable to your changes, and a simple "N/A" will suffice.
+* Suggestion: You can use checklists to keep track of progress for the sections on metrics, tests, documentation, and user research.
 
 ### Description of the Change
 
@@ -36,7 +35,7 @@ We must be able to understand the design of your change from this description. I
 
 ### Tests
 
-<!-- What tests were added / will be added to help protect against future regressions? Write "N/A" if not applicable. -->
+<!-- What unit or integration tests were (or will be) added added to help protect against future regressions? For manual testing, be sure to describe in detail what steps you took. If you chose not to include a specific test, please explain why. Write "N/A" if not applicable. -->
 
 ### Documentation
 
