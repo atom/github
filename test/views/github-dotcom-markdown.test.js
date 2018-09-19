@@ -239,6 +239,8 @@ describe('GithubDotcomMarkdown', function() {
               url: 'https://github.com/aaa/bbb/issues/123',
             },
           },
+          preventDefault: () => {},
+          stopPropagation: () => {},
         }),
       );
 
