@@ -152,7 +152,7 @@
     border-bottom-color: @base-border-color;
     border-radius: @component-border-radius @component-border-radius 0 0;
     cursor: default;
-    
+
     &.react-tabs__tab--selected {
       color: @text-color-highlight;
       border-color: @base-border-color;
@@ -291,4 +291,10 @@ atom-dock .github-PrStatuses {
     border-left: none;
     border-right: none;
   }
+}
+
+// there's a better way of doing/organizing this I'm sure
+.github-PrCommits-load-more-link {
+  cursor: pointer;
+  text-align: center;
 }
