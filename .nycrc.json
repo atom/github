@@ -4,7 +4,7 @@
   "include": [
     "lib/**/*.js"
   ],
-  exclude: [
+  "exclude": [
     "lib/views/git-cache-view.js",
     "lib/views/git-timings-view.js"
   ]
