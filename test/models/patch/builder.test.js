@@ -81,11 +81,11 @@ describe('buildFilePatch', function() {
           endRow: 8,
           header: '@@ -0,7 +0,6 @@',
           regions: [
-            {kind: 'unchanged', string: ' line-0', range: [[0, 0], [0, 6]]},
-            {kind: 'deletion', string: '-line-1\n-line-2\n-line-3', range: [[1, 0], [3, 6]]},
-            {kind: 'unchanged', string: ' line-4', range: [[4, 0], [4, 6]]},
-            {kind: 'addition', string: '+line-5\n+line-6', range: [[5, 0], [6, 6]]},
-            {kind: 'unchanged', string: ' line-7\n line-8', range: [[7, 0], [8, 6]]},
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'deletion', string: '-line-1\n-line-2\n-line-3\n', range: [[1, 0], [3, 6]]},
+            {kind: 'unchanged', string: ' line-4\n', range: [[4, 0], [4, 6]]},
+            {kind: 'addition', string: '+line-5\n+line-6\n', range: [[5, 0], [6, 6]]},
+            {kind: 'unchanged', string: ' line-7\n line-8\n', range: [[7, 0], [8, 6]]},
           ],
         },
         {
@@ -93,9 +93,9 @@ describe('buildFilePatch', function() {
           endRow: 12,
           header: '@@ -10,3 +11,3 @@',
           regions: [
-            {kind: 'deletion', string: '-line-9', range: [[9, 0], [9, 6]]},
-            {kind: 'unchanged', string: ' line-10\n line-11', range: [[10, 0], [11, 7]]},
-            {kind: 'addition', string: '+line-12', range: [[12, 0], [12, 7]]},
+            {kind: 'deletion', string: '-line-9\n', range: [[9, 0], [9, 6]]},
+            {kind: 'unchanged', string: ' line-10\n line-11\n', range: [[10, 0], [11, 7]]},
+            {kind: 'addition', string: '+line-12\n', range: [[12, 0], [12, 7]]},
           ],
         },
         {
@@ -103,10 +103,10 @@ describe('buildFilePatch', function() {
           endRow: 18,
           header: '@@ -20,4 +21,4 @@',
           regions: [
-            {kind: 'unchanged', string: ' line-13', range: [[13, 0], [13, 7]]},
-            {kind: 'deletion', string: '-line-14\n-line-15', range: [[14, 0], [15, 7]]},
-            {kind: 'addition', string: '+line-16\n+line-17', range: [[16, 0], [17, 7]]},
-            {kind: 'unchanged', string: ' line-18', range: [[18, 0], [18, 7]]},
+            {kind: 'unchanged', string: ' line-13\n', range: [[13, 0], [13, 7]]},
+            {kind: 'deletion', string: '-line-14\n-line-15\n', range: [[14, 0], [15, 7]]},
+            {kind: 'addition', string: '+line-16\n+line-17\n', range: [[16, 0], [17, 7]]},
+            {kind: 'unchanged', string: ' line-18\n', range: [[18, 0], [18, 7]]},
           ],
         },
       );
@@ -221,7 +221,7 @@ describe('buildFilePatch', function() {
           endRow: 4,
           header: '@@ -1,5 +0,0 @@',
           regions: [
-            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n-', range: [[0, 0], [4, 0]]},
+            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n-\n', range: [[0, 0], [4, 0]]},
           ],
         },
       );
@@ -264,7 +264,7 @@ describe('buildFilePatch', function() {
           endRow: 2,
           header: '@@ -0,0 +1,3 @@',
           regions: [
-            {kind: 'addition', string: '+line-0\n+line-1\n+line-2', range: [[0, 0], [2, 6]]},
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[0, 0], [2, 6]]},
           ],
         },
       );
@@ -302,9 +302,9 @@ describe('buildFilePatch', function() {
         endRow: 2,
         header: '@@ -0,1 +0,1 @@',
         regions: [
-          {kind: 'addition', string: '+line-0', range: [[0, 0], [0, 6]]},
-          {kind: 'deletion', string: '-line-1', range: [[1, 0], [1, 6]]},
-          {kind: 'nonewline', string: '\\ No newline at end of file', range: [[2, 0], [2, 26]]},
+          {kind: 'addition', string: '+line-0\n', range: [[0, 0], [0, 6]]},
+          {kind: 'deletion', string: '-line-1\n', range: [[1, 0], [1, 6]]},
+          {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[2, 0], [2, 26]]},
         ],
       });
     });
@@ -361,7 +361,7 @@ describe('buildFilePatch', function() {
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
         regions: [
-          {kind: 'addition', string: '+line-0\n+line-1', range: [[0, 0], [1, 6]]},
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
         ],
       });
     });
@@ -416,7 +416,7 @@ describe('buildFilePatch', function() {
         endRow: 1,
         header: '@@ -0,2 +0,0 @@',
         regions: [
-          {kind: 'deletion', string: '-line-0\n-line-1', range: [[0, 0], [1, 6]]},
+          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[0, 0], [1, 6]]},
         ],
       });
     });
@@ -470,7 +470,7 @@ describe('buildFilePatch', function() {
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
         regions: [
-          {kind: 'addition', string: '+line-0\n+line-1', range: [[0, 0], [1, 6]]},
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
         ],
       });
     });

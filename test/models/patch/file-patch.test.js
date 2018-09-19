@@ -348,10 +348,10 @@ describe('FilePatch', function() {
           endRow: 3,
           header: '@@ -5,3 +5,3 @@',
           regions: [
-            {kind: 'unchanged', string: ' 0000', range: [[0, 0], [0, 4]]},
-            {kind: 'addition', string: '+0001', range: [[1, 0], [1, 4]]},
-            {kind: 'deletion', string: '-0003', range: [[2, 0], [2, 4]]},
-            {kind: 'unchanged', string: ' 0004', range: [[3, 0], [3, 4]]},
+            {kind: 'unchanged', string: ' 0000\n', range: [[0, 0], [0, 4]]},
+            {kind: 'addition', string: '+0001\n', range: [[1, 0], [1, 4]]},
+            {kind: 'deletion', string: '-0003\n', range: [[2, 0], [2, 4]]},
+            {kind: 'unchanged', string: ' 0004\n', range: [[3, 0], [3, 4]]},
           ],
         },
       );
@@ -392,8 +392,8 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,1 @@',
             regions: [
-              {kind: 'unchanged', string: ' 0000', range: [[0, 0], [0, 4]]},
-              {kind: 'deletion', string: '-0001\n-0002', range: [[1, 0], [2, 4]]},
+              {kind: 'unchanged', string: ' 0000\n', range: [[0, 0], [0, 4]]},
+              {kind: 'deletion', string: '-0001\n-0002\n', range: [[1, 0], [2, 4]]},
             ],
           },
         );
@@ -412,7 +412,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             regions: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002', range: [[0, 0], [2, 4]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -478,9 +478,9 @@ describe('FilePatch', function() {
         endRow: 2,
         header: '@@ -20,3 +18,2 @@',
         regions: [
-          {kind: 'unchanged', string: ' 0003', range: [[0, 0], [0, 4]]},
-          {kind: 'deletion', string: '-0004', range: [[1, 0], [1, 4]]},
-          {kind: 'unchanged', string: ' 0005', range: [[2, 0], [2, 4]]},
+          {kind: 'unchanged', string: ' 0003\n', range: [[0, 0], [0, 4]]},
+          {kind: 'deletion', string: '-0004\n', range: [[1, 0], [1, 4]]},
+          {kind: 'unchanged', string: ' 0005\n', range: [[2, 0], [2, 4]]},
         ],
       },
     );
@@ -520,11 +520,11 @@ describe('FilePatch', function() {
           endRow: 4,
           header: '@@ -5,4 +5,4 @@',
           regions: [
-            {kind: 'unchanged', string: ' 0000', range: [[0, 0], [0, 4]]},
-            {kind: 'deletion', string: '-0001', range: [[1, 0], [1, 4]]},
-            {kind: 'unchanged', string: ' 0002', range: [[2, 0], [2, 4]]},
-            {kind: 'addition', string: '+0003', range: [[3, 0], [3, 4]]},
-            {kind: 'unchanged', string: ' 0004', range: [[4, 0], [4, 4]]},
+            {kind: 'unchanged', string: ' 0000\n', range: [[0, 0], [0, 4]]},
+            {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, 4]]},
+            {kind: 'unchanged', string: ' 0002\n', range: [[2, 0], [2, 4]]},
+            {kind: 'addition', string: '+0003\n', range: [[3, 0], [3, 4]]},
+            {kind: 'unchanged', string: ' 0004\n', range: [[4, 0], [4, 4]]},
           ],
         },
       );
@@ -559,8 +559,8 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,2 @@',
             regions: [
-              {kind: 'unchanged', string: ' 0000\n 0001', range: [[0, 0], [1, 4]]},
-              {kind: 'deletion', string: '-0002', range: [[2, 0], [2, 4]]},
+              {kind: 'unchanged', string: ' 0000\n 0001\n', range: [[0, 0], [1, 4]]},
+              {kind: 'deletion', string: '-0002\n', range: [[2, 0], [2, 4]]},
             ],
           },
         );
@@ -575,7 +575,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             regions: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002', range: [[0, 0], [2, 4]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -592,7 +592,7 @@ describe('FilePatch', function() {
             endRow: 2,
             header: '@@ -1,3 +1,0 @@',
             regions: [
-              {kind: 'deletion', string: '-0000\n-0001\n-0002', range: [[0, 0], [2, 4]]},
+              {kind: 'deletion', string: '-0000\n-0001\n-0002\n', range: [[0, 0], [2, 4]]},
             ],
           },
         );
@@ -636,9 +636,9 @@ describe('FilePatch', function() {
         endRow: 2,
         header: '@@ -10,3 +10,2 @@',
         regions: [
-          {kind: 'unchanged', string: ' 0000', range: [[0, 0], [0, 4]]},
-          {kind: 'deletion', string: '-0001', range: [[1, 0], [1, 4]]},
-          {kind: 'unchanged', string: ' 0002', range: [[2, 0], [2, 4]]},
+          {kind: 'unchanged', string: ' 0000\n', range: [[0, 0], [0, 4]]},
+          {kind: 'deletion', string: '-0001\n', range: [[1, 0], [1, 4]]},
+          {kind: 'unchanged', string: ' 0002\n', range: [[2, 0], [2, 4]]},
         ],
       },
     );
