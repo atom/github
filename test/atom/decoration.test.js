@@ -139,4 +139,38 @@ describe('Decoration', function() {
       </AtomTextEditor>,
     );
   });
+
+  it('does not attempt to decorate a destroyed Marker', function() {
+    marker.destroy();
+
+    const app = (
+      <Decoration
+        editor={editor}
+        marker={marker}
+        type="line"
+        position="head"
+        className="something"
+      />
+    );
+    mount(app);
+
+    assert.lengthOf(editor.getLineDecorations(), 0);
+  });
+
+  it('does not attempt to decorate a destroyed TextEditor', function() {
+    editor.destroy();
+
+    const app = (
+      <Decoration
+        editor={editor}
+        marker={marker}
+        type="line"
+        position="head"
+        className="something"
+      />
+    );
+    mount(app);
+
+    assert.lengthOf(editor.getLineDecorations(), 0);
+  });
 });
