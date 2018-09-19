@@ -35,7 +35,20 @@ We must be able to understand the design of your change from this description. I
 
 ### Tests
 
-<!-- What unit or integration tests were (or will be) added added to help protect against future regressions? For manual testing, be sure to describe in detail what steps you took. If you chose not to include a specific test, please explain why. Write "N/A" if not applicable. -->
+<!-- 
+
+How did you verify that your change has the desired effects?
+- How did you verify that all new functionality works as expected?
+- How did you verify that all changed functionality works as expected?
+- How did you verify that the change has not introduced any regressions?
+
+What unit or integration tests were (or will be) added to help protect against future regressions? 
+For manual testing, be sure to describe in detail the actions you performed (including buttons you clicked, text you typed, commands you ran, etc.), and the results you observed.
+If you chose not to include a specific test, please explain why. 
+
+Write "N/A" if not applicable. 
+
+-->
 
 ### Documentation
 
