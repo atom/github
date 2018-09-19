@@ -1072,5 +1072,15 @@ describe('RootController', function() {
       assert.strictEqual(item.getTitle(), 'owner/repo#123');
       assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
     });
+
+    describe('acceptOpenIssueish', function() {
+      it('records an event', async function() {
+        const wrapper = mount(app);
+        sinon.stub(reporterProxy, 'addEvent');
+        sinon.stub(workspace, 'open').returns(Promise.resolve());
+        await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
+        assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
+      });
+    });
   });
 });
