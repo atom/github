@@ -80,7 +80,7 @@ describe('Regions', function() {
     });
 
     it('uses "+" as a prefix for toStringIn()', function() {
-      assert.strictEqual(addition.toStringIn(buffer), '+1111\n+2222\n+3333');
+      assert.strictEqual(addition.toStringIn(buffer), '+1111\n+2222\n+3333\n');
     });
 
     it('inverts to a deletion', function() {
@@ -137,7 +137,7 @@ describe('Regions', function() {
     });
 
     it('uses "-" as a prefix for toStringIn()', function() {
-      assert.strictEqual(deletion.toStringIn(buffer), '-1111\n-2222\n-3333');
+      assert.strictEqual(deletion.toStringIn(buffer), '-1111\n-2222\n-3333\n');
     });
 
     it('inverts to an addition', function() {
@@ -194,7 +194,7 @@ describe('Regions', function() {
     });
 
     it('uses " " as a prefix for toStringIn()', function() {
-      assert.strictEqual(unchanged.toStringIn(buffer), ' 1111\n 2222\n 3333');
+      assert.strictEqual(unchanged.toStringIn(buffer), ' 1111\n 2222\n 3333\n');
     });
 
     it('inverts as itself', function() {
@@ -251,7 +251,7 @@ describe('Regions', function() {
     });
 
     it('uses "\\" as a prefix for toStringIn()', function() {
-      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333');
+      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333\n');
     });
 
     it('inverts as another nonewline change', function() {
@@ -332,5 +332,13 @@ describe('Regions', function() {
         {intersection: [[8, 0], [8, Infinity]], gap: true},
       ]);
     });
+  });
+
+  it('correctly prefixes empty lines in its range', function() {
+    //                               0      1 2     3 4 5     6 7      8
+    const b = new TextBuffer({text: 'before\n\n0001\n\n\n0002\n\nafter\n'});
+    const region = new Addition(b.markRange([[1, 0], [6, 0]]));
+
+    assert.strictEqual(region.toStringIn(b), '+\n+0001\n+\n+\n+0002\n+\n');
   });
 });
