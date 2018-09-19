@@ -248,7 +248,6 @@ describe('Hunk', function() {
           '1000\n1111\n1222\n' +
           ' No newline at end of file\n',
       });
-      // 0000.0111.0222.0333.0444.0555.0666.0777.0888.0999.1000.1111.1222. No newline at end of file.
 
       const h = new Hunk({
         ...attrs,
