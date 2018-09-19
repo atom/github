@@ -864,6 +864,35 @@ describe('Patch', function() {
     ].join(''));
   });
 
+  it('correctly handles blank lines in added, removed, and unchanged regions', function() {
+    const buffer = new TextBuffer({text: '\n\n\n\n\n\n'});
+    const layers = buildLayers(buffer);
+
+    const hunk = new Hunk({
+      oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 5,
+      sectionHeading: 'only',
+      marker: markRange(layers.hunk, 0, 5),
+      regions: [
+        new Unchanged(markRange(layers.unchanged, 0, 1)),
+        new Addition(markRange(layers.addition, 1, 2)),
+        new Deletion(markRange(layers.deletion, 3, 4)),
+        new Unchanged(markRange(layers.unchanged, 5)),
+      ],
+    });
+
+    const p = new Patch({status: 'modified', hunks: [hunk], buffer, layers});
+    assert.strictEqual(p.toString(), [
+      '@@ -1,5 +1,5 @@\n',
+      ' \n',
+      ' \n',
+      '+\n',
+      '+\n',
+      '-\n',
+      '-\n',
+      ' \n',
+    ].join(''));
+  });
+
   it('has a stubbed nullPatch counterpart', function() {
     const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
