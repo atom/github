@@ -805,6 +805,52 @@ describe('FilePatchView', function() {
       assert.isTrue(toggleRows.called);
     });
 
+    it('toggles the patch selection mode from line to hunk', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([2]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'line'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[2, 0], [2, 0]]]);
+
+      selectedRowsChanged.resetHistory();
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 2, 3]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('toggles from line to hunk when no change rows are selected', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'line'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[5, 0], [5, 2]]]);
+
+      selectedRowsChanged.resetHistory();
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('toggles the patch selection mode from hunk to line', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([6, 7]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[5, 0], [8, 4]]]);
+
+      selectedRowsChanged.resetHistory();
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+    });
+
     describe('opening the file', function() {
       let fp;
 
