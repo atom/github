@@ -54,14 +54,7 @@ Write "N/A" if not applicable.
 
 <!-- Describe the documentation added or improved. Write "N/A" if not applicable. -->
 
-### User Experience Research
+### User Experience Research (Optional)
 
-#### Hypotheses to validate prior to releasing
-
-<!-- Are you making assumptions about user behavior? Are you concerned that your feature isn't easily discoverable, or perhaps the UX seems too complex? Do you expect performance improvements? List out assumptions or questions here, and we can try to gather data to get them answered prior to shipping this change. Write "N/A" if not applicable. -->
-
-#### Hypotheses to validate after releasing
-
-<!-- What is the expected user-facing impact of this changes and how can we measure success? Examples include metrics to monitor or user studies to conduct after releasing this change. Write "N/A" if not applicable. -->
-
+<!-- If this change would benefit from UXR, please state assumptions or hypotheses and specify if they are to be validated before or after releasing. Examples include investigating discoverability, verifying performance improvements, tracking metrics, etc. -->
 
