@@ -743,7 +743,7 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      assert.strictEqual(layer.prop('id'), linesPatch.getAdditionLayer().id);
+      assert.strictEqual(layer.prop('external'), linesPatch.getAdditionLayer());
     });
 
     it('decorates deleted lines', function() {
@@ -754,7 +754,7 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      assert.strictEqual(layer.prop('id'), linesPatch.getDeletionLayer().id);
+      assert.strictEqual(layer.prop('external'), linesPatch.getDeletionLayer());
     });
 
     it('decorates the nonewline line', function() {
@@ -765,7 +765,7 @@ describe('FilePatchView', function() {
       assert.isTrue(decoration.exists());
 
       const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
-      assert.strictEqual(layer.prop('id'), linesPatch.getNoNewlineLayer().id);
+      assert.strictEqual(layer.prop('external'), linesPatch.getNoNewlineLayer());
     });
   });
 
