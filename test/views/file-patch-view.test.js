@@ -86,6 +86,13 @@ describe('FilePatchView', function() {
     assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
   });
 
+  it('sets the root class when in hunk selection mode', function() {
+    const wrapper = shallow(buildApp({selectionMode: 'line'}));
+    assert.isFalse(wrapper.find('.github-FilePatchView--hunkMode').exists());
+    wrapper.setProps({selectionMode: 'hunk'});
+    assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
+  });
+
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
