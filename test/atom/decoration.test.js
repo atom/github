@@ -9,11 +9,11 @@ import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 
 describe('Decoration', function() {
-  let atomEnv, editor, marker;
+  let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    const workspace = atomEnv.workspace;
+    workspace = atomEnv.workspace;
 
     editor = await workspace.open(__filename);
     marker = editor.markBufferRange([[2, 0], [6, 0]]);
@@ -27,7 +27,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        markable={marker}
         type="line"
         position="head"
         className="something"
@@ -45,7 +45,7 @@ describe('Decoration', function() {
 
     it('creates a block decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="block">
+        <Decoration editor={editor} markable={marker} type="block">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -63,7 +63,7 @@ describe('Decoration', function() {
 
     it('creates an overlay decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="overlay">
+        <Decoration editor={editor} markable={marker} type="overlay">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -81,7 +81,7 @@ describe('Decoration', function() {
 
     it('creates a gutter decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="gutter">
+        <Decoration editor={editor} markable={marker} type="gutter">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -102,7 +102,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        markable={marker}
         type="line"
         className="whatever"
       />
@@ -118,7 +118,7 @@ describe('Decoration', function() {
 
   it('decorates a parent Marker', function() {
     const wrapper = mount(
-      <AtomTextEditor>
+      <AtomTextEditor workspace={workspace}>
         <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])}>
           <Decoration type="line" className="whatever" position="head" />
         </Marker>
@@ -131,7 +131,7 @@ describe('Decoration', function() {
 
   it('decorates a parent MarkerLayer', function() {
     mount(
-      <AtomTextEditor>
+      <AtomTextEditor workspace={workspace}>
         <MarkerLayer>
           <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
           <Decoration type="line" className="something" />
@@ -146,7 +146,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        markable={marker}
         type="line"
         position="head"
         className="something"
@@ -163,7 +163,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        markable={marker}
         type="line"
         position="head"
         className="something"
