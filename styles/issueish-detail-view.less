@@ -152,7 +152,7 @@
     border-bottom-color: @base-border-color;
     border-radius: @component-border-radius @component-border-radius 0 0;
     cursor: default;
-    
+
     &.react-tabs__tab--selected {
       color: @text-color-highlight;
       border-color: @base-border-color;
@@ -209,7 +209,6 @@ atom-dock .react-tabs__tab {
   padding: none;
 
   &--selected {
-    border: none;
     font-weight: bold;
   }
 }
@@ -218,6 +217,10 @@ atom-dock .github-IssueishDetailView {
   padding: @component-padding;
   font-size: @font-size;
   background-color: @tool-panel-background-color;
+
+  &-tab {
+    border: none;
+  }
 
   &-tablist {
     border-bottom: none;
