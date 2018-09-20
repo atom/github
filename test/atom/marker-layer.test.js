@@ -1,5 +1,6 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {TextBuffer} from 'atom';
 
 import MarkerLayer from '../../lib/atom/marker-layer';
 import RefHolder from '../../lib/models/ref-holder';
@@ -66,25 +67,43 @@ describe('MarkerLayer', function() {
   });
 
   describe('with an externally managed layer', function() {
-    it('locates its marker layer by ID', function() {
+    it('locates a display marker layer', function() {
       const external = editor.addMarkerLayer();
-      const wrapper = mount(<MarkerLayer editor={editor} id={external.id} />);
+      const wrapper = mount(<MarkerLayer editor={editor} external={external} />);
       assert.strictEqual(wrapper.find('BareMarkerLayer').instance().layerHolder.get(), external);
     });
 
     it('locates a marker layer on the buffer', function() {
       const external = editor.getBuffer().addMarkerLayer();
-      const wrapper = mount(<MarkerLayer editor={editor} id={external.id} />);
+      const wrapper = mount(<MarkerLayer editor={editor} external={external} />);
       assert.strictEqual(wrapper.find('BareMarkerLayer').instance().layerHolder.get().bufferMarkerLayer, external);
     });
 
-    it('fails on construction if its ID is invalid', function() {
-      assert.throws(() => mount(<MarkerLayer editor={editor} id={800} />), /Invalid marker layer ID: 800/);
+    it('does nothing if the marker layer is not found', function() {
+      const otherBuffer = new TextBuffer();
+      const external = otherBuffer.addMarkerLayer();
+
+      const wrapper = mount(<MarkerLayer editor={editor} external={external} />);
+      assert.isTrue(wrapper.find('BareMarkerLayer').instance().layerHolder.isEmpty());
+    });
+
+    it('does nothing if the marker layer is on a different editor', function() {
+      const otherBuffer = new TextBuffer();
+      let external = otherBuffer.addMarkerLayer();
+      while (parseInt(external.id, 10) < editor.getBuffer().nextMarkerLayerId) {
+        external = otherBuffer.addMarkerLayer();
+      }
+
+      const oops = editor.addMarkerLayer();
+      assert.strictEqual(oops.id, external.id);
+
+      const wrapper = mount(<MarkerLayer editor={editor} external={external} />);
+      assert.isTrue(wrapper.find('BareMarkerLayer').instance().layerHolder.isEmpty());
     });
 
     it('does not destroy its layer on unmount', function() {
       const external = editor.addMarkerLayer();
-      const wrapper = mount(<MarkerLayer editor={editor} id={external.id} />);
+      const wrapper = mount(<MarkerLayer editor={editor} external={external} />);
       wrapper.unmount();
       assert.isFalse(external.isDestroyed());
     });
