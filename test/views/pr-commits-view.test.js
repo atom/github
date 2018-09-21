@@ -15,7 +15,7 @@ const commitSpec = {
   url: 'https://github.com/atom/github/pull/1684/commits/bad1deaea3d816383721478fc631b5edd0c2b370',
 };
 
-describe.only('PrCommitsView', function() {
+describe('PrCommitsView', function() {
   function buildApp(opts, overloadProps = {}) {
     const o = {
       relayHasMore: () => false,
