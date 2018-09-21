@@ -7,6 +7,7 @@ import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import PaneItem from '../../lib/atom/pane-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {issueishPaneItemProps} from '../fixtures/props/issueish-pane-props';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishDetailItem', function() {
   let atomEnv, subs;
@@ -169,6 +170,17 @@ describe('IssueishDetailItem', function() {
       assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('repo'), 'atom');
       assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('issueishNumber'), 100);
       assert.isTrue(wrapper.find('IssueishDetailContainer').prop('repository').isAbsent());
+    });
+
+    it('records an event after switching', async function() {
+      const wrapper = mount(buildApp({workdirContextPool}));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+
+      wrapper.update();
+
+      sinon.stub(reporterProxy, 'addEvent');
+      await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'github', 2);
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-link', target: 'current-tab'}));
     });
   });
 

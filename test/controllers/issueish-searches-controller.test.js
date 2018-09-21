@@ -10,6 +10,7 @@ import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishSearchesController', function() {
   let atomEnv;
@@ -87,7 +88,7 @@ describe('IssueishSearchesController', function() {
     }
   });
 
-  it('passes a handler to open an issueish pane', async function() {
+  it('passes a handler to open an issueish pane and reports an event', async function() {
     sinon.spy(atomEnv.workspace, 'open');
 
     const wrapper = shallow(buildApp());
@@ -95,6 +96,7 @@ describe('IssueishSearchesController', function() {
 
     const issueish = new Issueish(createPullRequestResult({number: 123}));
 
+    sinon.stub(reporterProxy, 'addEvent');
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
       atomEnv.workspace.open.calledWith(
@@ -102,5 +104,6 @@ describe('IssueishSearchesController', function() {
         {pending: true, searchAllPanes: true},
       ),
     );
+    assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-list'}));
   });
 });

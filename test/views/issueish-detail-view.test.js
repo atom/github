@@ -5,6 +5,7 @@ import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import {BareIssueishDetailView, checkoutStates} from '../../lib/views/issueish-detail-view';
 import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import EnableableOperation from '../../lib/models/enableable-operation';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
@@ -255,6 +256,25 @@ describe('IssueishDetailView', function() {
       const wrapper = shallow(buildApp({}, {checkoutOp}));
 
       assert.isFalse(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
+    });
+  });
+
+  describe('clicking link to view issueish link', function() {
+    it('records an event', function() {
+      const wrapper = shallow(buildApp({
+        repositoryName: 'repo',
+        ownerLogin: 'user0',
+        issueishNumber: 100,
+      }));
+
+      sinon.stub(reporterProxy, 'addEvent');
+
+      const link = wrapper.find('a.github-IssueishDetailView-headerLink');
+      assert.strictEqual(link.text(), 'user0/repo#100');
+      assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
+      link.simulate('click');
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', from: 'issueish-header'}));
     });
   });
 });

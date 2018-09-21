@@ -2,11 +2,11 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BarePrStatusesView} from '../../lib/views/pr-statuses-view';
-import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
+import {createPrStatusesResult} from '../fixtures/factories/pull-request-result';
 
 describe('PrStatusesView', function() {
   function buildPullRequestResult(opts) {
-    return createPullRequestResult({includeEdges: true, ...opts});
+    return createPrStatusesResult({includeEdges: true, ...opts});
   }
 
   function buildApp(opts, overrideProps = {}) {

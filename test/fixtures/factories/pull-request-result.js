@@ -41,6 +41,72 @@ export function createStatusContextResult(attrs = {}) {
   }
 }
 
+export function createPrStatusesResult(attrs = {}) {
+  const idGen = IDGenerator.fromOpts(attrs);
+
+  const o = {
+    id: idGen.generate('pullrequest'),
+    number: 0,
+    repositoryID: idGen.generate('repository'),
+    summaryState: null,
+    states: null,
+    headRefName: 'master',
+    includeEdges: false,
+    ...attrs,
+  };
+
+  if (o.summaryState && !o.states) {
+    o.states = [{state: o.summaryState, ...idGen.embed()}];
+  }
+
+  if (o.states) {
+    o.states = o.states.map(state => {
+      return typeof state === 'string'
+        ? {state: state, ...idGen.embed()}
+        : state
+    });
+  }
+
+  const commit = {
+    id: idGen.generate('commit'),
+  };
+
+  if (o.states === null) {
+    commit.status = null;
+  } else {
+    commit.status = {
+      state: o.summaryState,
+      contexts: o.states.map(createStatusContextResult),
+    };
+  }
+
+  const recentCommits = o.includeEdges
+    ? {edges: [{node: {id: idGen.generate('node'), commit}}]}
+    : {nodes: [{commit, id: idGen.generate('node')}]};
+
+  return {
+    __typename: 'PullRequest',
+    id: o.id,
+    number: o.number,
+    title: `Pull Request ${o.number}`,
+    url: `https://github.com/owner/repo/pulls/${o.number}`,
+    author: {
+      __typename: 'User',
+      login: 'me',
+      avatarUrl: 'https://avatars3.githubusercontent.com/u/000?v=4',
+      id: 'user0'
+    },
+    createdAt: '2018-06-12T14:50:08Z',
+    headRefName: o.headRefName,
+
+    repository: {
+      id: o.repositoryID,
+    },
+
+    recentCommits,
+  }
+}
+
 export function createPullRequestResult(attrs = {}) {
   const idGen = IDGenerator.fromOpts(attrs);
 
@@ -162,7 +228,7 @@ export function createPullRequestDetailResult(attrs = {}) {
     },
     url: `https://github.com/owner/repo/pull/${o.number}`,
     reactionGroups: [],
-    commits: {
+    recentCommits: {
       edges: [{
         node: {commit, id: 'node0'}
       }],

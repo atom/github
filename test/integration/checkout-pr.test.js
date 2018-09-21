@@ -138,6 +138,8 @@ describe('check out a pull request', function() {
         issueishNumber: 1,
         timelineCount: 100,
         timelineCursor: null,
+        commitCount: 100,
+        commitCursor: null,
       },
     }, result);
   }
@@ -161,6 +163,7 @@ describe('check out a pull request', function() {
     });
   }
 
+  // achtung! this test is flaky
   it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
     const {resolve: resolve0, promise: promise0} = expectRepositoryQuery();
     resolve0();
