@@ -173,21 +173,24 @@
       .hunk-line-mixin(@background-color-success);
     }
   }
-}
 
-.gutter.old, .gutter.new {
-  width: 5em;
 
-  div {
-    width: 100%;
-  }
+  // Gutter
 
-  .line-number {
-    opacity: 1;
+  .gutter {
+    .icon-right {
+      display: none; // remove fold icon
+    }
 
-    &.github-FilePatchView-line--selected {
-      color: contrast(@button-background-color-selected);
-      background: @button-background-color-selected;
+    .line-number {
+      min-width: 6ch; // Fit up to 4 characters (+1 padding on each side)
+      opacity: 1;
+      padding: 0 1ch 0 0;
+
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+      }
     }
   }
 }
