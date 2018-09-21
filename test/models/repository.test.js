@@ -10,6 +10,8 @@ import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
+import Author from '../../lib/models/author';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
@@ -571,11 +573,7 @@ describe('Repository', function() {
       const repository = new Repository(workingDirPath);
       await repository.getLoadPromise();
 
-      try {
-        await repository.git.merge('origin/branch');
-      } catch (e) {
-        // expected
-      }
+      await assert.isRejected(repository.git.merge('origin/branch'));
 
       assert.equal(await repository.isMerging(), true);
       const mergeBase = await repository.getLastCommit();
@@ -606,6 +604,104 @@ describe('Repository', function() {
       process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
 
       await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
+    });
+
+    describe('recording commit event with metadata', function() {
+      it('reports partial commits', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        // stage only subset of total changes
+        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
+        await repo.stageFiles(['a.txt']);
+        repo.refresh();
+
+        // unstaged changes remain
+        let unstagedChanges = await repo.getUnstagedChanges();
+        assert.equal(unstagedChanges.length, 1);
+
+        // do partial commit
+        await repo.commit('Partial commit');
+        assert.isTrue(reporterProxy.addEvent.called);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.strictEqual(args[0], 'commit');
+        assert.isTrue(args[1].partial);
+
+        // stage all remaining changes
+        await repo.stageFiles(['b.txt']);
+        repo.refresh();
+        unstagedChanges = await repo.getUnstagedChanges();
+        assert.equal(unstagedChanges.length, 0);
+
+        reporterProxy.addEvent.reset();
+        // do whole commit
+        await repo.commit('Commit everything');
+        assert.isTrue(reporterProxy.addEvent.called);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.strictEqual(args[0], 'commit');
+        assert.isFalse(args[1].partial);
+      });
+
+      it('reports if the commit was an amend', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        await repo.commit('Regular commit', {allowEmpty: true});
+        assert.isTrue(reporterProxy.addEvent.called);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.strictEqual(args[0], 'commit');
+        assert.isFalse(args[1].amend);
+
+        reporterProxy.addEvent.reset();
+        await repo.commit('Amended commit', {allowEmpty: true, amend: true});
+        assert.isTrue(reporterProxy.addEvent.called);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.isTrue(args[1].amend);
+      });
+
+      it('reports number of coAuthors for commit', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+
+        await repo.commit('Commit with no co-authors', {allowEmpty: true});
+        assert.isTrue(reporterProxy.addEvent.called);
+        let args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.deepEqual(args[1].coAuthorCount, 0);
+
+        reporterProxy.addEvent.reset();
+        await repo.commit('Commit with fabulous co-authors', {
+          allowEmpty: true,
+          coAuthors: [new Author('mona@lisa.com', 'Mona Lisa'), new Author('hubot@github.com', 'Mr. Hubot')],
+        });
+        assert.isTrue(reporterProxy.addEvent.called);
+        args = reporterProxy.addEvent.lastCall.args;
+        assert.deepEqual(args[0], 'commit');
+        assert.deepEqual(args[1].coAuthorCount, 2);
+      });
+
+      it('does not record an event if operation fails', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.stub(reporterProxy, 'addEvent');
+        sinon.stub(repo.git, 'commit').throws();
+
+        await assert.isRejected(repo.commit('Commit yo!'));
+        assert.isFalse(reporterProxy.addEvent.called);
+      });
     });
   });
 
@@ -663,6 +759,33 @@ describe('Repository', function() {
           +qqq\n
         `,
       );
+    });
+
+    it('records an event', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      sinon.stub(reporterProxy, 'addEvent');
+
+      await repo.undoLastCommit();
+      assert.isTrue(reporterProxy.addEvent.called);
+
+      const args = reporterProxy.addEvent.lastCall.args;
+      assert.deepEqual(args[0], 'undo-last-commit');
+      assert.deepEqual(args[1], {package: 'github'});
+    });
+
+    it('does not record an event if operation fails', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(repo.git, 'reset').throws();
+
+      await assert.isRejected(repo.undoLastCommit());
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 
@@ -1168,12 +1291,8 @@ describe('Repository', function() {
           const unstagedChanges = await repo.getUnstagedChanges();
 
           assert.equal(await repo.isMerging(), true);
-          try {
-            await repo.abortMerge();
-            assert.fail(null, null, 'repo.abortMerge() unexepctedly succeeded');
-          } catch (e) {
-            assert.match(e.command, /^git merge --abort/);
-          }
+          await assert.isRejected(repo.abortMerge(), /^git merge --abort/);
+
           assert.equal(await repo.isMerging(), true);
           assert.deepEqual(await repo.getStagedChanges(), stagedChanges);
           assert.deepEqual(await repo.getUnstagedChanges(), unstagedChanges);

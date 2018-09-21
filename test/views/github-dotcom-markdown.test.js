@@ -1,8 +1,11 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {shell} from 'electron';
 
 import {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
+import {handleClickEvent, openIssueishLinkInNewTab, openLinkInBrowser} from '../../lib/views/issueish-link';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('GithubDotcomMarkdown', function() {
   let relayEnvironment;
@@ -34,7 +37,7 @@ describe('GithubDotcomMarkdown', function() {
   });
 
   it('intercepts click events on issueish links', function() {
-    const handleClickEvent = sinon.stub();
+    const handleClickEventStub = sinon.stub();
 
     const wrapper = mount(buildApp({
       html: `
@@ -57,7 +60,7 @@ describe('GithubDotcomMarkdown', function() {
           in it
         </p>
       `,
-      handleClickEvent,
+      handleClickEvent: handleClickEventStub,
     }));
 
     const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
@@ -66,7 +69,7 @@ describe('GithubDotcomMarkdown', function() {
       cancelable: true,
     }));
 
-    assert.strictEqual(handleClickEvent.callCount, 1);
+    assert.strictEqual(handleClickEventStub.callCount, 1);
 
     const nonIssueishLink = wrapper.getDOMNode().querySelector('a.other');
     nonIssueishLink.dispatchEvent(new MouseEvent('click', {
@@ -74,7 +77,7 @@ describe('GithubDotcomMarkdown', function() {
       cancelable: true,
     }));
 
-    assert.strictEqual(handleClickEvent.callCount, 1);
+    assert.strictEqual(handleClickEventStub.callCount, 1);
 
     // Force a componentDidUpdate to exercise tooltip handler re-registration
     wrapper.setProps({});
@@ -84,9 +87,9 @@ describe('GithubDotcomMarkdown', function() {
   });
 
   it('registers command handlers', function() {
-    const openIssueishLinkInNewTab = sinon.stub();
-    const openLinkInBrowser = sinon.stub();
-    const switchToIssueish = sinon.stub();
+    const openIssueishLinkInNewTabStub = sinon.stub();
+    const openLinkInBrowserStub = sinon.stub();
+    const switchToIssueishStub = sinon.stub();
 
     const wrapper = mount(buildApp({
       html: `
@@ -94,21 +97,155 @@ describe('GithubDotcomMarkdown', function() {
           <a data-url="https://github.com/aaa/bbb/issue/123" href="https://github.com/aaa/bbb/issue/123">#123</a>
         </p>
       `,
-      openIssueishLinkInNewTab,
-      openLinkInBrowser,
-      switchToIssueish,
+      openIssueishLinkInNewTab: openIssueishLinkInNewTabStub,
+      openLinkInBrowser: openLinkInBrowserStub,
+      switchToIssueish: switchToIssueishStub,
     }));
 
     const link = wrapper.getDOMNode().querySelector('a');
     const href = 'https://github.com/aaa/bbb/issue/123';
 
     atom.commands.dispatch(link, 'github:open-link-in-new-tab');
-    assert.isTrue(openIssueishLinkInNewTab.calledWith(href));
+    assert.isTrue(openIssueishLinkInNewTabStub.calledWith(href));
 
     atom.commands.dispatch(link, 'github:open-link-in-this-tab');
-    assert.isTrue(switchToIssueish.calledWith('aaa', 'bbb', 123));
+    assert.isTrue(switchToIssueishStub.calledWith('aaa', 'bbb', 123));
 
     atom.commands.dispatch(link, 'github:open-link-in-browser');
-    assert.isTrue(openLinkInBrowser.calledWith(href));
+    assert.isTrue(openLinkInBrowserStub.calledWith(href));
+  });
+
+  describe('opening issueish links', function() {
+    let wrapper;
+
+    beforeEach(function() {
+      wrapper = mount(buildApp({
+        html: `
+          <p>
+            <a
+              class="issue-link"
+              data-url="https://github.com/aaa/bbb/issues/123"
+              href="https://github.com/aaa/bbb/issues/123">
+              an issueish link
+            </a>
+          </p>
+        `,
+        handleClickEvent,
+        openIssueishLinkInNewTab,
+        openLinkInBrowser,
+      }));
+    });
+
+    it('opens item in pane and activates accordingly', async function() {
+      sinon.stub(atom.workspace, 'open').returns(Promise.resolve());
+      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
+
+      // regular click opens item and activates it
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      await assert.async.isTrue(atom.workspace.open.called);
+      assert.deepEqual(atom.workspace.open.lastCall.args[1], {activateItem: true});
+
+      // holding down meta key simply opens item
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        metaKey: true,
+      }));
+
+      await assert.async.isTrue(atom.workspace.open.calledTwice);
+      assert.deepEqual(atom.workspace.open.lastCall.args[1], {activateItem: false});
+    });
+
+    it('records event for opening issueish in pane item', async function() {
+      sinon.stub(atom.workspace, 'open').returns(Promise.resolve());
+      sinon.stub(reporterProxy, 'addEvent');
+      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-link', target: 'new-tab'}));
+    });
+
+    it('does not record event if opening issueish in pane item fails', function() {
+      sinon.stub(atom.workspace, 'open').returns(Promise.reject());
+      sinon.stub(reporterProxy, 'addEvent');
+
+      // calling `handleClick` directly rather than dispatching event so that we can catch the error thrown and prevent errors in the console
+      assert.isRejected(
+        wrapper.instance().handleClick({
+          bubbles: true,
+          cancelable: true,
+          target: {
+            dataset: {
+              url: 'https://github.com/aaa/bbb/issues/123',
+            },
+          },
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        }),
+      );
+
+      assert.isTrue(atom.workspace.open.called);
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+
+    it('opens item in browser if shift key is pressed', function() {
+      sinon.stub(shell, 'openExternal').callsArg(2);
+
+      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
+
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        shiftKey: true,
+      }));
+
+      assert.isTrue(shell.openExternal.called);
+    });
+
+    it('records event for opening issueish in browser', async function() {
+      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(reporterProxy, 'addEvent');
+
+      const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
+
+      issueishLink.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        shiftKey: true,
+      }));
+
+      await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', from: 'issueish-link'}));
+    });
+
+    it('does not record event if opening issueish in browser fails', function() {
+      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(reporterProxy, 'addEvent');
+
+      // calling `handleClick` directly rather than dispatching event so that we can catch the error thrown and prevent errors in the console
+      assert.isRejected(
+        wrapper.instance().handleClick({
+          bubbles: true,
+          cancelable: true,
+          shiftKey: true,
+          target: {
+            dataset: {
+              url: 'https://github.com/aaa/bbb/issues/123',
+            },
+          },
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        }),
+      );
+
+      assert.isTrue(shell.openExternal.called);
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
   });
 });

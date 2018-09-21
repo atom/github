@@ -3,5 +3,9 @@
   "source-map": false,
   "include": [
     "lib/**/*.js"
+  ],
+  "exclude": [
+    "lib/views/git-cache-view.js",
+    "lib/views/git-timings-view.js"
   ]
 }
