@@ -63,25 +63,29 @@ describe.only('PrCommitsView', function() {
   it('renders commits', function() {
     const commitSpecs = [commitSpec, commitSpec];
     const wrapper = shallow(buildApp({commitSpecs}));
-    assert.strictEqual(wrapper.find(PrCommitView).length, commitSpecs.length);
+    assert.lengthOf(wrapper.find(PrCommitView), commitSpecs.length);
   });
 
   describe('load more button', function() {
-
     it('is not rendered if there are no more commits', function() {
-
+      const commitSpecs = [commitSpec, commitSpec];
+      const wrapper = shallow(buildApp({relayHasMore: () => false, commitSpecs}));
+      assert.lengthOf(wrapper.find('.github-PrCommitsView-load-more-button'), 0);
     });
 
     it('is rendered if there are more commits', function() {
-
+      const commitSpecs = [commitSpec, commitSpec];
+      const wrapper = shallow(buildApp({relayHasMore: () => true, commitSpecs}));
+      assert.lengthOf(wrapper.find('.github-PrCommitsView-load-more-button'), 1);
     });
 
-    it('loads more commits when load more button is clicked', function() {
-
+    it('calls relay.loadMore when load more button is clicked', function() {
+      const commitSpecs = [commitSpec, commitSpec];
+      const loadMoreStub = sinon.stub(PrCommitsView.prototype, 'loadMore');
+      const wrapper = shallow(buildApp({relayHasMore: () => true, commitSpecs}));
+      assert.strictEqual(loadMoreStub.callCount, 0);
+      wrapper.find('.github-PrCommitsView-load-more-button').simulate('click');
+      assert.strictEqual(loadMoreStub.callCount, 1);
     });
-
   });
-
-
-
 });
