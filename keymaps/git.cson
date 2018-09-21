@@ -47,8 +47,10 @@
   'ctrl-right': 'github:surface-file'
   'cmd-o': 'github:open-file'
   'ctrl-o': 'github:open-file'
-  'alt-tab': 'github:select-next-hunk'
-  'alt-shift-tab': 'github:select-previous-hunk'
+
+'.github-FilePatchView--hunkMode atom-text-editor:not([mini])':
+  'down': 'github:select-next-hunk'
+  'up': 'github:select-previous-hunk'
 
 '.github-Prompt-input':
   'enter': 'core:confirm'

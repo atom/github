@@ -858,6 +858,137 @@ describe('FilePatchView', function() {
       assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
     });
 
+    describe('hunk mode navigation', function() {
+      beforeEach(function() {
+        filePatch = buildFilePatch([{
+          oldPath: 'path.txt',
+          oldMode: '100644',
+          newPath: 'path.txt',
+          newMode: '100644',
+          status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 4, oldLineCount: 2, newStartLine: 4, newLineCount: 3,
+              heading: 'zero',
+              lines: [' 0000', '+0001', ' 0002'],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+              heading: 'one',
+              lines: [' 0003', '-0004', ' 0005'],
+            },
+            {
+              oldStartLine: 20, oldLineCount: 2, newStartLine: 20, newLineCount: 3,
+              heading: 'two',
+              lines: [' 0006', '+0007', ' 0008'],
+            },
+            {
+              oldStartLine: 30, oldLineCount: 2, newStartLine: 31, newLineCount: 3,
+              heading: 'three',
+              lines: [' 0009', '+0010', ' 0011'],
+            },
+            {
+              oldStartLine: 40, oldLineCount: 4, newStartLine: 42, newLineCount: 2,
+              heading: 'four',
+              lines: [' 0012', '-0013', '-0014', ' 0015'],
+            },
+          ],
+        }]);
+      });
+
+      it('advances the selection to the next hunks', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([1, 7, 10]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[0, 0], [2, 4]], // hunk 0
+          [[6, 0], [8, 4]], // hunk 2
+          [[9, 0], [11, 0]], // hunk 3
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4, 10, 13, 14]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[3, 0], [5, 4]], // hunk 1
+          [[9, 0], [11, 4]], // hunk 3
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+      });
+
+      it('does not advance a selected hunk at the end of the patch', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[3, 0], [5, 4]], // hunk 1
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [7, 13, 14]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[6, 0], [8, 4]], // hunk 2
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+      });
+
+      it('retreats the selection to the previous hunks', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 10, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[3, 0], [5, 4]], // hunk 1
+          [[9, 0], [11, 4]], // hunk 3
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 7, 10]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[0, 0], [2, 4]], // hunk 0
+          [[6, 0], [8, 4]], // hunk 2
+          [[9, 0], [11, 4]], // hunk 3
+        ]);
+      });
+
+      it('does not retreat a selected hunk at the beginning of the patch', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 10, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[0, 0], [2, 4]], // hunk 0
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 10]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[0, 0], [2, 4]], // hunk 0
+          [[9, 0], [11, 4]], // hunk 3
+        ]);
+      });
+    });
+
     describe('opening the file', function() {
       let fp;
 
