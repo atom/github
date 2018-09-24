@@ -2,7 +2,7 @@ import moment from 'moment';
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import PrCommitView from '../../lib/views/pr-commit-view';
+import {PrCommitView} from '../../lib/views/pr-commit-view';
 
 const defaultProps = {
   committer: {
@@ -16,23 +16,25 @@ const defaultProps = {
 };
 const getProps = function(overrides = {}) {
   return {
-    ...defaultProps,
-    ...overrides,
-  };
+    item: {
+      ...defaultProps,
+      ...overrides,
+    }
+  }
 };
 
 describe('PrCommitView', function() {
-  function buildApp(opts, overrideProps = {}) {
-    return <PrCommitView {...getProps(opts, overrideProps)} />;
+  function buildApp(overrideProps = {}) {
+    return <PrCommitView {...getProps(overrideProps)} />;
   }
   it('renders the commit view for commits without message body', function() {
     const wrapper = shallow(buildApp({}));
     assert.deepEqual(wrapper.find('.github-PrCommitView-title').text(), defaultProps.messageHeadline);
     const imageHtml = wrapper.find('.github-PrCommitView-avatar').html();
-    assert.ok(imageHtml.includes(defaultProps.committerAvatarUrl));
+    assert.ok(imageHtml.includes(defaultProps.committer.avatarUrl));
 
-    const humanizedTimeSince = moment(defaultProps.date).fromNow();
-    const expectedMetaText = `${defaultProps.committerName} committed ${humanizedTimeSince}`;
+    const humanizedTimeSince = moment(defaultProps.committer.date).fromNow();
+    const expectedMetaText = `${defaultProps.committer.name} committed ${humanizedTimeSince}`;
     assert.deepEqual(wrapper.find('.github-PrCommitView-metaText').text(), expectedMetaText);
 
     assert.ok(wrapper.find('a').html().includes(defaultProps.url));
