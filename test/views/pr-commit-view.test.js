@@ -5,9 +5,11 @@ import {shallow} from 'enzyme';
 import PrCommitView from '../../lib/views/pr-commit-view';
 
 const defaultProps = {
-  committerAvatarUrl: 'https://avatars3.githubusercontent.com/u/3781742',
-  committerName: 'Margaret Hamilton',
-  date: '2018-05-16T21:54:24.500Z',
+  committer: {
+    avatarUrl: 'https://avatars3.githubusercontent.com/u/3781742',
+    name: 'Margaret Hamilton',
+    date: '2018-05-16T21:54:24.500Z',
+  },
   messageHeadline: 'This one weird trick for getting to the moon will blow your mind 🚀',
   abbreviatedOid: 'bad1dea',
   url: 'https://github.com/atom/github/pull/1684/commits/bad1deaea3d816383721478fc631b5edd0c2b370',
