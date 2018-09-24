@@ -19,8 +19,8 @@ const getProps = function(overrides = {}) {
     item: {
       ...defaultProps,
       ...overrides,
-    }
-  }
+    },
+  };
 };
 
 describe('PrCommitView', function() {
