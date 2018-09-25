@@ -61,6 +61,7 @@
     "react-dom": "16.4.0",
     "react-relay": "1.6.0",
     "react-select": "1.2.1",
+    "react-tabs": "^2.3.0",
     "relay-runtime": "1.6.0",
     "temp": "0.8.3",
     "tinycolor2": "1.4.1",
