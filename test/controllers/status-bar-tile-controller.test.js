@@ -11,6 +11,7 @@ import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
+import GithubStatusBarTile from '../../lib/views/github-status-bar-tile';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -645,6 +646,21 @@ describe('StatusBarTileController', function() {
       });
     });
   });
+
+  describe('github tile', function() {
+    it('toggles the github panel when clicked', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      const toggleGithubTab = sinon.spy();
+
+      const wrapper = await mountAndLoad(buildApp({repository, toggleGithubTab}));
+
+      wrapper.find(GithubStatusBarTile).simulate('click');
+      assert(toggleGithubTab.calledOnce);
+    });
+  });
+
 
   describe('changed files', function() {
 
