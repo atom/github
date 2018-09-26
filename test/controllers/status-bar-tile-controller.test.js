@@ -12,7 +12,7 @@ import StatusBarTileController from '../../lib/controllers/status-bar-tile-contr
 import BranchView from '../../lib/views/branch-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
 
-describe('StatusBarTileController', function() {
+describe.only('StatusBarTileController', function() {
   let atomEnvironment;
   let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
 
@@ -644,6 +644,39 @@ describe('StatusBarTileController', function() {
         assert.isTrue(await repository.isMerging());
       });
     });
+  });
+
+  describe('when the local branch is named differently from the remote branch it\'s tracking', function() {
+    let repository;
+    beforeEach(async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+      repository = await buildRepository(localRepoPath);
+      await repository.git.exec(['branch', '-m', 'another-name']);
+    });
+
+    it('fetches properly', async function() {
+      sinon.spy(repository, 'fetch');
+      await commandRegistry.dispatch(workspaceElement, 'github:fetch');
+      assert.isTrue(repository.fetch.called);
+    });
+
+    it('pulls from the correct remote', async function() {
+      const prePullSHA = await repository.git.exec(['rev-parse', 'HEAD']);
+      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
+      sinon.spy(repository, 'pull');
+      await commandRegistry.dispatch(workspaceElement, 'github:pull');
+      const postPullSHA = await repository.git.exec(['rev-parse', 'HEAD']);
+      assert.isTrue(repository.pull.called);
+      assert.equal(prePullSHA, postPullSHA);
+    });
+
+    it('pushes', async function() {
+      await repository.git.commit('new local commit', {allowEmpty: true});
+      sinon.spy(repository, 'push');
+      await commandRegistry.dispatch(workspaceElement, 'github:push');
+      assert.isTrue(repository.push.called);
+    });
+
   });
 
   describe('changed files', function() {
