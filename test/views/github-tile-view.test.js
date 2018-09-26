@@ -1,14 +1,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import GithubStatusBarTile from '../../lib/views/github-status-bar-tile';
+import GithubTileView from '../../lib/views/github-tile-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe('GithubStatusBarTile', function() {
+describe('GithubTileView', function() {
   let wrapper, clickSpy;
   beforeEach(function() {
     clickSpy = sinon.spy();
-    wrapper = shallow(<GithubStatusBarTile didClick={clickSpy} />);
+    wrapper = shallow(<GithubTileView didClick={clickSpy} />);
   });
 
   it('renders github icon and text', function() {
@@ -24,6 +24,6 @@ describe('GithubStatusBarTile', function() {
   it('records an event on click', function() {
     sinon.stub(reporterProxy, 'addEvent');
     wrapper.simulate('click');
-    assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'GithubStatusBarTile'}));
+    assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'GithubTileView'}));
   });
 });

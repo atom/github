@@ -11,7 +11,7 @@ import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
-import GithubStatusBarTile from '../../lib/views/github-status-bar-tile';
+import GithubTileView from '../../lib/views/github-tile-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -656,7 +656,7 @@ describe('StatusBarTileController', function() {
 
       const wrapper = await mountAndLoad(buildApp({repository, toggleGithubTab}));
 
-      wrapper.find(GithubStatusBarTile).simulate('click');
+      wrapper.find(GithubTileView).simulate('click');
       assert(toggleGithubTab.calledOnce);
     });
   });
