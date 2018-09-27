@@ -1,0 +1,97 @@
+@import 'variables';
+
+@default-padding: @component-padding;
+@avatar-dimensions: 16px;
+
+.github-PrCommitsView {
+
+  &-load-more-button {
+    display: block;
+    margin: 20px auto 0;
+  }
+}
+
+.github-PrCommitView {
+
+  &-container {
+    display: flex;
+    align-items: center;
+    padding: @default-padding;
+    font-size: @font-size;
+    border: 1px solid @base-border-color;
+    border-bottom: none;
+
+    &:first-child {
+      margin-top: @default-padding * 2;
+      border-top-left-radius: @component-border-radius;
+      border-top-right-radius: @component-border-radius;
+    }
+
+    &:last-child {
+      border-bottom: 1px solid @base-border-color;
+      border-bottom-left-radius: @component-border-radius;
+      border-bottom-right-radius: @component-border-radius;
+    }
+  }
+
+  &-commit {
+    flex: 1;
+  }
+
+  &-title {
+    margin: 0 0 .25em 0;
+    font-size: 1.2em;
+    line-height: 1.4;
+  }
+
+  &-avatar {
+    border-radius: @component-border-radius;
+    height: @avatar-dimensions;
+    margin-right: .4em;
+    width: @avatar-dimensions;
+  }
+
+  &-metaText {
+    line-height: @avatar-dimensions;
+    vertical-align: middle;
+    color: @text-color-subtle;
+  }
+
+  &-moreButton {
+    border: none;
+    margin-left: @default-padding/1.5;
+    padding: 0em .2em;
+    color: @text-color-subtle;
+    font-style: italic;
+    font-size: .8em;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @button-background-color;
+
+    &:hover {
+      background-color: @button-background-color-hover
+    }
+  }
+
+  &-moreText {
+    margin-top: @default-padding/2;
+    padding: 0;
+    font-size: inherit;
+    font-family: var(--editor-font-family);
+    word-wrap: initial;
+    word-break: break-word;
+    white-space: initial;
+    background-color: transparent;
+  }
+
+  &-sha {
+    margin-left: @default-padding;
+    line-height: @avatar-dimensions;
+    vertical-align: middle;
+    color: @text-color-info;
+    font-family: var(--editor-font-family);
+    a {
+      color: inherit;
+    }
+  }
+}

@@ -109,7 +109,7 @@ describe('IssueishTimelineView', function() {
     const wrapper = shallow(buildApp({
       relayHasMore: () => false,
     }));
-    assert.isFalse(wrapper.find('.github-PrTimeline-load-more-link').exists());
+    assert.isFalse(wrapper.find('.github-PrTimeline-loadMoreButton').exists());
   });
 
   it('renders a link to load more timeline events', function() {
@@ -124,10 +124,10 @@ describe('IssueishTimelineView', function() {
       ],
     }));
 
-    const link = wrapper.find('.github-PrTimeline-load-more-link');
-    assert.strictEqual(link.text(), 'Load More');
+    const button = wrapper.find('.github-PrTimeline-loadMoreButton');
+    assert.strictEqual(button.text(), 'Load More');
     assert.isFalse(relayLoadMore.called);
-    link.simulate('click');
+    button.simulate('click');
     assert.isTrue(relayLoadMore.called);
   });
 

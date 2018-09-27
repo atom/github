@@ -23,6 +23,7 @@
   &-header {
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
+    margin-bottom: 20px;
   }
 
   &-headerRow {
@@ -135,6 +136,38 @@
   }
 
 
+  // Tabs ------------------------
+
+  &-tablist {
+    display: flex;
+    padding: 0;
+    list-style: none;
+  }
+
+  &-tab {
+    flex: 1;
+    padding: @component-padding/2 @component-padding;
+    text-align: center;
+    border: 1px solid transparent;
+    border-bottom-color: @base-border-color;
+    border-radius: @component-border-radius @component-border-radius 0 0;
+    cursor: default;
+
+    &.react-tabs__tab--selected {
+      color: @text-color-highlight;
+      border-color: @base-border-color;
+      border-bottom-color: transparent;
+    }
+  }
+
+  &-tab-icon {
+    vertical-align: middle;
+    &:before {
+      margin-right: .4em;
+    }
+  }
+
+
   // Build Status ------------------------
 
   &-buildStatus {
@@ -172,10 +205,27 @@
 // Dock Overrides ------------------------
 // When the IssueishDetailView is shown as a Dock item
 
+atom-dock .react-tabs__tab {
+  padding: none;
+
+  &--selected {
+    font-weight: bold;
+  }
+}
+
 atom-dock .github-IssueishDetailView {
   padding: @component-padding;
   font-size: @font-size;
   background-color: @tool-panel-background-color;
+
+  &-tab {
+    border: none;
+  }
+
+  &-tablist {
+    border-bottom: none;
+    display: inline;
+  }
 
   &-header {
     margin-bottom: @component-padding*1.5;
