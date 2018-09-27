@@ -53,6 +53,7 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         project={project}
+        keymaps={atomEnv.keymaps}
         loginModel={loginModel}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}

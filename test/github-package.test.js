@@ -23,6 +23,7 @@ describe('GithubPackage', function() {
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
+    keymaps = atomEnv.keymaps;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
     grammars = atomEnv.grammars;
@@ -30,7 +31,8 @@ describe('GithubPackage', function() {
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage({
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars,
+      keymaps, config, deserializers,
       confirm, getLoadSettings,
       configDirPath,
       renderFn: sinon.stub().callsFake((component, element, callback) => {
