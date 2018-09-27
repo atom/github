@@ -8,7 +8,7 @@ Proposed
 
 ## Summary
 
-Give or receive code reviews on pull requests within Atom.
+Give and receive code reviews on pull requests within Atom.
 
 ## Motivation
 
