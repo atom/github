@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import HunkHeaderView from '../../lib/views/hunk-header-view';
+import RefHolder from '../../lib/models/ref-holder';
 import Hunk from '../../lib/models/patch/hunk';
 
 describe('HunkHeaderView', function() {
@@ -21,6 +22,7 @@ describe('HunkHeaderView', function() {
   function buildApp(overrideProps = {}) {
     return (
       <HunkHeaderView
+        refRoot={null}
         hunk={hunk}
         isSelected={false}
         selectionMode={'hunk'}
@@ -64,9 +66,26 @@ describe('HunkHeaderView', function() {
     const toggleSelection = sinon.stub();
     const wrapper = shallow(buildApp({toggleSelectionLabel: 'Do the thing', toggleSelection}));
     const button = wrapper.find('button.github-HunkHeaderView-stageButton');
-    assert.strictEqual(button.text(), 'Do the thing');
+    assert.strictEqual(button.render().text(), 'Do the thing');
     button.simulate('click');
     assert.isTrue(toggleSelection.called);
+  });
+
+  it('includes the keystroke for the toggle action', function() {
+    const element = document.createElement('div');
+    element.className = 'github-HunkHeaderViewTest';
+    const refRoot = RefHolder.on(element);
+
+    atomEnv.keymaps.add(__filename, {
+      '.github-HunkHeaderViewTest': {
+        'ctrl-enter': 'core:confirm',
+      },
+    });
+
+    const wrapper = shallow(buildApp({toggleSelectionLabel: 'text', refRoot}));
+    const keystroke = wrapper.find('Keystroke');
+    assert.strictEqual(keystroke.prop('command'), 'core:confirm');
+    assert.strictEqual(keystroke.prop('refTarget'), refRoot);
   });
 
   it('renders a button to discard an unstaged selection', function() {
