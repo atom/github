@@ -22,7 +22,7 @@ describe('HunkHeaderView', function() {
   function buildApp(overrideProps = {}) {
     return (
       <HunkHeaderView
-        refRoot={null}
+        refTarget={null}
         hunk={hunk}
         isSelected={false}
         selectionMode={'hunk'}
@@ -74,7 +74,7 @@ describe('HunkHeaderView', function() {
   it('includes the keystroke for the toggle action', function() {
     const element = document.createElement('div');
     element.className = 'github-HunkHeaderViewTest';
-    const refRoot = RefHolder.on(element);
+    const refTarget = RefHolder.on(element);
 
     atomEnv.keymaps.add(__filename, {
       '.github-HunkHeaderViewTest': {
@@ -82,10 +82,10 @@ describe('HunkHeaderView', function() {
       },
     });
 
-    const wrapper = shallow(buildApp({toggleSelectionLabel: 'text', refRoot}));
+    const wrapper = shallow(buildApp({toggleSelectionLabel: 'text', refTarget}));
     const keystroke = wrapper.find('Keystroke');
     assert.strictEqual(keystroke.prop('command'), 'core:confirm');
-    assert.strictEqual(keystroke.prop('refTarget'), refRoot);
+    assert.strictEqual(keystroke.prop('refTarget'), refTarget);
   });
 
   it('renders a button to discard an unstaged selection', function() {
