@@ -26,7 +26,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        markable={marker}
+        decorable={marker}
         type="line"
         position="head"
         className="something"
@@ -44,7 +44,7 @@ describe('Decoration', function() {
 
     it('creates a block decoration', function() {
       const app = (
-        <Decoration editor={editor} markable={marker} type="block">
+        <Decoration editor={editor} decorable={marker} type="block">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -62,7 +62,7 @@ describe('Decoration', function() {
 
     it('creates an overlay decoration', function() {
       const app = (
-        <Decoration editor={editor} markable={marker} type="overlay">
+        <Decoration editor={editor} decorable={marker} type="overlay">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -80,7 +80,7 @@ describe('Decoration', function() {
 
     it('creates a gutter decoration', function() {
       const app = (
-        <Decoration editor={editor} markable={marker} type="gutter">
+        <Decoration editor={editor} decorable={marker} type="gutter">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -101,7 +101,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        markable={marker}
+        decorable={marker}
         type="line"
         className="whatever"
       />
@@ -145,7 +145,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        markable={marker}
+        decorable={marker}
         type="line"
         position="head"
         className="something"
@@ -162,7 +162,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        markable={marker}
+        decorable={marker}
         type="line"
         position="head"
         className="something"
