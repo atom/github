@@ -31,6 +31,7 @@ describe('FilePatchItem', function() {
       workdirContextPool: pool,
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       discardLines: () => {},
       undoLastDiscard: () => {},

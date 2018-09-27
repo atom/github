@@ -29,6 +29,7 @@ describe('HunkHeaderView', function() {
         discardSelectionLabel={'default'}
 
         tooltips={atomEnv.tooltips}
+        keymaps={atomEnv.keymaps}
 
         toggleSelection={() => {}}
         discardSelection={() => {}}

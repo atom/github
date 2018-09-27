@@ -55,6 +55,7 @@ describe('FilePatchView', function() {
 
       workspace,
       commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
 
       selectedRowsChanged: () => {},
