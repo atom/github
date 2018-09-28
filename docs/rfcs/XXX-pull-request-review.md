@@ -41,7 +41,7 @@ If a new review has been started locally, it appears at the top of the "Reviews"
 
 Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the reviews tab.
 
-> TODO: sketch here
+![non-current pull request tile](https://user-images.githubusercontent.com/17565/46228625-a2aea080-c330-11e8-945b-72be7824623f.png)
 
 ### IssueishPaneItem "Changes" tab
 
