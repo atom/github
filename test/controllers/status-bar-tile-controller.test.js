@@ -661,7 +661,9 @@ describe('StatusBarTileController', function() {
       await wrapper
         .instance()
         .fetch(await wrapper.instance().fetchData(repository))();
-      assert.isTrue(repository.fetch.called);
+      assert.isTrue(repository.fetch.calledWith('refs/heads/master', {
+        remoteName: 'origin'
+      }));
     });
 
     it('pulls from the correct branch', async function() {
@@ -672,7 +674,9 @@ describe('StatusBarTileController', function() {
         .instance()
         .pull(await wrapper.instance().fetchData(repository))();
       const postPullSHA = await repository.git.exec(['rev-parse', 'HEAD']);
-      assert.isTrue(repository.pull.called);
+      assert.isTrue(repository.pull.calledWith('another-name', {
+        refSpec: 'master:another-name',
+      }));
       assert.equal(prePullSHA, postPullSHA);
     });
 
@@ -684,7 +688,9 @@ describe('StatusBarTileController', function() {
         .instance()
         .push(await wrapper.instance().fetchData(repository))();
       const remoteSHA = await repository.git.exec(['rev-parse', 'origin/master']);
-      assert.isTrue(repository.push.called);
+      assert.isTrue(repository.push.calledWith('another-name',
+        sinon.match({refSpec: 'another-name:master'}),
+      ));
       assert.equal(localSHA, remoteSHA);
     });
 
