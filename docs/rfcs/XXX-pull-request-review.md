@@ -111,7 +111,7 @@ One alternative may be to show review comments _only_ within the "changes" tab o
 
 ## Unresolved questions
 
-_Questions I expect to address before this is merged:_
+### Questions I expect to address before this is merged
 
 How do we author new reviews within Atom?
 
@@ -123,7 +123,7 @@ Are there any design choices we can make to lessen the emotional weight of a "re
 
 Similarly, are there any ways we can encourage empathy within the review authoring process? Can we encourage reviewers to make positive comments or demonstrate humility and open-mindedness?
 
-_Questions I expect to resolve throughout the implementation process:_
+### Questions I expect to resolve throughout the implementation process
 
 Review comment positioning within live TextEditors will be a tricky problem to address satisfactorily. What are the edge cases we need to handle there?
 
@@ -131,7 +131,7 @@ The GraphQL API paths we need to interact with all involve multiple levels of pa
 
 How do we handle comment threads?
 
-_Questions I consider out of scope of this RFC:_
+### Questions I consider out of scope of this RFC
 
 What other pull request information can we add to the GitHub pane item?
 
