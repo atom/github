@@ -18,7 +18,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 ## Explanation
 
-### Entry points
+### Current pull request tile
 
 Reviews on the current pull request are rendered as a list on the current pull request tile.
 
@@ -29,11 +29,47 @@ Reviews on the current pull request are rendered as a list on the current pull r
 * Clicking a line comment opens or activates an editor on the referenced file and scrolls to center the comment's line, translated according to local changes if appropriate.
 * Line comments within the review are rendered: _with a dot_ before the file has been opened and the corresponding decoration is visible; _with no icon_ after the file and decoration have been seen; and _with a checkmark_ after the comment has been marked "resolved" with the control on its decoration.
 
-Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the review tab.
+### Non-current pull request tiles
+
+Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the reviews tab.
 
 > TODO: sketch here
 
-Each `IssueishPaneItem` opened on a pull request has a "Reviews" tab that shows the active reviews.
+### IssueishPaneItem "Changes" tab
+
+Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews.
+
+![changes-tab](https://user-images.githubusercontent.com/378023/44789879-ba332600-abd8-11e8-9247-a19015ccd760.png)
+
+* The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
+* Clicking the :hamburger: button navigates to the "Reviews" tab, expands the owning review, and scrolls to the same comment within that view.
+* Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there.
+* Clicking within the "Reply..." text editor expands the editor to several lines and focuses it.
+* Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
+* The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
+* Clicking "comment" submits the response as a new stand-alone comment on that thread.
+
+### IssueishPaneItem "Reviews" tab
+
+Additionally, each has a "Reviews" tab that shows all reviews associated with this pull request in an accordion-style list. Unexpanded, each review is shown as its full summary comment and chosen outcome (comment, approve, or request changes). Expanded, its associated review comments are listed as well on their proximate diffs.
+
+> TODO: sketch here
+
+* The "Mark as resolved" and "comment" buttons and the "reply" text areas match their behavior in the "Changes" tab.
+* The up and down arrow buttons and :hamburger: button are not present here.
+* The "code" (`<>`) button also behaves as it does on the "Changes" tab.
+
+### In-editor decorations
+
+When opening a TextEditor on a file that has been annotated with review comments on the current pull request, a block decoration is used to show the comment content at the corresponding position within the file content. Also, a gutter decoration is used to reveal lines that are included within the current pull requests' diff and may therefore include comments.
+
+![in-editor](https://user-images.githubusercontent.com/378023/44790482-69bcc800-abda-11e8-8a0f-922c0942b8c6.png)
+
+> TODO: add gutter decoration?
+
+* The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
+* The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
+* The "diff" button navigates to the "Reviews" tab of the corresponding pull request's `IssueishPaneItem`, expands the owning review, and scrolls to center the same comment within that view.
 
 ## Drawbacks
 
