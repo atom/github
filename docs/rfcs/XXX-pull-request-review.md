@@ -29,6 +29,14 @@ Reviews on the current pull request are rendered as a list on the current pull r
 * Clicking a line comment opens or activates an editor on the referenced file and scrolls to center the comment's line, translated according to local changes if appropriate.
 * Line comments within the review are rendered: _with a dot_ before the file has been opened and the corresponding decoration is visible; _with no icon_ after the file and decoration have been seen; and _with a checkmark_ after the comment has been marked "resolved" with the control on its decoration.
 
+If a new review has been started locally, it appears at the top of the "Reviews" section within this tile:
+
+![pending-review](https://user-images.githubusercontent.com/378023/40404269-db852df6-5e91-11e8-9e16-bae433d3a5f9.png)
+
+* The review summary is a TextEditor that may be used to compose a summary comment.
+* Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
+* Choosing "Submit review" submits the drafted review to GitHub.
+
 ### Non-current pull request tiles
 
 Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the reviews tab.
@@ -49,6 +57,8 @@ Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows 
 * The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
 * Clicking "comment" submits the response as a new stand-alone comment on that thread.
 
+Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review with the same UI as described in the "In-editor decorations" section.
+
 ### IssueishPaneItem "Reviews" tab
 
 Additionally, each has a "Reviews" tab that shows all reviews associated with this pull request in an accordion-style list. Unexpanded, each review is shown as its full summary comment and chosen outcome (comment, approve, or request changes). Expanded, its associated review comments are listed as well on their proximate diffs.
@@ -58,6 +68,10 @@ Additionally, each has a "Reviews" tab that shows all reviews associated with th
 * The "Mark as resolved" and "comment" buttons and the "reply" text areas match their behavior in the "Changes" tab.
 * The up and down arrow buttons and :hamburger: button are not present here.
 * The "code" (`<>`) button also behaves as it does on the "Changes" tab.
+
+A local, pending review created by the user is also shown at the top of this list, with controls to edit its summary comment and choose its final state.
+
+> TODO: sketch here
 
 ### In-editor decorations
 
@@ -70,6 +84,14 @@ When opening a TextEditor on a file that has been annotated with review comments
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
 * The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
 * The "diff" button navigates to the "Reviews" tab of the corresponding pull request's `IssueishPaneItem`, expands the owning review, and scrolls to center the same comment within that view.
+
+Hovering along the gutter within a pull request diff region reveals a `+` icon, which may be clicked to begin a new review:
+
+![plus-icon](https://user-images.githubusercontent.com/378023/40348708-6698b2ea-5ddf-11e8-8eaa-9d95bc483fb1.png)
+
+Clicking the `+` reveals a new comment box, which may be used to submit a single comment or begin a multi-comment review:
+
+![single-review](https://user-images.githubusercontent.com/378023/40351475-78a527c2-5de7-11e8-8006-72d859514ecc.png)
 
 ## Drawbacks
 
