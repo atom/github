@@ -73,25 +73,49 @@ When opening a TextEditor on a file that has been annotated with review comments
 
 ## Drawbacks
 
-<!--
-Why should we *not* do this?
--->
+This adds a substantial amount of complexity to the UI, which is only justified for users that use GitHub pull request reviews.
+
+Showing all reviews in the current pull request tile can easily overwhelm the other pull request information included there. It also limits our ability to expand the information we provide there in the future (like associated issues, say).
+
+Rendering pull request comments within TextEditors can be intrusive: if there are many, or if your reviewers are particularly verbose, they could easily crowd out the code that you're trying to write and obscure your context.
 
 ## Rationale and alternatives
 
-<!--
-- Why is this approach the best in the space of possible approaches?
-- What other approaches have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
--->
+One alternative may be to show review comments _only_ within the "changes" tab of an `IssueishPaneItem`. This simplifies flow considerably, because it removes the need to provide navigation among different views of the same review, and unifies the handling of current and non-current pull requests. However, I believe that the renderings of reviews in all three places each serve a unique purpose:
+
+* Reviews within the "Changes" tab of the `IssueishPaneItem` reveal a narrative formed by all of the reviews on a specific pull request together, as a conversation among reviewers.
+* Reviews within the "Review" tab of the `IssueishPaneItem` reveal the narrative flow within each review individually. For example, review comments that refer to other comments within the same review (e.g. "same here" or "and again") become clearer here.
+* Review comments within open TextEditors allow the reader to use more context within the source code to evaluate, address, or respond to each individual comment thread: consistency with functions that are not visible within the immediate diff, context within algorithms that span many lines. They also allow the receiver of a review to preserve the mental context of the review communication as they move back and forth between reading the content of a review and applying it to their source.
 
 ## Unresolved questions
 
-<!--
-- What unresolved questions do you expect to resolve through the RFC process before this gets merged?
-- What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
--->
+_Questions I expect to address before this is merged:_
+
+How do we author new reviews within Atom?
+
+Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
+
+How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
+
+Are there any design choices we can make to lessen the emotional weight of a "requests changes" review? Peer review has the most value when it discovers issues for the pull request author to address, but accepting criticism is a vulnerable moment.
+
+Similarly, are there any ways we can encourage empathy within the review authoring process? Can we encourage reviewers to make positive comments or demonstrate humility and open-mindedness?
+
+_Questions I expect to resolve throughout the implementation process:_
+
+Review comment positioning within live TextEditors will be a tricky problem to address satisfactorily. What are the edge cases we need to handle there?
+
+The GraphQL API paths we need to interact with all involve multiple levels of pagination: pull requests, pull request reviews, review comments. How do we handle these within Relay? Or do we interact directly with GraphQL requests?
+
+How do we handle comment threads?
+
+_Questions I consider out of scope of this RFC:_
+
+What other pull request information can we add to the GitHub pane item?
+
+Are there other tabs that we need within the `IssueishPaneItem`?
+
+How can we notify users when new information, including reviews, is available, preferably without being intrusive or disruptive?
 
 ## Implementation phases
 
