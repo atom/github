@@ -113,8 +113,6 @@ One alternative may be to show review comments _only_ within the "changes" tab o
 
 ### Questions I expect to address before this is merged
 
-How do we author new reviews within Atom?
-
 Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
 
 How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
