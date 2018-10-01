@@ -654,7 +654,7 @@ describe('StatusBarTileController', function() {
 
   describe('when the local branch is named differently from the remote branch it\'s tracking', function() {
     let repository, wrapper;
-    
+
     beforeEach(async function() {
       const {localRepoPath} = await setUpLocalAndRemoteRepositories();
       repository = await buildRepository(localRepoPath);
@@ -669,7 +669,7 @@ describe('StatusBarTileController', function() {
         .instance()
         .fetch(await wrapper.instance().fetchData(repository))();
       assert.isTrue(repository.fetch.calledWith('refs/heads/master', {
-        remoteName: 'origin'
+        remoteName: 'origin',
       }));
     });
 
