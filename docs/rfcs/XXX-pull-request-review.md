@@ -22,7 +22,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 Reviews on the current pull request are rendered as a list on the current pull request tile.
 
-![review-list](https://user-images.githubusercontent.com/378023/44708426-1f582000-aae2-11e8-86bd-3074ae259e2d.png)
+![review-list](https://user-images.githubusercontent.com/378023/46273505-b9533280-c590-11e8-840e-a8eac8023cad.png)
 
 * The review summary bubble is elided after the first sentence or N characters if necessary.
 * Clicking the review summary bubble opens an `IssueishPaneItem` in the workspace center, open to the reviews tab.
