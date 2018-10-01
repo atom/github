@@ -31,7 +31,7 @@ Reviews on the current pull request are rendered as a list on the current pull r
 
 If a new review has been started locally, it appears at the top of the "Reviews" section within this tile:
 
-![pending-review](https://user-images.githubusercontent.com/378023/40404269-db852df6-5e91-11e8-9e16-bae433d3a5f9.png)
+![pending-review](https://user-images.githubusercontent.com/378023/46275946-9bd69680-c599-11e8-9889-66c35458286a.png)
 
 * The review summary is a TextEditor that may be used to compose a summary comment.
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
