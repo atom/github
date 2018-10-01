@@ -63,8 +63,8 @@ describe('MergedEventView', function() {
 
   it('renders a space between merged and commit', function() {
     const wrapper = shallow(buildApp({}));
-    const text = wrapper.find(".merged-event-header").text();
+    const text = wrapper.find('.merged-event-header').text();
 
-    assert.isTrue(text.includes("merged commit"));
-  })
+    assert.isTrue(text.includes('merged commit'));
+  });
 });
