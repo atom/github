@@ -47,7 +47,7 @@ Pull request tiles other than the current pull request display a one-line review
 
 Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews.
 
-![changes-tab](https://user-images.githubusercontent.com/378023/44789879-ba332600-abd8-11e8-9247-a19015ccd760.png)
+![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
 
 * The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
 * Clicking the :hamburger: button navigates to the "Reviews" tab, expands the owning review, and scrolls to the same comment within that view.
@@ -63,7 +63,7 @@ Hovering in the diff's gutter reveals a `+` icon that allows users to begin crea
 
 Additionally, each has a "Reviews" tab that shows all reviews associated with this pull request in an accordion-style list. Unexpanded, each review is shown as its full summary comment and chosen outcome (comment, approve, or request changes). Expanded, its associated review comments are listed as well on their proximate diffs.
 
-![reviews-tab](https://user-images.githubusercontent.com/378023/46274944-20bfb100-c596-11e8-83c0-363904ca7d5f.png)
+![reviews-tab](https://user-images.githubusercontent.com/378023/46287432-6e9bdf80-c5bd-11e8-8290-50dd17a2c733.png)
 
 * The "Mark as resolved" and "comment" buttons and the "reply" text areas match their behavior in the "Changes" tab.
 * The up and down arrow buttons and :hamburger: button are not present here.
