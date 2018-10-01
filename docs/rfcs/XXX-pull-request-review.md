@@ -63,7 +63,7 @@ Hovering in the diff's gutter reveals a `+` icon that allows users to begin crea
 
 Additionally, each has a "Reviews" tab that shows all reviews associated with this pull request in an accordion-style list. Unexpanded, each review is shown as its full summary comment and chosen outcome (comment, approve, or request changes). Expanded, its associated review comments are listed as well on their proximate diffs.
 
-> TODO: sketch here
+![reviews-tab](https://user-images.githubusercontent.com/378023/46274944-20bfb100-c596-11e8-83c0-363904ca7d5f.png)
 
 * The "Mark as resolved" and "comment" buttons and the "reply" text areas match their behavior in the "Changes" tab.
 * The up and down arrow buttons and :hamburger: button are not present here.
