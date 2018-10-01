@@ -11,6 +11,7 @@ import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
 import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
+import GithubTileView from '../../lib/views/github-tile-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -39,6 +40,8 @@ describe('StatusBarTileController', function() {
         notificationManager={notificationManager}
         tooltips={tooltips}
         confirm={confirm}
+        toggleGitTab={() => {}}
+        toggleGithubTab={() => {}}
         ensureGitTabVisible={() => {}}
         {...props}
       />
@@ -619,13 +622,14 @@ describe('StatusBarTileController', function() {
         await assert.async.isFalse(repository.getOperationStates().isPushInProgress());
       });
 
+
       it('displays a warning notification when pull results in merge conflicts', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
         const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
         await repository.git.exec(['commit', '-am', 'Add conflicting change']);
 
-        const wrapper = await mountAndLoad(buildApp({repository}));
+        const wrapper = await mountAndLoad(buildApp({repository, ensureGitTabVisible: sinon.stub()}));
 
         sinon.stub(notificationManager, 'addWarning');
 
@@ -636,6 +640,8 @@ describe('StatusBarTileController', function() {
         }
         repository.refresh();
 
+        await assert.async.isTrue(wrapper.instance().props.ensureGitTabVisible.called);
+
         await assert.async.isTrue(notificationManager.addWarning.called);
         const notificationArgs = notificationManager.addWarning.args[0];
         assert.equal(notificationArgs[0], 'Merge conflicts');
@@ -643,6 +649,70 @@ describe('StatusBarTileController', function() {
 
         assert.isTrue(await repository.isMerging());
       });
+    });
+  });
+
+  describe('when the local branch is named differently from the remote branch it\'s tracking', function() {
+    let repository, wrapper;
+
+    beforeEach(async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+      repository = await buildRepository(localRepoPath);
+      wrapper = await mountAndLoad(buildApp({repository}));
+      await repository.git.exec(['checkout', '-b', 'another-name', '--track', 'origin/master']);
+      repository.refresh();
+    });
+
+    it('fetches with no git error', async function() {
+      sinon.spy(repository, 'fetch');
+      await wrapper
+        .instance()
+        .fetch(await wrapper.instance().fetchData(repository))();
+      assert.isTrue(repository.fetch.calledWith('refs/heads/master', {
+        remoteName: 'origin',
+      }));
+    });
+
+    it('pulls from the correct branch', async function() {
+      const prePullSHA = await repository.git.exec(['rev-parse', 'HEAD']);
+      await repository.git.exec(['reset', '--hard', 'HEAD~2']);
+      sinon.spy(repository, 'pull');
+      await wrapper
+        .instance()
+        .pull(await wrapper.instance().fetchData(repository))();
+      const postPullSHA = await repository.git.exec(['rev-parse', 'HEAD']);
+      assert.isTrue(repository.pull.calledWith('another-name', {
+        refSpec: 'master:another-name',
+      }));
+      assert.equal(prePullSHA, postPullSHA);
+    });
+
+    it('pushes to the correct branch', async function() {
+      await repository.git.commit('new local commit', {allowEmpty: true});
+      const localSHA = await repository.git.exec(['rev-parse', 'another-name']);
+      sinon.spy(repository, 'push');
+      await wrapper
+        .instance()
+        .push(await wrapper.instance().fetchData(repository))();
+      const remoteSHA = await repository.git.exec(['rev-parse', 'origin/master']);
+      assert.isTrue(repository.push.calledWith('another-name',
+        sinon.match({refSpec: 'another-name:master'}),
+      ));
+      assert.equal(localSHA, remoteSHA);
+    });
+  });
+
+  describe('github tile', function() {
+    it('toggles the github panel when clicked', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      const repository = await buildRepository(workdirPath);
+
+      const toggleGithubTab = sinon.spy();
+
+      const wrapper = await mountAndLoad(buildApp({repository, toggleGithubTab}));
+
+      wrapper.find(GithubTileView).simulate('click');
+      assert(toggleGithubTab.calledOnce);
     });
   });
 
