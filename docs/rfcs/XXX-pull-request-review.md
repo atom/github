@@ -105,13 +105,23 @@ Can we access "draft" reviews from the GitHub API, to unify them between Atom an
 
 How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
 
+* _We'll show a progress bar on a sticky header at the top of the "Changes" tab within each `IssueishPaneItem`._
+
 Are there any design choices we can make to lessen the emotional weight of a "requests changes" review? Peer review has the most value when it discovers issues for the pull request author to address, but accepting criticism is a vulnerable moment.
 
+* _Chosing phrasing and iconography carefully for "recommend changes"._
+
 Similarly, are there any ways we can encourage empathy within the review authoring process? Can we encourage reviewers to make positive comments or demonstrate humility and open-mindedness?
+
+* _Emoji reactions on comments :cake: :tada:_
+* _Enable integration with Teletype for smoother jumping to a synchronous review_
 
 ### Questions I expect to resolve throughout the implementation process
 
 Review comment positioning within live TextEditors will be a tricky problem to address satisfactorily. What are the edge cases we need to handle there?
+
+* _Review comments on deleted lines._
+* _Review comments on deleted files._
 
 The GraphQL API paths we need to interact with all involve multiple levels of pagination: pull requests, pull request reviews, review comments. How do we handle these within Relay? Or do we interact directly with GraphQL requests?
 
