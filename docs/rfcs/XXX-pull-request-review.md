@@ -45,7 +45,9 @@ Pull request tiles other than the current pull request display a one-line review
 
 ### IssueishPaneItem "Changes" tab
 
-Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews. A banner at the top of the diff offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments.
+Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews.
+
+Summary comments for each existing review appear in a list before the PR diff's body. A banner at the top of the diff offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments.
 
 ![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
 
