@@ -27,7 +27,7 @@ Reviews on the current pull request are rendered as a list on the current pull r
 * The review summary bubble is elided after the first sentence or N characters if necessary.
 * Clicking the review summary bubble opens an `IssueishPaneItem` in the workspace center, open to the reviews tab.
 * Clicking a line comment opens or activates an editor on the referenced file and scrolls to center the comment's line, translated according to local changes if appropriate.
-* Line comments within the review are rendered: _with a dot_ before the file has been opened and the corresponding decoration is visible; _with no icon_ after the file and decoration have been seen; and _with a checkmark_ after the comment has been marked "resolved" with the control on its decoration.
+* Line comments within the review are rendered: _with a vertical blue bar_ before the file has been opened and the corresponding decoration is visible; _with a vertical grey bar_ after the file and decoration have been seen; and _with a vertical green bar_ after the comment has been marked "resolved" with the control on its decoration.
 
 If a new review has been started locally, it appears at the top of the "Reviews" section within this tile:
 
