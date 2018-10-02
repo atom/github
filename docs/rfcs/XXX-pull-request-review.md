@@ -30,13 +30,15 @@ Reviews on the current pull request are rendered as a list on the current pull r
 * Line comments within the review are rendered: _with a vertical blue bar_ before the file has been opened and the corresponding decoration is visible; _with a vertical grey bar_ after the file and decoration have been seen; and _with a vertical green bar_ after the comment has been marked "resolved" with the control on its decoration.
 * The review summary bubble and line comment lists are greyed out if a different `IssueishDetailItem` is activated.
 
-If a new review has been started locally, it appears at the top of the "Reviews" section within this tile:
+If a pending review is present, it appears at the top of the "Reviews" section within this tile:
 
 ![pending-review](https://user-images.githubusercontent.com/378023/46275946-9bd69680-c599-11e8-9889-66c35458286a.png)
 
 * The review summary is a TextEditor that may be used to compose a summary comment.
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
 * Choosing "Submit review" submits the drafted review to GitHub.
+
+If there is no pending review, the tile instead displays a control to create one.
 
 ### IssueishDetailItem
 
