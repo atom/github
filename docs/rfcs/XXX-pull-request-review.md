@@ -139,7 +139,4 @@ How can we notify users when new information, including reviews, is available, p
 
 ## Implementation phases
 
-<!--
-- Can this functionality be introduced in multiple, distinct, self-contained pull requests?
-- A specification for when the feature is considered "done."
--->
+![dependency-graph](https://user-images.githubusercontent.com/17565/46361100-d47a7c80-c63a-11e8-83de-4a548be9cb9c.png)
