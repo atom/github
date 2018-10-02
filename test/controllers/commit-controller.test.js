@@ -60,6 +60,9 @@ describe('CommitController', function() {
     const repository1 = await buildRepository(workdirPath1);
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
+    const workdirPath3 = await cloneRepository('commit-template');
+    const repository3 = await buildRepository(workdirPath3);
+    const templateCommitMessage = await repository3.git.getCommitMessageFromTemplate();
 
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app, {disableLifecycleMethods: true});
@@ -74,6 +77,8 @@ describe('CommitController', function() {
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
+    wrapper.setProps({repository: repository3});
+    assert.equal(wrapper.instance().getCommitMessage(), templateCommitMessage);
   });
 
   describe('the passed commit message', function() {
@@ -138,6 +143,21 @@ describe('CommitController', function() {
       await wrapper.instance().commit('another message');
 
       assert.strictEqual(repository.getCommitMessage(), '');
+    });
+
+    it('reload the commit messages from commit template', async function() {
+      const workdirPath = await cloneRepository('commit-template');
+      const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
+      const templateCommitMessage = await repository.git.getCommitMessageFromTemplate();
+      const commit = sinon.stub().callsFake((...args) => repository.commit(...args));
+      const app2 = React.cloneElement(app, {repository, commit});
+
+      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.git.exec(['add', '.']);
+
+      const wrapper = shallow(app2, {disableLifecycleMethods: true});
+      await wrapper.instance().commit('some message');
+      assert.strictEqual(repository.getCommitMessage(), templateCommitMessage);
     });
 
     it('sets the verbatim flag when committing from the mini editor', async function() {
