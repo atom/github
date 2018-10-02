@@ -54,6 +54,7 @@ Summary comments for each existing review appear in a list before the PR diff's 
 * The navigation and filter banner remains visible as the "Changes" tab is scrolled.
 * The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
 * Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there. If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
+* Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
 * Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 * The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
 * Clicking "comment" submits the response as a new stand-alone comment on that thread.
