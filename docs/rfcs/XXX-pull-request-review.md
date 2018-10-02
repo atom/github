@@ -38,12 +38,6 @@ If a new review has been started locally, it appears at the top of the "Reviews"
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
 * Choosing "Submit review" submits the drafted review to GitHub.
 
-### Non-current pull request tiles
-
-Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the "Changes" tab.
-
-![non-current pull request tile](https://user-images.githubusercontent.com/17565/46228625-a2aea080-c330-11e8-945b-72be7824623f.png)
-
 ### IssueishPaneItem "Changes" tab
 
 Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews.
