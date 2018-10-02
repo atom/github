@@ -59,9 +59,7 @@ Summary comments for each existing review appear in a list before the PR diff's 
 * The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
 * Clicking "comment" submits the response as a new stand-alone comment on that thread.
 
-Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review with the same UI as described in ["In-editor decorations"](#in-editor-decorations).
-
-If a pending review is present, its comments are also shown and editable here. A pending review may be finalized by submitting a form that appears at the end of the existing review summary comment list.
+Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review, or making an isolated comment, using the same UI described in ["In-editor decorations"](#in-editor-decorations). If a pending review is present, its comments are also shown and editable here. A pending review may be finalized by submitting a form that appears at the end of the existing review summary comment list.
 
 ### In-editor decorations
 
@@ -82,6 +80,10 @@ Hovering along the gutter within a pull request diff region reveals a `+` icon, 
 Clicking the `+` reveals a new comment box, which may be used to submit a single comment or begin a multi-comment review:
 
 ![single-review](https://user-images.githubusercontent.com/378023/40351475-78a527c2-5de7-11e8-8006-72d859514ecc.png)
+
+* If a draft review is already in progress, the "Add single comment" button is disabled and the "Start a review" button reads "Add review comment".
+* Clicking "Add single comment" submits a non-review diff comment and does not create a draft review.
+* Clicking "Start a review" creates a draft review and attaches the authored comment to it.
 
 ## Drawbacks
 
