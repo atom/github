@@ -39,7 +39,7 @@ If a new review has been started locally, it appears at the top of the "Reviews"
 
 ### Non-current pull request tiles
 
-Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the reviews tab.
+Pull request tiles other than the current pull request display a one-line review summary, showing the number of accepting, comment, and change-request reviews made on each. Clicking the review summary opens the `IssueishPaneItem` for that pull request and opens the "Changes" tab.
 
 ![non-current pull request tile](https://user-images.githubusercontent.com/17565/46228625-a2aea080-c330-11e8-945b-72be7824623f.png)
 
@@ -51,28 +51,12 @@ Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows 
 
 * The navigation and filter banner remains visible as the "Changes" tab is scrolled.
 * The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
-* Clicking the :hamburger: button navigates to the "Reviews" tab, expands the owning review, and scrolls to the same comment within that view.
-* Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there.
-* Clicking within the "Reply..." text editor expands the editor to several lines and focuses it.
+* Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there. If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
 * Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 * The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
 * Clicking "comment" submits the response as a new stand-alone comment on that thread.
 
-Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review with the same UI as described in the "In-editor decorations" section.
-
-### IssueishPaneItem "Reviews" tab
-
-Additionally, each has a "Reviews" tab that shows all reviews associated with this pull request in an accordion-style list. Unexpanded, each review is shown as its full summary comment and chosen outcome (comment, approve, or request changes). Expanded, its associated review comments are listed as well on their proximate diffs.
-
-![reviews-tab](https://user-images.githubusercontent.com/378023/46287432-6e9bdf80-c5bd-11e8-8290-50dd17a2c733.png)
-
-* The "Mark as resolved" and "comment" buttons and the "reply" text areas match their behavior in the "Changes" tab.
-* The up and down arrow buttons and :hamburger: button are not present here.
-* The "code" (`<>`) button also behaves as it does on the "Changes" tab.
-
-A local, pending review created by the user is also shown at the top of this list, with controls to edit its summary comment and choose its final state.
-
-> TODO: sketch here
+Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review with the same UI as described in ["In-editor decorations"](#in-editor-decorations).
 
 ### In-editor decorations
 
@@ -84,7 +68,7 @@ When opening a TextEditor on a file that has been annotated with review comments
 
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
 * The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
-* The "diff" button navigates to the "Reviews" tab of the corresponding pull request's `IssueishPaneItem`, expands the owning review, and scrolls to center the same comment within that view.
+* The "diff" button navigates to the "Changes" tab of the corresponding pull request's `IssueishPaneItem`, expands the owning review, and scrolls to center the same comment within that view.
 
 Hovering along the gutter within a pull request diff region reveals a `+` icon, which may be clicked to begin a new review:
 
@@ -104,11 +88,7 @@ Rendering pull request comments within TextEditors can be intrusive: if there ar
 
 ## Rationale and alternatives
 
-One alternative may be to show review comments _only_ within the "changes" tab of an `IssueishPaneItem`. This simplifies flow considerably, because it removes the need to provide navigation among different views of the same review, and unifies the handling of current and non-current pull requests. However, I believe that the renderings of reviews in all three places each serve a unique purpose:
-
-* Reviews within the "Changes" tab of the `IssueishPaneItem` reveal a narrative formed by all of the reviews on a specific pull request together, as a conversation among reviewers.
-* Reviews within the "Review" tab of the `IssueishPaneItem` reveal the narrative flow within each review individually. For example, review comments that refer to other comments within the same review (e.g. "same here" or "and again") become clearer here.
-* Review comments within open TextEditors allow the reader to use more context within the source code to evaluate, address, or respond to each individual comment thread: consistency with functions that are not visible within the immediate diff, context within algorithms that span many lines. They also allow the receiver of a review to preserve the mental context of the review communication as they move back and forth between reading the content of a review and applying it to their source.
+<!-- Ongoing --->
 
 ## Unresolved questions
 
