@@ -58,6 +58,8 @@ Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows 
 
 Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review with the same UI as described in ["In-editor decorations"](#in-editor-decorations).
 
+If a pending review is present, its comments are also shown and editable here. A pending review may be finalized by submitting a form that appears at the end of the existing review summary comment list.
+
 ### In-editor decorations
 
 When opening a TextEditor on a file that has been annotated with review comments on the current pull request, a block decoration is used to show the comment content at the corresponding position within the file content. Also, a gutter decoration is used to reveal lines that are included within the current pull requests' diff and may therefore include comments.
