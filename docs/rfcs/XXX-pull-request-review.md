@@ -25,10 +25,10 @@ Reviews on the current pull request are rendered as a list on the current pull r
 ![review-list](https://user-images.githubusercontent.com/378023/46273505-b9533280-c590-11e8-840e-a8eac8023cad.png)
 
 * The review summary bubble is elided after the first sentence or N characters if necessary.
-* Clicking the review summary bubble opens an `IssueishPaneItem` in the workspace center, open to the reviews tab.
+* Clicking the review summary bubble opens an `IssueishDetailItem` in the workspace center.
 * Clicking a line comment opens or activates an editor on the referenced file and scrolls to center the comment's line, translated according to local changes if appropriate.
 * Line comments within the review are rendered: _with a vertical blue bar_ before the file has been opened and the corresponding decoration is visible; _with a vertical grey bar_ after the file and decoration have been seen; and _with a vertical green bar_ after the comment has been marked "resolved" with the control on its decoration.
-* The review summary bubble and line comment lists are greyed out if a different `IssueishPaneItem` is activated.
+* The review summary bubble and line comment lists are greyed out if a different `IssueishDetailItem` is activated.
 
 If a new review has been started locally, it appears at the top of the "Reviews" section within this tile:
 
@@ -66,7 +66,7 @@ When opening a TextEditor on a file that has been annotated with review comments
 
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
 * The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
-* The "diff" button navigates to the "Changes" tab of the corresponding pull request's `IssueishPaneItem`, expands the owning review, and scrolls to center the same comment within that view.
+* The "diff" button navigates to the corresponding pull request's `IssueishDetailItem` and scrolls to center the same comment within that view.
 
 Hovering along the gutter within a pull request diff region reveals a `+` icon, which may be clicked to begin a new review:
 
@@ -102,7 +102,7 @@ Can we access "draft" reviews from the GitHub API, to unify them between Atom an
 
 How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
 
-* _We'll show a progress bar on a sticky header at the top of the "Changes" tab within each `IssueishPaneItem`._
+* _We'll show a progress bar on a sticky header at the top of the `IssueishDetailItem`._
 
 Are there any design choices we can make to lessen the emotional weight of a "requests changes" review? Peer review has the most value when it discovers issues for the pull request author to address, but accepting criticism is a vulnerable moment.
 
@@ -128,7 +128,7 @@ How do we handle comment threads?
 
 What other pull request information can we add to the GitHub pane item?
 
-Are there other tabs that we need within the `IssueishPaneItem`?
+Are there other tabs that we need within the `IssueishDetailItem`?
 
 How can we notify users when new information, including reviews, is available, preferably without being intrusive or disruptive?
 
