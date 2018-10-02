@@ -42,9 +42,20 @@ export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
     const cachedPath = temp.mkdirSync('git-fixture-cache-');
     const git = new GitShellOutStrategy(cachedPath);
-    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
+    const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git');
+
+    // templatePath is the absolute path of the
+    // commit.template file(gitmessage.txt) stored in temp location
+    let templatePath = '';
+    try {
+      const templateFile = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
+      templatePath = `${cachedPath}/${templateFile}`;
+    } catch(err) {}
+
+    await git.clone(repoPath, {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
+    await git.exec(['config', '--local', 'commit.template', templatePath]);
     await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
     await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
