@@ -38,15 +38,27 @@ If a new review has been started locally, it appears at the top of the "Reviews"
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
 * Choosing "Submit review" submits the drafted review to GitHub.
 
-### IssueishPaneItem "Changes" tab
+### IssueishDetailItem
 
-Each `IssueishPaneItem` opened on a pull request has a "Changes" tab that shows the full PR diff, annotated with comments from all reviews.
+Each `IssueishDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request.
 
-Summary comments for each existing review appear in a list before the PR diff's body. A banner at the top of the diff offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments.
+A banner at the top of the pane offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments. The banner remains visible as you scroll the pane.
+
+At the top of the pane is the existing summary box:
+
+<img width="600" alt="issueish-detail-item pane" src="https://user-images.githubusercontent.com/17565/46370334-57a7cc80-c653-11e8-8272-2eb51c761599.png">
+
+* Clicking on the build status summary icon (green checkmark, donut chart, or X) expands an ephemeral panel beneath the summary box showing build review status. Clicking the icon again or clicking on "dismiss" dismisses it.
+* Clicking on the commit count opens the log view to those commits.
+
+Summary comments for each existing review appear in a list below that. If a pending review is being drafted, it appears at the end of the list; otherwise, a control is present to create one. A pending review may be finalized by submitting a form that appears adjacent to it.
+
+After the summary comments, the diff is shown, with review comments in place:
 
 ![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
 
-* The navigation and filter banner remains visible as the "Changes" tab is scrolled.
+On each review comment decoration:
+
 * The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
 * Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there. If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
@@ -54,7 +66,7 @@ Summary comments for each existing review appear in a list before the PR diff's 
 * The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
 * Clicking "comment" submits the response as a new stand-alone comment on that thread.
 
-Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new review, or making an isolated comment, using the same UI described in ["In-editor decorations"](#in-editor-decorations). If a pending review is present, its comments are also shown and editable here. A pending review may be finalized by submitting a form that appears at the end of the existing review summary comment list.
+Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new pending review, or making an isolated comment, using the same UI described in ["In-editor decorations"](#in-editor-decorations). If a pending review is present, its comments are also shown and editable here.
 
 ### In-editor decorations
 
