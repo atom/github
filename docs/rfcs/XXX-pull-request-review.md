@@ -103,6 +103,8 @@ Rendering pull request comments within TextEditors can be intrusive: if there ar
 
 Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
 
+* _Yes, the `reviews` object includes it in a `PENDING` state._
+
 How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
 
 * _We'll show a progress bar on a sticky header at the top of the "Changes" tab within each `IssueishPaneItem`._
