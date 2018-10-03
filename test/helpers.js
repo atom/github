@@ -44,8 +44,6 @@ export async function cloneRepository(repoName = 'three-files') {
     const git = new GitShellOutStrategy(cachedPath);
     const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git');
 
-    // templatePath is the absolute path of the
-    // commit.template file(gitmessage.txt) stored in temp location
     let templatePath = '';
     try {
       templatePath = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
