@@ -108,7 +108,7 @@ module.exports = createRunner({
   if (process.env.TEST_JUNIT_XML_PATH) {
     process.stderr.write(`Writing XUnit test results to path: ${process.env.TEST_JUNIT_XML_PATH}\n`);
     mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
+      reporterEnabled: 'xunit, list',
       xunitReporterOptions: {
         output: process.env.TEST_JUNIT_XML_PATH,
       },
