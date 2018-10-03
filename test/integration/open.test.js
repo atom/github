@@ -24,7 +24,7 @@ describe('opening and closing tabs', function() {
     await teardown(context);
   });
 
-  it.stress(20, 'opens but does not focus the git tab on github:toggle-git-tab', async function() {
+  it('opens but does not focus the git tab on github:toggle-git-tab', async function() {
     const editor = await atomEnv.workspace.open(__filename);
     assert.isFalse(wrapper.find('.github-Git').exists());
 
