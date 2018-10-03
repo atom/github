@@ -77,25 +77,6 @@
       'command': 'github:open-link-in-browser'
     }
   ]
-  '.github-UnstagedChanges .github-StagingView-header': [
-    {
-      'label': 'Stage All Changes'
-      'command': 'github:stage-all-changes'
-    }
-    {
-      'type': 'separator'
-    }
-    {
-      'label': 'Discard All Changes'
-      'command': 'github:discard-all-changes'
-    }
-  ]
-  '.github-StagedChanges .github-StagingView-header': [
-    {
-      'label': 'Unstage All Changes'
-      'command': 'github:unstage-all-changes'
-    }
-  ]
   '.github-CommitView': [
     {
       'type': 'separator'
