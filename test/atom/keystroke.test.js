@@ -48,8 +48,6 @@ describe('Keystroke', function() {
       <Keystroke keymaps={keymaps} command="keystroke-test:child" refTarget={RefHolder.on(root)} />,
     );
 
-    console.log(wrapper.debug());
-
     assert.isFalse(wrapper.find('span.keystroke').exists());
   });
 
