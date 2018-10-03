@@ -85,6 +85,7 @@ export async function setup(currentTest, options = {}) {
     styles: atomEnv.styles,
     grammars: atomEnv.grammars,
     config: atomEnv.config,
+    keymaps: atomEnv.keymaps,
     deserializers: atomEnv.deserializers,
     loginModel,
     confirm: atomEnv.confirm.bind(atomEnv),
