@@ -159,18 +159,18 @@ describe('CommitController', function() {
     });
 
     it('reload the commit messages from commit template', async function() {
-      const workdirPath = await cloneRepository('commit-template');
-      const repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-      const templateCommitMessage = await repository.git.getCommitMessageFromTemplate();
-      const commit = sinon.stub().callsFake((...args) => repository.commit(...args));
-      const app2 = React.cloneElement(app, {repository, commit});
+      const repoPath = await cloneRepository('commit-template');
+      const repo = await buildRepositoryWithPipeline(repoPath, {confirm, notificationManager, workspace});
+      const templateCommitMessage = await repo.git.getCommitMessageFromTemplate();
+      const commitStub = sinon.stub().callsFake((...args) => repo.commit(...args));
+      const app2 = React.cloneElement(app, {repository: repo, commit: commitStub});
 
-      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
-      await repository.git.exec(['add', '.']);
+      await fs.writeFile(path.join(repoPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
+      await repo.git.exec(['add', '.']);
 
       const wrapper = shallow(app2, {disableLifecycleMethods: true});
       await wrapper.instance().commit('some message');
-      assert.strictEqual(repository.getCommitMessage(), templateCommitMessage);
+      assert.strictEqual(repo.getCommitMessage(), templateCommitMessage);
     });
 
     it('sets the verbatim flag when committing from the mini editor', async function() {
