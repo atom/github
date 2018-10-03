@@ -83,11 +83,11 @@ describe('CommitController', function() {
 
 
   describe('when commit.template config is set', function() {
-    it('pre populates the commit with the template message', async function() {
+    it('populates the commit message with the template', async function() {
       const workdirPath = await cloneRepository('commit-template');
       const repository = await buildRepository(workdirPath);
       const templateCommitMessage = await repository.git.getCommitMessageFromTemplate();
-      app = React.cloneElement(app, {repository: repository});
+      app = React.cloneElement(app, {repository});
       const wrapper = shallow(app, {disableLifecycleMethods: true});
       assert.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
     });

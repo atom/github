@@ -108,7 +108,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.equal(message, 'some commit message');
         fs.removeSync(absTemplatePath);
       });
-    })
+    });
 
 
     if (process.platform === 'win32') {

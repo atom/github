@@ -49,7 +49,7 @@ export async function cloneRepository(repoName = 'three-files') {
     let templatePath = '';
     try {
       templatePath = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
-    } catch(err) {}
+    } catch (err) {}
 
     await git.clone(repoPath, {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
