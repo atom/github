@@ -12,6 +12,7 @@ import Hunk from '../../lib/models/hunk';
 import HunkLine from '../../lib/models/hunk-line';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import Switchboard from '../../lib/switchboard';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 function createFilePatch(oldFilePath, newFilePath, status, hunks) {
   const oldFile = new FilePatch.File({path: oldFilePath});
@@ -296,6 +297,31 @@ describe('FilePatchController', function() {
 
         const cursorCall = editorSpy.setCursorBufferPosition.firstCall;
         assert.isTrue(cursorCall.args[0].isEqual([4, 0]));
+      });
+    });
+
+    describe('discardLines()', function() {
+      it('records an event', function() {
+        const wrapper = mount(component);
+        sinon.stub(reporterProxy, 'addEvent');
+        wrapper.instance().discardLines(['once upon a time', 'there was an octocat named mona lisa']);
+        assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+          package: 'github',
+          component: 'FilePatchController',
+          lineCount: 2,
+        }));
+      });
+    });
+
+    describe('undoLastDiscard()', function() {
+      it('records an event', function() {
+        const wrapper = mount(component);
+        sinon.stub(reporterProxy, 'addEvent');
+        wrapper.instance().undoLastDiscard();
+        assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
+          package: 'github',
+          component: 'FilePatchController',
+        }));
       });
     });
   });
