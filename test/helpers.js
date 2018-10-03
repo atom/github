@@ -48,8 +48,7 @@ export async function cloneRepository(repoName = 'three-files') {
     // commit.template file(gitmessage.txt) stored in temp location
     let templatePath = '';
     try {
-      const templateFile = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
-      templatePath = `${cachedPath}/${templateFile}`;
+      templatePath = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
     } catch(err) {}
 
     await git.clone(repoPath, {noLocal: true});

@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import http from 'http';
+import os from 'os';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
@@ -84,6 +85,31 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
       });
     });
+
+    describe('getCommitMessageFromTemplate', function() {
+      it('supports repository root path', async function() {
+        const workingDirPath = await cloneRepository('commit-template');
+        const git = createTestStrategy(workingDirPath);
+        const absTemplatePath = path.join(workingDirPath, 'gitmessage.txt');
+        const commitTemplate = fs.readFileSync(absTemplatePath, 'utf8').trim();
+        const message = await git.getCommitMessageFromTemplate();
+        assert.equal(message, commitTemplate);
+      });
+
+      it('supports relative path', async function() {
+        const workingDirPath = await cloneRepository('commit-template');
+        const git = createTestStrategy(workingDirPath);
+        const homeDir = os.homedir();
+        const absTemplatePath = path.join(homeDir, '.gitMessageSample.txt');
+        await fs.writeFile(absTemplatePath, 'some commit message', {encoding: 'utf8'});
+        await git.exec(['config', '--local', 'commit.template', '~/.gitMessageSample.txt']);
+
+        const message = await git.getCommitMessageFromTemplate();
+        assert.equal(message, 'some commit message');
+        fs.removeSync(absTemplatePath);
+      });
+    })
+
 
     if (process.platform === 'win32') {
       describe('getStatusBundle()', function() {
