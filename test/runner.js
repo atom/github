@@ -115,12 +115,5 @@ module.exports = createRunner({
     });
   } else if (process.env.APPVEYOR_API_URL) {
     mocha.reporter(require('mocha-appveyor-reporter'));
-  } else if (process.env.CIRCLECI === 'true') {
-    mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
-      xunitReporterOptions: {
-        output: path.join('test-results', 'mocha', 'test-results.xml'),
-      },
-    });
   }
 });
