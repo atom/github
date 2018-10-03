@@ -41,7 +41,8 @@ describe('opening and closing tabs', function() {
     console.log('5');
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
     console.log('6');
-    await assert.async.strictEqual(atomEnv.workspace.getActivePaneItem(), editor);
+    // Don't use assert.async.strictEqual() because it times out Mocha's failure diffing <_<
+    await assert.async.isTrue(atomEnv.workspace.getActivePaneItem() === editor);
     console.log('7');
   });
 
