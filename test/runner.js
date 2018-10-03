@@ -106,6 +106,7 @@ module.exports = createRunner({
   mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
 
   if (process.env.TEST_JUNIT_XML_PATH) {
+    process.stderr.write(`Writing XUnit test results to path: ${process.env.TEST_JUNIT_XML_PATH}\n`);
     mocha.reporter(require('mocha-multi-reporters'), {
       reportersEnabled: 'xunit, list',
       xunitReporterOptions: {
