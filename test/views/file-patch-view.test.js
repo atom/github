@@ -544,7 +544,7 @@ describe('FilePatchView', function() {
     it('ignores right clicks', function() {
       instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 1}});
       assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
-        [[1, 0], [1, 4]],
+        [[0, 0], [4, 4]],
       ]);
     });
 
@@ -552,7 +552,7 @@ describe('FilePatchView', function() {
       it('ignores ctrl-clicks on non-Windows platforms', function() {
         instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0, ctrlKey: true}});
         assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
-          [[1, 0], [1, 4]],
+          [[0, 0], [4, 4]],
         ]);
       });
     }
@@ -705,12 +705,12 @@ describe('FilePatchView', function() {
     it('does nothing on a click without a buffer row', function() {
       instance.didMouseDownOnLineNumber({bufferRow: NaN, domEvent: {button: 0}});
       assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
-        [[1, 0], [1, 4]],
+        [[0, 0], [4, 4]],
       ]);
 
       instance.didMouseDownOnLineNumber({bufferRow: undefined, domEvent: {button: 0}});
       assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
-        [[1, 0], [1, 4]],
+        [[0, 0], [4, 4]],
       ]);
     });
   });
@@ -787,7 +787,7 @@ describe('FilePatchView', function() {
     editor.setSelectedBufferRange([[5, 1], [6, 2]]);
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
-    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
   });
 
   describe('when viewing an empty patch', function() {
