@@ -25,25 +25,20 @@ describe('opening and closing tabs', function() {
   });
 
   it('opens but does not focus the git tab on github:toggle-git-tab', async function() {
-    console.log('0');
+    atomEnv.workspace.getCenter().activate();
     const editor = await atomEnv.workspace.open(__filename);
-    console.log('1');
     assert.isFalse(wrapper.find('.github-Git').exists());
 
-    console.log('2');
+    const previousFocus = document.activeElement;
+
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
-    console.log('3');
 
     wrapper.update();
-    console.log('4');
     assert.isTrue(wrapper.find('.github-Git').exists());
 
-    console.log('5');
-    assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    console.log('6');
     // Don't use assert.async.strictEqual() because it times out Mocha's failure diffing <_<
-    await assert.async.isTrue(atomEnv.workspace.getActivePaneItem() === editor);
-    console.log('7');
+    await assert.async.isTrue(atomEnv.workspace.getRightDock().isVisible());
+    await assert.async.isTrue(previousFocus === document.activeElement);
   });
 
   it('reveals an open but hidden git tab on github:toggle-git-tab', async function() {
