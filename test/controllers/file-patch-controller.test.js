@@ -154,17 +154,17 @@ describe('FilePatchController', function() {
     it('captures the selected row set', function() {
       const wrapper = shallow(buildApp());
       assert.sameMembers(Array.from(wrapper.find('FilePatchView').prop('selectedRows')), []);
-      assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'line');
-
-      wrapper.find('FilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk');
-      assert.sameMembers(Array.from(wrapper.find('FilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'hunk');
+
+      wrapper.find('FilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line');
+      assert.sameMembers(Array.from(wrapper.find('FilePatchView').prop('selectedRows')), [1, 2]);
+      assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'line');
     });
 
     it('does not re-render if the row set and selection mode are unchanged', function() {
       const wrapper = shallow(buildApp());
       assert.sameMembers(Array.from(wrapper.find('FilePatchView').prop('selectedRows')), []);
-      assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'line');
+      assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'hunk');
 
       sinon.spy(wrapper.instance(), 'render');
 
