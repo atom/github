@@ -128,17 +128,32 @@ Clicking on a review reference takes you to the review view and expands the sele
 
 > :construction: Add review mockup
 
+### In-editor decorations
+
+When opening a TextEditor on a file that has been annotated with review comments on the current pull request, a block decoration is used to show the comment content at the corresponding position within the file content. Also, a gutter decoration is used to reveal lines that are included within the current pull requests' diff and may therefore include comments.
+
+![in-editor review comment decoration](https://user-images.githubusercontent.com/378023/44790482-69bcc800-abda-11e8-8a0f-922c0942b8c6.png)
+
+> :construction: Add gutter decoration?
+
+* The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
+* The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
+* The "diff" button navigates to the corresponding pull request's detail item and scrolls to center the same comment within that view.
+
 ### Comment decorations
 
-Within the multi-file diff view, a block decoration is used to show the comment content at the corresponding position within the file content.
+Within the multi-file diff view or a TextEditor, a block decoration is used to show the comment content at the corresponding position within the file content.
 
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
 * The up and down arrow buttons navigate to the next and previous review comments.
 * For comment decorations in the `PullRequestDetailItem`, clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there.
   * If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
+* For comment decorations within a `TextEditor`, clicking the "diff" button opens the corresponding `PullRequestDetailItem` and scrolls to focus the equivalent comment.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
 
-Hovering along the gutter within a pull request diff region reveals a `+` icon, which may be clicked to begin a new review:
+### Line comment creation
+
+Hovering along the gutter within a pull request diff region in a `TextEditor` or a `PullRequestDetailItem` reveals a `+` icon, which may be clicked to begin a new review:
 
 ![plus-icon](https://user-images.githubusercontent.com/378023/40348708-6698b2ea-5ddf-11e8-8eaa-9d95bc483fb1.png)
 
