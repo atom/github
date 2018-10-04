@@ -22,7 +22,7 @@ As an initial building block toward a pull request review workflow.
 
 Within the GitHub panel, render a vertical stack of two collapsible lists of _issueish_ (pull request or issue) items:
 
-_First list: current pull request_. If the active branch is associated with one or more open pull requests on a GitHub repository, render an item for each. "Associated with" means that the pull request's head ref and head repository matches the upstream remote ref for the current branch in the active git repository.
+_First list: checked out pull request_. If the active branch is associated with one or more open pull requests on a GitHub repository, render an item for each. "Associated with" means that the pull request's head ref and head repository matches the upstream remote ref for the current branch in the active git repository.
 
 _Second list: all open pull requests_. List all open pull requests on the GitHub repository, ordered by decreasing creation date.
 
@@ -53,7 +53,7 @@ For a pull request, the issueish pane shows:
 * Author avatar
 * Title
 * Branches -> `master` < `aw/rfc-pr-list`
-* "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the current pull request is not the current one.
+* "Checkout" button to fetch (if necessary) and check out the pull request. Only enabled if the checked out pull request is not the current one.
 * `Commits` with count, links to .com (for now), optional with avatars
 * `Checks` with count, links to .com (for now)
   * CI status, each item links to the detail page
