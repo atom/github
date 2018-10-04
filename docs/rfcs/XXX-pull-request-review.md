@@ -229,7 +229,7 @@ How can we notify users when new information, including reviews, is available, p
 
 ## Implementation phases
 
-![dependency-graph](https://user-images.githubusercontent.com/17565/46361100-d47a7c80-c63a-11e8-83de-4a548be9cb9c.png)
+![dependency-graph](https://user-images.githubusercontent.com/17565/46475622-019e6a80-c7b4-11e8-9bf5-8223d5c6631f.png)
 
 ## Related features out of scope of this RFC
 
