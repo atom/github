@@ -5284,7 +5284,7 @@ type PullRequestReview implements Node & Comment & Deletable & Updatable & Updat
   """The body of this review rendered as plain text."""
   bodyText: String!
 
-  """A list of review comments for the current pull request review."""
+  """A list of review comments for the checked out pull request review."""
   comments(
     """Returns the first _n_ elements from the list."""
     first: Int
