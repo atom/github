@@ -22,23 +22,21 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in it's own section at the top of the list.
 
-<img width="339" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391240-ad4e9a00-c690-11e8-904b-e4cfd2c0f667.png">
-Note: Change "Current pull request" to "Checked out pull request"
+<img width="339" alt="pull request list with review progress bars" src="https://user-images.githubusercontent.com/7910250/46391240-ad4e9a00-c690-11e8-904b-e4cfd2c0f667.png">
 
 Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
 For PRs that are not listed in the panel, users can use the `github:open-issue-or-pull-request` command:
 
-<img width="679" alt="xxx-pull-request-review_md_ ___github_github" src="https://user-images.githubusercontent.com/7910250/46391629-c8baa480-c692-11e8-8010-0cceb69394b1.png">
-
+<img width="679" alt="opening a pull request by URL" src="https://user-images.githubusercontent.com/7910250/46391629-c8baa480-c692-11e8-8010-0cceb69394b1.png">
 
 ### PullRequestDetailItem
 
 Each `PullRequestDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
 
-![screen shot 2018-10-03 at 1 50 18 pm](https://user-images.githubusercontent.com/7910250/46391711-1df6b600-c693-11e8-87f3-ad4cdbe8ebd8.png)
+![pull request detail item](https://user-images.githubusercontent.com/7910250/46391711-1df6b600-c693-11e8-87f3-ad4cdbe8ebd8.png)
 
-TODO: update mock to have "Start review button" and "Add single comment"
+> :construction: Update mock to have "Start review button" and "Add single comment"
 
 Diffs are editable ONLY if the pull request branch is checked out and the local branch history has not diverged from the remote branch history. Otherwise diffs are not editable. Details of this will be fleshed out in a separate RFC specifically for editable diffs.
 
@@ -46,33 +44,33 @@ A panel at the bottom of the pane offers various options for sorting and filteri
 
 #### Sort Options
 
-<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392358-f6551d00-c695-11e8-8ed4-c7aa95044b06.png">
+<img width="731" alt="sort by" src="https://user-images.githubusercontent.com/7910250/46392358-f6551d00-c695-11e8-8ed4-c7aa95044b06.png">
 
-Note: We probably want to find better verbiage than "sort". Let's also consider a dropdown menu UX to select different views of the data.
+> :construction: We probably want to find better verbiage than "sort". Let's also consider a dropdown menu UX to select different views of the data.
 
 The default view is sorted by files. This is akin to the "Files changed" tab on dotcom. It displays the diff for all changed files in the PR.
 
 Sorting by reviews is akin to the review summaries that appear on the "Conversation" tab on dotcom. The comments are displayed grouped by review along with some context lines.
 
-![screen shot 2018-10-03 at 1 50 08 pm](https://user-images.githubusercontent.com/7910250/46394598-6ebfdc00-c69e-11e8-84eb-39ccbcccf736.png)
+![sorted by reviews](https://user-images.githubusercontent.com/7910250/46394598-6ebfdc00-c69e-11e8-84eb-39ccbcccf736.png)
 
-TODO: include show multiple reviews stacked
+> :construction: Show multiple reviews stacked
 
 Sorting by commits is akin to the "Commits" tab on dotcom. A list of commits is displayed in chronological order, oldest commit on top. Clicking a commit expands the diff contents below. If there is a commit message body this is displayed as well. Commit diffs are not editable.
 
-TODO: include commit sort mockup
+> :construction: Include commit sort mockup
 
 A banner at the bottom of the pane offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments. The banner remains visible as you scroll the pane.
 
 #### Filter Options
 
-<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392373-03720c00-c696-11e8-9a1b-fe6bc6238769.png">
+<img width="731" alt="filter options" src="https://user-images.githubusercontent.com/7910250/46392373-03720c00-c696-11e8-9a1b-fe6bc6238769.png">
 
 The default is to show all files, all authors, and unresolved comments.
 
 Filtering based on file type limits the diff view to displaying only that file type.
 
-TODO: Consider adding a "Find" input field that allows us to filter based on search term (which could be a file name, an author, a variable name, etc). Probably out of scope for this RFC.
+> :construction: Consider adding a "Find" input field that allows us to filter based on search term (which could be a file name, an author, a variable name, etc).
 
 Clicking an author's avatar displays only their review information.
 
@@ -86,13 +84,13 @@ Clicking "none" hides all comments, in the event that users want to see diff inf
 
 #### Submitting a Review
 
-<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392672-03264080-c697-11e8-8fe4-04605a4d5b13.png">
+<img width="731" alt="review changes button" src="https://user-images.githubusercontent.com/7910250/46392672-03264080-c697-11e8-8fe4-04605a4d5b13.png">
 
-Clicking the "Review Changes" button reveals a UI much like dotcom's
+Clicking the "Review Changes" button reveals a UI much like dotcom's:
 
-<img width="354" alt="xxx-pull-request-review_md_ ___github_github" src="https://user-images.githubusercontent.com/7910250/46392764-5c8e6f80-c697-11e8-8121-87e659ab8d15.png">
+<img width="354" alt="review changes panel" src="https://user-images.githubusercontent.com/7910250/46392764-5c8e6f80-c697-11e8-8121-87e659ab8d15.png">
 
-TODO: update Review Changes mockup
+> :construction: Update the Review Changes mockup
 
 * The review summary is a TextEditor that may be used to compose a summary comment.
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
@@ -102,8 +100,9 @@ TODO: update Review Changes mockup
 
 At the top of the pane is the existing summary box:
 
-<img width="600" alt="issueish-detail-item pane" src="https://user-images.githubusercontent.com/17565/46370334-57a7cc80-c653-11e8-8272-2eb51c761599.png">
-TODO: add conversation/timeline icon and progress bar
+<img width="600" alt="pull request details pane summary box" src="https://user-images.githubusercontent.com/17565/46370334-57a7cc80-c653-11e8-8272-2eb51c761599.png">
+
+> :construction: Add conversation/timeline icon and progress bar
 
 Clicking on the "22 commits" opens the commit view and changes the bottom panel to indicate sort by commits.
 
@@ -111,24 +110,23 @@ Clicking on the "1 changed files" opens the files view and changes the bottom pa
 
 Clicking on the build status summary icon (green checkmark, donut chart, or X) expands an ephemeral panel beneath the summary box showing build review status. Clicking the icon again or clicking on "dismiss" dismisses it.
 
-<img width="722" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391893-fbb16800-c693-11e8-88e7-ffe73448f8a8.png">
+<img width="722" alt="emphemeral checks panel" src="https://user-images.githubusercontent.com/7910250/46391893-fbb16800-c693-11e8-88e7-ffe73448f8a8.png">
 
 Clicking on the conversation/timeline icon expands an ephemeral panel beneath the summary box showing a very timeline view. The PR description and PR comments are displayed here. Other note-worthy timeline events are displayed in a very minimal fashion. At the bottom is an input field to add a new PR comment.
 
-TODO: add conversation/timeline popover mockup
+> :construction: Add conversation/timeline popover mockup
 
 Clicking the "expand" icon on the top right opens this information in a new pane to the right for easy side-by-side viewing with the diff (much like our current markdown preview opens in a separate pane).
 
-TODO: add conversation/timeline pane item
+> :construction: Add conversation/timeline pane item
 
 Clicking on the a commit takes you to the commit view and expands the selected commit, centering it in view.
 
-TODO: add commit view mockup
+> :construction: Add commit view mockup
 
 Clicking on a review reference takes you to the review view and expands the selected review, centering it in view.
 
-TODO: add review mockup
-
+> :construction: Add review mockup
 
 ### Comment decorations
 
@@ -169,8 +167,6 @@ We decided to switch to an editor-first approach and build the code review exper
 
 We discussed displaying review summary information in the GitHub panel in a ["Current pull request tile"](https://github.com/atom/github/blob/2ab74b59873c3b5bccac7ef679795eb483b335cf/docs/rfcs/XXX-pull-request-review.md#current-pull-request-tile). The current design encapsulates all of the PR information and functionality within a `PullRequestDetailItem`. Keeping the GitHub panel free of PR details for a specific PR rids us of the problem of having to keep it updated when the user switches active repos (which can feel jarring). This also avoids confusing the user by showing PR details for different PRs (imagine the checked out PR info in the panel and a pane item with PR info for a separate repo). We also free up space in the GitHub panel, making it less busy/overwhelming and leaving room for other information we might want to provide there in the future (like associated issues, say).
 
-<!-- Ongoing --->
-
 ## Unresolved questions
 
 ### Questions I expect to address before this is merged
@@ -185,11 +181,11 @@ Can we access "draft" reviews from the GitHub API, to unify them between Atom an
 
 How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
 
-* _We'll show a progress bar on a sticky header at the top of the `IssueishDetailItem`._
+* _We'll show a progress bar on a sticky header at the top of the `PullRequestDetailItem`._
 
 Are there any design choices we can make to lessen the emotional weight of a "requests changes" review? Peer review has the most value when it discovers issues for the pull request author to address, but accepting criticism is a vulnerable moment.
 
-* _Chosing phrasing and iconography carefully for "recommend changes"._
+* _Choosing phrasing and iconography carefully for "recommend changes"._
 
 Similarly, are there any ways we can encourage empathy within the review authoring process? Can we encourage reviewers to make positive comments or demonstrate humility and open-mindedness?
 
