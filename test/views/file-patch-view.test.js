@@ -526,6 +526,26 @@ describe('FilePatchView', function() {
       assert.strictEqual(instance.newLineNumberLabel({bufferRow: 999, softWrapped: false}), '\u00a0\u00a0');
     });
 
+    it('renders diff region scope characters when the config option is enabled', function() {
+      atomEnv.config.set('github.showDiffIconGutter', true);
+
+      wrapper.update();
+      const gutter = wrapper.find('Gutter[name="diff-icons"]');
+      assert.isTrue(gutter.exists());
+
+      const assertLayerDecorated = layer => {
+        const layerWrapper = wrapper.find('MarkerLayer').filterWhere(each => each.prop('external') === layer);
+        const decorations = layerWrapper.find('Decoration[type="line-number"][gutterName="diff-icons"]');
+        assert.isTrue(decorations.exists());
+      };
+      assertLayerDecorated(filePatch.getAdditionLayer());
+      assertLayerDecorated(filePatch.getDeletionLayer());
+
+      atomEnv.config.set('github.showDiffIconGutter', false);
+      wrapper.update();
+      assert.isFalse(wrapper.find('Gutter[name="diff-icons"]').exists());
+    });
+
     it('selects a single line on click', function() {
       instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
       assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
