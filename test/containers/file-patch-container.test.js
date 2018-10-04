@@ -41,6 +41,7 @@ describe('FilePatchContainer', function() {
       config: atomEnv.config,
       discardLines: () => {},
       undoLastDiscard: () => {},
+      surfaceFileAtPath: () => {},
       destroy: () => {},
       ...overrideProps,
     };
