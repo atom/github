@@ -186,10 +186,6 @@ We discussed displaying review summary information in the GitHub panel in a ["Cu
 
 ### Questions I expect to address before this is merged
 
-When there are working directory changes, how do we clearly indicate them within the diff view? Do we need to make them visually distinct from the PR changes? Things might get confusing for the user when the diff in the editor gets out of sync with the diff on dotcom.
-Example:
-* Author reads comment pointing out typo in an added line. Author edits text in multi-file diff which modifies the working directory. Should this line now be styled differently to indicate that it has deviated from the original diff?
-
 Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
 
 * _Yes, the `reviews` object includes it in a `PENDING` state._
@@ -208,6 +204,8 @@ Similarly, are there any ways we can encourage empathy within the review authori
 * _Enable integration with Teletype for smoother jumping to a synchronous review_
 
 ### Questions I expect to resolve throughout the implementation process
+
+When there are working directory changes or local commits on the PR branch, how do we clearly indicate them within the diff view? Do we need to make them visually distinct from the PR changes? Things might get confusing for the user when the diff in the editor gets out of sync with the diff on dotcom. For example: a pull request author reads a comment pointing out a typo in an added line. The author edits text within the multi-file diff which modifies the working directory. Should this line now be styled differently to indicate that it has deviated from the original diff?
 
 Review comment positioning within live TextEditors will be a tricky problem to address satisfactorily. What are the edge cases we need to handle there?
 
