@@ -38,6 +38,7 @@ describe('FilePatchContainer', function() {
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
       discardLines: () => {},
       undoLastDiscard: () => {},
       destroy: () => {},

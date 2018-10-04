@@ -36,6 +36,7 @@ describe('FilePatchController', function() {
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
       destroy: () => {},
       discardLines: () => {},
       undoLastDiscard: () => {},

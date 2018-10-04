@@ -54,6 +54,7 @@ describe('FilePatchView', function() {
       repository,
 
       workspace,
+      config: atomEnv.config,
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
