@@ -1,10 +1,8 @@
-# Feature title
-
-Pull Request Review
+# Pull Request Review
 
 ## Status
 
-Proposed
+Accepted
 
 ## Summary
 
