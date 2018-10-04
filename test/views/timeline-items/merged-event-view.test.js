@@ -60,4 +60,11 @@ describe('MergedEventView', function() {
     assert.strictEqual(wrapper.find('.username').text(), 'someone');
     assert.isFalse(wrapper.find('.sha').exists());
   });
+
+  it('renders a space between merged and commit', function() {
+    const wrapper = shallow(buildApp({}));
+    const text = wrapper.find('.merged-event-header').text();
+
+    assert.isTrue(text.includes('merged commit'));
+  });
 });
