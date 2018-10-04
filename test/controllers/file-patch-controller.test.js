@@ -40,6 +40,7 @@ describe('FilePatchController', function() {
       destroy: () => {},
       discardLines: () => {},
       undoLastDiscard: () => {},
+      surfaceFileAtPath: () => {},
       ...overrideProps,
     };
 
@@ -59,6 +60,14 @@ describe('FilePatchController', function() {
     wrapper.find('FilePatchView').prop('undoLastDiscard')();
 
     assert.isTrue(undoLastDiscard.calledWith('b.txt', repository));
+  });
+
+  it('calls surfaceFileAtPath with set arguments', function() {
+    const surfaceFileAtPath = sinon.spy();
+    const wrapper = shallow(buildApp({relPath: 'c.txt', surfaceFileAtPath}));
+    wrapper.find('FilePatchView').prop('surfaceFile')();
+
+    assert.isTrue(surfaceFileAtPath.calledWith('c.txt', 'unstaged'));
   });
 
   describe('diveIntoMirrorPatch()', function() {
