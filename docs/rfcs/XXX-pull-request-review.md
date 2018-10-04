@@ -38,7 +38,7 @@ Each `PullRequestDetailItem` opened on a pull request displays the full, multi-f
 
 > :construction: Update mock to have "Start review button" and "Add single comment"
 
-Diffs are editable ONLY if the pull request branch is checked out and the local branch history has not diverged from the remote branch history. Otherwise diffs are not editable. Details of this will be fleshed out in a separate RFC specifically for editable diffs.
+Diffs are editable _only_ if the pull request branch is checked out and the local branch history has not diverged from the remote branch history.
 
 A panel at the bottom of the pane offers various options for sorting and filtering the diff. It also has a "Review Changes" button.
 
@@ -218,6 +218,11 @@ The GraphQL API paths we need to interact with all involve multiple levels of pa
 
 How do we handle comment threads?
 
+When editing diffs:
+
+* Do we edit the underlying buffer or file directly, or do we mark the `PullRequestDetailItem` as "modified" and require a "save" action to persist changes?
+* Do we disallow edits of removed lines, or do we re-introduce the removed line as an addition on modification?
+
 ### Questions I consider out of scope of this RFC
 
 What other pull request information can we add to the GitHub pane item?
@@ -230,5 +235,4 @@ How can we notify users when new information, including reviews, is available, p
 
 ## Related features out of scope of this RFC
 
-* Inline review comments
 * "Find" input field for filtering based on search term (which could be a file name, an author, a variable name, etc)
