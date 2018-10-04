@@ -18,69 +18,127 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 ## Explanation
 
-### Current pull request tile
+### Review information in Pull Request list
 
-Reviews on the current pull request are rendered as a list on the current pull request tile.
+Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in it's own section at the top of the list.
 
-![review-list](https://user-images.githubusercontent.com/378023/46273505-b9533280-c590-11e8-840e-a8eac8023cad.png)
+<img width="339" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391240-ad4e9a00-c690-11e8-904b-e4cfd2c0f667.png">
+Note: Change "Current pull request" to "Checked out pull request"
 
-* The review summary bubble is elided after the first sentence or N characters if necessary.
-* Clicking the review summary bubble opens an `IssueishDetailItem` in the workspace center.
-* Clicking a line comment opens or activates an editor on the referenced file and scrolls to center the comment's line, translated according to local changes if appropriate.
-* Line comments within the review are rendered: _with a vertical blue bar_ before the file has been opened and the corresponding decoration is visible; _with a vertical grey bar_ after the file and decoration have been seen; and _with a vertical green bar_ after the comment has been marked "resolved" with the control on its decoration.
-* The review summary bubble and line comment lists are greyed out if a different `IssueishDetailItem` is activated.
+Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
-If a pending review is present, it appears at the top of the "Reviews" section within this tile:
+For PRs that are not listed in the panel, users can use the `github:open-issue-or-pull-request` command:
 
-![pending-review](https://user-images.githubusercontent.com/378023/46275946-9bd69680-c599-11e8-9889-66c35458286a.png)
+<img width="679" alt="xxx-pull-request-review_md_ ___github_github" src="https://user-images.githubusercontent.com/7910250/46391629-c8baa480-c692-11e8-8010-0cceb69394b1.png">
+
+
+### PullRequestDetailItem
+
+Each `PullRequestDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
+
+![screen shot 2018-10-03 at 1 50 18 pm](https://user-images.githubusercontent.com/7910250/46391711-1df6b600-c693-11e8-87f3-ad4cdbe8ebd8.png)
+
+TODO: update mock to have "Start review button" and "Add single comment"
+
+Diffs are editable ONLY if the pull request branch is checked out and the local branch history has not diverged from the remote branch history. Otherwise diffs are not editable. Details of this will be fleshed out in a separate RFC specifically for editable diffs.
+
+A panel at the bottom of the pane offers various options for sorting and filtering the diff. It also has a "Review Changes" button.
+
+#### Sort Options
+
+<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392358-f6551d00-c695-11e8-8ed4-c7aa95044b06.png">
+
+Note: We probably want to find better verbiage than "sort". Let's also consider a dropdown menu UX to select different views of the data.
+
+The default view is sorted by files. This is akin to the "Files changed" tab on dotcom. It displays the diff for all changed files in the PR.
+
+Sorting by reviews is akin to the review summaries that appear on the "Conversation" tab on dotcom. The comments are displayed grouped by review along with some context lines.
+
+![screen shot 2018-10-03 at 1 50 08 pm](https://user-images.githubusercontent.com/7910250/46394598-6ebfdc00-c69e-11e8-84eb-39ccbcccf736.png)
+
+TODO: include show multiple reviews stacked
+
+Sorting by commits is akin to the "Commits" tab on dotcom. A list of commits is displayed in chronological order, oldest commit on top. Clicking a commit expands the diff contents below. If there is a commit message body this is displayed as well. Commit diffs are not editable.
+
+TODO: include commit sort mockup
+
+A banner at the bottom of the pane offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments. The banner remains visible as you scroll the pane.
+
+#### Filter Options
+
+<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392373-03720c00-c696-11e8-9a1b-fe6bc6238769.png">
+
+The default is to show all files, all authors, and unresolved comments.
+
+Filtering based on file type limits the diff view to displaying only that file type.
+
+TODO: Consider adding a "Find" input field that allows us to filter based on search term (which could be a file name, an author, a variable name, etc). Probably out of scope for this RFC.
+
+Clicking an author's avatar displays only their review information.
+
+Clicking "unresolved" shows only resolved comments, helping users stay focused on comments that need to be addressed.
+
+Clicking "resolved" shows only resolved comments. This allows users to quickly see what has already been addressed.
+
+Checking "all comments" shows both resolved and unresolved comments.
+
+Clicking "none" hides all comments, in the event that users want to see diff information only.
+
+#### Submitting a Review
+
+<img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392672-03264080-c697-11e8-8fe4-04605a4d5b13.png">
+
+Clicking the "Review Changes" button reveals a UI much like dotcom's
+
+<img width="354" alt="xxx-pull-request-review_md_ ___github_github" src="https://user-images.githubusercontent.com/7910250/46392764-5c8e6f80-c697-11e8-8121-87e659ab8d15.png">
+
+TODO: update Review Changes mockup
 
 * The review summary is a TextEditor that may be used to compose a summary comment.
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
 * Choosing "Submit review" submits the drafted review to GitHub.
 
-If there is no pending review, the tile instead displays a control to create one.
-
-### IssueishDetailItem
-
-Each `IssueishDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request.
-
-A banner at the top of the pane offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments. The banner remains visible as you scroll the pane.
+#### Summary Box
 
 At the top of the pane is the existing summary box:
 
 <img width="600" alt="issueish-detail-item pane" src="https://user-images.githubusercontent.com/17565/46370334-57a7cc80-c653-11e8-8272-2eb51c761599.png">
+TODO: add conversation/timeline icon and progress bar
 
-* Clicking on the build status summary icon (green checkmark, donut chart, or X) expands an ephemeral panel beneath the summary box showing build review status. Clicking the icon again or clicking on "dismiss" dismisses it.
-* Clicking on the commit count opens the log view to those commits.
+Clicking on the "22 commits" opens the commit view and changes the bottom panel to indicate sort by commits.
 
-Summary comments for each existing review appear in a list below that. If a pending review is being drafted, it appears at the end of the list; otherwise, a control is present to create one. A pending review may be finalized by submitting a form that appears adjacent to it.
+Clicking on the "1 changed files" opens the files view and changes the bottom panel to indicate sort by files and "all files" checked.
 
-After the summary comments, the diff is shown, with review comments in place:
+Clicking on the build status summary icon (green checkmark, donut chart, or X) expands an ephemeral panel beneath the summary box showing build review status. Clicking the icon again or clicking on "dismiss" dismisses it.
 
-![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
+<img width="722" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391893-fbb16800-c693-11e8-88e7-ffe73448f8a8.png">
 
-On each review comment decoration:
+Clicking on the conversation/timeline icon expands an ephemeral panel beneath the summary box showing a very timeline view. The PR description and PR comments are displayed here. Other note-worthy timeline events are displayed in a very minimal fashion. At the bottom is an input field to add a new PR comment.
 
-* The up and down arrow buttons quickly scroll to center the next or previous comment within this tab.
-* Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there. If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
-* Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
-* Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
-* The "comment" button is disabled unless the "reply" editor is expanded and has non-whitespace content.
-* Clicking "comment" submits the response as a new stand-alone comment on that thread.
+TODO: add conversation/timeline popover mockup
 
-Hovering in the diff's gutter reveals a `+` icon that allows users to begin creating a new pending review, or making an isolated comment, using the same UI described in ["In-editor decorations"](#in-editor-decorations). If a pending review is present, its comments are also shown and editable here.
+Clicking the "expand" icon on the top right opens this information in a new pane to the right for easy side-by-side viewing with the diff (much like our current markdown preview opens in a separate pane).
 
-### In-editor decorations
+TODO: add conversation/timeline pane item
 
-When opening a TextEditor on a file that has been annotated with review comments on the current pull request, a block decoration is used to show the comment content at the corresponding position within the file content. Also, a gutter decoration is used to reveal lines that are included within the current pull requests' diff and may therefore include comments.
+Clicking on the a commit takes you to the commit view and expands the selected commit, centering it in view.
 
-![in-editor](https://user-images.githubusercontent.com/378023/44790482-69bcc800-abda-11e8-8a0f-922c0942b8c6.png)
+TODO: add commit view mockup
 
-> TODO: add gutter decoration?
+Clicking on a review reference takes you to the review view and expands the selected review, centering it in view.
+
+TODO: add review mockup
+
+
+### Comment decorations
+
+Within the multi-file diff view, a block decoration is used to show the comment content at the corresponding position within the file content.
 
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
-* The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
-* The "diff" button navigates to the corresponding pull request's `IssueishDetailItem` and scrolls to center the same comment within that view.
+* The up and down arrow buttons navigate to the next and previous review comments.
+* For comment decorations in the `PullRequestDetailItem`, clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there.
+  * If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
+* Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
 
 Hovering along the gutter within a pull request diff region reveals a `+` icon, which may be clicked to begin a new review:
 
@@ -91,24 +149,35 @@ Clicking the `+` reveals a new comment box, which may be used to submit a single
 ![single-review](https://user-images.githubusercontent.com/378023/40351475-78a527c2-5de7-11e8-8006-72d859514ecc.png)
 
 * If a draft review is already in progress, the "Add single comment" button is disabled and the "Start a review" button reads "Add review comment".
-* Clicking "Add single comment" submits a non-review diff comment and does not create a draft review.
-* Clicking "Start a review" creates a draft review and attaches the authored comment to it.
+* Clicking "Add single comment" submits a non-review diff comment and does not create a draft review. This button is disabled unless the "reply" editor is expanded and has non-whitespace content.
+* Clicking "Start a review" creates a draft review and attaches the authored comment to it. This button is disabled unless the "reply" editor is expanded and has non-whitespace content.
+* Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
 ## Drawbacks
 
 This adds a substantial amount of complexity to the UI, which is only justified for users that use GitHub pull request reviews.
 
-Showing all reviews in the current pull request tile can easily overwhelm the other pull request information included there. It also limits our ability to expand the information we provide there in the future (like associated issues, say).
-
 Rendering pull request comments within TextEditors can be intrusive: if there are many, or if your reviewers are particularly verbose, they could easily crowd out the code that you're trying to write and obscure your context.
 
 ## Rationale and alternatives
+
+Our original design looked and felt very dotcom-esque:
+
+![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
+
+We decided to switch to an editor-first approach and build the code review experience around an actual TextEditor item with a custom diff view. We are breaking free of the dotcom paradigm and leveraging the fact that we are in the context of the user's working directory, where we can easily update code.
+
+We discussed displaying review summary information in the GitHub panel in a ["Current pull request tile"](https://github.com/atom/github/blob/2ab74b59873c3b5bccac7ef679795eb483b335cf/docs/rfcs/XXX-pull-request-review.md#current-pull-request-tile). The current design encapsulates all of the PR information and functionality within a `PullRequestDetailItem`. Keeping the GitHub panel free of PR details for a specific PR rids us of the problem of having to keep it updated when the user switches active repos (which can feel jarring). This also avoids confusing the user by showing PR details for different PRs (imagine the checked out PR info in the panel and a pane item with PR info for a separate repo). We also free up space in the GitHub panel, making it less busy/overwhelming and leaving room for other information we might want to provide there in the future (like associated issues, say).
 
 <!-- Ongoing --->
 
 ## Unresolved questions
 
 ### Questions I expect to address before this is merged
+
+When there are working directory changes, how do we clearly indicate them within the diff view? Do we need to make them visually distinct from the PR changes? Things might get confusing for the user when the diff in the editor gets out of sync with the diff on dotcom.
+Example:
+* Author reads comment pointing out typo in an added line. Author edits text in multi-file diff which modifies the working directory. Should this line now be styled differently to indicate that it has deviated from the original diff?
 
 Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
 
@@ -142,10 +211,13 @@ How do we handle comment threads?
 
 What other pull request information can we add to the GitHub pane item?
 
-Are there other tabs that we need within the `IssueishDetailItem`?
-
 How can we notify users when new information, including reviews, is available, preferably without being intrusive or disruptive?
 
 ## Implementation phases
 
 ![dependency-graph](https://user-images.githubusercontent.com/17565/46361100-d47a7c80-c63a-11e8-83de-4a548be9cb9c.png)
+
+## Related features out of scope of this RFC
+
+* Inline review comments
+* "Find" input field for filtering based on search term (which could be a file name, an author, a variable name, etc)
