@@ -40,23 +40,32 @@
   ]
   '.github-FilePatchView': [
     {
+      'type': 'separator'
+    }
+    {
       'label': 'Open File'
       'command': 'github:open-file'
+      'after': ['core:confirm']
     }
   ]
   '.github-FilePatchView--staged': [
     {
+      'type': 'separator'
+    }
+    {
       'label': 'Unstage Selection'
       'command': 'core:confirm'
+      'beforeGroupContaining': ['core:undo']
     }
   ]
   '.github-FilePatchView--unstaged': [
     {
-      'label': 'Stage Selection'
-      'command': 'core:confirm'
+      'type': 'separator'
     }
     {
-      'type': 'separator'
+      'label': 'Stage Selection'
+      'command': 'core:confirm'
+      'beforeGroupContaining': ['core:undo']
     }
     {
       'label': 'Discard Selection'
