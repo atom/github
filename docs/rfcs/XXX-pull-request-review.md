@@ -136,8 +136,7 @@ Within the multi-file diff view, a block decoration is used to show the comment 
 
 * The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
 * The up and down arrow buttons navigate to the next and previous review comments.
-* Clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the line corresponding to the comment.
-  * In the future we will implement inline review comments as decorations in the code.
+* For comment decorations in the `PullRequestDetailItem`, clicking the "code" (`<>`) button opens the corresponding file in a TextEditor and scrolls to the review comment decoration there.
   * If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
 
@@ -169,8 +168,6 @@ Our original design looked and felt very dotcom-esque:
 We decided to switch to an editor-first approach and build the code review experience around an actual TextEditor item with a custom diff view. We are breaking free of the dotcom paradigm and leveraging the fact that we are in the context of the user's working directory, where we can easily update code.
 
 We discussed displaying review summary information in the GitHub panel in a ["Current pull request tile"](https://github.com/atom/github/blob/2ab74b59873c3b5bccac7ef679795eb483b335cf/docs/rfcs/XXX-pull-request-review.md#current-pull-request-tile). The current design encapsulates all of the PR information and functionality within a `PullRequestDetailItem`. Keeping the GitHub panel free of PR details for a specific PR rids us of the problem of having to keep it updated when the user switches active repos (which can feel jarring). This also avoids confusing the user by showing PR details for different PRs (imagine the checked out PR info in the panel and a pane item with PR info for a separate repo). We also free up space in the GitHub panel, making it less busy/overwhelming and leaving room for other information we might want to provide there in the future (like associated issues, say).
-
-We also discussed implementing comment decorations in regular text editors. Clicking the "code" (<>) button on a comment was originally to take you to the comment in the corresponding TextEditor file. While this is a nice feature to have, we can ship a complete code review experience without it. Let's punt on this and tackle it later on.
 
 <!-- Ongoing --->
 
