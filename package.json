@@ -173,6 +173,11 @@
       "default": true,
       "description": "Resolve merge conflicts with in-editor controls"
     },
+    "showDiffIconGutter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show change regions within a file patch with icons in addition to color"
+    },
     "excludedUsers": {
       "type": "string",
       "default": "",
