@@ -62,6 +62,7 @@ describe('FilePatchView', function() {
       selectedRowsChanged: () => {},
 
       diveIntoMirrorPatch: () => {},
+      surfaceFile: () => {},
       openFile: () => {},
       toggleFile: () => {},
       toggleRows: () => {},
@@ -878,6 +879,14 @@ describe('FilePatchView', function() {
       assert.isTrue(selectedRowsChanged.called);
       assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
       assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+    });
+
+    it('surfaces focus to the git tab', function() {
+      const surfaceFile = sinon.spy();
+      const wrapper = mount(buildApp({surfaceFile}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface-file');
+      assert.isTrue(surfaceFile.called);
     });
 
     describe('hunk mode navigation', function() {
