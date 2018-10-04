@@ -23,7 +23,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in it's own section at the top of the list.
 
 <img width="339" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391240-ad4e9a00-c690-11e8-904b-e4cfd2c0f667.png">
-Note: Change "Current pull request"
+Note: Change "Current pull request" to "Checked out pull request"
 
 Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
@@ -40,13 +40,15 @@ Each `PullRequestDetailItem` opened on a pull request displays the full, multi-f
 
 TODO: update mock to have "Start review button" and "Add single comment"
 
-Diffs are editable ONLY if the pull request branch is checked out and the local branch history has not diverged from the remote branch history. Otherwise diffs are not editable.
+Diffs are editable ONLY if the pull request branch is checked out and the local branch history has not diverged from the remote branch history. Otherwise diffs are not editable. Details of this will be fleshed out in a separate RFC specifically for editable diffs.
 
 A panel at the bottom of the pane offers various options for sorting and filtering the diff. It also has a "Review Changes" button.
 
 #### Sort Options
 
 <img width="731" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46392358-f6551d00-c695-11e8-8ed4-c7aa95044b06.png">
+
+Note: We probably want to find better verbiage than "sort". Let's also consider a dropdown menu UX to select different views of the data.
 
 The default view is sorted by files. This is akin to the "Files changed" tab on dotcom. It displays the diff for all changed files in the PR.
 
@@ -56,7 +58,7 @@ Sorting by reviews is akin to the review summaries that appear on the "Conversat
 
 TODO: include show multiple reviews stacked
 
-Sorting by commits is akin to the "Commits" tab on dotcom. A list of commits is displayed in chronological order, oldest commit on top. Clicking a commit expands the diff contents below. If there is a commit message body this is displayed as well.
+Sorting by commits is akin to the "Commits" tab on dotcom. A list of commits is displayed in chronological order, oldest commit on top. Clicking a commit expands the diff contents below. If there is a commit message body this is displayed as well. Commit diffs are not editable.
 
 TODO: include commit sort mockup
 
@@ -111,7 +113,7 @@ Clicking on the build status summary icon (green checkmark, donut chart, or X) e
 
 <img width="722" alt="slack_-_github" src="https://user-images.githubusercontent.com/7910250/46391893-fbb16800-c693-11e8-88e7-ffe73448f8a8.png">
 
-Clicking on the conversation/timeline icon expands an ephemeral panel beneath the summary box showing a very timeline view. The PR description and PR comments are displayed here. Other note-worthy timeline events are displayed in a very minimal fashion.
+Clicking on the conversation/timeline icon expands an ephemeral panel beneath the summary box showing a very timeline view. The PR description and PR comments are displayed here. Other note-worthy timeline events are displayed in a very minimal fashion. At the bottom is an input field to add a new PR comment.
 
 TODO: add conversation/timeline popover mockup
 
@@ -178,7 +180,7 @@ We also discussed implementing comment decorations in regular text editors. Clic
 
 When there are working directory changes, how do we clearly indicate them within the diff view? Do we need to make them visually distinct from the PR changes? Things might get confusing for the user when the diff in the editor gets out of sync with the diff on dotcom.
 Example:
-* Author reads comment pointing out typo in an added line. Author edits text in multi-file diff which modifies the working directory. Should this line now be orange to indicate that it has deviated from the original diff?
+* Author reads comment pointing out typo in an added line. Author edits text in multi-file diff which modifies the working directory. Should this line now be styled differently to indicate that it has deviated from the original diff?
 
 Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
 
@@ -196,8 +198,6 @@ Similarly, are there any ways we can encourage empathy within the review authori
 
 * _Emoji reactions on comments :cake: :tada:_
 * _Enable integration with Teletype for smoother jumping to a synchronous review_
-
-How do we clearly indicating recently added changes? That is, new changes pushed, comments, reviews, etc since the last time the users viewed the PR info. Is it enough to simply update the timeline view? Is it too easy to miss changes?
 
 ### Questions I expect to resolve throughout the implementation process
 
