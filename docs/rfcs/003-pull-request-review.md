@@ -22,7 +22,7 @@ Review progress is indicated for open pull requests listed in the GitHub panel. 
 
 ![image](https://user-images.githubusercontent.com/378023/46524357-89bf6580-c8c3-11e8-8e2d-ea02d5a1f278.png)
 
-> :construction: This mockup is still WIP and isn't shown for the rest of this RFC.
+> :construction: This mockup is still WIP and probably will change.
 
 Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
