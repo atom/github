@@ -321,6 +321,7 @@ describe('FilePatchController', function() {
         assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
           package: 'github',
           component: 'FilePatchController',
+          eventSource: undefined,
         }));
       });
     });

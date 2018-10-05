@@ -822,15 +822,14 @@ describe('StagingView', function() {
 
   describe('undoLastDiscard()', function() {
     it('records an event', function() {
-      const wrapper = mount(app);
+      const wrapper = mount(React.cloneElement(app, {hasUndoHistory: true}));
       sinon.stub(reporterProxy, 'addEvent');
       sinon.stub(wrapper.instance(), 'getSelectedItemFilePaths').returns(['a.txt', 'b.txt']);
-      wrapper.instance().discardChanges();
-      assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+      wrapper.instance().undoLastDiscard();
+      assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
         package: 'github',
         component: 'StagingView',
-        fileCount: 2,
-        type: 'selected',
+        eventSource: undefined,
       }));
     });
   });
