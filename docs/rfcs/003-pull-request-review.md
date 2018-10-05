@@ -26,10 +26,6 @@ Review progress is indicated for open pull requests listed in the GitHub panel. 
 
 Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
-For PRs that are not listed in the panel, users can use the `github:open-issue-or-pull-request` command:
-
-<img width="679" alt="opening a pull request by URL" src="https://user-images.githubusercontent.com/7910250/46391629-c8baa480-c692-11e8-8010-0cceb69394b1.png">
-
 ### PullRequestDetailItem
 
 Each `PullRequestDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
