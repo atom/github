@@ -26,55 +26,62 @@ Review progress is indicated for open pull requests listed in the GitHub panel. 
 
 Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
+
 ### PullRequestDetailItem
 
-Each `PullRequestDetailItem` has the full, multi-file diff associated with the pull request displayed under the "Files" tab. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
+#### Header
 
-![pull request detail item](https://user-images.githubusercontent.com/378023/46534569-8fc53e80-c8e3-11e8-8721-b38462b51cc7.png)
+At the top of each `PullRequestDetailItem` is a summary about the pull request, followed by the tabs to switch between different sub-views.
 
-Diffs are editable _only_ if the pull request branch is checked out and the local branch history has not diverged from the remote branch history.
+- Overview
+- Files (**new**)
+- Reviews (**new**)
+- Commits
+- Build Status
+
+After the tabs users can search or filter. The default is to show all files, all authors, and unresolved comments. Filtering based on file type, author, search term makes it possible to narrow down a long list of diffs. Toggling comments or collapse files is also possible.
+
+![header](https://user-images.githubusercontent.com/378023/46536358-3829d180-c8e9-11e8-9167-3d1003ab566b.png)
+
+#### Footer
 
 A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review.
 
-#### Sort Options
+![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
 
-<img width="731" alt="sort by" src="https://user-images.githubusercontent.com/7910250/46392358-f6551d00-c695-11e8-8ed4-c7aa95044b06.png">
+This panel is persistent throught all sub-views. It allows creating a reviews no matter where you are. Below shown with the existing sub-views:
 
-> :construction: We probably want to find better verbiage than "sort". Let's also consider a dropdown menu UX to select different views of the data.
+Overview | Commits | Build Status
+--- | --- | ---
+![overview](https://user-images.githubusercontent.com/378023/46535907-ca30da80-c8e7-11e8-9401-2b8660d56c25.png) | ![commits](https://user-images.githubusercontent.com/378023/46535908-ca30da80-c8e7-11e8-87ca-01637f2554b6.png) | ![build status](https://user-images.githubusercontent.com/378023/46535909-cac97100-c8e7-11e8-8813-47fdaa3ece57.png)
 
-The default view is sorted by files. This is akin to the "Files changed" tab on dotcom. It displays the diff for all changed files in the PR.
 
-Sorting by reviews is akin to the review summaries that appear on the "Conversation" tab on dotcom. The comments are displayed grouped by review along with some context lines.
+### Files
 
-![sorted by reviews](https://user-images.githubusercontent.com/7910250/46394598-6ebfdc00-c69e-11e8-84eb-39ccbcccf736.png)
+Under the "Files" tab the full, multi-file diff associated with the pull request is displayed. This is akin to the "Files changed" tab on dotcom. It displays the diff for all changed files in the PR.
 
-> :construction: Show multiple reviews stacked
+![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png)
 
-Sorting by commits is akin to the "Commits" tab on dotcom. A list of commits is displayed in chronological order, oldest commit on top. Clicking a commit expands the diff contents below. If there is a commit message body this is displayed as well. Commit diffs are not editable.
+Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
 
-> :construction: Include commit sort mockup
+![review comment](https://user-images.githubusercontent.com/378023/46534569-8fc53e80-c8e3-11e8-8721-b38462b51cc7.png)
 
-A banner at the bottom of the pane offers navigation to individual files within the diff and to individual review comments, allows each review to be hidden or shown with a filter control, and shows a progress bar that counts "resolved" review comments. The banner remains visible as you scroll the pane.
+Diffs are editable _only_ if the pull request branch is checked out and the local branch history has not diverged from the remote branch history.
 
-#### Filter Options
+### Reviews
 
-<img width="731" alt="filter options" src="https://user-images.githubusercontent.com/7910250/46392373-03720c00-c696-11e8-9a1b-fe6bc6238769.png">
+Under the "Reviews" tab all reviews of a pull request get shown. This is akin to the review summaries that appear on the "Conversation" tab on dotcom. The comments are displayed grouped by review along with some context lines.
 
-The default is to show all files, all authors, and unresolved comments.
+![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png)
 
-Filtering based on file type limits the diff view to displaying only that file type.
+Comments can be collapsed to get a better overview.
 
-> :construction: Consider adding a "Find" input field that allows us to filter based on search term (which could be a file name, an author, a variable name, etc).
+![reviews collapsed](https://user-images.githubusercontent.com/378023/46535648-13345f00-c8e7-11e8-8912-ab8acf144e02.png)
 
-Clicking an author's avatar displays only their review information.
 
-Clicking "unresolved" shows only resolved comments, helping users stay focused on comments that need to be addressed.
+---
 
-Clicking "resolved" shows only resolved comments. This allows users to quickly see what has already been addressed.
-
-Checking "all comments" shows both resolved and unresolved comments.
-
-Clicking "none" hides all comments, in the event that users want to see diff information only.
+:point_down: TODO
 
 #### Submitting a Review
 
