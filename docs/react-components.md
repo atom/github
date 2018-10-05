@@ -26,8 +26,6 @@ These live within [`lib/controllers`](/lib/controllers), are tested within [`tes
 
 **Views** are responsible for accepting props and rendering a DOM tree. View components should contain very few non-render methods and little state.
 
-
-## Atom bridge
 These live within [`lib/views`](/lib/views), are tested within [`test/views`](/test/views), and are named with a `View` suffix. Examples: `GitTabView`, `GithubLoginView`.
 
 ## Atlas
