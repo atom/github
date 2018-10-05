@@ -28,15 +28,13 @@ Clicking a pull request in the list opens a `PullRequestDetailItem` in the works
 
 ### PullRequestDetailItem
 
-Each `PullRequestDetailItem` opened on a pull request displays the full, multi-file diff associated with the pull request. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
+Each `PullRequestDetailItem` has the full, multi-file diff associated with the pull request displayed under the "Files" tab. Review comments are shown within the diff. See ["Comment decorations"](#comment-decorations) for description of review comments.
 
-![pull request detail item](https://user-images.githubusercontent.com/7910250/46391711-1df6b600-c693-11e8-87f3-ad4cdbe8ebd8.png)
-
-> :construction: Update mock to have "Start review button" and "Add single comment"
+![pull request detail item](https://user-images.githubusercontent.com/378023/46534569-8fc53e80-c8e3-11e8-8721-b38462b51cc7.png)
 
 Diffs are editable _only_ if the pull request branch is checked out and the local branch history has not diverged from the remote branch history.
 
-A panel at the bottom of the pane offers various options for sorting and filtering the diff. It also has a "Review Changes" button.
+A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review.
 
 #### Sort Options
 
