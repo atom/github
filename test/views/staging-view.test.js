@@ -801,6 +801,7 @@ describe('StagingView', function() {
         component: 'StagingView',
         fileCount: 2,
         type: 'all',
+        eventSource: undefined,
       }));
     });
   });
@@ -816,6 +817,7 @@ describe('StagingView', function() {
         component: 'StagingView',
         fileCount: 2,
         type: 'selected',
+        eventSource: undefined,
       }));
     });
   });

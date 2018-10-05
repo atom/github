@@ -309,6 +309,7 @@ describe('FilePatchController', function() {
           package: 'github',
           component: 'FilePatchController',
           lineCount: 2,
+          eventSource: undefined,
         }));
       });
     });
