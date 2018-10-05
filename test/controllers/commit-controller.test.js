@@ -78,7 +78,7 @@ describe('CommitController', function() {
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
     wrapper.setProps({repository: repository3});
-    assert.equal(wrapper.instance().getCommitMessage(), templateCommitMessage);
+    await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
   });
 
 
@@ -89,7 +89,7 @@ describe('CommitController', function() {
       const templateCommitMessage = await repository.git.getCommitMessageFromTemplate();
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app, {disableLifecycleMethods: true});
-      assert.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
+      await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
     });
   });
 
