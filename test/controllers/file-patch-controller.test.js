@@ -201,14 +201,14 @@ describe('FilePatchController', function() {
       });
     });
 
-    it('renders FilePatchView only if FilePatch has hunks', async function() {
+    it.only('renders FilePatchView only if FilePatch has hunks', async function() {
       const emptyFilePatch = createFilePatch(filePath, filePath, 'modified', []);
       getFilePatchForPath.returns(emptyFilePatch);
 
       const wrapper = mount(component);
 
       assert.isTrue(wrapper.find('FilePatchView').exists());
-      assert.isTrue(wrapper.find('FilePatchView').text().includes('File has no contents'));
+      assert.isTrue(wrapper.find('FilePatchView').text().includes('No changes to display'));
 
       const hunk1 = new Hunk(0, 0, 1, 1, '', [new HunkLine('line-1', 'added', 1, 1)]);
       const filePatch = createFilePatch(filePath, filePath, 'modified', [hunk1]);
