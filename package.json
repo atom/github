@@ -64,6 +64,7 @@
     "react-tabs": "^2.3.0",
     "relay-runtime": "1.6.0",
     "temp": "0.8.3",
+    "three": "0.96.0",
     "tinycolor2": "1.4.1",
     "tree-kill": "1.2.0",
     "what-the-diff": "0.4.0",
