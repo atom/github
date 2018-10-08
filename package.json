@@ -11,6 +11,7 @@
     "test:coverage:text": "nyc --reporter=text npm run test:coverage",
     "test:coverage:html": "nyc --reporter=html npm run test:coverage",
     "test:coverage:lcov": "npm run test:coverage",
+    "test:snapshot": "cross-env-shell ATOM_GITHUB_TEST_SUITE=snapshot \"${ATOM_SCRIPT_PATH:-atom} --test test\"",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
