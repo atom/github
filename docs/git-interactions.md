@@ -24,7 +24,7 @@ It also measures performance data and reports diagnostics to the dev console if 
 
 `GitShellOutStrategy` methods communicate by means of plain JavaScript objects and strings. They are very low-level; each method calls a single `git` command and reports any output with minimal postprocessing or parsing.
 
-> Historical note: `GitShellOutStrategy` and [`CompositeGitStrategy`](/lib/composite-git-strategy.js) are the remnants of exploratory work to back some operations by calls to [libgit2]() by means of [node-git](). The performance and stability cost ended up not being worth it for us.
+> Historical note: `GitShellOutStrategy` and [`CompositeGitStrategy`](/lib/composite-git-strategy.js) are the remnants of exploratory work to back some operations by calls to [libgit2](https://libgit2.org/) by means of [nodegit](https://www.npmjs.com/package/nodegit). The performance and stability cost ended up not being worth it for us.
 
 ## GitPromptServer
 
@@ -32,10 +32,10 @@ A [`GitTempDir`](/lib/git-temp-dir.js) and [`GitPromptServer`](/lib/git-prompt-s
 
 * Creating a temporary directory.
 * Copying a set of [helper scripts](/bin) to the temporary directory and, on non-Windows platforms, marking them executable. These scripts are `/bin/sh` scripts that execute their corresponding JavaScript modules as Node.js processes with the current Electron binary (by setting `ELECTRON_RUN_AS_NODE=1`), propagating along any arguments.
-* A UNIX domain socket or named pipe is created within the temporary directory. :memo: _Note that UNIX domain socket paths are limited to a maximum of 140 characters for [reasons](). On platforms where this is an issue, the temporary directory name must be short enough to accommodate this._
+* A UNIX domain socket or named pipe is created within the temporary directory. :memo: _Note that UNIX domain socket paths are limited to a maximum of 107 characters for [reasons](https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars). On platforms where this is an issue, the temporary directory name must be short enough to accommodate this._
 * The host Atom process creates a server listening on the UNIX domain socket or named pipe.
 * The `git` subprocess is spawned, configured to use the copied helper scripts as credential handlers.
-  * For HTTPS authentication, the argument `-c credential.helper=...` is used to ensure [`bin/git-credential-atom.js`](/bin/git-credential-atom.js) is used as the highest-priority [git credential helper](). `git-credential-atom.js` implements git's credential helper protocol by:
+  * For HTTPS authentication, the argument `-c credential.helper=...` is used to ensure [`bin/git-credential-atom.js`](/bin/git-credential-atom.js) is used as the highest-priority [git credential helper](https://git-scm.com/docs/git-credential). `git-credential-atom.js` implements git's credential helper protocol by:
     1. Executing any credential helpers configured by your system git. Some git installations are already configured to read from the OS keychain, but dugite's bundled git won't respect configution from your system installation.
     2. Reading an Atom-specific key from your OS keychain. If you have logged in to the GitHub tab, your OAuth token will be found here as well.
     3. If neither of those are successful, connect to the socket opened by `GitPromptServer` and write a JSON query.
@@ -107,7 +107,7 @@ setConfig(setting, value, options) {
 }
 ```
 
-To respond appropriately to git commands performed externally, be sure to also add invalidation logic to the [Present::observeFilesystemChange()](/lib/models/repository-states/present.js#L94-160).
+To respond appropriately to git commands performed externally, be sure to also add invalidation logic to the [`Present::observeFilesystemChange()`](/lib/models/repository-states/present.js#L94-160).
 
 ### State
 
