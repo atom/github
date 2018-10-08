@@ -68,8 +68,8 @@
     "yubikiri": "1.0.0"
   },
   "devDependencies": {
-    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "@smashwilson/atom-mocha-test-runner": "1.2.1",
+    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
@@ -83,6 +83,7 @@
     "hock": "1.3.3",
     "lodash.isequal": "4.5.0",
     "mkdirp": "0.5.1",
+    "mocha": "5.2.0",
     "mocha-appveyor-reporter": "0.4.0",
     "mocha-multi-reporters": "^1.1.7",
     "mocha-stress": "1.0.0",
