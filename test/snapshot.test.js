@@ -46,8 +46,6 @@ describe('snapshot generation', function() {
       },
     });
 
-    // TODO minify source with terser
-
     await fs.writeFile(snapshotScriptPath, snapshotScript, 'utf8');
 
     vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true});
