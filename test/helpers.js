@@ -227,12 +227,12 @@ export async function disableFilesystemWatchers(atomEnv) {
 }
 
 const packageRoot = path.resolve(__dirname, '..');
-const transpiledRoot = path.resolve(__dirname, 'transpiled');
+const transpiledRoot = path.resolve(__dirname, 'output/transpiled/');
 
 export function transpile(...relPaths) {
   return Promise.all(
     relPaths.map(async relPath => {
-      const untranspiledPath = require.resolve(relPath);
+      const untranspiledPath = path.resolve(__dirname, '..', relPath);
       const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
 
       const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
