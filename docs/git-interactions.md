@@ -52,7 +52,7 @@ A [`GitTempDir`](/lib/git-temp-dir.js) and [`GitPromptServer`](/lib/git-prompt-s
 
 Repositories are stateful: when created with a path, they are **loading**, after which they may become **present** if a `.git` directory is found, or **empty** otherwise. They may also be **absent** if you don't even have a path. **Empty** repositories may transition to **initializing** or **cloning** if a `git init` or `git clone` operation is begun.
 
-Repository instances mostly delegate operations to their current _state instance_. (This delegation is not automatic; there is [an explicit list](/lib/models/repository.js#L265-363) of methods that are delegated, which must be updated if new functionality is added.) However, Repositories do directly implement methods for:
+Repository instances mostly delegate operations to their current _state instance_. (This delegation is not automatic; there is [an explicit list](/lib/models/repository.js#L265-L363) of methods that are delegated, which must be updated if new functionality is added.) However, Repositories do directly implement methods for:
 
 * Composite operations that chain together several one-git-command pieces from its state, and
 * Alias operations that re-interpret the result from a single primitive command in different ways.
@@ -65,7 +65,7 @@ Present's methods communicate with a language of model objects: [`Branch`](/lib/
 
 Present is responsible for caching the results of commands that read state and for selectively busting invalidated cache keys based on write operations that are performed or filesystem activity observed within the `.git` directory.
 
-To write a method that reads from the cache, first locate or create a new cache key. These are static `CacheKey` objects found within [the `Key` structure](/lib/models/repository-states/present.js#L1072-1165). If the git operation depends on some of its operations, you may need to introduce a function that creates a unique cache key based on its input.
+To write a method that reads from the cache, first locate or create a new cache key. These are static `CacheKey` objects found within [the `Key` structure](/lib/models/repository-states/present.js#L1072-L1165). If the git operation depends on some of its operations, you may need to introduce a function that creates a unique cache key based on its input.
 
 ```js
 const Keys = {
@@ -107,7 +107,7 @@ setConfig(setting, value, options) {
 }
 ```
 
-To respond appropriately to git commands performed externally, be sure to also add invalidation logic to the [`Present::observeFilesystemChange()`](/lib/models/repository-states/present.js#L94-160).
+To respond appropriately to git commands performed externally, be sure to also add invalidation logic to the [`Present::observeFilesystemChange()`](/lib/models/repository-states/present.js#L94-L160).
 
 ### State
 
