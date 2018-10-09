@@ -50,7 +50,7 @@ A [`GitTempDir`](/lib/git-temp-dir.js) and [`GitPromptServer`](/lib/git-prompt-s
 
 [`Repository`](/lib/models/repository.js) is the higher-level model class that most of the view layer uses to interact with a git repository.
 
-Repositories are stateful: when created with a path, they are **loading**, after which they may become **present** if a `.git` directory is found, or **empty** otherwise. They may also be **absent** if you don't even have a path. **Empty** repositories may transition to **initializing** or **cloning** if a `git init` or `git clone` operation is begun.
+Repositories are stateful: when created with a path, they are **loading**, after which they may become **present** if a `.git` directory is found, or **empty** otherwise. They may also be **absent** if you don't even have a path. **Empty** repositories may transition to **initializing** or **cloning** if a `git init` or `git clone` operation is begun. For more details about Repository states, see [the `lib/models/repository-states/` README](/lib/models/repository-states/).
 
 Repository instances mostly delegate operations to their current _state instance_. (This delegation is not automatic; there is [an explicit list](/lib/models/repository.js#L265-L363) of methods that are delegated, which must be updated if new functionality is added.) However, Repositories do directly implement methods for:
 
