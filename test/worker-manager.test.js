@@ -150,6 +150,7 @@ describe('WorkerManager', function() {
 
   describe('when the manager process is destroyed', function() {
     it.stress(20, 'destroys all the renderer processes that were created', async function() {
+      console.log('<<<<<< start');
       const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
@@ -190,9 +191,11 @@ describe('WorkerManager', function() {
           childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker1.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
           console.log('worker2 pid information');
           childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker2.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
+          console.log('>>>>>> flaked!!');
         }
         throw e;
       }
+      console.log('>>>>>> ok');
     });
   });
 });
