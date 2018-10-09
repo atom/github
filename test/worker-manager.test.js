@@ -187,9 +187,9 @@ describe('WorkerManager', function() {
       } catch (e) {
         if (process.env.APPVEYOR === 'True') {
           console.log('worker1 pid information');
-          childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker1.getPid()}"`, {shell: true, stdio: 'inherit'});
+          childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker1.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
           console.log('worker2 pid information');
-          childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker2.getPid()}"`, {shell: true, stdio: 'inherit'});
+          childProcess.execFileSync(`TASKLIST /V /FI "PID eq ${worker2.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
         }
         throw e;
       }
