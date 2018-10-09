@@ -79,6 +79,7 @@
     "chai-as-promised": "7.1.1",
     "coveralls": "^3.0.1",
     "cross-env": "5.2.0",
+    "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "electron-link": "0.2.2",
