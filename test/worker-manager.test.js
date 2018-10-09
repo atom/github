@@ -172,10 +172,13 @@ describe('WorkerManager', function() {
 
       const worker1 = workerManager.getActiveWorker();
       await worker1.getReadyPromise();
+      console.log(`worker1 pid = ${worker1.getPid()}`);
       workerManager.onSick(worker1);
       const worker2 = workerManager.getActiveWorker();
       await worker2.getReadyPromise();
+      console.log(`worker2 pid = ${worker2.getPid()}`);
 
+      console.log('about to destroy browserWindow');
       browserWindow.destroy();
       await assert.async.isFalse(isProcessAlive(worker1.getPid()));
       await assert.async.isFalse(isProcessAlive(worker2.getPid()));
