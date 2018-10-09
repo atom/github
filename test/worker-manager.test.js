@@ -182,19 +182,8 @@ describe('WorkerManager', function() {
 
       console.log('about to destroy browserWindow');
       browserWindow.destroy();
-      try {
-        await assert.async.isFalse(isProcessAlive(worker1.getPid()));
-        await assert.async.isFalse(isProcessAlive(worker2.getPid()));
-      } catch (e) {
-        if (process.env.APPVEYOR === 'True') {
-          console.log('worker1 pid information');
-          childProcess.spawnSync(`TASKLIST /V /FI "PID eq ${worker1.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
-          console.log('worker2 pid information');
-          childProcess.spawnSync(`TASKLIST /V /FI "PID eq ${worker2.getPid()}"`, {shell: 'cmd', stdio: 'inherit'});
-          console.log('>>>>>> flaked!!');
-        }
-        throw e;
-      }
+      await assert.async.isFalse(isProcessAlive(worker1.getPid()));
+      await assert.async.isFalse(isProcessAlive(worker2.getPid()));
       console.log('>>>>>> ok');
     });
   });
