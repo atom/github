@@ -182,8 +182,13 @@ describe('WorkerManager', function() {
 
       console.log('about to destroy browserWindow');
       browserWindow.destroy();
-      await assert.async.isFalse(isProcessAlive(worker1.getPid()));
-      await assert.async.isFalse(isProcessAlive(worker2.getPid()));
+      try {
+        await assert.async.isFalse(isProcessAlive(worker1.getPid()));
+        await assert.async.isFalse(isProcessAlive(worker2.getPid()));
+      } catch (e) {
+        console.log('>>>>>> FLAKE');
+        throw e;
+      }
       console.log('>>>>>> ok');
     });
   });
