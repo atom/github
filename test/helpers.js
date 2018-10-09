@@ -55,6 +55,7 @@ export async function cloneRepository(repoName = 'three-files') {
     await git.exec(['config', '--local', 'commit.template', templatePath]);
     await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
     await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+    await git.exec(['config', '--local', 'push.default', 'simple']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
