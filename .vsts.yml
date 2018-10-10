@@ -15,7 +15,7 @@ jobs:
       find /tmp/atom/ -type f -name 'atom*'
       find /tmp/atom/ -type f -name 'apm*'
     displayName: install Atom
-  - bash: /tmp/atom/usr/bin/apm ci
+  - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
     displayName: install dependencies
-  - bash: /tmp/atom/usr/bin/atom --test test/
+  - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
