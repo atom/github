@@ -23,11 +23,14 @@ jobs:
     vmImage: macos-10.13
   steps:
   - bash: |
+      set -x
       curl -s -L "https://atom.io/download/mac?channel=dev" \
         -H 'Accept: application/octet-stream' \
         -o "atom.zip"
       mkdir -p /tmp/atom
       unzip -q atom.zip -d /tmp/atom
+      find /tmp/atom -name 'atom*'
+      find /tmp/atom -name 'apm*'
     displayName: install Atom
   - bash: /tmp/atom/Atom.app/Contents/Resources/app/apm/bin/apm ci
     displayName: install dependencies
