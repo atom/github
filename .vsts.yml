@@ -17,3 +17,19 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
+
+- job: MacOS
+  pool:
+    vmImage: macos-10.13
+  steps:
+  - bash: |
+      curl -s -L "https://atom.io/download/mac?channel=dev" \
+        -H 'Accept: application/octet-stream' \
+        -o "atom.zip"
+      mkdir -p /tmp/atom
+      unzip -q atom.zip /tmp/atom
+    displayName: install Atom
+  - bash: /tmp/atom/Atom.app/Contents/Resources/app/apm/bin/apm ci
+    displayName: install dependencies
+  - bash: /tmp/atom/Atom.app/Contents/Resources/app/atom.sh --test test/
+    displayName: run tests
