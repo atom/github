@@ -19,12 +19,12 @@ jobs:
     displayName: run tests
     continueOnError: true
     env:
-      TEST_JUNIT_XML_PATH: test-results.xml
+      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      testResultsFiles: test-results.xml
+      testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: Linux
 
 - job: MacOS
@@ -45,12 +45,12 @@ jobs:
     displayName: run tests
     continueOnError: true
     env:
-      TEST_JUNIT_XML_PATH: test-results.xml
+      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      testResultsFiles: test-results.xml
+      testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: MacOS
 
 - job: Windows
@@ -102,10 +102,10 @@ jobs:
     displayName: run tests
     continueOnError: true
     env:
-      TEST_JUNIT_XML_PATH: test-results.xml
+      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      testResultsFiles: test-results.xml
+      testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: Windows
