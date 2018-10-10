@@ -17,6 +17,9 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
+    env:
+      TEST_JUNIT_XML_PATH: test-results.xml
+      FORCE_COLOR: 0
 
 - job: MacOS
   pool:
@@ -29,13 +32,14 @@ jobs:
         -o "atom.zip"
       mkdir -p /tmp/atom
       unzip -q atom.zip -d /tmp/atom
-      find /tmp/atom -name 'atom*'
-      find /tmp/atom -name 'apm*'
     displayName: install Atom
   - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/apm/bin/apm ci
     displayName: install dependencies
   - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/atom.sh --test test/
     displayName: run tests
+    env:
+      TEST_JUNIT_XML_PATH: test-results.xml
+      FORCE_COLOR: 0
 
 - job: Windows
   pool:
@@ -60,9 +64,9 @@ jobs:
       Write-Host "Installing package dependencies"
       & "$script:APM_SCRIPT_PATH" ci
       if ($LASTEXITCODE -ne 0) {
-          Write-Host "Dependency installation failed"
-          $host.SetShouldExit($LASTEXITCODE)
-          exit
+        Write-Host "Dependency installation failed"
+        $host.SetShouldExit($LASTEXITCODE)
+        exit
       }
     displayName: install dependencies
   - powershell: |
@@ -79,8 +83,11 @@ jobs:
       & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
 
       if ($LASTEXITCODE -ne 0) {
-          Write-Host "Specs Failed"
-          $host.SetShouldExit($LASTEXITCODE)
-          exit
+        Write-Host "Specs Failed"
+        $host.SetShouldExit($LASTEXITCODE)
+        exit
       }
     displayName: run tests
+    env:
+      TEST_JUNIT_XML_PATH: test-results.xml
+      FORCE_COLOR: 0
