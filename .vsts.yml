@@ -78,7 +78,7 @@ jobs:
 
       function RunTests() {
         Write-Host "Running tests"
-        & "$scripot:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
+        & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Specs Failed"
