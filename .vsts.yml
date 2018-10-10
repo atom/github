@@ -27,7 +27,7 @@ jobs:
         -H 'Accept: application/octet-stream' \
         -o "atom.zip"
       mkdir -p /tmp/atom
-      unzip -q atom.zip /tmp/atom
+      unzip -q atom.zip -d /tmp/atom
     displayName: install Atom
   - bash: /tmp/atom/Atom.app/Contents/Resources/app/apm/bin/apm ci
     displayName: install dependencies
