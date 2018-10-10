@@ -45,44 +45,42 @@ jobs:
       Set-StrictMode -Version Latest
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
+      Write-Host "Downloading latest Atom release"
+      $source = "https://atom.io/download/windows_zip?channel=dev"
+      $destination = "atom.zip"
+
+      (New-Object System.Net.WebClient).DownloadFile($source, $destination)
+      Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+    displayName: install Atom
+  - powershell: |
+      Set-StrictMode -Version Latest
+      $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
+
+      Write-Host "Installing package dependencies"
+      & "$script:APM_SCRIPT_PATH" ci
+      if ($LASTEXITCODE -ne 0) {
+          Write-Host "Dependency installation failed"
+          $host.SetShouldExit($LASTEXITCODE)
+          exit
+      }
+    displayName: install dependencies
+  - powershell: |
+      Set-StrictMode -Version Latest
+      $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+      $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\cli\atom.cmd"
+
       $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
       [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
       $env:ELECTRON_ENABLE_LOGGING = "YES"
       [Environment]::SetEnvironmentVariable("ELECTRON_ENABLE_LOGGING", "YES", "User")
 
-      $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\cli\atom.cmd"
-      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
+      Write-Host "Running tests"
+      & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
 
-      function DownloadAtom() {
-        Write-Host "Downloading latest Atom release"
-        $source = "https://atom.io/download/windows_zip?channel=dev"
-        $destination = "atom.zip"
-
-        (New-Object System.Net.WebClient).DownloadFile($source, $destination)
-        Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+      if ($LASTEXITCODE -ne 0) {
+          Write-Host "Specs Failed"
+          $host.SetShouldExit($LASTEXITCODE)
+          exit
       }
-
-      function InstallDependencies() {
-        Write-Host "Installing package dependencies"
-        & "$script:APM_SCRIPT_PATH" ci
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Dependency installation failed"
-            $host.SetShouldExit($LASTEXITCODE)
-            exit
-        }
-      }
-
-      function RunTests() {
-        Write-Host "Running tests"
-        & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Specs Failed"
-            $host.SetShouldExit($LASTEXITCODE)
-            exit
-        }
-      }
-
-      DownloadAtom
-      InstallDependencies
-      RunTests
+    displayName: run tests
