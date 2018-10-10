@@ -59,10 +59,7 @@ jobs:
         $destination = "atom.zip"
 
         (New-Object System.Net.WebClient).DownloadFile($source, $destination)
-      }
-
-      function ExtractAtom() {
-        [System.IO.Compression.ZipFile]::ExtractToDirectory("atom.zip", $script:ATOMROOT)
+        Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
       }
 
       function InstallDependencies() {
@@ -87,6 +84,5 @@ jobs:
       }
 
       DownloadAtom
-      ExtractAtom
       InstallDependencies
       RunTests
