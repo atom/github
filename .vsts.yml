@@ -36,3 +36,58 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/atom.sh --test test/
     displayName: run tests
+
+- job: Windows
+  pool:
+    vmImage: vs2015-win2012r2
+  steps:
+  - powershell: |
+      Set-StrictMode -Version Latest
+      $script:ATOMROOT = "$env:AGENT_HOME_DIRECTORY/atom"
+      Set-Location $env:AGENT_BUILD_DIRECTORY
+
+      $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
+      [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
+      $env:ELECTRON_ENABLE_LOGGING = "YES"
+      [Environment]::SetEnvironmentVariable("ELECTRON_ENABLE_LOGGING", "YES", "User")
+
+      $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\cli\atom.cmd"
+      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
+
+      function DownloadAtom() {
+        Write-Host "Downloading latest Atom release"
+        $source = "https://atom.io/download/windows_zip?channel=dev"
+        $destination = "atom.zip"
+
+        (New-Object System.Net.WebClient).DownloadFile($source, $destination)
+      }
+
+      function ExtractAtom() {
+        [System.IO.Compression.ZipFile]::ExtractToDirectory("atom.zip", $script:ATOMROOT)
+      }
+
+      function InstallDependencies() {
+        Write-Host "Installing package dependencies"
+        & "$script:APM_SCRIPT_PATH" ci
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Dependency installation failed"
+            $host.SetShouldExit($LASTEXITCODE)
+            exit
+        }
+      }
+
+      function RunTests() {
+        Write-Host "Running tests"
+        & "$scripot:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Specs Failed"
+            $host.SetShouldExit($LASTEXITCODE)
+            exit
+        }
+      }
+
+      DownloadAtom
+      ExtractAtom
+      InstallDependencies
+      RunTests
