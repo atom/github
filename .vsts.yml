@@ -32,7 +32,7 @@ jobs:
       find /tmp/atom -name 'atom*'
       find /tmp/atom -name 'apm*'
     displayName: install Atom
-  - bash: /tmp/atom/Atom.app/Contents/Resources/app/apm/bin/apm ci
+  - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/apm/bin/apm ci
     displayName: install dependencies
-  - bash: /tmp/atom/Atom.app/Contents/Resources/app/atom.sh --test test/
+  - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/atom.sh --test test/
     displayName: run tests
