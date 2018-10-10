@@ -94,6 +94,7 @@
     "mkdirp": "0.5.1",
     "mocha": "^5.2.0",
     "mocha-appveyor-reporter": "0.4.1",
+    "mocha-junit-reporter": "1.18.0",
     "mocha-multi-reporters": "^1.1.7",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.2.0",
