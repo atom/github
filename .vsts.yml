@@ -17,9 +17,15 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
+    continueOnError: true
     env:
       TEST_JUNIT_XML_PATH: test-results.xml
       FORCE_COLOR: 0
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: test-results.xml
+      testRunTitle: Linux
 
 - job: MacOS
   pool:
@@ -37,9 +43,15 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/atom.sh --test test/
     displayName: run tests
+    continueOnError: true
     env:
       TEST_JUNIT_XML_PATH: test-results.xml
       FORCE_COLOR: 0
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: test-results.xml
+      testRunTitle: MacOS
 
 - job: Windows
   pool:
@@ -88,6 +100,12 @@ jobs:
         exit
       }
     displayName: run tests
+    continueOnError: true
     env:
       TEST_JUNIT_XML_PATH: test-results.xml
       FORCE_COLOR: 0
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: test-results.xml
+      testRunTitle: Windows
