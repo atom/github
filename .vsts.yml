@@ -43,8 +43,7 @@ jobs:
   steps:
   - powershell: |
       Set-StrictMode -Version Latest
-      $script:ATOMROOT = "$env:AGENT_HOME_DIRECTORY/atom"
-      Set-Location $env:AGENT_BUILD_DIRECTORY
+      $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
       $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
       [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
