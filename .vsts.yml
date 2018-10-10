@@ -6,7 +6,6 @@ jobs:
     display: ":99"
   steps:
   - bash: |
-      set -x
       curl -s -L "https://atom.io/download/deb?channel=dev" \
         -H 'Accept: application/octet-stream' \
         -o 'atom-amd64.deb'
