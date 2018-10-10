@@ -15,7 +15,9 @@ jobs:
     displayName: install Atom
   - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
     displayName: install dependencies
-  - bash: /tmp/atom/usr/bin/atom-dev --test test/
+  - bash: |
+      /tmp/atom/usr/bin/atom-dev --test test/
+      echo "TEST_JUNIT_XML_PATH=${TEST_JUNIT_XML_PATH}"
     displayName: run tests
     continueOnError: true
     env:
