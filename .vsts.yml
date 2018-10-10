@@ -15,5 +15,9 @@ jobs:
     displayName: install Atom
   - script: apm ci
     displayName: install dependencies
+    env:
+      PATH: "${PATH}:${HOME}/atom/usr/bin"
   - script: atom --test test/
     displayName: run tests
+    env:
+      PATH: "${PATH}:${HOME}/atom/usr/bin"
