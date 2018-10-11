@@ -2,20 +2,31 @@ jobs:
 - job: Linux
   pool:
     vmImage: ubuntu-16.04
+  strategy:
+    matrix:
+      dev:
+        ATOM_CHANNEL: dev
+        ATOM_NAME: atom-dev
+      beta:
+        ATOM_CHANNEL: beta
+        ATOM_NAME: atom-beta
+      stable:
+        ATOM_CHANNEL: stable
+        ATOM_NAME: atom
   variables:
     display: ":99"
   steps:
   - bash: |
-      curl -s -L "https://atom.io/download/deb?channel=dev" \
+      curl -s -L "https://atom.io/download/deb?channel=${ATOM_CHANNEL}" \
         -H 'Accept: application/octet-stream' \
         -o 'atom-amd64.deb'
       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
       sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
       dpkg-deb -x atom-amd64.deb /tmp/atom
     displayName: install Atom
-  - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
+  - bash: /tmp/atom/usr/share/${ATOM_NAME}/resources/app/apm/bin/apm ci
     displayName: install dependencies
-  - bash: /tmp/atom/usr/bin/atom-dev --test test/
+  - bash: /tmp/atom/usr/bin/${ATOM_NAME} --test test/
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
@@ -32,18 +43,29 @@ jobs:
 - job: MacOS
   pool:
     vmImage: macos-10.13
+  strategy:
+    matrix:
+      dev:
+        ATOM_CHANNEL: dev
+        ATOM_APP: Atom Dev.app
+      beta:
+        ATOM_CHANNEL: beta
+        ATOM_APP: Atom Beta.app
+      stable:
+        ATOM_CHANNEL: stable
+        ATOM_APP: Atom.app
   steps:
   - bash: |
       set -x
-      curl -s -L "https://atom.io/download/mac?channel=dev" \
+      curl -s -L "https://atom.io/download/mac?channel=${ATOM_CHANNEL}" \
         -H 'Accept: application/octet-stream' \
         -o "atom.zip"
       mkdir -p /tmp/atom
       unzip -q atom.zip -d /tmp/atom
     displayName: install Atom
-  - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/apm/bin/apm ci
+  - bash: '"/tmp/atom/${ATOM_APP}/Contents/Resources/app/apm/bin/apm" ci'
     displayName: install dependencies
-  - bash: /tmp/atom/Atom\ Dev.app/Contents/Resources/app/atom.sh --test test/
+  - bash: '"/tmp/atom/${ATOM_APP}/Contents/Resources/app/atom.sh" --test test/'
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
@@ -60,13 +82,24 @@ jobs:
 - job: Windows
   pool:
     vmImage: vs2015-win2012r2
+  strategy:
+    matrix:
+      dev:
+        ATOM_CHANNEL: dev
+        ATOM_DIRECTORY: Atom Dev
+      beta:
+        ATOM_CHANNEL: beta
+        ATOM_DIRECTORY: Atom Beta
+      stable:
+        ATOM_CHANNEL: stable
+        ATOM_DIRECTORY: Atom
   steps:
   - powershell: |
       Set-StrictMode -Version Latest
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
       Write-Host "Downloading latest Atom release"
-      $source = "https://atom.io/download/windows_zip?channel=dev"
+      $source = "https://atom.io/download/windows_zip?channel=$env:ATOM_CHANNEL"
       $destination = "atom.zip"
 
       (New-Object System.Net.WebClient).DownloadFile($source, $destination)
@@ -75,7 +108,7 @@ jobs:
   - powershell: |
       Set-StrictMode -Version Latest
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
-      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
+      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\app\apm\bin\apm.cmd"
 
       Write-Host "Installing package dependencies"
       & "$script:APM_SCRIPT_PATH" ci
@@ -88,7 +121,7 @@ jobs:
   - powershell: |
       Set-StrictMode -Version Latest
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
-      $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\cli\atom.cmd"
+      $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\cli\atom.cmd"
 
       # Normalize %TEMP% as a long (non 8.3) path.
       $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
