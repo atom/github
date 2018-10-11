@@ -37,7 +37,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: Linux
+      testRunTitle: Linux $(ATOM_CHANNEL)
     condition: succeededOrFailed()
 
 - job: MacOS
@@ -76,7 +76,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: MacOS
+      testRunTitle: MacOS $(ATOM_CHANNEL)
     condition: succeededOrFailed()
 
 - job: Windows
@@ -150,7 +150,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: Windows
+      testRunTitle: Windows $(ATOM_CHANNEL)
     condition: succeededOrFailed()
 
 - job: Lint
