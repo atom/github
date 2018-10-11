@@ -497,6 +497,11 @@ describe('FilePatchController', function() {
       });
 
       it('stages file deletion when all deleted lines are staged', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
         await repository.getLoadPromise();
@@ -528,6 +533,11 @@ describe('FilePatchController', function() {
       });
 
       it('unstages file creation when all added lines are unstaged', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
