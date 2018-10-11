@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
+import globby from 'globby';
 import transpiler from 'atom-babel6-transpiler';
 
 import React from 'react';
@@ -27,10 +28,13 @@ assert.autocrlfEqual = (actual, expected, ...args) => {
 // for each subsequent request to clone makes cloning
 // 2-3x faster on macOS and 5-10x faster on Windows
 const cachedClonedRepos = {};
-function copyCachedRepo(repoName) {
+async function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
-  fs.copySync(cachedClonedRepos[repoName], workingDirPath);
-  return fs.realpath(workingDirPath);
+  await fs.copy(cachedClonedRepos[repoName], workingDirPath);
+  const realPath = await fs.realpath(workingDirPath);
+
+  // Normalize as a "long path" (not 8.3 form) on Windows
+  return (await globby(realPath))[0];
 }
 
 export const FAKE_USER = {
