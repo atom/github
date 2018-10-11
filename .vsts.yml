@@ -20,6 +20,8 @@ jobs:
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
@@ -46,6 +48,8 @@ jobs:
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
@@ -107,6 +111,8 @@ jobs:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
       FORCE_COLOR: 0
       ATOM_GITHUB_SKIP_SYMLINKS: 1
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
