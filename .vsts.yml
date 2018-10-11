@@ -129,7 +129,6 @@ jobs:
   - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/node_modules/.bin/npm run lint
     displayName: run the linter
 
-jobs:
 - job: Snapshot
   pool:
     vmImage: ubuntu-16.04
