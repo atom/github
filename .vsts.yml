@@ -86,6 +86,10 @@ jobs:
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
       $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\cli\atom.cmd"
 
+      Write-Output "TEMP before: $env:TEMP"
+      $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
+      Write-Output "TEMP after: $env:TEMP"
+
       $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
       [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
       $env:ELECTRON_ENABLE_LOGGING = "YES"

@@ -31,10 +31,7 @@ const cachedClonedRepos = {};
 async function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
   await fs.copy(cachedClonedRepos[repoName], workingDirPath);
-  const realPath = await fs.realpath(workingDirPath);
-
-  // Normalize as a "long path" (not 8.3 form) on Windows
-  return (await globby(realPath))[0];
+  return fs.realpath(workingDirPath);
 }
 
 export const FAKE_USER = {
