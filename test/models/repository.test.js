@@ -312,6 +312,11 @@ describe('Repository', function() {
     });
 
     it('can stage and unstage symlink changes without staging file contents', async function() {
+      if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+        this.skip();
+        return;
+      }
+
       const workingDirPath = await cloneRepository('symlinks');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();

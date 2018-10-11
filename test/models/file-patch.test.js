@@ -357,6 +357,11 @@ describe('FilePatch', function() {
       });
 
       it('handles typechange patches for a file replaced with a symlink', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workdirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workdirPath);
 

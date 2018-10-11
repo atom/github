@@ -341,6 +341,11 @@ describe('FilePatchController', function() {
       }
 
       it('unstages added lines that don\'t require symlink change', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
@@ -379,6 +384,11 @@ describe('FilePatchController', function() {
       });
 
       it('stages deleted lines that don\'t require symlink change', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
@@ -411,6 +421,11 @@ describe('FilePatchController', function() {
       });
 
       it('stages symlink change when staging added lines that depend on change', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
@@ -445,6 +460,11 @@ describe('FilePatchController', function() {
       });
 
       it('unstages symlink change when unstaging deleted lines that depend on change', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const workingDirPath = await cloneRepository('symlinks');
         const repository = await buildRepository(workingDirPath);
 
