@@ -128,3 +128,33 @@ jobs:
     displayName: install dependencies
   - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/node_modules/.bin/npm run lint
     displayName: run the linter
+
+jobs:
+- job: Snapshot
+  pool:
+    vmImage: ubuntu-16.04
+  variables:
+    display: ":99"
+  steps:
+  - bash: |
+      curl -s -L "https://atom.io/download/deb?channel=dev" \
+        -H 'Accept: application/octet-stream' \
+        -o 'atom-amd64.deb'
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+      sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+      dpkg-deb -x atom-amd64.deb /tmp/atom
+    displayName: install Atom
+  - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
+    displayName: install dependencies
+  - bash: /tmp/atom/usr/bin/atom-dev --test test/
+    displayName: run tests
+    env:
+      ATOM_GITHUB_TEST_SUITE: snapshot
+      TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
+      FORCE_COLOR: 0
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
+      testRunTitle: Snapshot
+    condition: succeededOrFailed()
