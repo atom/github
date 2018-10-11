@@ -111,7 +111,7 @@ module.exports = createRunner({
   if (process.env.TEST_JUNIT_XML_PATH) {
     mocha.reporter(require('mocha-multi-reporters'), {
       reporterEnabled: 'mocha-junit-reporter, list',
-      junitReporterOptions: {
+      mochaJunitReporterReporterOptions: {
         mochaFile: process.env.TEST_JUNIT_XML_PATH,
         useFullSuiteTitle: true,
         suiteTitleSeparedBy: ' / ',
