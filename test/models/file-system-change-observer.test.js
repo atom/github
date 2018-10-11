@@ -24,7 +24,9 @@ describe('FileSystemChangeObserver', function() {
     }
   });
 
-  it.stress(50, 'emits an event when a project file is modified, created, or deleted', async function() {
+  it('emits an event when a project file is modified, created, or deleted', async function() {
+    this.retries(5); // FLAKE
+
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     observer = createObserver(repository);
