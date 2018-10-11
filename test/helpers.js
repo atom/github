@@ -2,7 +2,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
-import globby from 'globby';
 import transpiler from 'atom-babel6-transpiler';
 
 import React from 'react';
