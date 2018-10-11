@@ -109,8 +109,9 @@ module.exports = createRunner({
   mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
 
   if (process.env.TEST_JUNIT_XML_PATH) {
+    console.log(`logging junit results to ${process.env.TEST_JUNIT_XML_PATH}`);
     mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'junit, list',
+      reporterEnabled: 'mocha-junit-reporter, list',
       junitReporterOptions: {
         mochaFile: process.env.TEST_JUNIT_XML_PATH,
         useFullSuiteTitle: true,
