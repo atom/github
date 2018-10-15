@@ -120,37 +120,6 @@ Clicking "Finish your review" or "Review Changes" in the footer...
 
 ---
 
-#### Summary Box
-
-At the top of the pane is the existing summary box:
-
-<img width="600" alt="pull request details pane summary box" src="https://user-images.githubusercontent.com/17565/46370334-57a7cc80-c653-11e8-8272-2eb51c761599.png">
-
-> :construction: Add conversation/timeline icon and progress bar
-
-Clicking on the "22 commits" opens the commit view and changes the bottom panel to indicate sort by commits.
-
-Clicking on the "1 changed files" opens the files view and changes the bottom panel to indicate sort by files and "all files" checked.
-
-Clicking on the build status summary icon (green checkmark, donut chart, or X) expands an ephemeral panel beneath the summary box showing build review status. Clicking the icon again or clicking on "dismiss" dismisses it.
-
-<img width="722" alt="emphemeral checks panel" src="https://user-images.githubusercontent.com/7910250/46391893-fbb16800-c693-11e8-88e7-ffe73448f8a8.png">
-
-Clicking on the conversation/timeline icon expands an ephemeral panel beneath the summary box showing a very timeline view. The PR description and PR comments are displayed here. Other note-worthy timeline events are displayed in a very minimal fashion. At the bottom is an input field to add a new PR comment.
-
-> :construction: Add conversation/timeline popover mockup
-
-Clicking the "expand" icon on the top right opens this information in a new pane to the right for easy side-by-side viewing with the diff (much like our current markdown preview opens in a separate pane).
-
-> :construction: Add conversation/timeline pane item
-
-Clicking on the a commit takes you to the commit view and expands the selected commit, centering it in view.
-
-> :construction: Add commit view mockup
-
-Clicking on a review reference takes you to the review view and expands the selected review, centering it in view.
-
-> :construction: Add review mockup
 
 ### In-editor decorations
 
