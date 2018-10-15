@@ -14,9 +14,7 @@ We value:
 
 When we plan, we choose to pursue _a single task_ as a single team, rather than distributing tasks among ourselves from a queue and working on independent tasks in parallel. This is intended to increase the amount and quality of communication we can share in chat and in synchronous meetings: it's much easier to maintain an ongoing technical conversation when all participants share the mental context of a unified goal.
 
-This does _not_ mean that we all pair program all the time. We do get value from pair programming but this is not always practical or desirable. Pair programming may be chosen independently from the methods below -- functionally, the pair becomes one "developer" in any of the descriptions.
-
-To implement this, we have several distinct approaches we can employ:
+This does not mean that we all pair program all the time. We do get value from pair programming but this is not always practical or desirable. Pair programming may be chosen independently from the methods below -- functionally, the pair becomes one "developer" in any of the descriptions.
 
 ### 1. Seams
 
@@ -75,5 +73,5 @@ In this method, each developer (or pair) tackles a single problem in serial duri
 
 In addition to these strategies, we can take advantage of other technologies to help us feel connected in an ambient way.
 
-* We all open [Teletype]() portals as we work, even when not actively pairing, and share the URL in Slack. We join each other's portals in a window on a separate Atom window and watch each other's progress as a background process.
+* We all open [Teletype](https://teletype.atom.io/) portals as we work, even when not actively pairing, and share the URL in Slack. We join each other's portals in a window on a separate Atom window and watch each other's progress as a background process.
 * We stream to the world on [Twitch](https://twitch.tv) as we work. We sometimes jump into each other's streams to chat or catch up.
