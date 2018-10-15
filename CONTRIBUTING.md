@@ -10,7 +10,7 @@ Feel free to [open an issue](https://github.com/atom/github/issues) if you want 
 
 If you're working on the GitHub package day-to-day, it's useful to have a development environment configured to use the latest and greatest source.
 
-1. Run an [Atom nightly build]() if you can. Occasionally, we depend on upstream changes in Atom that have not yet percolated through to stable builds. This will also help us notice any changes in Atom core that cause regressions. It may also be convenient to create shell aliases from `atom` to `atom-nightly` and `apm` to `apm-nightly`.
+1. Run an [Atom nightly build](https://github.com/atom/atom-nightly-releases) if you can. Occasionally, we depend on upstream changes in Atom that have not yet percolated through to stable builds. This will also help us notice any changes in Atom core that cause regressions. It may also be convenient to create shell aliases from `atom` to `atom-nightly` and `apm` to `apm-nightly`.
 2. Install the GitHub package from its git URL:
 
    ```sh
@@ -47,7 +47,7 @@ atom-nightly --enable-electron-logging --test test/
 
 #### Flakes
 
-Occasionally, a test unrelated to your changes may fail sporadically. We file issues for these with the ["flaky-test" label]() and add a retry statement:
+Occasionally, a test unrelated to your changes may fail sporadically. We file issues for these with the ["flaky-test" label](https://github.com/atom/github/issues?q=is%3Aissue+is%3Aopen+label%3Aflaky-test) and add a retry statement:
 
 ```js
 it('passes sometimes and fails sometimes', function() {
@@ -76,13 +76,13 @@ it.stress(100, 'seems to break sometimes', function() {
 
 ### Style and formatting
 
-We enforce style consistency with eslint and the [fbjs-opensource]() ruleset. Our CI will automatically verify that pull requests conform to the existing ruleset. If you wish to check your changes against our rules before you submit a pull request, run:
+We enforce style consistency with eslint and the [fbjs-opensource](https://github.com/facebook/fbjs/tree/master/packages/eslint-config-fbjs-opensource) ruleset. Our CI will automatically verify that pull requests conform to the existing ruleset. If you wish to check your changes against our rules before you submit a pull request, run:
 
 ```sh
 npm run lint
 ```
 
-It's often more convenient to have Atom automatically lint and correct your source as you edit. To set this up, you'll need to install a frontend and a backend linter packages. I use [linter-eslint]() as a backend and [atom-ide-ui]() as a frontend.
+It's often more convenient to have Atom automatically lint and correct your source as you edit. To set this up, you'll need to install a frontend and a backend linter packages. I use [linter-eslint](https://atom.io/packages/linter-eslint) as a backend and [atom-ide-ui](https://atom.io/packages/atom-ide-ui) as a frontend.
 
 ```sh
 apm-nightly install atom-ide-ui linter-eslint
@@ -90,7 +90,7 @@ apm-nightly install atom-ide-ui linter-eslint
 
 ### Coverage
 
-Code coverage by our specs is measured by [istanbul]() and reported to [Coveralls](). Links to coverage information will be available in a pull request comment and a status check. While we don't _enforce_ full coverage, we do encourage submissions to not regress our coverage percentage whenever feasible.
+Code coverage by our specs is measured by [istanbul](https://istanbul.js.org/) and reported to [Coveralls](https://coveralls.io/github/atom/github?branch=master). Links to coverage information will be available in a pull request comment and a status check. While we don't _enforce_ full coverage, we do encourage submissions to not regress our coverage percentage whenever feasible.
 
 If you wish to preview coverage data locally, run one of:
 
@@ -105,7 +105,7 @@ npm run test:coverage:html
 npm run test:coverage
 ```
 
-Generating lcov data allows you to integrate an Atom package like [atom-lcov]() to see covered and uncovered source lines and branches with editor annotations.
+Generating lcov data allows you to integrate an Atom package like [atom-lcov](https://atom.io/packages/atom-lcov) to see covered and uncovered source lines and branches with editor annotations.
 
 If you prefer the graphical test runner, it may be altered to generate lcov coverage data by adding a command like the following to your `init.js` file:
 
@@ -121,7 +121,7 @@ atom.commands.add('atom-workspace', {
 
 ### Snapshotting
 
-To accelerate its launch time, Atom constructs a [v8 snapshot]() at build time that may be loaded much more efficiently than parsing source code from scratch. As a bundled core package, the GitHub package is included in this snapshot. A tool called [electron-link]() is used to pre-process all bundled source to prepare it for snapshot generation. This does introduce some constraints on the code constructs that may be used, however. While uncommon, it pays to be aware of the limitations this introduces.
+To accelerate its launch time, Atom constructs a [v8 snapshot](http://blog.atom.io/2017/04/18/improving-startup-time.html) at build time that may be loaded much more efficiently than parsing source code from scratch. As a bundled core package, the GitHub package is included in this snapshot. A tool called [electron-link](https://github.com/atom/electron-link) is used to pre-process all bundled source to prepare it for snapshot generation. This does introduce some constraints on the code constructs that may be used, however. While uncommon, it pays to be aware of the limitations this introduces.
 
 The most commonly encountered hindrance is that you cannot reference DOM primitives, native modules, or Atom API constructs _at module require time_ - in other words, with a top-level `const` or `let` expression, or a function or the constructor of a class invoked from one:
 
@@ -147,7 +147,7 @@ Introducing new third-party npm package dependencies (as non-`devDependencies`) 
 
 We do have a CI job in our test matrix that verifies that a electron-link and snapshot creation succeed for each commit.
 
-If any of these situations are _unavoidable_, individual modules _may_ be excluded from the snapshot generation process by adding them to the exclusion lists [within Atom's build scripts]() and [the GitHub package's snapshot testing script](). Use this solution very sparingly, though, as it impacts Atom's startup time and adds confusion.
+If any of these situations are _unavoidable_, individual modules _may_ be excluded from the snapshot generation process by adding them to the exclusion lists [within Atom's build scripts](https://github.com/atom/atom/blob/d29bb96c8ea09e5d9af2eb5b060227d11be2b92a/script/lib/generate-startup-snapshot.js#L27-L68) and [the GitHub package's snapshot testing script](https://github.com/atom/github/blob/3703f571e41f22c7076243abaab1a610b5b37647/test/generation.snapshot.js#L38-L43). Use this solution very sparingly, though, as it impacts Atom's startup time and adds confusion.
 
 ## Technical contribution tips
 
@@ -158,11 +158,11 @@ We have a growing body of documentation about the architecture and organization 
 We use the following technologies:
 
 * [Atom API](https://atom.io/docs) to interact with the editor.
-* [React]() is the framework that powers our view implementation.
-* We interact with GitHub via its [GraphQL]() API.
+* [React](https://reactjs.org/) is the framework that powers our view implementation.
+* We interact with GitHub via its [GraphQL](https://graphql.org/) API.
 * [Relay](https://github.com/facebook/relay) is a layer of glue between React and GraphQL queries that handles responsibilities like query composition and caching.
-* Our tests are written with [Mocha]() and [Chai](). We also use [Enzyme]() to assert against React behavior.
-* We use a [custom Babel 6 transpiler pipeline]() to write modern source with JSX, `import` statements, and other constructs unavailable natively within Atom's Node.js version.
+* Our tests are written with [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) [_(with the "assert" style)_](https://www.chaijs.com/api/assert/). We also use [Enzyme](https://airbnb.io/enzyme/) to assert against React behavior.
+* We use a [custom Babel 6 transpiler pipeline](https://github.com/atom/atom-babel6-transpiler) to write modern source with JSX, `import` statements, and other constructs unavailable natively within Atom's Node.js version.
 
 ### Updating the GraphQL Schema
 
