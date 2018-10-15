@@ -159,6 +159,8 @@ This adds a substantial amount of complexity to the UI, which is only justified 
 
 ## Rationale and alternatives
 
+#### First iteration
+
 Our original design looked and felt very dotcom-esque:
 
 ![changes-tab](https://user-images.githubusercontent.com/378023/46287431-6e9bdf80-c5bd-11e8-99eb-f3f81ba64e81.png)
@@ -166,6 +168,19 @@ Our original design looked and felt very dotcom-esque:
 We decided to switch to an editor-first approach and build the code review experience around an actual TextEditor item with a custom diff view. We are breaking free of the dotcom paradigm and leveraging the fact that we are in the context of the user's working directory, where we can easily update code.
 
 We discussed displaying review summary information in the GitHub panel in a ["Current pull request tile"](https://github.com/atom/github/blob/2ab74b59873c3b5bccac7ef679795eb483b335cf/docs/rfcs/XXX-pull-request-review.md#current-pull-request-tile). The current design encapsulates all of the PR information and functionality within a `PullRequestDetailItem`. Keeping the GitHub panel free of PR details for a specific PR rids us of the problem of having to keep it updated when the user switches active repos (which can feel jarring). This also avoids confusing the user by showing PR details for different PRs (imagine the checked out PR info in the panel and a pane item with PR info for a separate repo). We also free up space in the GitHub panel, making it less busy/overwhelming and leaving room for other information we might want to provide there in the future (like associated issues, say).
+
+#### Second iteration
+
+Our 2nd iteration made the changes of a PR be the main focus when opening a `PullRequestDetailItem`.
+
+![filter](https://user-images.githubusercontent.com/7910250/46391711-1df6b600-c693-11e8-87f3-ad4cdbe8ebd8.png)
+
+It was a great improvement, but filtering the diff with radio buttons and checkboxes felt confusing and overwhelming. Our next iteration then had the following goals:
+
+- Bring back the sub-navigation, but make it look less .com-y.
+- Keep using an editable editor for the diffs, but add some padding.
+- Introduce a "Reviews" footer to all sub-views to allow creating/submit a review, no matter where you are.
+
 
 ## Unresolved questions
 
