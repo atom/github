@@ -75,10 +75,13 @@ if (process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' && !process.env.NYC_CONFIG)
   global._nyc.wrap();
 }
 
+const testSuffixes = process.env.ATOM_GITHUB_TEST_SUITE === 'snapshot' ? ['snapshot.js'] : ['test.js'];
+
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
   reporter: process.env.MOCHA_REPORTER || 'list',
   overrideTestPaths: [/spec$/, /test/],
+  testSuffixes,
 }, (mocha, {terminate}) => {
   // Ensure that we expect to be deployable to this version of Atom.
   const engineRange = require('../package.json').engines.atom;

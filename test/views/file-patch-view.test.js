@@ -49,6 +49,7 @@ describe('FilePatchView', function() {
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
       filePatch,
+      hasUndoHistory: false,
       selectionMode: 'line',
       selectedRows: new Set(),
       repository,

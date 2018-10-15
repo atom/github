@@ -68,6 +68,20 @@ jobs:
     - ATOM_CHANNEL: dev
     - TEST_JUNIT_XML_PATH: test-results/mocha/test-results.xml
 
+  snapshot:
+    <<: *defaults
+    environment:
+    - ATOM_LINT_WITH_BUNDLED_NODE: "true"
+    - APM_TEST_PACKAGES: ""
+    - npm_config_clang: "1"
+    - CC: clang
+    - CXX: clang++
+    - MOCHA_TIMEOUT: "60000"
+    - UNTIL_TIMEOUT: "30000"
+    - CIRCLE_BUILD_IMAGE: osx
+    - ATOM_CHANNEL: dev
+    - ATOM_GITHUB_TEST_SUITE: snapshot
+
 workflows:
   version: 2
   build:
@@ -75,3 +89,4 @@ workflows:
     - stable
     - beta
     - dev
+    - snapshot

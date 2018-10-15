@@ -42,11 +42,20 @@ export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
     const cachedPath = temp.mkdirSync('git-fixture-cache-');
     const git = new GitShellOutStrategy(cachedPath);
-    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
+    const repoPath = path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git');
+
+    let templatePath = '';
+    try {
+      templatePath = await git.exec(['config', '--file', repoPath + '/config', 'commit.template']);
+    } catch (err) {}
+
+    await git.clone(repoPath, {noLocal: true});
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
+    await git.exec(['config', '--local', 'commit.template', templatePath]);
     await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
     await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+    await git.exec(['config', '--local', 'push.default', 'simple']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -263,12 +272,12 @@ export async function disableFilesystemWatchers(atomEnv) {
 }
 
 const packageRoot = path.resolve(__dirname, '..');
-const transpiledRoot = path.resolve(__dirname, 'transpiled');
+const transpiledRoot = path.resolve(__dirname, 'output/transpiled/');
 
 export function transpile(...relPaths) {
   return Promise.all(
     relPaths.map(async relPath => {
-      const untranspiledPath = require.resolve(relPath);
+      const untranspiledPath = path.resolve(__dirname, '..', relPath);
       const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
 
       const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});

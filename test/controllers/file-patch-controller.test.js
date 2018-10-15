@@ -4,6 +4,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import FilePatchController from '../../lib/controllers/file-patch-controller';
+import * as reporterProxy from '../../lib/reporter-proxy';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('FilePatchController', function() {
@@ -32,6 +33,7 @@ describe('FilePatchController', function() {
       relPath: 'a.txt',
       isPartiallyStaged: false,
       filePatch,
+      hasUndoHistory: false,
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
@@ -197,6 +199,33 @@ describe('FilePatchController', function() {
       assert.sameMembers(Array.from(wrapper.find('FilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('FilePatchView').prop('selectionMode'), 'hunk');
       assert.isTrue(wrapper.instance().render.called);
+    });
+
+    describe('discardLines()', function() {
+      it('records an event', async function() {
+        const wrapper = shallow(buildApp());
+        sinon.stub(reporterProxy, 'addEvent');
+        await wrapper.find('FilePatchView').prop('discardRows')(new Set([1, 2]));
+        assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+          package: 'github',
+          component: 'FilePatchController',
+          lineCount: 2,
+          eventSource: undefined,
+        }));
+      });
+    });
+
+    describe('undoLastDiscard()', function() {
+      it('records an event', function() {
+        const wrapper = shallow(buildApp());
+        sinon.stub(reporterProxy, 'addEvent');
+        wrapper.find('FilePatchView').prop('undoLastDiscard')();
+        assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
+          package: 'github',
+          component: 'FilePatchController',
+          eventSource: undefined,
+        }));
+      });
     });
   });
 
