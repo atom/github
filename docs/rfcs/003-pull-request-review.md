@@ -79,23 +79,46 @@ Comments can be collapsed to get a better overview.
 ![reviews collapsed](https://user-images.githubusercontent.com/378023/46926357-62a72780-d06b-11e8-9344-23389d1c727c.png)
 
 
+### Create a new Review
+
+Hovering along the gutter within a pull request diff region in a `TextEditor` or a `PullRequestDetailItem` reveals a `+` icon. Clicking the `+` icon reveals a new comment box, which may be used to submit a single comment or start a multi-comment review:
+
+![new review](https://user-images.githubusercontent.com/378023/46926996-49ec4100-d06e-11e8-9fb7-86607861efdd.png)
+
+* Clicking "Add single comment" submits a diff comment and does not create a draft review.
+* Clicking "Start a review" creates a draft review and attaches the authored comment to it.
+
+![pending review](https://user-images.githubusercontent.com/378023/46927357-e06d3200-d06f-11e8-9eae-b4c289fe16ae.png)
+
+* If a draft review is already in progress, the "Start a review" button reads "Add review comment".
+* And an additional row is added with options to "Start a new conversation" or "Finish your review".
+
+#### Submit a new Review
+
+Clicking "Finish your review" or "Review Changes" in the footer...
+
+![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
+
+... expands the footer to:
+
+![submit review](https://user-images.githubusercontent.com/378023/46927736-ef54e400-d071-11e8-99d9-0ea1001fc50d.png)
+
+* The review summary is a TextEditor that may be used to compose a summary comment.
+* Files with peding review comments are listed and make it possible to navigate between them.
+* A review can be marked as "Comment", "Approve" or "Recommend changes" (.com's "Request changes").
+* Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
+* Choosing "Submit review" submits the drafted review to GitHub.
+
+![resolve a review](https://user-images.githubusercontent.com/378023/46927875-c08b3d80-d072-11e8-978b-024111312d79.png)
+
+* Review comments can be resolved by clicking on the "Resolve conversation" buttons. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
+
+
 ---
 
 :point_down: TODO
 
-#### Submitting a Review
-
-<img width="731" alt="review changes button" src="https://user-images.githubusercontent.com/7910250/46392672-03264080-c697-11e8-8fe4-04605a4d5b13.png">
-
-Clicking the "Review Changes" button reveals a UI much like dotcom's:
-
-<img width="354" alt="review changes panel" src="https://user-images.githubusercontent.com/7910250/46392764-5c8e6f80-c697-11e8-8121-87e659ab8d15.png">
-
-> :construction: Update the Review Changes mockup
-
-* The review summary is a TextEditor that may be used to compose a summary comment.
-* Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
-* Choosing "Submit review" submits the drafted review to GitHub.
+---
 
 #### Summary Box
 
@@ -151,21 +174,6 @@ Within the multi-file diff view or a TextEditor, a block decoration is used to s
   * If the current pull request is not checked out, the "code" button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
 * For comment decorations within a `TextEditor`, clicking the "diff" button opens the corresponding `PullRequestDetailItem` and scrolls to focus the equivalent comment.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
-
-### Line comment creation
-
-Hovering along the gutter within a pull request diff region in a `TextEditor` or a `PullRequestDetailItem` reveals a `+` icon, which may be clicked to begin a new review:
-
-![plus-icon](https://user-images.githubusercontent.com/378023/40348708-6698b2ea-5ddf-11e8-8eaa-9d95bc483fb1.png)
-
-Clicking the `+` reveals a new comment box, which may be used to submit a single comment or begin a multi-comment review:
-
-![single-review](https://user-images.githubusercontent.com/378023/40351475-78a527c2-5de7-11e8-8006-72d859514ecc.png)
-
-* If a draft review is already in progress, the "Add single comment" button is disabled and the "Start a review" button reads "Add review comment".
-* Clicking "Add single comment" submits a non-review diff comment and does not create a draft review. This button is disabled unless the "reply" editor is expanded and has non-whitespace content.
-* Clicking "Start a review" creates a draft review and attaches the authored comment to it. This button is disabled unless the "reply" editor is expanded and has non-whitespace content.
-* Clicking "mark as resolved" marks the comment as resolved with on GitHub. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
 ## Drawbacks
 
