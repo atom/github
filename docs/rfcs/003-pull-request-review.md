@@ -18,7 +18,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 ### Review information in Pull Request list
 
-Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in it's own section at the top of the list.
+Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in its own section at the top of the list.
 
 ![image](https://user-images.githubusercontent.com/378023/46524357-89bf6580-c8c3-11e8-8e2d-ea02d5a1f278.png)
 
@@ -49,7 +49,7 @@ A panel at the bottom of the pane shows the progress for resolved review comment
 
 ![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
 
-This panel is persistent throught all sub-views. It allows creating a reviews no matter where you are. Below shown with the existing sub-views:
+This panel is persistent throughout all sub-views. It allows creating a reviews no matter where you are. Below shown with the existing sub-views:
 
 Overview | Commits | Build Status
 --- | --- | ---
@@ -120,7 +120,7 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 ![submit review](https://user-images.githubusercontent.com/378023/46927736-ef54e400-d071-11e8-99d9-0ea1001fc50d.png)
 
 * The review summary is a TextEditor that may be used to compose a summary comment.
-* Files with peding review comments are listed and make it possible to navigate between them.
+* Files with pending review comments are listed and make it possible to navigate between them.
 * A review can be marked as "Comment", "Approve" or "Recommend changes" (.com's "Request changes").
 * Choosing "Cancel" dismisses the review and any comments made. If there are local review comments that will be lost, a confirmation prompt is shown first.
 * Choosing "Submit review" submits the drafted review to GitHub.
@@ -134,13 +134,13 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 
 #### Context and navigation
 
-Review comments are shown in 3 different places. The comments themeselves have the same functionality, but allow the comment to be seen in a different context, depending on different use cases. For example "reviewing a pull request", "addressing feedback", "editing the entire file".
+Review comments are shown in 3 different places. The comments themselves have the same functionality, but allow the comment to be seen in a different context, depending on different use cases. For example "reviewing a pull request", "addressing feedback", "editing the entire file".
 
 Files | Reviews | Single file
 --- | --- | ---
 ![files](https://user-images.githubusercontent.com/378023/46932382-6bf3bc80-d08a-11e8-83ce-af2ec99c3610.png) | ![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png) | ![single file](https://user-images.githubusercontent.com/378023/46928308-e9accd80-d074-11e8-8de3-a16140e74907.png)
 
-In order to navigate between comments or switch context, each comment has the following controlls:
+In order to navigate between comments or switch context, each comment has the following controls:
 
 ![image](https://user-images.githubusercontent.com/378023/46934191-c6444b80-d091-11e8-9405-b93bd2aecc90.png)
 
@@ -189,7 +189,7 @@ It was a great improvement, but filtering the diff with radio buttons and checkb
 * Can we access "draft" reviews from the GitHub API, to unify them between Atom and GitHub?
   * _Yes, the `reviews` object includes it in a `PENDING` state._
 * How do we represent the resolution of a comment thread? Where can we reveal this progress through each review, and of all required reviews?
-  * _We'll show a progress bar on a sticky header at the top of the `PullRequestDetailItem`._
+  * _We'll show a progress bar in the footer of the `PullRequestDetailItem`._
 * Are there any design choices we can make to lessen the emotional weight of a "requests changes" review? Peer review has the most value when it discovers issues for the pull request author to address, but accepting criticism is a vulnerable moment.
   * _Choosing phrasing and iconography carefully for "recommend changes"._
 * Similarly, are there any ways we can encourage empathy within the review authoring process? Can we encourage reviewers to make positive comments or demonstrate humility and open-mindedness?
