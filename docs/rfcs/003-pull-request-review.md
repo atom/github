@@ -76,7 +76,7 @@ Under the "Reviews" tab all reviews of a pull request get shown. This is akin to
 
 Comments can be collapsed to get a better overview.
 
-![reviews collapsed](https://user-images.githubusercontent.com/378023/46535648-13345f00-c8e7-11e8-8912-ab8acf144e02.png)
+![reviews collapsed](https://user-images.githubusercontent.com/378023/46926357-62a72780-d06b-11e8-9344-23389d1c727c.png)
 
 
 ---
