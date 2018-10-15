@@ -114,24 +114,22 @@ Clicking "Finish your review" or "Review Changes" in the footer...
 * Review comments can be resolved by clicking on the "Resolve conversation" buttons. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
 
+### Single file diff
+
+Clicking on the `<>` icon in a review comment switches from the multi-file diff to the entire file with diffs. If possible, the scrollposition is retained. This allows to quickly get more context about the code.
+
+![single file diff](https://user-images.githubusercontent.com/378023/46928308-e9accd80-d074-11e8-8de3-a16140e74907.png)
+
+Clicking the `file+-`  icon, switches back to the multi-file diff.
+
+** :question: Open question:** Should there be a way to switch to the file without a diff? Should the inline comment still be shown only an icon or nothing?
+
+
 ---
 
 :point_down: TODO
 
 ---
-
-
-### In-editor decorations
-
-When opening a TextEditor on a file that has been annotated with review comments on the current pull request, a block decoration is used to show the comment content at the corresponding position within the file content. Also, a gutter decoration is used to reveal lines that are included within the current pull requests' diff and may therefore include comments.
-
-![in-editor review comment decoration](https://user-images.githubusercontent.com/378023/44790482-69bcc800-abda-11e8-8a0f-922c0942b8c6.png)
-
-> :construction: Add gutter decoration?
-
-* The comment's position is calculated from the position acquired by the GitHub API response, modified based on the git diff of that file (following renames) between the owning review's attached commit and the current state of the working copy (including any local modifications). Once created, the associated marker will also track unsaved modifications to the file in real time.
-* The up and down arrow buttons navigate to the next and previous review comments within this review within their respective TextEditors.
-* The "diff" button navigates to the corresponding pull request's detail item and scrolls to center the same comment within that view.
 
 ### Comment decorations
 
