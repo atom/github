@@ -16,20 +16,23 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 ## Explanation
 
-### Review information in Pull Request list
-
-Review progress is indicated for open pull requests listed in the GitHub panel. The pull request corresponding to the checked out branch gets special treatment in its own section at the top of the list.
+### Pull Request list
 
 ![image](https://user-images.githubusercontent.com/378023/46524357-89bf6580-c8c3-11e8-8e2d-ea02d5a1f278.png)
 
-> :construction: This mockup is still WIP and probably will change.
+* Review progress is indicated for open pull requests listed in the GitHub panel.
+* The pull request corresponding to the checked out branch gets special treatment in its own section at the top of the list.
 
-Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
+![center pane](https://user-images.githubusercontent.com/378023/46985265-75c9fe00-d124-11e8-9b34-572cd1aaf701.png)
+
+* Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
 
 
 ### PullRequestDetailItem
 
 #### Header
+
+![header](https://user-images.githubusercontent.com/378023/46536358-3829d180-c8e9-11e8-9167-3d1003ab566b.png)
 
 At the top of each `PullRequestDetailItem` is a summary about the pull request, followed by the tabs to switch between different sub-views.
 
@@ -39,26 +42,22 @@ At the top of each `PullRequestDetailItem` is a summary about the pull request, 
 - Commits
 - Build Status
 
-After the tabs users can search or filter. The default is to show all files, all authors, and unresolved comments. Filtering based on file type, author, search term makes it possible to narrow down a long list of diffs. Toggling comments or collapse files is also possible.
-
-![header](https://user-images.githubusercontent.com/378023/46536358-3829d180-c8e9-11e8-9167-3d1003ab566b.png)
+Below the tabs is a "tools bar" for controls to toggle review comments or collapse files.
 
 #### Footer
 
-A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review.
-
 ![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
 
-This panel is persistent throughout all sub-views. It allows creating a reviews no matter where you are. Below shown with the existing sub-views:
+A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review. This panel is persistent throughout all sub-views. It allows creating new reviews no matter where you are. Below examples with the existing sub-views:
 
 Overview | Commits | Build Status
 --- | --- | ---
 ![overview](https://user-images.githubusercontent.com/378023/46535907-ca30da80-c8e7-11e8-9401-2b8660d56c25.png) | ![commits](https://user-images.githubusercontent.com/378023/46535908-ca30da80-c8e7-11e8-87ca-01637f2554b6.png) | ![build status](https://user-images.githubusercontent.com/378023/46535909-cac97100-c8e7-11e8-8813-47fdaa3ece57.png)
 
 
-### Files
+### Files (tab)
 
-Under the "Files" tab the full, multi-file diff associated with the pull request is displayed. This is akin to the "Files changed" tab on dotcom.
+Clicking on the "Files" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
 
 ![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png)
 
@@ -72,9 +71,9 @@ Uncollapsed (default) | Collapsed
 * For large diffs, the files can be collapsed to get a better overview.
 
 
-### Reviews
+### Reviews (tab)
 
-The "Reviews" tab shows all reviews. This is akin to the review summaries that appear on the "Conversation" tab on dotcom. In addition, each review also includes review comments and their diff.
+Clicking on the "Reviews" tab shows all reviews of a pull request. This is akin to the review summaries that appear on the "Conversation" tab on dotcom. In addition, each review also includes review comments and their diff.
 
 ![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png)
 
@@ -83,13 +82,13 @@ Uncollapsed (default) | Collapsed
 ![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png) | ![collapsed reviews](https://user-images.githubusercontent.com/378023/46926357-62a72780-d06b-11e8-9344-23389d1c727c.png)
 
 * Comments can be collapsed to get a better overview.
-* Reviews get sorted by:
+* Reviews get sorted by "urgency". Showing reviews that still need to get adressed at the top:
   1. "recommended" changes
   2. "commented" changes
   3. "no review" (when a reviewer only leaves review comments, but no summary)
   4. "approved" changes
   5. "previous" reviews (when a reviewer made an earlier review and it's now out-dated)
-
+* Within each group, sorting is done by "newest first".
 
 #### Create a new review
 
@@ -107,7 +106,7 @@ Hovering along the gutter within a pull request diff region in a `TextEditor` or
 ![pending review](https://user-images.githubusercontent.com/378023/46927357-e06d3200-d06f-11e8-9eae-b4c289fe16ae.png)
 
 * If a draft review is already in progress, the "Start a review" button reads "Add review comment".
-* And an additional row is added with options to "Start a new conversation" or "Finish your review".
+* An additional row is added with options to "Start a new conversation" or "Finish your review".
 
 ##### Submit a review
 
@@ -129,8 +128,8 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 
 ![resolve a review](https://user-images.githubusercontent.com/378023/46927875-c08b3d80-d072-11e8-978b-024111312d79.png)
 
-* Review comments can be resolved by clicking on the "Resolve conversation" buttons. If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
-
+* Review comments can be resolved by clicking on the "Resolve conversation" buttons.
+* If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
 #### Context and navigation
 
@@ -150,6 +149,12 @@ In order to navigate between comments or switch context, each comment has the fo
 * Clicking on the "file-+" button (not shown in above screenshot) shows the comment under the "Files" tab.
 * The up and down arrow buttons navigate to the next and previous unresolved review comments.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
+
+Another way to navigate between unresolved comments is to collapse all files first. Files that contain unresolved comments have a "[n] unresolved" button on the right, making it easy to find them.
+
+![files with unresolved comments](https://user-images.githubusercontent.com/378023/46986769-022bef00-d12c-11e8-8839-279fb0d03fb1.png)
+
+* Clicking that button uncollapses the file (if needed) and scrolls to the position of the comment.
 
 
 ## Drawbacks
