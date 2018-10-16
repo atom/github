@@ -342,17 +342,18 @@ describe('RootController', function() {
       assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
     });
 
-    it('triggers the clone callback on accept and fires `clone-repo` event', function() {
+    it('triggers the clone callback on accept and fires `clone-repo` event', async function() {
       sinon.stub(reporterProxy, 'addEvent');
       wrapper.instance().openCloneDialog();
       wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
-      dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      const promise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
       resolveClone();
+      await promise;
 
       assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
-      assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}))
+      await assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}));
     });
 
     it('marks the clone dialog as in progress during clone', async function() {
