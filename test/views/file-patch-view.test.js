@@ -83,6 +83,15 @@ describe('FilePatchView', function() {
     assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
   });
 
+  it('undoes the last discard from the file header button', function() {
+    const undoLastDiscard = sinon.spy();
+    const wrapper = shallow(buildApp({undoLastDiscard}));
+
+    wrapper.find('FilePatchHeaderView').prop('undoLastDiscard')();
+
+    assert.isTrue(undoLastDiscard.calledWith({eventSource: 'button'}));
+  });
+
   it('renders the file patch within an editor', function() {
     const wrapper = mount(buildApp());
 
@@ -834,6 +843,36 @@ describe('FilePatchView', function() {
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
       assert.isTrue(toggleRows.called);
+    });
+
+    it('undoes the last discard', function() {
+      const undoLastDiscard = sinon.spy();
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
+
+      assert.isTrue(undoLastDiscard.calledWith({eventSource: {command: 'core:undo'}}));
+    });
+
+    it('does nothing when there is no last discard to undo', function() {
+      const undoLastDiscard = sinon.spy();
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: false}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
+
+      assert.isFalse(undoLastDiscard.called);
+    });
+
+    it('discards selected rows', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({discardRows, selectedRows: new Set([1, 2]), selectionMode: 'line'}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:discard-selected-lines');
+
+      assert.isTrue(discardRows.called);
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [1, 2]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'line');
+      assert.deepEqual(discardRows.lastCall.args[2], {eventSource: {command: 'github:discard-selected-lines'}});
     });
 
     it('toggles the patch selection mode from line to hunk', function() {
