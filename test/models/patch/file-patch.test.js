@@ -248,6 +248,8 @@ describe('FilePatch', function() {
       assert.isFalse(new FilePatch(executableFile, executableFile, emptyPatch).didChangeExecutableMode());
       assert.isFalse(new FilePatch(nullFile, nonExecutableFile).didChangeExecutableMode());
       assert.isFalse(new FilePatch(nullFile, executableFile).didChangeExecutableMode());
+      assert.isFalse(new FilePatch(nonExecutableFile, nullFile).didChangeExecutableMode());
+      assert.isFalse(new FilePatch(executableFile, nullFile).didChangeExecutableMode());
     });
 
     it('detects changes in symlink mode', function() {
