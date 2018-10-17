@@ -106,6 +106,19 @@ describe('FilePatchItem', function() {
     });
   });
 
+  describe('buildURI', function() {
+    it('correctly uri encodes all components', function() {
+      const filePathWithSpecialChars = '???.txt';
+      const stagingStatus = 'staged';
+      const workdirPath = '/???/!!!';
+
+      const uri = FilePatchItem.buildURI(filePathWithSpecialChars, workdirPath, stagingStatus);
+      assert.include(uri, encodeURIComponent(filePathWithSpecialChars));
+      assert.include(uri, encodeURIComponent(workdirPath));
+      assert.include(uri, encodeURIComponent(stagingStatus));
+    });
+  });
+
   it('terminates pending state', async function() {
     const wrapper = mount(buildPaneApp());
 
