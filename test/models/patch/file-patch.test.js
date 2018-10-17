@@ -262,6 +262,8 @@ describe('FilePatch', function() {
       assert.isFalse(new FilePatch(symlinkFile, symlinkFile, emptyPatch).hasTypechange());
       assert.isFalse(new FilePatch(nullFile, nonSymlinkFile).hasTypechange());
       assert.isFalse(new FilePatch(nullFile, symlinkFile).hasTypechange());
+      assert.isFalse(new FilePatch(nonSymlinkFile, nullFile).hasTypechange());
+      assert.isFalse(new FilePatch(symlinkFile, nullFile).hasTypechange());
     });
 
     it('detects when either file has a symlink destination', function() {
