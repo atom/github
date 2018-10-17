@@ -276,6 +276,8 @@ describe('FilePatch', function() {
       assert.isTrue(new FilePatch(symlinkFile, symlinkFile, emptyPatch).hasSymlink());
       assert.isFalse(new FilePatch(nullFile, nonSymlinkFile).hasSymlink());
       assert.isTrue(new FilePatch(nullFile, symlinkFile).hasSymlink());
+      assert.isFalse(new FilePatch(nonSymlinkFile, nullFile).hasSymlink());
+      assert.isTrue(new FilePatch(symlinkFile, nullFile).hasSymlink());
     });
   });
 
