@@ -342,15 +342,18 @@ describe('RootController', function() {
       assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
     });
 
-    it('triggers the clone callback on accept', function() {
+    it('triggers the clone callback on accept and fires `clone-repo` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
       wrapper.instance().openCloneDialog();
       wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
-      dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      const promise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
       resolveClone();
+      await promise;
 
       assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
+      await assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}));
     });
 
     it('marks the clone dialog as in progress during clone', async function() {
@@ -372,8 +375,9 @@ describe('RootController', function() {
       assert.isFalse(wrapper.find('CloneDialog').exists());
     });
 
-    it('creates a notification if the clone fails', async function() {
+    it('creates a notification if the clone fails and does not fire `clone-repo` event', async function() {
       sinon.stub(notificationManager, 'addError');
+      sinon.stub(reporterProxy, 'addEvent');
 
       wrapper.instance().openCloneDialog();
       wrapper.update();
@@ -393,6 +397,7 @@ describe('RootController', function() {
         'Unable to clone git@github.com:nope/nope.git',
         sinon.match({detail: sinon.match(/this is stderr/)}),
       ));
+      assert.isFalse(reporterProxy.addEvent.called);
     });
 
     it('dismisses the clone panel on cancel', function() {
@@ -1081,6 +1086,51 @@ describe('RootController', function() {
         await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
         assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
       });
+    });
+  });
+
+  describe('context commands trigger event reporting', function() {
+    let wrapper;
+
+    beforeEach(async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      wrapper = mount(app);
+      sinon.stub(reporterProxy, 'addEvent');
+    });
+
+    it('sends an event when a command is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+        [{contextCommand: true}],
+      );
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'context-menu-action', {
+          package: 'github',
+          command: 'github:toggle-expanded-commit-message-editor',
+        }));
+    });
+
+    it('does not send an event when a command is triggered in other ways', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+
+    it('does not send an event when a command not starting with github: is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'core:copy',
+        [{contextCommand: true}],
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 });
