@@ -1088,4 +1088,45 @@ describe('RootController', function() {
       });
     });
   });
+
+  describe('context commands trigger event reporting', function() {
+    let wrapper;
+
+    beforeEach(async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      wrapper = mount(app);
+      sinon.stub(reporterProxy, 'addEvent');
+    });
+
+    it('sends an event when a command is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+        [{contextCommand: true}],
+      );
+      assert.isTrue(reporterProxy.addEvent.called);
+    });
+
+    it('does not send an event when a command is triggered in other ways', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+
+    it('does not send an event when a command not starting with github: is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'core:copy',
+        [{contextCommand: true}],
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+  });
 });
