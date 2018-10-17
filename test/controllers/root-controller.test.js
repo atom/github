@@ -1109,7 +1109,11 @@ describe('RootController', function() {
         'github:toggle-expanded-commit-message-editor',
         [{contextCommand: true}],
       );
-      assert.isTrue(reporterProxy.addEvent.called);
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'context-menu-action', {
+          package: 'github',
+          command: 'github:toggle-expanded-commit-message-editor',
+        }));
     });
 
     it('does not send an event when a command is triggered in other ways', function() {
