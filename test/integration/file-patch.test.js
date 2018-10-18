@@ -228,7 +228,20 @@ describe('integration: file patches', function() {
         );
       });
 
-      it('may discard lines');
+      it('may discard lines', async function() {
+        getPatchEditor('unstaged', 'added-file.txt').setSelectedBufferRange([[1, 0], [3, 3]]);
+        wrapper.find('.github-HunkHeaderView-discardButton').simulate('click');
+
+        await patchContent(
+          'unstaged', 'added-file.txt',
+          ['0000', 'added'],
+          ['0004', 'added', 'selected'],
+          ['0005', 'added'],
+        );
+
+        const editor = await workspace.open(repoPath('added-file.txt'));
+        assert.strictEqual(editor.getText(), '0000\n0004\n0005\n');
+      });
     });
 
     describe('staged', function() {
