@@ -112,8 +112,8 @@ describe('integration: file patches', function() {
       unexpectedClassesByRow.clear();
       let match = true;
 
-      for (let i = 0; i < rows.length; i++) {
-        const [expectedText, ...givenClasses] = rows[i];
+      for (let i = 0; i < Math.max(rows.length, editor.getLastScreenRow()); i++) {
+        const [expectedText, ...givenClasses] = rows[i] || [''];
         const expectedClasses = givenClasses.map(givenClass => aliases.get(givenClass) || givenClass);
 
         const actualText = editor.lineTextForScreenRow(i);
