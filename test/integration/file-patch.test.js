@@ -60,15 +60,20 @@ describe('integration: file patches', function() {
     );
   }
 
-  function getPatchEditor() {
-    return wrapper
+  function getPatchEditor(stagingStatus, relativePath) {
+    const component = wrapper
+      .find(`FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`)
       .find('.github-FilePatchView')
-      .find('AtomTextEditor')
-      .instance()
-      .getModel();
+      .find('AtomTextEditor');
+
+    if (!component.exists()) {
+      return null;
+    }
+
+    return component.instance().getModel();
   }
 
-  function patchContent(...rows) {
+  function patchContent(stagingStatus, relativePath, ...rows) {
     const aliases = new Map([
       ['added', 'github-FilePatchView-line--added'],
       ['deleted', 'github-FilePatchView-line--deleted'],
@@ -87,7 +92,12 @@ describe('integration: file patches', function() {
       // Determine the CSS classes applied to each screen line within the patch editor. This is gnarly, but based on
       // the logic that TextEditorComponent::queryDecorationsToRender() actually uses to determine what classes to
       // apply when rendering line elements.
-      const editor = getPatchEditor();
+      const editor = getPatchEditor(stagingStatus, relativePath);
+      if (editor === null) {
+        actualRowText = ['Unable to find patch item'];
+        return false;
+      }
+
       const decorationsByMarker = editor.decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity);
       actualClassesByRow.clear();
       for (const [marker, decorations] of decorationsByMarker) {
@@ -181,10 +191,11 @@ describe('integration: file patches', function() {
     describe('unstaged', function() {
       it('may be partially staged', async function() {
         // Stage lines two and three
-        getPatchEditor().setSelectedBufferRange([[2, 1], [3, 3]]);
+        getPatchEditor('unstaged', 'added-file.txt').setSelectedBufferRange([[2, 1], [3, 3]]);
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
         await patchContent(
+          'unstaged', 'added-file.txt',
           ['0000', 'added'],
           ['0001', 'added'],
           ['0002'],
@@ -195,17 +206,19 @@ describe('integration: file patches', function() {
 
         await clickFileInGitTab('staged', 'added-file.txt');
         await patchContent(
+          'staged', 'added-file.txt',
           ['0002', 'added', 'selected'],
           ['0003', 'added', 'selected'],
         );
       });
 
       it('may be completed staged', async function() {
-        getPatchEditor().selectAll();
+        getPatchEditor('unstaged', 'added-file.txt').selectAll();
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
         await clickFileInGitTab('staged', 'added-file.txt');
         await patchContent(
+          'staged', 'added-file.txt',
           ['0000', 'added', 'selected'],
           ['0001', 'added', 'selected'],
           ['0002', 'added', 'selected'],
@@ -221,6 +234,7 @@ describe('integration: file patches', function() {
     describe('staged', function() {
       beforeEach(async function() {
         await git.stageFile('added-file.txt');
+        await clickFileInGitTab('staged', 'added-file.txt');
       });
 
       it('may be partially unstaged');
