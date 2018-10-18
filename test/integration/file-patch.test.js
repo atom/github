@@ -48,12 +48,16 @@ describe('integration: file patches', function() {
         .find(`.github-StagingView-${stagingStatus} .github-FilePatchListView-item`)
         .filterWhere(w => w.find('.github-FilePatchListView-path').text() === relativePath);
       return listItem.exists();
-    }, `Unable to find list item for path ${relativePath}`);
+    }, `list item for path ${relativePath} (${stagingStatus}) appears`);
 
     listItem.simulate('mousedown', {button: 0, persist() {}});
     window.dispatchEvent(new MouseEvent('mouseup'));
 
-    await assert.async.isTrue(wrapper.update().find('.github-FilePatchView').exists());
+    const itemSelector = `FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
+    await until(
+      () => wrapper.update().find(itemSelector).find('.github-FilePatchView').exists(),
+      `File patch pane item for ${relativePath} arrives and loads`,
+    );
   }
 
   function getPatchEditor() {
