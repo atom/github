@@ -182,7 +182,7 @@ describe('integration: file patches', function() {
       it('may be partially staged', async function() {
         // Stage lines two and three
         getPatchEditor().setSelectedBufferRange([[2, 1], [3, 3]]);
-        await wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
         await patchContent(
           ['0000', 'added'],
