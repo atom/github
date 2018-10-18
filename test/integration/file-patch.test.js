@@ -5,7 +5,7 @@ import until from 'test-until';
 import {setup, teardown} from './helpers';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 
-describe('integration: file patches', function() {
+describe.only('integration: file patches', function() {
   let context, wrapper, atomEnv;
   let workspace;
   let commands, workspaceElement;
@@ -289,6 +289,70 @@ describe('integration: file patches', function() {
           ['0005', 'added', 'selected'],
         );
       });
+    });
+  });
+
+  describe('with a removed file', function() {
+    describe('unstaged', function() {
+      it('may be partially staged');
+
+      it('may be completely staged');
+
+      it('may discard lines');
+    });
+
+    describe('staged', function() {
+      it('may be partially unstaged');
+
+      it('may be partially staged');
+    });
+  });
+
+  describe('with a symlink that used to be a file', function() {
+    describe('unstaged', function() {
+      it('may stage the content deletion without the symlink creation');
+
+      it('may stage the content deletion and the symlink creation');
+    });
+
+    describe('staged', function() {
+      it('may unstage the content deletion and the symlink creation');
+    });
+  });
+
+  describe('with a file that used to be a symlink', function() {
+    describe('unstaged', function() {
+      it('may stage the symlink deletion without the content addition');
+
+      it('may stage the content addition and the symlink deletion');
+    });
+
+    describe('staged', function() {
+      it('may unstage the content addition and the symlink creation');
+
+      it('may unstage the content addition without the symlink creation');
+
+      it('may unstage the symlink creation without the content addition');
+    });
+  });
+
+  describe('with a modified file', function() {
+    describe('unstaged', function() {
+      it('may be partially staged');
+
+      it('may be completely staged');
+
+      it('may discard lines');
+
+      it('may stage an executable mode change');
+    });
+
+    describe('staged', function() {
+      it('may be partially unstaged');
+
+      it('may be partially staged');
+
+      it('may unstage an executable mode change');
     });
   });
 });
