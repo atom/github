@@ -246,13 +246,49 @@ describe('integration: file patches', function() {
 
     describe('staged', function() {
       beforeEach(async function() {
-        await git.stageFile('added-file.txt');
+        await git.stageFiles(['added-file.txt']);
         await clickFileInGitTab('staged', 'added-file.txt');
       });
 
-      it('may be partially unstaged');
+      it('may be partially unstaged', async function() {
+        getPatchEditor('staged', 'added-file.txt').setSelectedBufferRange([[3, 0], [4, 3]]);
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
-      it('may be completely unstaged');
+        await patchContent(
+          'staged', 'added-file.txt',
+          ['0000', 'added'],
+          ['0001', 'added'],
+          ['0002', 'added'],
+          ['0005', 'added', 'selected'],
+        );
+
+        await clickFileInGitTab('unstaged', 'added-file.txt');
+        await patchContent(
+          'unstaged', 'added-file.txt',
+          ['0000'],
+          ['0001'],
+          ['0002'],
+          ['0003', 'added', 'selected'],
+          ['0004', 'added', 'selected'],
+          ['0005'],
+        );
+      });
+
+      it('may be completely unstaged', async function() {
+        getPatchEditor('staged', 'added-file.txt').selectAll();
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
+
+        await clickFileInGitTab('unstaged', 'added-file.txt');
+        await patchContent(
+          'unstaged', 'added-file.txt',
+          ['0000', 'added', 'selected'],
+          ['0001', 'added', 'selected'],
+          ['0002', 'added', 'selected'],
+          ['0003', 'added', 'selected'],
+          ['0004', 'added', 'selected'],
+          ['0005', 'added', 'selected'],
+        );
+      });
     });
   });
 });
