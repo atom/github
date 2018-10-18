@@ -200,7 +200,20 @@ describe('integration: file patches', function() {
         );
       });
 
-      it('may be completed staged');
+      it('may be completed staged', async function() {
+        getPatchEditor().selectAll();
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
+
+        await clickFileInGitTab('staged', 'added-file.txt');
+        await patchContent(
+          ['0000', 'added', 'selected'],
+          ['0001', 'added', 'selected'],
+          ['0002', 'added', 'selected'],
+          ['0003', 'added', 'selected'],
+          ['0004', 'added', 'selected'],
+          ['0005', 'added', 'selected'],
+        );
+      });
 
       it('may discard lines');
     });
