@@ -192,6 +192,12 @@ describe('integration: file patches', function() {
           ['0004', 'added', 'selected'],
           ['0005', 'added'],
         );
+
+        await clickFileInGitTab('staged', 'added-file.txt');
+        await patchContent(
+          ['0002', 'added', 'selected'],
+          ['0003', 'added', 'selected'],
+        );
       });
 
       it('may be completed staged');
