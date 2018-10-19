@@ -5,28 +5,23 @@ jobs:
   strategy:
     matrix:
       dev:
-        ATOM_CHANNEL: dev
-        ATOM_NAME: atom-dev
+        atom_channel: dev
+        atom_name: atom-dev
       beta:
-        ATOM_CHANNEL: beta
-        ATOM_NAME: atom-beta
+        atom_channel: beta
+        atom_name: atom-beta
       stable:
-        ATOM_CHANNEL: stable
-        ATOM_NAME: atom
+        atom_channel: stable
+        atom_name: atom
   variables:
     display: ":99"
   steps:
+  - template: script/azure-pipelines/linux-install.yml
+    parameters:
+      atom_channel: $(atom_channel)
+      atom_name: $(atom_name)
   - bash: |
-      curl -s -L "https://atom.io/download/deb?channel=${ATOM_CHANNEL}" \
-        -H 'Accept: application/octet-stream' \
-        -o 'atom-amd64.deb'
-      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-      sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-      dpkg-deb -x atom-amd64.deb /tmp/atom
-    displayName: install Atom
-  - bash: /tmp/atom/usr/share/${ATOM_NAME}/resources/app/apm/bin/apm ci
-    displayName: install dependencies
-  - bash: /tmp/atom/usr/bin/${ATOM_NAME} --test test/
+      "/tmp/atom/usr/bin/${ATOM_NAME}" --test test/
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
@@ -37,7 +32,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: Linux $(ATOM_CHANNEL)
+      testRunTitle: Linux $(atom_channel)
     condition: succeededOrFailed()
 
 - job: MacOS
@@ -158,17 +153,9 @@ jobs:
     vmImage: ubuntu-16.04
   variables:
     display: ":99"
+    ATOM_CHANNEL: dev
   steps:
-  - bash: |
-      curl -s -L "https://atom.io/download/deb?channel=dev" \
-        -H 'Accept: application/octet-stream' \
-        -o 'atom-amd64.deb'
-      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-      sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-      dpkg-deb -x atom-amd64.deb /tmp/atom
-    displayName: install Atom
-  - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
-    displayName: install dependencies
+  - template: script/azure-pipelines/linux-install.yml
   - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/node_modules/.bin/npm run lint
     displayName: run the linter
 
@@ -177,17 +164,9 @@ jobs:
     vmImage: ubuntu-16.04
   variables:
     display: ":99"
+    ATOM_CHANNEL: dev
   steps:
-  - bash: |
-      curl -s -L "https://atom.io/download/deb?channel=dev" \
-        -H 'Accept: application/octet-stream' \
-        -o 'atom-amd64.deb'
-      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-      sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-      dpkg-deb -x atom-amd64.deb /tmp/atom
-    displayName: install Atom
-  - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
-    displayName: install dependencies
+  - template: script/azure-pipelines/linux-install.yml
   - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
     env:
