@@ -41,26 +41,21 @@ jobs:
   strategy:
     matrix:
       dev:
-        ATOM_CHANNEL: dev
-        ATOM_APP: Atom Dev.app
+        atom_channel: dev
+        atom_app: Atom Dev.app
       beta:
-        ATOM_CHANNEL: beta
-        ATOM_APP: Atom Beta.app
+        atom_channel: beta
+        atom_app: Atom Beta.app
       stable:
-        ATOM_CHANNEL: stable
-        ATOM_APP: Atom.app
+        atom_channel: stable
+        atom_app: Atom.app
   steps:
+  - template: script/azure-pipelines/macos-install.yml
+    parameters:
+      atom_channel: $(atom_channel)
+      atom_app: $(atom_app)
   - bash: |
-      set -x
-      curl -s -L "https://atom.io/download/mac?channel=${ATOM_CHANNEL}" \
-        -H 'Accept: application/octet-stream' \
-        -o "atom.zip"
-      mkdir -p /tmp/atom
-      unzip -q atom.zip -d /tmp/atom
-    displayName: install Atom
-  - bash: '"/tmp/atom/${ATOM_APP}/Contents/Resources/app/apm/bin/apm" ci'
-    displayName: install dependencies
-  - bash: '"/tmp/atom/${ATOM_APP}/Contents/Resources/app/atom.sh" --test test/'
+      "/tmp/atom/${ATOM_APP}/Contents/Resources/app/atom.sh" --test test/
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
@@ -71,7 +66,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: MacOS $(ATOM_CHANNEL)
+      testRunTitle: MacOS $(atom_channel)
     condition: succeededOrFailed()
 
 - job: Windows
