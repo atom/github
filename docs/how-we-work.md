@@ -72,6 +72,12 @@ Major, cross-cutting refactoring efforts fit within this category. Our goals wit
 
 To introduce brand-new functionality into the package, follow this guide.
 
+##### On using RFCs
+
+We use a lightweight RFC (request for comments) process to ensure that folks have an opportunity to weigh in on design, alternatives, drawbacks, questions, and concerns. The RFC is meant to be a living document that will be modified over the duration of development as things evolve. It provides a quick and easily scannable summary of what was discussed and decided.
+
+Development work on the feature may start at any point once the RFC pull request has been opened with a description of the feature. The RFC is merged once the feature work is merged.
+
 ##### Process
 
 1. On a feature branch, write a proposal as a markdown document beneath [`docs/rfcs`](/docs/rfcs) in this repository. Copy the [template](/docs/rfcs/000-template.md) to begin. Open a pull request. The RFC document should include:
@@ -80,16 +86,15 @@ To introduce brand-new functionality into the package, follow this guide.
    * A specification of when the feature will be considered "done";
    * Unresolved questions or possible follow-on work;
    * A sequence of discrete phases that can be used to realize the full feature;
-   * The acceptance criteria for the RFC itself, as chosen by your current understanding of its scope and impact. Some options you may use here include _(a)_ you're satisfied with its state; _(b)_ the pull request has collected a predetermined number of :+1: votes from core team members; or _(c)_ unanimous :+1: votes from the full core team.
-2. @-mention @simurai on the open pull request for design input. Begin hashing out mock-ups, look and feel, specific user interaction details, and decide on a high-level direction for the feature.
-3. The RFC's author is responsible for recognizing when its acceptance criteria have been met and merging its pull request. :rainbow: _Our intent here is to give the feature's advocate the ability to cut [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) short and accept responsibility for guiding it forward._
-4. Work on the RFC's implementation is performed in one or more pull requests. Remember to add each pull request to the current sprint project.
+1. @-mention @simurai on the open pull request for design input. Begin hashing out mock-ups, look and feel, specific user interaction details, and decide on a high-level direction for the feature.
+1. Feature development may begin at any point after the RFC pull request has been opened.
+1. Work on the RFC's implementation is performed in one or more pull requests. Try to break out work into smaller pull requests as much as possible to ship incremental changes. Remember to add each pull request to the current sprint project.
    * Consider gating your work behind a feature flag or a configuration option.
    * Write tests for your new work.
    * Optionally [request reviewers](#how-we-review) if you want feedback. Ping @simurai for ongoing UI/UX considerations if appropriate.
    * Merge your pull request yourself when CI is green and any reviewers you have requested have approved the PR.
    * As the design evolves and opinions change, modify the existing RFC to stay accurate.
-5. When the feature is complete, update the RFC to a "completed" state.
+1. When the feature is complete, update the RFC to a "completed" state and merge it. For any outstanding work that didn't get implemented, open issues or start new RFCs.
 
 ### Expansions or retractions of package scope
 
