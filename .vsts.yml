@@ -75,39 +75,19 @@ jobs:
   strategy:
     matrix:
       dev:
-        ATOM_CHANNEL: dev
-        ATOM_DIRECTORY: Atom Dev
+        atom_channel: dev
+        atom_directory: Atom Dev
       beta:
-        ATOM_CHANNEL: beta
-        ATOM_DIRECTORY: Atom Beta
+        atom_channel: beta
+        atom_directory: Atom Beta
       stable:
-        ATOM_CHANNEL: stable
-        ATOM_DIRECTORY: Atom
+        atom_channel: stable
+        atom_directory: Atom
   steps:
-  - powershell: |
-      Set-StrictMode -Version Latest
-      $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
-
-      Write-Host "Downloading latest Atom release"
-      $source = "https://atom.io/download/windows_zip?channel=$env:ATOM_CHANNEL"
-      $destination = "atom.zip"
-
-      (New-Object System.Net.WebClient).DownloadFile($source, $destination)
-      Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
-    displayName: install Atom
-  - powershell: |
-      Set-StrictMode -Version Latest
-      $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
-      $script:APM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\app\apm\bin\apm.cmd"
-
-      Write-Host "Installing package dependencies"
-      & "$script:APM_SCRIPT_PATH" ci
-      if ($LASTEXITCODE -ne 0) {
-        Write-Host "Dependency installation failed"
-        $host.SetShouldExit($LASTEXITCODE)
-        exit
-      }
-    displayName: install dependencies
+  - template: script/azure-pipelines/windows-install.yml
+    parameters:
+      atom_channel: $(atom_channel)
+      atom_directory: $(atom_directory)
   - powershell: |
       Set-StrictMode -Version Latest
       $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
@@ -140,7 +120,7 @@ jobs:
     inputs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
-      testRunTitle: Windows $(ATOM_CHANNEL)
+      testRunTitle: Windows $(atom_channel)
     condition: succeededOrFailed()
 
 - job: Lint
@@ -148,9 +128,11 @@ jobs:
     vmImage: ubuntu-16.04
   variables:
     display: ":99"
-    ATOM_CHANNEL: dev
+    atom_channel: dev
   steps:
   - template: script/azure-pipelines/linux-install.yml
+    parameters:
+      atom_channel: $(atom_channel)
   - bash: /tmp/atom/usr/share/atom-dev/resources/app/apm/node_modules/.bin/npm run lint
     displayName: run the linter
 
@@ -159,9 +141,11 @@ jobs:
     vmImage: ubuntu-16.04
   variables:
     display: ":99"
-    ATOM_CHANNEL: dev
+    atom_channel: dev
   steps:
   - template: script/azure-pipelines/linux-install.yml
+    parameters:
+      atom_channel: $(atom_channel)
   - bash: /tmp/atom/usr/bin/atom-dev --test test/
     displayName: run tests
     env:
