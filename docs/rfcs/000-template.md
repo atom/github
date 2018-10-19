@@ -41,3 +41,9 @@ Why should we *not* do this?
 
 - Can this functionality be introduced in multiple, distinct, self-contained pull requests?
 - A specification for when the feature is considered "done."
+
+## Blog post feature blurb draft
+
+- When this feature is shipped, what would we like to say or show in our Atom release blog post (example: http://blog.atom.io/2018/07/31/atom-1-29.html)
+- Feel free to drop ideas and gifs here during development
+- Once development is complete, write a blurb draft for the release coordinator to copy/paste into the Atom release blog
