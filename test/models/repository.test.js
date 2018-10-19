@@ -1140,20 +1140,19 @@ describe('Repository', function() {
 
       it('does not set commit template message if merge conflict is present', async function() {
         const fakeTemplateMessage = 'bar';
+        const fakeMergeMessage = 'merge branch new_branch';
         const workdirPath = await cloneRepository('merge-conflict');
         const repo = new Repository(workdirPath);
         // todo(tt, 10/2018): it would be better to create a new repo fixture with merge conflicts
         // and a commit template, rather than stubbing this method.
         sinon.stub(repo.git, 'getCommitMessageFromTemplate').returns(fakeTemplateMessage);
+        sinon.stub(repo, 'getMergeMessage').returns(fakeMergeMessage);
         await repo.getLoadPromise();
-
-        const templateCommitMessage = await repo.git.getCommitMessageFromTemplate();
-        assert.strictEqual(templateCommitMessage, fakeTemplateMessage);
 
         await assert.isRejected(repo.git.merge('origin/branch'));
 
         const commitMessage = await repo.getCommitMessage();
-        assert.strictEqual('', commitMessage);
+        assert.strictEqual(fakeMergeMessage, commitMessage);
       });
 
       it('returns an empty array if the repo has no merge conflicts', async function() {
