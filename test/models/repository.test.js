@@ -1138,7 +1138,7 @@ describe('Repository', function() {
         assertDeepPropertyVals(mergeConflicts, expected);
       });
 
-      it('does not set commit template message if merge conflict is present', async function() {
+      it('uses merge message instead of commit template if merge message exists', async function() {
         const fakeTemplateMessage = 'bar';
         const fakeMergeMessage = 'merge branch new_branch';
         const workdirPath = await cloneRepository('merge-conflict');
