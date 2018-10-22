@@ -6,11 +6,11 @@ Proposed
 
 ## Summary
 
-Users can select multiple files in unstaged changes and staged changes pane and see the diffs of selected files in one view, akin to the [`Files changed` tab in pull requests on github.com](https://github.com/atom/github/pull/1752/files).
+Users can select multiple files in unstaged changes and staged changes pane and see the diffs of selected files in one view, akin to the [`Files changed` tab in pull requests on github.com](https://github.com/atom/github/pull/1753/files).
 
 ## Motivation
 
-So that users can view a set of changes with more context before staging or committing those changes.
+So that users can view a full set of changes with more context before staging or committing those changes.
 
 The ability to display multiple diffs in one view will also serve as a building block for the following planned features:
 - [commit pane item](#1655) where it shows all changes in a single commit
@@ -45,7 +45,7 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 
 ## Rationale and alternatives
 
-An alternative would be to _not_ implement multi-file diff, as other editors like VS Code also only has per-file diff at the time of writing. However, not implementing this would imply that [the proposed new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) will have to find another solution to display all changes in a PR. 
+An alternative would be to _not_ implement multi-file diff, as other editors like VS Code also only has per-file diff at the time of writing. However, not implementing this would imply that [the proposed new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) will have to find another solution to display all changes in a PR.
 
 ## Unresolved questions
 
