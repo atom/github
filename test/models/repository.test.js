@@ -1145,6 +1145,7 @@ describe('Repository', function() {
         const repo = new Repository(workdirPath);
         // todo(tt, 10/2018): it would be better to create a new repo fixture with merge conflicts
         // and a commit template, rather than stubbing this method.
+        // stubbing is less robust.
         sinon.stub(repo.git, 'getCommitMessageFromTemplate').returns(fakeTemplateMessage);
         sinon.stub(repo, 'getMergeMessage').returns(fakeMergeMessage);
         await repo.getLoadPromise();
