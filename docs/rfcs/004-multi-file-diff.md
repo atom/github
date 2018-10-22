@@ -6,7 +6,7 @@ Proposed
 
 ## Summary
 
-Users can select multiple files in unstaged changes and staged changes pane and see the diffs of selected files in one view, akin to the [`Files changed` tab in pull requests on github.com](https://github.com/atom/github/pull/1747/files).
+Users can select multiple files in unstaged changes and staged changes pane and see the diffs of selected files in one view, akin to the [`Files changed` tab in pull requests on github.com](https://github.com/atom/github/pull/1752/files).
 
 ## Motivation
 
@@ -19,11 +19,11 @@ The ability to display multiple diffs in one view will also serve as a building 
 
 ## Explanation
 
-#### Unstaged Changes
+#### Unstaged Changes pane
 - User can `cmd+click` and select multiple files from the list of unstaged changes, and the pane on the left (see multi-file diff section below) will show diffs of the selected files. That pane will continue to reflect any further selecting/unselecting on the Unstaged Changes pane.
 - Once there is at least one file selected, `Stage All` button should be worded as `Stage Selected`.
 
-#### Staged Changes
+#### Staged Changes pane
 - Same behavior as Unstaged Changes pane.
 - Once there is at least one file selected, `Unstage All` button should be worded as `Unstage Selected`.
 
@@ -52,16 +52,13 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 - What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
 
 TBD
+
 - What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
 
 TBD
 
 ## Implementation phases
-
-- Can this functionality be introduced in multiple, distinct, self-contained pull requests?
-
 TBD
 
-- A specification for when the feature is considered "done."
-
+## Definition of done
 TBD
