@@ -21,6 +21,7 @@ The ability to display multiple diffs in one view will also serve as a building 
 
 #### Mock-ups coming soon
 
+
 #### Unstaged Changes pane
 - User can `cmd+click` and select multiple files from the list of unstaged changes, and the pane on the left (see multi-file diff section below) will show diffs of the selected files. That pane will continue to reflect any further selecting/unselecting on the Unstaged Changes pane.
 - Once there is at least one file selected, `Stage All` button should be worded as `Stage Selected`.
