@@ -1,4 +1,4 @@
-# Feature title
+# Multi-file Diffs
 
 ## Status
 
@@ -19,6 +19,8 @@ The ability to display multiple diffs in one view will also serve as a building 
 
 ## Explanation
 
+#### Mock-ups coming soon
+
 #### Unstaged Changes pane
 - User can `cmd+click` and select multiple files from the list of unstaged changes, and the pane on the left (see multi-file diff section below) will show diffs of the selected files. That pane will continue to reflect any further selecting/unselecting on the Unstaged Changes pane.
 - Once there is at least one file selected, `Stage All` button should be worded as `Stage Selected`.
@@ -29,12 +31,12 @@ The ability to display multiple diffs in one view will also serve as a building 
 
 #### Multi-file diff view
 _(note: The following is a summary of what we would like the UX to achieve, but I don't have a clear visuals of what that looks like yet.)_
+
 - Shows diffs of multiple files as a stack.
 - Each diff should show up as its own block, and the current functionality should remain independent of each block.
 - It should be easy to jump quickly to a specific file you care about, or back to the file list to get to another file. Dotcom does so by creating a `jump to` drop down.
 - As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
 
-#### Mock-ups coming soon
 
 ## Drawbacks
 
@@ -43,9 +45,7 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 
 ## Rationale and alternatives
 
-- Why is this approach the best in the space of possible approaches?
-- What other approaches have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
+An alternative would be to _not_ implement multi-file diff, as other editors like VS Code also only has per-file diff at the time of writing. However, not implementing this would imply that [the proposed new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) will have to find another solution to display all changes in a PR. 
 
 ## Unresolved questions
 
