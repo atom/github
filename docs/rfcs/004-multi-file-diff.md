@@ -46,7 +46,7 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 
 ## Rationale and alternatives
 
-An alternative would be to _not_ implement multi-file diff, as other editors like VS Code also only has per-file diff at the time of writing. However, not implementing this would imply that [the proposed new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) will have to find another solution to display all changes in a PR.
+An alternative would be to _not_ implement multi-file diff, as other editors like VS Code also only has per-file diff at the time of writing. However, not implementing this would imply that [the proposed new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) will have to find another solution to display all changes in a PR. Additionally users would have to do a lot more clicking to view all of their changes. Imagine there was a variable rename and only 10 lines are changed, but they are each in a different file. It'd be a bit of a pain to click through to view each one. Also, if we didn't implement multi-file diffs then we couldn't show commit contents since they often include changes across multiple files.
 
 ## Unresolved questions
 
