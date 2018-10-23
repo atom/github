@@ -37,6 +37,8 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 - Each diff should show up as its own block, and the current functionality should remain independent of each block.
 - It should be easy to jump quickly to a specific file you care about, or back to the file list to get to another file. Dotcom does so by creating a `jump to` drop down.
 - As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
+Nice-to-have UX that doesn't necessarily need to be implemented
+- Each file diff can be collapsed (this can potentially be )
 
 
 ## Drawbacks
@@ -56,7 +58,7 @@ TBD
 
 - What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
 
-TBD
+It would be cool if each diff was collapsable. Especially for when we start using the multi-file diff for code review and the reviewers may want to hide the contents of a file once they're done addressing the changes in it. "Collapse/Expand All" capabilities would be nice as well. I don't see this as a critical feature for this particular RFC. 
 
 ## Implementation phases
 TBD
