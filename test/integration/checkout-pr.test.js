@@ -12,7 +12,7 @@ describe('check out a pull request', function() {
   let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
 
   beforeEach(async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initialRoots: ['three-files'],
     });
     wrapper = context.wrapper;

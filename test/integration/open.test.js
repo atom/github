@@ -3,11 +3,11 @@ import path from 'path';
 
 import {setup, teardown} from './helpers';
 
-describe('opening and closing tabs', function() {
+describe('integration: opening and closing tabs', function() {
   let context, wrapper, atomEnv, commands, workspaceElement;
 
   beforeEach(async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initialRoots: ['three-files'],
       initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), ''),
       state: {newProject: false},

@@ -13,7 +13,7 @@ import metadata from '../../package.json';
  * Usage:
  * ```js
  * beforeEach(async function() {
- *   context = await setup(this.currentTest);
+ *   context = await setup();
  *   wrapper = context.wrapper;
  * })
  *
@@ -31,7 +31,7 @@ import metadata from '../../package.json';
  *     is defined.
  * * state - Simulate package state serialized by a previous Atom run.
  */
-export async function setup(currentTest, options = {}) {
+export async function setup(options = {}) {
   const opts = {
     initialRoots: [],
     isolateConfigDir: options.initAtomEnv !== undefined,
