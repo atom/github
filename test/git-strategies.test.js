@@ -87,29 +87,46 @@ import * as reporterProxy from '../lib/reporter-proxy';
     });
 
     describe('getCommitMessageFromTemplate', function() {
-      it('supports repository root path', async function() {
-        const workingDirPath = await cloneRepository('commit-template');
+      it('gets commit message from template', async function() {
+        const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        const absTemplatePath = path.join(workingDirPath, 'gitmessage.txt');
-        const commitTemplate = fs.readFileSync(absTemplatePath, 'utf8').trim();
-        const message = await git.getCommitMessageFromTemplate();
-        assert.equal(message, commitTemplate);
+        const templateText = 'some commit message';
+
+        const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
+        await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+
+        await git.setConfig('commit.template', commitMsgTemplatePath);
+        assert.equal(await git.getCommitMessageFromTemplate(), templateText);
       });
 
-      it('supports relative path', async function() {
-        const workingDirPath = await cloneRepository('commit-template');
+      it('if config is not set return null', async function() {
+        const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        const homeDir = os.homedir();
-        const absTemplatePath = path.join(homeDir, '.gitMessageSample.txt');
-        await fs.writeFile(absTemplatePath, 'some commit message', {encoding: 'utf8'});
-        await git.exec(['config', '--local', 'commit.template', '~/.gitMessageSample.txt']);
 
-        const message = await git.getCommitMessageFromTemplate();
-        assert.equal(message, 'some commit message');
-        fs.removeSync(absTemplatePath);
+        assert.strictEqual(await git.getConfig('commit.template'), '');
+        assert.isNull(await git.getCommitMessageFromTemplate());
+      });
+
+      it('if config is set but file does not exist throw an error', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
+        await git.setConfig('commit.template', nonExistentCommitTemplatePath);
+        await assert.isRejected(
+          git.getCommitMessageFromTemplate(),
+          `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
+        );
+      });
+
+      it('test that ~ gets expanded correctly', async function() {
+
+      });
+
+      it('test that relative path in repo is covered', async function() {
+
       });
     });
-
 
     if (process.platform === 'win32') {
       describe('getStatusBundle()', function() {
