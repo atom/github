@@ -5,7 +5,7 @@ import until from 'test-until';
 import {setup, teardown} from './helpers';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 
-describe.only('integration: file patches', function() {
+describe('integration: file patches', function() {
   let context, wrapper, atomEnv;
   let workspace;
   let commands, workspaceElement;
