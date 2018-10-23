@@ -54,11 +54,11 @@ An alternative would be to _not_ implement multi-file diff, as other editors lik
 
 - What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
 
-TBD
+How exactly do we construct the multi-file diffs? Do we have one TextEditor component that has different sections for each file. Or do we create a new type of pane item that contains multiple TextEditor components stacked on top of one another, one for each file diff... If we do the former we could probably get something shipped sooner (we could just get the diff of the staged changes from Git, add a special decoration for file headers, and present all the changes in one editor). But to pave the way for a more complex code review UX I think taking extra time to do the latter will serve us well. For example, I can imagine reviewers wanting to collapse some files, or mark them as "Done", in which case it would be easier if we treated each diff as its own component.
 
 - What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
 
-It would be cool if each diff was collapsable. Especially for when we start using the multi-file diff for code review and the reviewers may want to hide the contents of a file once they're done addressing the changes in it. "Collapse/Expand All" capabilities would be nice as well. I don't see this as a critical feature for this particular RFC. 
+It would be cool if each diff was collapsable. Especially for when we start using the multi-file diff for code review and the reviewers may want to hide the contents of a file once they're done addressing the changes in it. "Collapse/Expand All" capabilities would be nice as well. I don't see this as a critical feature for this particular RFC.
 
 ## Implementation phases
 TBD
