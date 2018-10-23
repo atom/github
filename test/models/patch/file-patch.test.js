@@ -604,6 +604,61 @@ describe('FilePatch', function() {
         );
       });
     });
+
+    describe('unstaging lines from a removed file', function() {
+      let oldFile, removedFilePatch;
+
+      beforeEach(function() {
+        const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+        const layers = buildLayers(buffer);
+        const hunks = [
+          new Hunk({
+            oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 3,
+            marker: markRange(layers.hunk, 0, 2),
+            regions: [
+              new Deletion(markRange(layers.deletion, 0, 2)),
+            ],
+          }),
+        ];
+        oldFile = new File({path: 'file.txt', mode: '100644'});
+        const removedPatch = new Patch({status: 'deleted', hunks, buffer, layers});
+        removedFilePatch = new FilePatch(oldFile, nullFile, removedPatch);
+      });
+
+      it('handles unstaging part of the file', function() {
+        const discardPatch = removedFilePatch.getUnstagePatchForLines(new Set([1]));
+        assert.strictEqual(discardPatch.getStatus(), 'added');
+        assert.strictEqual(discardPatch.getOldFile(), nullFile);
+        assert.strictEqual(discardPatch.getNewFile(), oldFile);
+        assertInFilePatch(discardPatch).hunks(
+          {
+            startRow: 0,
+            endRow: 0,
+            header: '@@ -1,0 +1,1 @@',
+            regions: [
+              {kind: 'addition', string: '+0001\n', range: [[0, 0], [0, 4]]},
+            ],
+          },
+        );
+      });
+
+      it('handles unstaging the entire file', function() {
+        const discardPatch = removedFilePatch.getUnstagePatchForLines(new Set([0, 1, 2]));
+        assert.strictEqual(discardPatch.getStatus(), 'added');
+        assert.strictEqual(discardPatch.getOldFile(), nullFile);
+        assert.strictEqual(discardPatch.getNewFile(), oldFile);
+        assertInFilePatch(discardPatch).hunks(
+          {
+            startRow: 0,
+            endRow: 2,
+            header: '@@ -1,0 +1,3 @@',
+            regions: [
+              {kind: 'addition', string: '+0000\n+0001\n+0002\n', range: [[0, 0], [2, 4]]},
+            ],
+          },
+        );
+      });
+    });
   });
 
   it('unstages an entire hunk at once', function() {
