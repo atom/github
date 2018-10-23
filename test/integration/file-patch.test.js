@@ -11,9 +11,13 @@ describe('integration: file patches', function() {
   let commands, workspaceElement;
   let repoRoot, git;
 
-  beforeEach(async function() {
-    context = await setup(this.currentTest, {
-      initialRoots: ['three-files'],
+  afterEach(async function() {
+    await teardown(context);
+  });
+
+  async function useFixture(fixtureName) {
+    context = await setup({
+      initialRoots: [fixtureName],
     });
 
     wrapper = context.wrapper;
@@ -29,11 +33,7 @@ describe('integration: file patches', function() {
     // Open the git tab
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();
-  });
-
-  afterEach(async function() {
-    await teardown(context);
-  });
+  }
 
   function repoPath(...parts) {
     return path.join(repoRoot, ...parts);
@@ -184,6 +184,7 @@ describe('integration: file patches', function() {
 
   describe('with an added file', function() {
     beforeEach(async function() {
+      await useFixture('three-files');
       await fs.writeFile(repoPath('added-file.txt'), '0000\n0001\n0002\n0003\n0004\n0005\n', {encoding: 'utf8'});
       await clickFileInGitTab('unstaged', 'added-file.txt');
     });
@@ -293,12 +294,108 @@ describe('integration: file patches', function() {
   });
 
   describe('with a removed file', function() {
+    beforeEach(async function() {
+      await useFixture('multi-line-file');
+
+      await fs.remove(repoPath('sample.js'));
+    });
+
     describe('unstaged', function() {
-      it('may be partially staged');
+      beforeEach(async function() {
+        await clickFileInGitTab('unstaged', 'sample.js');
+      });
 
-      it('may be completely staged');
+      it('may be partially staged', async function() {
+        getPatchEditor('unstaged', 'sample.js').setSelectedBufferRange([[4, 0], [7, 5]]);
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
-      it('may discard lines');
+        await patchContent(
+          'unstaged', 'sample.js',
+          ['const quicksort = function() {', 'deleted'],
+          ['  const sort = function(items) {', 'deleted'],
+          ['    if (items.length <= 1) { return items; }', 'deleted'],
+          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted'],
+          ['    return sort(left).concat(pivot).concat(sort(right));', 'deleted', 'selected'],
+          ['  };', 'deleted'],
+          ['', 'deleted'],
+          ['  return sort(Array.apply(this, arguments));', 'deleted'],
+          ['};', 'deleted'],
+        );
+
+        await clickFileInGitTab('staged', 'sample.js');
+
+        await patchContent(
+          'staged', 'sample.js',
+          ['  const sort = function(items) {'],
+          ['    if (items.length <= 1) { return items; }'],
+          ['    let pivot = items.shift(), current, left = [], right = [];'],
+          ['    while (items.length > 0) {', 'deleted', 'selected'],
+          ['      current = items.shift();', 'deleted', 'selected'],
+          ['      current < pivot ? left.push(current) : right.push(current);', 'deleted', 'selected'],
+          ['    }', 'deleted', 'selected'],
+          ['    return sort(left).concat(pivot).concat(sort(right));'],
+          ['  };'],
+          [''],
+        );
+      });
+
+      it('may be completely staged', async function() {
+        getPatchEditor('unstaged', 'sample.js').setSelectedBufferRange([[0, 0], [12, 2]]);
+        wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
+
+        await clickFileInGitTab('staged', 'sample.js');
+
+        await patchContent(
+          'staged', 'sample.js',
+          ['const quicksort = function() {', 'deleted', 'selected'],
+          ['  const sort = function(items) {', 'deleted', 'selected'],
+          ['    if (items.length <= 1) { return items; }', 'deleted', 'selected'],
+          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted', 'selected'],
+          ['    while (items.length > 0) {', 'deleted', 'selected'],
+          ['      current = items.shift();', 'deleted', 'selected'],
+          ['      current < pivot ? left.push(current) : right.push(current);', 'deleted', 'selected'],
+          ['    }', 'deleted', 'selected'],
+          ['    return sort(left).concat(pivot).concat(sort(right));', 'deleted', 'selected'],
+          ['  };', 'deleted', 'selected'],
+          ['', 'deleted', 'selected'],
+          ['  return sort(Array.apply(this, arguments));', 'deleted', 'selected'],
+          ['};', 'deleted', 'selected'],
+        );
+      });
+
+      it('may discard lines', async function() {
+        getPatchEditor('unstaged', 'sample.js').setSelectedBufferRanges([
+          [[1, 0], [2, 0]],
+          [[7, 0], [8, 1]],
+        ]);
+        wrapper.find('.github-HunkHeaderView-discardButton').simulate('click');
+
+        await patchContent(
+          'unstaged', 'sample.js',
+          ['const quicksort = function() {', 'deleted', 'selected'],
+          ['  const sort = function(items) {'],
+          ['    if (items.length <= 1) { return items; }'],
+          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted', 'selected'],
+          ['    while (items.length > 0) {', 'deleted', 'selected'],
+          ['      current = items.shift();', 'deleted', 'selected'],
+          ['      current < pivot ? left.push(current) : right.push(current);', 'deleted', 'selected'],
+          ['    }'],
+          ['    return sort(left).concat(pivot).concat(sort(right));'],
+          ['  };', 'deleted', 'selected'],
+          ['', 'deleted', 'selected'],
+          ['  return sort(Array.apply(this, arguments));', 'deleted', 'selected'],
+          ['};', 'deleted', 'selected'],
+        );
+
+        const editor = await workspace.open(repoPath('sample.js'));
+        assert.strictEqual(
+          editor.getText(),
+          '  const sort = function(items) {\n' +
+          '    if (items.length <= 1) { return items; }\n' +
+          '    }\n' +
+          '    return sort(left).concat(pivot).concat(sort(right));\n',
+        );
+      });
     });
 
     describe('staged', function() {
