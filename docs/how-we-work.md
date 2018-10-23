@@ -82,6 +82,8 @@ Development work on the feature may start at any point once the RFC pull request
 
 The RFC is meant to be a living document that will be modified over the duration of development as things evolve, new information is discovered, and UXR is conducted.
 
+_We encourage community members wanting to contribute new features to follow this process._ This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. You can run your idea by us by simply filling out the first three sections of the RFC template (summary, motivation, and explanation). Feel free to leave the rest blank -- more info would be welcome but is not necessary. 
+
 ##### Process
 
 1. On a feature branch, write a proposal as a markdown document beneath [`docs/rfcs`](/docs/rfcs) in this repository. Copy the [template](/docs/rfcs/000-template.md) to begin. Open a pull request. The RFC document should include:
@@ -99,6 +101,12 @@ The RFC is meant to be a living document that will be modified over the duration
    * Merge your pull request yourself when CI is green and any reviewers you have requested have approved the PR.
    * As the design evolves and opinions change, modify the existing RFC to stay accurate.
 1. When the feature is complete, update the RFC to a "completed" state and merge it. For any outstanding work that didn't get implemented, open issues or start new RFCs.
+
+##### FAQ
+
+Q: Why not just use issues?
+In the past we've used issues for these discussions and the issue body quickly becomes outdated by discussion in comments and it's hard to
+
 
 ### Expansions or retractions of package scope
 
