@@ -489,7 +489,7 @@ describe('FilePatch', function() {
     );
   });
 
-  describe('getUnstagePatchForLines()', function() {
+  describe.only('getUnstagePatchForLines()', function() {
     it('returns a new FilePatch that unstages only the specified lines', function() {
       const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n'});
       const layers = buildLayers(buffer);
