@@ -59,7 +59,7 @@ describe('CommitController', function() {
     it('populates the commit message with the template', async function() {
       const workdirPath = await cloneRepository('commit-template');
       const repository = await buildRepository(workdirPath);
-      const templateCommitMessage = await repository.git.getCommitMessageFromTemplate();
+      const templateCommitMessage = await repository.git.getCommitMessageTemplate();
       app = React.cloneElement(app, {repository});
       const wrapper = shallow(app, {disableLifecycleMethods: true});
       await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
@@ -91,11 +91,11 @@ describe('CommitController', function() {
     const commitMsgTemplatePath = path.join(workdirPath2, '.gitmessage');
     await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
     await repository2.git.setConfig('commit.template', commitMsgTemplatePath);
-    // assert.strictEqual(await repository2.getCommitMessageFromTemplate(), templateText);
+    // assert.strictEqual(await repository2.getCommitMessageTemplate(), templateText);
 
     // const workdirPath3 = await cloneRepository('commit-template');
     // const repository3 = await buildRepository(workdirPath3);
-    // const templateCommitMessage = await repository3.git.getCommitMessageFromTemplate();
+    // const templateCommitMessage = await repository3.git.getCommitMessageTemplate();
 
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app, {disableLifecycleMethods: true});
