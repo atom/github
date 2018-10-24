@@ -40,7 +40,6 @@ describe('CommitController', function() {
         isMerging={false}
         mergeConflictsExist={false}
         stagedChangesExist={false}
-        mergeMessage={''}
         lastCommit={lastCommit}
         currentBranch={nullBranch}
         userStore={store}
@@ -138,21 +137,6 @@ describe('CommitController', function() {
       wrapper.handleMessageChange('new message');
       assert.strictEqual(wrapper.getCommitMessage(), 'new message');
       assert.isFalse(wrapper.props.repository.state.didUpdate.called);
-    });
-
-    describe('when a merge message is defined', function() {
-      it('is set to the merge message when merging', function() {
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'merge conflict!');
-      });
-
-      it('is set to getCommitMessage() if it is set', function() {
-        repository.setCommitMessage('some commit message');
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some commit message');
-      });
     });
   });
 
