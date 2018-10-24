@@ -2108,4 +2108,193 @@ describe('Repository', function() {
       });
     });
   });
+
+  describe('updating commit message', function() {
+    let workdir, sub;
+    let observedEvents, eventCallback;
+
+    async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
+      observedEvents = [];
+      eventCallback = () => {};
+
+      workdir = existingWorkdir || await cloneRepository(fixtureName);
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      const observer = new FileSystemChangeObserver(repository);
+
+      sub = new CompositeDisposable(
+        new Disposable(async () => {
+          await observer.destroy();
+          repository.destroy();
+        }),
+      );
+
+      sub.add(observer.onDidChange(events => {
+        observedEvents.push(...events);
+        eventCallback();
+      }));
+
+      return {repository, observer};
+    }
+
+    function expectEvents(repository, ...suffixes) {
+      const pending = new Set(suffixes);
+      return new Promise((resolve, reject) => {
+        eventCallback = () => {
+          const matchingPaths = observedEvents
+            .filter(event => {
+              for (const suffix of pending) {
+                if (event.path.endsWith(suffix)) {
+                  pending.delete(suffix);
+                  return true;
+                }
+              }
+              return false;
+            });
+
+          if (matchingPaths.length > 0) {
+            repository.observeFilesystemChange(matchingPaths);
+          }
+
+          if (pending.size === 0) {
+            resolve();
+          }
+        };
+
+        if (observedEvents.length > 0) {
+          eventCallback();
+        }
+      });
+    }
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    describe('config commit.template change', function() {
+      it('updates commit messages to new template', async function() {
+        const {repository, observer} = await wireUpObserver();
+        await observer.start();
+
+        assert.strictEqual(repository.getCommitMessage(), '');
+
+        const templatePath = path.join(workdir, 'a.txt');
+        await repository.git.setConfig('commit.template', templatePath);
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+      });
+    });
+
+    describe('merge events', function() {
+      describe('when commit message is empty', function() {
+        it('merge message is set as new commit message', async function() {
+          const {repository, observer} = await wireUpObserver('merge-conflict');
+          await observer.start();
+
+          assert.strictEqual(repository.getCommitMessage(), '');
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+        });
+      });
+
+      describe('when commit message contains unmodified template', function() {
+        it('merge message is set as new commit message', async function() {
+          const {repository, observer} = await wireUpObserver('merge-conflict');
+          await observer.start();
+
+          const templatePath = path.join(workdir, 'added-to-both.txt');
+          const templateText = fs.readFileSync(templatePath, 'utf8');
+          await repository.git.setConfig('commit.template', templatePath);
+          await expectEvents(
+            repository,
+            path.join('.git', 'config'),
+          );
+
+          await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+        });
+      });
+
+      describe('when commit message is "dirty"', function() {
+        it('leaves commit message as is', async function() {
+          const {repository, observer} = await wireUpObserver('merge-conflict');
+          await observer.start();
+
+          const dirtyMessage = 'foo bar baz';
+          repository.setCommitMessage(dirtyMessage);
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          assert.strictEqual(repository.getCommitMessage(), dirtyMessage);
+        });
+      });
+
+      describe('when merge is aborted', function() {
+        it('merge message gets cleared', async function() {
+          const {repository, observer} = await wireUpObserver('merge-conflict');
+          await observer.start();
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+
+          await repository.abortMerge();
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          assert.strictEqual(repository.getCommitMessage(), '');
+
+        });
+
+        describe('when commit message template is present', function() {
+          it('sets template as commit message', async function() {
+            const {repository, observer} = await wireUpObserver('merge-conflict');
+            await observer.start();
+
+            const templatePath = path.join(workdir, 'added-to-both.txt');
+            const templateText = fs.readFileSync(templatePath, 'utf8');
+            await repository.git.setConfig('commit.template', templatePath);
+            await expectEvents(
+              repository,
+              path.join('.git', 'config'),
+            );
+
+            await assert.isRejected(repository.git.merge('origin/branch'));
+            await expectEvents(
+              repository,
+              path.join('.git', 'MERGE_HEAD'),
+            );
+            await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+
+            await repository.abortMerge();
+            await expectEvents(
+              repository,
+              path.join('.git', 'MERGE_HEAD'),
+            );
+
+            await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+          });
+        });
+      });
+    });
+  });
 });
