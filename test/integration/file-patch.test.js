@@ -372,19 +372,19 @@ describe('integration: file patches', function() {
 
         await patchContent(
           'unstaged', 'sample.js',
-          ['const quicksort = function() {', 'deleted', 'selected'],
+          ['const quicksort = function() {', 'deleted'],
           ['  const sort = function(items) {'],
           ['    if (items.length <= 1) { return items; }'],
-          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted', 'selected'],
-          ['    while (items.length > 0) {', 'deleted', 'selected'],
-          ['      current = items.shift();', 'deleted', 'selected'],
-          ['      current < pivot ? left.push(current) : right.push(current);', 'deleted', 'selected'],
+          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted'],
+          ['    while (items.length > 0) {', 'deleted'],
+          ['      current = items.shift();', 'deleted'],
+          ['      current < pivot ? left.push(current) : right.push(current);', 'deleted'],
           ['    }'],
           ['    return sort(left).concat(pivot).concat(sort(right));'],
           ['  };', 'deleted', 'selected'],
-          ['', 'deleted', 'selected'],
-          ['  return sort(Array.apply(this, arguments));', 'deleted', 'selected'],
-          ['};', 'deleted', 'selected'],
+          ['', 'deleted'],
+          ['  return sort(Array.apply(this, arguments));', 'deleted'],
+          ['};', 'deleted'],
         );
 
         const editor = await workspace.open(repoPath('sample.js'));
