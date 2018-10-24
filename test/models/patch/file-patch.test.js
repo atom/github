@@ -42,8 +42,6 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getHunkAt(1), hunks[0]);
 
-    assert.deepEqual(filePatch.getFirstChangeRange(), [[1, 0], [1, Infinity]]);
-
     const nBuffer = new TextBuffer({text: '0001\n0002\n'});
     const nLayers = buildLayers(nBuffer);
     const nHunks = [
