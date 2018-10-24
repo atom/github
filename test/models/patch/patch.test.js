@@ -521,61 +521,6 @@ describe('Patch', function() {
       });
     });
 
-    it('unstages an entire patch at once', function() {
-      const patch = buildPatchFixture();
-      const unstagedPatch = patch.getFullUnstagedPatch();
-
-      assert.notStrictEqual(unstagedPatch.getBuffer(), patch.getBuffer());
-      assert.strictEqual(unstagedPatch.getBuffer().getText(), patch.getBuffer().getText());
-      assertInPatch(unstagedPatch).hunks(
-        {
-          startRow: 0,
-          endRow: 6,
-          header: '@@ -3,5 +3,4 @@',
-          regions: [
-            {kind: 'unchanged', string: ' 0000\n', range: [[0, 0], [0, 4]]},
-            {kind: 'addition', string: '+0001\n+0002\n', range: [[1, 0], [2, 4]]},
-            {kind: 'deletion', string: '-0003\n-0004\n-0005\n', range: [[3, 0], [5, 4]]},
-            {kind: 'unchanged', string: ' 0006\n', range: [[6, 0], [6, 4]]},
-          ],
-        },
-        {
-          startRow: 7,
-          endRow: 18,
-          header: '@@ -13,7 +12,9 @@',
-          regions: [
-            {kind: 'unchanged', string: ' 0007\n', range: [[7, 0], [7, 4]]},
-            {kind: 'deletion', string: '-0008\n-0009\n', range: [[8, 0], [9, 4]]},
-            {kind: 'unchanged', string: ' 0010\n 0011\n', range: [[10, 0], [11, 4]]},
-            {kind: 'addition', string: '+0012\n+0013\n+0014\n+0015\n+0016\n', range: [[12, 0], [16, 4]]},
-            {kind: 'deletion', string: '-0017\n', range: [[17, 0], [17, 4]]},
-            {kind: 'unchanged', string: ' 0018\n', range: [[18, 0], [18, 4]]},
-          ],
-        },
-        {
-          startRow: 19,
-          endRow: 23,
-          header: '@@ -25,3 +26,4 @@',
-          regions: [
-            {kind: 'unchanged', string: ' 0019\n', range: [[19, 0], [19, 4]]},
-            {kind: 'deletion', string: '-0020\n', range: [[20, 0], [20, 4]]},
-            {kind: 'addition', string: '+0021\n+0022\n', range: [[21, 0], [22, 4]]},
-            {kind: 'unchanged', string: ' 0023\n', range: [[23, 0], [23, 4]]},
-          ],
-        },
-        {
-          startRow: 24,
-          endRow: 26,
-          header: '@@ -30,2 +32,1 @@',
-          regions: [
-            {kind: 'unchanged', string: ' 0024\n', range: [[24, 0], [24, 4]]},
-            {kind: 'deletion', string: '-0025\n', range: [[25, 0], [25, 4]]},
-            {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[26, 0], [26, 26]]},
-          ],
-        },
-      );
-    });
-
     it('returns a modification if original patch is an addition', function() {
       const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
       const layers = buildLayers(buffer);
@@ -622,17 +567,13 @@ describe('Patch', function() {
       ];
       const patch = new Patch({status: 'added', hunks, buffer, layers});
 
-      const unstagePatch0 = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
-      assert.strictEqual(unstagePatch0.getStatus(), 'deleted');
-
-      const unstagePatch1 = patch.getFullUnstagedPatch();
-      assert.strictEqual(unstagePatch1.getStatus(), 'deleted');
+      const unstagePatch = patch.getUnstagePatchForLines(new Set([0, 1, 2]));
+      assert.strictEqual(unstagePatch.getStatus(), 'deleted');
     });
 
     it('returns a nullPatch as a nullPatch', function() {
       const nullPatch = Patch.createNull();
       assert.strictEqual(nullPatch.getUnstagePatchForLines(new Set([1, 2, 3])), nullPatch);
-      assert.strictEqual(nullPatch.getFullUnstagedPatch(), nullPatch);
     });
   });
 
