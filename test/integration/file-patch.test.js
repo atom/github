@@ -11,6 +11,13 @@ describe('integration: file patches', function() {
   let commands, workspaceElement;
   let repoRoot, git;
 
+  this.timeout(Math.max(this.timeout(), 10000));
+
+  beforeEach(function() {
+    // These tests take a little longer because they rely on real filesystem events and git operations.
+    until.setDefaultTimeout(10000);
+  });
+
   afterEach(async function() {
     await teardown(context);
   });
