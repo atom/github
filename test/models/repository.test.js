@@ -1850,10 +1850,10 @@ describe('Repository', function() {
         return new Promise((resolve, reject) => {
           eventCallback = () => {
             const matchingPaths = observedEvents
-              .map(event => event.path)
-              .filter(eventPath => {
+              // .map(event => event.path)
+              .filter(event => {
                 for (const suffix of pending) {
-                  if (eventPath.endsWith(suffix)) {
+                  if (event.path.endsWith(suffix)) {
                     pending.delete(suffix);
                     return true;
                   }
