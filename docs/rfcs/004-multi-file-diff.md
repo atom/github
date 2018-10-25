@@ -30,9 +30,9 @@ A new button added above the commit message box that, when clicked, opens a mult
 
 - Shows diffs of multiple files as a stack.
 - Each diff retains the file-specific controls it currently has in its header (e.g. the open file, stage file, undo last discard, etc).
-- **[[out of scope](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#out-of-scope)]** It should be easy to jump quickly to a specific file you care about, or back to the file list to get to another file. Dotcom does so by creating a `jump to` drop down.
+- **[[out of scope]](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#warning-out-of-scope)** It should be easy to jump quickly to a specific file you care about, or back to the file list to get to another file. Dotcom does so by creating a `jump to` drop down.
 - As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
-- **[[out of scope](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#out-of-scope)]** Each file diff can be collapsed.
+- **[[out of scope]](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#warning-out-of-scope)** Each file diff can be collapsed.
 
 #### Workflow
 This would be a nice addition to the top-to-bottom flow that currently exists in our panel:
