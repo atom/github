@@ -118,6 +118,7 @@ describe('integration: file patches', function() {
         actualRowText = ['Unable to find patch item'];
         return false;
       }
+      editor.setSoftWrapped(false);
 
       const decorationsByMarker = editor.decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity);
       actualClassesByRow.clear();
