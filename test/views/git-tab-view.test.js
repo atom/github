@@ -29,8 +29,9 @@ describe('GitTabView', function() {
       GitTabView.focus.STAGING,
     );
 
+    const editorNode = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
     assert.strictEqual(
-      wrapper.instance().rememberFocus({target: wrapper.find('atom-text-editor').getDOMNode()}),
+      wrapper.instance().rememberFocus({target: editorNode}),
       GitTabView.focus.EDITOR,
     );
 
@@ -40,7 +41,7 @@ describe('GitTabView', function() {
   it('sets a new focus', async function() {
     const wrapper = mount(await buildApp());
     const stagingElement = wrapper.find('div.github-StagingView').getDOMNode();
-    const editorElement = wrapper.find('atom-text-editor').getDOMNode();
+    const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
 
     sinon.spy(stagingElement, 'focus');
     assert.isTrue(wrapper.instance().setFocus(GitTabView.focus.STAGING));

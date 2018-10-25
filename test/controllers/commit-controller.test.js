@@ -96,18 +96,19 @@ describe('CommitController', function() {
 
     it('is set to the getCommitMessage() in the default case', function() {
       repository.setCommitMessage('some message');
-      const wrapper = shallow(app, {disableLifecycleMethods: true});
-      assert.strictEqual(wrapper.find('CommitView').prop('message'), 'some message');
+      const wrapper = shallow(app);
+      assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), 'some message');
     });
 
     it('does not cause the repository to update when commit message changes', function() {
       repository.setCommitMessage('some message');
-      const wrapper = shallow(app, {disableLifecycleMethods: true}).instance();
-      sinon.spy(wrapper.props.repository.state, 'didUpdate');
-      assert.strictEqual(wrapper.getCommitMessage(), 'some message');
-      wrapper.handleMessageChange('new message');
-      assert.strictEqual(wrapper.getCommitMessage(), 'new message');
-      assert.isFalse(wrapper.props.repository.state.didUpdate.called);
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      const instance = wrapper.instance();
+      sinon.spy(repository.state, 'didUpdate');
+      assert.strictEqual(instance.getCommitMessage(), 'some message');
+      wrapper.find('CommitView').prop('messageBuffer').setText('new message');
+      assert.strictEqual(instance.getCommitMessage(), 'new message');
+      assert.isFalse(repository.state.didUpdate.called);
     });
   });
 
@@ -245,7 +246,7 @@ describe('CommitController', function() {
 
     describe('toggling between commit box and commit editor', function() {
       it('transfers the commit message contents of the last editor', async function() {
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
+        const wrapper = shallow(app);
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('message in box');
         await assert.async.equal(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -265,7 +266,7 @@ describe('CommitController', function() {
 
         workspace.getActiveTextEditor().destroy();
         assert.isTrue(wrapper.find('CommitView').prop('deactivateCommitBox'));
-        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('message'), 'message in editor');
+        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('messageBuffer').getText(), 'message in editor');
       });
 
       it('activates editor if already opened but in background', async function() {
@@ -285,7 +286,7 @@ describe('CommitController', function() {
       });
 
       it('closes all open commit message editors if one is in the foreground of a pane, prompting for unsaved changes', async function() {
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
+        const wrapper = shallow(app);
 
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')('sup');
         await assert.async.strictEqual(workspace.getActiveTextEditor().getPath(), wrapper.instance().getCommitMessagePath());
@@ -310,7 +311,7 @@ describe('CommitController', function() {
         wrapper.find('CommitView').prop('toggleExpandedCommitMessageEditor')();
         await assert.async.lengthOf(wrapper.instance().getCommitMessageEditors(), 0);
         assert.isTrue(atomEnvironment.applicationDelegate.confirm.called);
-        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('message'), 'make some new changes');
+        await assert.async.strictEqual(wrapper.update().find('CommitView').prop('messageBuffer').getText(), 'make some new changes');
       });
 
       describe('openCommitMessageEditor', function() {
@@ -399,7 +400,8 @@ describe('CommitController', function() {
       sinon.spy(view, 'hasFocus');
       sinon.spy(view, 'hasFocusEditor');
 
-      wrapper.instance().rememberFocus({target: wrapper.find('atom-text-editor').getDOMNode()});
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      wrapper.instance().rememberFocus({target: element});
       assert.isTrue(view.rememberFocus.called);
 
       wrapper.instance().setFocus(CommitController.focus.EDITOR);

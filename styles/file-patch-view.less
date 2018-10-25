@@ -1,4 +1,9 @@
 @import "variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+@hunk-fg-color: @text-color-subtle;
+@hunk-bg-color: @pane-item-background-color;
 
 .github-FilePatchView {
   display: flex;
@@ -7,6 +12,17 @@
   cursor: default;
   flex: 1;
   min-width: 0;
+  height: 100%;
+
+  &--blank &-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.2em;
+    padding: @component-padding;
+  }
 
   &-header {
     display: flex;
@@ -15,6 +31,7 @@
     padding: @component-padding/2;
     padding-left: @component-padding;
     border-bottom: 1px solid @base-border-color;
+    background-color: @pane-item-background-color;
 
     .btn {
       font-size: .9em;
@@ -36,11 +53,10 @@
 
   &-container {
     flex: 1;
-    overflow-y: auto;
     display: flex;
+    height: 100%;
     flex-direction: column;
 
-    .is-blank,
     .large-file-patch {
       flex: 1;
       display: flex;
@@ -54,8 +70,12 @@
     .large-file-patch {
       flex-direction: column;
     }
-  }
 
+    atom-text-editor {
+      width: 100%;
+      height: 100%;
+    }
+  }
 
   // Meta section
 
@@ -136,4 +156,73 @@
     }
   }
 
+  // Line decorations
+
+  &-line {
+    // mixin
+    .hunk-line-mixin(@bg;) {
+      background-color: fade(@bg, 18%);
+
+      &.line.cursor-line {
+        background-color: fade(@bg, 28%);
+      }
+    }
+
+    &--deleted {
+      .hunk-line-mixin(@background-color-error);
+    }
+
+    &--added {
+      .hunk-line-mixin(@background-color-success);
+    }
+  }
+
+
+  // Gutter
+
+  .gutter {
+    .icon-right {
+      display: none; // remove fold icon
+    }
+
+    &.old .line-number, &.new .line-number {
+      min-width: 6ch; // Fit up to 4 characters (+1 padding on each side)
+      opacity: 1;
+      padding: 0 1ch 0 0;
+
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+      }
+    }
+
+    &.icons .line-number {
+      .octicon-font();
+      opacity: 1;
+      width: 2ch;
+
+      &:before {
+        display: inline-block;
+        min-width: 1ch;
+        text-align: center;
+      }
+
+      &.github-FilePatchView-line--added:before {
+        content: @plus;
+      }
+
+      &.github-FilePatchView-line--deleted:before {
+        content: @dash;
+      }
+
+      &.github-FilePatchView-line--nonewline:before {
+        content: @no-newline;
+      }
+
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+      }
+    }
+  }
 }

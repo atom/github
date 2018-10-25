@@ -1,15 +1,18 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {Range} from 'atom';
 
 import Marker from '../../lib/atom/marker';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
+import RefHolder from '../../lib/models/ref-holder';
 import MarkerLayer from '../../lib/atom/marker-layer';
 
 describe('Marker', function() {
-  let atomEnv, editor, markerID;
+  let atomEnv, workspace, editor, marker, markerID;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+    workspace = atomEnv.workspace;
     editor = await atomEnv.workspace.open(__filename);
   });
 
@@ -17,19 +20,29 @@ describe('Marker', function() {
     atomEnv.destroy();
   });
 
+  function setMarker(m) {
+    marker = m;
+  }
+
   function setMarkerID(id) {
     markerID = id;
   }
 
   it('adds its marker on mount with default properties', function() {
     mount(
-      <Marker editor={editor} bufferRange={[[0, 0], [10, 0]]} handleID={setMarkerID} />,
+      <Marker
+        editor={editor}
+        bufferRange={Range.fromObject([[0, 0], [10, 0]])}
+        handleID={setMarkerID}
+        handleMarker={setMarker}
+      />,
     );
 
-    const marker = editor.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [10, 0]]));
-    assert.strictEqual(marker.bufferMarker.invalidate, 'overlap');
-    assert.isFalse(marker.isReversed());
+    const theMarker = editor.getMarker(markerID);
+    assert.strictEqual(theMarker, marker);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [10, 0]]));
+    assert.strictEqual(theMarker.bufferMarker.invalidate, 'overlap');
+    assert.isFalse(theMarker.isReversed());
   });
 
   it('configures its marker', function() {
@@ -37,17 +50,17 @@ describe('Marker', function() {
       <Marker
         editor={editor}
         handleID={setMarkerID}
-        screenRange={[[1, 2], [3, 4]]}
+        bufferRange={Range.fromObject([[1, 2], [4, 5]])}
         reversed={true}
         invalidate={'never'}
         exclusive={true}
       />,
     );
 
-    const marker = editor.getMarker(markerID);
-    assert.isTrue(marker.getScreenRange().isEqual([[1, 2], [3, 4]]));
-    assert.isTrue(marker.isReversed());
-    assert.strictEqual(marker.bufferMarker.invalidate, 'never');
+    const theMarker = editor.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[1, 2], [4, 5]]));
+    assert.isTrue(theMarker.isReversed());
+    assert.strictEqual(theMarker.bufferMarker.invalidate, 'never');
   });
 
   it('prefers marking a MarkerLayer to a TextEditor', function() {
@@ -58,16 +71,18 @@ describe('Marker', function() {
         editor={editor}
         layer={layer}
         handleID={setMarkerID}
-        bufferRange={[[0, 0], [1, 0]]}
+        bufferRange={Range.fromObject([[0, 0], [1, 0]])}
       />,
     );
 
-    const marker = layer.getMarker(markerID);
-    assert.strictEqual(marker.layer, layer);
+    const theMarker = layer.getMarker(markerID);
+    assert.strictEqual(theMarker.layer, layer);
   });
 
   it('destroys its marker on unmount', function() {
-    const wrapper = mount(<Marker editor={editor} handleID={setMarkerID} bufferPosition={[0, 0]} />);
+    const wrapper = mount(
+      <Marker editor={editor} handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />,
+    );
 
     assert.isDefined(editor.getMarker(markerID));
     wrapper.unmount();
@@ -75,30 +90,60 @@ describe('Marker', function() {
   });
 
   it('marks an editor from a parent node', function() {
-    const wrapper = mount(
-      <AtomTextEditor>
-        <Marker handleID={setMarkerID} bufferRange={[[0, 0], [0, 0]]} />
+    const editorHolder = new RefHolder();
+    mount(
+      <AtomTextEditor workspace={workspace} refModel={editorHolder}>
+        <Marker handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
       </AtomTextEditor>,
     );
 
-    const theEditor = wrapper.instance().getModel();
-    const marker = theEditor.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [0, 0]]));
+    const theEditor = editorHolder.get();
+    const theMarker = theEditor.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [0, 0]]));
   });
 
   it('marks a marker layer from a parent node', function() {
     let layerID;
-    const wrapper = mount(
-      <AtomTextEditor>
+    const editorHolder = new RefHolder();
+    mount(
+      <AtomTextEditor workspace={workspace} refModel={editorHolder}>
         <MarkerLayer handleID={id => { layerID = id; }}>
-          <Marker handleID={setMarkerID} bufferRange={[[0, 0], [0, 0]]} />
+          <Marker handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
         </MarkerLayer>
       </AtomTextEditor>,
     );
 
-    const theEditor = wrapper.instance().getModel();
+    const theEditor = editorHolder.get();
     const layer = theEditor.getMarkerLayer(layerID);
-    const marker = layer.getMarker(markerID);
-    assert.isTrue(marker.getBufferRange().isEqual([[0, 0], [0, 0]]));
+    const theMarker = layer.getMarker(markerID);
+    assert.isTrue(theMarker.getBufferRange().isEqual([[0, 0], [0, 0]]));
+  });
+
+  describe('with an externally managed marker', function() {
+    it('locates its marker by ID', function() {
+      const external = editor.markBufferRange([[0, 0], [0, 5]]);
+      const wrapper = mount(<Marker editor={editor} id={external.id} />);
+      const instance = wrapper.find('BareMarker').instance();
+      assert.strictEqual(instance.markerHolder.get(), external);
+    });
+
+    it('locates its marker on a parent MarkerLayer', function() {
+      const layer = editor.addMarkerLayer();
+      const external = layer.markBufferRange([[0, 0], [0, 5]]);
+      const wrapper = mount(<Marker layer={layer} id={external.id} />);
+      const instance = wrapper.find('BareMarker').instance();
+      assert.strictEqual(instance.markerHolder.get(), external);
+    });
+
+    it('fails on construction if its ID is invalid', function() {
+      assert.throws(() => mount(<Marker editor={editor} id={67} />), /Invalid marker ID: 67/);
+    });
+
+    it('does not destroy its marker on unmount', function() {
+      const external = editor.markBufferRange([[0, 0], [0, 5]]);
+      const wrapper = mount(<Marker editor={editor} id={external.id} />);
+      wrapper.unmount();
+      assert.isFalse(external.isDestroyed());
+    });
   });
 });

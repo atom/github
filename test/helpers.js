@@ -124,6 +124,8 @@ export function buildRepositoryWithPipeline(workingDirPath, options) {
   return buildRepository(workingDirPath, {pipelineManager});
 }
 
+// Custom assertions
+
 export function assertDeepPropertyVals(actual, expected) {
   function extractObjectSubset(actualValue, expectedValue) {
     if (actualValue !== Object(actualValue)) { return actualValue; }
@@ -149,6 +151,48 @@ export function assertEqualSets(a, b) {
 export function assertEqualSortedArraysByKey(arr1, arr2, key) {
   const sortFn = (a, b) => a[key] < b[key];
   assert.deepEqual(arr1.sort(sortFn), arr2.sort(sortFn));
+}
+
+// Helpers for test/models/patch classes
+
+class PatchBufferAssertions {
+  constructor(patch) {
+    this.patch = patch;
+  }
+
+  hunk(hunkIndex, {startRow, endRow, header, regions}) {
+    const hunk = this.patch.getHunks()[hunkIndex];
+    assert.isDefined(hunk);
+
+    assert.strictEqual(hunk.getRange().start.row, startRow);
+    assert.strictEqual(hunk.getRange().end.row, endRow);
+    assert.strictEqual(hunk.getHeader(), header);
+    assert.lengthOf(hunk.getRegions(), regions.length);
+
+    for (let i = 0; i < regions.length; i++) {
+      const region = hunk.getRegions()[i];
+      const spec = regions[i];
+
+      assert.strictEqual(region.constructor.name.toLowerCase(), spec.kind);
+      assert.strictEqual(region.toStringIn(this.patch.getBuffer()), spec.string);
+      assert.deepEqual(region.getRange().serialize(), spec.range);
+    }
+  }
+
+  hunks(...specs) {
+    assert.lengthOf(this.patch.getHunks(), specs.length);
+    for (let i = 0; i < specs.length; i++) {
+      this.hunk(i, specs[i]);
+    }
+  }
+}
+
+export function assertInPatch(patch) {
+  return new PatchBufferAssertions(patch);
+}
+
+export function assertInFilePatch(filePatch) {
+  return assertInPatch(filePatch.getPatch());
 }
 
 let activeRenderers = [];
