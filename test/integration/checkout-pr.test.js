@@ -8,7 +8,7 @@ import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import IDGenerator from '../fixtures/factories/id-generator';
 import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
 
-describe('check out a pull request', function() {
+describe('integration: check out a pull request', function() {
   let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
 
   beforeEach(async function() {

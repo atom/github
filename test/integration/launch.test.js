@@ -5,7 +5,7 @@ import {setup, teardown} from './helpers';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
 
-describe('Package initialization', function() {
+describe('integration: package initialization', function() {
   let context;
 
   afterEach(async function() {
