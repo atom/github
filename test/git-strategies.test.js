@@ -103,7 +103,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        assert.strictEqual(await git.getConfig('commit.template'), '');
+        assert.isNotOk(await git.getConfig('commit.template')); // falsy value of null or ''
         assert.isNull(await git.getCommitMessageTemplate());
       });
 
@@ -117,14 +117,6 @@ import * as reporterProxy from '../lib/reporter-proxy';
           git.getCommitMessageTemplate(),
           `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
         );
-      });
-
-      it('test that ~ gets expanded correctly', async function() {
-
-      });
-
-      it('test that relative path in repo is covered', async function() {
-
       });
     });
 
