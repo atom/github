@@ -20,7 +20,9 @@ describe('integration: file patches', function() {
   });
 
   afterEach(async function() {
-    await teardown(context);
+    if (context) {
+      await teardown(context);
+    }
   });
 
   async function useFixture(fixtureName) {
@@ -470,10 +472,6 @@ describe('integration: file patches', function() {
 
   describe('with a symlink that used to be a file', function() {
     beforeEach(async function() {
-      if (process.platform === 'win32') {
-        this.skip();
-      }
-
       await useFixture('multi-line-file');
       await fs.remove(repoPath('sample.js'));
       await fs.writeFile(repoPath('target.txt'), 'something to point the symlink to', {encoding: 'utf8'});
@@ -481,6 +479,12 @@ describe('integration: file patches', function() {
     });
 
     describe('unstaged', function() {
+      before(function() {
+        if (process.platform === 'win32') {
+          this.skip();
+        }
+      });
+
       beforeEach(async function() {
         await clickFileInGitTab('unstaged', 'sample.js');
       });
@@ -538,6 +542,12 @@ describe('integration: file patches', function() {
     });
 
     describe('staged', function() {
+      before(function() {
+        if (process.platform === 'win32') {
+          this.skip();
+        }
+      });
+
       beforeEach(async function() {
         await git.stageFiles(['sample.js']);
         await clickFileInGitTab('staged', 'sample.js');
@@ -578,6 +588,12 @@ describe('integration: file patches', function() {
     });
 
     describe('unstaged', function() {
+      before(function() {
+        if (process.platform === 'win32') {
+          this.skip();
+        }
+      });
+
       beforeEach(async function() {
         await clickFileInGitTab('unstaged', 'symlink.txt');
       });
@@ -620,6 +636,12 @@ describe('integration: file patches', function() {
     });
 
     describe('staged', function() {
+      before(function() {
+        if (process.platform === 'win32') {
+          this.skip();
+        }
+      });
+
       beforeEach(async function() {
         await git.stageFiles(['symlink.txt']);
         await clickFileInGitTab('staged', 'symlink.txt');
