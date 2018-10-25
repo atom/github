@@ -54,31 +54,6 @@ describe('CommitController', function() {
     atomEnvironment.destroy();
   });
 
-  describe('when commit.template config is set', function() {
-    it('populates the commit message with the template', async function() {
-      const workdirPath = await cloneRepository('commit-template');
-      const repository = await buildRepository(workdirPath);
-      const templateCommitMessage = await repository.git.getCommitMessageTemplate();
-      app = React.cloneElement(app, {repository});
-      const wrapper = shallow(app, {disableLifecycleMethods: true});
-      await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
-    });
-
-    it('restores template after committig', async function() {
-      const templateText = 'some commit message';
-      const commitMsgTemplatePath = path.join(workdirPath, '.gitmessage');
-      await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
-      await repository.git.setConfig('commit.template', commitMsgTemplatePath);
-
-      await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes', {encoding: 'utf8'});
-      await repository.git.exec(['add', '.']);
-
-      const wrapper = shallow(app, {disableLifecycleMethods: true});
-      await wrapper.instance().commit('some message');
-      assert.strictEqual(repository.getCommitMessage(), templateText);
-    });
-  });
-
   it('correctly updates state when switching repos', async function() {
     const workdirPath1 = await cloneRepository('three-files');
     const repository1 = await buildRepository(workdirPath1);
@@ -86,15 +61,10 @@ describe('CommitController', function() {
     const repository2 = await buildRepository(workdirPath2);
 
     // set commit template for repository2
-    const templateText = 'some commit message';
-    const commitMsgTemplatePath = path.join(workdirPath2, '.gitmessage');
-    await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
-    await repository2.git.setConfig('commit.template', commitMsgTemplatePath);
-    // assert.strictEqual(await repository2.getCommitMessageTemplate(), templateText);
-
-    // const workdirPath3 = await cloneRepository('commit-template');
-    // const repository3 = await buildRepository(workdirPath3);
-    // const templateCommitMessage = await repository3.git.getCommitMessageTemplate();
+    const templatePath = path.join(workdirPath2, 'a.txt');
+    const templateText = fs.readFileSync(templatePath, 'utf8');
+    await repository2.git.setConfig('commit.template', templatePath);
+    await assert.async.strictEqual(repository2.getCommitMessage(), templateText);
 
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app, {disableLifecycleMethods: true});
@@ -106,12 +76,13 @@ describe('CommitController', function() {
 
     wrapper.setProps({repository: repository2});
     await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateText);
+    wrapper.instance().setCommitMessage('message 2');
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
 
-    // wrapper.setProps({repository: repository3});
-    // await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateCommitMessage);
+    wrapper.setProps({repository: repository2});
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 2');
   });
 
   describe('the passed commit message', function() {
@@ -194,6 +165,26 @@ describe('CommitController', function() {
       assert.isTrue(notificationManager.addError.called);
 
       assert.strictEqual(repository.getCommitMessage(), 'some message');
+    });
+
+    it('restores template after committing', async function() {
+      const templatePath = path.join(workdirPath, 'a.txt');
+      const templateText = fs.readFileSync(templatePath, 'utf8');
+      await repository.git.setConfig('commit.template', templatePath);
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+
+      const nonTemplateText = 'some new text...';
+      repository.setCommitMessage(nonTemplateText);
+
+      assert.strictEqual(repository.getCommitMessage(), nonTemplateText);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      await fs.writeFile(path.join(workdirPath, 'new-file.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.stageFiles(['new-file.txt']);
+      await wrapper.instance().commit(nonTemplateText);
+
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
     });
 
     describe('message formatting', function() {
