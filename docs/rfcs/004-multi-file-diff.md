@@ -30,8 +30,9 @@ The ability to display multiple diffs in one view will also serve as a building 
 - Same behavior as Unstaged Changes pane.
 - Once there is at least one file selected, `Unstage All` button should be worded as `Unstage Selected`.
 
+![staged changes](https://user-images.githubusercontent.com/378023/47497740-0a0b3200-d896-11e8-85af-7c644af9ca37.png)
+
 #### Multi-file diff view
-_(note: The following is a summary of what we would like the UX to achieve, but I don't have a clear visuals of what that looks like yet.)_
 
 - Shows diffs of multiple files as a stack.
 - Each diff should show up as its own block, and the current functionality should remain independent of each block.
@@ -39,6 +40,10 @@ _(note: The following is a summary of what we would like the UX to achieve, but 
 - As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
 Nice-to-have UX that doesn't necessarily need to be implemented
 - Each file diff can be collapsed (this can potentially be )
+
+All files collapsed | Some files collapsed
+--- | ---
+![all collapsed](https://user-images.githubusercontent.com/378023/47497741-0a0b3200-d896-11e8-90b5-4153009f80b4.png) | ![some collapsed](https://user-images.githubusercontent.com/378023/47497742-0aa3c880-d896-11e8-9a20-cd3a722647f1.png)
 
 
 ## Drawbacks
