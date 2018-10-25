@@ -175,7 +175,7 @@ describe('integration: file patches', function() {
       }
 
       return match;
-    }, 'waiting for the updated file patch to arrive').catch(e => {
+    }, 'a matching updated file patch arrives').catch(e => {
       let diagnosticOutput = '';
       for (let i = 0; i < actualRowText.length; i++) {
         diagnosticOutput += differentRows.has(i) ? '! ' : '  ';
