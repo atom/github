@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import http from 'http';
-import os from 'os';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
