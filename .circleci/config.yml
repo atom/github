@@ -38,6 +38,7 @@ jobs:
     - UNTIL_TIMEOUT: "30000"
     - CIRCLE_BUILD_IMAGE: osx
     - ATOM_CHANNEL: stable
+    - TEST_JUNIT_XML_PATH: test-results/mocha/test-results.xml
   beta:
     <<: *defaults
     environment:
@@ -51,6 +52,7 @@ jobs:
     - UNTIL_TIMEOUT: "30000"
     - CIRCLE_BUILD_IMAGE: osx
     - ATOM_CHANNEL: beta
+    - TEST_JUNIT_XML_PATH: test-results/mocha/test-results.xml
   dev:
     <<: *defaults
     environment:
@@ -64,6 +66,8 @@ jobs:
     - UNTIL_TIMEOUT: "30000"
     - CIRCLE_BUILD_IMAGE: osx
     - ATOM_CHANNEL: dev
+    - TEST_JUNIT_XML_PATH: test-results/mocha/test-results.xml
+
   snapshot:
     <<: *defaults
     environment:
