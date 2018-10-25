@@ -1,4 +1,5 @@
 import {remote} from 'electron';
+import childProcess from 'child_process';
 const {BrowserWindow} = remote;
 
 import WorkerManager, {Operation, Worker} from '../lib/worker-manager';
@@ -148,7 +149,8 @@ describe('WorkerManager', function() {
   });
 
   describe('when the manager process is destroyed', function() {
-    it('destroys all the renderer processes that were created', async function() {
+    it.stress(20, 'destroys all the renderer processes that were created', async function() {
+      console.log('<<<<<< start');
       const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
@@ -172,13 +174,22 @@ describe('WorkerManager', function() {
 
       const worker1 = workerManager.getActiveWorker();
       await worker1.getReadyPromise();
+      console.log(`worker1 pid = ${worker1.getPid()}`);
       workerManager.onSick(worker1);
       const worker2 = workerManager.getActiveWorker();
       await worker2.getReadyPromise();
+      console.log(`worker2 pid = ${worker2.getPid()}`);
 
+      console.log('about to destroy browserWindow');
       browserWindow.destroy();
-      await assert.async.isFalse(isProcessAlive(worker1.getPid()));
-      await assert.async.isFalse(isProcessAlive(worker2.getPid()));
+      try {
+        await assert.async.isFalse(isProcessAlive(worker1.getPid()));
+        await assert.async.isFalse(isProcessAlive(worker2.getPid()));
+      } catch (e) {
+        console.log('>>>>>> FLAKE');
+        throw e;
+      }
+      console.log('>>>>>> ok');
     });
   });
 });
