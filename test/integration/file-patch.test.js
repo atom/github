@@ -15,7 +15,7 @@ describe('integration: file patches', function() {
 
   beforeEach(function() {
     // These tests take a little longer because they rely on real filesystem events and git operations.
-    until.setDefaultTimeout(10000);
+    until.setDefaultTimeout(9000);
   });
 
   afterEach(async function() {
