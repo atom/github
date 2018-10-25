@@ -682,17 +682,17 @@ describe('RootController', function() {
             const diff = await repository.git.exec(['diff', '--', 'sample.js']);
             assert.equal(diff, dedent`
               diff --cc sample.js
-              index 5c084c0,86e041d..0000000
+              index 0443956,86e041d..0000000
               --- a/sample.js
               +++ b/sample.js
               @@@ -1,6 -1,3 +1,12 @@@
               ++<<<<<<< current
                +
-               +change file contentsvar quicksort = function () {
-               +  var sort = function(items) {
+               +change file contentsconst quicksort = function() {
+               +  const sort = function(items) {
               ++||||||| after discard
-              ++var quicksort = function () {
-              ++  var sort = function(items) {
+              ++const quicksort = function() {
+              ++  const sort = function(items) {
               ++=======
               ++>>>>>>> before discard
                 foo
