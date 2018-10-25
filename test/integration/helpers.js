@@ -63,6 +63,11 @@ export async function setup(options = {}) {
 
   atomEnv.project.setPaths(projectDirs, {mustExist: true, exact: true});
 
+  // Ensure project watchers have a chance to start
+  await Promise.all(
+    atomEnv.project.getPaths().map(projectPath => atomEnv.project.watcherPromisesByPath[projectPath]),
+  );
+
   const loginModel = new GithubLoginModel(InMemoryStrategy);
 
   let configDirPath = null;
