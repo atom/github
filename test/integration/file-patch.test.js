@@ -67,11 +67,12 @@ describe('integration: file patches', function() {
     );
   }
 
+  function getPatchItem(stagingStatus, relativePath) {
+    return wrapper.update().find(`FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`);
+  }
+
   function getPatchEditor(stagingStatus, relativePath) {
-    const component = wrapper
-      .find(`FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`)
-      .find('.github-FilePatchView')
-      .find('AtomTextEditor');
+    const component = getPatchItem(stagingStatus, relativePath).find('.github-FilePatchView').find('AtomTextEditor');
 
     if (!component.exists()) {
       return null;
