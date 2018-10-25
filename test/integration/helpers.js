@@ -63,11 +63,6 @@ export async function setup(options = {}) {
 
   atomEnv.project.setPaths(projectDirs, {mustExist: true, exact: true});
 
-  // Ensure project watchers have a chance to start
-  await Promise.all(
-    atomEnv.project.getPaths().map(projectPath => atomEnv.project.watcherPromisesByPath[projectPath]),
-  );
-
   const loginModel = new GithubLoginModel(InMemoryStrategy);
 
   let configDirPath = null;
@@ -122,7 +117,12 @@ export async function setup(options = {}) {
     });
   }
 
+  githubPackage.getContextPool().set(projectDirs, opts.state);
   await githubPackage.activate(opts.state);
+
+  await Promise.all(
+    projectDirs.map(projectDir => githubPackage.getContextPool().getContext(projectDir).getObserverStartedPromise()),
+  );
 
   return {
     atomEnv,
