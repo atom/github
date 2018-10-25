@@ -11,6 +11,7 @@ describe('integration: file patches', function() {
   let workspace;
   let commands, workspaceElement;
   let repoRoot, git;
+  let usesWorkspaceObserver;
 
   this.timeout(Math.max(this.timeout(), 10000));
 
@@ -38,6 +39,8 @@ describe('integration: file patches', function() {
     repoRoot = atomEnv.project.getPaths()[0];
     git = new GitShellOutStrategy(repoRoot);
 
+    usesWorkspaceObserver = context.githubPackage.getContextPool().getContext(repoRoot).useWorkspaceChangeObserver();
+
     workspaceElement = atomEnv.views.getView(workspace);
 
     // Open the git tab
@@ -47,6 +50,13 @@ describe('integration: file patches', function() {
 
   function repoPath(...parts) {
     return path.join(repoRoot, ...parts);
+  }
+
+  // Manually trigger a Repository update on Linux, which uses a WorkspaceChangeObserver.
+  function triggerChange() {
+    if (usesWorkspaceObserver) {
+      context.githubPackage.getActiveRepository().refresh();
+    }
   }
 
   async function clickFileInGitTab(stagingStatus, relativePath) {
@@ -197,6 +207,7 @@ describe('integration: file patches', function() {
     beforeEach(async function() {
       await useFixture('three-files');
       await fs.writeFile(repoPath('added-file.txt'), '0000\n0001\n0002\n0003\n0004\n0005\n', {encoding: 'utf8'});
+      triggerChange();
       await clickFileInGitTab('unstaged', 'added-file.txt');
     });
 
@@ -309,6 +320,7 @@ describe('integration: file patches', function() {
       await useFixture('multi-line-file');
 
       await fs.remove(repoPath('sample.js'));
+      triggerChange();
     });
 
     describe('unstaged', function() {
@@ -476,6 +488,7 @@ describe('integration: file patches', function() {
       await fs.remove(repoPath('sample.js'));
       await fs.writeFile(repoPath('target.txt'), 'something to point the symlink to', {encoding: 'utf8'});
       await fs.symlink(repoPath('target.txt'), repoPath('sample.js'));
+      triggerChange();
     });
 
     describe('unstaged', function() {
@@ -585,6 +598,7 @@ describe('integration: file patches', function() {
 
       await fs.remove(repoPath('symlink.txt'));
       await fs.writeFile(repoPath('symlink.txt'), "Guess what I'm a text file now suckers", {encoding: 'utf8'});
+      triggerChange();
     });
 
     describe('unstaged', function() {
@@ -708,6 +722,7 @@ describe('integration: file patches', function() {
         `,
         {encoding: 'utf8'},
       );
+      triggerChange();
     });
 
     describe('unstaged', function() {
