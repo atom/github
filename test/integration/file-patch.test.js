@@ -543,7 +543,7 @@ describe('integration: file patches', function() {
         await clickFileInGitTab('staged', 'sample.js');
       });
 
-      it.skip('may unstage the content deletion and the symlink creation', async function() {
+      it.skip('may unstage the symlink creation but not the content deletion', async function() {
         getPatchItem('staged', 'sample.js').find('.github-FilePatchView-metaControls button').simulate('click');
 
         await clickFileInGitTab('unstaged', 'sample.js');
