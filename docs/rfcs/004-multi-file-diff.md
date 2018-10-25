@@ -43,7 +43,7 @@ Nice-to-have UX that doesn't necessarily need to be implemented
 
 All files collapsed | Some files collapsed
 --- | ---
-![all collapsed](https://user-images.githubusercontent.com/378023/47497741-0a0b3200-d896-11e8-90b5-4153009f80b4.png) | ![some collapsed](https://user-images.githubusercontent.com/378023/47497742-0aa3c880-d896-11e8-9a20-cd3a722647f1.png)
+![all collapsed](https://user-images.githubusercontent.com/378023/47497741-0a0b3200-d896-11e8-90b5-4153009f80b4.png) | ![some collapsed](https://user-images.githubusercontent.com/378023/47498408-27410000-d898-11e8-8e4b-c02dafe7e35a.png)
 
 
 ## Drawbacks
