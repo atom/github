@@ -198,7 +198,7 @@ describe('integration: file patches', function() {
       }
 
       // eslint-disable-next-line no-console
-      console.error('Unexpected patch contents:\n', diagnosticOutput);
+      console.log('Unexpected patch contents:\n', diagnosticOutput);
 
       throw e;
     });
