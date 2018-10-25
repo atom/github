@@ -56,7 +56,7 @@ describe('integration: file patches', function() {
         .find(`.github-StagingView-${stagingStatus} .github-FilePatchListView-item`)
         .filterWhere(w => w.find('.github-FilePatchListView-path').text() === relativePath);
       return listItem.exists();
-    }, `list item for path ${relativePath} (${stagingStatus}) appears`);
+    }, `the list item for path ${relativePath} (${stagingStatus}) appears`);
 
     listItem.simulate('mousedown', {button: 0, persist() {}});
     window.dispatchEvent(new MouseEvent('mouseup'));
@@ -64,7 +64,7 @@ describe('integration: file patches', function() {
     const itemSelector = `FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
     await until(
       () => wrapper.update().find(itemSelector).find('.github-FilePatchView').exists(),
-      `File patch pane item for ${relativePath} arrives and loads`,
+      `the FilePatchItem for ${relativePath} arrives and loads`,
     );
   }
 
