@@ -16,7 +16,7 @@ Note that the multi-diff view is the MVP of this RFC, and we have identified `Co
 
 - [commit pane item](#1655) where it shows all changes in a single commit
 - [new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) that shows all changed files proposed in a PR
-- (TBD) multi-select files from [unstaged](https://user-images.githubusercontent.com/378023/47553451-1e0c6d80-d942-11e8-981b-3c51d7df98d6.png) & [staged](https://user-images.githubusercontent.com/378023/47553450-1e0c6d80-d942-11e8-8b0c-d6c1d6a09c83.png) panes to view diffs
+- (TBD) multi-select files from [unstaged](https://user-images.githubusercontent.com/378023/47553710-b60a5700-d942-11e8-8663-731b26d513c4.png) & [staged](https://user-images.githubusercontent.com/378023/47553450-1e0c6d80-d942-11e8-8b0c-d6c1d6a09c83.png) panes to view diffs
 
 ## 🤯 Explanation
 
