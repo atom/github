@@ -16,14 +16,16 @@ Note that the multi-diff view is the MVP of this RFC, and we have identified `Co
 
 - [commit pane item](#1655) where it shows all changes in a single commit
 - [new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) that shows all changed files proposed in a PR
-- (TBD) multi-select files from [unstaged](https://user-images.githubusercontent.com/378023/47553710-b60a5700-d942-11e8-8663-731b26d513c4.png) & [staged](https://user-images.githubusercontent.com/378023/47553450-1e0c6d80-d942-11e8-8b0c-d6c1d6a09c83.png) panes to view diffs
+- (TBD) multi-select files from [unstaged](https://user-images.githubusercontent.com/378023/47553710-b60a5700-d942-11e8-8663-731b26d513c4.png) & [staged](https://user-images.githubusercontent.com/378023/47555145-0636e880-d946-11e8-85a7-f825278cc168.png) panes to view diffs
 
 ## 🤯 Explanation
 
-![staged changes](https://user-images.githubusercontent.com/378023/47497740-0a0b3200-d896-11e8-85af-7c644af9ca37.png)
+![commit preview](https://user-images.githubusercontent.com/378023/47555097-e6072980-d945-11e8-9c29-05624825d9f8.png)
 
 #### Commit preview button
 A new button added above the commit message box that, when clicked, opens a multi-file diff pane item called something like "Commit Preview" and shows a summary of what will go into the user's next commit based on what is currently staged.
+
+![commit preview button](https://user-images.githubusercontent.com/378023/47554979-afc9aa00-d945-11e8-9953-45925e3278b9.png)
 
 #### Multi-file diff view
 
