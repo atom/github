@@ -14,7 +14,7 @@ So that users can view a full set of changes with more context before committing
 
 Note that the multi-diff view is the MVP of this RFC, and we have identified `Commit Preview` to be the least frictional way to introduce this feature without making too many UX changes. Other planned features that will also make use of multi-diff view are:
 
-- [commit pane item](#1655) where it shows all changes in a single commit
+- [commit pane item](https://github.com/atom/github/issues/1655) where it shows all changes in a single commit
 - [new PR review flow](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md) that shows all changed files proposed in a PR
 - (TBD) multi-select files from [unstaged](https://user-images.githubusercontent.com/378023/47553710-b60a5700-d942-11e8-8663-731b26d513c4.png) & [staged](https://user-images.githubusercontent.com/378023/47555145-0636e880-d946-11e8-85a7-f825278cc168.png) panes to view diffs
 
