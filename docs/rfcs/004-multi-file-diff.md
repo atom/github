@@ -20,14 +20,14 @@ Note that the multi-diff view is the MVP of this RFC, and we have identified `Co
 
 ## 🤯 Explanation
 
-![commit preview](https://user-images.githubusercontent.com/378023/47555097-e6072980-d945-11e8-9c29-05624825d9f8.png)
-
 #### Commit preview button
 A new button added above the commit message box that, when clicked, opens a multi-file diff pane item called something like "Commit Preview" and shows a summary of what will go into the user's next commit based on what is currently staged.
 
 ![commit preview button](https://user-images.githubusercontent.com/378023/47554979-afc9aa00-d945-11e8-9953-45925e3278b9.png)
 
 #### Multi-file diff view
+
+![commit preview](https://user-images.githubusercontent.com/378023/47555097-e6072980-d945-11e8-9c29-05624825d9f8.png)
 
 - Shows diffs of multiple files as a stack.
 - Each diff retains the file-specific controls it currently has in its header (e.g. the open file, stage file, undo last discard, etc).
