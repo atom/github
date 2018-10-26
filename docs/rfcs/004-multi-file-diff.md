@@ -70,7 +70,13 @@ All files collapsed | Some files collapsed
 ![all collapsed](https://user-images.githubusercontent.com/378023/47497741-0a0b3200-d896-11e8-90b5-4153009f80b4.png) | ![some collapsed](https://user-images.githubusercontent.com/378023/47498408-27410000-d898-11e8-8e4b-c02dafe7e35a.png)
 
 #### File filter for diff view
-"Find" input field for filtering diffs based on search term (which could be a file name, an author, a variable name, etc). See [this section](https://github.com/atom/github/blob/master/docs/rfcs/003-pull-request-review.md#sort-options) in PR review RFC for more details.
+"Find" input field for filtering diffs based on search term (which could be a file name, an author, a variable name, etc). When filtering, files that have no match get collapsed. This allows you to uncollapse files (and seeing their diff) without having to clear the filter. Matches get highlighted with a yellow overlay as well as a stripe on the side, similar to git-diff in the editor.
+
+Unfiltered | Filtered
+--- | ---
+![without filter](https://user-images.githubusercontent.com/378023/47497740-0a0b3200-d896-11e8-85af-7c644af9ca37.png) | ![with filter](https://user-images.githubusercontent.com/378023/47540019-116e2200-d90e-11e8-8d22-d305328d55c4.png)
+
+**Alternative**: It might be possible to re-use the find+replace UI to filter the multi-file diff. And maybe even have "replace" working.
 
 #### Other out of scope UX considerations
 - whether `cmd+click` to select multiple files is discoverable
