@@ -51,6 +51,7 @@ The problem at hand is decomposed into a queue of relatively independent tasks t
 
 * Decomposing tasks well is challenging.
 * Less communication-friendly; we risk a developer on a long-running task feeling isolated.
+* Merging closely related pull requests requires careful coordination. Merge conflicts will be frequent.
 
 ### 3. Hand-offs
 
