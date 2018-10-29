@@ -16,6 +16,8 @@ When we plan, we choose to pursue _a single task_ as a single team, rather than 
 
 This does not mean that we all pair program all the time. We do get value from pair programming but this is not always practical or desirable. Pair programming may be chosen independently from the methods below -- functionally, the pair becomes one "developer" in any of the descriptions.
 
+## Concepts
+
 ### 1. Seams
 
 Divide the issue at hand among the team along the abstraction layers in our codebase. Each developer continuously negotiates the interface with neighboring layers by an active Slack conversation, correcting their direction based on feedback. Developers push their work as commits to a single shared branch, documenting and coordinating overall progress in a shared pull request.
@@ -98,6 +100,22 @@ Use a package configuration setting to control when features under development a
 
 * Requires some up-front infrastructure work to put the mechanisms in place
 * Needs some discipline in removing old code, so we don't accumulate flags without bound
+
+## All together
+
+Each set of developers who are online synchronously can divide work into Seams. As that set changes when people come online and drop offline, we use Handoffs to pass context along.
+
+As we work, we push commits to a common branch, against a common pull request. Depending on the feature under construction, we either Dark Ship code in an early state or hide its entry points behind a Feature Flag.
+
+For a concrete example:
+
+1. Developer A comes online first and works solo for a few hours, shifting up and down the abstraction stack.
+2. When developer B comes online, they get caught up on the work developer A has pushed so far and chats to sync up on progress. Developers A and B divvy up areas of work to focus on for the next few hours, chatting in Slack as they go.
+3. Developers C and D come online next. Developers A and B bring them up to speed and subdivide the work underway further. Maybe C and D pair on the view work while A and B work on the model and controller.
+4. When D is done for the day, they summarize how far they got on their bit. One of the other three catches up, picks up where D left off, and keeps it going. C does the same when they log off.
+5. When A and B are finishing up they leave a quick writeup of their collective progress.
+7. The next morning, developer A reads the diff and the writeup and gets traction on continuing through their day.
+8. ...and repeat. ♻️
 
 ## Ambient socialization
 
