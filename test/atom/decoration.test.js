@@ -1,16 +1,18 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {Range} from 'atom';
 
 import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
+import MarkerLayer from '../../lib/atom/marker-layer';
 
 describe('Decoration', function() {
-  let atomEnv, editor, marker;
+  let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    const workspace = atomEnv.workspace;
+    workspace = atomEnv.workspace;
 
     editor = await workspace.open(__filename);
     marker = editor.markBufferRange([[2, 0], [6, 0]]);
@@ -24,7 +26,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        decorable={marker}
         type="line"
         position="head"
         className="something"
@@ -42,7 +44,7 @@ describe('Decoration', function() {
 
     it('creates a block decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="block">
+        <Decoration editor={editor} decorable={marker} type="block">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -60,7 +62,7 @@ describe('Decoration', function() {
 
     it('creates an overlay decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="overlay">
+        <Decoration editor={editor} decorable={marker} type="overlay">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -78,7 +80,7 @@ describe('Decoration', function() {
 
     it('creates a gutter decoration', function() {
       const app = (
-        <Decoration editor={editor} marker={marker} type="gutter">
+        <Decoration editor={editor} decorable={marker} type="gutter">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -99,7 +101,7 @@ describe('Decoration', function() {
     const app = (
       <Decoration
         editor={editor}
-        marker={marker}
+        decorable={marker}
         type="line"
         className="whatever"
       />
@@ -115,8 +117,8 @@ describe('Decoration', function() {
 
   it('decorates a parent Marker', function() {
     const wrapper = mount(
-      <AtomTextEditor>
-        <Marker bufferRange={[[0, 0], [0, 0]]}>
+      <AtomTextEditor workspace={workspace}>
+        <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])}>
           <Decoration type="line" className="whatever" position="head" />
         </Marker>
       </AtomTextEditor>,
@@ -124,5 +126,50 @@ describe('Decoration', function() {
     const theEditor = wrapper.instance().getModel();
 
     assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
+  });
+
+  it('decorates a parent MarkerLayer', function() {
+    mount(
+      <AtomTextEditor workspace={workspace}>
+        <MarkerLayer>
+          <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
+          <Decoration type="line" className="something" />
+        </MarkerLayer>
+      </AtomTextEditor>,
+    );
+  });
+
+  it('does not attempt to decorate a destroyed Marker', function() {
+    marker.destroy();
+
+    const app = (
+      <Decoration
+        editor={editor}
+        decorable={marker}
+        type="line"
+        position="head"
+        className="something"
+      />
+    );
+    mount(app);
+
+    assert.lengthOf(editor.getLineDecorations(), 0);
+  });
+
+  it('does not attempt to decorate a destroyed TextEditor', function() {
+    editor.destroy();
+
+    const app = (
+      <Decoration
+        editor={editor}
+        decorable={marker}
+        type="line"
+        position="head"
+        className="something"
+      />
+    );
+    mount(app);
+
+    assert.lengthOf(editor.getLineDecorations(), 0);
   });
 });

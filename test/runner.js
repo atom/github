@@ -110,19 +110,12 @@ module.exports = createRunner({
 
   if (process.env.TEST_JUNIT_XML_PATH) {
     mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
+      reporterEnabled: 'xunit, list',
       xunitReporterOptions: {
         output: process.env.TEST_JUNIT_XML_PATH,
       },
     });
   } else if (process.env.APPVEYOR_API_URL) {
     mocha.reporter(require('mocha-appveyor-reporter'));
-  } else if (process.env.CIRCLECI === 'true') {
-    mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
-      xunitReporterOptions: {
-        output: path.join('test-results', 'mocha', 'test-results.xml'),
-      },
-    });
   }
 });
