@@ -1457,6 +1457,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
       }
 
       it('prompts for authentication data through Atom', async function() {
+        this.retries(5); // FLAKE
+
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {
