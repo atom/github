@@ -69,6 +69,35 @@ In this method, each developer (or pair) tackles a single problem in serial duri
 * Overlap times need to be negotiated, either by pair programming or using another method to divvy up work. If we all overlap significantly it functionally decays to one of the other solutions.
 * Hand-offs are high communication touchpoints, but the rest of the time is more isolated.
 
+### 4. Dark shipping
+
+Incrementally create and test new hierarchies of React components and model classes in pull requests that are merged _before_ they are referenced from the "live" package root.
+
+:+1: _Advantages:_
+
+* Enables us to merge pull requests into master more frequently
+* Keeps code reviews focused and tractable
+* Prevents pull requests from drifting too far from master and being a pain to merge
+
+:-1: _Disadvantages:_
+
+* May cause an accumulation of dead code
+* The merge points may not be obvious in some efforts
+
+### 5. Feature flags
+
+Use a package configuration setting to control when features under development are loaded.
+
+:+1: _Advantages:_
+
+* Enables us to merge pull requests into master more frequently
+* Makes it easier for developers outside of the core team to try out new features and provide feedback
+
+:-1: _Disadvantages:_
+
+* Requires some up-front infrastructure work to put the mechanisms in place
+* Needs some discipline in removing old code, so we don't accumulate flags without bound
+
 ## Ambient socialization
 
 In addition to these strategies, we can take advantage of other technologies to help us feel connected in an ambient way.
