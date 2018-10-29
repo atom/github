@@ -1,3 +1,10 @@
+<!--- 
+For community contributors -- Please fill out Part 1 of the following template. This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. Sections in Part 2 are not mandatory to get the conversation started, but will help our team understand your vision better and allow us to give better feedback.
+--->
+
+Part 1
+__________________
+
 # Feature title
 
 ## Status
@@ -20,6 +27,9 @@ Explain the proposal as if it was already implemented in the GitHub package and 
 - Explaining the feature largely in terms of examples.
 - Explaining any changes to existing workflows.
 - Design mock-ups or diagrams depicting any new UI that will be introduced.
+
+Part 2
+__________________
 
 ## Drawbacks
 
