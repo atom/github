@@ -85,7 +85,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
-    describe('getCommitMessageTemplate', function() {
+    describe('fetchCommitMessageTemplate', function() {
       it('gets commit message from template', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
@@ -95,7 +95,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
 
         await git.setConfig('commit.template', commitMsgTemplatePath);
-        assert.equal(await git.getCommitMessageTemplate(), templateText);
+        assert.equal(await git.fetchCommitMessageTemplate(), templateText);
       });
 
       it('if config is not set return null', async function() {
@@ -103,7 +103,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workingDirPath);
 
         assert.isNotOk(await git.getConfig('commit.template')); // falsy value of null or ''
-        assert.isNull(await git.getCommitMessageTemplate());
+        assert.isNull(await git.fetchCommitMessageTemplate());
       });
 
       it('if config is set but file does not exist throw an error', async function() {
@@ -113,7 +113,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
         await git.setConfig('commit.template', nonExistentCommitTemplatePath);
         await assert.isRejected(
-          git.getCommitMessageTemplate(),
+          git.fetchCommitMessageTemplate(),
           `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
         );
       });
