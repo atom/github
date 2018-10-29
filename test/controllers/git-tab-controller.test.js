@@ -218,7 +218,7 @@ describe('GitTabController', function() {
       const repository = await buildRepository(await cloneRepository());
       const wrapper = mount(await buildApp(repository));
       const view = wrapper.instance().refView.get();
-      const editorElement = wrapper.find('atom-text-editor').getDOMNode();
+      const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
       const commitElement = wrapper.find('.github-CommitView-commit').getDOMNode();
 
       wrapper.instance().rememberLastFocus({target: editorElement});
@@ -290,7 +290,7 @@ describe('GitTabController', function() {
       focusElement = stagingView.element;
 
       const commitViewElements = [];
-      commitView.refEditor.map(c => c.refElement.map(e => commitViewElements.push(e)));
+      commitView.refEditorComponent.map(e => commitViewElements.push(e));
       commitView.refAbortMergeButton.map(e => commitViewElements.push(e));
       commitView.refCommitButton.map(e => commitViewElements.push(e));
 
@@ -365,12 +365,12 @@ describe('GitTabController', function() {
 
         commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
+        await assert.async.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
 
         // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
         commandRegistry.dispatch(rootElement, 'core:focus-next');
         assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
+        assert.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
       });
 
       it('retreats focus from the CommitView through StagingView groups, but does not cycle', async function() {
@@ -415,18 +415,18 @@ describe('GitTabController', function() {
       });
 
       it('focuses the CommitView on github:commit with an empty commit message', async function() {
-        commitView.editor.setText('');
+        commitView.refEditorModel.map(e => e.setText(''));
         sinon.spy(wrapper.instance(), 'commit');
         wrapper.update();
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
 
-        await assert.async.strictEqual(focusElement, wrapper.find('atom-text-editor').getDOMNode());
+        await assert.async.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
         assert.isFalse(wrapper.instance().commit.called);
       });
 
       it('creates a commit on github:commit with a nonempty commit message', async function() {
-        commitView.editor.setText('I fixed the things');
+        commitView.refEditorModel.map(e => e.setText('I fixed the things'));
         sinon.spy(repository, 'commit');
 
         commandRegistry.dispatch(workspaceElement, 'github:commit');
@@ -472,7 +472,7 @@ describe('GitTabController', function() {
       assert.lengthOf(stagingView.props.unstagedChanges, 1);
       assert.lengthOf(stagingView.props.stagedChanges, 1);
 
-      commitView.find('atom-text-editor').instance().getModel().setText('Make it so');
+      commitView.find('AtomTextEditor').instance().getModel().setText('Make it so');
       commitView.find('.github-CommitView-commit').simulate('click');
 
       await assert.async.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'Make it so');
@@ -625,7 +625,10 @@ describe('GitTabController', function() {
           assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 1);
 
           // ensure that the commit editor is empty
-          assert.strictEqual(wrapper.find('CommitView').instance().editor.getText(), '');
+          assert.strictEqual(
+            wrapper.find('CommitView').instance().refEditorModel.map(e => e.getText()).getOr(undefined),
+            '',
+          );
 
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
           await assert.async.deepEqual(
@@ -647,7 +650,7 @@ describe('GitTabController', function() {
           // new commit message
           const newMessage = 'such new very message';
           const commitView = wrapper.find('CommitView');
-          commitView.instance().editor.setText(newMessage);
+          commitView.instance().refEditorModel.map(e => e.setText(newMessage));
 
           // no staged changes
           assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
@@ -701,7 +704,7 @@ describe('GitTabController', function() {
           commitView.setState({showCoAuthorInput: true});
           commitView.onSelectedCoAuthorsChanged([author]);
           const newMessage = 'Star Wars: A New Message';
-          commitView.editor.setText(newMessage);
+          commitView.refEditorModel.map(e => e.setText(newMessage));
           commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
 
           // verify that coAuthor was passed
@@ -735,7 +738,7 @@ describe('GitTabController', function() {
 
           // buh bye co author
           const commitView = wrapper.find('CommitView').instance();
-          assert.strictEqual(commitView.editor.getText(), '');
+          assert.strictEqual(commitView.refEditorModel.map(e => e.getText()).getOr(''), '');
           commitView.onSelectedCoAuthorsChanged([]);
 
           // amend again
@@ -804,7 +807,7 @@ describe('GitTabController', function() {
         assert.deepEqual(commitMessages, ['Initial commit']);
 
         const expectedCoAuthor = new Author(coAuthorEmail, coAuthorName);
-        assert.strictEqual(wrapper.find('CommitView').prop('message'), commitSubject);
+        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), commitSubject);
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
       });
     });

@@ -17,12 +17,12 @@ type AcceptTopicSuggestionPayload {
 
   """
   The accepted topic.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   topic: Topic!
 }
@@ -66,34 +66,34 @@ type AddCommentPayload {
 
   """
   The edge from the subject's comment connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from `IssueCommentEdge!` to `IssueCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   commentEdge: IssueCommentEdge!
 
   """
   The subject
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Node!` to `Node`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   subject: Node!
 
   """
   The edge from the subject's timeline connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `timelineEdge` will change from `IssueTimelineItemEdge!` to `IssueTimelineItemEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   timelineEdge: IssueTimelineItemEdge!
 }
@@ -134,12 +134,12 @@ input AddProjectCardInput {
 type AddProjectCardPayload {
   """
   The edge from the ProjectColumn's card connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   cardEdge: ProjectCardEdge!
 
@@ -148,12 +148,12 @@ type AddProjectCardPayload {
 
   """
   The ProjectColumn
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectColumn` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   projectColumn: Project!
 }
@@ -177,23 +177,23 @@ type AddProjectColumnPayload {
 
   """
   The edge from the project's column connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   columnEdge: ProjectColumnEdge!
 
   """
   The project
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   project: Project!
 }
@@ -229,24 +229,24 @@ type AddPullRequestReviewCommentPayload {
 
   """
   The newly created comment.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `comment` will change from `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   comment: PullRequestReviewComment!
 
   """
   The edge from the review's comment connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from
   `PullRequestReviewCommentEdge!` to `PullRequestReviewCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   commentEdge: PullRequestReviewCommentEdge!
 }
@@ -279,23 +279,23 @@ type AddPullRequestReviewPayload {
 
   """
   The newly created pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReview: PullRequestReview!
 
   """
   The edge from the pull request's review connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reviewEdge` will change from `PullRequestReviewEdge!` to `PullRequestReviewEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   reviewEdge: PullRequestReviewEdge!
 }
@@ -319,23 +319,23 @@ type AddReactionPayload {
 
   """
   The reaction object.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   subject: Reactable!
 }
@@ -356,12 +356,12 @@ type AddStarPayload {
 
   """
   The starrable.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   starrable: Starrable!
 }
@@ -1226,12 +1226,12 @@ type CreateProjectPayload {
 
   """
   The new project.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   project: Project!
 }
@@ -1295,12 +1295,12 @@ type DeclineTopicSuggestionPayload {
 
   """
   The declined topic.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   topic: Topic!
 }
@@ -1342,23 +1342,23 @@ type DeleteProjectCardPayload {
 
   """
   The column the deleted card was in.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `column` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   column: ProjectColumn!
 
   """
   The deleted card ID.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedCardId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   deletedCardId: ID!
 }
@@ -1379,23 +1379,23 @@ type DeleteProjectColumnPayload {
 
   """
   The deleted column ID.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedColumnId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   deletedColumnId: ID!
 
   """
   The project the deleted column was in.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   project: Project!
 }
@@ -1416,12 +1416,12 @@ type DeleteProjectPayload {
 
   """
   The repository or organization the project was removed from.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `owner` will change from `ProjectOwner!` to `ProjectOwner`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   owner: ProjectOwner!
 }
@@ -1442,12 +1442,12 @@ type DeletePullRequestReviewPayload {
 
   """
   The deleted pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReview: PullRequestReview!
 }
@@ -1731,12 +1731,12 @@ type DismissPullRequestReviewPayload {
 
   """
   The dismissed pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReview: PullRequestReview!
 }
@@ -2639,7 +2639,7 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
   """
   Returns the pull request associated with the comment, if this comment was made on a
   pull request.
-  
+
   """
   pullRequest: PullRequest
 
@@ -3358,7 +3358,7 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer edit the primary and secondary category of this
   Marketplace listing.
-  
+
   """
   viewerCanEditCategories: Boolean!
 
@@ -3368,40 +3368,40 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer return this Marketplace listing to draft state
   so it becomes editable again.
-  
+
   """
   viewerCanRedraft: Boolean!
 
   """
   Can the current viewer reject this Marketplace listing by returning it to
   an editable draft state or rejecting it entirely.
-  
+
   """
   viewerCanReject: Boolean!
 
   """
   Can the current viewer request this listing be reviewed for display in
   the Marketplace.
-  
+
   """
   viewerCanRequestApproval: Boolean!
 
   """
   Indicates whether the current user has an active subscription to this Marketplace listing.
-  
+
   """
   viewerHasPurchased: Boolean!
 
   """
   Indicates if the current user has purchased a subscription to this Marketplace listing
   for all of the organizations the user owns.
-  
+
   """
   viewerHasPurchasedForAllOrganizations: Boolean!
 
   """
   Does the current viewer role allow them to administer this Marketplace listing.
-  
+
   """
   viewerIsListingAdmin: Boolean!
 }
@@ -3704,12 +3704,12 @@ input MoveProjectCardInput {
 type MoveProjectCardPayload {
   """
   The new edge of the moved card.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   cardEdge: ProjectCardEdge!
 
@@ -3738,12 +3738,12 @@ type MoveProjectColumnPayload {
 
   """
   The new edge of the moved column.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   columnEdge: ProjectColumnEdge!
 }
@@ -4387,7 +4387,7 @@ type ProjectCard implements Node {
   project column at a time. The column field will be null if the card is created
   in a pending state and has yet to be associated with a column. Once cards are
   associated with a column, they will not become pending in the future.
-  
+
   """
   column: ProjectColumn
 
@@ -5790,7 +5790,7 @@ type Query {
     """
     Select listings to which user has admin access. If omitted, listings visible to the
     viewer are returned.
-    
+
     """
     viewerCanAdmin: Boolean
 
@@ -5803,7 +5803,7 @@ type Query {
     """
     Select listings visible to the viewer even if they are not approved. If omitted or
     false, only approved listings will be returned.
-    
+
     """
     allStates: Boolean
 
@@ -6451,12 +6451,12 @@ type RemoveOutsideCollaboratorPayload {
 
   """
   The user that was removed as an outside collaborator.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `removedUser` will change from `User!` to `User`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   removedUser: User!
 }
@@ -6480,23 +6480,23 @@ type RemoveReactionPayload {
 
   """
   The reaction object.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   subject: Reactable!
 }
@@ -6517,12 +6517,12 @@ type RemoveStarPayload {
 
   """
   The starrable.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   starrable: Starrable!
 }
@@ -7648,23 +7648,23 @@ type RequestReviewsPayload {
 
   """
   The pull request that is getting requests.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequest` will change from `PullRequest!` to `PullRequest`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequest: PullRequest!
 
   """
   The edge from the pull request to the requested reviewers.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `requestedReviewersEdge` will change from `UserEdge!` to `UserEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   requestedReviewersEdge: UserEdge!
 }
@@ -8084,12 +8084,12 @@ type SubmitPullRequestReviewPayload {
 
   """
   The submitted pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReview: PullRequestReview!
 }
@@ -8607,7 +8607,7 @@ type Topic implements Node {
   """
   A list of related topics, including aliases of this topic, sorted with the most relevant
   first.
-  
+
   """
   relatedTopics: [Topic!]!
 }
@@ -8841,12 +8841,12 @@ type UpdateProjectCardPayload {
 
   """
   The updated ProjectCard.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectCard` will change from `ProjectCard!` to `ProjectCard`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   projectCard: ProjectCard!
 }
@@ -8870,12 +8870,12 @@ type UpdateProjectColumnPayload {
 
   """
   The updated project column.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectColumn` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   projectColumn: ProjectColumn!
 }
@@ -8908,12 +8908,12 @@ type UpdateProjectPayload {
 
   """
   The updated project.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   project: Project!
 }
@@ -8937,13 +8937,13 @@ type UpdatePullRequestReviewCommentPayload {
 
   """
   The updated comment.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReviewComment` will change from
   `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReviewComment: PullRequestReviewComment!
 }
@@ -8967,12 +8967,12 @@ type UpdatePullRequestReviewPayload {
 
   """
   The updated pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   pullRequestReview: PullRequestReview!
 }
@@ -8996,12 +8996,12 @@ type UpdateSubscriptionPayload {
 
   """
   The input subscribable entity.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subscribable` will change from `Subscribable!` to `Subscribable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   subscribable: Subscribable!
 }
@@ -9028,12 +9028,12 @@ type UpdateTopicsPayload {
 
   """
   The updated repository.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `repository` will change from `Repository!` to `Repository`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
+
   """
   repository: Repository!
 }

@@ -13,7 +13,7 @@ import metadata from '../../package.json';
  * Usage:
  * ```js
  * beforeEach(async function() {
- *   context = await setup(this.currentTest);
+ *   context = await setup();
  *   wrapper = context.wrapper;
  * })
  *
@@ -31,7 +31,7 @@ import metadata from '../../package.json';
  *     is defined.
  * * state - Simulate package state serialized by a previous Atom run.
  */
-export async function setup(currentTest, options = {}) {
+export async function setup(options = {}) {
   const opts = {
     initialRoots: [],
     isolateConfigDir: options.initAtomEnv !== undefined,
@@ -85,6 +85,7 @@ export async function setup(currentTest, options = {}) {
     styles: atomEnv.styles,
     grammars: atomEnv.grammars,
     config: atomEnv.config,
+    keymaps: atomEnv.keymaps,
     deserializers: atomEnv.deserializers,
     loginModel,
     confirm: atomEnv.confirm.bind(atomEnv),
@@ -116,7 +117,12 @@ export async function setup(currentTest, options = {}) {
     });
   }
 
+  githubPackage.getContextPool().set(projectDirs, opts.state);
   await githubPackage.activate(opts.state);
+
+  await Promise.all(
+    projectDirs.map(projectDir => githubPackage.getContextPool().getContext(projectDir).getObserverStartedPromise()),
+  );
 
   return {
     atomEnv,
