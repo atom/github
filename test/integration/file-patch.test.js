@@ -732,6 +732,8 @@ describe('integration: file patches', function() {
       });
 
       it('may be partially staged', async function() {
+        this.retries(5); // FLAKE
+
         getPatchEditor('unstaged', 'sample.js').setSelectedBufferRanges([
           [[2, 0], [2, 0]],
           [[10, 0], [10, 0]],
