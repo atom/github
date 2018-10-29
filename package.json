@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.20.0",
+  "version": "0.22.1-0",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
   "engines": {
-    "atom": ">=1.18.0"
+    "atom": ">=1.32.0"
   },
   "atomTestRunner": "./test/runner",
   "atomTranspilers": [
@@ -49,7 +49,7 @@
     "bytes": "^3.0.0",
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",
-    "dugite": "^1.78.0",
+    "dugite": "^1.79.0",
     "event-kit": "2.5.1",
     "fs-extra": "4.0.3",
     "graphql": "0.13.2",
@@ -67,6 +67,7 @@
     "temp": "0.8.3",
     "tinycolor2": "1.4.1",
     "tree-kill": "1.2.0",
+    "underscore-plus": "1.6.8",
     "what-the-diff": "0.4.0",
     "what-the-status": "1.0.3",
     "yubikiri": "1.0.0"
@@ -99,7 +100,7 @@
     "node-fetch": "2.2.0",
     "nyc": "13.0.0",
     "relay-compiler": "1.6.2",
-    "semver": "5.5.1",
+    "semver": "5.6.0",
     "sinon": "6.0.1",
     "test-until": "1.1.1"
   },
@@ -176,6 +177,11 @@
       "type": "boolean",
       "default": true,
       "description": "Resolve merge conflicts with in-editor controls"
+    },
+    "showDiffIconGutter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show change regions within a file patch with icons in addition to color"
     },
     "excludedUsers": {
       "type": "string",

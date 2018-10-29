@@ -8,11 +8,11 @@ import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import IDGenerator from '../fixtures/factories/id-generator';
 import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
 
-describe('check out a pull request', function() {
+describe('integration: check out a pull request', function() {
   let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
 
   beforeEach(async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initialRoots: ['three-files'],
     });
     wrapper = context.wrapper;
@@ -165,6 +165,8 @@ describe('check out a pull request', function() {
 
   // achtung! this test is flaky
   it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
+    this.retries(5); // FLAKE
+
     const {resolve: resolve0, promise: promise0} = expectRepositoryQuery();
     resolve0();
     await promise0;

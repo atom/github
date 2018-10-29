@@ -22,7 +22,7 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let workdirContextPool, getRepositoryForWorkdir;
+  let workdirContextPool;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -36,7 +36,6 @@ describe('RootController', function() {
     project = atomEnv.project;
 
     workdirContextPool = new WorkdirContextPool();
-    getRepositoryForWorkdir = sinon.stub();
 
     const loginModel = new GithubLoginModel(InMemoryStrategy);
     const absentRepository = Repository.absent();
@@ -54,13 +53,13 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         project={project}
+        keymaps={atomEnv.keymaps}
         loginModel={loginModel}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
         startOpen={false}
         startRevealed={false}
         workdirContextPool={workdirContextPool}
-        getRepositoryForWorkdir={getRepositoryForWorkdir}
       />
     );
   });
@@ -342,15 +341,18 @@ describe('RootController', function() {
       assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
     });
 
-    it('triggers the clone callback on accept', function() {
+    it('triggers the clone callback on accept and fires `clone-repo` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
       wrapper.instance().openCloneDialog();
       wrapper.update();
 
       const dialog = wrapper.find('CloneDialog');
-      dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
+      const promise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
       resolveClone();
+      await promise;
 
       assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
+      await assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}));
     });
 
     it('marks the clone dialog as in progress during clone', async function() {
@@ -372,8 +374,9 @@ describe('RootController', function() {
       assert.isFalse(wrapper.find('CloneDialog').exists());
     });
 
-    it('creates a notification if the clone fails', async function() {
+    it('creates a notification if the clone fails and does not fire `clone-repo` event', async function() {
       sinon.stub(notificationManager, 'addError');
+      sinon.stub(reporterProxy, 'addEvent');
 
       wrapper.instance().openCloneDialog();
       wrapper.update();
@@ -393,6 +396,7 @@ describe('RootController', function() {
         'Unable to clone git@github.com:nope/nope.git',
         sinon.match({detail: sinon.match(/this is stderr/)}),
       ));
+      assert.isFalse(reporterProxy.addEvent.called);
     });
 
     it('dismisses the clone panel on cancel', function() {
@@ -505,7 +509,7 @@ describe('RootController', function() {
         sinon.stub(repository, 'applyPatchToWorkdir');
         sinon.stub(notificationManager, 'addError');
         // unmodified buffer
-        const hunkLines = unstagedFilePatch.getHunks()[0].getLines();
+        const hunkLines = unstagedFilePatch.getHunks()[0].getBufferRows();
         await wrapper.instance().discardLines(unstagedFilePatch, new Set([hunkLines[0]]));
         assert.isTrue(repository.applyPatchToWorkdir.calledOnce);
         assert.isFalse(notificationManager.addError.called);
@@ -513,7 +517,7 @@ describe('RootController', function() {
         // modified buffer
         repository.applyPatchToWorkdir.reset();
         editor.setText('modify contents');
-        await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines()));
+        await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows()));
         assert.isFalse(repository.applyPatchToWorkdir.called);
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Cannot discard lines.');
@@ -575,14 +579,14 @@ describe('RootController', function() {
 
         it('reverses last discard for file path', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
           await repository.refresh();
 
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
@@ -594,7 +598,7 @@ describe('RootController', function() {
 
         it('does not undo if buffer is modified', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
@@ -618,7 +622,7 @@ describe('RootController', function() {
         describe('when file content has changed since last discard', () => {
           it('successfully undoes discard if changes do not conflict', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -638,7 +642,7 @@ describe('RootController', function() {
             await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -678,17 +682,17 @@ describe('RootController', function() {
             const diff = await repository.git.exec(['diff', '--', 'sample.js']);
             assert.equal(diff, dedent`
               diff --cc sample.js
-              index 5c084c0,86e041d..0000000
+              index 0443956,86e041d..0000000
               --- a/sample.js
               +++ b/sample.js
               @@@ -1,6 -1,3 +1,12 @@@
               ++<<<<<<< current
                +
-               +change file contentsvar quicksort = function () {
-               +  var sort = function(items) {
+               +change file contentsconst quicksort = function() {
+               +  const sort = function(items) {
               ++||||||| after discard
-              ++var quicksort = function () {
-              ++  var sort = function(items) {
+              ++const quicksort = function() {
+              ++  const sort = function(items) {
               ++=======
               ++>>>>>>> before discard
                 foo
@@ -701,11 +705,11 @@ describe('RootController', function() {
 
         it('clears the discard history if the last blob is no longer valid', async () => {
           // this would occur in the case of garbage collection cleaning out the blob
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(0, 2)));
+          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
           await repository.refresh();
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           wrapper.setState({filePatch: unstagedFilePatch});
-          const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getLines().slice(2, 4)));
+          const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
 
           // remove blob from git object store
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
@@ -1081,6 +1085,51 @@ describe('RootController', function() {
         await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
         assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
       });
+    });
+  });
+
+  describe('context commands trigger event reporting', function() {
+    let wrapper;
+
+    beforeEach(async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      wrapper = mount(app);
+      sinon.stub(reporterProxy, 'addEvent');
+    });
+
+    it('sends an event when a command is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+        [{contextCommand: true}],
+      );
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'context-menu-action', {
+          package: 'github',
+          command: 'github:toggle-expanded-commit-message-editor',
+        }));
+    });
+
+    it('does not send an event when a command is triggered in other ways', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'github:toggle-expanded-commit-message-editor',
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+
+    it('does not send an event when a command not starting with github: is triggered via a context menu', function() {
+      commandRegistry.dispatch(
+        wrapper.find('CommitView').getDOMNode(),
+        'core:copy',
+        [{contextCommand: true}],
+      );
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 });

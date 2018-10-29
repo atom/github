@@ -49,11 +49,11 @@ describe('ConflictController', function() {
   });
 
   const textFromDecoration = function(d) {
-    return editor.getTextInBufferRange(d.props().marker.getBufferRange());
+    return editor.getTextInBufferRange(d.prop('decorable').getBufferRange());
   };
 
   const pointFromDecoration = function(d) {
-    const range = d.props().marker.getBufferRange();
+    const range = d.prop('decorable').getBufferRange();
     assert.isTrue(range.isEmpty());
     return range.start.toArray();
   };
