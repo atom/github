@@ -78,7 +78,7 @@ We use a lightweight RFC (request for comments) process to ensure that folks hav
 
 The goal is to suss out important considerations and valuable ideas as early as possible and encourage more holistic / bigger picture thinking. The goal is NOT to flesh out the perfect design or come to complete consensus before we start building.
 
-Development work on the feature may start at any point once the RFC pull request has been opened with a description of the feature. The RFC is merged once the feature work is merged.
+Development work on the feature may start at any point once the Feature Request pull request has been opened with a description of the feature. The Feature Request is merged once the team decides to move on to the next feature and is no longer actively working on the Feature Request feature. Merging Feature Requests with unfinished work is fine, and we may choose to pick up work again in the future.
 
 The RFC is meant to be a living document that will be modified over the duration of development as things evolve, new information is discovered, and UXR is conducted.
 
