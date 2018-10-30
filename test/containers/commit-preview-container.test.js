@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import CommitPreviewContainer from '../lib/containers/commit-preview-container';
+import CommitPreviewContainer from '../../lib/containers/commit-preview-container';
 
 describe('CommitPreviewContainer', function() {
   let atomEnv;

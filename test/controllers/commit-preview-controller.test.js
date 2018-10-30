@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import CommitPreviewController from '../lib/controllers/commit-preview-controller';
+import CommitPreviewController from '../../lib/controllers/commit-preview-controller';
 
 describe('CommitPreviewController', function() {
   let atomEnv;
