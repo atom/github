@@ -15,6 +15,7 @@ import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -1085,6 +1086,20 @@ describe('RootController', function() {
         await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
         assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
       });
+    });
+  });
+
+  describe('opening a CommitPreviewItem', function() {
+    it('registers an opener for CommitPreviewItems', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+
+      const uri = CommitPreviewItem.buildURI(workdir);
+      const item = await atomEnv.workspace.open(uri);
+
+      assert.strictEqual(item.getTitle(), 'Commit preview');
+      assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
     });
   });
 
