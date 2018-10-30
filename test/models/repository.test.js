@@ -440,6 +440,25 @@ describe('Repository', function() {
     });
   });
 
+  describe('getStagedChangesPatch', function() {
+    it('computes a multi-file patch of the staged changes', async function() {
+      const workdir = await cloneRepository('each-staging-group');
+      const repo = new Repository(workdir);
+      await repo.getLoadPromise();
+
+      await fs.writeFile(path.join(workdir, 'unstaged-1.txt'), 'Unstaged file');
+
+      await fs.writeFile(path.join(workdir, 'staged-1.txt'), 'Staged file');
+      await fs.writeFile(path.join(workdir, 'staged-2.txt'), 'Staged file');
+      await repo.stageFiles(['staged-1.txt', 'staged-2.txt']);
+
+      const mp = await repo.getStagedChangesPatch();
+
+      assert.lengthOf(mp.getFilePatches(), 2);
+      assert.deepEqual(mp.getFilePatches().map(fp => fp.getPath()), ['staged-1.txt', 'staged-2.txt']);
+    });
+  });
+
   describe('isPartiallyStaged(filePath)', function() {
     it('returns true if specified file path is partially staged', async function() {
       const workingDirPath = await cloneRepository('three-files');
