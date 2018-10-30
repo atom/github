@@ -74,7 +74,7 @@ To introduce brand-new functionality into the package, follow this guide.
 
 ##### On using our Feature Request process
 
-We use a Feature Request process to ensure that folks have an opportunity to weigh in on design, alternatives, drawbacks, questions, and concerns. It provides a quick and easily scannable summary of what was discussed and decided.
+We use a Feature Request process to ensure that folks have an opportunity to weigh in on design, alternatives, drawbacks, questions, and concerns. It provides a quick and easily scannable summary of what was discussed and decided. We discuss Feature Requests in pull requests rather than issues to record an evolving consensus and have a single file that represents the current state of the Feature Request.
 
 The goal is to suss out important considerations and valuable ideas as early as possible and encourage more holistic / bigger picture thinking. The goal is NOT to flesh out the perfect design or come to complete consensus before we start building.
 
