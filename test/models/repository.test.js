@@ -1492,6 +1492,10 @@ describe('Repository', function() {
         'getRemotes',
         () => repository.getRemotes(),
       );
+      calls.set(
+        'getStagedChangesPatch',
+        () => repository.getStagedChangesPatch(),
+      );
 
       const withFile = fileName => {
         calls.set(
