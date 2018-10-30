@@ -627,6 +627,32 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('getStagedChangesPatch', function() {
+      it('returns an empty patch if there are no staged files', async function() {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir);
+        const mp = await git.getStagedChangesPatch();
+        assert.lengthOf(mp, 0);
+      });
+
+      it('returns a combined diff of all staged files', async function() {
+        const workdir = await cloneRepository('each-staging-group');
+        const git = createTestStrategy(workdir);
+
+        await assert.isRejected(git.merge('origin/branch'));
+        await fs.writeFile(path.join(workdir, 'unstaged-1.txt'), 'Unstaged file');
+        await fs.writeFile(path.join(workdir, 'unstaged-2.txt'), 'Unstaged file');
+
+        await fs.writeFile(path.join(workdir, 'staged-1.txt'), 'Staged file');
+        await fs.writeFile(path.join(workdir, 'staged-2.txt'), 'Staged file');
+        await fs.writeFile(path.join(workdir, 'staged-3.txt'), 'Staged file');
+        await git.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
+
+        const diffs = await git.getStagedChangesPatch();
+        assert.deepEqual(diffs.map(diff => diff.newPath), ['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
+      });
+    });
+
     describe('isMerging', function() {
       it('returns true if `.git/MERGE_HEAD` exists', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
