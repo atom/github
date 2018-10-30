@@ -1,4 +1,4 @@
-<!--- 
+<!---
 For community contributors -- Please fill out Part 1 of the following template. This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. Sections in Part 2 are not mandatory to get the conversation started, but will help our team understand your vision better and allow us to give better feedback.
 --->
 
@@ -28,7 +28,7 @@ Explain the proposal as if it was already implemented in the GitHub package and 
 - Design mock-ups or diagrams depicting any new UI that will be introduced.
 
 
-**_Part 2 - Additional information_** 
+**_Part 2 - Additional information_**
 
 ## Drawbacks
 
@@ -42,9 +42,9 @@ Why should we *not* do this?
 
 ## Unresolved questions
 
-- What unresolved questions do you expect to resolve through the RFC process before this gets merged?
+- What unresolved questions do you expect to resolve through the Feature Request process before this gets merged?
 - What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
+- What related issues do you consider out of scope for this Feature Request that could be addressed in the future independently of the solution that comes out of this Feature Request?
 
 ## Implementation phases
 

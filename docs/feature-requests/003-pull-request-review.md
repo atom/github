@@ -219,7 +219,7 @@ When editing diffs:
 * Do we edit the underlying buffer or file directly, or do we mark the `PullRequestDetailItem` as "modified" and require a "save" action to persist changes?
 * Do we disallow edits of removed lines, or do we re-introduce the removed line as an addition on modification?
 
-### Questions I consider out of scope of this RFC
+### Questions I consider out of scope of this Feature Request
 
 What other pull request information can we add to the GitHub pane item?
 
@@ -229,6 +229,6 @@ How can we notify users when new information, including reviews, is available, p
 
 ![dependency-graph](https://user-images.githubusercontent.com/17565/46475622-019e6a80-c7b4-11e8-9bf5-8223d5c6631f.png)
 
-## Related features out of scope of this RFC
+## Related features out of scope of this Feature Request
 
 * "Find" input field for filtering based on search term (which could be a file name, an author, a variable name, etc)
