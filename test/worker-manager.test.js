@@ -149,6 +149,8 @@ describe('WorkerManager', function() {
 
   describe('when the manager process is destroyed', function() {
     it('destroys all the renderer processes that were created', async function() {
+      this.retries(5); // FLAKE
+
       const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
