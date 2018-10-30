@@ -97,7 +97,7 @@ With that said, the choices for the specific lists we show are a bit arbitrary. 
 
 ## Unresolved questions
 
-### Before RFC merge:
+### Before Feature Request merge:
 
 - [x] What else from the existing issueish pane should we keep? Comments, timeline events?
 - [x] Are there other pull request actions it would be useful to support?

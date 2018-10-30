@@ -4,7 +4,7 @@ For general contributing information, see the [Atom contributing guide](https://
 
 In particular, the GitHub package is under constant development by a portion of the core Atom team, and there is currently a clear vision for short- to medium-term features and enhancements. That doesn't mean we won't merge pull requests or fix other issues, but it *does* mean that you should consider discussing things with us first so that you don't spend time implementing things in a way that differs from the patterns we want to establish or build a feature that we're already working on.
 
-Feel free to [open an issue](https://github.com/atom/github/issues) if you want to discuss anything with us. Depending on the scope and complexity of your proposal we may ask you to reframe it as an [RFC (request for comments)](/docs/how-we-work.md#new-features). If you're curious what we're working on and will be working on in the near future, you can take a look at [our most recent sprint project](https://github.com/atom/github/project) or [accepted RFCs](/docs/rfcs/).
+Feel free to [open an issue](https://github.com/atom/github/issues) if you want to discuss anything with us. Depending on the scope and complexity of your proposal we may ask you to reframe it as a [Feature Request](/docs/how-we-work.md#new-features). If you're curious what we're working on and will be working on in the near future, you can take a look at [our most recent sprint project](https://github.com/atom/github/project) or [accepted Feature Requests](/docs/feature-requests/).
 
 ## Getting started
 
