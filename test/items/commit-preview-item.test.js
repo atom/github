@@ -58,6 +58,67 @@ describe('CommitPreviewItem', function() {
   it('constructs and opens the correct URI', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
+
     assert.isTrue(wrapper.update().find('CommitPreviewItem').exists());
+  });
+
+  it('passes extra props to its container', async function() {
+    const extra = Symbol('extra');
+    const wrapper = mount(buildPaneApp({extra}));
+    await open(wrapper);
+
+    assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('extra'), extra);
+  });
+
+  it('locates the repository from the context pool', async function() {
+    const wrapper = mount(buildPaneApp());
+    await open(wrapper);
+
+    assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('repository'), repository);
+  });
+
+  it('passes an absent repository if the working directory is unrecognized', async function() {
+    const wrapper = mount(buildPaneApp());
+    await open(wrapper, {workingDirectory: '/nah'});
+
+    assert.isTrue(wrapper.update().find('CommitPreviewContainer').prop('repository').isAbsent());
+  });
+
+  it('returns a fixed title and icon', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item = await open(wrapper);
+
+    assert.strictEqual(item.getTitle(), 'Commit preview');
+    assert.strictEqual(item.getIconName(), 'git-commit');
+  });
+
+  it('terminates pending state', async function() {
+    const wrapper = mount(buildPaneApp());
+
+    const item = await open(wrapper);
+    const callback = sinon.spy();
+    const sub = item.onDidTerminatePendingState(callback);
+
+    assert.strictEqual(callback.callCount, 0);
+    item.terminatePendingState();
+    assert.strictEqual(callback.callCount, 1);
+    item.terminatePendingState();
+    assert.strictEqual(callback.callCount, 1);
+
+    sub.dispose();
+  });
+
+  it('may be destroyed once', async function() {
+    const wrapper = mount(buildPaneApp());
+
+    const item = await open(wrapper);
+    const callback = sinon.spy();
+    const sub = item.onDidDestroy(callback);
+
+    assert.strictEqual(callback.callCount, 0);
+    item.destroy();
+    assert.strictEqual(callback.callCount, 1);
+
+    sub.dispose();
   });
 });
