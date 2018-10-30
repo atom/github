@@ -1,5 +1,5 @@
-import {buildFilePatch} from '../../../lib/models/patch';
-import {assertInPatch} from '../../helpers';
+import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
+import {assertInPatch, assertInFilePatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
   it('returns a null patch for an empty diff list', function() {
@@ -499,6 +499,104 @@ describe('buildFilePatch', function() {
         ]);
       }, /mode change diff status: modified/);
     });
+  });
+
+  describe('with multiple diffs', function() {
+    it('creates a MultiFilePatch containing each', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 4,
+              lines: [
+                ' line-0',
+                '+line-1',
+                '+line-2',
+                ' line-3',
+              ],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 12, newLineCount: 2,
+              lines: [
+                ' line-4',
+                '-line-5',
+                ' line-6',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
+              lines: [
+                ' line-5',
+                '+line-6',
+                '-line-7',
+                ' line-8',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'third', oldMode: '100755', newPath: 'third', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 3,
+              lines: [
+                '+line-0',
+                '+line-1',
+                '+line-2',
+              ],
+            },
+          ],
+        },
+      ]);
+
+      assert.lengthOf(mp.getFilePatches(), 3);
+      assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
+      assertInFilePatch(mp.getFilePatches()[0]).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,2 +1,4 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n+line-2\n', range: [[1, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+        {
+          startRow: 4, endRow: 6, header: '@@ -10,3 +12,2 @@', regions: [
+            {kind: 'unchanged', string: ' line-4\n', range: [[4, 0], [4, 6]]},
+            {kind: 'deletion', string: '-line-5\n', range: [[5, 0], [5, 6]]},
+            {kind: 'unchanged', string: ' line-6\n', range: [[6, 0], [6, 6]]},
+          ],
+        },
+      );
+      assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
+      assertInFilePatch(mp.getFilePatches()[1]).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -5,3 +5,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-5\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-6\n', range: [[1, 0], [1, 6]]},
+            {kind: 'deletion', string: '-line-7\n', range: [[2, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-8\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
+      assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
+      assertInFilePatch(mp.getFilePatches()[2]).hunks(
+        {
+          startRow: 0, endRow: 2, header: '@@ -1,0 +1,3 @@', regions: [
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[0, 0], [2, 6]]},
+          ],
+        },
+      );
+    });
+
+    it('identifies a file that was deleted and replaced by a symlink');
+
+    it('identifies a symlink that was deleted and replaced by a file');
   });
 
   it('throws an error with an unexpected number of diffs', function() {
