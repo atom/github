@@ -594,9 +594,105 @@ describe('buildFilePatch', function() {
       );
     });
 
-    it('identifies a file that was deleted and replaced by a symlink');
+    it('identifies mode and content change pairs within the patch list', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+              lines: [
+                ' line-0',
+                '+line-1',
+                ' line-2',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-non-symlink', oldMode: '100644', newPath: 'was-non-symlink', newMode: '000000', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 0,
+              lines: ['-line-0', '-line-1'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-symlink', oldMode: '000000', newPath: 'was-symlink', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 2,
+              lines: ['+line-0', '+line-1'],
+            },
+          ],
+        },
+        {
+          oldMode: '100644', newPath: 'third', newMode: '100644', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 0,
+              lines: ['-line-0', '-line-1', '-line-2'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-symlink', oldMode: '120000', newPath: 'was-non-symlink', newMode: '000000', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 0, newLineCount: 0,
+              lines: ['-was-symlink-destination'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-non-symlink', oldMode: '000000', newPath: 'was-non-symlink', newMode: '120000', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 1,
+              lines: ['+was-non-symlink-destination'],
+            },
+          ],
+        },
+      ]);
 
-    it('identifies a symlink that was deleted and replaced by a file');
+      assert.lengthOf(mp.getFilePatches(), 4);
+      const [fp0, fp1, fp2, fp3] = mp.getFilePatches();
+
+      assert.strictEqual(fp0.getOldPath(), 'first');
+      assertInFilePatch(fp0).hunks({
+        startRow: 0, endRow: 2, header: '@@ -1,2 +1,3 @@', regions: [
+          {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+          {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+          {kind: 'unchanged', string: ' line-2\n', range: [[2, 0], [2, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp1.getOldPath(), 'was-non-symlink');
+      assert.isTrue(fp1.hasTypechange());
+      assert.strictEqual(fp1.getNewSymlink(), 'was-non-symlink-destination');
+      assertInFilePatch(fp1).hunks({
+        startRow: 0, endRow: 1, header: '@@ -1,2 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[0, 0], [1, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp2.getOldPath(), 'was-symlink');
+      assert.isTrue(fp2.hasTypechange());
+      assert.strictEqual(fp2.getOldSymlink(), 'was-symlink-destination');
+      assertInFilePatch(fp2).hunks({
+        startRow: 0, endRow: 1, header: '@@ -1,0 +1,2 @@', regions: [
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp3.getNewPath(), 'third');
+      assertInFilePatch(fp3).hunks({
+        startRow: 0, endRow: 2, header: '@@ -1,3 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[0, 0], [2, 6]]},
+        ],
+      });
+    });
   });
 
   it('throws an error with an unexpected number of diffs', function() {
