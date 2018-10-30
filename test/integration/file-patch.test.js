@@ -274,7 +274,8 @@ describe('integration: file patches', function() {
         await clickFileInGitTab('staged', 'added-file.txt');
       });
 
-      it.stress(10, 'may be partially unstaged', async function() {
+      it('may be partially unstaged', async function() {
+        this.retries(5); // FLAKE
         getPatchEditor('staged', 'added-file.txt').setSelectedBufferRange([[3, 0], [4, 3]]);
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
@@ -298,7 +299,8 @@ describe('integration: file patches', function() {
         );
       });
 
-      it.stress(10, 'may be completely unstaged', async function() {
+      it('may be completely unstaged', async function() {
+        this.retries(5); // FLAKE
         getPatchEditor('staged', 'added-file.txt').selectAll();
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
