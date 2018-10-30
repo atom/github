@@ -608,6 +608,8 @@ describe('GithubPackage', function() {
     let workdirPath2, atomGitRepository2, repository2;
 
     beforeEach(async function() {
+      this.retries(5); // FLAKE
+
       [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
@@ -645,6 +647,7 @@ describe('GithubPackage', function() {
       if (process.platform === 'linux') {
         this.skip();
       }
+      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
@@ -656,6 +659,7 @@ describe('GithubPackage', function() {
       if (process.platform === 'linux') {
         this.skip();
       }
+      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
