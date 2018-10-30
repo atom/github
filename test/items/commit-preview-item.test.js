@@ -136,4 +136,10 @@ describe('CommitPreviewItem', function() {
       uri: 'atom-github://commit-preview?workdir=%2Fdir1',
     });
   });
+
+  it('has an item-level accessor for the current working directory', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item = await open(wrapper, {workingDirectory: '/dir7'});
+    assert.strictEqual(item.getWorkingDirectory(), '/dir7');
+  });
 });
