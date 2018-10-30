@@ -121,4 +121,19 @@ describe('CommitPreviewItem', function() {
 
     sub.dispose();
   });
+
+  it('serializes itself as a CommitPreviewStub', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item0 = await open(wrapper, {workingDirectory: '/dir0'});
+    assert.deepEqual(item0.serialize(), {
+      deserializer: 'CommitPreviewStub',
+      uri: 'atom-github://commit-preview?workdir=%2Fdir0',
+    });
+
+    const item1 = await open(wrapper, {workingDirectory: '/dir1'});
+    assert.deepEqual(item1.serialize(), {
+      deserializer: 'CommitPreviewStub',
+      uri: 'atom-github://commit-preview?workdir=%2Fdir1',
+    });
+  });
 });
