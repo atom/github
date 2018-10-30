@@ -102,12 +102,6 @@ _We encourage community members wanting to contribute new features to follow thi
    * As the design evolves and opinions change, modify the existing Feature Request to stay accurate.
 1. When the feature is complete, update the Feature Request to a "completed" state and merge it. For any outstanding work that didn't get implemented, open issues or start new Feature Requests.
 
-##### FAQ
-
-Q: Why not just use issues?
-In the past we've used issues for these discussions and the issue body quickly becomes outdated by discussion in comments and it's hard to
-
-
 ### Expansions or retractions of package scope
 
 As a team, we maintain a [shared understanding](/docs/vision) of what we will and will not build as part of this package, which we use to guide our decisions about accepting new features. Like everything else, this understanding is itself fluid.
