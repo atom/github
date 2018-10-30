@@ -1,13 +1,17 @@
 import React from 'react';
-import {shallow} from 'enzyme';
+import {mount} from 'enzyme';
 
 import CommitPreviewContainer from '../../lib/containers/commit-preview-container';
+import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitPreviewContainer', function() {
-  let atomEnv;
+  let atomEnv, repository;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+
+    const workdir = await cloneRepository();
+    repository = await buildRepository(workdir);
   });
 
   afterEach(function() {
@@ -16,13 +20,15 @@ describe('CommitPreviewContainer', function() {
 
   function buildApp(override = {}) {
     const props = {
+      repository,
       ...override,
     };
 
     return <CommitPreviewContainer {...props} />;
   }
 
-  it('renders a loading spinner while the repository is loading');
-
-  it('renders a loading spinner while the diff is being fetched');
+  it('renders a loading spinner while the repository is loading', function() {
+    const wrapper = mount(buildApp());
+    assert.isTrue(wrapper.find('LoadingView').exists());
+  });
 });
