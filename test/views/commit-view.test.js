@@ -369,6 +369,7 @@ describe('CommitView', function() {
       ['.github-CommitView-abortMerge', CommitView.focus.ABORT_MERGE_BUTTON],
       ['.github-CommitView-commit', CommitView.focus.COMMIT_BUTTON],
       ['.github-CommitView-coAuthorEditor input', CommitView.focus.COAUTHOR_INPUT],
+      ['.github-CommitView-commitPreview', CommitView.focus.COMMIT_PREVIEW_BUTTON],
     ];
     for (const [selector, focus, subselector] of foci) {
       let target = wrapper.find(selector).getDOMNode();
@@ -382,6 +383,7 @@ describe('CommitView', function() {
 
     const holders = [
       'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+      'refCommitPreviewButton',
     ].map(ivar => wrapper.instance()[ivar]);
     for (const holder of holders) {
       holder.setter(null);
@@ -390,6 +392,15 @@ describe('CommitView', function() {
   });
 
   describe('restoring focus', function() {
+    it('to the commit preview button', function() {
+      const wrapper = mount(app);
+      const element = wrapper.find('github-CommitView-commitPreview').getDOMNode();
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(wrapper.focus.called);
+    });
+
     it('to the editor', function() {
       const wrapper = mount(app);
       const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
