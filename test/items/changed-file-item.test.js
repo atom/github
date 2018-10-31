@@ -72,14 +72,14 @@ describe('ChangedFileItem', function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('FilePatchContainer').prop('repository'), repository);
+    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('repository'), repository);
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper, {workingDirectory: '/nope'});
 
-    assert.isTrue(wrapper.update().find('FilePatchContainer').prop('repository').isAbsent());
+    assert.isTrue(wrapper.update().find('ChangedFileContainer').prop('repository').isAbsent());
   });
 
   it('passes other props to the container', async function() {
@@ -87,7 +87,7 @@ describe('ChangedFileItem', function() {
     const wrapper = mount(buildPaneApp({other}));
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('FilePatchContainer').prop('other'), other);
+    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('other'), other);
   });
 
   describe('getTitle()', function() {

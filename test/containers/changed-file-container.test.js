@@ -3,10 +3,10 @@ import fs from 'fs-extra';
 import React from 'react';
 import {mount} from 'enzyme';
 
-import FilePatchContainer from '../../lib/containers/file-patch-container';
+import ChangedFileContainer from '../../lib/containers/changed-file-container';
 import {cloneRepository, buildRepository} from '../helpers';
 
-describe('FilePatchContainer', function() {
+describe('ChangedFileContainer', function() {
   let atomEnv, repository;
 
   beforeEach(async function() {
@@ -46,7 +46,7 @@ describe('FilePatchContainer', function() {
       ...overrideProps,
     };
 
-    return <FilePatchContainer {...props} />;
+    return <ChangedFileContainer {...props} />;
   }
 
   it('renders a loading spinner before file patch data arrives', function() {
