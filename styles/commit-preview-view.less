@@ -1,0 +1,18 @@
+@import "variables";
+
+.github-StubItem-git-commit-preview { // TODO Rename class
+  .github-FilePatchView {
+    border-bottom: 1px solid @base-border-color;
+
+    & + .github-FilePatchView {
+      margin-top: @component-padding;
+      border-top: 1px solid @base-border-color;
+    }
+  }
+
+
+  // hack hack hack
+  .github-FilePatchView {
+    height: 500px;
+  }
+}
