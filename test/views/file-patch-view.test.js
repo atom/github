@@ -99,6 +99,15 @@ describe('FilePatchView', function() {
     assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
   });
 
+  it('enables autoHeight on the editor when requested', function() {
+    const wrapper = mount(buildApp({useEditorAutoHeight: true}));
+
+    assert.isTrue(wrapper.find('AtomTextEditor').prop('autoHeight'));
+
+    wrapper.setProps({useEditorAutoHeight: false});
+    assert.isFalse(wrapper.find('AtomTextEditor').prop('autoHeight'));
+  });
+
   it('sets the root class when in hunk selection mode', function() {
     const wrapper = shallow(buildApp({selectionMode: 'line'}));
     assert.isFalse(wrapper.find('.github-FilePatchView--hunkMode').exists());
