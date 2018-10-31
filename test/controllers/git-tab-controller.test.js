@@ -13,7 +13,7 @@ import Author from '../../lib/models/author';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import {GitError} from '../../lib/git-shell-out-strategy';
 
-describe.only('GitTabController', function() {
+describe('GitTabController', function() {
   let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
   let resolutionProgress, refreshResolutionProgress;
 
