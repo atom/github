@@ -1,9 +1,9 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import CommitPreviewController from '../../lib/controllers/commit-preview-controller';
+import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
 
-describe('CommitPreviewController', function() {
+describe('MultiFilePatchController', function() {
   let atomEnv;
 
   beforeEach(function() {
@@ -19,7 +19,7 @@ describe('CommitPreviewController', function() {
       ...override,
     };
 
-    return <CommitPreviewController {...props} />;
+    return <MultiFilePatchController {...props} />;
   }
 
   it('renders the CommitPreviewView and passes extra props through');
