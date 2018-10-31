@@ -3,7 +3,6 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import dedent from 'dedent-js';
-import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
