@@ -384,8 +384,8 @@ describe('CommitController', function() {
 
       sinon.spy(view, 'rememberFocus');
       sinon.spy(view, 'setFocus');
-      sinon.spy(view, 'hasFocus');
-      sinon.spy(view, 'hasFocusEditor');
+      sinon.spy(view, 'advanceFocus');
+      sinon.spy(view, 'retreatFocus');
 
       const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
       wrapper.instance().rememberFocus({target: element});
@@ -394,11 +394,11 @@ describe('CommitController', function() {
       wrapper.instance().setFocus(CommitController.focus.EDITOR);
       assert.isTrue(view.setFocus.called);
 
-      wrapper.instance().hasFocus();
-      assert.isTrue(view.hasFocus.called);
+      wrapper.instance().advanceFocus({stopPropagation() {}});
+      assert.isTrue(view.advanceFocus.called);
 
-      wrapper.instance().hasFocusEditor();
-      assert.isTrue(view.hasFocusEditor.called);
+      wrapper.instance().retreatFocus({stopPropagation() {}});
+      assert.isTrue(view.retreatFocus.called);
     });
 
     it('no-ops focus management methods when the view ref is unassigned', function() {
