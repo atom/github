@@ -6,6 +6,10 @@
   .github-FilePatchView {
     border-bottom: 1px solid @base-border-color;
 
+    &:last-child {
+      border-bottom: none;
+    }
+
     & + .github-FilePatchView {
       margin-top: @component-padding;
       border-top: 1px solid @base-border-color;
