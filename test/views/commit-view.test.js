@@ -454,7 +454,16 @@ describe('CommitView', function() {
       assert.isTrue(event.stopPropagation.called);
     });
 
-    it('moves focus to the co-author form if the commit button is focused and no merge is in progress', function() {
+    it('moves focus to the editor if the commit button is focused and no merge is underway', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the co-author form if it is visible, the commit button is focused, and no merge', function() {
+      wrapper.setState({showCoAuthorInput: true});
       sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
 
       assert.isTrue(instance.retreatFocus(event));
@@ -462,11 +471,20 @@ describe('CommitView', function() {
       assert.isTrue(event.stopPropagation.called);
     });
 
-    it('moves focus to the co-author form if the abort merge button is in focus', function() {
+    it('moves focus to the co-author form if it is visible and the abort merge button is in focus', function() {
+      wrapper.setState({showCoAuthorInput: true});
       sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
 
       assert.isTrue(instance.retreatFocus(event));
       assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COAUTHOR_INPUT));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit editor if the abort merge button is in focus', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
       assert.isTrue(event.stopPropagation.called);
     });
 
