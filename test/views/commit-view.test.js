@@ -394,7 +394,7 @@ describe('CommitView', function() {
   describe('restoring focus', function() {
     it('to the commit preview button', function() {
       const wrapper = mount(app);
-      const element = wrapper.find('github-CommitView-commitPreview').getDOMNode();
+      const element = wrapper.find('.github-CommitView-commitPreview').getDOMNode();
       sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON));
