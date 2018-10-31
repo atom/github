@@ -459,6 +459,7 @@ describe('CommitView', function() {
       // Simulate an unmounted component by clearing out RefHolders manually.
       const holders = [
         'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+        'refCommitPreviewButton',
       ].map(ivar => wrapper.instance()[ivar]);
       for (const holder of holders) {
         holder.setter(null);
