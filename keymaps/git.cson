@@ -27,6 +27,10 @@
   'o': 'github:open-file'
   'left': 'core:move-left'
 
+'.github-CommitView button':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+
 '.github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
   'ctrl-backspace': 'github:discard-changes-in-selected-files'

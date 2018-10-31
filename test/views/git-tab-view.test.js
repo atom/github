@@ -83,17 +83,8 @@ describe('GitTabView', function() {
       event = {stopPropagation: sinon.spy()};
     });
 
-    it('does nothing if the commit controller has focus', async function() {
-      sinon.stub(commitController, 'hasFocus').returns(true);
-      sinon.spy(stagingView, 'activateNextList');
-
-      await wrapper.instance().advanceFocus(event);
-
-      assert.isFalse(event.stopPropagation.called);
-      assert.isFalse(stagingView.activateNextList.called);
-    });
-
     it('activates the next staging view list and stops', async function() {
+      sinon.stub(commitController, 'advanceFocus').returns(false);
       sinon.stub(stagingView, 'activateNextList').resolves(true);
       sinon.spy(commitController, 'setFocus');
 
@@ -105,6 +96,7 @@ describe('GitTabView', function() {
     });
 
     it('moves focus to the commit preview button from the end of the staging view', async function() {
+      sinon.stub(commitController, 'advanceFocus').returns(false);
       sinon.stub(stagingView, 'activateNextList').resolves(false);
       sinon.stub(commitController, 'setFocus').returns(true);
 
@@ -112,6 +104,16 @@ describe('GitTabView', function() {
 
       assert.isTrue(commitController.setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON));
       assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('advances focus within the commit view', async function() {
+      sinon.stub(commitController, 'advanceFocus').returns(true);
+      sinon.spy(stagingView, 'activateNextList');
+
+      await wrapper.instance().advanceFocus(event);
+
+      assert.isTrue(commitController.advanceFocus.called);
+      assert.isFalse(stagingView.activateNextList.called);
     });
 
     it('does nothing if refs are unavailable', async function() {
@@ -135,20 +137,8 @@ describe('GitTabView', function() {
       event = {stopPropagation: sinon.spy()};
     });
 
-    it('focuses the last staging list if the commit preview button has focus', async function() {
-      sinon.stub(commitController, 'hasFocus').returns(true);
-      sinon.stub(commitController, 'hasFocusPreviewButton').returns(true);
-      sinon.stub(stagingView, 'activateLastList').resolves(true);
-
-      await wrapper.instance().retreatFocus(event);
-
-      assert.isTrue(stagingView.activateLastList.called);
-      assert.isTrue(event.stopPropagation.called);
-    });
-
-    it('does nothing if the commit controller has focus but not in its editor', async function() {
-      sinon.stub(commitController, 'hasFocus').returns(true);
-      sinon.stub(commitController, 'hasFocusEditor').returns(false);
+    it('does nothing if the commit controller has focus but not in the preview button', async function() {
+      sinon.stub(commitController, 'retreatFocus').returns(true);
       sinon.spy(stagingView, 'activateLastList');
       sinon.spy(stagingView, 'activatePreviousList');
 
@@ -159,8 +149,19 @@ describe('GitTabView', function() {
       assert.isFalse(event.stopPropagation.called);
     });
 
+    it('focuses the last staging list if the commit preview button has focus', async function() {
+      sinon.stub(commitController, 'retreatFocus').returns(false);
+      sinon.stub(commitController, 'hasFocusAtBeginning').returns(true);
+      sinon.stub(stagingView, 'activateLastList').resolves(true);
+
+      await wrapper.instance().retreatFocus(event);
+
+      assert.isTrue(stagingView.activateLastList.called);
+      assert.isTrue(event.stopPropagation.called);
+    });
+
     it('activates the previous staging list and stops', async function() {
-      sinon.stub(commitController, 'hasFocus').returns(false);
+      sinon.stub(commitController, 'retreatFocus').returns(false);
       sinon.stub(stagingView, 'activatePreviousList').resolves(true);
 
       await wrapper.instance().retreatFocus(event);
