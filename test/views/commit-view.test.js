@@ -398,7 +398,7 @@ describe('CommitView', function() {
       sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON));
-      assert.isTrue(wrapper.focus.called);
+      assert.isTrue(element.focus.called);
     });
 
     it('to the editor', function() {
