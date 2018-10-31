@@ -411,8 +411,7 @@ describe('CommitController', function() {
 
       assert.isNull(wrapper.instance().rememberFocus({}));
       assert.isFalse(wrapper.instance().setFocus(CommitController.focus.EDITOR));
-      assert.isFalse(wrapper.instance().hasFocus());
-      assert.isFalse(wrapper.instance().hasFocusEditor());
+      assert.isFalse(wrapper.instance().hasFocusAtBeginning());
     });
   });
 
