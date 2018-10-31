@@ -73,15 +73,15 @@ describe('integration: file patches', function() {
     listItem.simulate('mousedown', {button: 0, persist() {}});
     window.dispatchEvent(new MouseEvent('mouseup'));
 
-    const itemSelector = `FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
+    const itemSelector = `ChangedFileItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
     await until(
       () => wrapper.update().find(itemSelector).find('.github-FilePatchView').exists(),
-      `the FilePatchItem for ${relativePath} arrives and loads`,
+      `the ChangedFileItem for ${relativePath} arrives and loads`,
     );
   }
 
   function getPatchItem(stagingStatus, relativePath) {
-    return wrapper.update().find(`FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`);
+    return wrapper.update().find(`ChangedFileItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`);
   }
 
   function getPatchEditor(stagingStatus, relativePath) {

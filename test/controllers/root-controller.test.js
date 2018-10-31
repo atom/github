@@ -990,13 +990,13 @@ describe('RootController', function() {
         editor.setCursorBufferPosition([7, 0]);
 
         // TODO: too implementation-detail-y
-        const filePatchItem = {
+        const changedFileItem = {
           goToDiffLine: sinon.spy(),
           focus: sinon.spy(),
           getRealItemPromise: () => Promise.resolve(),
           getFilePatchLoadedPromise: () => Promise.resolve(),
         };
-        sinon.stub(workspace, 'open').returns(filePatchItem);
+        sinon.stub(workspace, 'open').returns(changedFileItem);
         await wrapper.instance().viewUnstagedChangesForCurrentFile();
 
         await assert.async.equal(workspace.open.callCount, 1);
@@ -1004,9 +1004,9 @@ describe('RootController', function() {
           `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
-        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-        assert.equal(filePatchItem.focus.callCount, 1);
+        await assert.async.equal(changedFileItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(changedFileItem.goToDiffLine.args[0], [8]);
+        assert.equal(changedFileItem.focus.callCount, 1);
       });
 
       it('does nothing on an untitled buffer', async function() {
@@ -1035,13 +1035,13 @@ describe('RootController', function() {
         editor.setCursorBufferPosition([7, 0]);
 
         // TODO: too implementation-detail-y
-        const filePatchItem = {
+        const changedFileItem = {
           goToDiffLine: sinon.spy(),
           focus: sinon.spy(),
           getRealItemPromise: () => Promise.resolve(),
           getFilePatchLoadedPromise: () => Promise.resolve(),
         };
-        sinon.stub(workspace, 'open').returns(filePatchItem);
+        sinon.stub(workspace, 'open').returns(changedFileItem);
         await wrapper.instance().viewStagedChangesForCurrentFile();
 
         await assert.async.equal(workspace.open.callCount, 1);
@@ -1049,9 +1049,9 @@ describe('RootController', function() {
           `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
-        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-        assert.equal(filePatchItem.focus.callCount, 1);
+        await assert.async.equal(changedFileItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(changedFileItem.goToDiffLine.args[0], [8]);
+        assert.equal(changedFileItem.focus.callCount, 1);
       });
 
       it('does nothing on an untitled buffer', async function() {

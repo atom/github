@@ -224,12 +224,12 @@ describe('StagingView', function() {
       it('passes activation options and focuses the returned item if activate is true', async function() {
         const wrapper = mount(app);
 
-        const filePatchItem = {
-          getElement: () => filePatchItem,
-          querySelector: () => filePatchItem,
+        const changedFileItem = {
+          getElement: () => changedFileItem,
+          querySelector: () => changedFileItem,
           focus: sinon.spy(),
         };
-        workspace.open.returns(filePatchItem);
+        workspace.open.returns(changedFileItem);
 
         await wrapper.instance().showFilePatchItem('file.txt', 'staged', {activate: true});
 
@@ -238,15 +238,15 @@ describe('StagingView', function() {
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, pane: undefined, activateItem: true},
         ]);
-        assert.isTrue(filePatchItem.focus.called);
+        assert.isTrue(changedFileItem.focus.called);
       });
 
       it('makes the item visible if activate is false', async function() {
         const wrapper = mount(app);
 
         const focus = sinon.spy();
-        const filePatchItem = {focus};
-        workspace.open.returns(filePatchItem);
+        const changedFileItem = {focus};
+        workspace.open.returns(changedFileItem);
         const activateItem = sinon.spy();
         workspace.paneForItem.returns({activateItem});
 
@@ -259,7 +259,7 @@ describe('StagingView', function() {
         ]);
         assert.isFalse(focus.called);
         assert.equal(activateItem.callCount, 1);
-        assert.equal(activateItem.args[0][0], filePatchItem);
+        assert.equal(activateItem.args[0][0], changedFileItem);
       });
     });
   });
