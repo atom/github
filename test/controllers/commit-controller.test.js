@@ -8,6 +8,7 @@ import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -409,5 +410,16 @@ describe('CommitController', function() {
       assert.isFalse(wrapper.instance().hasFocus());
       assert.isFalse(wrapper.instance().hasFocusEditor());
     });
+  });
+
+  it('opens commit preview pane', async function() {
+    const workdir = await cloneRepository('three-files');
+    const repository = await buildRepository(workdir);
+
+    sinon.spy(workspace, 'open');
+
+    const wrapper = shallow(React.cloneElement(app, {repository}));
+    await wrapper.find('CommitView').prop('previewCommit')();
+    assert.isTrue(workspace.open.calledWith(CommitPreviewItem.buildURI(workdir)));
   });
 });

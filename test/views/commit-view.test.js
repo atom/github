@@ -485,5 +485,5 @@ describe('CommitView', function() {
       wrapper.find('.github-CommitView-commitPreview').simulate('click');
       assert.isTrue(previewCommit.called);
     });
-  })
+  });
 });
