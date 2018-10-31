@@ -458,4 +458,32 @@ describe('CommitView', function() {
       }
     });
   });
+
+  describe('commit preview button', function() {
+    it('is enabled when there is staged changes', function() {
+      const wrapper = shallow(React.cloneElement(app, {
+        stagedChangesExist: true,
+      }));
+      assert.isFalse(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+    });
+
+    it('is disabled when there\'s no staged changes', function() {
+      const wrapper = shallow(React.cloneElement(app, {
+        stagedChangesExist: false,
+      }));
+      assert.isTrue(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+    });
+
+    it('calls a callback when the button is clicked', function() {
+      const previewCommit = sinon.spy();
+
+      const wrapper = shallow(React.cloneElement(app, {
+        previewCommit,
+        stagedChangesExist: true,
+      }));
+
+      wrapper.find('.github-CommitView-commitPreview').simulate('click');
+      assert.isTrue(previewCommit.called);
+    });
+  })
 });
