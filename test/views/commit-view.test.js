@@ -651,5 +651,19 @@ describe('CommitView', function() {
       wrapper.find('.github-CommitView-commitPreview').simulate('click');
       assert.isTrue(toggleCommitPreview.called);
     });
+
+    it('displays correct button text depending on prop value', function() {
+      const wrapper = shallow(React.cloneElement(app, {
+        stagedChangesExist: false,
+      }));
+
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
+
+      wrapper.setProps({commitPreviewOpen: true});
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Close Commit Preview');
+
+      wrapper.setProps({commitPreviewOpen: false});
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
+    });
   });
 });

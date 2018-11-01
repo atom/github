@@ -415,14 +415,28 @@ describe('CommitController', function() {
     });
   });
 
-  it('opens commit preview pane', async function() {
-    const workdir = await cloneRepository('three-files');
-    const repository = await buildRepository(workdir);
+  describe('toggleCommitPreview', function() {
+    it('opens and closes commit preview pane', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
 
-    sinon.spy(workspace, 'open');
+      const wrapper = shallow(React.cloneElement(app, {repository}));
 
-    const wrapper = shallow(React.cloneElement(app, {repository}));
-    await wrapper.find('CommitView').prop('toggleCommitPreview')();
-    assert.isTrue(workspace.open.calledWith(CommitPreviewItem.buildURI(workdir)));
+      sinon.spy(workspace, 'toggle');
+
+      assert.isFalse(wrapper.state('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.toggle.calledWith(CommitPreviewItem.buildURI(workdir)));
+      assert.isTrue(wrapper.state('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.toggle.calledTwice);
+      assert.isFalse(wrapper.state('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.toggle.calledThrice);
+      assert.isTrue(wrapper.state('commitPreviewOpen'));
+    });
   });
 });
