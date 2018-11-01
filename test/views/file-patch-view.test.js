@@ -116,6 +116,13 @@ describe('FilePatchView', function() {
     assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
   });
 
+  it('sets the root class when inactive', function() {
+    const wrapper = shallow(buildApp({isActive: true}));
+    assert.isFalse(wrapper.find('.github-FilePatchView--inactive').exists());
+    wrapper.setProps({isActive: false});
+    assert.isTrue(wrapper.find('.github-FilePatchView--inactive').exists());
+  });
+
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
