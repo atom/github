@@ -142,4 +142,27 @@ describe('CommitPreviewItem', function() {
     const item = await open(wrapper, {workingDirectory: '/dir7'});
     assert.strictEqual(item.getWorkingDirectory(), '/dir7');
   });
+
+  describe('focusActivePatchEditor', function() {
+    it('imperatively focuses the value of the initial focus ref', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      const focusSpy = {focus: sinon.spy()};
+      item.refInitialFocus.setter(focusSpy);
+
+      item.focusActivePatchEditor();
+
+      assert.isTrue(focusSpy.focus.called);
+    });
+
+    it('is a no-op if there is no initial focus ref', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      item.refInitialFocus.setter(null);
+
+      item.focusActivePatchEditor();
+    });
+  });
 });
