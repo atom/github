@@ -1,4 +1,5 @@
 import {watchWorkspaceItem} from '../lib/watch-workspace-item';
+import URIPattern from '../lib/atom/uri-pattern';
 
 describe('watchWorkspaceItem', function() {
   let sub, atomEnv, workspace, component;
@@ -59,6 +60,14 @@ describe('watchWorkspaceItem', function() {
 
       sub = watchWorkspaceItem(workspace, 'atom-github://item/{pattern}', component, 'theKey');
 
+      assert.isTrue(component.state.theKey);
+    });
+
+    it('accepts a preconstructed URIPattern', async function() {
+      await workspace.open('atom-github://item/one');
+      const u = new URIPattern('atom-github://item/{pattern}');
+
+      sub = watchWorkspaceItem(workspace, u, component, 'theKey');
       assert.isTrue(component.state.theKey);
     });
   });
