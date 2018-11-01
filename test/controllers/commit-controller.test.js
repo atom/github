@@ -424,19 +424,19 @@ describe('CommitController', function() {
 
       sinon.spy(workspace, 'toggle');
 
-      assert.isFalse(wrapper.state('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.toggle.calledWith(CommitPreviewItem.buildURI(workdir)));
-      assert.isTrue(wrapper.state('commitPreviewOpen'));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.toggle.calledTwice);
-      assert.isFalse(wrapper.state('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.toggle.calledThrice);
-      assert.isTrue(wrapper.state('commitPreviewOpen'));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
     });
   });
 });
