@@ -26,6 +26,7 @@
   'shift-tab': 'core:focus-previous'
   'o': 'github:open-file'
   'left': 'core:move-left'
+  'cmd-left': 'core:move-left'
 
 '.github-CommitView button':
   'tab': 'core:focus-next'
