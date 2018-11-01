@@ -6,6 +6,7 @@ import FilePatchView from '../../lib/views/file-patch-view';
 import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
+import RefHolder from '../../lib/models/ref-holder';
 
 describe('FilePatchView', function() {
   let atomEnv, workspace, repository, filePatch;
@@ -250,6 +251,43 @@ describe('FilePatchView', function() {
     wrapper.unmount();
 
     assert.isTrue(window.removeEventListener.calledWith('mouseup', handler));
+  });
+
+  describe('refInitialFocus', function() {
+    it('is set to its editor', function() {
+      const refInitialFocus = new RefHolder();
+      const wrapper = mount(buildApp({refInitialFocus}));
+
+      assert.isFalse(refInitialFocus.isEmpty());
+      assert.strictEqual(
+        refInitialFocus.get(),
+        wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor'),
+      );
+    });
+
+    it('may be swapped out for a new RefHolder', function() {
+      const refInitialFocus0 = new RefHolder();
+      const wrapper = mount(buildApp({refInitialFocus: refInitialFocus0}));
+      const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+
+      assert.strictEqual(refInitialFocus0.getOr(null), editorElement);
+
+      const refInitialFocus1 = new RefHolder();
+      wrapper.setProps({refInitialFocus: refInitialFocus1});
+
+      assert.isTrue(refInitialFocus0.isEmpty());
+      assert.strictEqual(refInitialFocus1.getOr(null), editorElement);
+
+      wrapper.setProps({refInitialFocus: null});
+
+      assert.isTrue(refInitialFocus0.isEmpty());
+      assert.isTrue(refInitialFocus1.isEmpty());
+
+      wrapper.setProps({refInitialFocus: refInitialFocus0});
+
+      assert.strictEqual(refInitialFocus0.getOr(null), editorElement);
+      assert.isTrue(refInitialFocus1.isEmpty());
+    });
   });
 
   describe('executable mode changes', function() {
