@@ -10,7 +10,7 @@ describe('watchWorkspaceItem', function() {
 
     component = {
       state: {},
-      setState: sinon.stub().resolves(),
+      setState: sinon.stub().callsFake((updater, cb) => cb && cb()),
     };
 
     workspace.addOpener(uri => {
@@ -130,5 +130,30 @@ describe('watchWorkspaceItem', function() {
 
     await workspace.hide('atom-github://item');
     assert.isFalse(component.setState.called);
+  });
+
+  describe('setPattern', function() {
+    it('immediately updates the state based on the new pattern', async function() {
+      sub = watchWorkspaceItem(workspace, 'atom-github://item0/{pattern}', component, 'theKey');
+      assert.isFalse(component.state.theKey);
+
+      await workspace.open('atom-github://item1/match');
+      assert.isFalse(component.setState.called);
+
+      await sub.setPattern('atom-github://item1/{pattern}');
+      assert.isFalse(component.state.theKey);
+      assert.isTrue(component.setState.calledWith({theKey: true}));
+    });
+
+    it('uses the new pattern to keep state up to date', async function() {
+      sub = watchWorkspaceItem(workspace, 'atom-github://item0/{pattern}', component, 'theKey');
+      await sub.setPattern('atom-github://item1/{pattern}');
+
+      await workspace.open('atom-github://item0/match');
+      assert.isFalse(component.setState.called);
+
+      await workspace.open('atom-github://item1/match');
+      assert.isTrue(component.setState.calledWith({theKey: true}));
+    });
   });
 });
