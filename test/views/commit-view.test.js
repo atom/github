@@ -654,9 +654,7 @@ describe('CommitView', function() {
     });
 
     it('displays correct button text depending on prop value', function() {
-      const wrapper = shallow(React.cloneElement(app, {
-        stagedChangesExist: false,
-      }));
+      const wrapper = shallow(app);
 
       assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
 
