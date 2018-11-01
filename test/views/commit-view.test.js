@@ -43,6 +43,7 @@ describe('CommitView', function() {
         stagedChangesExist={false}
         mergeConflictsExist={false}
         isCommitting={false}
+        commitPreviewOpen={false}
         deactivateCommitBox={false}
         maximumCharacterLimit={72}
         messageBuffer={messageBuffer}
