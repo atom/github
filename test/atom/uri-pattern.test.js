@@ -38,6 +38,14 @@ describe('URIPattern', function() {
       assert.isTrue(pattern.matches('proto://host/foo#exact').ok());
       assert.isFalse(pattern.matches('proto://host/foo#nope').ok());
     });
+
+    it('escapes and unescapes dashes', function() {
+      assert.isTrue(
+        new URIPattern('atom-github://with-many-dashes')
+          .matches('atom-github://with-many-dashes')
+          .ok(),
+      );
+    });
   });
 
   describe('parameter placeholders', function() {
