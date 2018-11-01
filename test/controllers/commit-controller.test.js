@@ -450,6 +450,21 @@ describe('CommitController', function() {
       assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
     });
 
+    it('records a metrics event when pane is toggled', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+
+      const wrapper = shallow(React.cloneElement(app, {repository}));
+
+      assert.isFalse(reporterProxy.addEvent.called);
+
+      await wrapper.instance().toggleCommitPreview();
+
+      assert.isTrue(reporterProxy.addEvent.calledOnceWithExactly('toggle-commit-preview', {package: 'github'}));
+    });
+
+
     it('toggles the commit preview pane for the active repository', async function() {
       const workdir0 = await cloneRepository('three-files');
       const repository0 = await buildRepository(workdir0);
