@@ -116,11 +116,11 @@ describe('FilePatchView', function() {
     assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
   });
 
-  it('sets the root class when inactive', function() {
+  it('sets the root class when active', function() {
     const wrapper = shallow(buildApp({isActive: true}));
-    assert.isFalse(wrapper.find('.github-FilePatchView--inactive').exists());
+    assert.isTrue(wrapper.find('.github-FilePatchView--active').exists());
     wrapper.setProps({isActive: false});
-    assert.isTrue(wrapper.find('.github-FilePatchView--inactive').exists());
+    assert.isFalse(wrapper.find('.github-FilePatchView--active').exists());
   });
 
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
