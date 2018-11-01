@@ -6,6 +6,7 @@ import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
+import * as reporterProxy from '../../../lib/reporter-proxy';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
@@ -24,7 +25,12 @@ describe('FilePatch', function() {
     const patch = new Patch({status: 'modified', hunks, buffer, layers});
     const oldFile = new File({path: 'a.txt', mode: '120000', symlink: 'dest.txt'});
     const newFile = new File({path: 'b.txt', mode: '100755'});
+
+    sinon.stub(reporterProxy, 'addEvent');
+    assert.isFalse(reporterProxy.addEvent.called);
+
     const filePatch = new FilePatch(oldFile, newFile, patch);
+    assert.isTrue(reporterProxy.addEvent.calledOnceWithExactly('file-patch-constructed', {package: 'github', sizeInBytes: 15}));
 
     assert.isTrue(filePatch.isPresent());
 
