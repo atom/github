@@ -6,6 +6,7 @@ import {shallow, mount} from 'enzyme';
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
+import URIPattern from '../../lib/atom/uri-pattern';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
@@ -28,6 +29,16 @@ describe('CommitController', function() {
     lastCommit = new Commit({sha: 'a1e23fd45', message: 'last commit message'});
     const noop = () => {};
     const store = new UserStore({config});
+
+    // Ensure the Workspace doesn't mangle atom-github://... URIs
+    const pattern = new URIPattern(CommitPreviewItem.uriPattern);
+    workspace.addOpener(uri => {
+      if (pattern.matches(uri).ok()) {
+        return {getURI() { return uri; }};
+      } else {
+        return undefined;
+      }
+    });
 
     app = (
       <CommitController
