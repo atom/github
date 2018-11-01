@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 
 import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
 import {buildMultiFilePatch} from '../../lib/models/patch';
+import RefHolder from '../../lib/models/ref-holder';
 
 describe('MultiFilePatchController', function() {
   let multiFilePatch;
@@ -72,5 +73,21 @@ describe('MultiFilePatchController', function() {
         .find('FilePatchController')
         .everyWhere(w => w.prop('extra') === extra),
     );
+  });
+
+  it('passes a refInitialFocus only to the active FilePatchController', function() {
+    const refInitialFocus = new RefHolder();
+    const wrapper = shallow(buildApp({refInitialFocus}));
+
+    assert.strictEqual(wrapper.find('FilePatchController[relPath="first"]').prop('refInitialFocus'), refInitialFocus);
+    assert.notExists(wrapper.find('FilePatchController[relPath="second"]').prop('refInitialFocus'));
+    assert.notExists(wrapper.find('FilePatchController[relPath="third"]').prop('refInitialFocus'));
+
+    wrapper.find('FilePatchController[relPath="second"]').prop('handleMouseDown')('second');
+    wrapper.update();
+
+    assert.notExists(wrapper.find('FilePatchController[relPath="first"]').prop('refInitialFocus'));
+    assert.strictEqual(wrapper.find('FilePatchController[relPath="second"]').prop('refInitialFocus'), refInitialFocus);
+    assert.notExists(wrapper.find('FilePatchController[relPath="third"]').prop('refInitialFocus'));
   });
 });
