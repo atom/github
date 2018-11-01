@@ -641,15 +641,15 @@ describe('CommitView', function() {
     });
 
     it('calls a callback when the button is clicked', function() {
-      const previewCommit = sinon.spy();
+      const toggleCommitPreview = sinon.spy();
 
       const wrapper = shallow(React.cloneElement(app, {
-        previewCommit,
+        toggleCommitPreview,
         stagedChangesExist: true,
       }));
 
       wrapper.find('.github-CommitView-commitPreview').simulate('click');
-      assert.isTrue(previewCommit.called);
+      assert.isTrue(toggleCommitPreview.called);
     });
   });
 });

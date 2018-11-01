@@ -422,7 +422,7 @@ describe('CommitController', function() {
     sinon.spy(workspace, 'open');
 
     const wrapper = shallow(React.cloneElement(app, {repository}));
-    await wrapper.find('CommitView').prop('previewCommit')();
+    await wrapper.find('CommitView').prop('toggleCommitPreview')();
     assert.isTrue(workspace.open.calledWith(CommitPreviewItem.buildURI(workdir)));
   });
 });
