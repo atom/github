@@ -15,6 +15,8 @@ describe('integration: file patches', function() {
 
   this.timeout(Math.max(this.timeout(), 10000));
 
+  this.retries(5); // FLAKE
+
   beforeEach(function() {
     // These tests take a little longer because they rely on real filesystem events and git operations.
     until.setDefaultTimeout(9000);
@@ -275,8 +277,6 @@ describe('integration: file patches', function() {
       });
 
       it('may be partially unstaged', async function() {
-        this.retries(5); // FLAKE
-
         getPatchEditor('staged', 'added-file.txt').setSelectedBufferRange([[3, 0], [4, 3]]);
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
@@ -734,8 +734,6 @@ describe('integration: file patches', function() {
       });
 
       it('may be partially staged', async function() {
-        this.retries(5); // FLAKE
-
         getPatchEditor('unstaged', 'sample.js').setSelectedBufferRanges([
           [[2, 0], [2, 0]],
           [[10, 0], [10, 0]],
