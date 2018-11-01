@@ -53,6 +53,7 @@ describe('FilePatchView', function() {
       selectionMode: 'line',
       selectedRows: new Set(),
       repository,
+      isActive: true,
 
       workspace,
       config: atomEnv.config,
