@@ -449,5 +449,37 @@ describe('CommitController', function() {
       assert.isTrue(workspace.toggle.calledThrice);
       assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
     });
+
+    it('toggles the commit preview pane for the active repository', async function() {
+      const workdir0 = await cloneRepository('three-files');
+      const repository0 = await buildRepository(workdir0);
+
+      const workdir1 = await cloneRepository('three-files');
+      const repository1 = await buildRepository(workdir1);
+
+      const wrapper = shallow(React.cloneElement(app, {repository: repository0}));
+
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      wrapper.setProps({repository: repository1});
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+    });
   });
 });
