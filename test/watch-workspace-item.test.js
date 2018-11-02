@@ -1,7 +1,7 @@
 import {watchWorkspaceItem} from '../lib/watch-workspace-item';
 import URIPattern from '../lib/atom/uri-pattern';
 
-describe('watchWorkspaceItem', function() {
+describe.only('watchWorkspaceItem', function() {
   let sub, atomEnv, workspace, component;
 
   beforeEach(function() {
@@ -70,6 +70,42 @@ describe('watchWorkspaceItem', function() {
       sub = watchWorkspaceItem(workspace, u, component, 'theKey');
       assert.isTrue(component.state.theKey);
     });
+
+    describe('{active: true}', function() {
+      it('is false when the pane is not open', async function() {
+        await workspace.open('atom-github://nonmatching');
+
+        sub = watchWorkspaceItem(workspace, 'atom-github://item', component, 'someKey', {active: true});
+        assert.isFalse(component.state.someKey);
+      });
+
+      it('is false when the pane is open, but not active', async function() {
+        await workspace.open('atom-github://item');
+        await workspace.open('atom-github://nonmatching');
+
+        sub = watchWorkspaceItem(workspace, 'atom-github://item', component, 'someKey', {active: true});
+        assert.isFalse(component.state.someKey);
+      });
+
+      it('is true when the pane is open and active in the workspace', async function() {
+        await workspace.open('atom-github://nonmatching');
+        await workspace.open('atom-github://item');
+
+        sub = watchWorkspaceItem(workspace, 'atom-github://item', component, 'someKey', {active: true});
+        assert.isTrue(component.state.someKey);
+      });
+
+      it('is true when the pane is open and active in any pane', async function() {
+        await workspace.open('atom-github://item', {location: 'right'});
+        await workspace.open('atom-github://nonmatching');
+
+        assert.strictEqual(workspace.getRightDock().getActivePaneItem().getURI(), 'atom-github://item');
+        assert.strictEqual(workspace.getActivePaneItem(), 'atom-github://nonmatching');
+
+        sub = watchWorkspaceItem(workspace, 'atom-github://item', component, 'someKey', {active: true});
+        assert.isTrue(component.state.someKey);
+      });
+    });
   });
 
   describe('workspace events', function() {
@@ -118,6 +154,10 @@ describe('watchWorkspaceItem', function() {
 
       assert.isTrue(component.setState.calledWith({theKey: false}));
     });
+
+    describe('{active: true}', function() {
+      //
+    });
   });
 
   it('stops updating when disposed', async function() {
@@ -154,6 +194,10 @@ describe('watchWorkspaceItem', function() {
 
       await workspace.open('atom-github://item1/match');
       assert.isTrue(component.setState.calledWith({theKey: true}));
+    });
+
+    describe('{active: true}', function() {
+      //
     });
   });
 });
