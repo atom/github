@@ -231,4 +231,12 @@
   &--inactive .highlights .highlight.selection {
     display: none;
   }
+
+  // Readonly editor
+
+  atom-text-editor[readonly] {
+    .cursors {
+      display: none;
+    }
+  }
 }
