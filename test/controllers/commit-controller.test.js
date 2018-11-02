@@ -430,24 +430,38 @@ describe('CommitController', function() {
     it('opens and closes commit preview pane', async function() {
       const workdir = await cloneRepository('three-files');
       const repository = await buildRepository(workdir);
+      const previewURI = CommitPreviewItem.buildURI(workdir);
 
       const wrapper = shallow(React.cloneElement(app, {repository}));
 
-      sinon.spy(workspace, 'toggle');
-
-      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
-      assert.isTrue(workspace.toggle.calledWith(CommitPreviewItem.buildURI(workdir)));
-      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      // Commit preview open as active pane item
+      assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForItem(previewURI).getPendingItem());
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await workspace.open(__filename);
+
+      // Commit preview open, but not active
+      assert.include(workspace.getAllPaneItems().map(i => i.getURI()), previewURI);
+      assert.notStrictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
-      assert.isTrue(workspace.toggle.calledTwice);
-      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      // Open as active pane item again
+      assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForItem(previewURI).getPendingItem());
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
-      assert.isTrue(workspace.toggle.calledThrice);
-      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+
+      // Commit preview closed
+      assert.notInclude(workspace.getAllPaneItems().map(i => i.getURI()), previewURI);
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
     });
 
     it('records a metrics event when pane is toggled', async function() {
@@ -464,7 +478,6 @@ describe('CommitController', function() {
       assert.isTrue(reporterProxy.addEvent.calledOnceWithExactly('toggle-commit-preview', {package: 'github'}));
     });
 
-
     it('toggles the commit preview pane for the active repository', async function() {
       const workdir0 = await cloneRepository('three-files');
       const repository0 = await buildRepository(workdir0);
@@ -474,27 +487,27 @@ describe('CommitController', function() {
 
       const wrapper = shallow(React.cloneElement(app, {repository: repository0}));
 
-      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
-      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       wrapper.setProps({repository: repository1});
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
-      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
-      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
-      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewOpen'));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
     });
   });
 });
