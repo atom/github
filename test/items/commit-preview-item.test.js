@@ -143,7 +143,7 @@ describe('CommitPreviewItem', function() {
     assert.strictEqual(item.getWorkingDirectory(), '/dir7');
   });
 
-  describe('focusActivePatchEditor', function() {
+  describe('focus()', function() {
     it('imperatively focuses the value of the initial focus ref', async function() {
       const wrapper = mount(buildPaneApp());
       const item = await open(wrapper);
@@ -151,7 +151,7 @@ describe('CommitPreviewItem', function() {
       const focusSpy = {focus: sinon.spy()};
       item.refInitialFocus.setter(focusSpy);
 
-      item.focusActivePatchEditor();
+      item.focus();
 
       assert.isTrue(focusSpy.focus.called);
     });
@@ -162,7 +162,7 @@ describe('CommitPreviewItem', function() {
 
       item.refInitialFocus.setter(null);
 
-      item.focusActivePatchEditor();
+      item.focus();
     });
   });
 });
