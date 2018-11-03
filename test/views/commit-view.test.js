@@ -43,7 +43,7 @@ describe('CommitView', function() {
         stagedChangesExist={false}
         mergeConflictsExist={false}
         isCommitting={false}
-        commitPreviewOpen={false}
+        commitPreviewActive={false}
         deactivateCommitBox={false}
         maximumCharacterLimit={72}
         messageBuffer={messageBuffer}
@@ -658,10 +658,10 @@ describe('CommitView', function() {
 
       assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
 
-      wrapper.setProps({commitPreviewOpen: true});
+      wrapper.setProps({commitPreviewActive: true});
       assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Close Commit Preview');
 
-      wrapper.setProps({commitPreviewOpen: false});
+      wrapper.setProps({commitPreviewActive: false});
       assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
     });
   });
