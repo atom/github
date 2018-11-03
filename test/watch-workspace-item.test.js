@@ -100,7 +100,7 @@ describe.only('watchWorkspaceItem', function() {
         await workspace.open('atom-github://nonmatching');
 
         assert.strictEqual(workspace.getRightDock().getActivePaneItem().getURI(), 'atom-github://item');
-        assert.strictEqual(workspace.getActivePaneItem(), 'atom-github://nonmatching');
+        assert.strictEqual(workspace.getActivePaneItem().getURI(), 'atom-github://nonmatching');
 
         sub = watchWorkspaceItem(workspace, 'atom-github://item', component, 'someKey', {active: true});
         assert.isTrue(component.state.someKey);
