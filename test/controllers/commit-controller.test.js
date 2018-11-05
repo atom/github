@@ -13,7 +13,7 @@ import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe.only('CommitController', function() {
+describe('CommitController', function() {
   let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
   let app;
 
