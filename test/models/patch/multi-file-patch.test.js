@@ -59,6 +59,45 @@ describe('MultiFilePatch', function() {
     assert.strictEqual(mp.getHunkAt(23), filePatches[2].getHunks()[1]);
   });
 
+  it('adopts a buffer from a previous patch', function() {
+    const lastBuffer = buffer;
+    const lastLayers = layers;
+    const lastFilePatches = [
+      buildFilePatchFixture(0),
+      buildFilePatchFixture(1),
+      buildFilePatchFixture(2),
+    ];
+    const lastPatch = new MultiFilePatch(lastBuffer, lastLayers.patch, lastLayers.hunk, lastFilePatches);
+
+    buffer = new TextBuffer();
+    layers = {
+      patch: buffer.addMarkerLayer(),
+      hunk: buffer.addMarkerLayer(),
+      unchanged: buffer.addMarkerLayer(),
+      addition: buffer.addMarkerLayer(),
+      deletion: buffer.addMarkerLayer(),
+      noNewline: buffer.addMarkerLayer(),
+    };
+    const nextFilePatches = [
+      buildFilePatchFixture(0),
+      buildFilePatchFixture(1),
+      buildFilePatchFixture(2),
+      buildFilePatchFixture(3),
+    ];
+    const nextPatch = new MultiFilePatch(buffer, layers.patch, layers.hunk, nextFilePatches);
+
+    nextPatch.adoptBufferFrom(lastPatch);
+
+    assert.strictEqual(nextPatch.getBuffer(), lastBuffer);
+    assert.strictEqual(nextPatch.getHunkLayer(), lastLayers.hunk);
+    assert.strictEqual(nextPatch.getUnchangedLayer(), lastLayers.unchanged);
+    assert.strictEqual(nextPatch.getAdditionLayer(), lastLayers.addition);
+    assert.strictEqual(nextPatch.getDeletionLayer(), lastLayers.deletion);
+    assert.strictEqual(nextPatch.getNoNewlineLayer(), lastLayers.noNewline);
+
+    assert.lengthOf(nextPatch.getHunkLayer().getMarkers(), 8);
+  });
+
   function buildFilePatchFixture(index) {
     const rowOffset = buffer.getLastRow();
     for (let i = 0; i < 8; i++) {
