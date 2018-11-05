@@ -501,12 +501,12 @@ describe.only('CommitController', function() {
       assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
-      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
       assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
-      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
       assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
       assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
     });
