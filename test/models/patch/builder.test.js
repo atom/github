@@ -576,6 +576,7 @@ describe('buildFilePatch', function() {
       }
 
       assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
+      assert.deepEqual(mp.getFilePatches()[0].getMarker().getRange().serialize(), [[0, 0], [6, 6]]);
       assertInFilePatch(mp.getFilePatches()[0]).hunks(
         {
           startRow: 0, endRow: 3, header: '@@ -1,2 +1,4 @@', regions: [
@@ -593,6 +594,7 @@ describe('buildFilePatch', function() {
         },
       );
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
       assertInFilePatch(mp.getFilePatches()[1]).hunks(
         {
           startRow: 7, endRow: 10, header: '@@ -5,3 +5,3 @@', regions: [
@@ -604,6 +606,7 @@ describe('buildFilePatch', function() {
         },
       );
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
+      assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[11, 0], [13, 6]]);
       assertInFilePatch(mp.getFilePatches()[2]).hunks(
         {
           startRow: 11, endRow: 13, header: '@@ -1,0 +1,3 @@', regions: [
