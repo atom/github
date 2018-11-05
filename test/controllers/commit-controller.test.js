@@ -13,7 +13,7 @@ import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe('CommitController', function() {
+describe.only('CommitController', function() {
   let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
   let app;
 
@@ -426,8 +426,8 @@ describe('CommitController', function() {
     });
   });
 
-  describe('toggleCommitPreview', function() {
-    it('opens and closes commit preview pane', async function() {
+  describe('tri-state toggle commit preview', function() {
+    it('opens, hides, and closes commit preview pane', async function() {
       const workdir = await cloneRepository('three-files');
       const repository = await buildRepository(workdir);
       const previewURI = CommitPreviewItem.buildURI(workdir);
@@ -436,17 +436,18 @@ describe('CommitController', function() {
 
       assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
+      await workspace.open(path.join(workdir, 'a.txt'));
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
 
       // Commit preview open as active pane item
       assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
-      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForItem(previewURI).getPendingItem());
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForURI(previewURI).getPendingItem());
       assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
-      await workspace.open(__filename);
+      await workspace.open(path.join(workdir, 'a.txt'));
 
       // Commit preview open, but not active
-      assert.include(workspace.getAllPaneItems().map(i => i.getURI()), previewURI);
+      assert.include(workspace.getPaneItems().map(i => i.getURI()), previewURI);
       assert.notStrictEqual(workspace.getActivePaneItem().getURI(), previewURI);
       assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
 
@@ -454,14 +455,14 @@ describe('CommitController', function() {
 
       // Open as active pane item again
       assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
-      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForItem(previewURI).getPendingItem());
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForURI(previewURI).getPendingItem());
       assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
 
       await wrapper.find('CommitView').prop('toggleCommitPreview')();
 
       // Commit preview closed
-      assert.notInclude(workspace.getAllPaneItems().map(i => i.getURI()), previewURI);
-      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+      assert.notInclude(workspace.getPaneItems().map(i => i.getURI()), previewURI);
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
     });
 
     it('records a metrics event when pane is toggled', async function() {

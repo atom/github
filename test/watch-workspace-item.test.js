@@ -1,7 +1,7 @@
 import {watchWorkspaceItem} from '../lib/watch-workspace-item';
 import URIPattern from '../lib/atom/uri-pattern';
 
-describe.only('watchWorkspaceItem', function() {
+describe('watchWorkspaceItem', function() {
   let sub, atomEnv, workspace, component;
 
   beforeEach(function() {
