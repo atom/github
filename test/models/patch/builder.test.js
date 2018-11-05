@@ -1,7 +1,7 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
-describe('buildFilePatch', function() {
+describe.only('buildFilePatch', function() {
   it('returns a null patch for an empty diff list', function() {
     const p = buildFilePatch([]);
     assert.isFalse(p.getOldFile().isPresent());
@@ -556,6 +556,25 @@ describe('buildFilePatch', function() {
       ]);
 
       assert.lengthOf(mp.getFilePatches(), 3);
+
+      assert.strictEqual(
+        mp.getBuffer().getText(),
+        'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\n' +
+        'line-5\nline-6\nline-7\nline-8\n' +
+        'line-0\nline-1\nline-2\n',
+      );
+
+      const assertAllSame = getter => {
+        assert.lengthOf(
+          Array.from(new Set(mp.getFilePatches.map(p => p[getter]()))),
+          1,
+          `FilePatches have different results from ${getter}`,
+        );
+      };
+      for (const getter of ['getUnchangedLayer', 'getAdditionLayer', 'getDeletionLayer', 'getNoNewlineLayer']) {
+        assertAllSame(getter);
+      }
+
       assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
       assertInFilePatch(mp.getFilePatches()[0]).hunks(
         {
