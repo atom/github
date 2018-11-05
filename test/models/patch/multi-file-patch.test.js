@@ -24,7 +24,7 @@ describe('MultiFilePatch', function() {
 
   it('has an accessor for its file patches', function() {
     const filePatches = [buildFilePatchFixture(0), buildFilePatchFixture(1)];
-    const mp = new MultiFilePatch(buffer, layers.patch, filePatches);
+    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
     assert.strictEqual(mp.getFilePatches(), filePatches);
   });
 
@@ -33,12 +33,30 @@ describe('MultiFilePatch', function() {
     for (let i = 0; i < 10; i++) {
       filePatches.push(buildFilePatchFixture(i));
     }
-    const mp = new MultiFilePatch(buffer, layers.patch, filePatches);
+    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
 
     assert.strictEqual(mp.getFilePatchAt(0), filePatches[0]);
     assert.strictEqual(mp.getFilePatchAt(7), filePatches[0]);
     assert.strictEqual(mp.getFilePatchAt(8), filePatches[1]);
     assert.strictEqual(mp.getFilePatchAt(79), filePatches[9]);
+  });
+
+  it('locates a Hunk by marker lookup', function() {
+    const filePatches = [
+      buildFilePatchFixture(0),
+      buildFilePatchFixture(1),
+      buildFilePatchFixture(2),
+    ];
+    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
+
+    assert.strictEqual(mp.getHunkAt(0), filePatches[0].getHunks()[0]);
+    assert.strictEqual(mp.getHunkAt(3), filePatches[0].getHunks()[0]);
+    assert.strictEqual(mp.getHunkAt(4), filePatches[0].getHunks()[1]);
+    assert.strictEqual(mp.getHunkAt(7), filePatches[0].getHunks()[1]);
+    assert.strictEqual(mp.getHunkAt(8), filePatches[1].getHunks()[0]);
+    assert.strictEqual(mp.getHunkAt(15), filePatches[1].getHunks()[1]);
+    assert.strictEqual(mp.getHunkAt(16), filePatches[2].getHunks()[0]);
+    assert.strictEqual(mp.getHunkAt(23), filePatches[2].getHunks()[1]);
   });
 
   function buildFilePatchFixture(index) {

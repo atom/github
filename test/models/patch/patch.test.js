@@ -90,43 +90,6 @@ describe('Patch', function() {
     assert.strictEqual(p1.getMaxLineNumberWidth(), 0);
   });
 
-  it('accesses the Hunk at a buffer row', function() {
-    const buffer = buildBuffer(8);
-    const layers = buildLayers(buffer);
-    const hunk0 = new Hunk({
-      oldStartRow: 1, oldRowCount: 4, newStartRow: 1, newRowCount: 4,
-      marker: markRange(layers.hunk, 0, 3),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 0)),
-        new Addition(markRange(layers.addition, 1)),
-        new Deletion(markRange(layers.deletion, 2)),
-        new Unchanged(markRange(layers.unchanged, 3)),
-      ],
-    });
-    const hunk1 = new Hunk({
-      oldStartRow: 10, oldRowCount: 4, newStartRow: 10, newRowCount: 4,
-      marker: markRange(layers.hunk, 4, 7),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 4)),
-        new Deletion(markRange(layers.deletion, 5)),
-        new Addition(markRange(layers.addition, 6)),
-        new Unchanged(markRange(layers.unchanged, 7)),
-      ],
-    });
-    const hunks = [hunk0, hunk1];
-    const patch = new Patch({status: 'modified', hunks, buffer, layers});
-
-    assert.strictEqual(patch.getHunkAt(0), hunk0);
-    assert.strictEqual(patch.getHunkAt(1), hunk0);
-    assert.strictEqual(patch.getHunkAt(2), hunk0);
-    assert.strictEqual(patch.getHunkAt(3), hunk0);
-    assert.strictEqual(patch.getHunkAt(4), hunk1);
-    assert.strictEqual(patch.getHunkAt(5), hunk1);
-    assert.strictEqual(patch.getHunkAt(6), hunk1);
-    assert.strictEqual(patch.getHunkAt(7), hunk1);
-    assert.isUndefined(patch.getHunkAt(10));
-  });
-
   it('clones itself with optionally overridden properties', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
@@ -844,7 +807,6 @@ describe('Patch', function() {
     assert.strictEqual(nullPatch.toString(), '');
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
     assert.strictEqual(nullPatch.getMaxLineNumberWidth(), 0);
-    assert.isUndefined(nullPatch.getHunkAt(0));
     assert.deepEqual(nullPatch.getFirstChangeRange(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getNextSelectionRange(), [[0, 0], [0, 0]]);
   });

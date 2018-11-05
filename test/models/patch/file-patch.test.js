@@ -48,8 +48,6 @@ describe('FilePatch', function() {
     assert.strictEqual(filePatch.getMarker(), marker);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
 
-    assert.strictEqual(filePatch.getHunkAt(1), hunks[0]);
-
     const nBuffer = new TextBuffer({text: '0001\n0002\n'});
     const nLayers = buildLayers(nBuffer);
     const nHunks = [
