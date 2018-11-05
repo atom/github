@@ -22,7 +22,8 @@ describe('FilePatch', function() {
         ],
       }),
     ];
-    const patch = new Patch({status: 'modified', hunks, buffer, layers});
+    const marker = markRange(layers.patch);
+    const patch = new Patch({status: 'modified', hunks, buffer, layers, marker});
     const oldFile = new File({path: 'a.txt', mode: '120000', symlink: 'dest.txt'});
     const newFile = new File({path: 'b.txt', mode: '100755'});
 
@@ -44,6 +45,7 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getByteSize(), 15);
     assert.strictEqual(filePatch.getBuffer().getText(), '0000\n0001\n0002\n');
+    assert.strictEqual(filePatch.getMarker(), marker);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
 
     assert.strictEqual(filePatch.getHunkAt(1), hunks[0]);
@@ -156,6 +158,29 @@ describe('FilePatch', function() {
     assert.deepEqual(noNewlineRanges.map(range => range.serialize()), [
       [[1, 0], [1, 26]],
     ]);
+  });
+
+  it('returns the starting range of the patch', function() {
+    const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n'});
+    const layers = buildLayers(buffer);
+    const hunks = [
+      new Hunk({
+        oldStartRow: 2, oldRowCount: 1, newStartRow: 2, newRowCount: 3,
+        marker: markRange(layers.hunk, 1, 3),
+        regions: [
+          new Unchanged(markRange(layers.unchanged, 1)),
+          new Addition(markRange(layers.addition, 2, 3)),
+        ],
+      }),
+    ];
+    const marker = markRange(layers.patch, 1, 3);
+    const patch = new Patch({status: 'modified', hunks, buffer, layers, marker});
+    const oldFile = new File({path: 'a.txt', mode: '100644'});
+    const newFile = new File({path: 'a.txt', mode: '100644'});
+
+    const filePatch = new FilePatch(oldFile, newFile, patch);
+
+    assert.deepEqual(filePatch.getStartRange().serialize(), [[1, 0], [1, 0]]);
   });
 
   it('adopts a buffer and layers from a prior FilePatch', function() {
@@ -903,6 +928,7 @@ describe('FilePatch', function() {
 
 function buildLayers(buffer) {
   return {
+    patch: buffer.addMarkerLayer(),
     hunk: buffer.addMarkerLayer(),
     unchanged: buffer.addMarkerLayer(),
     addition: buffer.addMarkerLayer(),
