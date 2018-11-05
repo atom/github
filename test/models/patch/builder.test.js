@@ -1,7 +1,7 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
-describe.only('buildFilePatch', function() {
+describe('buildFilePatch', function() {
   it('returns a null patch for an empty diff list', function() {
     const p = buildFilePatch([]);
     assert.isFalse(p.getOldFile().isPresent());
@@ -566,7 +566,7 @@ describe.only('buildFilePatch', function() {
 
       const assertAllSame = getter => {
         assert.lengthOf(
-          Array.from(new Set(mp.getFilePatches.map(p => p[getter]()))),
+          Array.from(new Set(mp.getFilePatches().map(p => p[getter]()))),
           1,
           `FilePatches have different results from ${getter}`,
         );
@@ -595,19 +595,19 @@ describe.only('buildFilePatch', function() {
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
       assertInFilePatch(mp.getFilePatches()[1]).hunks(
         {
-          startRow: 0, endRow: 3, header: '@@ -5,3 +5,3 @@', regions: [
-            {kind: 'unchanged', string: ' line-5\n', range: [[0, 0], [0, 6]]},
-            {kind: 'addition', string: '+line-6\n', range: [[1, 0], [1, 6]]},
-            {kind: 'deletion', string: '-line-7\n', range: [[2, 0], [2, 6]]},
-            {kind: 'unchanged', string: ' line-8\n', range: [[3, 0], [3, 6]]},
+          startRow: 7, endRow: 10, header: '@@ -5,3 +5,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-5\n', range: [[7, 0], [7, 6]]},
+            {kind: 'addition', string: '+line-6\n', range: [[8, 0], [8, 6]]},
+            {kind: 'deletion', string: '-line-7\n', range: [[9, 0], [9, 6]]},
+            {kind: 'unchanged', string: ' line-8\n', range: [[10, 0], [10, 6]]},
           ],
         },
       );
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
       assertInFilePatch(mp.getFilePatches()[2]).hunks(
         {
-          startRow: 0, endRow: 2, header: '@@ -1,0 +1,3 @@', regions: [
-            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[0, 0], [2, 6]]},
+          startRow: 11, endRow: 13, header: '@@ -1,0 +1,3 @@', regions: [
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[11, 0], [13, 6]]},
           ],
         },
       );
@@ -691,8 +691,8 @@ describe.only('buildFilePatch', function() {
       assert.isTrue(fp1.hasTypechange());
       assert.strictEqual(fp1.getNewSymlink(), 'was-non-symlink-destination');
       assertInFilePatch(fp1).hunks({
-        startRow: 0, endRow: 1, header: '@@ -1,2 +1,0 @@', regions: [
-          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[0, 0], [1, 6]]},
+        startRow: 3, endRow: 4, header: '@@ -1,2 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[3, 0], [4, 6]]},
         ],
       });
 
@@ -700,15 +700,15 @@ describe.only('buildFilePatch', function() {
       assert.isTrue(fp2.hasTypechange());
       assert.strictEqual(fp2.getOldSymlink(), 'was-symlink-destination');
       assertInFilePatch(fp2).hunks({
-        startRow: 0, endRow: 1, header: '@@ -1,0 +1,2 @@', regions: [
-          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
+        startRow: 5, endRow: 6, header: '@@ -1,0 +1,2 @@', regions: [
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[5, 0], [6, 6]]},
         ],
       });
 
       assert.strictEqual(fp3.getNewPath(), 'third');
       assertInFilePatch(fp3).hunks({
-        startRow: 0, endRow: 2, header: '@@ -1,3 +1,0 @@', regions: [
-          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[0, 0], [2, 6]]},
+        startRow: 7, endRow: 9, header: '@@ -1,3 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[7, 0], [9, 6]]},
         ],
       });
     });
