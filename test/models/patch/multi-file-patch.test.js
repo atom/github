@@ -24,7 +24,7 @@ describe('MultiFilePatch', function() {
 
   it('has an accessor for its file patches', function() {
     const filePatches = [buildFilePatchFixture(0), buildFilePatchFixture(1)];
-    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
+    const mp = new MultiFilePatch(buffer, layers, filePatches);
     assert.strictEqual(mp.getFilePatches(), filePatches);
   });
 
@@ -33,7 +33,7 @@ describe('MultiFilePatch', function() {
     for (let i = 0; i < 10; i++) {
       filePatches.push(buildFilePatchFixture(i));
     }
-    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
+    const mp = new MultiFilePatch(buffer, layers, filePatches);
 
     assert.strictEqual(mp.getFilePatchAt(0), filePatches[0]);
     assert.strictEqual(mp.getFilePatchAt(7), filePatches[0]);
@@ -47,7 +47,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(1),
       buildFilePatchFixture(2),
     ];
-    const mp = new MultiFilePatch(buffer, layers.patch, layers.hunk, filePatches);
+    const mp = new MultiFilePatch(buffer, layers, filePatches);
 
     assert.strictEqual(mp.getHunkAt(0), filePatches[0].getHunks()[0]);
     assert.strictEqual(mp.getHunkAt(3), filePatches[0].getHunks()[0]);
@@ -67,7 +67,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(1),
       buildFilePatchFixture(2),
     ];
-    const lastPatch = new MultiFilePatch(lastBuffer, lastLayers.patch, lastLayers.hunk, lastFilePatches);
+    const lastPatch = new MultiFilePatch(lastBuffer, layers, lastFilePatches);
 
     buffer = new TextBuffer();
     layers = {
@@ -84,7 +84,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(2),
       buildFilePatchFixture(3),
     ];
-    const nextPatch = new MultiFilePatch(buffer, layers.patch, layers.hunk, nextFilePatches);
+    const nextPatch = new MultiFilePatch(buffer, layers, nextFilePatches);
 
     nextPatch.adoptBufferFrom(lastPatch);
 
