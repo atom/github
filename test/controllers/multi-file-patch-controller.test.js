@@ -8,7 +8,7 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe.only('MultiFilePatchController', function() {
-  let atomEnv, repository, filePatch;
+  let atomEnv, repository, multiFilePatch;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -19,7 +19,7 @@ describe.only('MultiFilePatchController', function() {
     // a.txt: unstaged changes
     await fs.writeFile(path.join(workdirPath, 'a.txt'), '00\n01\n02\n03\n04\n05\n06');
 
-    filePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
+    multiFilePatch = await repository.getStagedChangesPatch();
   });
 
   afterEach(function() {
@@ -32,7 +32,7 @@ describe.only('MultiFilePatchController', function() {
       stagingStatus: 'unstaged',
       relPath: 'a.txt',
       isPartiallyStaged: false,
-      filePatch,
+      multiFilePatch,
       hasUndoHistory: false,
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,
@@ -155,7 +155,7 @@ describe.only('MultiFilePatchController', function() {
       assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')());
 
       const promise = wrapper.instance().patchChangePromise;
-      wrapper.setProps({filePatch: filePatch.clone()});
+      wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
       await promise;
 
       assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(), 'unstaged');
@@ -243,26 +243,26 @@ describe.only('MultiFilePatchController', function() {
       const wrapper = shallow(buildApp());
       wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]));
 
-      sinon.spy(filePatch, 'getStagePatchForLines');
+      sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
       await wrapper.find('MultiFilePatchView').prop('toggleRows')();
 
-      assert.sameMembers(Array.from(filePatch.getStagePatchForLines.lastCall.args[0]), [1]);
-      assert.isTrue(repository.applyPatchToIndex.calledWith(filePatch.getStagePatchForLines.returnValues[0]));
+      assert.sameMembers(Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]), [1]);
+      assert.isTrue(repository.applyPatchToIndex.calledWith(multiFilePatch.getStagePatchForLines.returnValues[0]));
     });
 
     it('toggles a different row set if provided', async function() {
       const wrapper = shallow(buildApp());
       wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'line');
 
-      sinon.spy(filePatch, 'getStagePatchForLines');
+      sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
       await wrapper.find('MultiFilePatchView').prop('toggleRows')(new Set([2]), 'hunk');
 
-      assert.sameMembers(Array.from(filePatch.getStagePatchForLines.lastCall.args[0]), [2]);
-      assert.isTrue(repository.applyPatchToIndex.calledWith(filePatch.getStagePatchForLines.returnValues[0]));
+      assert.sameMembers(Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]), [2]);
+      assert.isTrue(repository.applyPatchToIndex.calledWith(multiFilePatch.getStagePatchForLines.returnValues[0]));
 
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [2]);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
@@ -418,7 +418,7 @@ describe.only('MultiFilePatchController', function() {
     await wrapper.find('MultiFilePatchView').prop('discardRows')();
 
     const lastArgs = discardLines.lastCall.args;
-    assert.strictEqual(lastArgs[0], filePatch);
+    assert.strictEqual(lastArgs[0], multiFilePatch);
     assert.sameMembers(Array.from(lastArgs[1]), [1, 2]);
     assert.strictEqual(lastArgs[2], repository);
   });
@@ -431,7 +431,7 @@ describe.only('MultiFilePatchController', function() {
     await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([4, 5]), 'hunk');
 
     const lastArgs = discardLines.lastCall.args;
-    assert.strictEqual(lastArgs[0], filePatch);
+    assert.strictEqual(lastArgs[0], multiFilePatch);
     assert.sameMembers(Array.from(lastArgs[1]), [4, 5]);
     assert.strictEqual(lastArgs[2], repository);
 
