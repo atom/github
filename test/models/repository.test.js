@@ -2105,6 +2105,30 @@ describe('Repository', function() {
         );
         await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
       });
+      it('updates commit message to empty string if commit.template is unset', async function() {
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
+        await observer.start();
+
+        assert.strictEqual(repository.getCommitMessage(), '');
+
+        const templatePath = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
+        await repository.git.setConfig('commit.template', templatePath);
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+
+        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+
+        await repository.git.unsetConfig('commit.template');
+
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+        await assert.async.strictEqual(repository.getCommitMessage(), '');
+      });
     });
 
     describe('merge events', function() {
