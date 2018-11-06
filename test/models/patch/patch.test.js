@@ -9,23 +9,11 @@ describe('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
-    const p = new Patch({status: 'modified', hunks: [], buffer, layers});
+    const marker = markRange(layers.patch, 0, Infinity);
+    const p = new Patch({status: 'modified', hunks: [], marker});
     assert.strictEqual(p.getStatus(), 'modified');
     assert.deepEqual(p.getHunks(), []);
-    assert.strictEqual(p.getBuffer().getText(), 'bufferText');
     assert.isTrue(p.isPresent());
-
-    assert.strictEqual(p.getUnchangedLayer().getMarkerCount(), 0);
-    assert.strictEqual(p.getAdditionLayer().getMarkerCount(), 0);
-    assert.strictEqual(p.getDeletionLayer().getMarkerCount(), 0);
-    assert.strictEqual(p.getNoNewlineLayer().getMarkerCount(), 0);
-  });
-
-  it('computes the byte size of the total patch data', function() {
-    const buffer = new TextBuffer({text: '\u00bd + \u00bc = \u00be'});
-    const layers = buildLayers(buffer);
-    const p = new Patch({status: 'modified', hunks: [], buffer, layers});
-    assert.strictEqual(p.getByteSize(), 12);
   });
 
   it('computes the total changed line count', function() {
@@ -58,7 +46,9 @@ describe('Patch', function() {
         ],
       }),
     ];
-    const p = new Patch({status: 'modified', hunks, buffer, layers});
+    const marker = markRange(layers.patch, 0, Infinity);
+
+    const p = new Patch({status: 'modified', hunks, marker});
 
     assert.strictEqual(p.getChangedLineCount(), 10);
   });
@@ -93,34 +83,37 @@ describe('Patch', function() {
   it('clones itself with optionally overridden properties', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
-    const original = new Patch({status: 'modified', hunks: [], buffer, layers});
+    const marker = markRange(layers.patch, 0, Infinity);
+
+    const original = new Patch({status: 'modified', hunks: [], marker});
 
     const dup0 = original.clone();
     assert.notStrictEqual(dup0, original);
     assert.strictEqual(dup0.getStatus(), 'modified');
     assert.deepEqual(dup0.getHunks(), []);
-    assert.strictEqual(dup0.getBuffer().getText(), 'bufferText');
+    assert.strictEqual(dup0.getMarker(), marker);
 
     const dup1 = original.clone({status: 'added'});
     assert.notStrictEqual(dup1, original);
     assert.strictEqual(dup1.getStatus(), 'added');
     assert.deepEqual(dup1.getHunks(), []);
-    assert.strictEqual(dup1.getBuffer().getText(), 'bufferText');
+    assert.strictEqual(dup0.getMarker(), marker);
 
     const hunks = [new Hunk({regions: []})];
     const dup2 = original.clone({hunks});
     assert.notStrictEqual(dup2, original);
     assert.strictEqual(dup2.getStatus(), 'modified');
     assert.deepEqual(dup2.getHunks(), hunks);
-    assert.strictEqual(dup2.getBuffer().getText(), 'bufferText');
+    assert.strictEqual(dup0.getMarker(), marker);
 
     const nBuffer = new TextBuffer({text: 'changed'});
     const nLayers = buildLayers(nBuffer);
-    const dup3 = original.clone({buffer: nBuffer, layers: nLayers});
+    const nMarker = markRange(nLayers.patch, 0, Infinity);
+    const dup3 = original.clone({marker: nMarker});
     assert.notStrictEqual(dup3, original);
     assert.strictEqual(dup3.getStatus(), 'modified');
     assert.deepEqual(dup3.getHunks(), []);
-    assert.strictEqual(dup3.getBuffer().getText(), 'changed');
+    assert.strictEqual(dup3.getMarker(), nMarker);
   });
 
   it('clones a nullPatch as a nullPatch', function() {
@@ -135,22 +128,23 @@ describe('Patch', function() {
     assert.notStrictEqual(dup0, nullPatch);
     assert.strictEqual(dup0.getStatus(), 'added');
     assert.deepEqual(dup0.getHunks(), []);
-    assert.strictEqual(dup0.getBuffer().getText(), '');
+    assert.deepEqual(dup0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
 
     const hunks = [new Hunk({regions: []})];
     const dup1 = nullPatch.clone({hunks});
     assert.notStrictEqual(dup1, nullPatch);
     assert.isNull(dup1.getStatus());
     assert.deepEqual(dup1.getHunks(), hunks);
-    assert.strictEqual(dup1.getBuffer().getText(), '');
+    assert.deepEqual(dup0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
 
     const nBuffer = new TextBuffer({text: 'changed'});
     const nLayers = buildLayers(nBuffer);
-    const dup2 = nullPatch.clone({buffer: nBuffer, layers: nLayers});
+    const nMarker = markRange(nLayers.patch, 0, Infinity);
+    const dup2 = nullPatch.clone({marker: nMarker});
     assert.notStrictEqual(dup2, nullPatch);
     assert.isNull(dup2.getStatus());
     assert.deepEqual(dup2.getHunks(), []);
-    assert.strictEqual(dup2.getBuffer().getText(), 'changed');
+    assert.strictEqual(dup2.getMarker(), nMarker);
   });
 
   describe('stage patch generation', function() {
@@ -801,8 +795,7 @@ describe('Patch', function() {
     const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
     assert.deepEqual(nullPatch.getHunks(), []);
-    assert.strictEqual(nullPatch.getBuffer().getText(), '');
-    assert.strictEqual(nullPatch.getByteSize(), 0);
+    assert.deepEqual(nullPatch.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
     assert.isFalse(nullPatch.isPresent());
     assert.strictEqual(nullPatch.toString(), '');
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
@@ -832,6 +825,7 @@ function buildBuffer(lines, noNewline = false) {
 
 function buildLayers(buffer) {
   return {
+    patch: buffer.addMarkerLayer(),
     hunk: buffer.addMarkerLayer(),
     unchanged: buffer.addMarkerLayer(),
     addition: buffer.addMarkerLayer(),
@@ -895,6 +889,12 @@ function buildPatchFixture() {
       ],
     }),
   ];
+  const marker = markRange(layers.patch, 0, Infinity);
 
-  return new Patch({status: 'modified', hunks, buffer, layers});
+  return {
+    patch: new Patch({status: 'modified', hunks, marker}),
+    buffer,
+    layers,
+    marker,
+  };
 }
