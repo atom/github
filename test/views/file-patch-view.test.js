@@ -2,13 +2,13 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import FilePatchView from '../../lib/views/file-patch-view';
+import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {buildFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe('FilePatchView', function() {
+describe('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatch;
 
   beforeEach(async function() {
@@ -77,7 +77,7 @@ describe('FilePatchView', function() {
       ...overrideProps,
     };
 
-    return <FilePatchView {...props} />;
+    return <MultiFilePatchView {...props} />;
   }
 
   it('renders the file header', function() {
