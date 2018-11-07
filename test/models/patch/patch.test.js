@@ -746,10 +746,11 @@ describe('Patch', function() {
         new Unchanged(markRange(layers.unchanged, 9)),
       ],
     });
+    const marker = markRange(layers.patch, 0, 9);
 
-    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], buffer, layers});
+    const p = new Patch({status: 'modified', hunks: [hunk0, hunk1], marker});
 
-    assert.strictEqual(p.toString(), [
+    assert.strictEqual(p.toStringIn(buffer), [
       '@@ -0,2 +0,3 @@\n',
       ' 0000\n',
       '+0001\n',
@@ -777,9 +778,10 @@ describe('Patch', function() {
         new Unchanged(markRange(layers.unchanged, 5)),
       ],
     });
+    const marker = markRange(layers.patch, 0, 5);
 
-    const p = new Patch({status: 'modified', hunks: [hunk], buffer, layers});
-    assert.strictEqual(p.toString(), [
+    const p = new Patch({status: 'modified', hunks: [hunk], marker});
+    assert.strictEqual(p.toStringIn(buffer), [
       '@@ -1,5 +1,5 @@\n',
       ' \n',
       ' \n',
