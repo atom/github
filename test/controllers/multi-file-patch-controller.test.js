@@ -7,7 +7,7 @@ import MultiFilePatchController from '../../lib/controllers/multi-file-patch-con
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {cloneRepository, buildRepository} from '../helpers';
 
-describe.only('MultiFilePatchController', function() {
+describe('MultiFilePatchController', function() {
   let atomEnv, repository, multiFilePatch;
 
   beforeEach(async function() {
