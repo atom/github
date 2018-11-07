@@ -694,14 +694,15 @@ describe('Patch', function() {
   it('has a stubbed nullPatch counterpart', function() {
     const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
-    assert.deepEqual(nullPatch.getHunks(), []);
     assert.deepEqual(nullPatch.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
-    assert.isFalse(nullPatch.isPresent());
-    assert.strictEqual(nullPatch.toString(), '');
+    assert.deepEqual(nullPatch.getStartRange().serialize(), [[0, 0], [0, 0]]);
+    assert.deepEqual(nullPatch.getHunks(), []);
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
+    assert.isFalse(nullPatch.containsRow(0));
     assert.strictEqual(nullPatch.getMaxLineNumberWidth(), 0);
-    assert.deepEqual(nullPatch.getFirstChangeRange(), [[0, 0], [0, 0]]);
-    assert.deepEqual(nullPatch.getNextSelectionRange(), [[0, 0], [0, 0]]);
+    assert.deepEqual(nullPatch.getFirstChangeRange().serialize(), [[0, 0], [0, 0]]);
+    assert.strictEqual(nullPatch.toStringIn(), '');
+    assert.isFalse(nullPatch.isPresent());
   });
 });
 
