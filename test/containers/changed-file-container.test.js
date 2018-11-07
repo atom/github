@@ -54,45 +54,45 @@ describe('ChangedFileContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it('renders a FilePatchView', async function() {
+  it('renders a MultiFilePatchController', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchView').exists());
+    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
   });
 
   it('adopts the buffer from the previous FilePatch when a new one arrives', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
 
-    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const prevPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
     const prevBuffer = prevPatch.getBuffer();
 
     await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'changed\nagain\n');
     repository.refresh();
 
-    await assert.async.notStrictEqual(wrapper.update().find('FilePatchController').prop('filePatch'), prevPatch);
+    await assert.async.notStrictEqual(wrapper.update().find('MultiFilePatchController').prop('multiFilePatch'), prevPatch);
 
-    const nextBuffer = wrapper.find('FilePatchController').prop('filePatch').getBuffer();
+    const nextBuffer = wrapper.find('MultiFilePatchController').prop('multiFilePatch').getBuffer();
     assert.strictEqual(nextBuffer, prevBuffer);
   });
 
   it('does not adopt a buffer from an unchanged patch', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
 
-    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const prevPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
     sinon.spy(prevPatch, 'adoptBufferFrom');
 
     wrapper.setProps({});
 
     assert.isFalse(prevPatch.adoptBufferFrom.called);
 
-    const nextPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const nextPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
     assert.strictEqual(nextPatch, prevPatch);
   });
 
   it('passes unrecognized props to the FilePatchView', async function() {
     const extra = Symbol('extra');
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged', extra}));
-    await assert.async.strictEqual(wrapper.update().find('FilePatchView').prop('extra'), extra);
+    await assert.async.strictEqual(wrapper.update().find('MultiFilePatchView').prop('extra'), extra);
   });
 });
