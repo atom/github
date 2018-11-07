@@ -8,7 +8,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
 import {Directory} from 'atom';
-import {Emitter} from 'event-kit';
+import {Emitter, CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
@@ -16,6 +16,7 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {clearRelayExpectations} from '../lib/relay-network-layer-manager';
+import FileSystemChangeObserver from '../lib/models/file-system-change-observer';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -382,4 +383,63 @@ export class ManualStateObserver {
   dispose() {
     this.emitter.dispose();
   }
+}
+
+
+// File system event helpers
+let observedEvents, eventCallback;
+
+export async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
+  observedEvents = [];
+  eventCallback = () => {};
+
+  const workdir = existingWorkdir || await cloneRepository(fixtureName);
+  const repository = new Repository(workdir);
+  await repository.getLoadPromise();
+
+  const observer = new FileSystemChangeObserver(repository);
+
+  const subscriptions = new CompositeDisposable(
+    new Disposable(async () => {
+      await observer.destroy();
+      repository.destroy();
+    }),
+  );
+
+  subscriptions.add(observer.onDidChange(events => {
+    observedEvents.push(...events);
+    eventCallback();
+  }));
+
+  return {repository, observer, subscriptions};
+}
+
+export function expectEvents(repository, ...suffixes) {
+  const pending = new Set(suffixes);
+  return new Promise((resolve, reject) => {
+    eventCallback = () => {
+      const matchingPaths = observedEvents
+        .filter(event => {
+          for (const suffix of pending) {
+            if (event.path.endsWith(suffix)) {
+              pending.delete(suffix);
+              return true;
+            }
+          }
+          return false;
+        });
+
+      if (matchingPaths.length > 0) {
+        repository.observeFilesystemChange(matchingPaths);
+      }
+
+      if (pending.size === 0) {
+        resolve();
+      }
+    };
+
+    if (observedEvents.length > 0) {
+      eventCallback();
+    }
+  });
 }

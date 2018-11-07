@@ -52,7 +52,6 @@ describe('CommitController', function() {
         isMerging={false}
         mergeConflictsExist={false}
         stagedChangesExist={false}
-        mergeMessage={''}
         lastCommit={lastCommit}
         currentBranch={nullBranch}
         userStore={store}
@@ -73,19 +72,29 @@ describe('CommitController', function() {
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
 
+    // set commit template for repository2
+    const templatePath = path.join(workdirPath2, 'a.txt');
+    const templateText = fs.readFileSync(templatePath, 'utf8');
+    await repository2.git.setConfig('commit.template', templatePath);
+    await assert.async.strictEqual(repository2.getCommitMessage(), templateText);
+
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app, {disableLifecycleMethods: true});
 
     assert.strictEqual(wrapper.instance().getCommitMessage(), '');
 
     wrapper.instance().setCommitMessage('message 1');
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
 
     wrapper.setProps({repository: repository2});
-
-    assert.strictEqual(wrapper.instance().getCommitMessage(), '');
+    await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateText);
+    wrapper.instance().setCommitMessage('message 2');
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
+
+    wrapper.setProps({repository: repository2});
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 2');
   });
 
   describe('the passed commit message', function() {
@@ -112,21 +121,6 @@ describe('CommitController', function() {
       wrapper.find('CommitView').prop('messageBuffer').setText('new message');
       assert.strictEqual(instance.getCommitMessage(), 'new message');
       assert.isFalse(repository.state.didUpdate.called);
-    });
-
-    describe('when a merge message is defined', function() {
-      it('is set to the merge message when merging', function() {
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), 'merge conflict!');
-      });
-
-      it('is set to getCommitMessage() if it is set', function() {
-        repository.setCommitMessage('some commit message');
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
-        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), 'some commit message');
-      });
     });
   });
 
@@ -184,6 +178,26 @@ describe('CommitController', function() {
       assert.isTrue(notificationManager.addError.called);
 
       assert.strictEqual(repository.getCommitMessage(), 'some message');
+    });
+
+    it('restores template after committing', async function() {
+      const templatePath = path.join(workdirPath, 'a.txt');
+      const templateText = fs.readFileSync(templatePath, 'utf8');
+      await repository.git.setConfig('commit.template', templatePath);
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+
+      const nonTemplateText = 'some new text...';
+      repository.setCommitMessage(nonTemplateText);
+
+      assert.strictEqual(repository.getCommitMessage(), nonTemplateText);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      await fs.writeFile(path.join(workdirPath, 'new-file.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.stageFiles(['new-file.txt']);
+      await wrapper.instance().commit(nonTemplateText);
+
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
     });
 
     describe('message formatting', function() {

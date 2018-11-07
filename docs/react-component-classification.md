@@ -10,9 +10,9 @@ These live within [`lib/items/`](/lib/items), are tested within [`test/items/`](
 
 ## Containers
 
-**Containers** are responsible for statefully fetching asynchronous data and rendering their children appropriately. They handle the logic for how subtrees handle loading operations (displaying a loading spinner, passing null objects to their children) and how errors are reported. Containers should mostly be thin wrappers around things like [`<ObserveModel>`](lib/views/observe-model.js), [`<QueryRenderer>`](https://facebook.github.io/relay/docs/en/query-renderer.html), or [context](https://reactjs.org/docs/context.html) providers
+**Containers** are responsible for statefully fetching asynchronous data and rendering their children appropriately. They handle the logic for how subtrees handle loading operations (displaying a loading spinner, passing null objects to their children) and how errors are reported. Containers should mostly be thin wrappers around things like [`<ObserveModel>`](/lib/views/observe-model.js), [`<QueryRenderer>`](https://facebook.github.io/relay/docs/en/query-renderer.html), or [context](https://reactjs.org/docs/context.html) providers
 
- These live within [`lib/containers`]/(lib/containers), are tested within [`test/containers`](/test/containers), and are named with a `Container` suffix. Examples: `PrInfoContainer`, `GitTabContainer`.
+ These live within [`lib/containers`](/lib/containers), are tested within [`test/containers`](/test/containers), and are named with a `Container` suffix. Examples: `PrInfoContainer`, `GitTabContainer`.
 
 ## Controllers
 
