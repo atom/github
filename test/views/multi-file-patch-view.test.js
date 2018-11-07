@@ -8,7 +8,7 @@ import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe('MultiFilePatchView', function() {
+describe.only('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatch;
 
   beforeEach(async function() {
