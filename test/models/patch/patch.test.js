@@ -147,6 +147,20 @@ describe('Patch', function() {
     assert.strictEqual(dup2.getMarker(), nMarker);
   });
 
+  it('returns an empty Range at the beginning of its Marker', function() {
+    const {patch} = buildPatchFixture();
+    assert.deepEqual(patch.getStartRange().serialize(), [[0, 0], [0, 0]]);
+  });
+
+  it('determines whether or not a buffer row belongs to this patch', function() {
+    const {patch} = buildPatchFixture();
+
+    assert.isTrue(patch.containsRow(0));
+    assert.isTrue(patch.containsRow(5));
+    assert.isTrue(patch.containsRow(26));
+    assert.isFalse(patch.containsRow(27));
+  });
+
   describe('stage patch generation', function() {
     let stageLayeredBuffer;
 
@@ -547,6 +561,28 @@ describe('Patch', function() {
       assert.strictEqual(unstagePatch.getStatus(), 'deleted');
     });
 
+    it('returns an addition when unstaging a deletion', function() {
+      const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+      const layers = buildLayers(buffer);
+      const hunks = [
+        new Hunk({
+          oldStartRow: 1,
+          oldRowCount: 0,
+          newStartRow: 1,
+          newRowCount: 3,
+          marker: markRange(layers.hunk, 0, 2),
+          regions: [
+            new Addition(markRange(layers.addition, 0, 2)),
+          ],
+        }),
+      ];
+      const marker = markRange(layers.patch, 0, 2);
+      const patch = new Patch({status: 'deleted', hunks, marker});
+
+      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+      assert.strictEqual(unstagePatch.getStatus(), 'added');
+    });
+
     it('returns a nullPatch as a nullPatch', function() {
       const nullPatch = Patch.createNull();
       assert.strictEqual(nullPatch.buildUnstagePatchForLines(new Set([1, 2, 3])), nullPatch);
@@ -704,6 +740,8 @@ function markRange(buffer, start, end = start) {
 
 function buildPatchFixture() {
   const buffer = buildBuffer(26, true);
+  buffer.append('\n\n\n\n\n\n');
+
   const layers = buildLayers(buffer);
 
   const hunks = [
@@ -753,7 +791,7 @@ function buildPatchFixture() {
       ],
     }),
   ];
-  const marker = markRange(layers.patch, 0, Infinity);
+  const marker = markRange(layers.patch, 0, 26);
 
   return {
     patch: new Patch({status: 'modified', hunks, marker}),
