@@ -562,7 +562,8 @@ describe('RootController', function() {
 
     describe('undoLastDiscard(partialDiscardFilePath)', () => {
       describe('when partialDiscardFilePath is not null', () => {
-        let unstagedFilePatch, multiFilePatch, repository, absFilePath, wrapper;
+        let multiFilePatch, repository, absFilePath, wrapper;
+
         beforeEach(async () => {
           const workdirPath = await cloneRepository('multi-line-file');
           repository = await buildRepository(workdirPath);
@@ -571,15 +572,15 @@ describe('RootController', function() {
           fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
           multiFilePatch = await repository.getFilePatchForPath('sample.js');
 
-          unstagedFilePatch = multiFilePatch.getFilePatches()[0];
-
           app = React.cloneElement(app, {repository});
           wrapper = shallow(app);
         });
 
         it('reverses last discard for file path', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)), repository);
+
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0, repository);
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
 
           assert.notEqual(contents1, contents2);
@@ -587,7 +588,8 @@ describe('RootController', function() {
 
           multiFilePatch = await repository.getFilePatchForPath('sample.js');
 
-          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
+          const rows1 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(2, 4));
+          await wrapper.instance().discardLines(multiFilePatch, rows1);
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
@@ -599,7 +601,8 @@ describe('RootController', function() {
 
         it('does not undo if buffer is modified', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0);
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
@@ -611,7 +614,6 @@ describe('RootController', function() {
           sinon.stub(notificationManager, 'addError');
 
           await repository.refresh();
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
           await wrapper.instance().undoLastDiscard('sample.js');
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot undo last discard.');
@@ -622,7 +624,8 @@ describe('RootController', function() {
         describe('when file content has changed since last discard', () => {
           it('successfully undoes discard if changes do not conflict', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+            const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+            await wrapper.instance().discardLines(multiFilePatch, rows0);
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -640,7 +643,8 @@ describe('RootController', function() {
             await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+            const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+            await wrapper.instance().discardLines(multiFilePatch, rows0);
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -701,9 +705,13 @@ describe('RootController', function() {
 
         it('clears the discard history if the last blob is no longer valid', async () => {
           // this would occur in the case of garbage collection cleaning out the blob
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0);
           await repository.refresh();
-          const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
+
+          const multiFilePatch1 = await repository.getFilePatchForPath('sample.js');
+          const rows1 = new Set(multiFilePatch1.getFilePatches()[0].getHunks()[0].getBufferRows().slice(2, 4));
+          const {beforeSha} = await wrapper.instance().discardLines(multiFilePatch1, rows1);
 
           // remove blob from git object store
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
