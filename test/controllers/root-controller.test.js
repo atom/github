@@ -20,6 +20,7 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
 
+describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let workdirContextPool;
@@ -486,6 +487,7 @@ import RootController from '../../lib/controllers/root-controller';
     });
   });
 
+  // these tests no worky
   describe('discarding and restoring changed lines', () => {
     describe('discardLines(filePatch, lines)', () => {
       it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
