@@ -418,7 +418,7 @@ describe('MultiFilePatchView', function() {
         }),
       });
 
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
       const meta = wrapper.find('FilePatchMetaView[title="Symlink created"]');
       assert.isTrue(meta.exists());
       assert.strictEqual(
