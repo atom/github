@@ -6,7 +6,7 @@ import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
 import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion} from '../../../lib/models/patch/region';
+import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
 
 describe('MultiFilePatch', function() {
@@ -77,6 +77,14 @@ describe('MultiFilePatch', function() {
     });
   });
 
+  it('computes the maximum line number width of any hunk in any patch', function() {
+    const mp = new MultiFilePatch(buffer, layers, [
+      buildFilePatchFixture(0),
+      buildFilePatchFixture(1),
+    ]);
+    assert.strictEqual(mp.getMaxLineNumberWidth(), 2);
+  });
+
   it('locates an individual FilePatch by marker lookup', function() {
     const filePatches = [];
     for (let i = 0; i < 10; i++) {
@@ -121,13 +129,50 @@ describe('MultiFilePatch', function() {
     assert.strictEqual(mp.getHunkAt(23), filePatches[2].getHunks()[1]);
   });
 
+  it('represents itself as an apply-ready string', function() {
+    const mp = new MultiFilePatch(buffer, layers, [
+      buildFilePatchFixture(0),
+      buildFilePatchFixture(1),
+    ]);
+
+    assert.strictEqual(mp.toString(), dedent`
+      diff --git a/file-0.txt b/file-0.txt
+      --- a/file-0.txt
+      +++ b/file-0.txt
+      @@ -0,3 +0,3 @@
+       file-0 line-0
+      +file-0 line-1
+      -file-0 line-2
+       file-0 line-3
+      @@ -10,3 +10,3 @@
+       file-0 line-4
+      +file-0 line-5
+      -file-0 line-6
+       file-0 line-7
+      diff --git a/file-1.txt b/file-1.txt
+      --- a/file-1.txt
+      +++ b/file-1.txt
+      @@ -0,3 +0,3 @@
+       file-1 line-0
+      +file-1 line-1
+      -file-1 line-2
+       file-1 line-3
+      @@ -10,3 +10,3 @@
+       file-1 line-4
+      +file-1 line-5
+      -file-1 line-6
+       file-1 line-7
+
+    `);
+  });
+
   it('adopts a buffer from a previous patch', function() {
     const lastBuffer = buffer;
     const lastLayers = layers;
     const lastFilePatches = [
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
-      buildFilePatchFixture(2),
+      buildFilePatchFixture(2, {noNewline: true}),
     ];
     const lastPatch = new MultiFilePatch(lastBuffer, layers, lastFilePatches);
 
@@ -144,7 +189,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
       buildFilePatchFixture(2),
-      buildFilePatchFixture(3),
+      buildFilePatchFixture(3, {noNewline: true}),
     ];
     const nextPatch = new MultiFilePatch(buffer, layers, nextFilePatches);
 
@@ -545,6 +590,7 @@ describe('MultiFilePatch', function() {
       newFileMode: '100644',
       newFileSymlink: null,
       status: 'modified',
+      noNewline: false,
       ...options,
     };
 
@@ -552,11 +598,21 @@ describe('MultiFilePatch', function() {
     for (let i = 0; i < 8; i++) {
       buffer.append(`file-${index} line-${i}\n`);
     }
+    if (opts.noNewline) {
+      buffer.append(' No newline at end of file\n');
+    }
 
     let oldFile = new File({path: opts.oldFilePath, mode: opts.oldFileMode, symlink: opts.oldFileSymlink});
     const newFile = new File({path: opts.newFilePath, mode: opts.newFileMode, symlink: opts.newFileSymlink});
 
     const mark = (layer, start, end = start) => layer.markRange([[rowOffset + start, 0], [rowOffset + end, Infinity]]);
+
+    const withNoNewlineRegion = regions => {
+      if (opts.noNewline) {
+        regions.push(new NoNewline(mark(layers.noNewline, 8)));
+      }
+      return regions;
+    };
 
     let hunks = [];
     if (opts.status === 'modified') {
@@ -575,13 +631,13 @@ describe('MultiFilePatch', function() {
         new Hunk({
           oldStartRow: 10, newStartRow: 10, oldRowCount: 3, newRowCount: 3,
           sectionHeading: `file-${index} hunk-1`,
-          marker: mark(layers.hunk, 4, 7),
-          regions: [
+          marker: mark(layers.hunk, 4, opts.noNewline ? 8 : 7),
+          regions: withNoNewlineRegion([
             new Unchanged(mark(layers.unchanged, 4)),
             new Addition(mark(layers.addition, 5)),
             new Deletion(mark(layers.deletion, 6)),
             new Unchanged(mark(layers.unchanged, 7)),
-          ],
+          ]),
         }),
       ];
     } else if (opts.status === 'added') {
@@ -589,10 +645,10 @@ describe('MultiFilePatch', function() {
         new Hunk({
           oldStartRow: 0, newStartRow: 0, oldRowCount: 8, newRowCount: 8,
           sectionHeading: `file-${index} hunk-0`,
-          marker: mark(layers.hunk, 0, 7),
-          regions: [
+          marker: mark(layers.hunk, 0, opts.noNewline ? 8 : 7),
+          regions: withNoNewlineRegion([
             new Addition(mark(layers.addition, 0, 7)),
-          ],
+          ]),
         }),
       ];
 
