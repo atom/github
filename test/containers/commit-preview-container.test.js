@@ -19,8 +19,11 @@ describe('CommitPreviewContainer', function() {
   });
 
   function buildApp(override = {}) {
+
     const props = {
       repository,
+      ...atomEnv,
+      destroy: () => {},
       ...override,
     };
 
