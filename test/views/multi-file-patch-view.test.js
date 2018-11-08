@@ -3,13 +3,13 @@ import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
-import {buildFilePatch} from '../../lib/models/patch';
+import {buildFilePatch, buildMultiFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe('MultiFilePatchView', function() {
-  let atomEnv, workspace, repository, filePatch;
+describe.only('MultiFilePatchView', function() {
+  let atomEnv, workspace, repository, filePatches;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,12 +17,31 @@ describe('MultiFilePatchView', function() {
 
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
+    // filePatches = repository.getStagedChangesPatch();
 
     // path.txt: unstaged changes
-    filePatch = buildFilePatch([{
+    filePatches = buildMultiFilePatch([{
       oldPath: 'path.txt',
       oldMode: '100644',
       newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
+          heading: 'zero',
+          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
+          heading: 'one',
+          lines: [' 0005', '+0006', '-0007', ' 0008'],
+        },
+      ],
+    }, {
+      oldPath: 'path2.txt',
+      oldMode: '100644',
+      newPath: 'path2.txt',
       newMode: '100644',
       status: 'modified',
       hunks: [
@@ -49,7 +68,7 @@ describe('MultiFilePatchView', function() {
       relPath: 'path.txt',
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
-      filePatch,
+      multiFilePatch: filePatches,
       hasUndoHistory: false,
       selectionMode: 'line',
       selectedRows: new Set(),
@@ -89,7 +108,7 @@ describe('MultiFilePatchView', function() {
     const undoLastDiscard = sinon.spy();
     const wrapper = shallow(buildApp({undoLastDiscard}));
 
-    wrapper.find('FilePatchHeaderView').prop('undoLastDiscard')();
+    wrapper.find('FilePatchHeaderView').first().prop('undoLastDiscard')();
 
     assert.isTrue(undoLastDiscard.calledWith({eventSource: 'button'}));
   });
@@ -98,7 +117,7 @@ describe('MultiFilePatchView', function() {
     const wrapper = mount(buildApp());
 
     const editor = wrapper.find('AtomTextEditor');
-    assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
+    assert.strictEqual(editor.instance().getModel().getText(), filePatches.getBuffer().getText());
   });
 
   it('enables autoHeight on the editor when requested', function() {
