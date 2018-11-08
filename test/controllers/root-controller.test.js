@@ -20,7 +20,6 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
 
-describe('RootController', function() {
   let atomEnv, app;
   let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let workdirContextPool;
@@ -494,7 +493,7 @@ describe('RootController', function() {
         const repository = await buildRepository(workdirPath);
 
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
-        const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+        const multiFilePatch = await repository.getFilePatchForPath('a.txt');
         const unstagedFilePatch = multiFilePatch.getFilePatches()[0];
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
@@ -561,14 +560,16 @@ describe('RootController', function() {
 
     describe('undoLastDiscard(partialDiscardFilePath)', () => {
       describe('when partialDiscardFilePath is not null', () => {
-        let unstagedFilePatch, repository, absFilePath, wrapper;
+        let unstagedFilePatch, multiFilePatch, repository, absFilePath, wrapper;
         beforeEach(async () => {
           const workdirPath = await cloneRepository('multi-line-file');
           repository = await buildRepository(workdirPath);
 
           absFilePath = path.join(workdirPath, 'sample.js');
           fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          multiFilePatch = await repository.getFilePatchForPath('sample.js');
+
+          unstagedFilePatch = multiFilePatch.getFilePatches()[0];
 
           app = React.cloneElement(app, {repository});
           wrapper = shallow(app);
@@ -581,14 +582,16 @@ describe('RootController', function() {
 
         it('reverses last discard for file path', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)), repository);
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
+
           assert.notEqual(contents1, contents2);
           await repository.refresh();
 
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          multiFilePatch = await repository.getFilePatchForPath('sample.js');
+
           wrapper.setState({filePatch: unstagedFilePatch});
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
+          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
@@ -600,7 +603,7 @@ describe('RootController', function() {
 
         it('does not undo if buffer is modified', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
