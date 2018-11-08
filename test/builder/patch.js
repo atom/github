@@ -83,7 +83,7 @@ class FilePatchBuilder {
     this.layeredBuffer = layeredBuffer;
 
     this.oldFile = new File({path: 'file', mode: '100644'});
-    this.newFile = new File({path: 'file', mode: '100644'});
+    this.newFile = null;
 
     this.patchBuilder = new PatchBuilder(this.layeredBuffer);
   }
@@ -104,6 +104,10 @@ class FilePatchBuilder {
 
   build() {
     const {patch} = this.patchBuilder.build();
+
+    if (this.newFile === null) {
+      this.newFile = this.oldFile.clone();
+    }
 
     return this.layeredBuffer.wrapReturn({
       filePatch: new FilePatch(this.oldFile, this.newFile, patch),
