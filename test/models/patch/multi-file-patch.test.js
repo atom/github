@@ -109,7 +109,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(3),
     ];
     const original = new MultiFilePatch(buffer, layers, filePatches);
-    const stagePatch = original.getStagePatchForLines(new Set([18, 24, 44, 45]));
+    const stagePatch = original.getStagePatchForLines(new Set([9, 14, 25, 26]));
 
     assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
       file-1 line-0
@@ -123,15 +123,16 @@ describe('MultiFilePatch', function() {
       file-3 line-1
       file-3 line-2
       file-3 line-3
+
     `);
 
     assert.lengthOf(stagePatch.getFilePatches(), 2);
     const [fp0, fp1] = stagePatch.getFilePatches();
     assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
-    assertInFilePatch(fp0, buffer).hunks(
+    assertInFilePatch(fp0, stagePatch.getBuffer()).hunks(
       {
         startRow: 0, endRow: 3,
-        header: '@@ -0,4 +0,3 @@',
+        header: '@@ -0,3 +0,4 @@',
         regions: [
           {kind: 'unchanged', string: ' file-1 line-0\n', range: [[0, 0], [0, 13]]},
           {kind: 'addition', string: '+file-1 line-1\n', range: [[1, 0], [1, 13]]},
@@ -139,8 +140,8 @@ describe('MultiFilePatch', function() {
         ],
       },
       {
-        startRow: 4, endRow: 8,
-        header: '@@ -10,3 +9,3 @@',
+        startRow: 4, endRow: 6,
+        header: '@@ -10,3 +11,2 @@',
         regions: [
           {kind: 'unchanged', string: ' file-1 line-4\n', range: [[4, 0], [4, 13]]},
           {kind: 'deletion', string: '-file-1 line-6\n', range: [[5, 0], [5, 13]]},
@@ -150,10 +151,10 @@ describe('MultiFilePatch', function() {
     );
 
     assert.strictEqual(fp1.getOldPath(), 'file-3.txt');
-    assertInFilePatch(fp1, buffer).hunks(
+    assertInFilePatch(fp1, stagePatch.getBuffer()).hunks(
       {
-        startRow: 9, endRow: 12,
-        header: '@@ -0,3 +0.3 @@',
+        startRow: 7, endRow: 10,
+        header: '@@ -0,3 +0,3 @@',
         regions: [
           {kind: 'unchanged', string: ' file-3 line-0\n', range: [[7, 0], [7, 13]]},
           {kind: 'addition', string: '+file-3 line-1\n', range: [[8, 0], [8, 13]]},
