@@ -136,15 +136,6 @@ describe.only('MultiFilePatchView', function() {
     assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
   });
 
-  it('sets the root class when active or inactive', function() {
-    const wrapper = shallow(buildApp({isActive: true}));
-    assert.isTrue(wrapper.find('.github-FilePatchView--active').exists());
-    assert.isFalse(wrapper.find('.github-FilePatchView--inactive').exists());
-    wrapper.setProps({isActive: false});
-    assert.isFalse(wrapper.find('.github-FilePatchView--active').exists());
-    assert.isTrue(wrapper.find('.github-FilePatchView--inactive').exists());
-  });
-
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
