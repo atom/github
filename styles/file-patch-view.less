@@ -2,8 +2,7 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-@hunk-fg-color: @text-color-subtle;
-@hunk-bg-color: @pane-item-background-color;
+@header-bg-color: mix(@syntax-text-color, @syntax-background-color, 6%);
 
 .github-FilePatchView {
   display: flex;
@@ -24,14 +23,28 @@
     padding: @component-padding;
   }
 
+  // TODO: Use better selector
+  .react-atom-decoration {
+    padding: @component-padding;
+    padding-left: 0;
+    background-color: @syntax-background-color;
+
+    & + .react-atom-decoration {
+      padding-top: 0;
+    }
+  }
+
   &-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: @component-padding/2;
     padding-left: @component-padding;
-    border-bottom: 1px solid @base-border-color;
-    background-color: @pane-item-background-color;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    font-family: system-ui;
+    background-color: @header-bg-color;
+    cursor: default;
 
     .btn {
       font-size: .9em;
