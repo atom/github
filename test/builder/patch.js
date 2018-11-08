@@ -102,6 +102,16 @@ class FilePatchBuilder {
     return this;
   }
 
+  status(...args) {
+    this.patchBuilder.status(...args);
+    return this;
+  }
+
+  addHunk(...args) {
+    this.patchBuilder.addHunk(...args);
+    return this;
+  }
+
   build() {
     const {patch} = this.patchBuilder.build();
 
