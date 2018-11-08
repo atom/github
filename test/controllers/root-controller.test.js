@@ -575,11 +575,6 @@ describe('RootController', function() {
 
           app = React.cloneElement(app, {repository});
           wrapper = shallow(app);
-          wrapper.setState({
-            filePath: 'sample.js',
-            filePatch: unstagedFilePatch,
-            stagingStatus: 'unstaged',
-          });
         });
 
         it('reverses last discard for file path', async () => {
@@ -592,7 +587,6 @@ describe('RootController', function() {
 
           multiFilePatch = await repository.getFilePatchForPath('sample.js');
 
-          wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
@@ -618,7 +612,6 @@ describe('RootController', function() {
 
           await repository.refresh();
           unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-          wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().undoLastDiscard('sample.js');
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot undo last discard.');
@@ -638,8 +631,6 @@ describe('RootController', function() {
             fs.writeFileSync(absFilePath, contents2 + change);
 
             await repository.refresh();
-            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-            wrapper.setState({filePatch: unstagedFilePatch});
             await wrapper.instance().undoLastDiscard('sample.js');
 
             await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
@@ -658,8 +649,6 @@ describe('RootController', function() {
             fs.writeFileSync(absFilePath, change + contents2);
 
             await repository.refresh();
-            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-            wrapper.setState({filePatch: unstagedFilePatch});
 
             // click 'Cancel'
             confirm.returns(2);
@@ -714,8 +703,6 @@ describe('RootController', function() {
           // this would occur in the case of garbage collection cleaning out the blob
           await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
           await repository.refresh();
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-          wrapper.setState({filePatch: unstagedFilePatch});
           const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
 
           // remove blob from git object store
