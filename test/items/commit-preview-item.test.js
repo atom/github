@@ -28,6 +28,11 @@ describe('CommitPreviewItem', function() {
   function buildPaneApp(override = {}) {
     const props = {
       workdirContextPool: pool,
+      workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
       ...override,
     };
 
