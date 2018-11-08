@@ -38,24 +38,6 @@ describe('MultiFilePatchView', function() {
           lines: [' 0005', '+0006', '-0007', ' 0008'],
         },
       ],
-    }, {
-      oldPath: 'path2.txt',
-      oldMode: '100644',
-      newPath: 'path2.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
-          heading: 'zero',
-          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
-          heading: 'one',
-          lines: [' 0005', '+0006', '-0007', ' 0008'],
-        },
-      ],
     }]);
   });
 
@@ -302,12 +284,16 @@ describe('MultiFilePatchView', function() {
 
   describe('executable mode changes', function() {
     it('does not render if the mode has not changed', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
-        newFile: filePatch.getNewFile().clone({mode: '100644'}),
+      const [fp] = filePatches.getFilePatches();
+
+      const mfp = filePatches.clone({
+        filePatches: fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '100644'}),
+          newFile: fp.getNewFile().clone({mode: '100644'}),
+        }),
       });
 
-      const wrapper = shallow(buildApp({filePatch: fp}));
+      const wrapper = shallow(buildApp({multiFilePatch: mfp}));
       assert.isFalse(wrapper.find('FilePatchMetaView[title="Mode change"]').exists());
     });
 
