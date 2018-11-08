@@ -6,6 +6,7 @@ import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {buildFilePatch, buildMultiFilePatch} from '../../lib/models/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
+import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
 describe('MultiFilePatchView', function() {
