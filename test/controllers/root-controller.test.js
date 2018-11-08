@@ -495,6 +495,7 @@ describe('RootController', function() {
 
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
         const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+        const unstagedFilePatch = multiFilePatch.getFilePatches()[0];
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
@@ -511,14 +512,14 @@ describe('RootController', function() {
         sinon.stub(notificationManager, 'addError');
         // unmodified buffer
         const hunkLines = unstagedFilePatch.getHunks()[0].getBufferRows();
-        await wrapper.instance().discardLines(unstagedFilePatch, new Set([hunkLines[0]]));
+        await wrapper.instance().discardLines(multiFilePatch, new Set([hunkLines[0]]));
         assert.isTrue(repository.applyPatchToWorkdir.calledOnce);
         assert.isFalse(notificationManager.addError.called);
 
         // modified buffer
         repository.applyPatchToWorkdir.reset();
         editor.setText('modify contents');
-        await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows()));
+        await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows()));
         assert.isFalse(repository.applyPatchToWorkdir.called);
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Cannot discard lines.');
