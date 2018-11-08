@@ -25,63 +25,63 @@ describe('MultiFilePatch', function() {
   });
 
   it('creates an empty patch when constructed with no arguments', function() {
-    const empty = new MultiFilePatch();
+    const empty = new MultiFilePatch({});
     assert.isFalse(empty.anyPresent());
     assert.lengthOf(empty.getFilePatches(), 0);
   });
 
   it('detects when it is not empty', function() {
-    const mp = new MultiFilePatch(buffer, layers, [buildFilePatchFixture(0)]);
+    const mp = new MultiFilePatch({buffer, layers, filePatches: [buildFilePatchFixture(0)]});
     assert.isTrue(mp.anyPresent());
   });
 
   it('has an accessor for its file patches', function() {
     const filePatches = [buildFilePatchFixture(0), buildFilePatchFixture(1)];
-    const mp = new MultiFilePatch(buffer, layers, filePatches);
+    const mp = new MultiFilePatch({buffer, layers, filePatches});
     assert.strictEqual(mp.getFilePatches(), filePatches);
   });
 
   describe('didAnyChangeExecutableMode()', function() {
     it('detects when at least one patch contains an executable mode change', function() {
-      const yes = new MultiFilePatch(buffer, layers, [
+      const yes = new MultiFilePatch({buffer, layers, filePatches: [
         buildFilePatchFixture(0, {oldFileMode: '100644', newFileMode: '100755'}),
         buildFilePatchFixture(1),
-      ]);
+      ]});
       assert.isTrue(yes.didAnyChangeExecutableMode());
     });
 
     it('detects when none of the patches contain an executable mode change', function() {
-      const no = new MultiFilePatch(buffer, layers, [
+      const no = new MultiFilePatch({buffer, layers, filePatches: [
         buildFilePatchFixture(0),
         buildFilePatchFixture(1),
-      ]);
+      ]});
       assert.isFalse(no.didAnyChangeExecutableMode());
     });
   });
 
   describe('anyHaveTypechange()', function() {
     it('detects when at least one patch contains a symlink change', function() {
-      const yes = new MultiFilePatch(buffer, layers, [
+      const yes = new MultiFilePatch({buffer, layers, filePatches: [
         buildFilePatchFixture(0, {oldFileMode: '100644', newFileMode: '120000', newFileSymlink: 'destination'}),
         buildFilePatchFixture(1),
-      ]);
+      ]});
       assert.isTrue(yes.anyHaveTypechange());
     });
 
     it('detects when none of its patches contain a symlink change', function() {
-      const no = new MultiFilePatch(buffer, layers, [
+      const no = new MultiFilePatch({buffer, layers, filePatches: [
         buildFilePatchFixture(0),
         buildFilePatchFixture(1),
-      ]);
+      ]});
       assert.isFalse(no.anyHaveTypechange());
     });
   });
 
   it('computes the maximum line number width of any hunk in any patch', function() {
-    const mp = new MultiFilePatch(buffer, layers, [
+    const mp = new MultiFilePatch({buffer, layers, filePatches: [
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
-    ]);
+    ]});
     assert.strictEqual(mp.getMaxLineNumberWidth(), 2);
   });
 
@@ -90,7 +90,7 @@ describe('MultiFilePatch', function() {
     for (let i = 0; i < 10; i++) {
       filePatches.push(buildFilePatchFixture(i));
     }
-    const mp = new MultiFilePatch(buffer, layers, filePatches);
+    const mp = new MultiFilePatch({buffer, layers, filePatches});
 
     assert.strictEqual(mp.getFilePatchAt(0), filePatches[0]);
     assert.strictEqual(mp.getFilePatchAt(7), filePatches[0]);
@@ -99,11 +99,11 @@ describe('MultiFilePatch', function() {
   });
 
   it('creates a set of all unique paths referenced by patches', function() {
-    const mp = new MultiFilePatch(buffer, layers, [
+    const mp = new MultiFilePatch({buffer, layers, filePatches: [
       buildFilePatchFixture(0, {oldFilePath: 'file-0-before.txt', newFilePath: 'file-0-after.txt'}),
       buildFilePatchFixture(1, {status: 'added', newFilePath: 'file-1.txt'}),
       buildFilePatchFixture(2, {oldFilePath: 'file-2.txt', newFilePath: 'file-2.txt'}),
-    ]);
+    ]});
 
     assert.sameMembers(
       Array.from(mp.getPathSet()),
@@ -117,7 +117,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(1),
       buildFilePatchFixture(2),
     ];
-    const mp = new MultiFilePatch(buffer, layers, filePatches);
+    const mp = new MultiFilePatch({buffer, layers, filePatches});
 
     assert.strictEqual(mp.getHunkAt(0), filePatches[0].getHunks()[0]);
     assert.strictEqual(mp.getHunkAt(3), filePatches[0].getHunks()[0]);
@@ -130,10 +130,10 @@ describe('MultiFilePatch', function() {
   });
 
   it('represents itself as an apply-ready string', function() {
-    const mp = new MultiFilePatch(buffer, layers, [
+    const mp = new MultiFilePatch({buffer, layers, filePatches: [
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
-    ]);
+    ]});
 
     assert.strictEqual(mp.toString(), dedent`
       diff --git a/file-0.txt b/file-0.txt
@@ -174,7 +174,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(1),
       buildFilePatchFixture(2, {noNewline: true}),
     ];
-    const lastPatch = new MultiFilePatch(lastBuffer, layers, lastFilePatches);
+    const lastPatch = new MultiFilePatch({buffer: lastBuffer, layers, filePatches: lastFilePatches});
 
     buffer = new TextBuffer();
     layers = {
@@ -213,7 +213,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(2),
       buildFilePatchFixture(3),
     ];
-    const original = new MultiFilePatch(buffer, layers, filePatches);
+    const original = new MultiFilePatch({buffer, layers, filePatches});
     const stagePatch = original.getStagePatchForLines(new Set([9, 14, 25, 26]));
 
     assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
@@ -275,7 +275,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
     ];
-    const original = new MultiFilePatch(buffer, layers, filePatches);
+    const original = new MultiFilePatch({buffer, layers, filePatches});
     const hunk = original.getFilePatches()[0].getHunks()[1];
     const stagePatch = original.getStagePatchForHunk(hunk);
 
@@ -311,7 +311,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(2),
       buildFilePatchFixture(3),
     ];
-    const original = new MultiFilePatch(buffer, layers, filePatches);
+    const original = new MultiFilePatch({buffer, layers, filePatches});
 
     const unstagePatch = original.getUnstagePatchForLines(new Set([1, 2, 21, 26, 29, 30]));
 
@@ -392,7 +392,7 @@ describe('MultiFilePatch', function() {
       buildFilePatchFixture(0),
       buildFilePatchFixture(1),
     ];
-    const original = new MultiFilePatch(buffer, layers, filePatches);
+    const original = new MultiFilePatch({buffer, layers, filePatches});
     const hunk = original.getFilePatches()[1].getHunks()[0];
     const unstagePatch = original.getUnstagePatchForHunk(hunk);
 
