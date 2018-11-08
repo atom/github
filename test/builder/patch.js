@@ -117,18 +117,18 @@ class FilePatchBuilder {
 
 class FileBuilder {
   constructor() {
-    this.path = 'file.txt';
-    this.mode = '100644';
-    this.symlink = null;
+    this._path = 'file.txt';
+    this._mode = '100644';
+    this._symlink = null;
   }
 
   path(thePath) {
-    this.path = thePath;
+    this._path = thePath;
     return this;
   }
 
   mode(theMode) {
-    this.mode = theMode;
+    this._mode = theMode;
     return this;
   }
 
@@ -137,12 +137,12 @@ class FileBuilder {
   }
 
   symlinkTo(destinationPath) {
-    this.symlink = destinationPath;
+    this._symlink = destinationPath;
     return this.mode('120000');
   }
 
   build() {
-    return {file: new File({path: this.path, mode: this.mode, symlink: this.symlink})};
+    return {file: new File({path: this._path, mode: this._mode, symlink: this._symlink})};
   }
 }
 
