@@ -177,7 +177,7 @@ class PatchBuilder {
       this.addHunk(hunk => hunk.startRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
     }
 
-    const marker = this.layeredBuffer.markFrom(this.patchStart());
+    const marker = this.layeredBuffer.markFrom('patch', this.patchStart);
 
     return this.layeredBuffer.wrapReturn({
       patch: new Patch({status: this.status, hunks: this.hunks, marker}),
@@ -206,22 +206,22 @@ class HunkBuilder {
   }
 
   unchanged(...lines) {
-    this.regions.push(new Unchanged(this.layeredBuffer.appendMarked(lines)));
+    this.regions.push(new Unchanged(this.layeredBuffer.appendMarked('unchanged', lines)));
     return this;
   }
 
   added(...lines) {
-    this.regions.push(new Addition(this.layeredBuffer.appendMarked(lines)));
+    this.regions.push(new Addition(this.layeredBuffer.appendMarked('addition', lines)));
     return this;
   }
 
   deleted(...lines) {
-    this.regions.push(new Deletion(this.layeredBuffer.appendMarked(lines)));
+    this.regions.push(new Deletion(this.layeredBuffer.appendMarked('deletion', lines)));
     return this;
   }
 
   noNewline() {
-    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked(' No newline at end of file')));
+    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked('noNewline', ' No newline at end of file')));
     return this;
   }
 
