@@ -1,6 +1,8 @@
 import {TextBuffer} from 'atom';
 import dedent from 'dedent-js';
 
+import {buildMultiFilePatch} from '../../builder/patch';
+
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
@@ -31,48 +33,66 @@ describe('MultiFilePatch', function() {
   });
 
   it('detects when it is not empty', function() {
-    const mp = new MultiFilePatch({buffer, layers, filePatches: [buildFilePatchFixture(0)]});
-    assert.isTrue(mp.anyPresent());
+    const {multiFilePatch} = buildMultiFilePatch()
+      .addFilePatch(filePatch => {
+        filePatch
+          .setOldFile(file => file.path('file-0.txt'))
+          .setNewFile(file => file.path('file-0.txt'));
+      })
+      .build();
+
+    assert.isTrue(multiFilePatch.anyPresent());
   });
 
   it('has an accessor for its file patches', function() {
-    const filePatches = [buildFilePatchFixture(0), buildFilePatchFixture(1)];
-    const mp = new MultiFilePatch({buffer, layers, filePatches});
-    assert.strictEqual(mp.getFilePatches(), filePatches);
+    const {multiFilePatch} = buildMultiFilePatch()
+      .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
+      .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
+      .build();
+
+    assert.lengthOf(multiFilePatch.getFilePatches(), 2);
+    const [fp0, fp1] = multiFilePatch.getFilePatches();
+    assert.strictEqual(fp0.getOldPath(), 'file-0.txt');
+    assert.strictEqual(fp1.getOldPath(), 'file-1.txt');
   });
 
   describe('didAnyChangeExecutableMode()', function() {
     it('detects when at least one patch contains an executable mode change', function() {
-      const yes = new MultiFilePatch({buffer, layers, filePatches: [
-        buildFilePatchFixture(0, {oldFileMode: '100644', newFileMode: '100755'}),
-        buildFilePatchFixture(1),
-      ]});
+      const {multiFilePatch: yes} = buildMultiFilePatch()
+        .addFilePatch(filePatch => {
+          filePatch.setOldFile(file => file.path('file-0.txt'));
+          filePatch.setNewFile(file => file.path('file-0.txt').executable());
+        })
+        .build();
       assert.isTrue(yes.didAnyChangeExecutableMode());
     });
 
     it('detects when none of the patches contain an executable mode change', function() {
-      const no = new MultiFilePatch({buffer, layers, filePatches: [
-        buildFilePatchFixture(0),
-        buildFilePatchFixture(1),
-      ]});
+      const {multiFilePatch: no} = buildMultiFilePatch()
+        .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
+        .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
+        .build();
       assert.isFalse(no.didAnyChangeExecutableMode());
     });
   });
 
   describe('anyHaveTypechange()', function() {
     it('detects when at least one patch contains a symlink change', function() {
-      const yes = new MultiFilePatch({buffer, layers, filePatches: [
-        buildFilePatchFixture(0, {oldFileMode: '100644', newFileMode: '120000', newFileSymlink: 'destination'}),
-        buildFilePatchFixture(1),
-      ]});
+      const {multiFilePatch: yes} = buildMultiFilePatch()
+        .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
+        .addFilePatch(filePatch => {
+          filePatch.setOldFile(file => file.path('file-0.txt'));
+          filePatch.setNewFile(file => file.path('file-0.txt').symlink('somewhere.txt'));
+        })
+        .build();
       assert.isTrue(yes.anyHaveTypechange());
     });
 
     it('detects when none of its patches contain a symlink change', function() {
-      const no = new MultiFilePatch({buffer, layers, filePatches: [
-        buildFilePatchFixture(0),
-        buildFilePatchFixture(1),
-      ]});
+      const {multiFilePatch: no} = buildMultiFilePatch()
+        .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
+        .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
+        .build();
       assert.isFalse(no.anyHaveTypechange());
     });
   });
