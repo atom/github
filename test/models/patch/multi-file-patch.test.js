@@ -1,31 +1,11 @@
-import {TextBuffer} from 'atom';
 import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder} from '../../builder/patch';
 
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
-import FilePatch from '../../../lib/models/patch/file-patch';
-import File, {nullFile} from '../../../lib/models/patch/file';
-import Patch from '../../../lib/models/patch/patch';
-import Hunk from '../../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
 
 describe('MultiFilePatch', function() {
-  let buffer, layers;
-
-  beforeEach(function() {
-    buffer = new TextBuffer();
-    layers = {
-      patch: buffer.addMarkerLayer(),
-      hunk: buffer.addMarkerLayer(),
-      unchanged: buffer.addMarkerLayer(),
-      addition: buffer.addMarkerLayer(),
-      deletion: buffer.addMarkerLayer(),
-      noNewline: buffer.addMarkerLayer(),
-    };
-  });
-
   it('creates an empty patch when constructed with no arguments', function() {
     const empty = new MultiFilePatch({});
     assert.isFalse(empty.anyPresent());
