@@ -1,7 +1,7 @@
 import {TextBuffer} from 'atom';
 import dedent from 'dedent-js';
 
-import {buildMultiFilePatch} from '../../builder/patch';
+import {multiFilePatchBuilder} from '../../builder/patch';
 
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 import FilePatch from '../../../lib/models/patch/file-patch';
@@ -33,7 +33,7 @@ describe('MultiFilePatch', function() {
   });
 
   it('detects when it is not empty', function() {
-    const {multiFilePatch} = buildMultiFilePatch()
+    const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(filePatch => {
         filePatch
           .setOldFile(file => file.path('file-0.txt'))
@@ -45,7 +45,7 @@ describe('MultiFilePatch', function() {
   });
 
   it('has an accessor for its file patches', function() {
-    const {multiFilePatch} = buildMultiFilePatch()
+    const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
       .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
       .build();
@@ -58,7 +58,7 @@ describe('MultiFilePatch', function() {
 
   describe('didAnyChangeExecutableMode()', function() {
     it('detects when at least one patch contains an executable mode change', function() {
-      const {multiFilePatch: yes} = buildMultiFilePatch()
+      const {multiFilePatch: yes} = multiFilePatchBuilder()
         .addFilePatch(filePatch => {
           filePatch.setOldFile(file => file.path('file-0.txt'));
           filePatch.setNewFile(file => file.path('file-0.txt').executable());
@@ -68,7 +68,7 @@ describe('MultiFilePatch', function() {
     });
 
     it('detects when none of the patches contain an executable mode change', function() {
-      const {multiFilePatch: no} = buildMultiFilePatch()
+      const {multiFilePatch: no} = multiFilePatchBuilder()
         .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
         .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
         .build();
@@ -78,18 +78,18 @@ describe('MultiFilePatch', function() {
 
   describe('anyHaveTypechange()', function() {
     it('detects when at least one patch contains a symlink change', function() {
-      const {multiFilePatch: yes} = buildMultiFilePatch()
+      const {multiFilePatch: yes} = multiFilePatchBuilder()
         .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
         .addFilePatch(filePatch => {
           filePatch.setOldFile(file => file.path('file-0.txt'));
-          filePatch.setNewFile(file => file.path('file-0.txt').symlink('somewhere.txt'));
+          filePatch.setNewFile(file => file.path('file-0.txt').symlinkTo('somewhere.txt'));
         })
         .build();
       assert.isTrue(yes.anyHaveTypechange());
     });
 
     it('detects when none of its patches contain a symlink change', function() {
-      const {multiFilePatch: no} = buildMultiFilePatch()
+      const {multiFilePatch: no} = multiFilePatchBuilder()
         .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-0.txt')))
         .addFilePatch(filePatch => filePatch.setOldFile(file => file.path('file-1.txt')))
         .build();
@@ -98,586 +98,442 @@ describe('MultiFilePatch', function() {
   });
 
   it('computes the maximum line number width of any hunk in any patch', function() {
-    const mp = new MultiFilePatch({buffer, layers, filePatches: [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-    ]});
-    assert.strictEqual(mp.getMaxLineNumberWidth(), 2);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-0.txt'));
+        fp.addHunk(h => h.oldRow(10));
+        fp.addHunk(h => h.oldRow(99));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-1.txt'));
+        fp.addHunk(h => h.oldRow(5));
+        fp.addHunk(h => h.oldRow(15));
+      })
+      .build();
+
+    assert.strictEqual(multiFilePatch.getMaxLineNumberWidth(), 3);
   });
 
   it('locates an individual FilePatch by marker lookup', function() {
-    const filePatches = [];
+    const builder = multiFilePatchBuilder();
     for (let i = 0; i < 10; i++) {
-      filePatches.push(buildFilePatchFixture(i));
+      builder.addFilePatch(fp => {
+        fp.setOldFile(f => f.path(`file-${i}.txt`));
+        fp.addHunk(h => {
+          h.oldRow(1).unchanged('a', 'b').added('c').deleted('d').unchanged('e');
+        });
+        fp.addHunk(h => {
+          h.oldRow(10).unchanged('f').deleted('g', 'h', 'i').unchanged('j');
+        });
+      });
     }
-    const mp = new MultiFilePatch({buffer, layers, filePatches});
+    const {multiFilePatch} = builder.build();
+    const fps = multiFilePatch.getFilePatches();
 
-    assert.strictEqual(mp.getFilePatchAt(0), filePatches[0]);
-    assert.strictEqual(mp.getFilePatchAt(7), filePatches[0]);
-    assert.strictEqual(mp.getFilePatchAt(8), filePatches[1]);
-    assert.strictEqual(mp.getFilePatchAt(79), filePatches[9]);
+    assert.strictEqual(multiFilePatch.getFilePatchAt(0), fps[0]);
+    assert.strictEqual(multiFilePatch.getFilePatchAt(9), fps[0]);
+    assert.strictEqual(multiFilePatch.getFilePatchAt(10), fps[1]);
+    assert.strictEqual(multiFilePatch.getFilePatchAt(99), fps[9]);
   });
 
   it('creates a set of all unique paths referenced by patches', function() {
-    const mp = new MultiFilePatch({buffer, layers, filePatches: [
-      buildFilePatchFixture(0, {oldFilePath: 'file-0-before.txt', newFilePath: 'file-0-after.txt'}),
-      buildFilePatchFixture(1, {status: 'added', newFilePath: 'file-1.txt'}),
-      buildFilePatchFixture(2, {oldFilePath: 'file-2.txt', newFilePath: 'file-2.txt'}),
-    ]});
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-0-before.txt'));
+        fp.setNewFile(f => f.path('file-0-after.txt'));
+      })
+      .addFilePatch(fp => {
+        fp.status('added');
+        fp.nullOldFile();
+        fp.setNewFile(f => f.path('file-1.txt'));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-2.txt'));
+        fp.setNewFile(f => f.path('file-2.txt'));
+      })
+      .build();
 
     assert.sameMembers(
-      Array.from(mp.getPathSet()),
+      Array.from(multiFilePatch.getPathSet()),
       ['file-0-before.txt', 'file-0-after.txt', 'file-1.txt', 'file-2.txt'],
     );
   });
 
   it('locates a Hunk by marker lookup', function() {
-    const filePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-      buildFilePatchFixture(2),
-    ];
-    const mp = new MultiFilePatch({buffer, layers, filePatches});
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.oldRow(1).added('0', '1', '2', '3', '4'));
+        fp.addHunk(h => h.oldRow(10).deleted('5', '6', '7', '8', '9'));
+      })
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.oldRow(5).unchanged('10', '11').added('12').deleted('13'));
+        fp.addHunk(h => h.oldRow(20).unchanged('14').deleted('15'));
+      })
+      .addFilePatch(fp => {
+        fp.status('deleted');
+        fp.addHunk(h => h.oldRow(4).deleted('16', '17', '18', '19'));
+      })
+      .build();
 
-    assert.strictEqual(mp.getHunkAt(0), filePatches[0].getHunks()[0]);
-    assert.strictEqual(mp.getHunkAt(3), filePatches[0].getHunks()[0]);
-    assert.strictEqual(mp.getHunkAt(4), filePatches[0].getHunks()[1]);
-    assert.strictEqual(mp.getHunkAt(7), filePatches[0].getHunks()[1]);
-    assert.strictEqual(mp.getHunkAt(8), filePatches[1].getHunks()[0]);
-    assert.strictEqual(mp.getHunkAt(15), filePatches[1].getHunks()[1]);
-    assert.strictEqual(mp.getHunkAt(16), filePatches[2].getHunks()[0]);
-    assert.strictEqual(mp.getHunkAt(23), filePatches[2].getHunks()[1]);
+    const [fp0, fp1, fp2] = multiFilePatch.getFilePatches();
+
+    assert.strictEqual(multiFilePatch.getHunkAt(0), fp0.getHunks()[0]);
+    assert.strictEqual(multiFilePatch.getHunkAt(4), fp0.getHunks()[0]);
+    assert.strictEqual(multiFilePatch.getHunkAt(5), fp0.getHunks()[1]);
+    assert.strictEqual(multiFilePatch.getHunkAt(9), fp0.getHunks()[1]);
+    assert.strictEqual(multiFilePatch.getHunkAt(10), fp1.getHunks()[0]);
+    assert.strictEqual(multiFilePatch.getHunkAt(15), fp1.getHunks()[1]);
+    assert.strictEqual(multiFilePatch.getHunkAt(16), fp2.getHunks()[0]);
+    assert.strictEqual(multiFilePatch.getHunkAt(19), fp2.getHunks()[0]);
   });
 
   it('represents itself as an apply-ready string', function() {
-    const mp = new MultiFilePatch({buffer, layers, filePatches: [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-    ]});
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-0.txt'));
+        fp.addHunk(h => h.oldRow(1).unchanged('0;0;0').added('0;0;1').deleted('0;0;2').unchanged('0;0;3'));
+        fp.addHunk(h => h.oldRow(10).unchanged('0;1;0').added('0;1;1').deleted('0;1;2').unchanged('0;1;3'));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file-1.txt'));
+        fp.addHunk(h => h.oldRow(1).unchanged('1;0;0').added('1;0;1').deleted('1;0;2').unchanged('1;0;3'));
+        fp.addHunk(h => h.oldRow(10).unchanged('1;1;0').added('1;1;1').deleted('1;1;2').unchanged('1;1;3'));
+      })
+      .build();
 
-    assert.strictEqual(mp.toString(), dedent`
+    assert.strictEqual(multiFilePatch.toString(), dedent`
       diff --git a/file-0.txt b/file-0.txt
       --- a/file-0.txt
       +++ b/file-0.txt
-      @@ -0,3 +0,3 @@
-       file-0 line-0
-      +file-0 line-1
-      -file-0 line-2
-       file-0 line-3
+      @@ -1,3 +1,3 @@
+       0;0;0
+      +0;0;1
+      -0;0;2
+       0;0;3
       @@ -10,3 +10,3 @@
-       file-0 line-4
-      +file-0 line-5
-      -file-0 line-6
-       file-0 line-7
+       0;1;0
+      +0;1;1
+      -0;1;2
+       0;1;3
       diff --git a/file-1.txt b/file-1.txt
       --- a/file-1.txt
       +++ b/file-1.txt
-      @@ -0,3 +0,3 @@
-       file-1 line-0
-      +file-1 line-1
-      -file-1 line-2
-       file-1 line-3
+      @@ -1,3 +1,3 @@
+       1;0;0
+      +1;0;1
+      -1;0;2
+       1;0;3
       @@ -10,3 +10,3 @@
-       file-1 line-4
-      +file-1 line-5
-      -file-1 line-6
-       file-1 line-7
+       1;1;0
+      +1;1;1
+      -1;1;2
+       1;1;3
 
     `);
   });
 
   it('adopts a buffer from a previous patch', function() {
-    const lastBuffer = buffer;
-    const lastLayers = layers;
-    const lastFilePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-      buildFilePatchFixture(2, {noNewline: true}),
-    ];
-    const lastPatch = new MultiFilePatch({buffer: lastBuffer, layers, filePatches: lastFilePatches});
+    const {multiFilePatch: lastMultiPatch, buffer: lastBuffer, layers: lastLayers} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.unchanged('a0').added('a1').deleted('a2').unchanged('a3'));
+      })
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.unchanged('a4').deleted('a5').unchanged('a6'));
+        fp.addHunk(h => h.unchanged('a7').added('a8').unchanged('a9'));
+      })
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.oldRow(99).deleted('7').noNewline());
+      })
+      .build();
 
-    buffer = new TextBuffer();
-    layers = {
-      patch: buffer.addMarkerLayer(),
-      hunk: buffer.addMarkerLayer(),
-      unchanged: buffer.addMarkerLayer(),
-      addition: buffer.addMarkerLayer(),
-      deletion: buffer.addMarkerLayer(),
-      noNewline: buffer.addMarkerLayer(),
-    };
-    const nextFilePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-      buildFilePatchFixture(2),
-      buildFilePatchFixture(3, {noNewline: true}),
-    ];
-    const nextPatch = new MultiFilePatch(buffer, layers, nextFilePatches);
+    const {multiFilePatch: nextMultiPatch, buffer: nextBuffer, layers: nextLayers} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.unchanged('b0', 'b1').added('b2').unchanged('b3', 'b4'));
+      })
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.unchanged('b5', 'b6').added('b7'));
+      })
+      .addFilePatch(fp => {
+        fp.addHunk(h => h.unchanged('b8', 'b9').deleted('b10').unchanged('b11'));
+        fp.addHunk(h => h.oldRow(99).deleted('b12').noNewline());
+      })
+      .build();
 
-    nextPatch.adoptBufferFrom(lastPatch);
+    assert.notStrictEqual(nextBuffer, lastBuffer);
+    assert.notStrictEqual(nextLayers, lastLayers);
 
-    assert.strictEqual(nextPatch.getBuffer(), lastBuffer);
-    assert.strictEqual(nextPatch.getPatchLayer(), lastLayers.patch);
-    assert.strictEqual(nextPatch.getHunkLayer(), lastLayers.hunk);
-    assert.strictEqual(nextPatch.getUnchangedLayer(), lastLayers.unchanged);
-    assert.strictEqual(nextPatch.getAdditionLayer(), lastLayers.addition);
-    assert.strictEqual(nextPatch.getDeletionLayer(), lastLayers.deletion);
-    assert.strictEqual(nextPatch.getNoNewlineLayer(), lastLayers.noNewline);
+    nextMultiPatch.adoptBufferFrom(lastMultiPatch);
 
-    assert.lengthOf(nextPatch.getHunkLayer().getMarkers(), 8);
-  });
+    assert.strictEqual(nextMultiPatch.getBuffer(), lastBuffer);
+    assert.strictEqual(nextMultiPatch.getPatchLayer(), lastLayers.patch);
+    assert.strictEqual(nextMultiPatch.getHunkLayer(), lastLayers.hunk);
+    assert.strictEqual(nextMultiPatch.getUnchangedLayer(), lastLayers.unchanged);
+    assert.strictEqual(nextMultiPatch.getAdditionLayer(), lastLayers.addition);
+    assert.strictEqual(nextMultiPatch.getDeletionLayer(), lastLayers.deletion);
+    assert.strictEqual(nextMultiPatch.getNoNewlineLayer(), lastLayers.noNewline);
 
-  it('generates a stage patch for arbitrary buffer rows', function() {
-    const filePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-      buildFilePatchFixture(2),
-      buildFilePatchFixture(3),
-    ];
-    const original = new MultiFilePatch({buffer, layers, filePatches});
-    const stagePatch = original.getStagePatchForLines(new Set([9, 14, 25, 26]));
-
-    assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
-      file-1 line-0
-      file-1 line-1
-      file-1 line-2
-      file-1 line-3
-      file-1 line-4
-      file-1 line-6
-      file-1 line-7
-      file-3 line-0
-      file-3 line-1
-      file-3 line-2
-      file-3 line-3
+    assert.deepEqual(lastBuffer.getText(), dedent`
+      b0
+      b1
+      b2
+      b3
+      b4
+      b5
+      b6
+      b7
+      b8
+      b9
+      b10
+      b11
+      b12
+       No newline at end of file
 
     `);
 
-    assert.lengthOf(stagePatch.getFilePatches(), 2);
-    const [fp0, fp1] = stagePatch.getFilePatches();
-    assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
-    assertInFilePatch(fp0, stagePatch.getBuffer()).hunks(
-      {
-        startRow: 0, endRow: 3,
-        header: '@@ -0,3 +0,4 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-1 line-0\n', range: [[0, 0], [0, 13]]},
-          {kind: 'addition', string: '+file-1 line-1\n', range: [[1, 0], [1, 13]]},
-          {kind: 'unchanged', string: ' file-1 line-2\n file-1 line-3\n', range: [[2, 0], [3, 13]]},
-        ],
-      },
-      {
-        startRow: 4, endRow: 6,
-        header: '@@ -10,3 +11,2 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-1 line-4\n', range: [[4, 0], [4, 13]]},
-          {kind: 'deletion', string: '-file-1 line-6\n', range: [[5, 0], [5, 13]]},
-          {kind: 'unchanged', string: ' file-1 line-7\n', range: [[6, 0], [6, 13]]},
-        ],
-      },
-    );
-
-    assert.strictEqual(fp1.getOldPath(), 'file-3.txt');
-    assertInFilePatch(fp1, stagePatch.getBuffer()).hunks(
-      {
-        startRow: 7, endRow: 10,
-        header: '@@ -0,3 +0,3 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-3 line-0\n', range: [[7, 0], [7, 13]]},
-          {kind: 'addition', string: '+file-3 line-1\n', range: [[8, 0], [8, 13]]},
-          {kind: 'deletion', string: '-file-3 line-2\n', range: [[9, 0], [9, 13]]},
-          {kind: 'unchanged', string: ' file-3 line-3\n', range: [[10, 0], [10, 13]]},
-        ],
-      },
-    );
-  });
-
-  it('generates a stage patch from an arbitrary hunk', function() {
-    const filePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-    ];
-    const original = new MultiFilePatch({buffer, layers, filePatches});
-    const hunk = original.getFilePatches()[0].getHunks()[1];
-    const stagePatch = original.getStagePatchForHunk(hunk);
-
-    assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
-      file-0 line-4
-      file-0 line-5
-      file-0 line-6
-      file-0 line-7
-
-    `);
-    assert.lengthOf(stagePatch.getFilePatches(), 1);
-    const [fp0] = stagePatch.getFilePatches();
-    assert.strictEqual(fp0.getOldPath(), 'file-0.txt');
-    assert.strictEqual(fp0.getNewPath(), 'file-0.txt');
-    assertInFilePatch(fp0, stagePatch.getBuffer()).hunks(
-      {
-        startRow: 0, endRow: 3,
-        header: '@@ -10,3 +10,3 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-0 line-4\n', range: [[0, 0], [0, 13]]},
-          {kind: 'addition', string: '+file-0 line-5\n', range: [[1, 0], [1, 13]]},
-          {kind: 'deletion', string: '-file-0 line-6\n', range: [[2, 0], [2, 13]]},
-          {kind: 'unchanged', string: ' file-0 line-7\n', range: [[3, 0], [3, 13]]},
-        ],
-      },
-    );
-  });
-
-  it('generates an unstage patch for arbitrary buffer rows', function() {
-    const filePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-      buildFilePatchFixture(2),
-      buildFilePatchFixture(3),
-    ];
-    const original = new MultiFilePatch({buffer, layers, filePatches});
-
-    const unstagePatch = original.getUnstagePatchForLines(new Set([1, 2, 21, 26, 29, 30]));
-
-    assert.strictEqual(unstagePatch.getBuffer().getText(), dedent`
-      file-0 line-0
-      file-0 line-1
-      file-0 line-2
-      file-0 line-3
-      file-2 line-4
-      file-2 line-5
-      file-2 line-7
-      file-3 line-0
-      file-3 line-1
-      file-3 line-2
-      file-3 line-3
-      file-3 line-4
-      file-3 line-5
-      file-3 line-6
-      file-3 line-7
-
-    `);
-
-    assert.lengthOf(unstagePatch.getFilePatches(), 3);
-    const [fp0, fp1, fp2] = unstagePatch.getFilePatches();
-    assert.strictEqual(fp0.getOldPath(), 'file-0.txt');
-    assertInFilePatch(fp0, unstagePatch.getBuffer()).hunks(
-      {
-        startRow: 0, endRow: 3,
-        header: '@@ -0,3 +0,3 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-0 line-0\n', range: [[0, 0], [0, 13]]},
-          {kind: 'deletion', string: '-file-0 line-1\n', range: [[1, 0], [1, 13]]},
-          {kind: 'addition', string: '+file-0 line-2\n', range: [[2, 0], [2, 13]]},
-          {kind: 'unchanged', string: ' file-0 line-3\n', range: [[3, 0], [3, 13]]},
-        ],
-      },
-    );
-
-    assert.strictEqual(fp1.getOldPath(), 'file-2.txt');
-    assertInFilePatch(fp1, unstagePatch.getBuffer()).hunks(
-      {
-        startRow: 4, endRow: 6,
-        header: '@@ -10,3 +10,2 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-2 line-4\n', range: [[4, 0], [4, 13]]},
-          {kind: 'deletion', string: '-file-2 line-5\n', range: [[5, 0], [5, 13]]},
-          {kind: 'unchanged', string: ' file-2 line-7\n', range: [[6, 0], [6, 13]]},
-        ],
-      },
-    );
-
-    assert.strictEqual(fp2.getOldPath(), 'file-3.txt');
-    assertInFilePatch(fp2, unstagePatch.getBuffer()).hunks(
-      {
-        startRow: 7, endRow: 10,
-        header: '@@ -0,3 +0,4 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-3 line-0\n file-3 line-1\n', range: [[7, 0], [8, 13]]},
-          {kind: 'addition', string: '+file-3 line-2\n', range: [[9, 0], [9, 13]]},
-          {kind: 'unchanged', string: ' file-3 line-3\n', range: [[10, 0], [10, 13]]},
-        ],
-      },
-      {
-        startRow: 11, endRow: 14,
-        header: '@@ -10,3 +11,3 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-3 line-4\n', range: [[11, 0], [11, 13]]},
-          {kind: 'deletion', string: '-file-3 line-5\n', range: [[12, 0], [12, 13]]},
-          {kind: 'addition', string: '+file-3 line-6\n', range: [[13, 0], [13, 13]]},
-          {kind: 'unchanged', string: ' file-3 line-7\n', range: [[14, 0], [14, 13]]},
-        ],
-      },
-    );
-  });
-
-  it('generates an unstaged patch for an arbitrary hunk', function() {
-    const filePatches = [
-      buildFilePatchFixture(0),
-      buildFilePatchFixture(1),
-    ];
-    const original = new MultiFilePatch({buffer, layers, filePatches});
-    const hunk = original.getFilePatches()[1].getHunks()[0];
-    const unstagePatch = original.getUnstagePatchForHunk(hunk);
-
-    assert.strictEqual(unstagePatch.getBuffer().getText(), dedent`
-      file-1 line-0
-      file-1 line-1
-      file-1 line-2
-      file-1 line-3
-
-    `);
-    assert.lengthOf(unstagePatch.getFilePatches(), 1);
-    const [fp0] = unstagePatch.getFilePatches();
-    assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
-    assert.strictEqual(fp0.getNewPath(), 'file-1.txt');
-    assertInFilePatch(fp0, unstagePatch.getBuffer()).hunks(
-      {
-        startRow: 0, endRow: 3,
-        header: '@@ -0,3 +0,3 @@',
-        regions: [
-          {kind: 'unchanged', string: ' file-1 line-0\n', range: [[0, 0], [0, 13]]},
-          {kind: 'deletion', string: '-file-1 line-1\n', range: [[1, 0], [1, 13]]},
-          {kind: 'addition', string: '+file-1 line-2\n', range: [[2, 0], [2, 13]]},
-          {kind: 'unchanged', string: ' file-1 line-3\n', range: [[3, 0], [3, 13]]},
-        ],
-      },
-    );
-  });
-
-  // FIXME adapt these to the lifted method.
-  // describe('next selection range derivation', function() {
-  //   it('selects the first change region after the highest buffer row', function() {
-  //     const lastPatch = buildPatchFixture();
-  //     // Selected:
-  //     //  deletions (1-2) and partial addition (4 from 3-5) from hunk 0
-  //     //  one deletion row (13 from 12-16) from the middle of hunk 1;
-  //     //  nothing in hunks 2 or 3
-  //     const lastSelectedRows = new Set([1, 2, 4, 5, 13]);
-  //
-  //     const nBuffer = new TextBuffer({text:
-  //         // 0   1     2     3     4
-  //         '0000\n0003\n0004\n0005\n0006\n' +
-  //         // 5   6     7     8     9     10    11    12    13    14   15
-  //         '0007\n0008\n0009\n0010\n0011\n0012\n0014\n0015\n0016\n0017\n0018\n' +
-  //         // 16  17    18    19    20
-  //         '0019\n0020\n0021\n0022\n0023\n' +
-  //         // 21  22     23
-  //         '0024\n0025\n No newline at end of file\n',
-  //     });
-  //     const nLayers = buildLayers(nBuffer);
-  //     const nHunks = [
-  //       new Hunk({
-  //         oldStartRow: 3, oldRowCount: 3, newStartRow: 3, newRowCount: 5, // next row drift = +2
-  //         marker: markRange(nLayers.hunk, 0, 4),
-  //         regions: [
-  //           new Unchanged(markRange(nLayers.unchanged, 0)), // 0
-  //           new Addition(markRange(nLayers.addition, 1)), // + 1
-  //           new Unchanged(markRange(nLayers.unchanged, 2)), // 2
-  //           new Addition(markRange(nLayers.addition, 3)), // + 3
-  //           new Unchanged(markRange(nLayers.unchanged, 4)), // 4
-  //         ],
-  //       }),
-  //       new Hunk({
-  //         oldStartRow: 12, oldRowCount: 9, newStartRow: 14, newRowCount: 7, // next row drift = +2 -2 = 0
-  //         marker: markRange(nLayers.hunk, 5, 15),
-  //         regions: [
-  //           new Unchanged(markRange(nLayers.unchanged, 5)), // 5
-  //           new Addition(markRange(nLayers.addition, 6)), // +6
-  //           new Unchanged(markRange(nLayers.unchanged, 7, 9)), // 7 8 9
-  //           new Deletion(markRange(nLayers.deletion, 10, 13)), // -10 -11 -12 -13
-  //           new Addition(markRange(nLayers.addition, 14)), // +14
-  //           new Unchanged(markRange(nLayers.unchanged, 15)), // 15
-  //         ],
-  //       }),
-  //       new Hunk({
-  //         oldStartRow: 26, oldRowCount: 4, newStartRow: 26, newRowCount: 3, // next row drift = 0 -1 = -1
-  //         marker: markRange(nLayers.hunk, 16, 20),
-  //         regions: [
-  //           new Unchanged(markRange(nLayers.unchanged, 16)), // 16
-  //           new Addition(markRange(nLayers.addition, 17)), // +17
-  //           new Deletion(markRange(nLayers.deletion, 18, 19)), // -18 -19
-  //           new Unchanged(markRange(nLayers.unchanged, 20)), // 20
-  //         ],
-  //       }),
-  //       new Hunk({
-  //         oldStartRow: 32, oldRowCount: 1, newStartRow: 31, newRowCount: 2,
-  //         marker: markRange(nLayers.hunk, 22, 24),
-  //         regions: [
-  //           new Unchanged(markRange(nLayers.unchanged, 22)), // 22
-  //           new Addition(markRange(nLayers.addition, 23)), // +23
-  //           new NoNewline(markRange(nLayers.noNewline, 24)),
-  //         ],
-  //       }),
-  //     ];
-  //     const nextPatch = new Patch({status: 'modified', hunks: nHunks, buffer: nBuffer, layers: nLayers});
-  //
-  //     const nextRange = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
-  //     // Original buffer row 14 = the next changed row = new buffer row 11
-  //     assert.deepEqual(nextRange, [[11, 0], [11, Infinity]]);
-  //   });
-  //
-  //   it('offsets the chosen selection index by hunks that were completely selected', function() {
-  //     const buffer = buildBuffer(11);
-  //     const layers = buildLayers(buffer);
-  //     const lastPatch = new Patch({
-  //       status: 'modified',
-  //       hunks: [
-  //         new Hunk({
-  //           oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 3,
-  //           marker: markRange(layers.hunk, 0, 5),
-  //           regions: [
-  //             new Unchanged(markRange(layers.unchanged, 0)),
-  //             new Addition(markRange(layers.addition, 1, 2)),
-  //             new Deletion(markRange(layers.deletion, 3, 4)),
-  //             new Unchanged(markRange(layers.unchanged, 5)),
-  //           ],
-  //         }),
-  //         new Hunk({
-  //           oldStartRow: 5, oldRowCount: 4, newStartRow: 5, newRowCount: 4,
-  //           marker: markRange(layers.hunk, 6, 11),
-  //           regions: [
-  //             new Unchanged(markRange(layers.unchanged, 6)),
-  //             new Addition(markRange(layers.addition, 7, 8)),
-  //             new Deletion(markRange(layers.deletion, 9, 10)),
-  //             new Unchanged(markRange(layers.unchanged, 11)),
-  //           ],
-  //         }),
-  //       ],
-  //       buffer,
-  //       layers,
-  //     });
-  //       // Select:
-  //       // * all changes from hunk 0
-  //       // * partial addition (8 of 7-8) from hunk 1
-  //     const lastSelectedRows = new Set([1, 2, 3, 4, 8]);
-  //
-  //     const nextBuffer = new TextBuffer({text: '0006\n0007\n0008\n0009\n0010\n0011\n'});
-  //     const nextLayers = buildLayers(nextBuffer);
-  //     const nextPatch = new Patch({
-  //       status: 'modified',
-  //       hunks: [
-  //         new Hunk({
-  //           oldStartRow: 5, oldRowCount: 4, newStartRow: 5, newRowCount: 4,
-  //           marker: markRange(nextLayers.hunk, 0, 5),
-  //           regions: [
-  //             new Unchanged(markRange(nextLayers.unchanged, 0)),
-  //             new Addition(markRange(nextLayers.addition, 1)),
-  //             new Deletion(markRange(nextLayers.deletion, 3, 4)),
-  //             new Unchanged(markRange(nextLayers.unchanged, 5)),
-  //           ],
-  //         }),
-  //       ],
-  //       buffer: nextBuffer,
-  //       layers: nextLayers,
-  //     });
-  //
-  //     const range = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
-  //     assert.deepEqual(range, [[3, 0], [3, Infinity]]);
-  //   });
-  //
-  //   it('selects the first row of the first change of the patch if no rows were selected before', function() {
-  //     const lastPatch = buildPatchFixture();
-  //     const lastSelectedRows = new Set();
-  //
-  //     const buffer = lastPatch.getBuffer();
-  //     const layers = buildLayers(buffer);
-  //     const nextPatch = new Patch({
-  //       status: 'modified',
-  //       hunks: [
-  //         new Hunk({
-  //           oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 4,
-  //           marker: markRange(layers.hunk, 0, 4),
-  //           regions: [
-  //             new Unchanged(markRange(layers.unchanged, 0)),
-  //             new Addition(markRange(layers.addition, 1, 2)),
-  //             new Deletion(markRange(layers.deletion, 3)),
-  //             new Unchanged(markRange(layers.unchanged, 4)),
-  //           ],
-  //         }),
-  //       ],
-  //       buffer,
-  //       layers,
-  //     });
-  //
-  //     const range = nextPatch.getNextSelectionRange(lastPatch, lastSelectedRows);
-  //     assert.deepEqual(range, [[1, 0], [1, Infinity]]);
-  //   });
-  // });
-
-  function buildFilePatchFixture(index, options = {}) {
-    const opts = {
-      oldFilePath: `file-${index}.txt`,
-      oldFileMode: '100644',
-      oldFileSymlink: null,
-      newFilePath: `file-${index}.txt`,
-      newFileMode: '100644',
-      newFileSymlink: null,
-      status: 'modified',
-      noNewline: false,
-      ...options,
+    const assertMarkedLayerRanges = (layer, ranges) => {
+      assert.deepEqual(layer.getMarkers().map(m => m.getRange().serialize()), ranges);
     };
 
-    const rowOffset = buffer.getLastRow();
-    for (let i = 0; i < 8; i++) {
-      buffer.append(`file-${index} line-${i}\n`);
-    }
-    if (opts.noNewline) {
-      buffer.append(' No newline at end of file\n');
-    }
+    assertMarkedLayerRanges(lastLayers.patch, [
+      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [13, 26]],
+    ]);
+    assertMarkedLayerRanges(lastLayers.hunk, [
+      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [11, 3]], [[12, 0], [13, 26]],
+    ]);
+    assertMarkedLayerRanges(lastLayers.unchanged, [
+      [[0, 0], [1, 2]], [[3, 0], [4, 2]], [[5, 0], [6, 2]], [[8, 0], [9, 2]], [[11, 0], [11, 3]],
+    ]);
+    assertMarkedLayerRanges(lastLayers.addition, [
+      [[2, 0], [2, 2]], [[7, 0], [7, 2]],
+    ]);
+    assertMarkedLayerRanges(lastLayers.deletion, [
+      [[10, 0], [10, 3]], [[12, 0], [12, 3]],
+    ]);
+    assertMarkedLayerRanges(lastLayers.noNewline, [
+      [[13, 0], [13, 26]],
+    ]);
+  });
 
-    let oldFile = new File({path: opts.oldFilePath, mode: opts.oldFileMode, symlink: opts.oldFileSymlink});
-    const newFile = new File({path: opts.newFilePath, mode: opts.newFileMode, symlink: opts.newFileSymlink});
+  describe('derived patch generation', function() {
+    let multiFilePatch, rowSet;
 
-    const mark = (layer, start, end = start) => layer.markRange([[rowOffset + start, 0], [rowOffset + end, Infinity]]);
+    beforeEach(function() {
+      // The row content pattern here is: ${fileno};${hunkno};${lineno}, with a (**) if it's selected
+      multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('0;0;0').added('0;0;1').deleted('0;0;2').unchanged('0;0;3'));
+          fp.addHunk(h => h.oldRow(10).unchanged('0;1;0').added('0;1;1').deleted('0;1;2').unchanged('0;1;3'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-1.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('1;0;0').added('1;0;1 (**)').deleted('1;0;2').unchanged('1;0;3'));
+          fp.addHunk(h => h.oldRow(10).unchanged('1;1;0').added('1;1;1').deleted('1;1;2 (**)').unchanged('1;1;3'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-2.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('2;0;0').added('2;0;1').deleted('2;0;2').unchanged('2;0;3'));
+          fp.addHunk(h => h.oldRow(10).unchanged('2;1;0').added('2;1;1').deleted('2;2;2').unchanged('2;1;3'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-3.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('3;0;0').added('3;0;1 (**)').deleted('3;0;2 (**)').unchanged('3;0;3'));
+          fp.addHunk(h => h.oldRow(10).unchanged('3;1;0').added('3;1;1').deleted('3;2;2').unchanged('3;1;3'));
+        })
+        .build()
+        .multiFilePatch;
 
-    const withNoNewlineRegion = regions => {
-      if (opts.noNewline) {
-        regions.push(new NoNewline(mark(layers.noNewline, 8)));
-      }
-      return regions;
-    };
+      // Buffer rows corresponding to the rows marked with (**) above
+      rowSet = new Set([9, 14, 25, 26]);
+    });
 
-    let hunks = [];
-    if (opts.status === 'modified') {
-      hunks = [
-        new Hunk({
-          oldStartRow: 0, newStartRow: 0, oldRowCount: 3, newRowCount: 3,
-          sectionHeading: `file-${index} hunk-0`,
-          marker: mark(layers.hunk, 0, 3),
+    it('generates a stage patch for arbitrary buffer rows', function() {
+      const stagePatch = multiFilePatch.getStagePatchForLines(rowSet);
+
+      assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
+        1;0;0
+        1;0;1 (**)
+        1;0;2
+        1;0;3
+        1;1;0
+        1;1;2 (**)
+        1;1;3
+        3;0;0
+        3;0;1 (**)
+        3;0;2 (**)
+        3;0;3
+
+      `);
+
+      assert.lengthOf(stagePatch.getFilePatches(), 2);
+      const [fp0, fp1] = stagePatch.getFilePatches();
+      assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
+      assertInFilePatch(fp0, stagePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3,
+          header: '@@ -1,3 +1,4 @@',
           regions: [
-            new Unchanged(mark(layers.unchanged, 0)),
-            new Addition(mark(layers.addition, 1)),
-            new Deletion(mark(layers.deletion, 2)),
-            new Unchanged(mark(layers.unchanged, 3)),
+            {kind: 'unchanged', string: ' 1;0;0\n', range: [[0, 0], [0, 5]]},
+            {kind: 'addition', string: '+1;0;1 (**)\n', range: [[1, 0], [1, 10]]},
+            {kind: 'unchanged', string: ' 1;0;2\n 1;0;3\n', range: [[2, 0], [3, 5]]},
           ],
-        }),
-        new Hunk({
-          oldStartRow: 10, newStartRow: 10, oldRowCount: 3, newRowCount: 3,
-          sectionHeading: `file-${index} hunk-1`,
-          marker: mark(layers.hunk, 4, opts.noNewline ? 8 : 7),
-          regions: withNoNewlineRegion([
-            new Unchanged(mark(layers.unchanged, 4)),
-            new Addition(mark(layers.addition, 5)),
-            new Deletion(mark(layers.deletion, 6)),
-            new Unchanged(mark(layers.unchanged, 7)),
-          ]),
-        }),
-      ];
-    } else if (opts.status === 'added') {
-      hunks = [
-        new Hunk({
-          oldStartRow: 0, newStartRow: 0, oldRowCount: 8, newRowCount: 8,
-          sectionHeading: `file-${index} hunk-0`,
-          marker: mark(layers.hunk, 0, opts.noNewline ? 8 : 7),
-          regions: withNoNewlineRegion([
-            new Addition(mark(layers.addition, 0, 7)),
-          ]),
-        }),
-      ];
+        },
+        {
+          startRow: 4, endRow: 6,
+          header: '@@ -10,3 +11,2 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1;1;0\n', range: [[4, 0], [4, 5]]},
+            {kind: 'deletion', string: '-1;1;2 (**)\n', range: [[5, 0], [5, 10]]},
+            {kind: 'unchanged', string: ' 1;1;3\n', range: [[6, 0], [6, 5]]},
+          ],
+        },
+      );
 
-      oldFile = nullFile;
-    }
+      assert.strictEqual(fp1.getOldPath(), 'file-3.txt');
+      assertInFilePatch(fp1, stagePatch.getBuffer()).hunks(
+        {
+          startRow: 7, endRow: 10,
+          header: '@@ -1,3 +1,3 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 3;0;0\n', range: [[7, 0], [7, 5]]},
+            {kind: 'addition', string: '+3;0;1 (**)\n', range: [[8, 0], [8, 10]]},
+            {kind: 'deletion', string: '-3;0;2 (**)\n', range: [[9, 0], [9, 10]]},
+            {kind: 'unchanged', string: ' 3;0;3\n', range: [[10, 0], [10, 5]]},
+          ],
+        },
+      );
+    });
 
-    const marker = mark(layers.patch, 0, 7);
-    const patch = new Patch({status: opts.status, hunks, marker});
+    it('generates a stage patch from an arbitrary hunk', function() {
+      const hunk = multiFilePatch.getFilePatches()[0].getHunks()[1];
+      const stagePatch = multiFilePatch.getStagePatchForHunk(hunk);
 
-    return new FilePatch(oldFile, newFile, patch);
-  }
+      assert.strictEqual(stagePatch.getBuffer().getText(), dedent`
+        0;1;0
+        0;1;1
+        0;1;2
+        0;1;3
+
+      `);
+      assert.lengthOf(stagePatch.getFilePatches(), 1);
+      const [fp0] = stagePatch.getFilePatches();
+      assert.strictEqual(fp0.getOldPath(), 'file-0.txt');
+      assert.strictEqual(fp0.getNewPath(), 'file-0.txt');
+      assertInFilePatch(fp0, stagePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3,
+          header: '@@ -10,3 +10,3 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 0;1;0\n', range: [[0, 0], [0, 5]]},
+            {kind: 'addition', string: '+0;1;1\n', range: [[1, 0], [1, 5]]},
+            {kind: 'deletion', string: '-0;1;2\n', range: [[2, 0], [2, 5]]},
+            {kind: 'unchanged', string: ' 0;1;3\n', range: [[3, 0], [3, 5]]},
+          ],
+        },
+      );
+    });
+
+    it('generates an unstage patch for arbitrary buffer rows', function() {
+      const unstagePatch = multiFilePatch.getUnstagePatchForLines(rowSet);
+
+      assert.strictEqual(unstagePatch.getBuffer().getText(), dedent`
+        1;0;0
+        1;0;1 (**)
+        1;0;3
+        1;1;0
+        1;1;1
+        1;1;2 (**)
+        1;1;3
+        3;0;0
+        3;0;1 (**)
+        3;0;2 (**)
+        3;0;3
+
+      `);
+
+      assert.lengthOf(unstagePatch.getFilePatches(), 2);
+      const [fp0, fp1] = unstagePatch.getFilePatches();
+      assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
+      assertInFilePatch(fp0, unstagePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 2,
+          header: '@@ -1,3 +1,2 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1;0;0\n', range: [[0, 0], [0, 5]]},
+            {kind: 'deletion', string: '-1;0;1 (**)\n', range: [[1, 0], [1, 10]]},
+            {kind: 'unchanged', string: ' 1;0;3\n', range: [[2, 0], [2, 5]]},
+          ],
+        },
+        {
+          startRow: 3, endRow: 6,
+          header: '@@ -10,3 +9,4 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1;1;0\n 1;1;1\n', range: [[3, 0], [4, 5]]},
+            {kind: 'addition', string: '+1;1;2 (**)\n', range: [[5, 0], [5, 10]]},
+            {kind: 'unchanged', string: ' 1;1;3\n', range: [[6, 0], [6, 5]]},
+          ],
+        },
+      );
+
+      assert.strictEqual(fp1.getOldPath(), 'file-3.txt');
+      assertInFilePatch(fp1, unstagePatch.getBuffer()).hunks(
+        {
+          startRow: 7, endRow: 10,
+          header: '@@ -1,3 +1,3 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 3;0;0\n', range: [[7, 0], [7, 5]]},
+            {kind: 'deletion', string: '-3;0;1 (**)\n', range: [[8, 0], [8, 10]]},
+            {kind: 'addition', string: '+3;0;2 (**)\n', range: [[9, 0], [9, 10]]},
+            {kind: 'unchanged', string: ' 3;0;3\n', range: [[10, 0], [10, 5]]},
+          ],
+        },
+      );
+    });
+
+    it('generates an unstage patch for an arbitrary hunk', function() {
+      const hunk = multiFilePatch.getFilePatches()[1].getHunks()[0];
+      const unstagePatch = multiFilePatch.getUnstagePatchForHunk(hunk);
+
+      assert.strictEqual(unstagePatch.getBuffer().getText(), dedent`
+        1;0;0
+        1;0;1 (**)
+        1;0;2
+        1;0;3
+
+      `);
+      assert.lengthOf(unstagePatch.getFilePatches(), 1);
+      const [fp0] = unstagePatch.getFilePatches();
+      assert.strictEqual(fp0.getOldPath(), 'file-1.txt');
+      assert.strictEqual(fp0.getNewPath(), 'file-1.txt');
+      assertInFilePatch(fp0, unstagePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3,
+          header: '@@ -1,3 +1,3 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1;0;0\n', range: [[0, 0], [0, 5]]},
+            {kind: 'deletion', string: '-1;0;1 (**)\n', range: [[1, 0], [1, 10]]},
+            {kind: 'addition', string: '+1;0;2\n', range: [[2, 0], [2, 5]]},
+            {kind: 'unchanged', string: ' 1;0;3\n', range: [[3, 0], [3, 5]]},
+          ],
+        },
+      );
+    });
+  });
+
+  describe('next selection range derivation', function() {
+    it('selects the origin if the new patch is empty', function() {
+      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder().addFilePatch().build();
+      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder().build();
+
+      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set());
+      assert.deepEqual(nextSelectionRange.serialize(), [[0, 0], [0, 0]]);
+    });
+
+    it('selects the first change row if there was no prior selection', function() {
+      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder().build();
+      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder().addFilePatch().build();
+      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set());
+      assert.deepEqual(nextSelectionRange.serialize(), [[1, 0], [1, Infinity]]);
+    });
+  });
 });
