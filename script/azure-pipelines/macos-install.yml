@@ -5,12 +5,16 @@ parameters:
 steps:
 - bash: |
     set -x
-    curl -s -L "https://atom.io/download/mac?channel=${{ parameters.atom_channel }}" \
+    curl -s -L "https://atom.io/download/mac?channel=${ATOM_CHANNEL}" \
       -H 'Accept: application/octet-stream' \
       -o "atom.zip"
     mkdir -p /tmp/atom
     unzip -q atom.zip -d /tmp/atom
   displayName: install Atom
+  env:
+    ATOM_CHANNEL: ${{ parameters.atom_channel }}
 - bash: |
-    "/tmp/atom/${{ parameters.atom_app }}/Contents/Resources/app/apm/bin/apm" ci
+    "/tmp/atom/${ATOM_APP}/Contents/Resources/app/apm/bin/apm" ci
   displayName: install dependencies
+  env:
+    ATOM_APP: ${{ parameters.atom_app }}
