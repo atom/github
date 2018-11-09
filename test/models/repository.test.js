@@ -110,7 +110,7 @@ describe('Repository', function() {
       assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
       assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
       assert.strictEqual(await repository.getCommitMessage(), '');
-      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).isPresent());
+      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).anyPresent());
     });
 
     it('returns a rejecting promise', async function() {
