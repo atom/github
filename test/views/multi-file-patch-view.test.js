@@ -326,7 +326,7 @@ describe('MultiFilePatchView', function() {
       });
 
       const toggleModeChange = sinon.stub();
-      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'unstaged', toggleModeChange}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'staged', toggleModeChange}));
 
       const meta = wrapper.find('FilePatchMetaView[title="Mode change"]');
       assert.isTrue(meta.exists());
