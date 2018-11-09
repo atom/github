@@ -1,6 +1,6 @@
 import dedent from 'dedent-js';
 
-import {multiFilePatchBuilder} from '../../builder/patch';
+import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 import {assertInFilePatch} from '../../helpers';
@@ -22,6 +22,62 @@ describe('MultiFilePatch', function() {
       .build();
 
     assert.isTrue(multiFilePatch.anyPresent());
+  });
+
+  describe('clone', function() {
+    let original;
+
+    beforeEach(function() {
+      original = multiFilePatchBuilder()
+        .addFilePatch()
+        .addFilePatch()
+        .build()
+        .multiFilePatch;
+    });
+
+    it('defaults to creating an exact copy', function() {
+      const dup = original.clone();
+
+      assert.strictEqual(dup.getBuffer(), original.getBuffer());
+      assert.strictEqual(dup.getPatchLayer(), original.getPatchLayer());
+      assert.strictEqual(dup.getHunkLayer(), original.getHunkLayer());
+      assert.strictEqual(dup.getUnchangedLayer(), original.getUnchangedLayer());
+      assert.strictEqual(dup.getAdditionLayer(), original.getAdditionLayer());
+      assert.strictEqual(dup.getDeletionLayer(), original.getDeletionLayer());
+      assert.strictEqual(dup.getNoNewlineLayer(), original.getNoNewlineLayer());
+      assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
+    });
+
+    it('creates a copy with a new buffer and layer set', function() {
+      const {buffer, layers} = multiFilePatchBuilder().build();
+      const dup = original.clone({buffer, layers});
+
+      assert.strictEqual(dup.getBuffer(), buffer);
+      assert.strictEqual(dup.getPatchLayer(), layers.patch);
+      assert.strictEqual(dup.getHunkLayer(), layers.hunk);
+      assert.strictEqual(dup.getUnchangedLayer(), layers.unchanged);
+      assert.strictEqual(dup.getAdditionLayer(), layers.addition);
+      assert.strictEqual(dup.getDeletionLayer(), layers.deletion);
+      assert.strictEqual(dup.getNoNewlineLayer(), layers.noNewline);
+      assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
+    });
+
+    it('creates a copy with a new set of file patches', function() {
+      const nfp = [
+        filePatchBuilder().build().filePatch,
+        filePatchBuilder().build().filePatch,
+      ];
+
+      const dup = original.clone({filePatches: nfp});
+      assert.strictEqual(dup.getBuffer(), original.getBuffer());
+      assert.strictEqual(dup.getPatchLayer(), original.getPatchLayer());
+      assert.strictEqual(dup.getHunkLayer(), original.getHunkLayer());
+      assert.strictEqual(dup.getUnchangedLayer(), original.getUnchangedLayer());
+      assert.strictEqual(dup.getAdditionLayer(), original.getAdditionLayer());
+      assert.strictEqual(dup.getDeletionLayer(), original.getDeletionLayer());
+      assert.strictEqual(dup.getNoNewlineLayer(), original.getNoNewlineLayer());
+      assert.strictEqual(dup.getFilePatches(), nfp);
+    });
   });
 
   it('has an accessor for its file patches', function() {
