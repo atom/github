@@ -61,5 +61,5 @@ before_script:
 script:
 - ./script/cibuild
 
-after_success:
+after_script:
 - npm run coveralls
