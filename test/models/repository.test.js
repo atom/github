@@ -398,7 +398,7 @@ describe('Repository', function() {
   });
 
   describe('getFilePatchForPath', function() {
-    it('returns cached FilePatch objects if they exist', async function() {
+    it('returns cached MultiFilePatch objects if they exist', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
@@ -413,7 +413,7 @@ describe('Repository', function() {
       assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true}), stagedFilePatch);
     });
 
-    it('returns new FilePatch object after repository refresh', async function() {
+    it('returns new MultiFilePatch object after repository refresh', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
@@ -428,7 +428,7 @@ describe('Repository', function() {
       assert.isTrue((await repo.getFilePatchForPath('a.txt')).isEqual(filePatchA));
     });
 
-    it('returns a nullFilePatch for unknown paths', async function() {
+    it('returns an empty MultiFilePatch for unknown paths', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
