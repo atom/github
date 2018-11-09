@@ -3,7 +3,7 @@
 import {TextBuffer} from 'atom';
 import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
 import FilePatch from '../../lib/models/patch/file-patch';
-import File from '../../lib/models/patch/file';
+import File, {nullFile} from '../../lib/models/patch/file';
 import Patch from '../../lib/models/patch/patch';
 import Hunk from '../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
@@ -95,10 +95,20 @@ class FilePatchBuilder {
     return this;
   }
 
+  nullOldFile() {
+    this.oldFile = nullFile;
+    return this;
+  }
+
   setNewFile(block) {
     const file = new FileBuilder();
     block(file);
     this.newFile = file.build().file;
+    return this;
+  }
+
+  nullNewFile() {
+    this.newFile = nullFile;
     return this;
   }
 
