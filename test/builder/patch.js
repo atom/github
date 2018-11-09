@@ -177,6 +177,7 @@ class PatchBuilder {
 
   addHunk(block) {
     const hunk = new HunkBuilder(this.layeredBuffer);
+    block(hunk);
     this.hunks.push(hunk.build().hunk);
     return this;
   }
