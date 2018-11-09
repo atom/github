@@ -33,7 +33,7 @@ class LayeredBuffer {
     const startPosition = this.buffer.getEndPosition();
     const layer = this.getLayer(markerLayerName);
     this.buffer.append(lines.join('\n'));
-    const marker = layer.markRange([startPosition, this.buffer.getEndPosition()]);
+    const marker = layer.markRange([startPosition, this.buffer.getEndPosition()], {exclusive: true});
     this.buffer.append('\n');
     return marker;
   }
@@ -41,7 +41,7 @@ class LayeredBuffer {
   markFrom(markerLayerName, startPosition) {
     const endPosition = this.buffer.getEndPosition();
     const layer = this.getLayer(markerLayerName);
-    return layer.markRange([startPosition, endPosition]);
+    return layer.markRange([startPosition, endPosition], {exclusive: true});
   }
 
   wrapReturn(object) {
