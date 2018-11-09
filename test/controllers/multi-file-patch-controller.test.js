@@ -336,7 +336,7 @@ describe('MultiFilePatchController', function() {
         repository.refresh();
         const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
         const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
-        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
@@ -362,7 +362,7 @@ describe('MultiFilePatchController', function() {
 
         sinon.spy(repository, 'stageFiles');
 
-        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
         await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.stageFiles.calledWith(['waslink.txt']));
@@ -387,7 +387,7 @@ describe('MultiFilePatchController', function() {
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
-        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
         await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
