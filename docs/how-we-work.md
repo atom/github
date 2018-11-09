@@ -32,7 +32,7 @@ This includes work like typos in comments or documentation, localized work, or r
 
 ### Bug fixes
 
-Addressing unhandled exceptions, lock-ups, or correcting other unintended behavior in established functionality follows this process. For bug fixes that have UX, substantial UI, or package scope implications or tradeoffs, consider following [the new feature RFC process](#new-features) instead, to ensure we have a chance to collect design and community feedback before we proceed with a fix.
+Addressing unhandled exceptions, lock-ups, or correcting other unintended behavior in established functionality follows this process. For bug fixes that have UX, substantial UI, or package scope implications or tradeoffs, consider following [the new feature "Feature Request" process](#new-features) instead, to ensure we have a chance to collect design and community feedback before we proceed with a fix.
 
 ##### Process
 
@@ -72,24 +72,35 @@ Major, cross-cutting refactoring efforts fit within this category. Our goals wit
 
 To introduce brand-new functionality into the package, follow this guide.
 
+##### On using our Feature Request process
+
+We use a Feature Request process to ensure that folks have an opportunity to weigh in on design, alternatives, drawbacks, questions, and concerns. It provides a quick and easily scannable summary of what was discussed and decided. We discuss Feature Requests in pull requests rather than issues to record an evolving consensus and have a single file that represents the current state of the Feature Request.
+
+The goal is to suss out important considerations and valuable ideas as early as possible and encourage more holistic / bigger picture thinking. The goal is NOT to flesh out the perfect design or come to complete consensus before we start building.
+
+Development work on the feature may start at any point once the Feature Request pull request has been opened with a description of the feature. The Feature Request is merged once the team decides to move on to the next feature and is no longer actively working on the Feature Request feature. Merging Feature Requests with unfinished work is fine, and we may choose to pick up work again in the future.
+
+The Feature Request is meant to be a living document that will be modified over the duration of development as things evolve, new information is discovered, and UXR is conducted.
+
+_We encourage community members wanting to contribute new features to follow this process._ This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. You can run your idea by us by simply filling out the first three sections of the Feature Request template (summary, motivation, and explanation). Feel free to leave the rest blank -- more info would be welcome but is not necessary.
+
 ##### Process
 
-1. On a feature branch, write a proposal as a markdown document beneath [`docs/rfcs`](/docs/rfcs) in this repository. Copy the [template](/docs/rfcs/000-template.md) to begin. Open a pull request. The RFC document should include:
+1. On a feature branch, write a proposal as a markdown document beneath [`docs/feature-requests`](/docs/feature-requests) in this repository. Copy the [template](/docs/feature-requests/000-template.md) to begin. Open a pull request. The Feature Request document should include:
    * A description of the feature, written as though it already exists;
    * An analysis of the risks and drawbacks;
    * A specification of when the feature will be considered "done";
    * Unresolved questions or possible follow-on work;
    * A sequence of discrete phases that can be used to realize the full feature;
-   * The acceptance criteria for the RFC itself, as chosen by your current understanding of its scope and impact. Some options you may use here include _(a)_ you're satisfied with its state; _(b)_ the pull request has collected a predetermined number of :+1: votes from core team members; or _(c)_ unanimous :+1: votes from the full core team.
-2. @-mention @simurai on the open pull request for design input. Begin hashing out mock-ups, look and feel, specific user interaction details, and decide on a high-level direction for the feature.
-3. The RFC's author is responsible for recognizing when its acceptance criteria have been met and merging its pull request. :rainbow: _Our intent here is to give the feature's advocate the ability to cut [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) short and accept responsibility for guiding it forward._
-4. Work on the RFC's implementation is performed in one or more pull requests. Remember to add each pull request to the current sprint project.
+1. @-mention @simurai on the open pull request for design input. Begin hashing out mock-ups, look and feel, specific user interaction details, and decide on a high-level direction for the feature.
+1. Feature development may begin at any point after the Feature Request pull request has been opened.
+1. Work on the Feature Request's implementation is performed in one or more pull requests. Try to break out work into smaller pull requests as much as possible to ship incremental changes. Remember to add each pull request to the current sprint project.
    * Consider gating your work behind a feature flag or a configuration option.
    * Write tests for your new work.
    * Optionally [request reviewers](#how-we-review) if you want feedback. Ping @simurai for ongoing UI/UX considerations if appropriate.
    * Merge your pull request yourself when CI is green and any reviewers you have requested have approved the PR.
-   * As the design evolves and opinions change, modify the existing RFC to stay accurate.
-5. When the feature is complete, update the RFC to a "completed" state.
+   * As the design evolves and opinions change, modify the existing Feature Request to stay accurate.
+1. When the feature is complete, update the Feature Request to a "completed" state and merge it. For any outstanding work that didn't get implemented, open issues or start new Feature Requests.
 
 ### Expansions or retractions of package scope
 
@@ -126,7 +137,7 @@ At the end of each development sprint:
   * :boom: _If the build fails,_ correct any bugs and begin again at (1) with a new prerelease version.
 4. Run `apm uninstall github` and `apm uninstall --dev github` to ensure that you don't have any [locally installed atom/github versions](/CONTRIBUTING.md#living-on-the-edge) that would override the bundled one.
 5. _In your atom/atom repository:_ Push your branch to atom/atom and open a pull request to start running CI.
-6. Create a [QA issue](https://github.com/atom/github/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquality) in the atom/github repository. Its title should be "_prerelease version_ QA Review" and it should have the "quality" label applied. Populate the issue body with a checklist containing the pull requests that were included in this release; these should be the ones in the "Merged" column of the project board. Omit pull requests that don't have verification steps (like renames, refactoring, or dependency upgrades, for example). Add a final entry for a clean CI check on the atom/atom pull request.
+6. Create a [QA issue](https://github.com/atom/github/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquality) in the atom/github repository. Its title should be "_prerelease version_ QA Review" and it should have the "quality" label applied. Populate the issue body with a checklist containing the pull requests that were included in this release; these should be the ones in the "Merged" column of the project board. Omit pull requests that don't have verification steps (like renames, refactoring, adding tests or metrics, or dependency upgrades, for example). Add a final entry for a clean CI check on the atom/atom pull request.
 7. Use your `atom-dev` build to verify each and check it off the list.
   * :boom: _If verification fails,_ note the failure in an issue comment. Close the issue. Correct the failure with more work in the current sprint board, then begin again at (1).
   * :white_check_mark: _Otherwise,_ comment in and close the issue, then continue.

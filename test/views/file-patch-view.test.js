@@ -1,614 +1,1149 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
+import {cloneRepository, buildRepository} from '../helpers';
 import FilePatchView from '../../lib/views/file-patch-view';
-import Hunk from '../../lib/models/hunk';
-import HunkLine from '../../lib/models/hunk-line';
-
-import {assertEqualSets} from '../helpers';
+import {buildFilePatch} from '../../lib/models/patch';
+import {nullFile} from '../../lib/models/patch/file';
+import FilePatch from '../../lib/models/patch/file-patch';
 
 describe('FilePatchView', function() {
-  let atomEnv, commandRegistry, tooltips, component;
-  let attemptLineStageOperation, attemptHunkStageOperation, attemptFileStageOperation, attemptSymlinkStageOperation;
-  let attemptModeStageOperation, discardLines, undoLastDiscard, openCurrentFile;
-  let didSurfaceFile, didDiveIntoCorrespondingFilePatch, handleShowDiffClick;
+  let atomEnv, workspace, repository, filePatch;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
-    tooltips = atomEnv.tooltips;
+    workspace = atomEnv.workspace;
 
-    attemptLineStageOperation = sinon.spy();
-    attemptHunkStageOperation = sinon.spy();
-    attemptModeStageOperation = sinon.spy();
-    attemptFileStageOperation = sinon.spy();
-    attemptSymlinkStageOperation = sinon.spy();
-    discardLines = sinon.spy();
-    undoLastDiscard = sinon.spy();
-    openCurrentFile = sinon.spy();
-    didSurfaceFile = sinon.spy();
-    didDiveIntoCorrespondingFilePatch = sinon.spy();
-    handleShowDiffClick = sinon.spy();
+    const workdirPath = await cloneRepository();
+    repository = await buildRepository(workdirPath);
 
-    component = (
-      <FilePatchView
-        commandRegistry={commandRegistry}
-        tooltips={tooltips}
-        filePath="filename.js"
-        hunks={[]}
-        stagingStatus="unstaged"
-        isPartiallyStaged={false}
-        hasUndoHistory={false}
-        attemptLineStageOperation={attemptLineStageOperation}
-        attemptFileStageOperation={attemptFileStageOperation}
-        attemptModeStageOperation={attemptModeStageOperation}
-        attemptHunkStageOperation={attemptHunkStageOperation}
-        attemptSymlinkStageOperation={attemptSymlinkStageOperation}
-        discardLines={discardLines}
-        undoLastDiscard={undoLastDiscard}
-        openCurrentFile={openCurrentFile}
-        didSurfaceFile={didSurfaceFile}
-        didDiveIntoCorrespondingFilePatch={didDiveIntoCorrespondingFilePatch}
-        handleShowDiffClick={handleShowDiffClick}
-      />
-    );
+    // path.txt: unstaged changes
+    filePatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
+          heading: 'zero',
+          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
+          heading: 'one',
+          lines: [' 0005', '+0006', '-0007', ' 0008'],
+        },
+      ],
+    }]);
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  describe('mouse selection', () => {
-    it('allows lines and hunks to be selected via mouse drag', function() {
-      const hunks = [
-        new Hunk(1, 1, 2, 4, '', [
-          new HunkLine('line-1', 'unchanged', 1, 1),
-          new HunkLine('line-2', 'added', -1, 2),
-          new HunkLine('line-3', 'added', -1, 3),
-          new HunkLine('line-4', 'unchanged', 2, 4),
-        ]),
-        new Hunk(5, 7, 1, 4, '', [
-          new HunkLine('line-5', 'unchanged', 5, 7),
-          new HunkLine('line-6', 'added', -1, 8),
-          new HunkLine('line-7', 'added', -1, 9),
-          new HunkLine('line-8', 'added', -1, 10),
-        ]),
-      ];
+  function buildApp(overrideProps = {}) {
+    const props = {
+      relPath: 'path.txt',
+      stagingStatus: 'unstaged',
+      isPartiallyStaged: false,
+      filePatch,
+      hasUndoHistory: false,
+      selectionMode: 'line',
+      selectedRows: new Set(),
+      repository,
 
-      const wrapper = shallow(React.cloneElement(component, {hunks}));
-      const getHunkView = index => wrapper.find({hunk: hunks[index]});
+      workspace,
+      config: atomEnv.config,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
 
-      // drag a selection
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
-      wrapper.instance().mouseup();
-      wrapper.update();
+      selectedRowsChanged: () => {},
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
+      diveIntoMirrorPatch: () => {},
+      surfaceFile: () => {},
+      openFile: () => {},
+      toggleFile: () => {},
+      toggleRows: () => {},
+      toggleModeChange: () => {},
+      toggleSymlinkChange: () => {},
+      undoLastDiscard: () => {},
+      discardRows: () => {},
 
-      // start a new selection, drag it across an existing selection
-      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunks[1], hunks[1].lines[3]);
-      getHunkView(0).prop('mousemoveOnLine')({}, hunks[0], hunks[0].lines[0]);
-      wrapper.update();
+      ...overrideProps,
+    };
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
+    return <FilePatchView {...props} />;
+  }
 
-      // drag back down without releasing mouse; the other selection remains intact
-      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[3]);
-      wrapper.update();
+  it('renders the file header', function() {
+    const wrapper = shallow(buildApp());
+    assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
+  });
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
-      assert.isFalse(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
+  it('undoes the last discard from the file header button', function() {
+    const undoLastDiscard = sinon.spy();
+    const wrapper = shallow(buildApp({undoLastDiscard}));
 
-      // drag back up so selections are adjacent, then release the mouse. selections should merge.
-      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[2]);
-      wrapper.instance().mouseup();
-      wrapper.update();
+    wrapper.find('FilePatchHeaderView').prop('undoLastDiscard')();
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
+    assert.isTrue(undoLastDiscard.calledWith({eventSource: 'button'}));
+  });
 
-      // we detect merged selections based on the head here
-      wrapper.instance().selectToNext();
-      wrapper.update();
+  it('renders the file patch within an editor', function() {
+    const wrapper = mount(buildApp());
 
-      assert.isFalse(getHunkView(0).prop('isSelected'));
-      assert.isFalse(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
+    const editor = wrapper.find('AtomTextEditor');
+    assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
+  });
 
-      // double-clicking clears the existing selection and starts hunk-wise selection
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 2}, hunks[0], hunks[0].lines[2]);
-      wrapper.update();
+  it('sets the root class when in hunk selection mode', function() {
+    const wrapper = shallow(buildApp({selectionMode: 'line'}));
+    assert.isFalse(wrapper.find('.github-FilePatchView--hunkMode').exists());
+    wrapper.setProps({selectionMode: 'hunk'});
+    assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
+  });
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isFalse(getHunkView(1).prop('isSelected'));
+  it('preserves the selection index when a new file patch arrives in line selection mode', function() {
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({
+      selectedRows: new Set([2]),
+      selectionMode: 'line',
+      selectedRowsChanged,
+    }));
 
-      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
-      wrapper.update();
+    const nextPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 5, oldLineCount: 4, newStartLine: 5, newLineCount: 3,
+          heading: 'heading',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+      ],
+    }]);
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
+    wrapper.setProps({filePatch: nextPatch});
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
-      // clicking the header clears the existing selection and starts hunk-wise selection
-      getHunkView(0).prop('mousedownOnHeader')({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-      wrapper.update();
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
+    assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+      [[3, 0], [3, 4]],
+    ]);
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isFalse(getHunkView(1).prop('isSelected'));
+    selectedRowsChanged.resetHistory();
+    wrapper.setProps({isPartiallyStaged: true});
+    assert.isFalse(selectedRowsChanged.called);
+  });
 
-      getHunkView(1).prop('mousemoveOnLine')({}, hunks[1], hunks[1].lines[1]);
-      wrapper.update();
+  it('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
+    const multiHunkPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
+          heading: '0',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 20, oldLineCount: 3, newStartLine: 20, newLineCount: 4,
+          heading: '1',
+          lines: [' 0005', '+0006', '+0007', '-0008', ' 0009'],
+        },
+        {
+          oldStartLine: 30, oldLineCount: 3, newStartLine: 31, newLineCount: 3,
+          heading: '2',
+          lines: [' 0010', '+0011', '-0012', ' 0013'],
+        },
+        {
+          oldStartLine: 40, oldLineCount: 4, newStartLine: 41, newLineCount: 4,
+          heading: '3',
+          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
+        },
+      ],
+    }]);
 
-      assert.isTrue(getHunkView(0).prop('isSelected'));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[1]));
-      assert.isTrue(getHunkView(0).prop('selectedLines').has(hunks[0].lines[2]));
-      assert.isTrue(getHunkView(1).prop('isSelected'));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[1]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[2]));
-      assert.isTrue(getHunkView(1).prop('selectedLines').has(hunks[1].lines[3]));
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({
+      filePatch: multiHunkPatch,
+      selectedRows: new Set([6, 7, 8]),
+      selectionMode: 'hunk',
+      selectedRowsChanged,
+    }));
+
+    const nextPatch = buildFilePatch([{
+      oldPath: 'path.txt',
+      oldMode: '100644',
+      newPath: 'path.txt',
+      newMode: '100644',
+      status: 'modified',
+      hunks: [
+        {
+          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
+          heading: '0',
+          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
+        },
+        {
+          oldStartLine: 30, oldLineCount: 3, newStartLine: 30, newLineCount: 3,
+          heading: '2',
+          //       5         6        7        8
+          lines: [' 0010', '+0011', '-0012', ' 0013'],
+        },
+        {
+          oldStartLine: 40, oldLineCount: 4, newStartLine: 40, newLineCount: 4,
+          heading: '3',
+          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
+        },
+      ],
+    }]);
+
+    wrapper.setProps({filePatch: nextPatch});
+
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
+    assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+      [[5, 0], [8, 4]],
+    ]);
+  });
+
+  it('unregisters the mouseup handler on unmount', function() {
+    sinon.spy(window, 'addEventListener');
+    sinon.spy(window, 'removeEventListener');
+
+    const wrapper = shallow(buildApp());
+    assert.strictEqual(window.addEventListener.callCount, 1);
+    const addCall = window.addEventListener.getCall(0);
+    assert.strictEqual(addCall.args[0], 'mouseup');
+    const handler = window.addEventListener.getCall(0).args[1];
+
+    wrapper.unmount();
+
+    assert.isTrue(window.removeEventListener.calledWith('mouseup', handler));
+  });
+
+  describe('executable mode changes', function() {
+    it('does not render if the mode has not changed', function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
+        newFile: filePatch.getNewFile().clone({mode: '100644'}),
+      });
+
+      const wrapper = shallow(buildApp({filePatch: fp}));
+      assert.isFalse(wrapper.find('FilePatchMetaView[title="Mode change"]').exists());
     });
 
-    it('allows lines and hunks to be selected via cmd-clicking', function() {
-      const hunk0 = new Hunk(1, 1, 2, 4, '', [
-        new HunkLine('line-0', 'added', -1, 1),
-        new HunkLine('line-1', 'added', -1, 2),
-        new HunkLine('line-2', 'added', -1, 3),
-      ]);
-      const hunk1 = new Hunk(5, 7, 1, 4, '', [
-        new HunkLine('line-3', 'added', -1, 7),
-        new HunkLine('line-4', 'added', -1, 8),
-        new HunkLine('line-5', 'added', -1, 9),
-        new HunkLine('line-6', 'added', -1, 10),
-      ]);
+    it('renders change details within a meta container', function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
+        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      });
 
-      const wrapper = shallow(React.cloneElement(component, {
-        hunks: [hunk0, hunk1],
+      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'unstaged'}));
+
+      const meta = wrapper.find('FilePatchMetaView[title="Mode change"]');
+      assert.strictEqual(meta.prop('actionIcon'), 'icon-move-down');
+      assert.strictEqual(meta.prop('actionText'), 'Stage Mode Change');
+
+      const details = meta.find('.github-FilePatchView-metaDetails');
+      assert.strictEqual(details.text(), 'File changed modefrom non executable 100644to executable 100755');
+    });
+
+    it("stages or unstages the mode change when the meta container's action is triggered", function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
+        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      });
+
+      const toggleModeChange = sinon.stub();
+      const wrapper = shallow(buildApp({filePatch: fp, stagingStatus: 'staged', toggleModeChange}));
+
+      const meta = wrapper.find('FilePatchMetaView[title="Mode change"]');
+      assert.isTrue(meta.exists());
+      assert.strictEqual(meta.prop('actionIcon'), 'icon-move-up');
+      assert.strictEqual(meta.prop('actionText'), 'Unstage Mode Change');
+
+      meta.prop('action')();
+      assert.isTrue(toggleModeChange.called);
+    });
+  });
+
+  describe('symlink changes', function() {
+    it('does not render if the symlink status is unchanged', function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
+        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      });
+
+      const wrapper = mount(buildApp({filePatch: fp}));
+      assert.lengthOf(wrapper.find('FilePatchMetaView').filterWhere(v => v.prop('title').startsWith('Symlink')), 0);
+    });
+
+    it('renders symlink change information within a meta container', function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+        newFile: filePatch.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+      });
+
+      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'unstaged'}));
+      const meta = wrapper.find('FilePatchMetaView[title="Symlink changed"]');
+      assert.isTrue(meta.exists());
+      assert.strictEqual(meta.prop('actionIcon'), 'icon-move-down');
+      assert.strictEqual(meta.prop('actionText'), 'Stage Symlink Change');
+      assert.strictEqual(
+        meta.find('.github-FilePatchView-metaDetails').text(),
+        'Symlink changedfrom /old.txtto /new.txt.',
+      );
+    });
+
+    it('stages or unstages the symlink change', function() {
+      const toggleSymlinkChange = sinon.stub();
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+        newFile: filePatch.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+      });
+
+      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'staged', toggleSymlinkChange}));
+      const meta = wrapper.find('FilePatchMetaView[title="Symlink changed"]');
+      assert.isTrue(meta.exists());
+      assert.strictEqual(meta.prop('actionIcon'), 'icon-move-up');
+      assert.strictEqual(meta.prop('actionText'), 'Unstage Symlink Change');
+
+      meta.find('button.icon-move-up').simulate('click');
+      assert.isTrue(toggleSymlinkChange.called);
+    });
+
+    it('renders details for a symlink deletion', function() {
+      const fp = filePatch.clone({
+        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+        newFile: nullFile,
+      });
+
+      const wrapper = mount(buildApp({filePatch: fp}));
+      const meta = wrapper.find('FilePatchMetaView[title="Symlink deleted"]');
+      assert.isTrue(meta.exists());
+      assert.strictEqual(
+        meta.find('.github-FilePatchView-metaDetails').text(),
+        'Symlinkto /old.txtdeleted.',
+      );
+    });
+
+    it('renders details for a symlink creation', function() {
+      const fp = filePatch.clone({
+        oldFile: nullFile,
+        newFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/new.txt'}),
+      });
+
+      const wrapper = mount(buildApp({filePatch: fp}));
+      const meta = wrapper.find('FilePatchMetaView[title="Symlink created"]');
+      assert.isTrue(meta.exists());
+      assert.strictEqual(
+        meta.find('.github-FilePatchView-metaDetails').text(),
+        'Symlinkto /new.txtcreated.',
+      );
+    });
+  });
+
+  describe('hunk headers', function() {
+    it('renders one for each hunk', function() {
+      const fp = buildFilePatch([{
+        oldPath: 'path.txt',
+        oldMode: '100644',
+        newPath: 'path.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', ' 0002'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+            heading: 'second hunk',
+            lines: [' 0003', '-0004', ' 0005'],
+          },
+        ],
+      }]);
+      const hunks = fp.getHunks();
+
+      const wrapper = mount(buildApp({filePatch: fp}));
+      assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
+      assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
+    });
+
+    it('pluralizes the toggle and discard button labels', function() {
+      const wrapper = shallow(buildApp({selectedRows: new Set([2]), selectionMode: 'line'}));
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Line');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Line');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3]), selectionMode: 'line'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Lines');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Selected Lines');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3]), selectionMode: 'hunk'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunk');
+
+      wrapper.setProps({selectedRows: new Set([1, 2, 3, 6, 7]), selectionMode: 'hunk'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('discardSelectionLabel'), 'Discard Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunks');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('discardSelectionLabel'), 'Discard Hunks');
+    });
+
+    it('uses the appropriate staging action verb in hunk header button labels', function() {
+      const wrapper = shallow(buildApp({
+        selectedRows: new Set([2]),
+        stagingStatus: 'unstaged',
+        selectionMode: 'line',
       }));
-      const getHunkView = index => wrapper.find({hunk: [hunk0, hunk1][index]});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Line');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
 
-      // in line selection mode, cmd-click line
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-
-      assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2], hunk1.lines[2]]));
-
-      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, metaKey: true}, hunk1, hunk1.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      // in line selection mode, cmd-click hunk header for separate hunk
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-
-      assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, metaKey: true});
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2], ...hunk1.lines]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, metaKey: true});
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      // in hunk selection mode, cmd-click line for separate hunk
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-      wrapper.instance().togglePatchSelectionMode();
-
-      assert.equal(wrapper.instance().getPatchSelectionMode(), 'hunk');
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines));
-
-      // in hunk selection mode, cmd-click hunk header for separate hunk
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-      wrapper.instance().togglePatchSelectionMode();
-
-      assert.equal(wrapper.instance().getPatchSelectionMode(), 'hunk');
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines));
+      wrapper.setProps({stagingStatus: 'staged'});
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Unstage Selected Line');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Unstage Hunk');
     });
 
-    it('allows lines and hunks to be selected via shift-clicking', () => {
-      const hunk0 = new Hunk(1, 1, 2, 4, '', [
-        new HunkLine('line-1', 'unchanged', 1, 1, 0),
-        new HunkLine('line-2', 'added', -1, 2, 1),
-        new HunkLine('line-3', 'added', -1, 3, 2),
+    it('uses the appropriate staging action noun in hunk header button labels', function() {
+      const wrapper = shallow(buildApp({
+        selectedRows: new Set([1, 2, 3]),
+        stagingStatus: 'unstaged',
+        selectionMode: 'line',
+      }));
+
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Selected Lines');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+
+      wrapper.setProps({selectionMode: 'hunk'});
+
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(0).prop('toggleSelectionLabel'), 'Stage Hunk');
+      assert.strictEqual(wrapper.find('HunkHeaderView').at(1).prop('toggleSelectionLabel'), 'Stage Hunk');
+    });
+
+    it('handles mousedown as a selection event', function() {
+      const fp = buildFilePatch([{
+        oldPath: 'path.txt',
+        oldMode: '100644',
+        newPath: 'path.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', ' 0002'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+            heading: 'second hunk',
+            lines: [' 0003', '-0004', ' 0005'],
+          },
+        ],
+      }]);
+
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, fp.getHunks()[1]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('handles a toggle click on a hunk containing a selection', function() {
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), toggleRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(0).prop('toggleSelection')();
+      assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [2]);
+      assert.strictEqual(toggleRows.lastCall.args[1], 'line');
+    });
+
+    it('handles a toggle click on a hunk not containing a selection', function() {
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), toggleRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('toggleSelection')();
+      assert.sameMembers(Array.from(toggleRows.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(toggleRows.lastCall.args[1], 'hunk');
+    });
+
+    it('handles a discard click on a hunk containing a selection', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(0).prop('discardSelection')();
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [2]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'line');
+    });
+
+    it('handles a discard click on a hunk not containing a selection', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
+
+      wrapper.find('HunkHeaderView').at(1).prop('discardSelection')();
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'hunk');
+    });
+  });
+
+  describe('custom gutters', function() {
+    let wrapper, instance, editor;
+
+    beforeEach(function() {
+      wrapper = mount(buildApp());
+      instance = wrapper.instance();
+      editor = wrapper.find('AtomTextEditor').instance().getModel();
+    });
+
+    it('computes the old line number for a buffer row', function() {
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 5, softWrapped: false}), '\u00a08');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 6, softWrapped: false}), '\u00a0\u00a0');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 6, softWrapped: true}), '\u00a0\u00a0');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 7, softWrapped: false}), '\u00a09');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 8, softWrapped: false}), '10');
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 8, softWrapped: true}), '\u00a0•');
+
+      assert.strictEqual(instance.oldLineNumberLabel({bufferRow: 999, softWrapped: false}), '\u00a0\u00a0');
+    });
+
+    it('computes the new line number for a buffer row', function() {
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 5, softWrapped: false}), '\u00a09');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 6, softWrapped: false}), '10');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 6, softWrapped: true}), '\u00a0•');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 7, softWrapped: false}), '\u00a0\u00a0');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 7, softWrapped: true}), '\u00a0\u00a0');
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 8, softWrapped: false}), '11');
+
+      assert.strictEqual(instance.newLineNumberLabel({bufferRow: 999, softWrapped: false}), '\u00a0\u00a0');
+    });
+
+    it('renders diff region scope characters when the config option is enabled', function() {
+      atomEnv.config.set('github.showDiffIconGutter', true);
+
+      wrapper.update();
+      const gutter = wrapper.find('Gutter[name="diff-icons"]');
+      assert.isTrue(gutter.exists());
+
+      const assertLayerDecorated = layer => {
+        const layerWrapper = wrapper.find('MarkerLayer').filterWhere(each => each.prop('external') === layer);
+        const decorations = layerWrapper.find('Decoration[type="line-number"][gutterName="diff-icons"]');
+        assert.isTrue(decorations.exists());
+      };
+      assertLayerDecorated(filePatch.getAdditionLayer());
+      assertLayerDecorated(filePatch.getDeletionLayer());
+
+      atomEnv.config.set('github.showDiffIconGutter', false);
+      wrapper.update();
+      assert.isFalse(wrapper.find('Gutter[name="diff-icons"]').exists());
+    });
+
+    it('selects a single line on click', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
       ]);
-      const hunk1 = new Hunk(5, 7, 1, 4, '', [
-        new HunkLine('line-5', 'added', -1, 7, 3),
-        new HunkLine('line-6', 'added', -1, 8, 4),
-        new HunkLine('line-7', 'added', -1, 9, 5),
-        new HunkLine('line-8', 'added', -1, 10, 6),
+    });
+
+    it('changes to line selection mode on click', function() {
+      const selectedRowsChanged = sinon.spy();
+      wrapper.setProps({selectedRowsChanged, selectionMode: 'hunk'});
+
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [2]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+    });
+
+    it('ignores right clicks', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 1}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[0, 0], [4, 4]],
       ]);
-      const hunk2 = new Hunk(15, 17, 1, 4, '', [
-        new HunkLine('line-15', 'added', -1, 15, 7),
-        new HunkLine('line-16', 'added', -1, 18, 8),
-        new HunkLine('line-17', 'added', -1, 19, 9),
-        new HunkLine('line-18', 'added', -1, 20, 10),
-      ]);
-      const hunks = [hunk0, hunk1, hunk2];
-
-      const wrapper = shallow(React.cloneElement(component, {hunks}));
-      const getHunkView = index => wrapper.find({hunk: hunks[index]});
-
-      // in line selection mode, shift-click line in separate hunk that comes after selected line
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      getHunkView(2).prop('mousedownOnLine')({button: 0, detail: 1, shiftKey: true}, hunk2, hunk2.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
-
-      getHunkView(1).prop('mousedownOnLine')({button: 0, detail: 1, shiftKey: true}, hunk1, hunk1.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines.slice(0, 3)]));
-
-      // in line selection mode, shift-click hunk header for separate hunk that comes after selected line
-      getHunkView(0).prop('mousedownOnLine')({button: 0, detail: 1}, hunk0, hunk0.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk0.lines[2]]));
-
-      getHunkView(2).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk2);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines, ...hunk2.lines]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(2), ...hunk1.lines]));
-
-      // in line selection mode, shift-click hunk header for separate hunk that comes before selected line
-      getHunkView(2).prop('mousedownOnLine')({button: 0, detail: 1}, hunk2, hunk2.lines[2]);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([hunk2.lines[2]]));
-
-      getHunkView(0).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk0);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines.slice(0, 3)]));
-
-      // in hunk selection mode, shift-click hunk header for separate hunk that comes after selected line
-      getHunkView(0).prop('mousedownOnHeader')({button: 0}, hunk0);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk0.lines.slice(1)));
-
-      getHunkView(2).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk2);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines]));
-
-      // in hunk selection mode, shift-click hunk header for separate hunk that comes before selected line
-      getHunkView(2).prop('mousedownOnHeader')({button: 0}, hunk2);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set(hunk2.lines));
-
-      getHunkView(0).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk0);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk0, hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk0.lines.slice(1), ...hunk1.lines, ...hunk2.lines]));
-
-      getHunkView(1).prop('mousedownOnHeader')({button: 0, shiftKey: true}, hunk1);
-      wrapper.instance().mouseup();
-
-      assertEqualSets(wrapper.instance().getSelectedHunks(), new Set([hunk1, hunk2]));
-      assertEqualSets(wrapper.instance().getSelectedLines(), new Set([...hunk1.lines, ...hunk2.lines]));
     });
 
     if (process.platform !== 'win32') {
-      // https://github.com/atom/github/issues/514
-      describe('mousedownOnLine', function() {
-        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', function() {
-          const hunk0 = new Hunk(1, 1, 2, 4, '', [
-            new HunkLine('line-1', 'added', -1, 1),
-            new HunkLine('line-2', 'added', -1, 2),
-            new HunkLine('line-3', 'added', -1, 3),
-          ]);
-
-          const wrapper = shallow(React.cloneElement(component, {hunks: [hunk0]}));
-
-          wrapper.instance().togglePatchSelectionMode();
-          assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
-
-          sinon.spy(wrapper.state('selection'), 'addOrSubtractLineSelection');
-          sinon.spy(wrapper.state('selection'), 'selectLine');
-
-          wrapper.find('HunkView').prop('mousedownOnLine')({button: 0, detail: 1, ctrlKey: true}, hunk0, hunk0.lines[2]);
-          assert.isFalse(wrapper.state('selection').addOrSubtractLineSelection.called);
-          assert.isFalse(wrapper.state('selection').selectLine.called);
-          assert.isFalse(wrapper.instance().mouseSelectionInProgress);
-        });
-      });
-
-      // https://github.com/atom/github/issues/514
-      describe('mousedownOnHeader', function() {
-        it('does not select line or set selection to be in progress if ctrl-key is pressed and not on windows', function() {
-          const hunk0 = new Hunk(1, 1, 2, 4, '', [
-            new HunkLine('line-1', 'added', -1, 1),
-            new HunkLine('line-2', 'added', -1, 2),
-            new HunkLine('line-3', 'added', -1, 3),
-          ]);
-          const hunk1 = new Hunk(5, 7, 1, 4, '', [
-            new HunkLine('line-5', 'added', -1, 7),
-            new HunkLine('line-6', 'added', -1, 8),
-            new HunkLine('line-7', 'added', -1, 9),
-            new HunkLine('line-8', 'added', -1, 10),
-          ]);
-
-          const wrapper = shallow(React.cloneElement(component, {hunks: [hunk0, hunk1]}));
-
-          wrapper.instance().togglePatchSelectionMode();
-          assert.equal(wrapper.instance().getPatchSelectionMode(), 'line');
-
-          sinon.spy(wrapper.state('selection'), 'addOrSubtractLineSelection');
-          sinon.spy(wrapper.state('selection'), 'selectLine');
-
-          // ctrl-click hunk line
-          wrapper.find({hunk: hunk0}).prop('mousedownOnHeader')({button: 0, detail: 1, ctrlKey: true}, hunk0);
-
-          assert.isFalse(wrapper.state('selection').addOrSubtractLineSelection.called);
-          assert.isFalse(wrapper.state('selection').selectLine.called);
-          assert.isFalse(wrapper.instance().mouseSelectionInProgress);
-        });
+      it('ignores ctrl-clicks on non-Windows platforms', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0, ctrlKey: true}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[0, 0], [4, 4]],
+        ]);
       });
     }
-  });
 
-  it('scrolls off-screen lines and hunks into view when they are selected', async function() {
-    const hunks = [
-      new Hunk(1, 1, 2, 4, '', [
-        new HunkLine('line-1', 'unchanged', 1, 1),
-        new HunkLine('line-2', 'added', -1, 2),
-        new HunkLine('line-3', 'added', -1, 3),
-        new HunkLine('line-4', 'unchanged', 2, 4),
-      ]),
-      new Hunk(5, 7, 1, 4, '', [
-        new HunkLine('line-5', 'unchanged', 5, 7),
-        new HunkLine('line-6', 'added', -1, 8),
-        new HunkLine('line-7', 'added', -1, 9),
-        new HunkLine('line-8', 'added', -1, 10),
-      ]),
-    ];
+    it('selects a range of lines on click and drag', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
+      ]);
 
-    const root = document.createElement('div');
-    root.style.overflow = 'scroll';
-    root.style.height = '100px';
-    document.body.appendChild(root);
+      instance.didMouseMoveOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [2, 4]],
+      ]);
 
-    const wrapper = mount(React.cloneElement(component, {hunks}), {attachTo: root});
+      instance.didMouseMoveOnLineNumber({bufferRow: 3, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [3, 4]],
+      ]);
 
-    wrapper.instance().togglePatchSelectionMode();
-    wrapper.instance().selectNext();
-    await new Promise(resolve => root.addEventListener('scroll', resolve));
-    assert.isAbove(root.scrollTop, 0);
-    const initScrollTop = root.scrollTop;
+      instance.didMouseMoveOnLineNumber({bufferRow: 3, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [3, 4]],
+      ]);
 
-    wrapper.instance().togglePatchSelectionMode();
-    wrapper.instance().selectNext();
-    await new Promise(resolve => root.addEventListener('scroll', resolve));
-    assert.isAbove(root.scrollTop, initScrollTop);
+      instance.didMouseMoveOnLineNumber({bufferRow: 4, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
 
-    root.remove();
-  });
+      instance.didMouseUp();
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
 
-  it('assigns the appropriate stage button label on hunks based on the stagingStatus and selection mode', function() {
-    const hunk = new Hunk(1, 1, 1, 2, '', [new HunkLine('line-1', 'added', -1, 1)]);
-
-    const wrapper = shallow(React.cloneElement(component, {
-      hunks: [hunk],
-      stagingStatus: 'unstaged',
-    }));
-
-    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Stage Hunk');
-    wrapper.setProps({stagingStatus: 'staged'});
-    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Hunk');
-
-    wrapper.instance().togglePatchSelectionMode();
-    wrapper.update();
-
-    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Unstage Selection');
-    wrapper.setProps({stagingStatus: 'unstaged'});
-    assert.equal(wrapper.find('HunkView').prop('stageButtonLabel'), 'Stage Selection');
-  });
-
-  describe('didClickStageButtonForHunk', function() {
-    // ref: https://github.com/atom/github/issues/339
-    it('selects the next hunk after staging', function() {
-      const hunks = [
-        new Hunk(1, 1, 2, 4, '', [
-          new HunkLine('line-1', 'unchanged', 1, 1),
-          new HunkLine('line-2', 'added', -1, 2),
-          new HunkLine('line-3', 'added', -1, 3),
-          new HunkLine('line-4', 'unchanged', 2, 4),
-        ]),
-        new Hunk(5, 7, 1, 4, '', [
-          new HunkLine('line-5', 'unchanged', 5, 7),
-          new HunkLine('line-6', 'added', -1, 8),
-          new HunkLine('line-7', 'added', -1, 9),
-          new HunkLine('line-8', 'added', -1, 10),
-        ]),
-        new Hunk(15, 17, 1, 4, '', [
-          new HunkLine('line-9', 'unchanged', 15, 17),
-          new HunkLine('line-10', 'added', -1, 18),
-          new HunkLine('line-11', 'added', -1, 19),
-          new HunkLine('line-12', 'added', -1, 20),
-        ]),
-      ];
-
-      const wrapper = shallow(React.cloneElement(component, {
-        hunks,
-        stagingStatus: 'unstaged',
-      }));
-
-      wrapper.find({hunk: hunks[2]}).prop('didClickStageButton')();
-      wrapper.setProps({hunks: hunks.filter(h => h !== hunks[2])});
-
-      assertEqualSets(wrapper.state('selection').getSelectedHunks(), new Set([hunks[1]]));
+      instance.didMouseMoveOnLineNumber({bufferRow: 5, domEvent: {button: 0}});
+      // Unchanged after mouse up
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[2, 0], [4, 4]],
+      ]);
     });
-  });
 
-  describe('keyboard navigation', function() {
-    it('invokes the didSurfaceFile callback on core:move-right', function() {
-      const hunks = [
-        new Hunk(1, 1, 2, 2, '', [
-          new HunkLine('line-1', 'unchanged', 1, 1),
-          new HunkLine('line-2', 'added', -1, 2),
-        ]),
-      ];
+    describe('shift-click', function() {
+      it('selects a range of lines', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [2, 4]],
+        ]);
+        instance.didMouseUp();
 
-      const wrapper = mount(React.cloneElement(component, {hunks}));
-      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-right');
+        instance.didMouseDownOnLineNumber({bufferRow: 4, domEvent: {shiftKey: true, button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [4, 4]],
+        ]);
+      });
 
-      assert.equal(didSurfaceFile.callCount, 1);
-    });
-  });
+      it("extends to the range's beginning when the selection is reversed", function() {
+        editor.setSelectedBufferRange([[4, 4], [2, 0]], {reversed: true});
 
-  describe('openFile', function() {
-    describe('when the selected line is an added line', function() {
-      it('calls this.props.openCurrentFile with the first selected line\'s new line number', function() {
-        const hunks = [
-          new Hunk(1, 1, 2, 4, '', [
-            new HunkLine('line-1', 'unchanged', 1, 1),
-            new HunkLine('line-2', 'added', -1, 2),
-            new HunkLine('line-3', 'added', -1, 3),
-            new HunkLine('line-4', 'added', -1, 4),
-            new HunkLine('line-5', 'unchanged', 2, 5),
-          ]),
-        ];
+        instance.didMouseDownOnLineNumber({bufferRow: 6, domEvent: {shiftKey: true, button: 0}});
+        assert.isFalse(editor.getLastSelection().isReversed());
+        assert.deepEqual(editor.getLastSelection().getBufferRange().serialize(), [[2, 0], [6, 4]]);
+      });
 
-        const wrapper = shallow(React.cloneElement(component, {hunks}));
+      it('reverses the selection if the extension line is before the existing selection', function() {
+        editor.setSelectedBufferRange([[3, 0], [4, 4]]);
 
-        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-        wrapper.instance().mousemoveOnLine({}, hunks[0], hunks[0].lines[3]);
-        wrapper.instance().mouseup();
-
-        wrapper.instance().openFile();
-        assert.isTrue(openCurrentFile.calledWith({lineNumber: 3}));
+        instance.didMouseDownOnLineNumber({bufferRow: 1, domEvent: {shiftKey: true, button: 0}});
+        assert.isTrue(editor.getLastSelection().isReversed());
+        assert.deepEqual(editor.getLastSelection().getBufferRange().serialize(), [[1, 0], [4, 4]]);
       });
     });
 
-    describe('when the selected line is a deleted line in a non-empty file', function() {
-      it('calls this.props.openCurrentFile with the new start row of the first selected hunk', function() {
-        const hunks = [
-          new Hunk(1, 1, 2, 4, '', [
-            new HunkLine('line-1', 'unchanged', 1, 1),
-            new HunkLine('line-2', 'added', -1, 2),
-            new HunkLine('line-3', 'added', -1, 3),
-            new HunkLine('line-4', 'added', -1, 4),
-            new HunkLine('line-5', 'unchanged', 2, 5),
-          ]),
-          new Hunk(15, 17, 4, 1, '', [
-            new HunkLine('line-5', 'unchanged', 15, 17),
-            new HunkLine('line-6', 'deleted', 16, -1),
-            new HunkLine('line-7', 'deleted', 17, -1),
-            new HunkLine('line-8', 'deleted', 18, -1),
-          ]),
-        ];
+    describe('ctrl- or meta-click', function() {
+      beforeEach(function() {
+        // Select an initial row range.
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {button: 0}});
+        instance.didMouseDownOnLineNumber({bufferRow: 5, domEvent: {shiftKey: true, button: 0}});
+        instance.didMouseUp();
+        // [[2, 0], [5, 4]]
+      });
 
-        const wrapper = shallow(React.cloneElement(component, {hunks}));
+      it('deselects a line at the beginning of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 2, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[3, 0], [5, 4]],
+        ]);
+      });
 
-        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[1], hunks[1].lines[2]);
-        wrapper.instance().mousemoveOnLine({}, hunks[1], hunks[1].lines[3]);
-        wrapper.instance().mouseup();
+      it('deselects a line within an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 3, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [2, 4]],
+          [[4, 0], [5, 4]],
+        ]);
+      });
 
-        wrapper.instance().openFile();
-        assert.isTrue(openCurrentFile.calledWith({lineNumber: 17}));
+      it('deselects a line at the end of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 5, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [4, 4]],
+        ]);
+      });
+
+      it('selects a line outside of an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 8, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+          [[8, 0], [8, 4]],
+        ]);
+      });
+
+      it('deselects the only line within an existing selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+          [[7, 0], [7, 4]],
+        ]);
+
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [5, 4]],
+        ]);
+      });
+
+      it('cannot deselect the only selection', function() {
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {button: 0}});
+        instance.didMouseUp();
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[7, 0], [7, 4]],
+        ]);
+
+        instance.didMouseDownOnLineNumber({bufferRow: 7, domEvent: {metaKey: true, button: 0}});
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[7, 0], [7, 4]],
+        ]);
+      });
+
+      it('bonus points: understands ranges that do not cleanly align with editor rows', function() {
+        instance.handleSelectionEvent({metaKey: true, button: 0}, [[3, 1], [5, 2]]);
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[2, 0], [3, 1]],
+          [[5, 2], [5, 4]],
+        ]);
       });
     });
 
-    describe('when the selected line is a deleted line in an empty file', function() {
-      it('calls this.props.openCurrentFile with a line number of 0', function() {
-        const hunks = [
-          new Hunk(1, 0, 4, 0, '', [
-            new HunkLine('line-5', 'deleted', 1, -1),
-            new HunkLine('line-6', 'deleted', 2, -1),
-            new HunkLine('line-7', 'deleted', 3, -1),
-            new HunkLine('line-8', 'deleted', 4, -1),
-          ]),
-        ];
+    it('does nothing on a click without a buffer row', function() {
+      instance.didMouseDownOnLineNumber({bufferRow: NaN, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[0, 0], [4, 4]],
+      ]);
 
-        const wrapper = shallow(React.cloneElement(component, {hunks}));
+      instance.didMouseDownOnLineNumber({bufferRow: undefined, domEvent: {button: 0}});
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[0, 0], [4, 4]],
+      ]);
+    });
+  });
 
-        wrapper.instance().mousedownOnLine({button: 0, detail: 1}, hunks[0], hunks[0].lines[2]);
-        wrapper.instance().mouseup();
+  describe('hunk lines', function() {
+    let linesPatch;
 
-        wrapper.instance().openFile();
-        assert.isTrue(openCurrentFile.calledWith({lineNumber: 0}));
+    beforeEach(function() {
+      linesPatch = buildFilePatch([{
+        oldPath: 'file.txt',
+        oldMode: '100644',
+        newPath: 'file.txt',
+        newMode: '100644',
+        status: 'modified',
+        hunks: [
+          {
+            oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 6,
+            heading: 'first hunk',
+            lines: [' 0000', '+0001', '+0002', '-0003', '+0004', '+0005', ' 0006'],
+          },
+          {
+            oldStartLine: 10, oldLineCount: 0, newStartLine: 13, newLineCount: 0,
+            heading: 'second hunk',
+            lines: [
+              ' 0007', '-0008', '-0009', '-0010', ' 0011', '+0012', '+0013', '+0014', '-0015', ' 0016',
+              '\\ No newline at end of file',
+            ],
+          },
+        ],
+      }]);
+    });
+
+    it('decorates added lines', function() {
+      const wrapper = mount(buildApp({filePatch: linesPatch}));
+
+      const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--added"]';
+      const decoration = wrapper.find(decorationSelector);
+      assert.isTrue(decoration.exists());
+
+      const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
+      assert.strictEqual(layer.prop('external'), linesPatch.getAdditionLayer());
+    });
+
+    it('decorates deleted lines', function() {
+      const wrapper = mount(buildApp({filePatch: linesPatch}));
+
+      const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--deleted"]';
+      const decoration = wrapper.find(decorationSelector);
+      assert.isTrue(decoration.exists());
+
+      const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
+      assert.strictEqual(layer.prop('external'), linesPatch.getDeletionLayer());
+    });
+
+    it('decorates the nonewline line', function() {
+      const wrapper = mount(buildApp({filePatch: linesPatch}));
+
+      const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--nonewline"]';
+      const decoration = wrapper.find(decorationSelector);
+      assert.isTrue(decoration.exists());
+
+      const layer = wrapper.find('MarkerLayer').filterWhere(each => each.find(decorationSelector).exists());
+      assert.strictEqual(layer.prop('external'), linesPatch.getNoNewlineLayer());
+    });
+  });
+
+  it('notifies a callback when the editor selection changes', function() {
+    const selectedRowsChanged = sinon.spy();
+    const wrapper = mount(buildApp({selectedRowsChanged}));
+    const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+    selectedRowsChanged.resetHistory();
+
+    editor.setSelectedBufferRange([[5, 1], [6, 2]]);
+
+    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+  });
+
+  describe('when viewing an empty patch', function() {
+    it('renders an empty patch message', function() {
+      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
+      assert.isTrue(wrapper.find('.github-FilePatchView').hasClass('github-FilePatchView--blank'));
+      assert.isTrue(wrapper.find('.github-FilePatchView-message').exists());
+    });
+
+    it('shows navigation controls', function() {
+      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
+      assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
+    });
+  });
+
+  describe('registers Atom commands', function() {
+    it('toggles the current selection', function() {
+      const toggleRows = sinon.spy();
+      const wrapper = mount(buildApp({toggleRows}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
+
+      assert.isTrue(toggleRows.called);
+    });
+
+    it('undoes the last discard', function() {
+      const undoLastDiscard = sinon.spy();
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
+
+      assert.isTrue(undoLastDiscard.calledWith({eventSource: {command: 'core:undo'}}));
+    });
+
+    it('does nothing when there is no last discard to undo', function() {
+      const undoLastDiscard = sinon.spy();
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: false}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
+
+      assert.isFalse(undoLastDiscard.called);
+    });
+
+    it('discards selected rows', function() {
+      const discardRows = sinon.spy();
+      const wrapper = mount(buildApp({discardRows, selectedRows: new Set([1, 2]), selectionMode: 'line'}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:discard-selected-lines');
+
+      assert.isTrue(discardRows.called);
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [1, 2]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'line');
+      assert.deepEqual(discardRows.lastCall.args[2], {eventSource: {command: 'github:discard-selected-lines'}});
+    });
+
+    it('toggles the patch selection mode from line to hunk', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([2]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'line'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[2, 0], [2, 0]]]);
+
+      selectedRowsChanged.resetHistory();
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 2, 3]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('toggles from line to hunk when no change rows are selected', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'line'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[5, 0], [5, 2]]]);
+
+      selectedRowsChanged.resetHistory();
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+    });
+
+    it('toggles the patch selection mode from hunk to line', function() {
+      const selectedRowsChanged = sinon.spy();
+      const selectedRows = new Set([6, 7]);
+      const wrapper = mount(buildApp({selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([[[5, 0], [8, 4]]]);
+
+      selectedRowsChanged.resetHistory();
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:toggle-patch-selection-mode');
+
+      assert.isTrue(selectedRowsChanged.called);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+    });
+
+    it('surfaces focus to the git tab', function() {
+      const surfaceFile = sinon.spy();
+      const wrapper = mount(buildApp({surfaceFile}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface-file');
+      assert.isTrue(surfaceFile.called);
+    });
+
+    describe('hunk mode navigation', function() {
+      beforeEach(function() {
+        filePatch = buildFilePatch([{
+          oldPath: 'path.txt',
+          oldMode: '100644',
+          newPath: 'path.txt',
+          newMode: '100644',
+          status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 4, oldLineCount: 2, newStartLine: 4, newLineCount: 3,
+              heading: 'zero',
+              lines: [' 0000', '+0001', ' 0002'],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
+              heading: 'one',
+              lines: [' 0003', '-0004', ' 0005'],
+            },
+            {
+              oldStartLine: 20, oldLineCount: 2, newStartLine: 20, newLineCount: 3,
+              heading: 'two',
+              lines: [' 0006', '+0007', ' 0008'],
+            },
+            {
+              oldStartLine: 30, oldLineCount: 2, newStartLine: 31, newLineCount: 3,
+              heading: 'three',
+              lines: [' 0009', '+0010', ' 0011'],
+            },
+            {
+              oldStartLine: 40, oldLineCount: 4, newStartLine: 42, newLineCount: 2,
+              heading: 'four',
+              lines: [' 0012', '-0013', '-0014', ' 0015'],
+            },
+          ],
+        }]);
+      });
+
+      it('advances the selection to the next hunks', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([1, 7, 10]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[0, 0], [2, 4]], // hunk 0
+          [[6, 0], [8, 4]], // hunk 2
+          [[9, 0], [11, 0]], // hunk 3
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4, 10, 13, 14]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[3, 0], [5, 4]], // hunk 1
+          [[9, 0], [11, 4]], // hunk 3
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+      });
+
+      it('does not advance a selected hunk at the end of the patch', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[3, 0], [5, 4]], // hunk 1
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-next-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [7, 13, 14]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[6, 0], [8, 4]], // hunk 2
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+      });
+
+      it('retreats the selection to the previous hunks', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 10, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[3, 0], [5, 4]], // hunk 1
+          [[9, 0], [11, 4]], // hunk 3
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 7, 10]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[0, 0], [2, 4]], // hunk 0
+          [[6, 0], [8, 4]], // hunk 2
+          [[9, 0], [11, 4]], // hunk 3
+        ]);
+      });
+
+      it('does not retreat a selected hunk at the beginning of the patch', function() {
+        const selectedRowsChanged = sinon.spy();
+        const selectedRows = new Set([4, 10, 13, 14]);
+        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[0, 0], [2, 4]], // hunk 0
+          [[12, 0], [15, 4]], // hunk 4
+        ]);
+
+        selectedRowsChanged.resetHistory();
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:select-previous-hunk');
+
+        assert.isTrue(selectedRowsChanged.called);
+        assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [1, 10]);
+        assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+        assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+          [[0, 0], [2, 4]], // hunk 0
+          [[9, 0], [11, 4]], // hunk 3
+        ]);
+      });
+    });
+
+    describe('opening the file', function() {
+      let fp;
+
+      beforeEach(function() {
+        fp = buildFilePatch([{
+          oldPath: 'path.txt',
+          oldMode: '100644',
+          newPath: 'path.txt',
+          newMode: '100644',
+          status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 2, oldLineCount: 2, newStartLine: 2, newLineCount: 3,
+              heading: 'first hunk',
+              //        2        3        4
+              lines: [' 0000', '+0001', ' 0002'],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 5, newStartLine: 11, newLineCount: 6,
+              heading: 'second hunk',
+              //        11       12       13                14       15                16
+              lines: [' 0003', '+0004', '+0005', '-0006', ' 0007', '+0008', '-0009', ' 0010'],
+            },
+          ],
+        }]);
+      });
+
+      it('opens the file at the current unchanged row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setCursorBufferPosition([7, 2]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[14, 2]]));
+      });
+
+      it('opens the file at a current added row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setCursorBufferPosition([8, 3]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[15, 3]]));
+      });
+
+      it('opens the file at the beginning of the previous added or unchanged row', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setCursorBufferPosition([9, 2]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([[15, 0]]));
+      });
+
+      it('preserves multiple cursors', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setCursorBufferPosition([3, 2]);
+        editor.addCursorAtBufferPosition([4, 2]);
+        editor.addCursorAtBufferPosition([1, 3]);
+        editor.addCursorAtBufferPosition([9, 2]);
+        editor.addCursorAtBufferPosition([9, 3]);
+
+        // [9, 2] and [9, 3] should be collapsed into a single cursor at [15, 0]
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+
+        assert.isTrue(openFile.calledWith([
+          [11, 2],
+          [12, 2],
+          [3, 3],
+          [15, 0],
+        ]));
       });
     });
   });

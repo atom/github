@@ -4,18 +4,16 @@ import dedent from 'dedent-js';
 import temp from 'temp';
 import compareSets from 'compare-sets';
 import isEqual from 'lodash.isequal';
-import {CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
-import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 import Author from '../../lib/models/author';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
   cloneRepository, setUpLocalAndRemoteRepositories, getHeadCommitOnRemote,
-  assertDeepPropertyVals, assertEqualSortedArraysByKey, FAKE_USER,
+  assertDeepPropertyVals, assertEqualSortedArraysByKey, FAKE_USER, wireUpObserver, expectEvents,
 } from '../helpers';
 import {getPackageRoot, getTempDir} from '../../lib/helpers';
 
@@ -73,7 +71,7 @@ describe('Repository', function() {
 
       // Methods that resolve to null
       for (const method of [
-        'getFilePatchForPath', 'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
+        'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
       ]) {
         assert.isNull(await repository[method]());
       }
@@ -112,6 +110,7 @@ describe('Repository', function() {
       assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
       assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
       assert.strictEqual(await repository.getCommitMessage(), '');
+      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).isPresent());
     });
 
     it('returns a rejecting promise', async function() {
@@ -431,7 +430,16 @@ describe('Repository', function() {
 
       repo.refresh();
       assert.notEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
-      assert.deepEqual(await repo.getFilePatchForPath('a.txt'), filePatchA);
+      assert.isTrue((await repo.getFilePatchForPath('a.txt')).isEqual(filePatchA));
+    });
+
+    it('returns a nullFilePatch for unknown paths', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const patch = await repo.getFilePatchForPath('no.txt');
+      assert.isFalse(patch.isPresent());
     });
   });
 
@@ -492,17 +500,17 @@ describe('Repository', function() {
       await repo.applyPatchToIndex(unstagedPatch1);
       repo.refresh();
       const stagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'), {staged: true});
-      assert.deepEqual(stagedPatch1, unstagedPatch1);
+      assert.isTrue(stagedPatch1.isEqual(unstagedPatch1));
 
       let unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       let stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
       assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
       assert.deepEqual(stagedChanges, [path.join('subdir-1', 'a.txt')]);
 
-      await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatch());
+      await repo.applyPatchToIndex(unstagedPatch1.getUnstagePatchForLines(new Set([0, 1, 2])));
       repo.refresh();
       const unstagedPatch3 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
-      assert.deepEqual(unstagedPatch3, unstagedPatch2);
+      assert.isTrue(unstagedPatch3.isEqual(unstagedPatch2));
       unstagedChanges = (await repo.getUnstagedChanges()).map(c => c.filePath);
       stagedChanges = (await repo.getStagedChanges()).map(c => c.filePath);
       assert.deepEqual(unstagedChanges, [path.join('subdir-1', 'a.txt')]);
@@ -1550,7 +1558,13 @@ describe('Repository', function() {
 
         return new Set(
           syncResults
-            .filter(({aSync, bSync}) => !isEqual(aSync, bSync))
+            .filter(({aSync, bSync}) => {
+              if (aSync && aSync.isEqual) {
+                return !aSync.isEqual(bSync);
+              } else {
+                return !isEqual(aSync, bSync);
+              }
+            })
             .map(({key}) => key),
         );
       };
@@ -1661,7 +1675,7 @@ describe('Repository', function() {
         await repository.getLoadPromise();
 
         await fs.writeFile(path.join(workdir, 'a.txt'), 'foo\nfoo-1\n', {encoding: 'utf8'});
-        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
+        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatchForLines(new Set([0, 1]));
 
         await assertCorrectInvalidation({repository}, async () => {
           await repository.applyPatchToWorkdir(patch);
@@ -1822,73 +1836,17 @@ describe('Repository', function() {
     });
 
     describe('from filesystem events', function() {
-      let workdir, sub;
-      let observedEvents, eventCallback;
-
-      async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
-        observedEvents = [];
-        eventCallback = () => {};
-
-        workdir = existingWorkdir || await cloneRepository(fixtureName);
-        const repository = new Repository(workdir);
-        await repository.getLoadPromise();
-
-        const observer = new FileSystemChangeObserver(repository);
-
-        sub = new CompositeDisposable(
-          new Disposable(async () => {
-            await observer.destroy();
-            repository.destroy();
-          }),
-        );
-
-        sub.add(observer.onDidChange(events => {
-          observedEvents.push(...events);
-          eventCallback();
-        }));
-
-        return {repository, observer};
-      }
-
-      function expectEvents(repository, ...suffixes) {
-        const pending = new Set(suffixes);
-        return new Promise((resolve, reject) => {
-          eventCallback = () => {
-            const matchingPaths = observedEvents
-              .map(event => event.path)
-              .filter(eventPath => {
-                for (const suffix of pending) {
-                  if (eventPath.endsWith(suffix)) {
-                    pending.delete(suffix);
-                    return true;
-                  }
-                }
-                return false;
-              });
-
-            if (matchingPaths.length > 0) {
-              repository.observeFilesystemChange(matchingPaths);
-            }
-
-            if (pending.size === 0) {
-              resolve();
-            }
-          };
-
-          if (observedEvents.length > 0) {
-            eventCallback();
-          }
-        });
-      }
+      let sub;
 
       afterEach(function() {
         sub && sub.dispose();
       });
 
       it('when staging files', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
-        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
+        await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'boop\n', {encoding: 'utf8'});
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -1898,9 +1856,10 @@ describe('Repository', function() {
       });
 
       it('when unstaging files', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
-        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
+        await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'boop\n', {encoding: 'utf8'});
         await repository.git.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1911,7 +1870,8 @@ describe('Repository', function() {
       });
 
       it('when staging files from a parent commit', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -1921,9 +1881,10 @@ describe('Repository', function() {
       });
 
       it('when applying a patch to the index', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
-        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
+        await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'boop\n', {encoding: 'utf8'});
         const patch = await repository.getFilePatchForPath('a.txt');
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1937,10 +1898,11 @@ describe('Repository', function() {
       });
 
       it('when applying a patch to the working directory', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
-        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
-        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatch();
+        await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'boop\n', {encoding: 'utf8'});
+        const patch = (await repository.getFilePatchForPath('a.txt')).getUnstagePatchForLines(new Set([0]));
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -1953,9 +1915,10 @@ describe('Repository', function() {
       });
 
       it('when committing', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
-        await fs.writeFile(path.join(workdir, 'a.txt'), 'boop\n', {encoding: 'utf8'});
+        await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'boop\n', {encoding: 'utf8'});
         await repository.stageFiles(['a.txt']);
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -1970,7 +1933,8 @@ describe('Repository', function() {
       });
 
       it('when merging', async function() {
-        const {repository, observer} = await wireUpObserver('merge-conflict');
+        const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+        sub = subscriptions;
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -1985,7 +1949,8 @@ describe('Repository', function() {
       });
 
       it('when aborting a merge', async function() {
-        const {repository, observer} = await wireUpObserver('merge-conflict');
+        const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+        sub = subscriptions;
         await assert.isRejected(repository.merge('origin/branch'));
 
         await assertCorrectInvalidation({repository}, async () => {
@@ -2001,7 +1966,8 @@ describe('Repository', function() {
       });
 
       it('when checking out a revision', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -2017,7 +1983,8 @@ describe('Repository', function() {
       });
 
       it('when checking out paths', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
@@ -2032,7 +1999,8 @@ describe('Repository', function() {
 
       it('when fetching', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
-        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+        const {repository, observer, subscriptions} = await wireUpObserver(null, localRepoPath);
+        sub = subscriptions;
 
         await repository.commit('wat', {allowEmpty: true});
         await repository.commit('huh', {allowEmpty: true});
@@ -2049,7 +2017,8 @@ describe('Repository', function() {
 
       it('when pulling', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
-        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+        const {repository, observer, subscriptions} = await wireUpObserver(null, localRepoPath);
+        sub = subscriptions;
 
         await fs.writeFile(path.join(localRepoPath, 'file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['file.txt']);
@@ -2070,7 +2039,8 @@ describe('Repository', function() {
 
       it('when pushing', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories();
-        const {repository, observer} = await wireUpObserver(null, localRepoPath);
+        const {repository, observer, subscriptions} = await wireUpObserver(null, localRepoPath);
+        sub = subscriptions;
 
         await fs.writeFile(path.join(localRepoPath, 'new-file.txt'), 'one\n', {encoding: 'utf8'});
         await repository.stageFiles(['new-file.txt']);
@@ -2087,7 +2057,8 @@ describe('Repository', function() {
       });
 
       it('when setting a config option', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
         const optionNames = ['core.editor', 'color.ui'];
         await assertCorrectInvalidation({repository, optionNames}, async () => {
@@ -2101,15 +2072,179 @@ describe('Repository', function() {
       });
 
       it('when changing files in the working directory', async function() {
-        const {repository, observer} = await wireUpObserver();
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
 
         await assertCorrectInvalidation({repository}, async () => {
           await observer.start();
-          await fs.writeFile(path.join(workdir, 'b.txt'), 'new contents\n', {encoding: 'utf8'});
+          await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'b.txt'), 'new contents\n', {encoding: 'utf8'});
           await expectEvents(
             repository,
             'b.txt',
           );
+        });
+      });
+    });
+  });
+
+  describe('updating commit message', function() {
+    let sub;
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    describe('config commit.template change', function() {
+      it('updates commit messages to new template', async function() {
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
+        await observer.start();
+
+        assert.strictEqual(repository.getCommitMessage(), '');
+
+        const templatePath = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
+        await repository.git.setConfig('commit.template', templatePath);
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+      });
+      it('updates commit message to empty string if commit.template is unset', async function() {
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
+        await observer.start();
+
+        assert.strictEqual(repository.getCommitMessage(), '');
+
+        const templatePath = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
+        await repository.git.setConfig('commit.template', templatePath);
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+
+        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+
+        await repository.git.unsetConfig('commit.template');
+
+        await expectEvents(
+          repository,
+          path.join('.git', 'config'),
+        );
+        await assert.async.strictEqual(repository.getCommitMessage(), '');
+      });
+    });
+
+    describe('merge events', function() {
+      describe('when commit message is empty', function() {
+        it('merge message is set as new commit message', async function() {
+          const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+          sub = subscriptions;
+          await observer.start();
+
+          assert.strictEqual(repository.getCommitMessage(), '');
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+        });
+      });
+
+      describe('when commit message contains unmodified template', function() {
+        it('merge message is set as new commit message', async function() {
+          const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+          sub = subscriptions;
+          await observer.start();
+
+          const templatePath = path.join(repository.getWorkingDirectoryPath(), 'added-to-both.txt');
+          const templateText = fs.readFileSync(templatePath, 'utf8');
+          await repository.git.setConfig('commit.template', templatePath);
+          await expectEvents(
+            repository,
+            path.join('.git', 'config'),
+          );
+
+          await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+        });
+      });
+
+      describe('when commit message is "dirty"', function() {
+        it('leaves commit message as is', async function() {
+          const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+          sub = subscriptions;
+          await observer.start();
+
+          const dirtyMessage = 'foo bar baz';
+          repository.setCommitMessage(dirtyMessage);
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          assert.strictEqual(repository.getCommitMessage(), dirtyMessage);
+        });
+      });
+
+      describe('when merge is aborted', function() {
+        it('merge message gets cleared', async function() {
+          const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+          sub = subscriptions;
+          await observer.start();
+          await assert.isRejected(repository.git.merge('origin/branch'));
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+
+          await repository.abortMerge();
+          await expectEvents(
+            repository,
+            path.join('.git', 'MERGE_HEAD'),
+          );
+          assert.strictEqual(repository.getCommitMessage(), '');
+
+        });
+
+        describe('when commit message template is present', function() {
+          it('sets template as commit message', async function() {
+            const {repository, observer, subscriptions} = await wireUpObserver('merge-conflict');
+            sub = subscriptions;
+            await observer.start();
+
+            const templatePath = path.join(repository.getWorkingDirectoryPath(), 'added-to-both.txt');
+            const templateText = fs.readFileSync(templatePath, 'utf8');
+            await repository.git.setConfig('commit.template', templatePath);
+            await expectEvents(
+              repository,
+              path.join('.git', 'config'),
+            );
+
+            await assert.isRejected(repository.git.merge('origin/branch'));
+            await expectEvents(
+              repository,
+              path.join('.git', 'MERGE_HEAD'),
+            );
+            await assert.async.strictEqual(repository.getCommitMessage(), await repository.getMergeMessage());
+
+            await repository.abortMerge();
+            await expectEvents(
+              repository,
+              path.join('.git', 'MERGE_HEAD'),
+            );
+
+            await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+          });
         });
       });
     });

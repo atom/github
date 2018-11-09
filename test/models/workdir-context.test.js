@@ -64,9 +64,10 @@ describe('WorkdirContext', function() {
 
     sinon.spy(repo, 'observeFilesystemChange');
 
-    context.getChangeObserver().didChange([{path: path.join('a', 'b', 'c')}]);
+    const events = [{path: path.join('a', 'b', 'c')}];
+    context.getChangeObserver().didChange(events);
 
-    assert.isTrue(repo.observeFilesystemChange.calledWith([path.join('a', 'b', 'c')]));
+    assert.isTrue(repo.observeFilesystemChange.calledWith(events));
   });
 
   it('re-emits an event on workdir or head change', async function() {
