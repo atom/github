@@ -39,7 +39,7 @@ class LayeredBuffer {
   }
 
   markFrom(markerLayerName, startPosition) {
-    const endPosition = this.buffer.getEndPosition();
+    const endPosition = this.buffer.getEndPosition().translate([-1, Infinity]);
     const layer = this.getLayer(markerLayerName);
     return layer.markRange([startPosition, endPosition], {exclusive: true});
   }
