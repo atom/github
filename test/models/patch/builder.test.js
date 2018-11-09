@@ -3,10 +3,12 @@ import {assertInPatch, assertInFilePatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
   it('returns a null patch for an empty diff list', function() {
-    const p = buildFilePatch([]);
-    assert.isFalse(p.getOldFile().isPresent());
-    assert.isFalse(p.getNewFile().isPresent());
-    assert.isFalse(p.getPatch().isPresent());
+    const multiFilePatch = buildFilePatch([]);
+    const [filePatch] = multiFilePatch.getFilePatches();
+
+    assert.isFalse(filePatch.getOldFile().isPresent());
+    assert.isFalse(filePatch.getNewFile().isPresent());
+    assert.isFalse(filePatch.getPatch().isPresent());
   });
 
   describe('with a single diff', function() {
