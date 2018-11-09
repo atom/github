@@ -273,7 +273,7 @@ describe('MultiFilePatchController', function() {
     it('applies an unstage patch to the index', async function() {
       await repository.stageFiles(['a.txt']);
       const otherPatch = await repository.getFilePatchForPath('a.txt', {staged: true});
-      const wrapper = shallow(buildApp({filePatch: otherPatch, stagingStatus: 'staged'}));
+      const wrapper = shallow(buildApp({multiFilePatch: otherPatch, stagingStatus: 'staged'}));
       wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2]));
 
       sinon.spy(otherPatch, 'getUnstagePatchForLines');
@@ -404,9 +404,11 @@ describe('MultiFilePatchController', function() {
 
         await fs.unlink(p);
 
+        await repository.stageFiles(['waslink.txt']);
+
         repository.refresh();
         const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+        const wrapper = shallow(buildApp({multiFilePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
 
         sinon.spy(repository, 'unstageFiles');
 
