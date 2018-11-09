@@ -60,7 +60,7 @@ class MultiFilePatchBuilder {
     this.filePatches = [];
   }
 
-  addFilePatch(block) {
+  addFilePatch(block = () => {}) {
     const filePatch = new FilePatchBuilder(this.layeredBuffer);
     block(filePatch);
     this.filePatches.push(filePatch.build().filePatch);
@@ -186,7 +186,7 @@ class PatchBuilder {
     return this;
   }
 
-  addHunk(block) {
+  addHunk(block = () => {}) {
     const builder = new HunkBuilder(this.layeredBuffer, this.drift);
     block(builder);
     const {hunk, drift} = builder.build();
