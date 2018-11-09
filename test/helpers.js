@@ -99,6 +99,7 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
   await localGit.exec(['config', '--local', 'user.email', FAKE_USER.email]);
   await localGit.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+  await localGit.exec(['config', '--local', 'pull.rebase', false]);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
