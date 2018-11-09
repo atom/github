@@ -317,11 +317,12 @@ describe('MultiFilePatchView', function() {
 
     it("stages or unstages the mode change when the meta container's action is triggered", function() {
       const [fp] = filePatches.getFilePatches();
+
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: fp.getOldFile().clone({mode: '100644'}),
           newFile: fp.getNewFile().clone({mode: '100755'}),
-        }),
+        })],
       });
 
       const toggleModeChange = sinon.stub();
@@ -341,10 +342,10 @@ describe('MultiFilePatchView', function() {
     it('does not render if the symlink status is unchanged', function() {
       const [fp] = filePatches.getFilePatches();
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: fp.getOldFile().clone({mode: '100644'}),
           newFile: fp.getNewFile().clone({mode: '100755'}),
-        }),
+        })],
       });
 
       const wrapper = mount(buildApp({multiFilePatch: mfp}));
@@ -354,10 +355,10 @@ describe('MultiFilePatchView', function() {
     it('renders symlink change information within a meta container', function() {
       const [fp] = filePatches.getFilePatches();
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
           newFile: fp.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
-        }),
+        })],
       });
 
       const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'unstaged'}));
@@ -375,10 +376,10 @@ describe('MultiFilePatchView', function() {
       const toggleSymlinkChange = sinon.stub();
       const [fp] = filePatches.getFilePatches();
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
           newFile: fp.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
-        }),
+        })],
       });
 
       const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'staged', toggleSymlinkChange}));
@@ -394,10 +395,10 @@ describe('MultiFilePatchView', function() {
     it('renders details for a symlink deletion', function() {
       const [fp] = filePatches.getFilePatches();
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
           newFile: nullFile,
-        }),
+        })],
       });
 
       const wrapper = mount(buildApp({multiFilePatch: mfp}));
@@ -412,10 +413,10 @@ describe('MultiFilePatchView', function() {
     it('renders details for a symlink creation', function() {
       const [fp] = filePatches.getFilePatches();
       const mfp = filePatches.clone({
-        filePatches: fp.clone({
+        filePatches: [fp.clone({
           oldFile: nullFile,
           newFile: fp.getOldFile().clone({mode: '120000', symlink: '/new.txt'}),
-        }),
+        })],
       });
 
       const wrapper = mount(buildApp({multiFilePatch: mfp}));
