@@ -164,6 +164,7 @@ class PatchBuilder {
     this.hunks = [];
 
     this.patchStart = this.layeredBuffer.getInsertionPoint();
+    this.drift = 0;
   }
 
   status(st) {
@@ -176,9 +177,11 @@ class PatchBuilder {
   }
 
   addHunk(block) {
-    const hunk = new HunkBuilder(this.layeredBuffer);
-    block(hunk);
-    this.hunks.push(hunk.build().hunk);
+    const builder = new HunkBuilder(this.layeredBuffer, this.drift);
+    block(builder);
+    const {hunk, drift} = builder.build();
+    this.hunks.push(hunk);
+    this.drift = drift;
     return this;
   }
 
@@ -197,12 +200,13 @@ class PatchBuilder {
 }
 
 class HunkBuilder {
-  constructor(layeredBuffer = null) {
+  constructor(layeredBuffer = null, drift = 0) {
     this.layeredBuffer = layeredBuffer;
+    this.drift = drift;
 
     this.oldStartRow = 0;
     this.oldRowCount = null;
-    this.newStartRow = 0;
+    this.newStartRow = null;
     this.newRowCount = null;
 
     this.sectionHeading = "don't care";
@@ -249,6 +253,10 @@ class HunkBuilder {
       }), 0);
     }
 
+    if (this.newStartRow === null) {
+      this.newStartRow = this.oldStartRow + this.drift;
+    }
+
     if (this.newRowCount === null) {
       this.newRowCount = this.regions.reduce((count, region) => region.when({
         unchanged: () => count + region.bufferRowCount(),
@@ -269,6 +277,7 @@ class HunkBuilder {
         marker,
         regions: this.regions,
       }),
+      drift: this.drift + this.newRowCount - this.oldRowCount,
     });
   }
 }
