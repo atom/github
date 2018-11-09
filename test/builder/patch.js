@@ -170,7 +170,7 @@ class PatchBuilder {
   constructor(layeredBuffer = null) {
     this.layeredBuffer = layeredBuffer;
 
-    this.status = 'modified';
+    this._status = 'modified';
     this.hunks = [];
 
     this.patchStart = this.layeredBuffer.getInsertionPoint();
@@ -182,7 +182,7 @@ class PatchBuilder {
       throw new Error(`Unrecognized status: ${st} (must be 'modified', 'added' or 'deleted')`);
     }
 
-    this.status = st;
+    this._status = st;
     return this;
   }
 
@@ -197,14 +197,20 @@ class PatchBuilder {
 
   build() {
     if (this.hunks.length === 0) {
-      this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
-      this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
+      if (this._status === 'modified') {
+        this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
+        this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
+      } else if (this._status === 'added') {
+        this.addHunk(hunk => hunk.oldRow(1).added('0000', '0001', '0002', '0003'));
+      } else if (this._status === 'deleted') {
+        this.addHunk(hunk => hunk.oldRow(1).deleted('0000', '0001', '0002', '0003'));
+      }
     }
 
     const marker = this.layeredBuffer.markFrom('patch', this.patchStart);
 
     return this.layeredBuffer.wrapReturn({
-      patch: new Patch({status: this.status, hunks: this.hunks, marker}),
+      patch: new Patch({status: this._status, hunks: this.hunks, marker}),
     });
   }
 }
