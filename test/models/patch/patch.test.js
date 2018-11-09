@@ -592,7 +592,7 @@ describe('Patch', function() {
   describe('getFirstChangeRange', function() {
     it('accesses the range of the first change from the first hunk', function() {
       const {patch} = buildPatchFixture();
-      assert.deepEqual(patch.getFirstChangeRange(), [[1, 0], [1, Infinity]]);
+      assert.deepEqual(patch.getFirstChangeRange().serialize(), [[1, 0], [1, Infinity]]);
     });
 
     it('returns the origin if the first hunk is empty', function() {
@@ -607,7 +607,7 @@ describe('Patch', function() {
       ];
       const marker = markRange(layers.patch, 0);
       const patch = new Patch({status: 'modified', hunks, marker});
-      assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
+      assert.deepEqual(patch.getFirstChangeRange().serialize(), [[0, 0], [0, 0]]);
     });
 
     it('returns the origin if the patch is empty', function() {
@@ -615,7 +615,7 @@ describe('Patch', function() {
       const layers = buildLayers(buffer);
       const marker = markRange(layers.patch, 0);
       const patch = new Patch({status: 'modified', hunks: [], marker});
-      assert.deepEqual(patch.getFirstChangeRange(), [[0, 0], [0, 0]]);
+      assert.deepEqual(patch.getFirstChangeRange().serialize(), [[0, 0], [0, 0]]);
     });
   });
 
