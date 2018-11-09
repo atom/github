@@ -8,7 +8,7 @@ import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe.only('MultiFilePatchView', function() {
+describe('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
 
   beforeEach(async function() {
@@ -1083,7 +1083,7 @@ describe.only('MultiFilePatchView', function() {
         const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
           fp.setOldFile(f => f.path('path.txt'));
           fp.addHunk(h => {
-            h.oldRow(1);
+            h.oldRow(2);
             h.unchanged('0000').added('0001').unchanged('0002');
           });
           fp.addHunk(h => {
