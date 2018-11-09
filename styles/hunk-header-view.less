@@ -82,19 +82,3 @@
     &:active { background-color: darken(@button-background-color-selected, 4%); }
   }
 }
-
-
-// Hacks -----------------------
-// Please unhack (one day TM)
-
-// Make the gap in the gutter also use the same background as .github-HunkHeaderView
-// Note: This only works with the default font-size
-.github-FilePatchView .line-number[style="margin-top: 30px;"]:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -30px;
-  height: 30px;
-  background-color: @hunk-bg-color;
-}
