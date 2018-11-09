@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import React from 'react';
 import {mount, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 
 import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -59,6 +60,7 @@ describe('MultiFilePatchController', function() {
   it('calls undoLastDiscard through with set arguments', function() {
     const undoLastDiscard = sinon.spy();
     const wrapper = mount(buildApp({undoLastDiscard, stagingStatus: 'staged'}));
+    const wrapper = shallow(buildApp({undoLastDiscard, stagingStatus: 'staged'}));
 
     wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
 
