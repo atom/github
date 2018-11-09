@@ -252,7 +252,7 @@ class HunkBuilder {
   }
 
   noNewline() {
-    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked('noNewline', ' No newline at end of file')));
+    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked('noNewline', [' No newline at end of file'])));
     return this;
   }
 
