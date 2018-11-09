@@ -120,22 +120,16 @@ describe.only('MultiFilePatchView', function() {
       selectedRowsChanged,
     }));
 
-    const nextPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 5, oldLineCount: 4, newStartLine: 5, newLineCount: 3,
-          heading: 'heading',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(5);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+      }).build();
 
-    wrapper.setProps({filePatch: nextPatch});
+    wrapper.setProps({multiFilePatch});
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
@@ -150,71 +144,53 @@ describe.only('MultiFilePatchView', function() {
   });
 
   it('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
-    const multiHunkPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
-          heading: '0',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 20, oldLineCount: 3, newStartLine: 20, newLineCount: 4,
-          heading: '1',
-          lines: [' 0005', '+0006', '+0007', '-0008', ' 0009'],
-        },
-        {
-          oldStartLine: 30, oldLineCount: 3, newStartLine: 31, newLineCount: 3,
-          heading: '2',
-          lines: [' 0010', '+0011', '-0012', ' 0013'],
-        },
-        {
-          oldStartLine: 40, oldLineCount: 4, newStartLine: 41, newLineCount: 4,
-          heading: '3',
-          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(10);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(20);
+          h.unchanged('0005').added('0006').added('0007').deleted('0008').unchanged('0009');
+        });
+        fp.addHunk(h => {
+          h.oldRow(30);
+          h.unchanged('0010').added('0011').deleted('0012').unchanged('0013');
+        });
+        fp.addHunk(h => {
+          h.oldRow(40);
+          h.unchanged('0014').deleted('0015').unchanged('0016').added('0017').unchanged('0018');
+        });
+      }).build();
 
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
-      filePatch: multiHunkPatch,
+      multiFilePatch,
       selectedRows: new Set([6, 7, 8]),
       selectionMode: 'hunk',
       selectedRowsChanged,
     }));
 
-    const nextPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
-          heading: '0',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 30, oldLineCount: 3, newStartLine: 30, newLineCount: 3,
-          heading: '2',
-          //       5         6        7        8
-          lines: [' 0010', '+0011', '-0012', ' 0013'],
-        },
-        {
-          oldStartLine: 40, oldLineCount: 4, newStartLine: 40, newLineCount: 4,
-          heading: '3',
-          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
-        },
-      ],
-    }]);
+    const {multiFilePatch: nextMfp} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(10);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(30);
+          h.unchanged('0010').added('0011').deleted('0012').unchanged('0013');
+        });
+        fp.addHunk(h => {
+          h.oldRow(40);
+          h.unchanged('0014').deleted('0015').unchanged('0016').added('0017').unchanged('0018');
+        });
+      }).build();
 
-    wrapper.setProps({filePatch: nextPatch});
+    wrapper.setProps({multiFilePatch: nextMfp});
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
@@ -425,25 +401,18 @@ describe.only('MultiFilePatchView', function() {
 
   describe('hunk headers', function() {
     it('renders one for each hunk', function() {
-      const mfp = buildMultiFilePatch([{
-        oldPath: 'path.txt',
-        oldMode: '100644',
-        newPath: 'path.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', ' 0002'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-            heading: 'second hunk',
-            lines: [' 0003', '-0004', ' 0005'],
-          },
-        ],
-      }]);
+      const {multiFilePatch: mfp} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+        }).build();
 
       const hunks = mfp.getFilePatches()[0].getHunks();
       const wrapper = mount(buildApp({multiFilePatch: mfp}));
@@ -509,25 +478,18 @@ describe.only('MultiFilePatchView', function() {
     });
 
     it('handles mousedown as a selection event', function() {
-      const mfp = buildMultiFilePatch([{
-        oldPath: 'path.txt',
-        oldMode: '100644',
-        newPath: 'path.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', ' 0002'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-            heading: 'second hunk',
-            lines: [' 0003', '-0004', ' 0005'],
-          },
-        ],
-      }]);
+      const {multiFilePatch: mfp} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+        }).build();
 
       const selectedRowsChanged = sinon.spy();
       const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectionMode: 'line'}));
@@ -821,28 +783,20 @@ describe.only('MultiFilePatchView', function() {
     let linesPatch;
 
     beforeEach(function() {
-      linesPatch = buildMultiFilePatch([{
-        oldPath: 'file.txt',
-        oldMode: '100644',
-        newPath: 'file.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 6,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', '+0002', '-0003', '+0004', '+0005', ' 0006'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 0, newStartLine: 13, newLineCount: 0,
-            heading: 'second hunk',
-            lines: [
-              ' 0007', '-0008', '-0009', '-0010', ' 0011', '+0012', '+0013', '+0014', '-0015', ' 0016',
-              '\\ No newline at end of file',
-            ],
-          },
-        ],
-      }]);
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001', '0002').deleted('0003').added('0004').added('0005').unchanged('0006');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0007').deleted('0008', '0009', '0010').unchanged('0011').added('0012', '0013', '0014').deleted('0015').unchanged('0016').added('\\ No newline at end of file');
+          });
+        }).build();
+      linesPatch = multiFilePatch;
     });
 
     it('decorates added lines', function() {
