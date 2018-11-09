@@ -237,6 +237,10 @@ class HunkBuilder {
   }
 
   build() {
+    if (this.regions.length === 0) {
+      this.unchanged('0000').added('0001').deleted('0002').unchanged('0003');
+    }
+
     if (this.oldRowCount === null) {
       this.oldRowCount = this.regions.reduce((count, region) => region.when({
         unchanged: () => count + region.bufferRowCount(),
@@ -251,10 +255,6 @@ class HunkBuilder {
         addition: () => count + region.bufferRowCount(),
         default: () => count,
       }), 0);
-    }
-
-    if (this.regions.length === 0) {
-      this.unchanged('0000').added('0001').deleted('0002').unchanged('0003');
     }
 
     const marker = this.layeredBuffer.markFrom('hunk', this.hunkStartPoint);
