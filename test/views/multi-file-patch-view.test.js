@@ -954,47 +954,39 @@ describe.only('MultiFilePatchView', function() {
     });
 
     describe('hunk mode navigation', function() {
+      let mfp;
+
       beforeEach(function() {
-        filePatches = buildFilePatch([{
-          oldPath: 'path.txt',
-          oldMode: '100644',
-          newPath: 'path.txt',
-          newMode: '100644',
-          status: 'modified',
-          hunks: [
-            {
-              oldStartLine: 4, oldLineCount: 2, newStartLine: 4, newLineCount: 3,
-              heading: 'zero',
-              lines: [' 0000', '+0001', ' 0002'],
-            },
-            {
-              oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-              heading: 'one',
-              lines: [' 0003', '-0004', ' 0005'],
-            },
-            {
-              oldStartLine: 20, oldLineCount: 2, newStartLine: 20, newLineCount: 3,
-              heading: 'two',
-              lines: [' 0006', '+0007', ' 0008'],
-            },
-            {
-              oldStartLine: 30, oldLineCount: 2, newStartLine: 31, newLineCount: 3,
-              heading: 'three',
-              lines: [' 0009', '+0010', ' 0011'],
-            },
-            {
-              oldStartLine: 40, oldLineCount: 4, newStartLine: 42, newLineCount: 2,
-              heading: 'four',
-              lines: [' 0012', '-0013', '-0014', ' 0015'],
-            },
-          ],
-        }]);
+        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(4);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+          fp.addHunk(h => {
+            h.oldRow(20);
+            h.unchanged('0006').added('0007').unchanged('0008');
+          });
+          fp.addHunk(h => {
+            h.oldRow(30);
+            h.unchanged('0009').added('0010').unchanged('0011');
+          });
+          fp.addHunk(h => {
+            h.oldRow(40);
+            h.unchanged('0012').deleted('0013', '0014').unchanged('0015');
+          });
+        }).build();
+        mfp = multiFilePatch;
       });
 
       it('advances the selection to the next hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([1, 7, 10]);
-        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
@@ -1018,7 +1010,7 @@ describe.only('MultiFilePatchView', function() {
       it('does not advance a selected hunk at the end of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 13, 14]);
-        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1040,7 +1032,7 @@ describe.only('MultiFilePatchView', function() {
       it('retreats the selection to the previous hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1064,7 +1056,7 @@ describe.only('MultiFilePatchView', function() {
       it('does not retreat a selected hunk at the beginning of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
