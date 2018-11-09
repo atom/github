@@ -17,7 +17,6 @@ describe('MultiFilePatchView', function() {
 
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
-    // filePatches = repository.getStagedChangesPatch();
 
     // path.txt: unstaged changes
     filePatches = buildMultiFilePatch([{
@@ -624,8 +623,9 @@ describe('MultiFilePatchView', function() {
         const decorations = layerWrapper.find('Decoration[type="line-number"][gutterName="diff-icons"]');
         assert.isTrue(decorations.exists());
       };
-      assertLayerDecorated(filePatch.getAdditionLayer());
-      assertLayerDecorated(filePatch.getDeletionLayer());
+
+      assertLayerDecorated(filePatches.getAdditionLayer());
+      assertLayerDecorated(filePatches.getDeletionLayer());
 
       atomEnv.config.set('github.showDiffIconGutter', false);
       wrapper.update();
@@ -826,7 +826,7 @@ describe('MultiFilePatchView', function() {
     let linesPatch;
 
     beforeEach(function() {
-      linesPatch = buildFilePatch([{
+      linesPatch = buildMultiFilePatch([{
         oldPath: 'file.txt',
         oldMode: '100644',
         newPath: 'file.txt',
@@ -851,7 +851,7 @@ describe('MultiFilePatchView', function() {
     });
 
     it('decorates added lines', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--added"]';
       const decoration = wrapper.find(decorationSelector);
@@ -862,7 +862,7 @@ describe('MultiFilePatchView', function() {
     });
 
     it('decorates deleted lines', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--deleted"]';
       const decoration = wrapper.find(decorationSelector);
@@ -873,7 +873,7 @@ describe('MultiFilePatchView', function() {
     });
 
     it('decorates the nonewline line', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--nonewline"]';
       const decoration = wrapper.find(decorationSelector);
@@ -1004,7 +1004,7 @@ describe('MultiFilePatchView', function() {
       assert.isTrue(surfaceFile.called);
     });
 
-    describe('hunk mode navigation', function() {
+    describe.only('hunk mode navigation', function() {
       beforeEach(function() {
         filePatch = buildFilePatch([{
           oldPath: 'path.txt',
