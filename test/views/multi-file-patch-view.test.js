@@ -1086,47 +1086,38 @@ describe.only('MultiFilePatchView', function() {
     });
 
     describe('opening the file', function() {
-      let fp;
+      let mfp;
 
       beforeEach(function() {
-        fp = buildFilePatch([{
-          oldPath: 'path.txt',
-          oldMode: '100644',
-          newPath: 'path.txt',
-          newMode: '100644',
-          status: 'modified',
-          hunks: [
-            {
-              oldStartLine: 2, oldLineCount: 2, newStartLine: 2, newLineCount: 3,
-              heading: 'first hunk',
-              //        2        3        4
-              lines: [' 0000', '+0001', ' 0002'],
-            },
-            {
-              oldStartLine: 10, oldLineCount: 5, newStartLine: 11, newLineCount: 6,
-              heading: 'second hunk',
-              //        11       12       13                14       15                16
-              lines: [' 0003', '+0004', '+0005', '-0006', ' 0007', '+0008', '-0009', ' 0010'],
-            },
-          ],
-        }]);
+        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').added('0004', '0005').deleted('0006').unchanged('0007').added('0008').deleted('0009').unchanged('0010');
+          });
+        }).build();
+
+        mfp = multiFilePatch;
       });
 
       it('opens the file at the current unchanged row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
-
         assert.isTrue(openFile.calledWith([[14, 2]]));
       });
 
       it('opens the file at a current added row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([8, 3]);
@@ -1138,7 +1129,7 @@ describe.only('MultiFilePatchView', function() {
 
       it('opens the file at the beginning of the previous added or unchanged row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([9, 2]);
@@ -1150,7 +1141,7 @@ describe.only('MultiFilePatchView', function() {
 
       it('preserves multiple cursors', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([3, 2]);
