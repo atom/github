@@ -1,7 +1,9 @@
 @import "variables";
 
 @hunk-fg-color: @text-color-subtle;
-@hunk-bg-color: mix(@syntax-text-color, @syntax-background-color, 4%);
+@hunk-bg-color: mix(@syntax-text-color, @syntax-background-color, 0%);
+@hunk-bg-color-hover: mix(@syntax-text-color, @syntax-background-color, 4%);
+@hunk-bg-color-active: mix(@syntax-text-color, @syntax-background-color, 2%);
 
 .github-HunkHeaderView {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
@@ -23,8 +25,8 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     -webkit-font-smoothing: antialiased;
-    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
-    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
   }
 
   &-stageButton,
@@ -36,8 +38,8 @@
     border: none;
     background-color: transparent;
     cursor: default;
-    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
-    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
 
     .keystroke {
       margin-right: 1em;
@@ -59,8 +61,8 @@
   &-title,
   &-stageButton,
   &-discardButton {
-    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
-    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
   }
 }
 
