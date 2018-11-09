@@ -450,9 +450,10 @@ describe('MultiFilePatchView', function() {
           },
         ],
       }]);
-      const hunks = fp.getHunks();
 
+      const hunks = fp.getFilePatches()[0].patch.hunks;
       const wrapper = mount(buildApp({filePatch: fp}));
+
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
     });
