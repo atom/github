@@ -298,18 +298,18 @@ class HunkBuilder {
   }
 }
 
-export function buildMultiFilePatch() {
+export function multiFilePatchBuilder() {
   return new MultiFilePatchBuilder(new LayeredBuffer());
 }
 
-export function buildFilePatch() {
+export function filePatchBuilder() {
   return new FilePatchBuilder(new LayeredBuffer());
 }
 
-export function buildPatch() {
+export function patchBuilder() {
   return new PatchBuilder(new LayeredBuffer());
 }
 
-export function buildHunk() {
+export function hunkBuilder() {
   return new HunkBuilder(new LayeredBuffer());
 }
