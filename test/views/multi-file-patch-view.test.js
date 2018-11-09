@@ -3,7 +3,6 @@ import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
-import {buildFilePatch, buildMultiFilePatch} from '../../lib/models/patch';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
