@@ -535,5 +535,67 @@ describe('MultiFilePatch', function() {
       const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set());
       assert.deepEqual(nextSelectionRange.serialize(), [[1, 0], [1, Infinity]]);
     });
+
+    it('preserves the numeric index of the highest selected change row', function() {
+      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').added('0', '1', 'x *').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
+        })
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').deleted('4', '5 *', '6').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('7').unchanged('.'));
+        })
+        .build();
+
+      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').added('0', '1').unchanged('x', '.'));
+          fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
+        })
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').deleted('4', '6 *').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('7').unchanged('.'));
+        })
+        .build();
+
+      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set([3, 11]));
+      assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
+    });
+
+    it('skips hunks that were completely selected', function() {
+      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').added('0').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('x *', 'x *').unchanged('.'));
+        })
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').deleted('x *').unchanged('.'));
+        })
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').added('x *', '1').deleted('2').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('x *').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.', '.').deleted('4', '5 *', '6').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('7', '8').unchanged('.', '.'));
+        })
+        .build();
+
+      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.').added('0').unchanged('.'));
+        })
+        .addFilePatch(fp => {
+          fp.addHunk(h => h.unchanged('.', 'x').added('1').deleted('2').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.', '.').deleted('4', '6 +').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('7', '8').unchanged('.', '.'));
+        })
+        .build();
+
+      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(
+        lastMultiPatch,
+        new Set([4, 5, 8, 11, 16, 21]),
+      );
+      assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
+    });
   });
 });
