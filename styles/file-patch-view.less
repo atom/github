@@ -25,8 +25,7 @@
 
   // TODO: Use better selector
   .react-atom-decoration {
-    padding: @component-padding;
-    padding-left: 0;
+    padding: @component-padding*2 @component-padding @component-padding 0;
     background-color: @syntax-background-color;
 
     & + .react-atom-decoration {
@@ -38,6 +37,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: @component-padding*2;
     padding: @component-padding/2;
     padding-left: @component-padding;
     border: 1px solid @base-border-color;
