@@ -793,7 +793,7 @@ describe.only('MultiFilePatchView', function() {
           });
           fp.addHunk(h => {
             h.oldRow(10);
-            h.unchanged('0007').deleted('0008', '0009', '0010').unchanged('0011').added('0012', '0013', '0014').deleted('0015').unchanged('0016').added('\\ No newline at end of file');
+            h.unchanged('0007').deleted('0008', '0009', '0010').unchanged('0011').added('0012', '0013', '0014').deleted('0015').unchanged('0016').noNewline();
           });
         }).build();
       linesPatch = multiFilePatch;
