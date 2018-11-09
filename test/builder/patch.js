@@ -187,8 +187,8 @@ class PatchBuilder {
 
   build() {
     if (this.hunks.length === 0) {
-      this.addHunk(hunk => hunk.unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
-      this.addHunk(hunk => hunk.startRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
+      this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
+      this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
     }
 
     const marker = this.layeredBuffer.markFrom('patch', this.patchStart);
