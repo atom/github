@@ -4,11 +4,12 @@ import {shallow, mount} from 'enzyme';
 import {cloneRepository, buildRepository} from '../helpers';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {buildFilePatch, buildMultiFilePatch} from '../../lib/models/patch';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe('MultiFilePatchView', function() {
+describe.only('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
 
   beforeEach(async function() {
@@ -18,26 +19,20 @@ describe('MultiFilePatchView', function() {
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
 
-    // path.txt: unstaged changes
-    filePatches = buildMultiFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
-          heading: 'zero',
-          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
-          heading: 'one',
-          lines: [' 0005', '+0006', '-0007', ' 0008'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(4);
+          h.unchanged('0000').added('0001', '0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(8);
+          h.unchanged('0005').added('0006').deleted('0007').unchanged('0008');
+        });
+      }).build();
+
+    filePatches = multiFilePatch;
   });
 
   afterEach(function() {
@@ -899,7 +894,8 @@ describe('MultiFilePatchView', function() {
 
   describe('when viewing an empty patch', function() {
     it('renders an empty patch message', function() {
-      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
+      const {multiFilePatch: emptyMfp} = multiFilePatchBuilder().build();
+      const wrapper = shallow(buildApp({multiFilePatch: emptyMfp}));
       assert.isTrue(wrapper.find('.github-FilePatchView').hasClass('github-FilePatchView--blank'));
       assert.isTrue(wrapper.find('.github-FilePatchView-message').exists());
     });
@@ -1004,9 +1000,9 @@ describe('MultiFilePatchView', function() {
       assert.isTrue(surfaceFile.called);
     });
 
-    describe.only('hunk mode navigation', function() {
+    describe('hunk mode navigation', function() {
       beforeEach(function() {
-        filePatch = buildFilePatch([{
+        filePatches = buildFilePatch([{
           oldPath: 'path.txt',
           oldMode: '100644',
           newPath: 'path.txt',
@@ -1045,7 +1041,7 @@ describe('MultiFilePatchView', function() {
       it('advances the selection to the next hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([1, 7, 10]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
@@ -1069,7 +1065,7 @@ describe('MultiFilePatchView', function() {
       it('does not advance a selected hunk at the end of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1091,7 +1087,7 @@ describe('MultiFilePatchView', function() {
       it('retreats the selection to the previous hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1115,7 +1111,7 @@ describe('MultiFilePatchView', function() {
       it('does not retreat a selected hunk at the beginning of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: filePatches, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
