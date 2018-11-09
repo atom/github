@@ -434,7 +434,7 @@ describe('Repository', function() {
       await repo.getLoadPromise();
 
       const patch = await repo.getFilePatchForPath('no.txt');
-      assert.isFalse(patch.isPresent());
+      assert.isFalse(patch.anyPresent());
     });
   });
 
