@@ -590,6 +590,8 @@ describe('buildFilePatch', function() {
         },
       ]);
 
+      const buffer = mp.getBuffer();
+
       assert.lengthOf(mp.getFilePatches(), 3);
 
       assert.strictEqual(
@@ -599,20 +601,9 @@ describe('buildFilePatch', function() {
         'line-0\nline-1\nline-2\n',
       );
 
-      const assertAllSame = getter => {
-        assert.lengthOf(
-          Array.from(new Set(mp.getFilePatches().map(p => p[getter]()))),
-          1,
-          `FilePatches have different results from ${getter}`,
-        );
-      };
-      for (const getter of ['getUnchangedLayer', 'getAdditionLayer', 'getDeletionLayer', 'getNoNewlineLayer']) {
-        assertAllSame(getter);
-      }
-
       assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
       assert.deepEqual(mp.getFilePatches()[0].getMarker().getRange().serialize(), [[0, 0], [6, 6]]);
-      assertInFilePatch(mp.getFilePatches()[0]).hunks(
+      assertInFilePatch(mp.getFilePatches()[0], buffer).hunks(
         {
           startRow: 0, endRow: 3, header: '@@ -1,2 +1,4 @@', regions: [
             {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
@@ -630,7 +621,7 @@ describe('buildFilePatch', function() {
       );
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
       assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
-      assertInFilePatch(mp.getFilePatches()[1]).hunks(
+      assertInFilePatch(mp.getFilePatches()[1], buffer).hunks(
         {
           startRow: 7, endRow: 10, header: '@@ -5,3 +5,3 @@', regions: [
             {kind: 'unchanged', string: ' line-5\n', range: [[7, 0], [7, 6]]},
@@ -642,7 +633,7 @@ describe('buildFilePatch', function() {
       );
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
       assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[11, 0], [13, 6]]);
-      assertInFilePatch(mp.getFilePatches()[2]).hunks(
+      assertInFilePatch(mp.getFilePatches()[2], buffer).hunks(
         {
           startRow: 11, endRow: 13, header: '@@ -1,0 +1,3 @@', regions: [
             {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[11, 0], [13, 6]]},
@@ -713,11 +704,13 @@ describe('buildFilePatch', function() {
         },
       ]);
 
+      const buffer = mp.getBuffer();
+
       assert.lengthOf(mp.getFilePatches(), 4);
       const [fp0, fp1, fp2, fp3] = mp.getFilePatches();
 
       assert.strictEqual(fp0.getOldPath(), 'first');
-      assertInFilePatch(fp0).hunks({
+      assertInFilePatch(fp0, buffer).hunks({
         startRow: 0, endRow: 2, header: '@@ -1,2 +1,3 @@', regions: [
           {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
           {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
@@ -728,7 +721,7 @@ describe('buildFilePatch', function() {
       assert.strictEqual(fp1.getOldPath(), 'was-non-symlink');
       assert.isTrue(fp1.hasTypechange());
       assert.strictEqual(fp1.getNewSymlink(), 'was-non-symlink-destination');
-      assertInFilePatch(fp1).hunks({
+      assertInFilePatch(fp1, buffer).hunks({
         startRow: 3, endRow: 4, header: '@@ -1,2 +1,0 @@', regions: [
           {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[3, 0], [4, 6]]},
         ],
@@ -737,14 +730,14 @@ describe('buildFilePatch', function() {
       assert.strictEqual(fp2.getOldPath(), 'was-symlink');
       assert.isTrue(fp2.hasTypechange());
       assert.strictEqual(fp2.getOldSymlink(), 'was-symlink-destination');
-      assertInFilePatch(fp2).hunks({
+      assertInFilePatch(fp2, buffer).hunks({
         startRow: 5, endRow: 6, header: '@@ -1,0 +1,2 @@', regions: [
           {kind: 'addition', string: '+line-0\n+line-1\n', range: [[5, 0], [6, 6]]},
         ],
       });
 
       assert.strictEqual(fp3.getNewPath(), 'third');
-      assertInFilePatch(fp3).hunks({
+      assertInFilePatch(fp3, buffer).hunks({
         startRow: 7, endRow: 9, header: '@@ -1,3 +1,0 @@', regions: [
           {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[7, 0], [9, 6]]},
         ],
