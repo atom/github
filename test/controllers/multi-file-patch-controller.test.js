@@ -1,14 +1,14 @@
 import path from 'path';
 import fs from 'fs-extra';
 import React from 'react';
-import {shallow} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 
 import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('MultiFilePatchController', function() {
-  let atomEnv, repository, multiFilePatch;
+  let atomEnv, repository, multiFilePatch, filePatch;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,9 +17,11 @@ describe('MultiFilePatchController', function() {
     repository = await buildRepository(workdirPath);
 
     // a.txt: unstaged changes
-    await fs.writeFile(path.join(workdirPath, 'a.txt'), '00\n01\n02\n03\n04\n05\n06');
+    const filePath = 'a.txt';
+    await fs.writeFile(path.join(workdirPath, filePath), '00\n01\n02\n03\n04\n05\n06');
 
-    multiFilePatch = await repository.getStagedChangesPatch();
+    multiFilePatch = await repository.getFilePatchForPath(filePath);
+    [filePatch] = multiFilePatch.getFilePatches();
   });
 
   afterEach(function() {
@@ -30,8 +32,6 @@ describe('MultiFilePatchController', function() {
     const props = {
       repository,
       stagingStatus: 'unstaged',
-      relPath: 'a.txt',
-      isPartiallyStaged: false,
       multiFilePatch,
       hasUndoHistory: false,
       workspace: atomEnv.workspace,
@@ -58,31 +58,32 @@ describe('MultiFilePatchController', function() {
 
   it('calls undoLastDiscard through with set arguments', function() {
     const undoLastDiscard = sinon.spy();
-    const wrapper = shallow(buildApp({relPath: 'b.txt', undoLastDiscard}));
-    wrapper.find('MultiFilePatchView').prop('undoLastDiscard')();
+    const wrapper = mount(buildApp({undoLastDiscard, stagingStatus: 'staged'}));
 
-    assert.isTrue(undoLastDiscard.calledWith('b.txt', repository));
+    wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
+
+    assert.isTrue(undoLastDiscard.calledWith(filePatch.getPath(), repository));
   });
 
   it('calls surfaceFileAtPath with set arguments', function() {
     const surfaceFileAtPath = sinon.spy();
     const wrapper = shallow(buildApp({relPath: 'c.txt', surfaceFileAtPath}));
-    wrapper.find('MultiFilePatchView').prop('surfaceFile')();
+    wrapper.find('MultiFilePatchView').prop('surfaceFile')(filePatch);
 
-    assert.isTrue(surfaceFileAtPath.calledWith('c.txt', 'unstaged'));
+    assert.isTrue(surfaceFileAtPath.calledWith(filePatch.getPath(), 'unstaged'));
   });
 
   describe('diveIntoMirrorPatch()', function() {
     it('destroys the current pane and opens the staged changes', async function() {
       const destroy = sinon.spy();
       sinon.stub(atomEnv.workspace, 'open').resolves();
-      const wrapper = shallow(buildApp({relPath: 'c.txt', stagingStatus: 'unstaged', destroy}));
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged', destroy}));
 
-      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')();
+      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(filePatch);
 
       assert.isTrue(destroy.called);
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        'atom-github://file-patch/c.txt' +
+        `atom-github://file-patch/${filePatch.getPath()}` +
         `?workdir=${encodeURIComponent(repository.getWorkingDirectoryPath())}&stagingStatus=staged`,
       ));
     });
@@ -90,13 +91,14 @@ describe('MultiFilePatchController', function() {
     it('destroys the current pane and opens the unstaged changes', async function() {
       const destroy = sinon.spy();
       sinon.stub(atomEnv.workspace, 'open').resolves();
-      const wrapper = shallow(buildApp({relPath: 'd.txt', stagingStatus: 'staged', destroy}));
+      const wrapper = shallow(buildApp({stagingStatus: 'staged', destroy}));
 
-      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')();
+
+      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(filePatch);
 
       assert.isTrue(destroy.called);
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        'atom-github://file-patch/d.txt' +
+        `atom-github://file-patch/${filePatch.getPath()}` +
         `?workdir=${encodeURIComponent(repository.getWorkingDirectoryPath())}&stagingStatus=unstaged`,
       ));
     });
@@ -104,22 +106,22 @@ describe('MultiFilePatchController', function() {
 
   describe('openFile()', function() {
     it('opens an editor on the current file', async function() {
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')([]);
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, []);
 
-      assert.strictEqual(editor.getPath(), path.join(repository.getWorkingDirectoryPath(), 'a.txt'));
+      assert.strictEqual(editor.getPath(), path.join(repository.getWorkingDirectoryPath(), filePatch.getPath()));
     });
 
     it('sets the cursor to a single position', async function() {
       const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')([[1, 1]]);
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, [[1, 1]]);
 
       assert.deepEqual(editor.getCursorBufferPositions().map(p => p.serialize()), [[1, 1]]);
     });
 
     it('adds cursors at a set of positions', async function() {
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')([[1, 1], [3, 1], [5, 0]]);
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, [[1, 1], [3, 1], [5, 0]]);
 
       assert.deepEqual(editor.getCursorBufferPositions().map(p => p.serialize()), [[1, 1], [3, 1], [5, 0]]);
     });
@@ -128,37 +130,37 @@ describe('MultiFilePatchController', function() {
   describe('toggleFile()', function() {
     it('stages the current file if unstaged', async function() {
       sinon.spy(repository, 'stageFiles');
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
 
-      await wrapper.find('MultiFilePatchView').prop('toggleFile')();
+      await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch);
 
-      assert.isTrue(repository.stageFiles.calledWith(['a.txt']));
+      assert.isTrue(repository.stageFiles.calledWith([filePatch.getPath()]));
     });
 
     it('unstages the current file if staged', async function() {
       sinon.spy(repository, 'unstageFiles');
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'staged'}));
+      const wrapper = shallow(buildApp({stagingStatus: 'staged'}));
 
-      await wrapper.find('MultiFilePatchView').prop('toggleFile')();
+      await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch);
 
-      assert.isTrue(repository.unstageFiles.calledWith(['a.txt']));
+      assert.isTrue(repository.unstageFiles.calledWith([filePatch.getPath()]));
     });
 
     it('is a no-op if a staging operation is already in progress', async function() {
       sinon.stub(repository, 'stageFiles').resolves('staged');
       sinon.stub(repository, 'unstageFiles').resolves('unstaged');
 
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(), 'staged');
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
+      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
 
       wrapper.setProps({stagingStatus: 'staged'});
-      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')());
+      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
 
       const promise = wrapper.instance().patchChangePromise;
       wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
       await promise;
 
-      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(), 'unstaged');
+      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'unstaged');
     });
   });
 
@@ -219,7 +221,7 @@ describe('MultiFilePatchController', function() {
       it('records an event', function() {
         const wrapper = shallow(buildApp());
         sinon.stub(reporterProxy, 'addEvent');
-        wrapper.find('MultiFilePatchView').prop('undoLastDiscard')();
+        wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
         assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
           package: 'github',
           component: 'MultiFilePatchController',
@@ -277,7 +279,7 @@ describe('MultiFilePatchController', function() {
       sinon.spy(otherPatch, 'getUnstagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
-      await wrapper.find('MultiFilePatchView').prop('toggleRows')();
+      await wrapper.find('MultiFilePatchView').prop('toggleRows')(new Set([2]), 'hunk');
 
       assert.sameMembers(Array.from(otherPatch.getUnstagePatchForLines.lastCall.args[0]), [2]);
       assert.isTrue(repository.applyPatchToIndex.calledWith(otherPatch.getUnstagePatchForLines.returnValues[0]));
@@ -290,12 +292,13 @@ describe('MultiFilePatchController', function() {
         const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
         await fs.chmod(p, 0o755);
         repository.refresh();
-        const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
+        const newMultiFilePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
 
-        const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'unstaged'}));
+        const wrapper = shallow(buildApp({filePatch: newMultiFilePatch, stagingStatus: 'unstaged'}));
+        const [newFilePatch] = newMultiFilePatch.getFilePatches();
 
         sinon.spy(repository, 'stageFileModeChange');
-        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')();
+        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(newFilePatch);
 
         assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100755'));
       });
@@ -305,12 +308,13 @@ describe('MultiFilePatchController', function() {
         await fs.chmod(p, 0o755);
         await repository.stageFiles(['a.txt']);
         repository.refresh();
-        const newFilePatch = await repository.getFilePatchForPath('a.txt', {staged: true});
+        const newMultiFilePatch = await repository.getFilePatchForPath('a.txt', {staged: true});
+        const [newFilePatch] = newMultiFilePatch.getFilePatches();
 
-        const wrapper = shallow(buildApp({filePatch: newFilePatch, stagingStatus: 'staged'}));
+        const wrapper = shallow(buildApp({filePatch: newMultiFilePatch, stagingStatus: 'staged'}));
 
         sinon.spy(repository, 'stageFileModeChange');
-        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')();
+        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(newFilePatch);
 
         assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100644'));
       });
@@ -330,12 +334,13 @@ describe('MultiFilePatchController', function() {
         await fs.writeFile(p, 'fdsa\n', 'utf8');
 
         repository.refresh();
-        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
+        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')();
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
       });
@@ -352,12 +357,13 @@ describe('MultiFilePatchController', function() {
         await fs.unlink(p);
 
         repository.refresh();
-        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
+        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
 
         sinon.spy(repository, 'stageFiles');
 
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')();
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.stageFiles.calledWith(['waslink.txt']));
       });
@@ -376,12 +382,13 @@ describe('MultiFilePatchController', function() {
         await repository.stageFiles(['waslink.txt']);
 
         repository.refresh();
-        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
+        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')();
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches()
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
       });
@@ -398,12 +405,13 @@ describe('MultiFilePatchController', function() {
         await fs.unlink(p);
 
         repository.refresh();
-        const symlinkPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-        const wrapper = shallow(buildApp({filePatch: symlinkPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
+        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
 
         sinon.spy(repository, 'unstageFiles');
 
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')();
+        const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
 
         assert.isTrue(repository.unstageFiles.calledWith(['waslink.txt']));
       });
