@@ -431,7 +431,7 @@ describe('MultiFilePatchView', function() {
 
   describe('hunk headers', function() {
     it('renders one for each hunk', function() {
-      const fp = buildFilePatch([{
+      const mfp = buildMultiFilePatch([{
         oldPath: 'path.txt',
         oldMode: '100644',
         newPath: 'path.txt',
@@ -451,8 +451,8 @@ describe('MultiFilePatchView', function() {
         ],
       }]);
 
-      const hunks = fp.getFilePatches()[0].patch.hunks;
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const hunks = mfp.getFilePatches()[0].getHunks();
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
 
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
@@ -515,7 +515,7 @@ describe('MultiFilePatchView', function() {
     });
 
     it('handles mousedown as a selection event', function() {
-      const fp = buildFilePatch([{
+      const mfp = buildMultiFilePatch([{
         oldPath: 'path.txt',
         oldMode: '100644',
         newPath: 'path.txt',
@@ -536,9 +536,9 @@ describe('MultiFilePatchView', function() {
       }]);
 
       const selectedRowsChanged = sinon.spy();
-      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged, selectionMode: 'line'}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectionMode: 'line'}));
 
-      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, fp.getHunks()[1]);
+      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, mfp.getFilePatches()[0].getHunks()[1]);
 
       assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4]);
       assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
@@ -576,8 +576,8 @@ describe('MultiFilePatchView', function() {
       const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
 
       wrapper.find('HunkHeaderView').at(1).prop('discardSelection')();
-      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [6, 7]);
-      assert.strictEqual(discardRows.lastCall.args[1], 'hunk');
+      assert.sameMembers(Array.from(discardRows.lastCall.args[1]), [6, 7]);
+      assert.strictEqual(discardRows.lastCall.args[2], 'hunk');
     });
   });
 
