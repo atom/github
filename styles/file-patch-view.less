@@ -33,6 +33,14 @@
     }
   }
 
+  // Editor overrides
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
+    }
+  }
+
   &-header {
     display: flex;
     justify-content: space-between;
