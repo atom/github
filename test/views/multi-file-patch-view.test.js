@@ -8,7 +8,7 @@ import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 
-describe('MultiFilePatchView', function() {
+describe.only('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
 
   beforeEach(async function() {
@@ -1078,8 +1078,8 @@ describe('MultiFilePatchView', function() {
       });
     });
 
-    describe('opening the file', function() {
-      let mfp;
+    describe('opening the file when there is only one file patch', function() {
+      let mfp, fp;
 
       beforeEach(function() {
         const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
@@ -1095,6 +1095,8 @@ describe('MultiFilePatchView', function() {
         }).build();
 
         mfp = multiFilePatch;
+        assert.lengthOf(mfp.getFilePatches(), 1);
+        fp = mfp.getFilePatches()[0];
       });
 
       it('opens the file at the current unchanged row', function() {
@@ -1105,7 +1107,9 @@ describe('MultiFilePatchView', function() {
         editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
-        assert.isTrue(openFile.calledWith([[14, 2]]));
+        console.log(openFile.args);
+        console.log(fp);
+        assert.isTrue(openFile.calledWith(fp, [[13, 2]]));
       });
 
       it('opens the file at a current added row', function() {
@@ -1117,7 +1121,7 @@ describe('MultiFilePatchView', function() {
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([[15, 3]]));
+        assert.isTrue(openFile.calledWith(fp, [[14, 3]]));
       });
 
       it('opens the file at the beginning of the previous added or unchanged row', function() {
@@ -1129,7 +1133,7 @@ describe('MultiFilePatchView', function() {
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([[15, 0]]));
+        assert.isTrue(openFile.calledWith(fp, [[15, 0]]));
       });
 
       it('preserves multiple cursors', function() {
@@ -1147,10 +1151,10 @@ describe('MultiFilePatchView', function() {
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
 
-        assert.isTrue(openFile.calledWith([
+        assert.isTrue(openFile.calledWith(fp, [
+          [10, 2],
           [11, 2],
-          [12, 2],
-          [3, 3],
+          [2, 3],
           [15, 0],
         ]));
       });
