@@ -1107,8 +1107,6 @@ describe.only('MultiFilePatchView', function() {
         editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
-        console.log(openFile.args);
-        console.log(fp);
         assert.isTrue(openFile.calledWith(fp, [[13, 2]]));
       });
 
