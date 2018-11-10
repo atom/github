@@ -34,6 +34,11 @@ This is a high-level overview of the structure of the React component tree that 
 > >
 > > The "GitHub" tab that appears in the right dock (by default).
 > >
+> > > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
+> > > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
+> > >
+> > > Allows users to view all unstaged commits in one pane.
+> > >
 > > > [`<RemoteSelectorView>`](/lib/views/remote-selector-view.js)
 > > >
 > > > Shown if the current repository has more than one remote that's identified as a github.com remote.
@@ -66,12 +71,13 @@ This is a high-level overview of the structure of the React component tree that 
 > > > > > >
 > > > > > > Render a list of issueish results as rows within the result list of a specific search.
 >
-> > [`<FilePatchController>`](/lib/controllers/file-patch-controller.js)
-> > [`<FilePatchView>`](/lib/views/file-patch-view.js)
+> > [ `<ChangedFileContainer>`](/lib/containers/changed-file-container.js)
+> > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 > >
-> > The workspace-center pane that appears when looking at the staged or unstaged changes associated with a file.
+> > The workspace-center pane that appears when looking at the staged or unstaged changes associated with one or more files.
 > >
-> > :construction: Being rewritten in [#1712](https://github.com/atom/github/pull/1512) :construction:
+> >
 >
 > > [`<IssueishDetailItem>`](/lib/items/issueish-detail-item.js)
 > > [`<IssueishDetailContainer>`](/lib/containers/issueish-detail-container.js)
