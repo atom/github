@@ -85,7 +85,9 @@ describe('MultiFilePatchView', function() {
 
     wrapper.find('FilePatchHeaderView').first().prop('undoLastDiscard')();
 
-    assert.isTrue(undoLastDiscard.calledWith({eventSource: 'button'}));
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(undoLastDiscard.calledWith(filePatch, {eventSource: 'button'}));
   });
 
   it('renders the file patch within an editor', function() {
