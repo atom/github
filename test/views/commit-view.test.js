@@ -656,13 +656,13 @@ describe('CommitView', function() {
     it('displays correct button text depending on prop value', function() {
       const wrapper = shallow(app);
 
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
 
       wrapper.setProps({commitPreviewActive: true});
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Close Commit Preview');
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Hide All Staged Changes');
 
       wrapper.setProps({commitPreviewActive: false});
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Preview Commit');
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
     });
   });
 });
