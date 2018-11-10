@@ -1082,13 +1082,13 @@ describe.only('MultiFilePatchView', function() {
       let mfp, fp;
 
       beforeEach(function() {
-        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
-          fp.setOldFile(f => f.path('path.txt'));
-          fp.addHunk(h => {
+        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(filePatch => {
+          filePatch.setOldFile(f => f.path('path.txt'));
+          filePatch.addHunk(h => {
             h.oldRow(2);
             h.unchanged('0000').added('0001').unchanged('0002');
           });
-          fp.addHunk(h => {
+          filePatch.addHunk(h => {
             h.oldRow(10);
             h.unchanged('0003').added('0004', '0005').deleted('0006').unchanged('0007').added('0008').deleted('0009').unchanged('0010');
           });
