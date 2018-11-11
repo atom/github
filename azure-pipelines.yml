@@ -61,7 +61,7 @@ jobs:
       CI_NAME: Azure Pipeline (Linux)
       CI_BUILD_NUMBER: $(Build.BuildNumber)
       CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
+      CI_BRANCH: $(System.PullRequest.TargetBranch)
       CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
     condition: succeededOrFailed()
@@ -107,7 +107,7 @@ jobs:
       CI_NAME: Azure Pipeline (MacOS)
       CI_BUILD_NUMBER: $(Build.BuildNumber)
       CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
+      CI_BRANCH: $(System.PullRequest.TargetBranch)
       CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
     condition: succeededOrFailed()
@@ -177,7 +177,7 @@ jobs:
       CI_NAME: Azure Pipeline (Windows)
       CI_BUILD_NUMBER: $(Build.BuildNumber)
       CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
+      CI_BRANCH: $(System.PullRequest.TargetBranch)
       CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
     condition: succeededOrFailed()
