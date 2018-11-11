@@ -53,6 +53,9 @@ jobs:
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: Linux $(atom_channel)
     condition: succeededOrFailed()
+  - bash: npm run coveralls
+    displayName: submit coverage data to Coveralls
+    condition: succeededOrFailed()
 
 - job: MacOS
   pool:
@@ -86,6 +89,9 @@ jobs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: MacOS $(atom_channel)
+    condition: succeededOrFailed()
+  - bash: npm run coveralls
+    displayName: submit coverage data to Coveralls
     condition: succeededOrFailed()
 
 - job: Windows
@@ -140,6 +146,9 @@ jobs:
       testResultsFormat: JUnit
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: Windows $(atom_channel)
+    condition: succeededOrFailed()
+  - powershell: npm run coveralls
+    displayName: submit coverage data to Coveralls
     condition: succeededOrFailed()
 
 - job: Lint
