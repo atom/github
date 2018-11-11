@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: alpine:3.7
+    steps:
+    - run:
+        name: Keep CircleCI happy
+        command: echo 'yup'
