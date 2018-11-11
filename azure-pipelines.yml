@@ -9,6 +9,9 @@ trigger:
     - docs/*
 
 pr:
+  branches:
+    include:
+    - *
   paths:
     exclude:
     - README.md
