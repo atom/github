@@ -28,9 +28,9 @@ assert.autocrlfEqual = (actual, expected, ...args) => {
 // for each subsequent request to clone makes cloning
 // 2-3x faster on macOS and 5-10x faster on Windows
 const cachedClonedRepos = {};
-function copyCachedRepo(repoName) {
+async function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
-  fs.copySync(cachedClonedRepos[repoName], workingDirPath);
+  await fs.copy(cachedClonedRepos[repoName], workingDirPath);
   return fs.realpath(workingDirPath);
 }
 
