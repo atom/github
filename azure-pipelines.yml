@@ -1,3 +1,20 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - releases/*
+  paths:
+    exclude:
+    - README.md
+    - docs/*
+
+pr:
+  paths:
+    exclude:
+    - README.md
+    - docs/*
+
 jobs:
 - job: Linux
   pool:
