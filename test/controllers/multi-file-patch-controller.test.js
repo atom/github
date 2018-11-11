@@ -322,6 +322,11 @@ describe('MultiFilePatchController', function() {
 
     describe('toggleSymlinkChange', function() {
       it('handles an addition and typechange with a special repository method', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
         const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
         await fs.writeFile(dest, 'asdf\n', 'utf8');
@@ -346,6 +351,11 @@ describe('MultiFilePatchController', function() {
       });
 
       it('stages non-addition typechanges normally', async function() {
+        if (process.env.ATOM_GITHUB_SKIP_SYMLINKS) {
+          this.skip();
+          return;
+        }
+
         const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
         const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
         await fs.writeFile(dest, 'asdf\n', 'utf8');
