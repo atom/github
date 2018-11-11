@@ -44,6 +44,7 @@ jobs:
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
+      ATOM_GITHUB_BABEL_ENV: coverage
       FORCE_COLOR: 0
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
@@ -81,6 +82,7 @@ jobs:
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
+      ATOM_GITHUB_BABEL_ENV: coverage
       FORCE_COLOR: 0
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
@@ -137,8 +139,9 @@ jobs:
     displayName: run tests
     env:
       TEST_JUNIT_XML_PATH: $(Agent.HomeDirectory)/test-results.xml
-      FORCE_COLOR: 0
+      ATOM_GITHUB_BABEL_ENV: coverage
       ATOM_GITHUB_SKIP_SYMLINKS: 1
+      FORCE_COLOR: 0
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
   - task: PublishTestResults@2
