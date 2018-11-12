@@ -57,9 +57,8 @@ jobs:
   - bash: |
       echo "COVERALLS_SERVICE_NAME=${COVERALLS_SERVICE_NAME}"
       echo "COVERALLS_SERVICE_JOB_ID=${COVERALLS_SERVICE_JOB_ID}"
-      echo "TRAVIS=${TRAVIS}"
-      echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      echo "CI_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
+      echo "COVERALLS_GIT_BRANCH=${COVERALLS_GIT_BRANCH}"
+      echo "CI_PULL_REQUEST=${CI_PULL_REQUEST}"
 
       if [ -n "${COVERALLS_REPO_TOKEN}" ]; then npm run coveralls; else echo "No Coveralls token"; fi
     displayName: submit coverage data to Coveralls
