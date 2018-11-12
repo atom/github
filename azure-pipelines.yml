@@ -57,6 +57,7 @@ jobs:
   - bash: |
       echo "COVERALLS_SERVICE_NAME=${COVERALLS_SERVICE_NAME}"
       echo "COVERALLS_SERVICE_JOB_ID=${COVERALLS_SERVICE_JOB_ID}"
+      echo "COVERALLS_GIT_COMMIT=${COVERALLS_GIT_COMMIT}"
       echo "COVERALLS_GIT_BRANCH=${COVERALLS_GIT_BRANCH}"
       echo "CI_PULL_REQUEST=${CI_PULL_REQUEST}"
 
@@ -66,6 +67,7 @@ jobs:
       COVERALLS_SERVICE_NAME: Azure Pipeline (Linux)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
       COVERALLS_SERVICE_JOB_ID: $(Build.BuildNumber)
+      COVERALLS_GIT_COMMIT: $(Build.SourceVersion)
       COVERALLS_GIT_BRANCH: $(System.PullRequest.TargetBranch)
       CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
     condition: succeededOrFailed()
