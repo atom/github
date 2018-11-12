@@ -30,7 +30,7 @@ env:
   - ATOM_GITHUB_DISABLE_KEYTAR=1
   - ATOM_GITHUB_INLINE_GIT_EXEC=1
   - ATOM_CHANNEL=dev
-  - ATOM=${HOME}/atom/usr/bin/atom-dev
+  - ATOM_SCRIPT_PATH=${HOME}/atom/usr/bin/atom-dev
   - APM=${HOME}/atom/usr/bin/apm-dev
 
 notifications:
