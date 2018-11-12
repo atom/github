@@ -55,84 +55,6 @@ describe('FilePatch', function() {
     assert.isNull(new FilePatch(nullFile, nullFile, patch).getPath());
   });
 
-  it('iterates addition and deletion ranges from all hunks', function() {
-    const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n0008\n0009\n'});
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 0,
-        marker: markRange(layers.hunk, 0, 9),
-        regions: [
-          new Unchanged(markRange(layers.unchanged, 0)),
-          new Addition(markRange(layers.addition, 1)),
-          new Unchanged(markRange(layers.unchanged, 2)),
-          new Addition(markRange(layers.addition, 3)),
-          new Deletion(markRange(layers.deletion, 4)),
-          new Addition(markRange(layers.addition, 5, 6)),
-          new Deletion(markRange(layers.deletion, 7)),
-          new Addition(markRange(layers.addition, 8)),
-          new Unchanged(markRange(layers.unchanged, 9)),
-        ],
-      }),
-    ];
-    const patch = new Patch({status: 'modified', hunks, buffer, layers});
-    const oldFile = new File({path: 'a.txt', mode: '100644'});
-    const newFile = new File({path: 'a.txt', mode: '100644'});
-    const filePatch = new FilePatch(oldFile, newFile, patch);
-
-    const additionRanges = filePatch.getAdditionRanges();
-    assert.deepEqual(additionRanges.map(range => range.serialize()), [
-      [[1, 0], [1, 4]],
-      [[3, 0], [3, 4]],
-      [[5, 0], [6, 4]],
-      [[8, 0], [8, 4]],
-    ]);
-
-    const deletionRanges = filePatch.getDeletionRanges();
-    assert.deepEqual(deletionRanges.map(range => range.serialize()), [
-      [[4, 0], [4, 4]],
-      [[7, 0], [7, 4]],
-    ]);
-
-    const noNewlineRanges = filePatch.getNoNewlineRanges();
-    assert.lengthOf(noNewlineRanges, 0);
-  });
-
-  it('returns an empty nonewline range if no hunks are present', function() {
-    const buffer = new TextBuffer();
-    const layers = buildLayers(buffer);
-    const patch = new Patch({status: 'modified', hunks: [], buffer, layers});
-    const oldFile = new File({path: 'a.txt', mode: '100644'});
-    const newFile = new File({path: 'a.txt', mode: '100644'});
-    const filePatch = new FilePatch(oldFile, newFile, patch);
-
-    assert.lengthOf(filePatch.getNoNewlineRanges(), 0);
-  });
-
-  it('returns a nonewline range if one is present', function() {
-    const buffer = new TextBuffer({text: '0000\n No newline at end of file\n'});
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 1, oldRowCount: 0, newStartRow: 1, newRowCount: 0,
-        marker: markRange(layers.hunk, 0, 1),
-        regions: [
-          new Addition(markRange(layers.addition, 0)),
-          new NoNewline(markRange(layers.noNewline, 1)),
-        ],
-      }),
-    ];
-    const patch = new Patch({status: 'modified', hunks, buffer, layers});
-    const oldFile = new File({path: 'a.txt', mode: '100644'});
-    const newFile = new File({path: 'a.txt', mode: '100644'});
-    const filePatch = new FilePatch(oldFile, newFile, patch);
-
-    const noNewlineRanges = filePatch.getNoNewlineRanges();
-    assert.deepEqual(noNewlineRanges.map(range => range.serialize()), [
-      [[1, 0], [1, 26]],
-    ]);
-  });
-
   it('returns the starting range of the patch', function() {
     const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n'});
     const layers = buildLayers(buffer);
@@ -737,9 +659,6 @@ describe('FilePatch', function() {
     assert.isNull(nullFilePatch.getNewMode());
     assert.isNull(nullFilePatch.getOldSymlink());
     assert.isNull(nullFilePatch.getNewSymlink());
-    assert.lengthOf(nullFilePatch.getAdditionRanges(), 0);
-    assert.lengthOf(nullFilePatch.getDeletionRanges(), 0);
-    assert.lengthOf(nullFilePatch.getNoNewlineRanges(), 0);
     assert.isFalse(nullFilePatch.didChangeExecutableMode());
     assert.isFalse(nullFilePatch.hasSymlink());
     assert.isFalse(nullFilePatch.hasTypechange());
