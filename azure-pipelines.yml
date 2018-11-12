@@ -58,12 +58,12 @@ jobs:
       if [ -n "${COVERALLS_REPO_TOKEN}" ]; then npm run coveralls; else echo "No Coveralls token"; fi
     displayName: submit coverage data to Coveralls
     env:
-      CI_NAME: Azure Pipeline (Linux)
-      CI_BUILD_NUMBER: $(Build.BuildNumber)
-      CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
-      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      COVERALLS_SERVICE_NAME: Azure Pipeline (Linux)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
+      COVERALLS_SERVICE_JOB_ID: $(Build.BuildNumber)
+      COVERALLS_GIT_COMMIT: $(Build.SourceVersion)
+      COVERALLS_GIT_BRANCH: $(System.PullRequest.TargetBranch)
+      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
     condition: succeededOrFailed()
 
 - job: MacOS
@@ -104,12 +104,12 @@ jobs:
       if [ -n "${COVERALLS_REPO_TOKEN}" ]; then npm run coveralls; else echo "No Coveralls token"; fi
     displayName: submit coverage data to Coveralls
     env:
-      CI_NAME: Azure Pipeline (MacOS)
-      CI_BUILD_NUMBER: $(Build.BuildNumber)
-      CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
-      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      COVERALLS_SERVICE_NAME: Azure Pipeline (MacOS)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
+      COVERALLS_SERVICE_JOB_ID: $(Build.BuildNumber)
+      COVERALLS_GIT_COMMIT: $(Build.SourceVersion)
+      COVERALLS_GIT_BRANCH: $(System.PullRequest.TargetBranch)
+      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
     condition: succeededOrFailed()
 
 - job: Windows
@@ -174,12 +174,12 @@ jobs:
       }
     displayName: submit coverage data to Coveralls
     env:
-      CI_NAME: Azure Pipeline (Windows)
-      CI_BUILD_NUMBER: $(Build.BuildNumber)
-      CI_BUILD_URL: https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/results?buildId=$(Build.BuildId)&view=logs
-      CI_BRANCH: $(Build.SourceBranchName)
-      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      COVERALLS_SERVICE_NAME: Azure Pipeline (Windows)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
+      COVERALLS_SERVICE_JOB_ID: $(Build.BuildNumber)
+      COVERALLS_GIT_COMMIT: $(Build.SourceVersion)
+      COVERALLS_GIT_BRANCH: $(System.PullRequest.TargetBranch)
+      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
     condition: succeededOrFailed()
 
 - job: Lint
