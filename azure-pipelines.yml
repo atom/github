@@ -59,7 +59,7 @@ jobs:
       echo "COVERALLS_SERVICE_JOB_ID=${COVERALLS_SERVICE_JOB_ID}"
       echo "TRAVIS=${TRAVIS}"
       echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      echo "TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
+      echo "CI_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
 
       if [ -n "${COVERALLS_REPO_TOKEN}" ]; then npm run coveralls; else echo "No Coveralls token"; fi
     displayName: submit coverage data to Coveralls
@@ -67,9 +67,8 @@ jobs:
       COVERALLS_SERVICE_NAME: Azure Pipeline (Linux)
       COVERALLS_REPO_TOKEN: $(coveralls.repoToken)
       COVERALLS_SERVICE_JOB_ID: $(Build.BuildNumber)
-      TRAVIS: true
-      TRAVIS_BRANCH: $(System.PullRequest.TargetBranch)
-      TRAVIS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      COVERALLS_GIT_BRANCH: $(System.PullRequest.TargetBranch)
+      CI_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
     condition: succeededOrFailed()
 #
 # - job: MacOS
