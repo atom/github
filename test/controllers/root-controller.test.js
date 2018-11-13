@@ -487,7 +487,6 @@ describe('RootController', function() {
     });
   });
 
-  // these tests no worky
   describe('discarding and restoring changed lines', () => {
     describe('discardLines(filePatch, lines)', () => {
       it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
