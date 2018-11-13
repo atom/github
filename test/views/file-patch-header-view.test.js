@@ -116,7 +116,7 @@ describe('FilePatchHeaderView', function() {
       it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
     });
 
-    it('includes an open file button', function() {
+    it('includes a jump-to-file button', function() {
       const openFile = sinon.stub();
       const wrapper = shallow(buildApp({openFile}));
 
