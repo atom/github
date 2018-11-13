@@ -24,7 +24,7 @@
 '.github-StagingView':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
-  'o': 'github:open-file'
+  'o': 'github:jump-to-file'
   'left': 'core:move-left'
   'cmd-left': 'core:move-left'
 
@@ -50,8 +50,8 @@
   'ctrl-enter': 'core:confirm'
   'cmd-right': 'github:surface-file'
   'ctrl-right': 'github:surface-file'
-  'cmd-o': 'github:open-file'
-  'ctrl-o': 'github:open-file'
+  'cmd-o': 'github:jump-to-file'
+  'ctrl-o': 'github:jump-to-file'
 
 '.github-FilePatchView--hunkMode atom-text-editor:not([mini])':
   'down': 'github:select-next-hunk'

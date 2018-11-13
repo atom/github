@@ -1266,7 +1266,7 @@ describe('MultiFilePatchView', function() {
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([7, 2]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
         assert.isTrue(openFile.calledWith(fp, [[13, 2]]));
       });
 
@@ -1277,7 +1277,7 @@ describe('MultiFilePatchView', function() {
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([8, 3]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
         assert.isTrue(openFile.calledWith(fp, [[14, 3]]));
       });
@@ -1289,7 +1289,7 @@ describe('MultiFilePatchView', function() {
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([9, 2]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
         assert.isTrue(openFile.calledWith(fp, [[15, 0]]));
       });
@@ -1307,7 +1307,7 @@ describe('MultiFilePatchView', function() {
 
         // [9, 2] and [9, 3] should be collapsed into a single cursor at [15, 0]
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
         assert.isTrue(openFile.calledWith(fp, [
           [10, 2],

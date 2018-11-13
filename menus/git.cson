@@ -35,7 +35,7 @@
   '.github-FilePatchListView-item': [
     {
       'label': 'Open File'
-      'command': 'github:open-file'
+      'command': 'github:jump-to-file'
     }
   ]
   '.github-FilePatchView': [
@@ -44,7 +44,7 @@
     }
     {
       'label': 'Open File'
-      'command': 'github:open-file'
+      'command': 'github:jump-to-file'
       'after': ['core:confirm']
     }
   ]
