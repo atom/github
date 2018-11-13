@@ -47,6 +47,7 @@ describe('MultiFilePatchView', function() {
       hasUndoHistory: false,
       selectionMode: 'line',
       selectedRows: new Set(),
+      hasMultipleFileSelections: false,
       repository,
       isActive: true,
 
@@ -110,6 +111,23 @@ describe('MultiFilePatchView', function() {
     assert.lengthOf(filePatches.getFilePatches(), 1);
     const [filePatch] = filePatches.getFilePatches();
     assert.isTrue(toggleFile.calledWith(filePatch));
+  });
+
+  it('passes hasMultipleFileSelections to all file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+
+    const wrapper = shallow(buildApp({multiFilePatch, hasMultipleFileSelections: true}));
+
+    assert.isTrue(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
+    assert.isTrue(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
+
+    wrapper.setProps({hasMultipleFileSelections: false});
+
+    assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
+    assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
   });
 
   it('renders the file patch within an editor', function() {
@@ -886,17 +904,54 @@ describe('MultiFilePatchView', function() {
     });
   });
 
-  it('notifies a callback when the editor selection changes', function() {
-    const selectedRowsChanged = sinon.spy();
-    const wrapper = mount(buildApp({selectedRowsChanged}));
-    const editor = wrapper.find('AtomTextEditor').instance().getModel();
+  describe('editor selection change notification', function() {
+    let multiFilePatch;
 
-    selectedRowsChanged.resetHistory();
+    beforeEach(function() {
+      multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0'));
+          fp.addHunk(h => h.oldRow(1).unchanged('0').added('1', '2').deleted('3').unchanged('4'));
+          fp.addHunk(h => h.oldRow(10).unchanged('5').added('6', '7').deleted('8').unchanged('9'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1'));
+          fp.addHunk(h => h.oldRow(1).unchanged('10').added('11', '12').deleted('13').unchanged('14'));
+          fp.addHunk(h => h.oldRow(10).unchanged('15').added('16', '17').deleted('18').unchanged('19'));
+        })
+        .build()
+        .multiFilePatch;
+    });
 
-    editor.setSelectedBufferRange([[5, 1], [6, 2]]);
+    it('notifies a callback when the selected rows change', function() {
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({multiFilePatch, selectedRowsChanged}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
 
-    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
-    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      selectedRowsChanged.resetHistory();
+
+      editor.setSelectedBufferRange([[5, 1], [6, 2]]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isFalse(selectedRowsChanged.lastCall.args[2]);
+    });
+
+    it('notifies a callback when cursors span multiple files', function() {
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({multiFilePatch, selectedRowsChanged}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      selectedRowsChanged.resetHistory();
+      editor.setSelectedBufferRanges([
+        [[5, 0], [5, 0]],
+        [[16, 0], [16, 0]],
+      ]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [16]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isTrue(selectedRowsChanged.lastCall.args[2]);
+    });
   });
 
   describe('when viewing an empty patch', function() {
