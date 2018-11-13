@@ -1,5 +1,4 @@
 import dedent from 'dedent-js';
-import {Point} from 'atom';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
