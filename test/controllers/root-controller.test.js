@@ -6,6 +6,7 @@ import {shallow, mount} from 'enzyme';
 import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
@@ -488,7 +489,24 @@ describe('RootController', function() {
   });
 
   describe('discarding and restoring changed lines', () => {
-    describe('discardLines(filePatch, lines)', () => {
+    describe('discardLines(multiFilePatch, lines)', () => {
+      it('is a no-op when multiple FilePatches are present', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch()
+          .addFilePatch()
+          .build();
+
+        sinon.spy(repository, 'applyPatchToWorkdir');
+
+        const wrapper = shallow(React.cloneElement(app, {repository}));
+        await wrapper.instance().discardLines(multiFilePatch, new Set([0]));
+
+        assert.isFalse(repository.applyPatchToWorkdir.called);
+      });
+
       it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
