@@ -1,4 +1,5 @@
 import dedent from 'dedent-js';
+import {Point} from 'atom';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
@@ -636,6 +637,33 @@ describe('MultiFilePatch', function() {
         new Set([4, 5, 8, 11, 16, 21]),
       );
       assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
+    });
+  });
+
+  describe('file-patch spanning selection detection', function() {
+    let multiFilePatch;
+
+    beforeEach(function() {
+      multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.addHunk(h => h.unchanged('0').added('1').deleted('2', '3').unchanged('4'));
+          fp.addHunk(h => h.unchanged('5').added('6').unchanged('7'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-1'));
+          fp.addHunk(h => h.unchanged('8').deleted('9', '10').unchanged('11'));
+        })
+        .build()
+        .multiFilePatch;
+    });
+
+    it('with buffer positions belonging to a single patch', function() {
+      assert.isFalse(multiFilePatch.spansMultipleFiles([1, 5]));
+    });
+
+    it('with buffer positions belonging to multiple patches', function() {
+      assert.isTrue(multiFilePatch.spansMultipleFiles([6, 10]));
     });
   });
 });
