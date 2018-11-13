@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 
 import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('MultiFilePatchController', function() {
@@ -214,6 +215,19 @@ describe('MultiFilePatchController', function() {
           lineCount: 2,
           eventSource: undefined,
         }));
+      });
+
+      it('is a no-op when multiple patches are present', async function() {
+        const {multiFilePatch: mfp} = multiFilePatchBuilder()
+          .addFilePatch()
+          .addFilePatch()
+          .build();
+        const discardLines = sinon.spy();
+        const wrapper = shallow(buildApp({discardLines, multiFilePatch: mfp}));
+        sinon.stub(reporterProxy, 'addEvent');
+        await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([1, 2]));
+        assert.isFalse(reporterProxy.addEvent.called);
+        assert.isFalse(discardLines.called);
       });
     });
 
