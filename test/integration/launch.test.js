@@ -5,7 +5,7 @@ import {setup, teardown} from './helpers';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
 
-describe('Package initialization', function() {
+describe('integration: package initialization', function() {
   let context;
 
   afterEach(async function() {
@@ -13,7 +13,7 @@ describe('Package initialization', function() {
   });
 
   it('reveals the tabs on first run when the welcome package has been dismissed', async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
       initAtomEnv: env => env.config.set('welcome.showOnStartup', false),
     });
@@ -28,7 +28,7 @@ describe('Package initialization', function() {
   });
 
   it('renders but does not reveal the tabs on first run when the welcome package has not been dismissed', async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
       initAtomEnv: env => env.config.set('welcome.showOnStartup', true),
     });
@@ -43,7 +43,7 @@ describe('Package initialization', function() {
   });
 
   it('renders but does not reveal the tabs on new projects after the first run', async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
       state: {},
     });
@@ -63,7 +63,7 @@ describe('Package initialization', function() {
       state: {newProject: false},
     };
 
-    const prevContext = await setup(this.currentTest, nonFirstRun);
+    const prevContext = await setup(nonFirstRun);
 
     const prevWorkspace = prevContext.atomEnv.workspace;
     await prevWorkspace.open(GitHubTabItem.buildURI(), {searchAllPanes: true});
@@ -73,7 +73,7 @@ describe('Package initialization', function() {
 
     await teardown(prevContext);
 
-    context = await setup(this.currentTest, nonFirstRun);
+    context = await setup(nonFirstRun);
     await context.atomEnv.deserialize(prevState);
 
     const paneItemURIs = context.atomEnv.workspace.getPaneItems().map(i => i.getURI());
@@ -88,7 +88,7 @@ describe('Package initialization', function() {
 
     const getPaneItemURIs = ctx => ctx.atomEnv.workspace.getPaneItems().map(i => i.getURI());
 
-    const prevContext = await setup(this.currentTest, {
+    const prevContext = await setup({
       initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
       state: {firstRun: true},
     });
@@ -106,7 +106,7 @@ describe('Package initialization', function() {
     const prevState = prevContext.atomEnv.serialize();
     await teardown(prevContext);
 
-    context = await setup(this.currentTest, {
+    context = await setup({
       initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), '#', {encoding: 'utf8'}),
       state: {firstRun: false},
     });

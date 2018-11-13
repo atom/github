@@ -8,7 +8,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import sinon from 'sinon';
 import {Directory} from 'atom';
-import {Emitter} from 'event-kit';
+import {Emitter, CompositeDisposable, Disposable} from 'event-kit';
 
 import Repository from '../lib/models/repository';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
@@ -16,6 +16,7 @@ import WorkerManager from '../lib/worker-manager';
 import ContextMenuInterceptor from '../lib/context-menu-interceptor';
 import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
 import {clearRelayExpectations} from '../lib/relay-network-layer-manager';
+import FileSystemChangeObserver from '../lib/models/file-system-change-observer';
 
 assert.autocrlfEqual = (actual, expected, ...args) => {
   const newActual = actual.replace(/\r\n/g, '\n');
@@ -27,9 +28,9 @@ assert.autocrlfEqual = (actual, expected, ...args) => {
 // for each subsequent request to clone makes cloning
 // 2-3x faster on macOS and 5-10x faster on Windows
 const cachedClonedRepos = {};
-function copyCachedRepo(repoName) {
+async function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
-  fs.copySync(cachedClonedRepos[repoName], workingDirPath);
+  await fs.copy(cachedClonedRepos[repoName], workingDirPath);
   return fs.realpath(workingDirPath);
 }
 
@@ -47,6 +48,7 @@ export async function cloneRepository(repoName = 'three-files') {
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
     await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
     await git.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+    await git.exec(['config', '--local', 'push.default', 'simple']);
     await git.exec(['checkout', '--', '.']); // discard \r in working directory
     cachedClonedRepos[repoName] = cachedPath;
   }
@@ -123,6 +125,8 @@ export function buildRepositoryWithPipeline(workingDirPath, options) {
   return buildRepository(workingDirPath, {pipelineManager});
 }
 
+// Custom assertions
+
 export function assertDeepPropertyVals(actual, expected) {
   function extractObjectSubset(actualValue, expectedValue) {
     if (actualValue !== Object(actualValue)) { return actualValue; }
@@ -148,6 +152,48 @@ export function assertEqualSets(a, b) {
 export function assertEqualSortedArraysByKey(arr1, arr2, key) {
   const sortFn = (a, b) => a[key] < b[key];
   assert.deepEqual(arr1.sort(sortFn), arr2.sort(sortFn));
+}
+
+// Helpers for test/models/patch classes
+
+class PatchBufferAssertions {
+  constructor(patch) {
+    this.patch = patch;
+  }
+
+  hunk(hunkIndex, {startRow, endRow, header, regions}) {
+    const hunk = this.patch.getHunks()[hunkIndex];
+    assert.isDefined(hunk);
+
+    assert.strictEqual(hunk.getRange().start.row, startRow);
+    assert.strictEqual(hunk.getRange().end.row, endRow);
+    assert.strictEqual(hunk.getHeader(), header);
+    assert.lengthOf(hunk.getRegions(), regions.length);
+
+    for (let i = 0; i < regions.length; i++) {
+      const region = hunk.getRegions()[i];
+      const spec = regions[i];
+
+      assert.strictEqual(region.constructor.name.toLowerCase(), spec.kind);
+      assert.strictEqual(region.toStringIn(this.patch.getBuffer()), spec.string);
+      assert.deepEqual(region.getRange().serialize(), spec.range);
+    }
+  }
+
+  hunks(...specs) {
+    assert.lengthOf(this.patch.getHunks(), specs.length);
+    for (let i = 0; i < specs.length; i++) {
+      this.hunk(i, specs[i]);
+    }
+  }
+}
+
+export function assertInPatch(patch) {
+  return new PatchBufferAssertions(patch);
+}
+
+export function assertInFilePatch(filePatch) {
+  return assertInPatch(filePatch.getPatch());
 }
 
 let activeRenderers = [];
@@ -219,12 +265,12 @@ export async function disableFilesystemWatchers(atomEnv) {
 }
 
 const packageRoot = path.resolve(__dirname, '..');
-const transpiledRoot = path.resolve(__dirname, 'transpiled');
+const transpiledRoot = path.resolve(__dirname, 'output/transpiled/');
 
 export function transpile(...relPaths) {
   return Promise.all(
     relPaths.map(async relPath => {
-      const untranspiledPath = require.resolve(relPath);
+      const untranspiledPath = path.resolve(__dirname, '..', relPath);
       const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
 
       const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
@@ -336,4 +382,63 @@ export class ManualStateObserver {
   dispose() {
     this.emitter.dispose();
   }
+}
+
+
+// File system event helpers
+let observedEvents, eventCallback;
+
+export async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
+  observedEvents = [];
+  eventCallback = () => {};
+
+  const workdir = existingWorkdir || await cloneRepository(fixtureName);
+  const repository = new Repository(workdir);
+  await repository.getLoadPromise();
+
+  const observer = new FileSystemChangeObserver(repository);
+
+  const subscriptions = new CompositeDisposable(
+    new Disposable(async () => {
+      await observer.destroy();
+      repository.destroy();
+    }),
+  );
+
+  subscriptions.add(observer.onDidChange(events => {
+    observedEvents.push(...events);
+    eventCallback();
+  }));
+
+  return {repository, observer, subscriptions};
+}
+
+export function expectEvents(repository, ...suffixes) {
+  const pending = new Set(suffixes);
+  return new Promise((resolve, reject) => {
+    eventCallback = () => {
+      const matchingPaths = observedEvents
+        .filter(event => {
+          for (const suffix of pending) {
+            if (event.path.endsWith(suffix)) {
+              pending.delete(suffix);
+              return true;
+            }
+          }
+          return false;
+        });
+
+      if (matchingPaths.length > 0) {
+        repository.observeFilesystemChange(matchingPaths);
+      }
+
+      if (pending.size === 0) {
+        resolve();
+      }
+    };
+
+    if (observedEvents.length > 0) {
+      eventCallback();
+    }
+  });
 }

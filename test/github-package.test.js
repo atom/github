@@ -8,7 +8,8 @@ import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, confirm, tooltips, styles;
+  let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, keymaps;
+  let confirm, tooltips, styles;
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
 
@@ -23,6 +24,7 @@ describe('GithubPackage', function() {
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
+    keymaps = atomEnv.keymaps;
     confirm = atomEnv.confirm.bind(atomEnv);
     styles = atomEnv.styles;
     grammars = atomEnv.grammars;
@@ -30,7 +32,8 @@ describe('GithubPackage', function() {
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage({
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
+      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars,
+      keymaps, config, deserializers,
       confirm, getLoadSettings,
       configDirPath,
       renderFn: sinon.stub().callsFake((component, element, callback) => {
@@ -73,8 +76,8 @@ describe('GithubPackage', function() {
       const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage({
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, config, deserializers,
-        confirm, getLoadSettings: getLoadSettings1,
+        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, keymaps,
+        config, deserializers, confirm, getLoadSettings: getLoadSettings1,
         configDirPath,
       });
     }
@@ -605,6 +608,8 @@ describe('GithubPackage', function() {
     let workdirPath2, atomGitRepository2, repository2;
 
     beforeEach(async function() {
+      this.retries(5); // FLAKE
+
       [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
@@ -642,6 +647,7 @@ describe('GithubPackage', function() {
       if (process.platform === 'linux') {
         this.skip();
       }
+      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
@@ -653,6 +659,7 @@ describe('GithubPackage', function() {
       if (process.platform === 'linux') {
         this.skip();
       }
+      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 

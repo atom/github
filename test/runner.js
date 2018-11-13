@@ -75,10 +75,13 @@ if (process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' && !process.env.NYC_CONFIG)
   global._nyc.wrap();
 }
 
+const testSuffixes = process.env.ATOM_GITHUB_TEST_SUITE === 'snapshot' ? ['snapshot.js'] : ['test.js'];
+
 module.exports = createRunner({
   htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
   reporter: process.env.MOCHA_REPORTER || 'list',
   overrideTestPaths: [/spec$/, /test/],
+  testSuffixes,
 }, (mocha, {terminate}) => {
   // Ensure that we expect to be deployable to this version of Atom.
   const engineRange = require('../package.json').engines.atom;
@@ -107,18 +110,11 @@ module.exports = createRunner({
 
   if (process.env.TEST_JUNIT_XML_PATH) {
     mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
-      xunitReporterOptions: {
-        output: process.env.TEST_JUNIT_XML_PATH,
-      },
-    });
-  } else if (process.env.APPVEYOR_API_URL) {
-    mocha.reporter(require('mocha-appveyor-reporter'));
-  } else if (process.env.CIRCLECI === 'true') {
-    mocha.reporter(require('mocha-multi-reporters'), {
-      reportersEnabled: 'xunit, list',
-      xunitReporterOptions: {
-        output: path.join('test-results', 'mocha', 'test-results.xml'),
+      reporterEnabled: 'mocha-junit-reporter, list',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: process.env.TEST_JUNIT_XML_PATH,
+        useFullSuiteTitle: true,
+        suiteTitleSeparedBy: ' / ',
       },
     });
   }

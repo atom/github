@@ -85,6 +85,40 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('fetchCommitMessageTemplate', function() {
+      it('gets commit message from template', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        const templateText = 'some commit message';
+
+        const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
+        await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+
+        await git.setConfig('commit.template', commitMsgTemplatePath);
+        assert.equal(await git.fetchCommitMessageTemplate(), templateText);
+      });
+
+      it('if config is not set return null', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        assert.isNotOk(await git.getConfig('commit.template')); // falsy value of null or ''
+        assert.isNull(await git.fetchCommitMessageTemplate());
+      });
+
+      it('if config is set but file does not exist throw an error', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+
+        const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
+        await git.setConfig('commit.template', nonExistentCommitTemplatePath);
+        await assert.isRejected(
+          git.fetchCommitMessageTemplate(),
+          `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
+        );
+      });
+    });
+
     if (process.platform === 'win32') {
       describe('getStatusBundle()', function() {
         it('normalizes the path separator on Windows', async function() {
@@ -1457,6 +1491,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
       }
 
       it('prompts for authentication data through Atom', async function() {
+        this.retries(5); // FLAKE
+
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {
@@ -1516,6 +1552,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('prefers user-configured credential helpers if present', async function() {
+        this.retries(5); // FLAKE
+
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {

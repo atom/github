@@ -3,6 +3,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 import StagingView from '../../lib/views/staging-view';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {assertEqualSets} from '../helpers';
 
@@ -784,5 +785,54 @@ describe('StagingView', function() {
     rootElement.contains.returns(true);
     wrapper.instance().refRoot.setter(null);
     assert.isFalse(wrapper.instance().hasFocus());
+  });
+
+  describe('discardAll()', function() {
+    it('records an event', function() {
+      const filePatches = [
+        {filePath: 'a.txt', status: 'modified'},
+        {filePath: 'b.txt', status: 'deleted'},
+      ];
+      const wrapper = mount(React.cloneElement(app, {unstagedChanges: filePatches}));
+      sinon.stub(reporterProxy, 'addEvent');
+      wrapper.instance().discardAll();
+      assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+        package: 'github',
+        component: 'StagingView',
+        fileCount: 2,
+        type: 'all',
+        eventSource: undefined,
+      }));
+    });
+  });
+
+  describe('discardChanges()', function() {
+    it('records an event', function() {
+      const wrapper = mount(app);
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(wrapper.instance(), 'getSelectedItemFilePaths').returns(['a.txt', 'b.txt']);
+      wrapper.instance().discardChanges();
+      assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+        package: 'github',
+        component: 'StagingView',
+        fileCount: 2,
+        type: 'selected',
+        eventSource: undefined,
+      }));
+    });
+  });
+
+  describe('undoLastDiscard()', function() {
+    it('records an event', function() {
+      const wrapper = mount(React.cloneElement(app, {hasUndoHistory: true}));
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(wrapper.instance(), 'getSelectedItemFilePaths').returns(['a.txt', 'b.txt']);
+      wrapper.instance().undoLastDiscard();
+      assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
+        package: 'github',
+        component: 'StagingView',
+        eventSource: undefined,
+      }));
+    });
   });
 });

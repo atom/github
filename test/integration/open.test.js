@@ -3,11 +3,11 @@ import path from 'path';
 
 import {setup, teardown} from './helpers';
 
-describe('opening and closing tabs', function() {
+describe('integration: opening and closing tabs', function() {
   let context, wrapper, atomEnv, commands, workspaceElement;
 
   beforeEach(async function() {
-    context = await setup(this.currentTest, {
+    context = await setup({
       initialRoots: ['three-files'],
       initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), ''),
       state: {newProject: false},
@@ -25,16 +25,20 @@ describe('opening and closing tabs', function() {
   });
 
   it('opens but does not focus the git tab on github:toggle-git-tab', async function() {
-    const editor = await atomEnv.workspace.open(__filename);
+    atomEnv.workspace.getCenter().activate();
+    await atomEnv.workspace.open(__filename);
     assert.isFalse(wrapper.find('.github-Git').exists());
+
+    const previousFocus = document.activeElement;
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab');
 
     wrapper.update();
     assert.isTrue(wrapper.find('.github-Git').exists());
 
-    assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    await assert.async.strictEqual(atomEnv.workspace.getActivePaneItem(), editor);
+    // Don't use assert.async.strictEqual() because it times out Mocha's failure diffing <_<
+    await assert.async.isTrue(atomEnv.workspace.getRightDock().isVisible());
+    await assert.async.isTrue(previousFocus === document.activeElement);
   });
 
   it('reveals an open but hidden git tab on github:toggle-git-tab', async function() {

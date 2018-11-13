@@ -4,7 +4,7 @@ This directory contains notes on ideas for the longer-term vision of the @atom/g
 
 * Articulate the objectives we have for the package as a whole. The features we add should contribute to a cohesive experience, not be an amalgamation of unrelated things that sounded cool at the time.
 * Delineate our boundaries. We should be able to reference these documents to say why we _won't_ work on a feature in addition to why we will.
-* Incubate that long tail of ideas we're excited about that we aren't ready to write in [RFC](../how-we-work.md#new-features) form yet.
+* Incubate that long tail of ideas we're excited about that we aren't ready to write in [Feature Request](../how-we-work.md#new-features) form yet.
 * Inform our quarterly and weekly planning cycles. We intend to revisit these often as part of our team's planning cadence, both to keep them accurate and timely and to cherry-pick from when we can.
 * Share our vision with the world and let the world share its vision with us. :earth_americas:
 
@@ -24,7 +24,7 @@ If you want to see our plans for what we _are_ working on in the very near term,
 
 I'm glad you asked!
 
-The first step in tackling any of these would be to [submit an RFC](../how-we-work.md#new-features). The ideas described here are very rough - before we can get to work shipping any of them, we need to reach consensus on scope, graphic design direction, user experience, and many other details. If one of our bullet points sparks your imagination, start a draft of the writeup following [the template we provide](https://github.com/atom/github/blob/master/docs/rfcs/000-template.md). It doesn't have to be complete, but it's a great way to get involved and start a more in-depth conversation.
+The first step in tackling any of these would be to [submit a Feature Request](../how-we-work.md#new-features). The ideas described here are very rough - before we can get to work shipping any of them, we need to reach consensus on scope, graphic design direction, user experience, and many other details. If one of our bullet points sparks your imagination, start a draft of the writeup following [the template we provide](https://github.com/atom/github/blob/master/docs/feature-requests/000-template.md). It doesn't have to be complete, but it's a great way to get involved and start a more in-depth conversation.
 
 If that sounds like not much fun to you, and you'd rather just write some code: try making a proof-of-concept as a separate Atom package! Tell us about it in an issue and show us what you've done. If we like it and you're okay with it, we can help you merge it into this package, or we can help provide the proper plumbing to make it an independent thing.
 
@@ -33,4 +33,4 @@ If that sounds like not much fun to you, and you'd rather just write some code: 
 * [`who.md`: Our target audience](./who.md)
 * [`git.md`: Git integration](./git.md)
 * [`github.md`: GitHub integration](./github.md)
-* [`ideas.md`: Proto RFC incubator](./ideas.md)
+* [`ideas.md`: Proto Feature Request incubator](./ideas.md)

@@ -1,0 +1,93 @@
+@import "variables";
+
+@hunk-fg-color: @text-color-subtle;
+@hunk-bg-color: mix(@syntax-text-color, @syntax-background-color, 4%);
+
+.github-HunkHeaderView {
+  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+
+  display: flex;
+  align-items: stretch;
+  font-size: .9em;
+  background-color: @hunk-bg-color;
+  cursor: default;
+
+  &-title {
+    flex: 1;
+    line-height: 2.4;
+    padding: 0 @component-padding;
+    color: @text-color-subtle;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -webkit-font-smoothing: antialiased;
+    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
+    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+  }
+
+  &-stageButton,
+  &-discardButton {
+    line-height: 1;
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    font-family: @font-family;
+    border: none;
+    background-color: transparent;
+    cursor: default;
+    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
+    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+
+    .keystroke {
+      margin-right: 1em;
+    }
+  }
+
+  // pixel fit the icon
+  &-discardButton:before {
+    text-align: left;
+    width: auto;
+  }
+}
+
+//
+// States
+// -------------------------------
+
+.github-HunkHeaderView {
+  &-title,
+  &-stageButton,
+  &-discardButton {
+    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 8%); }
+    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+  }
+}
+
+.github-HunkHeaderView--isSelected {
+  color: contrast(@button-background-color-selected);
+  background-color: @button-background-color-selected;
+  .github-HunkHeaderView-title {
+    color: inherit;
+  }
+  .github-HunkHeaderView-title,
+  .github-HunkHeaderView-stageButton,
+  .github-HunkHeaderView-discardButton {
+    &:hover  { background-color: lighten(@button-background-color-selected, 4%); }
+    &:active { background-color: darken(@button-background-color-selected, 4%); }
+  }
+}
+
+
+// Hacks -----------------------
+// Please unhack (one day TM)
+
+// Make the gap in the gutter also use the same background as .github-HunkHeaderView
+// Note: This only works with the default font-size
+.github-FilePatchView .line-number[style="margin-top: 30px;"]:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30px;
+  height: 30px;
+  background-color: @hunk-bg-color;
+}

@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.20.0",
+  "version": "0.22.1-0",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -11,13 +11,15 @@
     "test:coverage:text": "nyc --reporter=text npm run test:coverage",
     "test:coverage:html": "nyc --reporter=html npm run test:coverage",
     "test:coverage:lcov": "npm run test:coverage",
+    "test:snapshot": "cross-env-shell ATOM_GITHUB_TEST_SUITE=snapshot \"${ATOM_SCRIPT_PATH:-atom} --test test\"",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "report:coverage": "nyc report --reporter=cobertura --reporter=html",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
   "engines": {
-    "atom": ">=1.18.0"
+    "atom": ">=1.32.0"
   },
   "atomTestRunner": "./test/runner",
   "atomTranspilers": [
@@ -48,8 +50,8 @@
     "bytes": "^3.0.0",
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",
-    "dugite": "^1.66.0",
-    "event-kit": "2.5.1",
+    "dugite": "^1.79.0",
+    "event-kit": "2.5.2",
     "fs-extra": "4.0.3",
     "graphql": "0.13.2",
     "keytar": "4.2.1",
@@ -66,6 +68,7 @@
     "temp": "0.8.3",
     "tinycolor2": "1.4.1",
     "tree-kill": "1.2.0",
+    "underscore-plus": "1.6.8",
     "what-the-diff": "0.4.0",
     "what-the-status": "1.0.3",
     "yubikiri": "1.0.0"
@@ -78,23 +81,28 @@
     "chai-as-promised": "7.1.1",
     "coveralls": "^3.0.1",
     "cross-env": "5.2.0",
+    "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
+    "electron-link": "0.2.2",
+    "electron-mksnapshot": "3.0.0-beta.1",
     "enzyme": "3.4.1",
     "eslint": "5.0.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
+    "globby": "5.0.0",
     "hock": "1.3.3",
     "lodash.isequal": "4.5.0",
     "mkdirp": "0.5.1",
     "mocha": "^5.2.0",
     "mocha-appveyor-reporter": "0.4.1",
+    "mocha-junit-reporter": "1.18.0",
     "mocha-multi-reporters": "^1.1.7",
     "mocha-stress": "1.0.0",
-    "node-fetch": "2.2.0",
+    "node-fetch": "2.2.1",
     "nyc": "13.0.0",
     "relay-compiler": "1.6.2",
-    "semver": "5.5.1",
+    "semver": "5.6.0",
     "sinon": "6.0.1",
     "test-until": "1.1.1"
   },
@@ -171,6 +179,11 @@
       "type": "boolean",
       "default": true,
       "description": "Resolve merge conflicts with in-editor controls"
+    },
+    "showDiffIconGutter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show change regions within a file patch with icons in addition to color"
     },
     "excludedUsers": {
       "type": "string",

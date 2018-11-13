@@ -40,23 +40,32 @@
   ]
   '.github-FilePatchView': [
     {
+      'type': 'separator'
+    }
+    {
       'label': 'Open File'
       'command': 'github:open-file'
+      'after': ['core:confirm']
     }
   ]
-  '.github-FilePatchView.is-staged': [
+  '.github-FilePatchView--staged': [
+    {
+      'type': 'separator'
+    }
     {
       'label': 'Unstage Selection'
       'command': 'core:confirm'
+      'beforeGroupContaining': ['core:undo']
     }
   ]
-  '.github-FilePatchView.is-unstaged': [
+  '.github-FilePatchView--unstaged': [
+    {
+      'type': 'separator'
+    }
     {
       'label': 'Stage Selection'
       'command': 'core:confirm'
-    }
-    {
-      'type': 'separator'
+      'beforeGroupContaining': ['core:undo']
     }
     {
       'label': 'Discard Selection'
@@ -77,25 +86,6 @@
       'command': 'github:open-link-in-browser'
     }
   ]
-  '.github-UnstagedChanges .github-StagingView-header': [
-    {
-      'label': 'Stage All Changes'
-      'command': 'github:stage-all-changes'
-    }
-    {
-      'type': 'separator'
-    }
-    {
-      'label': 'Discard All Changes'
-      'command': 'github:discard-all-changes'
-    }
-  ]
-  '.github-StagedChanges .github-StagingView-header': [
-    {
-      'label': 'Unstage All Changes'
-      'command': 'github:unstage-all-changes'
-    }
-  ]
   '.github-CommitView': [
     {
       'type': 'separator'
@@ -105,7 +95,7 @@
       'command': 'github:toggle-expanded-commit-message-editor'
     }
   ]
-  'atom-text-editor': [
+  '.item-views > atom-text-editor': [
     {
       'label': 'View Unstaged Changes',
       'command': 'github:view-unstaged-changes-for-current-file'
