@@ -1112,6 +1112,44 @@ describe('Repository', function() {
     });
   });
 
+  describe('saveDiscardHistory()', function() {
+    let repository;
+
+    beforeEach(async function() {
+      const workdir = await cloneRepository('three-files');
+      repository = new Repository(workdir);
+      await repository.getLoadPromise();
+    });
+
+    it('does nothing on a destroyed repository', async function() {
+      repository.destroy();
+
+      await repository.saveDiscardHistory();
+
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+    });
+
+    it('does nothing if the repository is destroyed after the blob is created', async function() {
+      let resolveCreateHistoryBlob = () => {};
+      sinon.stub(repository, 'createDiscardHistoryBlob').callsFake(() => new Promise(resolve => {
+        resolveCreateHistoryBlob = resolve;
+      }));
+
+      const promise = repository.saveDiscardHistory();
+      repository.destroy();
+      resolveCreateHistoryBlob('nope');
+      await promise;
+
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+    });
+
+    it('creates a blob and saves it in the git config', async function() {
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+      await repository.saveDiscardHistory();
+      assert.match(await repository.getConfig('atomGithub.historySha'), /^[a-z0-9]{40}$/);
+    });
+  });
+
   describe('merge conflicts', function() {
     describe('getMergeConflicts()', function() {
       it('returns a promise resolving to an array of MergeConflict objects', async function() {
