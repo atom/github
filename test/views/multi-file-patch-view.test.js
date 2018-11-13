@@ -914,6 +914,114 @@ describe('MultiFilePatchView', function() {
   });
 
   describe('registers Atom commands', function() {
+    it('toggles all mode changes', function() {
+      function tenLineHunk(builder) {
+        builder.addHunk(h => {
+          for (let i = 0; i < 10; i++) {
+            h.added('xxxxx');
+          }
+        });
+      }
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f0'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f1'));
+          fp.setNewFile(f => f.path('f1').executable());
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f2'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f3').executable());
+          fp.setNewFile(f => f.path('f3'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f4').executable());
+          tenLineHunk(fp);
+        })
+        .build();
+      const toggleModeChange = sinon.spy();
+      const wrapper = mount(buildApp({toggleModeChange, multiFilePatch}));
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([
+        [[5, 0], [5, 2]],
+        [[37, 0], [42, 0]],
+      ]);
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:stage-file-mode-change');
+
+      const [fp0, fp1, fp2, fp3, fp4] = multiFilePatch.getFilePatches();
+
+      assert.isFalse(toggleModeChange.calledWith(fp0));
+      assert.isFalse(toggleModeChange.calledWith(fp1));
+      assert.isFalse(toggleModeChange.calledWith(fp2));
+      assert.isTrue(toggleModeChange.calledWith(fp3));
+      assert.isFalse(toggleModeChange.calledWith(fp4));
+    });
+
+    it('toggles all symlink changes', function() {
+      function tenLineHunk(builder) {
+        builder.addHunk(h => {
+          for (let i = 0; i < 10; i++) {
+            h.added('zzzzz');
+          }
+        });
+      }
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f0').symlinkTo('elsewhere'));
+          fp.setNewFile(f => f.path('f0'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f1'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setNewFile(f => f.path('f2'));
+          fp.setOldFile(f => f.path('f2').symlinkTo('somewhere'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f3').symlinkTo('unchanged'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f4').executable());
+          tenLineHunk(fp);
+        })
+        .build();
+
+      const toggleSymlinkChange = sinon.spy();
+      const wrapper = mount(buildApp({toggleSymlinkChange, multiFilePatch}));
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([
+        [[0, 0], [2, 2]],
+        [[5, 1], [6, 2]],
+        [[37, 0], [37, 0]],
+      ]);
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:stage-symlink-change');
+
+      const [fp0, fp1, fp2, fp3, fp4] = multiFilePatch.getFilePatches();
+
+      assert.isTrue(toggleSymlinkChange.calledWith(fp0));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp1));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp2));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp3));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp4));
+    });
+
     it('toggles the current selection', function() {
       const toggleRows = sinon.spy();
       const wrapper = mount(buildApp({toggleRows}));
