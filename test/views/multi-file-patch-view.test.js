@@ -90,6 +90,28 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(undoLastDiscard.calledWith(filePatch, {eventSource: 'button'}));
   });
 
+  it('dives into the mirror patch from the file header button', function() {
+    const diveIntoMirrorPatch = sinon.spy();
+    const wrapper = shallow(buildApp({diveIntoMirrorPatch}));
+
+    wrapper.find('FilePatchHeaderView').prop('diveIntoMirrorPatch')();
+
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(diveIntoMirrorPatch.calledWith(filePatch));
+  });
+
+  it('toggles a file from staged to unstaged from the file header button', function() {
+    const toggleFile = sinon.spy();
+    const wrapper = shallow(buildApp({toggleFile}));
+
+    wrapper.find('FilePatchHeaderView').prop('toggleFile')();
+
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(toggleFile.calledWith(filePatch));
+  });
+
   it('renders the file patch within an editor', function() {
     const wrapper = mount(buildApp());
 
