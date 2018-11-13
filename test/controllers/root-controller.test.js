@@ -1102,6 +1102,17 @@ describe('RootController', function() {
       assert.strictEqual(item.getTitle(), 'Commit preview');
       assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
     });
+
+    it('registers a command to toggle the commit preview item', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+      assert.isFalse(wrapper.find('CommitPreviewItem').exists());
+
+      atomEnv.commands.dispatch(workspace.getElement(), 'github:toggle-commit-preview');
+
+      assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
+    });
   });
 
   describe('context commands trigger event reporting', function() {
