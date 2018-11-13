@@ -34,7 +34,7 @@
 'context-menu':
   '.github-FilePatchListView-item': [
     {
-      'label': 'Open File'
+      'label': 'Jump to File'
       'command': 'github:jump-to-file'
     }
   ]
@@ -43,7 +43,7 @@
       'type': 'separator'
     }
     {
-      'label': 'Open File'
+      'label': 'Jump to File'
       'command': 'github:jump-to-file'
       'after': ['core:confirm']
     }
