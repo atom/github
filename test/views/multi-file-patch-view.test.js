@@ -585,8 +585,8 @@ describe('MultiFilePatchView', function() {
       const wrapper = mount(buildApp({selectedRows: new Set([2]), discardRows, selectionMode: 'line'}));
 
       wrapper.find('HunkHeaderView').at(1).prop('discardSelection')();
-      assert.sameMembers(Array.from(discardRows.lastCall.args[1]), [6, 7]);
-      assert.strictEqual(discardRows.lastCall.args[2], 'hunk');
+      assert.sameMembers(Array.from(discardRows.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(discardRows.lastCall.args[1], 'hunk');
     });
   });
 
