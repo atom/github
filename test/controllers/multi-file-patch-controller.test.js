@@ -170,37 +170,55 @@ describe('MultiFilePatchController', function() {
       const wrapper = shallow(buildApp());
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), []);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
 
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line');
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line', true);
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
+      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
     });
 
-    it('does not re-render if the row set and selection mode are unchanged', function() {
+    it('does not re-render if the row set, selection mode, and file spanning are unchanged', function() {
       const wrapper = shallow(buildApp());
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), []);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
 
       sinon.spy(wrapper.instance(), 'render');
 
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line');
+      // All changed
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line', true);
 
       assert.isTrue(wrapper.instance().render.called);
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
+      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
 
+      // Nothing changed
       wrapper.instance().render.resetHistory();
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2, 1]), 'line');
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2, 1]), 'line', true);
 
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
+      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
       assert.isFalse(wrapper.instance().render.called);
 
+      // Selection mode changed
       wrapper.instance().render.resetHistory();
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk');
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', true);
 
       assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
       assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.isTrue(wrapper.instance().render.called);
+
+      // Selection file spanning changed
+      wrapper.instance().render.resetHistory();
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
+
+      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
+      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
       assert.isTrue(wrapper.instance().render.called);
     });
 
