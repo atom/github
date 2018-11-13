@@ -166,10 +166,12 @@ describe('MultiFilePatch', function() {
     const {multiFilePatch} = builder.build();
     const fps = multiFilePatch.getFilePatches();
 
+    assert.isUndefined(multiFilePatch.getFilePatchAt(-1));
     assert.strictEqual(multiFilePatch.getFilePatchAt(0), fps[0]);
     assert.strictEqual(multiFilePatch.getFilePatchAt(9), fps[0]);
     assert.strictEqual(multiFilePatch.getFilePatchAt(10), fps[1]);
     assert.strictEqual(multiFilePatch.getFilePatchAt(99), fps[9]);
+    assert.isUndefined(multiFilePatch.getFilePatchAt(101));
   });
 
   it('creates a set of all unique paths referenced by patches', function() {
@@ -213,6 +215,7 @@ describe('MultiFilePatch', function() {
 
     const [fp0, fp1, fp2] = multiFilePatch.getFilePatches();
 
+    assert.isUndefined(multiFilePatch.getHunkAt(-1));
     assert.strictEqual(multiFilePatch.getHunkAt(0), fp0.getHunks()[0]);
     assert.strictEqual(multiFilePatch.getHunkAt(4), fp0.getHunks()[0]);
     assert.strictEqual(multiFilePatch.getHunkAt(5), fp0.getHunks()[1]);
@@ -221,6 +224,7 @@ describe('MultiFilePatch', function() {
     assert.strictEqual(multiFilePatch.getHunkAt(15), fp1.getHunks()[1]);
     assert.strictEqual(multiFilePatch.getHunkAt(16), fp2.getHunks()[0]);
     assert.strictEqual(multiFilePatch.getHunkAt(19), fp2.getHunks()[0]);
+    assert.isUndefined(multiFilePatch.getHunkAt(21));
   });
 
   it('represents itself as an apply-ready string', function() {
