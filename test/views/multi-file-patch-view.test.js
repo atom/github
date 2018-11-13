@@ -1293,24 +1293,32 @@ describe('MultiFilePatchView', function() {
       });
     });
 
-    describe('opening the file when there is only one file patch', function() {
+    describe('jump to file', function() {
       let mfp, fp;
 
       beforeEach(function() {
-        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(filePatch => {
-          filePatch.setOldFile(f => f.path('path.txt'));
-          filePatch.addHunk(h => {
-            h.oldRow(2);
-            h.unchanged('0000').added('0001').unchanged('0002');
-          });
-          filePatch.addHunk(h => {
-            h.oldRow(10);
-            h.unchanged('0003').added('0004', '0005').deleted('0006').unchanged('0007').added('0008').deleted('0009').unchanged('0010');
-          });
-        }).build();
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(filePatch => {
+            filePatch.setOldFile(f => f.path('path.txt'));
+            filePatch.addHunk(h => {
+              h.oldRow(2);
+              h.unchanged('0000').added('0001').unchanged('0002');
+            });
+            filePatch.addHunk(h => {
+              h.oldRow(10);
+              h.unchanged('0003').added('0004', '0005').deleted('0006').unchanged('0007').added('0008').deleted('0009').unchanged('0010');
+            });
+          })
+          .addFilePatch(filePatch => {
+            filePatch.setOldFile(f => f.path('other.txt'));
+            filePatch.addHunk(h => {
+              h.oldRow(10);
+              h.unchanged('0011').added('0012').unchanged('0013');
+            });
+          })
+          .build();
 
         mfp = multiFilePatch;
-        assert.lengthOf(mfp.getFilePatches(), 1);
         fp = mfp.getFilePatches()[0];
       });
 
@@ -1322,7 +1330,7 @@ describe('MultiFilePatchView', function() {
         editor.setCursorBufferPosition([7, 2]);
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
-        assert.isTrue(openFile.calledWith(fp, [[13, 2]]));
+        assert.isTrue(openFile.calledWith(fp, [[13, 2]], true));
       });
 
       it('opens the file at a current added row', function() {
@@ -1334,7 +1342,7 @@ describe('MultiFilePatchView', function() {
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
-        assert.isTrue(openFile.calledWith(fp, [[14, 3]]));
+        assert.isTrue(openFile.calledWith(fp, [[14, 3]], true));
       });
 
       it('opens the file at the beginning of the previous added or unchanged row', function() {
@@ -1346,7 +1354,7 @@ describe('MultiFilePatchView', function() {
 
         atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
-        assert.isTrue(openFile.calledWith(fp, [[15, 0]]));
+        assert.isTrue(openFile.calledWith(fp, [[15, 0]], true));
       });
 
       it('preserves multiple cursors', function() {
@@ -1369,7 +1377,23 @@ describe('MultiFilePatchView', function() {
           [11, 2],
           [2, 3],
           [15, 0],
-        ]));
+        ], true));
+      });
+
+      it('opens non-pending editors when opening multiple', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[4, 0], [4, 0]],
+          [[12, 0], [12, 0]],
+        ]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
+
+        assert.isTrue(openFile.calledWith(mfp.getFilePatches()[0], [[11, 0]], false));
+        assert.isTrue(openFile.calledWith(mfp.getFilePatches()[1], [[10, 0]], false));
       });
     });
   });
