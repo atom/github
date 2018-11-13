@@ -113,6 +113,36 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
   });
 
+  describe('initial selection', function() {
+    it('selects the origin with an empty FilePatch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => fp.empty())
+        .build();
+      const wrapper = mount(buildApp({multiFilePatch}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [[[0, 0], [0, 0]]]);
+    });
+
+    it('selects the first hunk with a populated file patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.addHunk(h => h.unchanged('0').added('1', '2').deleted('3').unchanged('4'));
+          fp.addHunk(h => h.added('5', '6'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-1'));
+          fp.addHunk(h => h.deleted('7', '8', '9'));
+        })
+        .build();
+      const wrapper = mount(buildApp({multiFilePatch}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [[[0, 0], [4, 1]]]);
+    });
+  });
+
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
