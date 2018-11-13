@@ -22,6 +22,7 @@ describe('FilePatchHeaderView', function() {
         isPartiallyStaged={false}
         hasHunks={true}
         hasUndoHistory={false}
+        hasMultipleFileSelections={false}
 
         tooltips={atomEnv.tooltips}
 
@@ -116,12 +117,24 @@ describe('FilePatchHeaderView', function() {
       it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
     });
 
-    it('includes a jump-to-file button', function() {
-      const openFile = sinon.stub();
-      const wrapper = shallow(buildApp({openFile}));
+    describe('the jump-to-file button', function() {
+      it('calls the jump to file file action prop', function() {
+        const openFile = sinon.stub();
+        const wrapper = shallow(buildApp({openFile}));
 
-      wrapper.find('button.icon-code').simulate('click');
-      assert.isTrue(openFile.called);
+        wrapper.find('button.icon-code').simulate('click');
+        assert.isTrue(openFile.called);
+      });
+
+      it('is singular when selections exist within a single file patch', function() {
+        const wrapper = shallow(buildApp({hasMultipleFileSelections: false}));
+        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump to file');
+      });
+
+      it('is plural when selections exist within multiple file patches', function() {
+        const wrapper = shallow(buildApp({hasMultipleFileSelections: true}));
+        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump to files');
+      });
     });
 
     function createToggleFileTest({stagingStatus, buttonClass, oppositeButtonClass}) {
