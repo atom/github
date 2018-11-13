@@ -122,6 +122,11 @@ class FilePatchBuilder {
     return this;
   }
 
+  empty() {
+    this.patchBuilder.empty();
+    return this;
+  }
+
   build() {
     const {patch} = this.patchBuilder.build();
 
@@ -175,6 +180,7 @@ class PatchBuilder {
 
     this.patchStart = this.layeredBuffer.getInsertionPoint();
     this.drift = 0;
+    this.explicitlyEmpty = false;
   }
 
   status(st) {
@@ -195,8 +201,13 @@ class PatchBuilder {
     return this;
   }
 
+  empty() {
+    this.explicitlyEmpty = true;
+    return this;
+  }
+
   build() {
-    if (this.hunks.length === 0) {
+    if (this.hunks.length === 0 && !this.explicitlyEmpty) {
       if (this._status === 'modified') {
         this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
         this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
