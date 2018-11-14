@@ -4,6 +4,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import FilePatchController from '../../lib/controllers/file-patch-controller';
+import FilePatch from '../../lib/models/patch/file-patch';
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {cloneRepository, buildRepository} from '../helpers';
 
@@ -151,14 +152,22 @@ describe('FilePatchController', function() {
       const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
       assert.strictEqual(await wrapper.find('FilePatchView').prop('toggleFile')(), 'staged');
 
-      wrapper.setProps({stagingStatus: 'staged'});
+      // No-op
       assert.isNull(await wrapper.find('FilePatchView').prop('toggleFile')());
 
-      const promise = wrapper.instance().patchChangePromise;
+      // Simulate an identical patch arriving too soon
       wrapper.setProps({filePatch: filePatch.clone()});
+
+      // Still a no-op
+      assert.isNull(await wrapper.find('FilePatchView').prop('toggleFile')());
+
+      // Simulate updated patch arrival
+      const promise = wrapper.instance().patchChangePromise;
+      wrapper.setProps({filePatch: FilePatch.createNull()});
       await promise;
 
-      assert.strictEqual(await wrapper.find('FilePatchView').prop('toggleFile')(), 'unstaged');
+      // Performs an operation again
+      assert.strictEqual(await wrapper.find('FilePatchView').prop('toggleFile')(), 'staged');
     });
   });
 
