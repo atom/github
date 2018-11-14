@@ -89,7 +89,7 @@ describe('PaneItem', function() {
   describe('when opened with a matching URI', function() {
     it('calls its render prop', async function() {
       let called = false;
-      shallow(
+      mount(
         <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
           {() => {
             called = true;
