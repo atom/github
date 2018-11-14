@@ -4,6 +4,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import MultiFilePatchController from '../../lib/controllers/multi-file-patch-controller';
+import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {cloneRepository, buildRepository} from '../helpers';
@@ -154,14 +155,22 @@ describe('MultiFilePatchController', function() {
       const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
       assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
 
-      wrapper.setProps({stagingStatus: 'staged'});
+      // No-op
       assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
 
-      const promise = wrapper.instance().patchChangePromise;
+      // Simulate an identical patch arriving too soon
       wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
+
+      // Still a no-op
+      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
+
+      // Simulate updated patch arrival
+      const promise = wrapper.instance().patchChangePromise;
+      wrapper.setProps({multiFilePatch: new MultiFilePatch({})});
       await promise;
 
-      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'unstaged');
+      // Performs an operation again
+      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
     });
   });
 
