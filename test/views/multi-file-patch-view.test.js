@@ -1407,10 +1407,10 @@ describe('MultiFilePatchView', function() {
               [[4, 0], [4, 0]], // cursor in first file patch
             ]);
 
-            const firstFilePatch = mfp.getFilePatches()[0];
-            wrapper.instance().didOpenFile({selectedFilePatch: firstFilePatch});
+            // click button for first file
+            wrapper.find('.github-FilePatchHeaderView-jumpToFileButton').at(0).simulate('click');
 
-            assert.isTrue(openFile.calledWith(firstFilePatch, [[11, 0]], true));
+            assert.isTrue(openFile.calledWith(mfp.getFilePatches()[0], [[11, 0]], true));
           });
         });
 
@@ -1424,9 +1424,11 @@ describe('MultiFilePatchView', function() {
               [[4, 0], [4, 0]], // cursor in first file patch
             ]);
 
+            // click button for second file
+            wrapper.find('.github-FilePatchHeaderView-jumpToFileButton').at(1).simulate('click');
+
             const secondFilePatch = mfp.getFilePatches()[1];
             const firstHunkBufferRow = secondFilePatch.getHunks()[0].getNewStartRow() - 1;
-            wrapper.instance().didOpenFile({selectedFilePatch: secondFilePatch});
 
             assert.isTrue(openFile.calledWith(secondFilePatch, [[firstHunkBufferRow, 0]], true));
           });
