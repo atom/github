@@ -32,7 +32,7 @@ A new button added above the commit message box that, when clicked, opens a mult
 - Shows diffs of multiple files as a stack.
 - Each diff retains the file-specific controls it currently has in its header (e.g. the open file, stage file, undo last discard, etc).
 - **[[out of scope]](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#warning-out-of-scope)** It should be easy to jump quickly to a specific file you care about, or back to the file list to get to another file. Dotcom does so by creating a `jump to` drop down.
-- As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
+- **[[out of scope]](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#warning-out-of-scope)** As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
 - **[[out of scope]](https://github.com/atom/github/blob/multi-diff-rfc/docs/rfcs/004-multi-file-diff.md#warning-out-of-scope)** Each file diff can be collapsed.
 
 #### Workflow
@@ -79,11 +79,11 @@ Unfiltered | Filtered
 
 **Alternative**: It might be possible to re-use the find+replace UI to filter the multi-file diff. And maybe even have "replace" working.
 
+#### Sticky navigation header
+As user scrolls through a long list of diffs, there should be a sticky heading which remains visible showing the filename of the diff being viewed.
+
 #### Other out of scope UX considerations
 - whether `cmd+click` to select multiple files is discoverable
 
 ## :construction: Implementation phases
-TBD
-
-## :white_check_mark: Definition of done
-TBD
+See [checklist on PR](https://github.com/atom/github/pull/1767)
