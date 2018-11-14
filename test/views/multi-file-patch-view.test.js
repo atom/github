@@ -1395,6 +1395,43 @@ describe('MultiFilePatchView', function() {
         assert.isTrue(openFile.calledWith(mfp.getFilePatches()[0], [[11, 0]], false));
         assert.isTrue(openFile.calledWith(mfp.getFilePatches()[1], [[10, 0]], false));
       });
+
+      describe('didOpenFile(selectedFilePatch)', function() {
+        describe('when there is a selection in the selectedFilePatch', function() {
+          it('opens the file and places the cursor corresponding to the selection', function() {
+            const openFile = sinon.spy();
+            const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+            const editor = wrapper.find('AtomTextEditor').instance().getModel();
+            editor.setSelectedBufferRanges([
+              [[4, 0], [4, 0]], // cursor in first file patch
+            ]);
+
+            const firstFilePatch = mfp.getFilePatches()[0];
+            wrapper.instance().didOpenFile({selectedFilePatch: firstFilePatch});
+
+            assert.isTrue(openFile.calledWith(firstFilePatch, [[11, 0]], true));
+          });
+        });
+
+        describe('when there are no selections in the selectedFilePatch', function() {
+          it('opens the file and places the cursor at the beginning of the first hunk', function() {
+            const openFile = sinon.spy();
+            const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+            const editor = wrapper.find('AtomTextEditor').instance().getModel();
+            editor.setSelectedBufferRanges([
+              [[4, 0], [4, 0]], // cursor in first file patch
+            ]);
+
+            const secondFilePatch = mfp.getFilePatches()[1];
+            const firstHunkBufferRow = secondFilePatch.getHunks()[0].getNewStartRow() - 1;
+            wrapper.instance().didOpenFile({selectedFilePatch: secondFilePatch});
+
+            assert.isTrue(openFile.calledWith(secondFilePatch, [[firstHunkBufferRow, 0]], true));
+          });
+        });
+      });
     });
   });
 });
