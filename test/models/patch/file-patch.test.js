@@ -3,26 +3,16 @@ import {TextBuffer} from 'atom';
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
 import Patch from '../../../lib/models/patch/patch';
+import {hunkBuilder, patchBuilder} from '../../builder/patch'
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
-    const buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 2, oldRowCount: 1, newStartRow: 2, newRowCount: 3,
-        marker: markRange(layers.hunk, 0, 2),
-        regions: [
-          new Unchanged(markRange(layers.unchanged, 0)),
-          new Addition(markRange(layers.addition, 1, 2)),
-        ],
-      }),
-    ];
-    const marker = markRange(layers.patch);
-    const patch = new Patch({status: 'modified', hunks, marker});
+    const {patch} = patchBuilder().addHunk(
+      h => h.oldRow(2).unchanged('0').added('1', '2'),
+    ).build();
     const oldFile = new File({path: 'a.txt', mode: '120000', symlink: 'dest.txt'});
     const newFile = new File({path: 'b.txt', mode: '100755'});
 
@@ -38,16 +28,14 @@ describe('FilePatch', function() {
     assert.strictEqual(filePatch.getNewMode(), '100755');
     assert.isUndefined(filePatch.getNewSymlink());
 
-    assert.strictEqual(filePatch.getMarker(), marker);
+    assert.strictEqual(filePatch.getMarker(), patch.marker);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
   });
 
   it('accesses a file path from either side of the patch', function() {
     const oldFile = new File({path: 'old-file.txt', mode: '100644'});
     const newFile = new File({path: 'new-file.txt', mode: '100644'});
-    const buffer = new TextBuffer();
-    const layers = buildLayers(buffer);
-    const patch = new Patch({status: 'modified', hunks: [], buffer, layers});
+    const {patch} = patchBuilder().addHunk().build();
 
     assert.strictEqual(new FilePatch(oldFile, newFile, patch).getPath(), 'old-file.txt');
     assert.strictEqual(new FilePatch(oldFile, nullFile, patch).getPath(), 'old-file.txt');
@@ -56,20 +44,24 @@ describe('FilePatch', function() {
   });
 
   it('returns the starting range of the patch', function() {
-    const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n'});
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 2, oldRowCount: 1, newStartRow: 2, newRowCount: 3,
-        marker: markRange(layers.hunk, 1, 3),
-        regions: [
-          new Unchanged(markRange(layers.unchanged, 1)),
-          new Addition(markRange(layers.addition, 2, 3)),
-        ],
-      }),
-    ];
-    const marker = markRange(layers.patch, 1, 3);
-    const patch = new Patch({status: 'modified', hunks, buffer, layers, marker});
+    // const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n'});
+    // const layers = buildLayers(buffer);
+    // const hunks = [
+    //   new Hunk({
+    //     oldStartRow: 2, oldRowCount: 1, newStartRow: 2, newRowCount: 3,
+    //     marker: markRange(layers.hunk, 1, 3),
+    //     regions: [
+    //       new Unchanged(markRange(layers.unchanged, 1)),
+    //       new Addition(markRange(layers.addition, 2, 3)),
+    //     ],
+    //   }),
+    // ];
+    // const marker = markRange(layers.patch, 1, 3);
+    // const patch2 = new Patch({status: 'modified', hunks, buffer, layers, marker});
+
+    const {patch} = patchBuilder().status('modified').addHunk(
+      h => h.oldRow(2).unchanged('0000').added('0001', '0002'),
+    ).build();
     const oldFile = new File({path: 'a.txt', mode: '100644'});
     const newFile = new File({path: 'a.txt', mode: '100644'});
 
@@ -82,9 +74,7 @@ describe('FilePatch', function() {
     let emptyPatch;
 
     beforeEach(function() {
-      const buffer = new TextBuffer();
-      const layers = buildLayers(buffer);
-      emptyPatch = new Patch({status: 'modified', hunks: [], buffer, layers});
+      emptyPatch = patchBuilder().empty().build();
     });
 
     it('detects changes in executable mode', function() {
@@ -135,12 +125,14 @@ describe('FilePatch', function() {
     const file01 = new File({path: 'file-01.txt', mode: '100644'});
     const file10 = new File({path: 'file-10.txt', mode: '100644'});
     const file11 = new File({path: 'file-11.txt', mode: '100644'});
-    const buffer0 = new TextBuffer({text: '0'});
-    const layers0 = buildLayers(buffer0);
-    const patch0 = new Patch({status: 'modified', hunks: [], buffer: buffer0, layers: layers0});
-    const buffer1 = new TextBuffer({text: '1'});
-    const layers1 = buildLayers(buffer1);
-    const patch1 = new Patch({status: 'modified', hunks: [], buffer: buffer1, layers: layers1});
+    // const buffer0 = new TextBuffer({text: '0'});
+    // const layers0 = buildLayers(buffer0);
+    // const patch0 = new Patch({status: 'modified', hunks: [], buffer: buffer0, layers: layers0});
+    // const buffer1 = new TextBuffer({text: '1'});
+    // const layers1 = buildLayers(buffer1);
+    // const patch1 = new Patch({status: 'modified', hunks: [], buffer: buffer1, layers: layers1});
+    const {patch: patch0} = patchBuilder().addHunk().build();
+    const {patch: patch1} = patchBuilder().addHunk().build();
 
     const original = new FilePatch(file00, file01, patch0);
 
@@ -179,22 +171,9 @@ describe('FilePatch', function() {
     });
 
     it('returns a new FilePatch that applies only the selected lines', function() {
-      const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n'});
-      const layers = buildLayers(buffer);
-      const hunks = [
-        new Hunk({
-          oldStartRow: 5, oldRowCount: 3, newStartRow: 5, newRowCount: 4,
-          marker: markRange(layers.hunk, 0, 4),
-          regions: [
-            new Unchanged(markRange(layers.unchanged, 0)),
-            new Addition(markRange(layers.addition, 1, 2)),
-            new Deletion(markRange(layers.deletion, 3)),
-            new Unchanged(markRange(layers.unchanged, 4)),
-          ],
-        }),
-      ];
-      const marker = markRange(layers.patch, 0, 4);
-      const patch = new Patch({status: 'modified', hunks, marker});
+      const {buffer, patch} = patchBuilder().addHunk(
+        h => h.oldRow(5).unchanged('0000').added('0001', '0002').deleted('0003').unchanged('0004'),
+      ).build();
       const oldFile = new File({path: 'file.txt', mode: '100644'});
       const newFile = new File({path: 'file.txt', mode: '100644'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
@@ -224,19 +203,23 @@ describe('FilePatch', function() {
       let oldFile, deletionPatch;
 
       beforeEach(function() {
-        buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
-        const layers = buildLayers(buffer);
-        const hunks = [
-          new Hunk({
-            oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
-            marker: markRange(layers.hunk, 0, 2),
-            regions: [
-              new Deletion(markRange(layers.deletion, 0, 2)),
-            ],
-          }),
-        ];
-        const marker = markRange(layers.patch, 0, 2);
-        const patch = new Patch({status: 'deleted', hunks, marker});
+        // buffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+        // const layers = buildLayers(buffer);
+        // const hunks = [
+        //   new Hunk({
+        //     oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
+        //     marker: markRange(layers.hunk, 0, 2),
+        //     regions: [
+        //       new Deletion(markRange(layers.deletion, 0, 2)),
+        //     ],
+        //   }),
+        // ];
+        // const marker = markRange(layers.patch, 0, 2);
+        // const patch = new Patch({status: 'deleted', hunks, marker});
+        const {patch, buffer: b} = patchBuilder().status('deleted').addHunk(
+          h => h.oldRow(1).deleted('0000', '0001', '0002'),
+        ).build();
+        buffer = b;
         oldFile = new File({path: 'file.txt', mode: '100644'});
         deletionPatch = new FilePatch(oldFile, nullFile, patch);
       });
@@ -280,19 +263,22 @@ describe('FilePatch', function() {
       });
 
       it('unsets the newFile when a symlink is created where a file was deleted', function() {
-        const nBuffer = new TextBuffer({text: '0000\n0001\n0002\n'});
-        const layers = buildLayers(nBuffer);
-        const hunks = [
-          new Hunk({
-            oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
-            marker: markRange(layers.hunk, 0, 2),
-            regions: [
-              new Deletion(markRange(layers.deletion, 0, 2)),
-            ],
-          }),
-        ];
-        const marker = markRange(layers.patch, 0, 2);
-        const patch = new Patch({status: 'deleted', hunks, marker});
+        // const nBuffer = new TextBuffer({text: '0000\n0001\n0002\n'});
+        // const layers = buildLayers(nBuffer);
+        // const hunks = [
+        //   new Hunk({
+        //     oldStartRow: 1, oldRowCount: 3, newStartRow: 1, newRowCount: 0,
+        //     marker: markRange(layers.hunk, 0, 2),
+        //     regions: [
+        //       new Deletion(markRange(layers.deletion, 0, 2)),
+        //     ],
+        //   }),
+        // ];
+        // const marker = markRange(layers.patch, 0, 2);
+        // const patch = new Patch({status: 'deleted', hunks, marker});
+        const {patch, buffer: nBuffer} = patchBuilder().status('deleted').addHunk(
+          h => h.oldRow(1).deleted('0000', '0001', '0002'),
+        ).build();
         oldFile = new File({path: 'file.txt', mode: '100644'});
         const newFile = new File({path: 'file.txt', mode: '120000'});
         const replacePatch = new FilePatch(oldFile, newFile, patch);
