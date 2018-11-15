@@ -714,64 +714,37 @@ function markRange(buffer, start, end = start) {
 }
 
 function buildPatchFixture() {
-  const buffer = buildBuffer(26, true);
-  buffer.append('\n\n\n\n\n\n');
-
-  const layers = buildLayers(buffer);
-
-  const hunks = [
-    new Hunk({
-      oldStartRow: 3, oldRowCount: 4, newStartRow: 3, newRowCount: 5,
-      sectionHeading: 'zero',
-      marker: markRange(layers.hunk, 0, 6),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 0)),
-        new Deletion(markRange(layers.deletion, 1, 2)),
-        new Addition(markRange(layers.addition, 3, 5)),
-        new Unchanged(markRange(layers.unchanged, 6)),
-      ],
-    }),
-    new Hunk({
-      oldStartRow: 12, oldRowCount: 9, newStartRow: 13, newRowCount: 7,
-      sectionHeading: 'one',
-      marker: markRange(layers.hunk, 7, 18),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 7)),
-        new Addition(markRange(layers.addition, 8, 9)),
-        new Unchanged(markRange(layers.unchanged, 10, 11)),
-        new Deletion(markRange(layers.deletion, 12, 16)),
-        new Addition(markRange(layers.addition, 17, 17)),
-        new Unchanged(markRange(layers.unchanged, 18)),
-      ],
-    }),
-    new Hunk({
-      oldStartRow: 26, oldRowCount: 4, newStartRow: 25, newRowCount: 3,
-      sectionHeading: 'two',
-      marker: markRange(layers.hunk, 19, 23),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 19)),
-        new Addition(markRange(layers.addition, 20)),
-        new Deletion(markRange(layers.deletion, 21, 22)),
-        new Unchanged(markRange(layers.unchanged, 23)),
-      ],
-    }),
-    new Hunk({
-      oldStartRow: 32, oldRowCount: 1, newStartRow: 30, newRowCount: 2,
-      sectionHeading: 'three',
-      marker: markRange(layers.hunk, 24, 26),
-      regions: [
-        new Unchanged(markRange(layers.unchanged, 24)),
-        new Addition(markRange(layers.addition, 25)),
-        new NoNewline(markRange(layers.noNewline, 26)),
-      ],
-    }),
-  ];
-  const marker = markRange(layers.patch, 0, 26);
+  const {patch, buffer, layers} = patchBuilder()
+    .addHunk(h =>
+      h.oldRow(3)
+        .unchanged('0000')
+        .deleted('0001', '0002')
+        .added('0003', '0004', '0005')
+        .unchanged('0006'))
+    .addHunk(h =>
+      h.oldRow(12)
+        .unchanged('0007')
+        .added('0008', '0009')
+        .unchanged('0010', '0011')
+        .deleted('0012', '0013', '0014', '0015', '0016')
+        .added('0017').unchanged('0018'))
+    .addHunk(h =>
+      h.oldRow(26)
+        .unchanged('0019')
+        .added('0020')
+        .deleted('0021', '0022')
+        .unchanged('0023'))
+    .addHunk(h =>
+      h.oldRow(32)
+        .unchanged('0024')
+        .added('0025')
+        .noNewline())
+    .build();
 
   return {
-    patch: new Patch({status: 'modified', hunks, marker}),
+    patch,
     buffer,
     layers,
-    marker,
+    marker: layers.patch.getMarkers(),
   };
 }
