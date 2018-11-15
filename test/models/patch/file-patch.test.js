@@ -480,31 +480,37 @@ describe('FilePatch', function() {
 
   describe('toStringIn()', function() {
     it('converts the patch to the standard textual format', function() {
-      const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n'});
-      const layers = buildLayers(buffer);
-      const hunks = [
-        new Hunk({
-          oldStartRow: 10, oldRowCount: 4, newStartRow: 10, newRowCount: 3,
-          marker: markRange(layers.hunk, 0, 4),
-          regions: [
-            new Unchanged(markRange(layers.unchanged, 0)),
-            new Addition(markRange(layers.addition, 1)),
-            new Deletion(markRange(layers.deletion, 2, 3)),
-            new Unchanged(markRange(layers.unchanged, 4)),
-          ],
-        }),
-        new Hunk({
-          oldStartRow: 20, oldRowCount: 2, newStartRow: 20, newRowCount: 3,
-          marker: markRange(layers.hunk, 5, 7),
-          regions: [
-            new Unchanged(markRange(layers.unchanged, 5)),
-            new Addition(markRange(layers.addition, 6)),
-            new Unchanged(markRange(layers.unchanged, 7)),
-          ],
-        }),
-      ];
-      const marker = markRange(layers.patch, 0, 7);
-      const patch = new Patch({status: 'modified', hunks, marker});
+      // const buffer = new TextBuffer({text: '0000\n0001\n0002\n0003\n0004\n0005\n0006\n0007\n'});
+      // const layers = buildLayers(buffer);
+      // const hunks = [
+      //   new Hunk({
+      //     oldStartRow: 10, oldRowCount: 4, newStartRow: 10, newRowCount: 3,
+      //     marker: markRange(layers.hunk, 0, 4),
+      //     regions: [
+      //       new Unchanged(markRange(layers.unchanged, 0)),
+      //       new Addition(markRange(layers.addition, 1)),
+      //       new Deletion(markRange(layers.deletion, 2, 3)),
+      //       new Unchanged(markRange(layers.unchanged, 4)),
+      //     ],
+      //   }),
+      //   new Hunk({
+      //     oldStartRow: 20, oldRowCount: 2, newStartRow: 20, newRowCount: 3,
+      //     marker: markRange(layers.hunk, 5, 7),
+      //     regions: [
+      //       new Unchanged(markRange(layers.unchanged, 5)),
+      //       new Addition(markRange(layers.addition, 6)),
+      //       new Unchanged(markRange(layers.unchanged, 7)),
+      //     ],
+      //   }),
+      // ];
+      // const marker = markRange(layers.patch, 0, 7);
+      // const patch = new Patch({status: 'modified', hunks, marker});
+      const {patch, buffer} = patchBuilder()
+        .addHunk(h =>
+          h.oldRow(10).unchanged('0000').added('0001').deleted('0002', '0003').unchanged('0004'))
+        .addHunk(h =>
+          h.oldRow(20).unchanged('0005').added('0006').unchanged('0007'))
+        .build();
       const oldFile = new File({path: 'a.txt', mode: '100644'});
       const newFile = new File({path: 'b.txt', mode: '100755'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
@@ -519,7 +525,7 @@ describe('FilePatch', function() {
         '-0002\n' +
         '-0003\n' +
         ' 0004\n' +
-        '@@ -20,2 +20,3 @@\n' +
+        '@@ -20,2 +19,3 @@\n' +
         ' 0005\n' +
         '+0006\n' +
         ' 0007\n';
