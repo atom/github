@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 
 describe('FilePatchHeaderView', function() {
   let atomEnv;
@@ -17,6 +18,7 @@ describe('FilePatchHeaderView', function() {
   function buildApp(overrideProps = {}) {
     return (
       <FilePatchHeaderView
+        itemType={null}
         relPath="dir/a.txt"
         stagingStatus="unstaged"
         isPartiallyStaged={false}
@@ -37,21 +39,33 @@ describe('FilePatchHeaderView', function() {
   }
 
   describe('the title', function() {
-    it('renders for an unstaged patch', function() {
-      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
-      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Unstaged Changes for dir/a.txt');
+    it('renders relative file path', function() {
+      const wrapper = shallow(buildApp());
+      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'dir/a.txt');
     });
 
-    it('renders for a staged patch', function() {
-      const wrapper = shallow(buildApp({stagingStatus: 'staged'}));
-      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Staged Changes for dir/a.txt');
+    describe('when `ChangedFileItem`', function() {
+      it('renders staging status for an unstaged patch', function() {
+        const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'unstaged'}));
+        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Unstaged Changes for dir/a.txt');
+      });
+
+      it('renders staging status for a staged patch', function() {
+        const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'staged'}));
+        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Staged Changes for dir/a.txt');
+      });
     });
   });
 
   describe('the button group', function() {
-    it('includes undo discard if undo history is available and the patch is unstaged', function() {
+    it('includes undo discard if ChangedFileItem, undo history is available, and the patch is unstaged', function() {
       const undoLastDiscard = sinon.stub();
-      const wrapper = shallow(buildApp({hasUndoHistory: true, stagingStatus: 'unstaged', undoLastDiscard}));
+      const wrapper = shallow(buildApp({
+        itemType: ChangedFileItem,
+        hasUndoHistory: true,
+        stagingStatus: 'unstaged',
+        undoLastDiscard,
+      }));
       assert.isTrue(wrapper.find('button.icon-history').exists());
 
       wrapper.find('button.icon-history').simulate('click');
