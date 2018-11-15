@@ -2,13 +2,10 @@ import {TextBuffer} from 'atom';
 
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
-import Patch from '../../../lib/models/patch/patch';
 import {patchBuilder} from '../../builder/patch'
-import Hunk from '../../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
 
-describe.only('FilePatch', function() {
+describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
     const {patch} = patchBuilder().addHunk(
       h => h.oldRow(2).unchanged('0').added('1', '2'),
