@@ -28,57 +28,34 @@ describe.only('Patch', function() {
   });
 
   it('computes the maximum number of digits needed to display a diff line number', function() {
-    const buffer = buildBuffer(15);
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 0, oldRowCount: 1, newStartRow: 0, newRowCount: 1,
-        sectionHeading: 'zero',
-        marker: markRange(layers.hunk, 0, 5),
-        regions: [],
-      }),
-      new Hunk({
-        oldStartRow: 98,
-        oldRowCount: 5,
-        newStartRow: 95,
-        newRowCount: 3,
-        sectionHeading: 'one',
-        marker: markRange(layers.hunk, 6, 15),
-        regions: [],
-      }),
-    ];
-    const p0 = new Patch({status: 'modified', hunks, buffer, layers});
+    const {patch: p0} = patchBuilder().addHunk(h => h.oldRow(0)).addHunk(h => h.oldRow(98)).build();
     assert.strictEqual(p0.getMaxLineNumberWidth(), 3);
 
-    const p1 = new Patch({status: 'deleted', hunks: [], buffer, layers});
+    const {patch: p1} = patchBuilder().status('deleted').empty().build();
     assert.strictEqual(p1.getMaxLineNumberWidth(), 0);
   });
 
   it('clones itself with optionally overridden properties', function() {
-    const buffer = new TextBuffer({text: 'bufferText'});
-    const layers = buildLayers(buffer);
-    const marker = markRange(layers.patch, 0, Infinity);
-
-    const original = new Patch({status: 'modified', hunks: [], marker});
+    const {patch: original, layers} = patchBuilder().empty().build();
 
     const dup0 = original.clone();
     assert.notStrictEqual(dup0, original);
     assert.strictEqual(dup0.getStatus(), 'modified');
     assert.deepEqual(dup0.getHunks(), []);
-    assert.strictEqual(dup0.getMarker(), marker);
+    assert.strictEqual(dup0.getMarker(), layers.patch.getMarkers()[0]);
 
     const dup1 = original.clone({status: 'added'});
     assert.notStrictEqual(dup1, original);
     assert.strictEqual(dup1.getStatus(), 'added');
     assert.deepEqual(dup1.getHunks(), []);
-    assert.strictEqual(dup0.getMarker(), marker);
+    assert.strictEqual(dup0.getMarker(), layers.patch.getMarkers()[0]);
 
     const hunks = [new Hunk({regions: []})];
     const dup2 = original.clone({hunks});
     assert.notStrictEqual(dup2, original);
     assert.strictEqual(dup2.getStatus(), 'modified');
     assert.deepEqual(dup2.getHunks(), hunks);
-    assert.strictEqual(dup0.getMarker(), marker);
+    assert.strictEqual(dup0.getMarker(), layers.patch.getMarkers()[0]);
 
     const nBuffer = new TextBuffer({text: 'changed'});
     const nLayers = buildLayers(nBuffer);
