@@ -75,7 +75,7 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 > >
-> > The workspace-center pane that appears when looking at the staged or unstaged changes associated with one or more files.
+> > The workspace-center pane that appears when looking at the staged or unstaged changes associated with a file.
 > >
 > >
 >
