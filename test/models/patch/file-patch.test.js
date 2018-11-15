@@ -536,7 +536,3 @@ function buildLayers(buffer) {
     noNewline: buffer.addMarkerLayer(),
   };
 }
-
-function markRange(buffer, start, end = start) {
-  return buffer.markRange([[start, 0], [end, Infinity]]);
-}
