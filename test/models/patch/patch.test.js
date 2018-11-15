@@ -3,9 +3,10 @@ import {TextBuffer} from 'atom';
 import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
+import {patchBuilder} from '../../builder/patch';
 import {assertInPatch} from '../../helpers';
 
-describe('Patch', function() {
+describe.only('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
@@ -17,40 +18,13 @@ describe('Patch', function() {
   });
 
   it('computes the total changed line count', function() {
-    const buffer = buildBuffer(15);
-    const layers = buildLayers(buffer);
-    const hunks = [
-      new Hunk({
-        oldStartRow: 0, newStartRow: 0, oldRowCount: 1, newRowCount: 1,
-        sectionHeading: 'zero',
-        marker: markRange(layers.hunk, 0, 5),
-        regions: [
-          new Unchanged(markRange(layers.unchanged, 0)),
-          new Addition(markRange(layers.addition, 1)),
-          new Unchanged(markRange(layers.unchanged, 2)),
-          new Deletion(markRange(layers.deletion, 3, 4)),
-          new Unchanged(markRange(layers.unchanged, 5)),
-        ],
-      }),
-      new Hunk({
-        oldStartRow: 0, newStartRow: 0, oldRowCount: 1, newRowCount: 1,
-        sectionHeading: 'one',
-        marker: markRange(layers.hunk, 6, 15),
-        regions: [
-          new Unchanged(markRange(layers.unchanged, 6)),
-          new Deletion(markRange(layers.deletion, 7)),
-          new Unchanged(markRange(layers.unchanged, 8)),
-          new Deletion(markRange(layers.deletion, 9, 11)),
-          new Addition(markRange(layers.addition, 12, 14)),
-          new Unchanged(markRange(layers.unchanged, 15)),
-        ],
-      }),
-    ];
-    const marker = markRange(layers.patch, 0, Infinity);
-
-    const p = new Patch({status: 'modified', hunks, marker});
-
-    assert.strictEqual(p.getChangedLineCount(), 10);
+    const {patch} = patchBuilder()
+      .addHunk(
+        h => h.oldRow(0).unchanged('0').added('1').unchanged('2').deleted('3', '4').unchanged('5'))
+      .addHunk(
+        h => h.oldRow(0).unchanged('6').deleted('7').unchanged('8').deleted('9', '10', '11').added('12', '13', '14').unchanged('15'))
+      .build();
+    assert.strictEqual(patch.getChangedLineCount(), 10);
   });
 
   it('computes the maximum number of digits needed to display a diff line number', function() {
