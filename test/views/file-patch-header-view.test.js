@@ -76,8 +76,6 @@ describe('FilePatchHeaderView', function() {
 
         wrapper.find(`button.${buttonClass}`).simulate('click');
         assert.isTrue(diveIntoMirrorPatch.called, `${buttonClass} click did nothing`);
-
-        assert.isTrue(wrapper.find('Tooltip').someWhere(n => n.prop('title') === tooltip));
       };
     }
 
@@ -128,12 +126,12 @@ describe('FilePatchHeaderView', function() {
 
       it('is singular when selections exist within a single file patch', function() {
         const wrapper = shallow(buildApp({hasMultipleFileSelections: false}));
-        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump to file');
+        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump To File');
       });
 
       it('is plural when selections exist within multiple file patches', function() {
         const wrapper = shallow(buildApp({hasMultipleFileSelections: true}));
-        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump to files');
+        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump To Files');
       });
     });
 
