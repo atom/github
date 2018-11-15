@@ -2,7 +2,7 @@ import {TextBuffer} from 'atom';
 
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
-import {patchBuilder} from '../../builder/patch'
+import {patchBuilder} from '../../builder/patch';
 import {assertInFilePatch} from '../../helpers';
 
 describe('FilePatch', function() {
