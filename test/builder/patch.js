@@ -82,7 +82,7 @@ class FilePatchBuilder {
   constructor(layeredBuffer = null) {
     this.layeredBuffer = layeredBuffer;
 
-    this.oldFile = new File({path: 'file', mode: '100644'});
+    this.oldFile = new File({path: 'file', mode: File.modes.NORMAL});
     this.newFile = null;
 
     this.patchBuilder = new PatchBuilder(this.layeredBuffer);
@@ -143,7 +143,7 @@ class FilePatchBuilder {
 class FileBuilder {
   constructor() {
     this._path = 'file.txt';
-    this._mode = '100644';
+    this._mode = File.modes.NORMAL;
     this._symlink = null;
   }
 
