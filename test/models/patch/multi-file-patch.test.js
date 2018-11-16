@@ -603,6 +603,35 @@ describe('MultiFilePatch', function() {
       assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
     });
 
+    describe('when the bottom-most changed row is selected', function() {
+      it('selects the bottom-most changed row of the new patch', function() {
+        const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.addHunk(h => h.unchanged('.').added('0', '1', 'x').unchanged('.'));
+            fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
+          })
+          .addFilePatch(fp => {
+            fp.addHunk(h => h.unchanged('.').deleted('4', '5', '6').unchanged('.'));
+            fp.addHunk(h => h.unchanged('.').added('7', '8 *').unchanged('.'));
+          })
+          .build();
+
+        const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.addHunk(h => h.unchanged('.').added('0', '1', 'x').unchanged('.'));
+            fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
+          })
+          .addFilePatch(fp => {
+            fp.addHunk(h => h.unchanged('.').deleted('4', '5', '6').unchanged('.'));
+            fp.addHunk(h => h.unchanged('.').added('7').unchanged('.'));
+          })
+          .build();
+
+        const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set([16]));
+        assert.deepEqual(nextSelectionRange.serialize(), [[15, 0], [15, Infinity]]);
+      });
+    });
+
     it('skips hunks that were completely selected', function() {
       const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
