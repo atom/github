@@ -2,6 +2,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import CommitPreviewContainer from '../../lib/containers/commit-preview-container';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitPreviewContainer', function() {
@@ -22,8 +23,19 @@ describe('CommitPreviewContainer', function() {
 
     const props = {
       repository,
-      ...atomEnv,
+      itemType: CommitPreviewItem,
+
+      workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
+
       destroy: () => {},
+      discardLines: () => {},
+      undoLastDiscard: () => {},
+      surfaceToCommitPreviewButton: () => {},
+
       ...override,
     };
 
@@ -51,12 +63,12 @@ describe('CommitPreviewContainer', function() {
     await assert.async.isFalse(wrapper.update().find('LoadingView').exists());
   });
 
-  it('renders a MultiFilePatchController once the file patch is loaded', async function() {
+  it('renders a CommitPreviewController once the file patch is loaded', async function() {
     await repository.getLoadPromise();
     const patch = await repository.getStagedChangesPatch();
 
     const wrapper = mount(buildApp());
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('multiFilePatch'), patch);
+    await assert.async.isTrue(wrapper.update().find('CommitPreviewController').exists());
+    assert.strictEqual(wrapper.find('CommitPreviewController').prop('multiFilePatch'), patch);
   });
 });
