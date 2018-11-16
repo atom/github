@@ -52,4 +52,25 @@ describe('GitTabItem', function() {
       .find(item => item.getURI() === 'atom-github://dock-item/git');
     assert.strictEqual(paneItem.getTitle(), 'Git');
   });
+
+  it('forwards imperative focus manipulation methods to its controller', async function() {
+    const wrapper = mount(buildApp());
+    await atomEnv.workspace.open(GitTabItem.buildURI());
+    await assert.async.isTrue(wrapper.update().find('GitTabController').exists());
+
+    const focusMethods = [
+      'focusAndSelectStagingItem',
+      'focusAndSelectCommitPreviewButton',
+    ];
+
+    const spies = focusMethods.reduce((map, focusMethod) => {
+      map[focusMethod] = sinon.stub(wrapper.find('GitTabController').instance(), focusMethod);
+      return map;
+    }, {});
+
+    for (const method of focusMethods) {
+      wrapper.find('GitTabItem').instance()[method]();
+      assert.isTrue(spies[method].called);
+    }
+  });
 });
