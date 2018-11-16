@@ -212,6 +212,15 @@ describe('GitTabController', function() {
     assert.equal(stagingView.setFocus.callCount, 1);
   });
 
+  it('imperatively selects the commit preview button', async function() {
+    const repository = await buildRepository(await cloneRepository('three-files'));
+    const wrapper = mount(await buildApp(repository));
+
+    const focusMethod = sinon.spy(wrapper.find('GitTabView').instance(), 'focusAndSelectCommitPreviewButton');
+    wrapper.instance().focusAndSelectCommitPreviewButton();
+    assert.isTrue(focusMethod.called);
+  });
+
   describe('focus management', function() {
     it('remembers the last focus reported by the view', async function() {
       const repository = await buildRepository(await cloneRepository());
