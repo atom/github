@@ -4,6 +4,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import ChangedFileContainer from '../../lib/containers/changed-file-container';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('ChangedFileContainer', function() {
@@ -34,15 +35,19 @@ describe('ChangedFileContainer', function() {
       repository,
       stagingStatus: 'unstaged',
       relPath: 'a.txt',
+      itemType: ChangedFileItem,
+
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
+
       discardLines: () => {},
       undoLastDiscard: () => {},
       surfaceFileAtPath: () => {},
       destroy: () => {},
+
       ...overrideProps,
     };
 
@@ -54,39 +59,39 @@ describe('ChangedFileContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it('renders a MultiFilePatchController', async function() {
+  it('renders a ChangedFileController', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
   });
 
   it('adopts the buffer from the previous FilePatch when a new one arrives', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
 
-    const prevPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
+    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     const prevBuffer = prevPatch.getBuffer();
 
     await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'changed\nagain\n');
     repository.refresh();
 
-    await assert.async.notStrictEqual(wrapper.update().find('MultiFilePatchController').prop('multiFilePatch'), prevPatch);
+    await assert.async.notStrictEqual(wrapper.update().find('ChangedFileController').prop('multiFilePatch'), prevPatch);
 
-    const nextBuffer = wrapper.find('MultiFilePatchController').prop('multiFilePatch').getBuffer();
+    const nextBuffer = wrapper.find('ChangedFileController').prop('multiFilePatch').getBuffer();
     assert.strictEqual(nextBuffer, prevBuffer);
   });
 
   it('does not adopt a buffer from an unchanged patch', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
 
-    const prevPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
+    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     sinon.spy(prevPatch, 'adoptBufferFrom');
 
     wrapper.setProps({});
 
     assert.isFalse(prevPatch.adoptBufferFrom.called);
 
-    const nextPatch = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
+    const nextPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     assert.strictEqual(nextPatch, prevPatch);
   });
 
