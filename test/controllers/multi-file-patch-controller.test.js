@@ -8,6 +8,7 @@ import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {cloneRepository, buildRepository} from '../helpers';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 
 describe('MultiFilePatchController', function() {
   let atomEnv, repository, multiFilePatch, filePatch;
@@ -44,7 +45,8 @@ describe('MultiFilePatchController', function() {
       destroy: () => {},
       discardLines: () => {},
       undoLastDiscard: () => {},
-      surfaceFileAtPath: () => {},
+      surface: () => {},
+      itemType: CommitPreviewItem,
       ...overrideProps,
     };
 
@@ -65,14 +67,6 @@ describe('MultiFilePatchController', function() {
     wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
 
     assert.isTrue(undoLastDiscard.calledWith(filePatch.getPath(), repository));
-  });
-
-  it('calls surfaceFileAtPath with set arguments', function() {
-    const surfaceFileAtPath = sinon.spy();
-    const wrapper = shallow(buildApp({relPath: 'c.txt', surfaceFileAtPath}));
-    wrapper.find('MultiFilePatchView').prop('surfaceFile')(filePatch);
-
-    assert.isTrue(surfaceFileAtPath.calledWith(filePatch.getPath(), 'unstaged'));
   });
 
   describe('diveIntoMirrorPatch()', function() {
@@ -231,11 +225,11 @@ describe('MultiFilePatchController', function() {
       assert.isTrue(wrapper.instance().render.called);
     });
 
-    describe('discardLines()', function() {
+    describe('discardRows()', function() {
       it('records an event', async function() {
         const wrapper = shallow(buildApp());
         sinon.stub(reporterProxy, 'addEvent');
-        await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([1, 2]));
+        await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([1, 2]), 'hunk');
         assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
           package: 'github',
           component: 'MultiFilePatchController',
@@ -284,7 +278,7 @@ describe('MultiFilePatchController', function() {
 
     it('applies a stage patch to the index', async function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]));
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'hunk', false);
 
       sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
@@ -297,7 +291,7 @@ describe('MultiFilePatchController', function() {
 
     it('toggles a different row set if provided', async function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'line');
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'line', false);
 
       sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
@@ -315,7 +309,7 @@ describe('MultiFilePatchController', function() {
       await repository.stageFiles(['a.txt']);
       const otherPatch = await repository.getFilePatchForPath('a.txt', {staged: true});
       const wrapper = shallow(buildApp({multiFilePatch: otherPatch, stagingStatus: 'staged'}));
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2]));
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2]), 'hunk', false);
 
       sinon.spy(otherPatch, 'getUnstagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
@@ -474,7 +468,7 @@ describe('MultiFilePatchController', function() {
   it('calls discardLines with selected rows', async function() {
     const discardLines = sinon.spy();
     const wrapper = shallow(buildApp({discardLines}));
-    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]));
+    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
 
     await wrapper.find('MultiFilePatchView').prop('discardRows')();
 
@@ -487,7 +481,7 @@ describe('MultiFilePatchController', function() {
   it('calls discardLines with explicitly provided rows', async function() {
     const discardLines = sinon.spy();
     const wrapper = shallow(buildApp({discardLines}));
-    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]));
+    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
 
     await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([4, 5]), 'hunk');
 
