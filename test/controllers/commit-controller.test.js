@@ -532,4 +532,21 @@ describe('CommitController', function() {
       assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
     });
   });
+
+  it('unconditionally activates the commit preview item', async function() {
+    const workdir = await cloneRepository('three-files');
+    const repository = await buildRepository(workdir);
+    const previewURI = CommitPreviewItem.buildURI(workdir);
+
+    const wrapper = shallow(React.cloneElement(app, {repository}));
+
+    await wrapper.find('CommitView').prop('activateCommitPreview')();
+    assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+
+    await workspace.open(__filename);
+    assert.notStrictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+
+    await wrapper.find('CommitView').prop('activateCommitPreview')();
+    assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+  });
 });
