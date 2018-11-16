@@ -225,4 +225,13 @@ describe('GitTabView', function() {
     wrapper.prop('refRoot').setter(null);
     assert.isFalse(wrapper.instance().hasFocus());
   });
+
+  it('imperatively focuses the commit preview button', async function() {
+    const wrapper = mount(await buildApp());
+
+    const setFocus = sinon.spy(wrapper.find('CommitController').instance(), 'setFocus');
+    wrapper.instance().focusAndSelectCommitPreviewButton();
+    assert.isTrue(setFocus.called);
+    assert.isTrue(setFocus.lastCall.returnValue);
+  });
 });
