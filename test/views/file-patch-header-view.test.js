@@ -4,6 +4,7 @@ import path from 'path';
 
 import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
 import ChangedFileItem from '../../lib/items/changed-file-item';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 
 describe('FilePatchHeaderView', function() {
   const relPath = path.join('dir', 'a.txt');
@@ -20,7 +21,7 @@ describe('FilePatchHeaderView', function() {
   function buildApp(overrideProps = {}) {
     return (
       <FilePatchHeaderView
-        itemType={null}
+        itemType={CommitPreviewItem}
         relPath={relPath}
         stagingStatus="unstaged"
         isPartiallyStaged={false}
