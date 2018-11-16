@@ -13,6 +13,10 @@ describe('CommitPreviewController', function() {
     repository = await buildRepository(await cloneRepository('three-files'));
   });
 
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(override = {}) {
     const props = {
       repository,
