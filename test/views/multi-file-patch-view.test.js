@@ -7,6 +7,7 @@ import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 
 describe('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
@@ -60,7 +61,7 @@ describe('MultiFilePatchView', function() {
       selectedRowsChanged: () => {},
 
       diveIntoMirrorPatch: () => {},
-      surfaceFile: () => {},
+      surface: () => {},
       openFile: () => {},
       toggleFile: () => {},
       toggleRows: () => {},
@@ -68,6 +69,8 @@ describe('MultiFilePatchView', function() {
       toggleSymlinkChange: () => {},
       undoLastDiscard: () => {},
       discardRows: () => {},
+
+      itemType: CommitPreviewItem,
 
       ...overrideProps,
     };
@@ -1154,11 +1157,11 @@ describe('MultiFilePatchView', function() {
     });
 
     it('surfaces focus to the git tab', function() {
-      const surfaceFile = sinon.spy();
-      const wrapper = mount(buildApp({surfaceFile}));
+      const surface = sinon.spy();
+      const wrapper = mount(buildApp({surface}));
 
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface-file');
-      assert.isTrue(surfaceFile.called);
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface');
+      assert.isTrue(surface.called);
     });
 
     describe('hunk mode navigation', function() {
