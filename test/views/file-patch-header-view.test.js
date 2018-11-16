@@ -1,10 +1,12 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import path from 'path';
 
 import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 
 describe('FilePatchHeaderView', function() {
+  const relPath = path.join('dir', 'a.txt');
   let atomEnv;
 
   beforeEach(function() {
@@ -19,7 +21,7 @@ describe('FilePatchHeaderView', function() {
     return (
       <FilePatchHeaderView
         itemType={null}
-        relPath="dir/a.txt"
+        relPath={relPath}
         stagingStatus="unstaged"
         isPartiallyStaged={false}
         hasHunks={true}
@@ -41,18 +43,18 @@ describe('FilePatchHeaderView', function() {
   describe('the title', function() {
     it('renders relative file path', function() {
       const wrapper = shallow(buildApp());
-      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'dir/a.txt');
+      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), relPath);
     });
 
     describe('when `ChangedFileItem`', function() {
       it('renders staging status for an unstaged patch', function() {
         const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'unstaged'}));
-        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Unstaged Changes for dir/a.txt');
+        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `Unstaged Changes for ${relPath}`);
       });
 
       it('renders staging status for a staged patch', function() {
         const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'staged'}));
-        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), 'Staged Changes for dir/a.txt');
+        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `Staged Changes for ${relPath}`);
       });
     });
   });
