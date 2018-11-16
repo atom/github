@@ -54,6 +54,24 @@ Write "N/A" if not applicable.
 
 <!-- Describe the documentation added or improved. Write "N/A" if not applicable. -->
 
+### Release Notes
+
+<!--
+
+Please describe the changes in a single line that explains this improvement in
+terms that a user can understand.  This text will be used in Atom's release notes.
+
+If this change is not user-facing or notable enough to be included in release notes
+you may use the strings "Not applicable" or "N/A" here.
+
+Examples:
+
+- The GitHub package now allows you to add co-authors to commits.
+- Fixed an issue where the merge message did not show up in the commit message box.
+- Increased the performance of rendering diffs.
+
+-->
+
 ### User Experience Research (Optional)
 
 <!-- If this change would benefit from UXR, please state assumptions or hypotheses and specify if they are to be validated before or after releasing. Examples include investigating discoverability, verifying performance improvements, tracking metrics, etc. -->
