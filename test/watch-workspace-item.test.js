@@ -67,14 +67,14 @@ describe('watchWorkspaceItem', function() {
       assert.isTrue(component.state.theKey);
     });
 
-    it('is true when the pane is open and active in any pane', async function() {
+    it.only('is true when the pane is open and active in any pane', async function() {
       await workspace.open('atom-github://some-item', {location: 'right'});
       await workspace.open('atom-github://nonmatching');
 
       assert.strictEqual(workspace.getRightDock().getActivePaneItem().getURI(), 'atom-github://some-item');
       assert.strictEqual(workspace.getActivePaneItem().getURI(), 'atom-github://nonmatching');
 
-      sub = watchWorkspaceItem(workspace, 'atom-github://some-item', component, 'someKey', {active: true});
+      sub = watchWorkspaceItem(workspace, 'atom-github://some-item', component, 'someKey');
       assert.isTrue(component.state.someKey);
     });
 
