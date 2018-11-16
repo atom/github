@@ -67,7 +67,7 @@ describe('watchWorkspaceItem', function() {
       assert.isTrue(component.state.theKey);
     });
 
-    it.only('is true when the pane is open and active in any pane', async function() {
+    it('is true when the pane is open and active in any pane', async function() {
       await workspace.open('atom-github://some-item', {location: 'right'});
       await workspace.open('atom-github://nonmatching');
 
