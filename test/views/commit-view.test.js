@@ -52,6 +52,8 @@ describe('CommitView', function() {
         abortMerge={noop}
         toggleExpandedCommitMessageEditor={noop}
         updateSelectedCoAuthors={noop}
+        toggleCommitPreview={noop}
+        activateCommitPreview={noop}
       />
     );
   });
