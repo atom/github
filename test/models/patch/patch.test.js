@@ -260,21 +260,26 @@ describe.only('Patch', function() {
     });
 
     it('returns a modification patch if original patch is a deletion', function() {
-      const buffer = new TextBuffer({text: 'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\n'});
-      const layers = buildLayers(buffer);
-      const hunks = [
-        new Hunk({
-          oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 0,
-          sectionHeading: 'zero',
-          marker: markRange(layers.hunk, 0, 5),
-          regions: [
-            new Deletion(markRange(layers.deletion, 0, 5)),
-          ],
-        }),
-      ];
-      const marker = markRange(layers.patch, 0, 5);
+      // const buffer = new TextBuffer({text: 'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\n'});
+      // const layers = buildLayers(buffer);
+      // const hunks = [
+      //   new Hunk({
+      //     oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 0,
+      //     sectionHeading: 'zero',
+      //     marker: markRange(layers.hunk, 0, 5),
+      //     regions: [
+      //       new Deletion(markRange(layers.deletion, 0, 5)),
+      //     ],
+      //   }),
+      // ];
+      // const marker = markRange(layers.patch, 0, 5);
 
-      const patch = new Patch({status: 'deleted', hunks, marker});
+      // const patch = new Patch({status: 'deleted', hunks, marker});
+      const {buffer, patch} = patchBuilder().status('deleted').addHunk(
+        h => h.oldRow(1).deleted('line-0', 'line-1', 'line-2', 'line-3', 'line-4', 'line-5'),
+      ).build();
+
+      console.log(patch)
 
       const stagedPatch = patch.buildStagePatchForLines(buffer, stageLayeredBuffer, new Set([1, 3, 4]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
