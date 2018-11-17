@@ -743,6 +743,44 @@ describe('buildFilePatch', function() {
         ],
       });
     });
+
+    it('sets the correct marker range for diffs with no hunks', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 4,
+              lines: [
+                ' line-0',
+                '+line-1',
+                '+line-2',
+                ' line-3',
+              ],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 12, newLineCount: 2,
+              lines: [
+                ' line-4',
+                '-line-5',
+                ' line-6',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100755', status: 'modified',
+          hunks: [],
+        },
+      ]);
+
+      assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
+      assert.deepEqual(mp.getFilePatches()[0].getMarker().getRange().serialize(), [[0, 0], [6, 6]]);
+
+      assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
+      assert.deepEqual(mp.getFilePatches()[1].getHunks(), []);
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [7, 0]]);
+    });
   });
 
   it('throws an error with an unexpected number of diffs', function() {
