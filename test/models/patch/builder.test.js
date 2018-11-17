@@ -536,7 +536,7 @@ describe('buildFilePatch', function() {
     });
   });
 
-  describe('with multiple diffs', function() {
+  describe.only('with multiple diffs', function() {
     it('creates a MultiFilePatch containing each', function() {
       const mp = buildMultiFilePatch([
         {
@@ -772,6 +772,20 @@ describe('buildFilePatch', function() {
           oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100755', status: 'modified',
           hunks: [],
         },
+        {
+          oldPath: 'third', oldMode: '100755', newPath: 'third', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
+              lines: [
+                ' line-5',
+                '+line-6',
+                '-line-7',
+                ' line-8',
+              ],
+            },
+          ],
+        },
       ]);
 
       assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
@@ -780,6 +794,9 @@ describe('buildFilePatch', function() {
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
       assert.deepEqual(mp.getFilePatches()[1].getHunks(), []);
       assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [7, 0]]);
+
+      assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
+      assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
     });
   });
 
