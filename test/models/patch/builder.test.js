@@ -536,7 +536,7 @@ describe('buildFilePatch', function() {
     });
   });
 
-  describe.only('with multiple diffs', function() {
+  describe('with multiple diffs', function() {
     it('creates a MultiFilePatch containing each', function() {
       const mp = buildMultiFilePatch([
         {
