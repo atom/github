@@ -1315,6 +1315,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
         assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
       });
+
+      it('returns the file mode for symlink file', async function() {
+        const workingDirPath = await cloneRepository('symlinks');
+        const git = createTestStrategy(workingDirPath);
+        assert.equal(await git.getFileMode('symlink.txt'), 120000);
+      });
     });
 
     describe('merging files', function() {
