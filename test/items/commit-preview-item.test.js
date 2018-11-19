@@ -33,6 +33,9 @@ describe('CommitPreviewItem', function() {
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
+      discardLines: () => {},
+      undoLastDiscard: () => {},
+      surfaceToCommitPreviewButton: () => {},
       ...override,
     };
 
