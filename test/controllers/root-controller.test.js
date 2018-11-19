@@ -1176,4 +1176,28 @@ describe('RootController', function() {
       assert.isFalse(reporterProxy.addEvent.called);
     });
   });
+
+  describe('surfaceToCommitPreviewButton', function() {
+    it('focuses and selects the commit preview button', async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      const wrapper = mount(app);
+
+      const gitTabTracker = wrapper.instance().gitTabTracker;
+
+      const gitTab = {
+        focusAndSelectCommitPreviewButton: sinon.spy(),
+      };
+
+      sinon.stub(gitTabTracker, 'getComponent').returns(gitTab);
+
+      wrapper.instance().surfaceToCommitPreviewButton();
+      assert.isTrue(gitTab.focusAndSelectCommitPreviewButton.called);
+    });
+  });
+
 });
