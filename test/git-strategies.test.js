@@ -647,12 +647,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
             for (let i = 0; i < 10; i++) {
               data.writeUInt8(i + 200, i);
             }
-            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
+            // make the file executable so we test that executable mode is set correctly
+            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
             assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
-              newMode: '100644',
+              newMode: '100755',
               hunks: [],
               status: 'added',
             }]);
