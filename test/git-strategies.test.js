@@ -1318,6 +1318,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         fs.chmodSync(absFilePath, executableMode);
         const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
         assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
+
+        const targetPath = path.join(workingDirPath, 'a.txt');
+        const symlinkPath = path.join(workingDirPath, 'symlink.txt');
+        fs.symlinkSync(targetPath, symlinkPath);
+        assert.equal(await git.getFileMode('symlink.txt'), '120000');
       });
 
       it('returns the file mode for symlink file', async function() {
