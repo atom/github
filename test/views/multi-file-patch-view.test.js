@@ -8,6 +8,7 @@ import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 
 describe('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
@@ -1082,11 +1083,12 @@ describe('MultiFilePatchView', function() {
 
     it('undoes the last discard', function() {
       const undoLastDiscard = sinon.spy();
-      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true}));
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true, itemType: ChangedFileItem}));
 
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
 
-      assert.isTrue(undoLastDiscard.calledWith({eventSource: {command: 'core:undo'}}));
+      const [filePatch] = filePatches.getFilePatches();
+      assert.isTrue(undoLastDiscard.calledWith(filePatch, {eventSource: {command: 'core:undo'}}));
     });
 
     it('does nothing when there is no last discard to undo', function() {
