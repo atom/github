@@ -649,11 +649,16 @@ import * as reporterProxy from '../lib/reporter-proxy';
             }
             // make the file executable so we test that executable mode is set correctly
             fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
+
+            const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+
+            console.log((await git.getDiffsForFilePath('new-file.bin'))[0].newMode)
+
             assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
-              newMode: '100755',
+              newMode: expectedFileMode,
               hunks: [],
               status: 'added',
             }]);
