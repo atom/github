@@ -2,6 +2,7 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import StagingView from '../../lib/views/staging-view';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -302,6 +303,20 @@ describe('StagingView', function() {
         assert.equal(notificationManager.addInfo.callCount, 1);
         assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
       });
+    });
+  });
+
+  describe('getPanesWithStalePendingFilePatchItem', function() {
+    it('ignores CommitPreviewItems', function() {
+      const pane = workspace.getCenter().getPanes()[0];
+
+      const changedFileItem = new CommitPreviewItem({});
+      sinon.stub(pane, 'getPendingItem').returns({
+        getRealItem: () => changedFileItem,
+      });
+      const wrapper = mount(app);
+
+      assert.deepEqual(wrapper.instance().getPanesWithStalePendingFilePatchItem(), []);
     });
   });
 
