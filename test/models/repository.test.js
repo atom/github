@@ -2159,6 +2159,22 @@ describe('Repository', function() {
       sub && sub.dispose();
     });
 
+    describe('updateCommitMessageAfterFileSystemChange', function() {
+      it('handles events with no `path` property', async function() {
+        const {repository} = await wireUpObserver();
+
+        // sometimes we all lose our path in life.
+        const eventWithNoPath = {};
+        try {
+          await repository.updateCommitMessageAfterFileSystemChange([eventWithNoPath]);
+          // this is a little jank but we want to test that the code does not throw an error
+          // and chai's promise assertions did not work when we negated our assertion.
+        } catch (e) {
+          throw e;
+        }
+      });
+    })
+
     describe('config commit.template change', function() {
       it('updates commit messages to new template', async function() {
         const {repository, observer, subscriptions} = await wireUpObserver();
