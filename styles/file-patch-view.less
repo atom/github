@@ -98,10 +98,11 @@
   }
 
   // Meta section
+  // Used for mode changes
 
   &-meta {
-    padding: @component-padding;
-    border-bottom: 1px solid @base-border-color;
+    font-family: @font-family;
+    padding-top: @component-padding;
   }
 
   &-metaContainer {
@@ -112,15 +113,14 @@
   &-metaHeader {
     display: flex;
     align-items: center;
-    padding: @component-padding / 2;
-    background-color: @background-color-highlight;
+    font-size: .9em;
+    border-bottom: 1px solid @base-border-color;
   }
 
   &-metaTitle {
     flex: 1;
     margin: 0;
-    font-size: 1.0em;
-    line-height: 1.5;
+    padding-left: @component-padding;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -128,14 +128,25 @@
 
   &-metaControls {
     margin-left: @component-padding;
+  }
 
-    .btn {
-      &.icon-move-up::before,
-      &.icon-move-down::before {
-        font-size: 1em;
-        margin-right: .5em;
-        vertical-align: baseline;
-      }
+  &-metaButton {
+    line-height: 1.9; // Magic number to match the hunk height
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    font-family: @font-family;
+    border: none;
+    border-left: 1px solid @base-border-color;
+    background-color: transparent;
+    cursor: default;
+    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 4%); }
+    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+
+    &.icon-move-up::before,
+    &.icon-move-down::before {
+      font-size: 1em;
+      margin-right: .25em;
+      vertical-align: baseline;
     }
   }
 
