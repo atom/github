@@ -652,8 +652,6 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
             const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
 
-            console.log((await git.getDiffsForFilePath('new-file.bin'))[0].newMode)
-
             assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',

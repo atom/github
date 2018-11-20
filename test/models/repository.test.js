@@ -2173,7 +2173,7 @@ describe('Repository', function() {
           throw e;
         }
       });
-    })
+    });
 
     describe('config commit.template change', function() {
       it('updates commit messages to new template', async function() {
