@@ -43,6 +43,7 @@ describe('CommitView', function() {
         stagedChangesExist={false}
         mergeConflictsExist={false}
         isCommitting={false}
+        commitPreviewActive={false}
         deactivateCommitBox={false}
         maximumCharacterLimit={72}
         messageBuffer={messageBuffer}
@@ -51,6 +52,8 @@ describe('CommitView', function() {
         abortMerge={noop}
         toggleExpandedCommitMessageEditor={noop}
         updateSelectedCoAuthors={noop}
+        toggleCommitPreview={noop}
+        activateCommitPreview={noop}
       />
     );
   });
@@ -359,6 +362,160 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.instance().hasFocusEditor());
   });
 
+  describe('advancing focus', function() {
+    let wrapper, instance, event;
+
+    beforeEach(function() {
+      wrapper = mount(app);
+      instance = wrapper.instance();
+      event = {stopPropagation: sinon.spy()};
+
+      sinon.spy(instance, 'setFocus');
+    });
+
+    it('does nothing and returns false if the focus is not in the commit view', function() {
+      sinon.stub(instance, 'getFocus').returns(null);
+      assert.isFalse(instance.advanceFocus(event));
+      assert.isFalse(instance.setFocus.called);
+      assert.isFalse(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit editor if the commit preview button is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_PREVIEW_BUTTON);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('inserts a tab if the commit editor is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.EDITOR);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isFalse(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit button if the coauthor form is focused and no merge is in progress', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the abort merge button if the coauthor form is focused and a merge is in progress', function() {
+      wrapper.setProps({isMerging: true});
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.ABORT_MERGE_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit button if the abort merge button is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('does nothing and returns true if the commit button is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+
+      assert.isTrue(instance.advanceFocus(event));
+      assert.isFalse(instance.setFocus.called);
+      assert.isTrue(event.stopPropagation.called);
+    });
+  });
+
+  describe('retreating focus', function() {
+    let wrapper, instance, event;
+
+    beforeEach(function() {
+      wrapper = mount(app);
+      instance = wrapper.instance();
+      event = {stopPropagation: sinon.spy()};
+
+      sinon.spy(instance, 'setFocus');
+    });
+
+    it('does nothing and returns false if the focus is not in the commit view', function() {
+      sinon.stub(instance, 'getFocus').returns(null);
+
+      assert.isFalse(instance.retreatFocus(event));
+      assert.isFalse(instance.setFocus.called);
+      assert.isFalse(event.stopPropagation.called);
+    });
+
+    it('moves focus to the abort merge button if the commit button is focused and a merge is in progress', function() {
+      wrapper.setProps({isMerging: true});
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.ABORT_MERGE_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the editor if the commit button is focused and no merge is underway', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the co-author form if it is visible, the commit button is focused, and no merge', function() {
+      wrapper.setState({showCoAuthorInput: true});
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COAUTHOR_INPUT));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the co-author form if it is visible and the abort merge button is in focus', function() {
+      wrapper.setState({showCoAuthorInput: true});
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COAUTHOR_INPUT));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit editor if the abort merge button is in focus', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit editor if the co-author form is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('moves focus to the commit preview button if the commit editor is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.EDITOR);
+
+      assert.isTrue(instance.retreatFocus(event));
+      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('does nothing and returns false if the commit preview button is focused', function() {
+      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_PREVIEW_BUTTON);
+
+      assert.isFalse(instance.retreatFocus(event));
+      assert.isFalse(instance.setFocus.called);
+      assert.isFalse(event.stopPropagation.called);
+    });
+  });
+
   it('remembers the current focus', function() {
     const wrapper = mount(React.cloneElement(app, {isMerging: true}));
     wrapper.instance().toggleCoAuthorInput();
@@ -369,6 +526,7 @@ describe('CommitView', function() {
       ['.github-CommitView-abortMerge', CommitView.focus.ABORT_MERGE_BUTTON],
       ['.github-CommitView-commit', CommitView.focus.COMMIT_BUTTON],
       ['.github-CommitView-coAuthorEditor input', CommitView.focus.COAUTHOR_INPUT],
+      ['.github-CommitView-commitPreview', CommitView.focus.COMMIT_PREVIEW_BUTTON],
     ];
     for (const [selector, focus, subselector] of foci) {
       let target = wrapper.find(selector).getDOMNode();
@@ -382,6 +540,7 @@ describe('CommitView', function() {
 
     const holders = [
       'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+      'refCommitPreviewButton',
     ].map(ivar => wrapper.instance()[ivar]);
     for (const holder of holders) {
       holder.setter(null);
@@ -390,6 +549,15 @@ describe('CommitView', function() {
   });
 
   describe('restoring focus', function() {
+    it('to the commit preview button', function() {
+      const wrapper = mount(app);
+      const element = wrapper.find('.github-CommitView-commitPreview').getDOMNode();
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(element.focus.called);
+    });
+
     it('to the editor', function() {
       const wrapper = mount(app);
       const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
@@ -448,6 +616,7 @@ describe('CommitView', function() {
       // Simulate an unmounted component by clearing out RefHolders manually.
       const holders = [
         'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+        'refCommitPreviewButton',
       ].map(ivar => wrapper.instance()[ivar]);
       for (const holder of holders) {
         holder.setter(null);
@@ -456,6 +625,46 @@ describe('CommitView', function() {
       for (const focusKey of Object.keys(CommitView.focus)) {
         assert.isFalse(wrapper.instance().setFocus(CommitView.focus[focusKey]));
       }
+    });
+  });
+
+  describe('commit preview button', function() {
+    it('is enabled when there is staged changes', function() {
+      const wrapper = shallow(React.cloneElement(app, {
+        stagedChangesExist: true,
+      }));
+      assert.isFalse(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+    });
+
+    it('is disabled when there\'s no staged changes', function() {
+      const wrapper = shallow(React.cloneElement(app, {
+        stagedChangesExist: false,
+      }));
+      assert.isTrue(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+    });
+
+    it('calls a callback when the button is clicked', function() {
+      const toggleCommitPreview = sinon.spy();
+
+      const wrapper = shallow(React.cloneElement(app, {
+        toggleCommitPreview,
+        stagedChangesExist: true,
+      }));
+
+      wrapper.find('.github-CommitView-commitPreview').simulate('click');
+      assert.isTrue(toggleCommitPreview.called);
+    });
+
+    it('displays correct button text depending on prop value', function() {
+      const wrapper = shallow(app);
+
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
+
+      wrapper.setProps({commitPreviewActive: true});
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Hide All Staged Changes');
+
+      wrapper.setProps({commitPreviewActive: false});
+      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
     });
   });
 });

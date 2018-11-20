@@ -197,6 +197,7 @@
     "IssueishPaneItem": "createIssueishPaneItemStub",
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
-    "FilePatchControllerStub": "createFilePatchControllerStub"
+    "FilePatchControllerStub": "createFilePatchControllerStub",
+    "CommitPreviewStub": "createCommitPreviewStub"
   }
 }

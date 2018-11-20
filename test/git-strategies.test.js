@@ -647,17 +647,47 @@ import * as reporterProxy from '../lib/reporter-proxy';
             for (let i = 0; i < 10; i++) {
               data.writeUInt8(i + 200, i);
             }
-            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data);
+            // make the file executable so we test that executable mode is set correctly
+            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
+
+            const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+
             assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
-              newMode: '100644',
+              newMode: expectedFileMode,
               hunks: [],
               status: 'added',
             }]);
           });
         });
+      });
+    });
+
+    describe('getStagedChangesPatch', function() {
+      it('returns an empty patch if there are no staged files', async function() {
+        const workdir = await cloneRepository('three-files');
+        const git = createTestStrategy(workdir);
+        const mp = await git.getStagedChangesPatch();
+        assert.lengthOf(mp, 0);
+      });
+
+      it('returns a combined diff of all staged files', async function() {
+        const workdir = await cloneRepository('each-staging-group');
+        const git = createTestStrategy(workdir);
+
+        await assert.isRejected(git.merge('origin/branch'));
+        await fs.writeFile(path.join(workdir, 'unstaged-1.txt'), 'Unstaged file');
+        await fs.writeFile(path.join(workdir, 'unstaged-2.txt'), 'Unstaged file');
+
+        await fs.writeFile(path.join(workdir, 'staged-1.txt'), 'Staged file');
+        await fs.writeFile(path.join(workdir, 'staged-2.txt'), 'Staged file');
+        await fs.writeFile(path.join(workdir, 'staged-3.txt'), 'Staged file');
+        await git.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
+
+        const diffs = await git.getStagedChangesPatch();
+        assert.deepEqual(diffs.map(diff => diff.newPath), ['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
       });
     });
 
@@ -1288,6 +1318,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
         fs.chmodSync(absFilePath, executableMode);
         const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
         assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
+
+        const targetPath = path.join(workingDirPath, 'a.txt');
+        const symlinkPath = path.join(workingDirPath, 'symlink.txt');
+        fs.symlinkSync(targetPath, symlinkPath);
+        assert.equal(await git.getFileMode('symlink.txt'), '120000');
+      });
+
+      it('returns the file mode for symlink file', async function() {
+        const workingDirPath = await cloneRepository('symlinks');
+        const git = createTestStrategy(workingDirPath);
+        assert.equal(await git.getFileMode('symlink.txt'), 120000);
       });
     });
 

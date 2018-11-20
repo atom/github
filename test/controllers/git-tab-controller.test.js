@@ -3,7 +3,6 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import dedent from 'dedent-js';
-import until from 'test-until';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
@@ -213,6 +212,15 @@ describe('GitTabController', function() {
     assert.equal(stagingView.setFocus.callCount, 1);
   });
 
+  it('imperatively selects the commit preview button', async function() {
+    const repository = await buildRepository(await cloneRepository('three-files'));
+    const wrapper = mount(await buildApp(repository));
+
+    const focusMethod = sinon.spy(wrapper.find('GitTabView').instance(), 'focusAndSelectCommitPreviewButton');
+    wrapper.instance().focusAndSelectCommitPreviewButton();
+    assert.isTrue(focusMethod.called);
+  });
+
   describe('focus management', function() {
     it('remembers the last focus reported by the view', async function() {
       const repository = await buildRepository(await cloneRepository());
@@ -274,165 +282,6 @@ describe('GitTabController', function() {
 
       controller.rememberLastFocus({target: null});
       assert.strictEqual(controller.lastFocus, GitTabController.focus.STAGING);
-    });
-  });
-
-  describe('keyboard navigation commands', function() {
-    let wrapper, rootElement, gitTab, stagingView, commitView, commitController, focusElement;
-    const focuses = GitTabController.focus;
-
-    const extractReferences = () => {
-      rootElement = wrapper.instance().refRoot.get();
-      gitTab = wrapper.instance().refView.get();
-      stagingView = wrapper.instance().refStagingView.get();
-      commitController = gitTab.refCommitController.get();
-      commitView = commitController.refCommitView.get();
-      focusElement = stagingView.element;
-
-      const commitViewElements = [];
-      commitView.refEditorComponent.map(e => commitViewElements.push(e));
-      commitView.refAbortMergeButton.map(e => commitViewElements.push(e));
-      commitView.refCommitButton.map(e => commitViewElements.push(e));
-
-      const stubFocus = element => {
-        sinon.stub(element, 'focus').callsFake(() => {
-          focusElement = element;
-        });
-      };
-      stubFocus(stagingView.refRoot.get());
-      for (const e of commitViewElements) {
-        stubFocus(e);
-      }
-
-      sinon.stub(commitController, 'hasFocus').callsFake(() => {
-        return commitViewElements.includes(focusElement);
-      });
-    };
-
-    const assertSelected = paths => {
-      const selectionPaths = Array.from(stagingView.state.selection.getSelectedItems()).map(item => item.filePath);
-      assert.deepEqual(selectionPaths, paths);
-    };
-
-    const assertAsyncSelected = paths => {
-      return assert.async.deepEqual(
-        Array.from(stagingView.state.selection.getSelectedItems()).map(item => item.filePath),
-        paths,
-      );
-    };
-
-    describe('with conflicts and staged files', function() {
-      beforeEach(async function() {
-        const workdirPath = await cloneRepository('each-staging-group');
-        const repository = await buildRepository(workdirPath);
-
-        // Merge with conflicts
-        assert.isRejected(repository.git.merge('origin/branch'));
-
-        fs.writeFileSync(path.join(workdirPath, 'unstaged-1.txt'), 'This is an unstaged file.');
-        fs.writeFileSync(path.join(workdirPath, 'unstaged-2.txt'), 'This is an unstaged file.');
-        fs.writeFileSync(path.join(workdirPath, 'unstaged-3.txt'), 'This is an unstaged file.');
-
-        // Three staged files
-        fs.writeFileSync(path.join(workdirPath, 'staged-1.txt'), 'This is a file with some changes staged for commit.');
-        fs.writeFileSync(path.join(workdirPath, 'staged-2.txt'), 'This is another file staged for commit.');
-        fs.writeFileSync(path.join(workdirPath, 'staged-3.txt'), 'This is a third file staged for commit.');
-        await repository.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
-        repository.refresh();
-
-        wrapper = mount(await buildApp(repository));
-        await assert.async.lengthOf(wrapper.update().find('GitTabView').prop('unstagedChanges'), 3);
-
-        extractReferences();
-      });
-
-      it('blurs on tool-panel:unfocus', function() {
-        sinon.spy(workspace.getActivePane(), 'activate');
-
-        commandRegistry.dispatch(wrapper.find('.github-Git').getDOMNode(), 'tool-panel:unfocus');
-
-        assert.isTrue(workspace.getActivePane().activate.called);
-      });
-
-      it('advances focus through StagingView groups and CommitView, but does not cycle', async function() {
-        assertSelected(['unstaged-1.txt']);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-next');
-        assertSelected(['conflict-1.txt']);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-next');
-        assertSelected(['staged-1.txt']);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-next');
-        assertSelected(['staged-1.txt']);
-        await assert.async.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
-
-        // This should be a no-op. (Actually, it'll insert a tab in the CommitView editor.)
-        commandRegistry.dispatch(rootElement, 'core:focus-next');
-        assertSelected(['staged-1.txt']);
-        assert.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
-      });
-
-      it('retreats focus from the CommitView through StagingView groups, but does not cycle', async function() {
-        gitTab.setFocus(focuses.EDITOR);
-        sinon.stub(commitView, 'hasFocusEditor').returns(true);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-previous');
-        await assert.async.strictEqual(focusElement, stagingView.refRoot.get());
-        assertSelected(['staged-1.txt']);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-previous');
-        await assertAsyncSelected(['conflict-1.txt']);
-
-        commandRegistry.dispatch(rootElement, 'core:focus-previous');
-        await assertAsyncSelected(['unstaged-1.txt']);
-
-        // This should be a no-op.
-        commandRegistry.dispatch(rootElement, 'core:focus-previous');
-        await assertAsyncSelected(['unstaged-1.txt']);
-      });
-    });
-
-    describe('with staged changes', function() {
-      let repository;
-
-      beforeEach(async function() {
-        const workdirPath = await cloneRepository('each-staging-group');
-        repository = await buildRepository(workdirPath);
-
-        // A staged file
-        fs.writeFileSync(path.join(workdirPath, 'staged-1.txt'), 'This is a file with some changes staged for commit.');
-        await repository.stageFiles(['staged-1.txt']);
-        repository.refresh();
-
-        const prepareToCommit = () => Promise.resolve(true);
-        const ensureGitTab = () => Promise.resolve(false);
-
-        wrapper = mount(await buildApp(repository, {ensureGitTab, prepareToCommit}));
-
-        extractReferences();
-        await assert.async.isTrue(commitView.props.stagedChangesExist);
-      });
-
-      it('focuses the CommitView on github:commit with an empty commit message', async function() {
-        commitView.refEditorModel.map(e => e.setText(''));
-        sinon.spy(wrapper.instance(), 'commit');
-        wrapper.update();
-
-        commandRegistry.dispatch(workspaceElement, 'github:commit');
-
-        await assert.async.strictEqual(focusElement, wrapper.find('AtomTextEditor').instance());
-        assert.isFalse(wrapper.instance().commit.called);
-      });
-
-      it('creates a commit on github:commit with a nonempty commit message', async function() {
-        commitView.refEditorModel.map(e => e.setText('I fixed the things'));
-        sinon.spy(repository, 'commit');
-
-        commandRegistry.dispatch(workspaceElement, 'github:commit');
-
-        await until('Commit method called', () => repository.commit.calledWith('I fixed the things'));
-      });
     });
   });
 
