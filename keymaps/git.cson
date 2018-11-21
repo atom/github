@@ -76,6 +76,8 @@
 '.platform-darwin .github-FilePatchView atom-text-editor:not([mini])':
   'cmd-/': 'github:toggle-patch-selection-mode'
   'cmd-backspace': 'github:discard-selected-lines'
+  'ctrl-backspace': 'github:discard-selected-lines'
+  'ctrl-enter': 'core:confirm'
   'cmd-enter': 'core:confirm'
   'cmd-right': 'github:surface'
   'cmd-o': 'github:jump-to-file'
