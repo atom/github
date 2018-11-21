@@ -1,15 +1,12 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-// probably don't need this long term.
-import {checkoutStates} from '../../lib/views/pr-detail-view';
 import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
 import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
 import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
-import EnableableOperation from '../../lib/models/enableable-operation';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe('IssueDetailView', function() {
+describe.only('IssueDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
     return <BareIssueDetailView {...issueishDetailViewProps(opts, overrideProps)} />;
   }
@@ -27,9 +24,7 @@ describe('IssueDetailView', function() {
       issueishNumber: 200,
       issueishState: 'CLOSED',
       issueishReactions: [{content: 'THUMBS_UP', count: 6}, {content: 'THUMBS_DOWN', count: 0}, {content: 'LAUGH', count: 2}],
-    }, {
-      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.HIDDEN, 'An issue'),
-    }));
+    }, {}));
 
     const badge = wrapper.find('IssueishBadge');
     assert.strictEqual(badge.prop('type'), 'Issue');
