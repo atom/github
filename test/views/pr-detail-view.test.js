@@ -225,7 +225,7 @@ describe('PullRequestDetailView', function() {
       assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
       link.simulate('click');
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', from: 'issueish-header'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BarePullRequestDetailView'}));
     });
   });
 });
