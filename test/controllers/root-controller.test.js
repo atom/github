@@ -1116,7 +1116,7 @@ describe('RootController', function() {
       const uri = CommitPreviewItem.buildURI(workdir);
       const item = await atomEnv.workspace.open(uri);
 
-      assert.strictEqual(item.getTitle(), 'Commit preview');
+      assert.strictEqual(item.getTitle(), 'Staged Changes');
       assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
     });
 
