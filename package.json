@@ -198,6 +198,7 @@
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
     "FilePatchControllerStub": "createFilePatchControllerStub",
-    "CommitPreviewStub": "createCommitPreviewStub"
+    "CommitPreviewStub": "createCommitPreviewStub",
+    "CommitDetailStub": "createCommitDetailStub"
   }
 }
