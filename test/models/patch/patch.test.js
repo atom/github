@@ -563,24 +563,6 @@ describe.only('Patch', function() {
   });
 });
 
-function buildBuffer(lines, noNewline = false) {
-  const buffer = new TextBuffer();
-  for (let i = 0; i < lines; i++) {
-    const iStr = i.toString(10);
-    let padding = '';
-    for (let p = iStr.length; p < 4; p++) {
-      padding += '0';
-    }
-    buffer.append(padding);
-    buffer.append(iStr);
-    buffer.append('\n');
-  }
-  if (noNewline) {
-    buffer.append(' No newline at end of file\n');
-  }
-  return buffer;
-}
-
 function buildLayers(buffer) {
   return {
     patch: buffer.addMarkerLayer(),
