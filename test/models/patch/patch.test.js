@@ -2,11 +2,11 @@ import {TextBuffer} from 'atom';
 
 import Patch from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
+import {Unchanged, Addition, Deletion} from '../../../lib/models/patch/region';
 import {patchBuilder} from '../../builder/patch';
 import {assertInPatch} from '../../helpers';
 
-describe.only('Patch', function() {
+describe('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
@@ -518,7 +518,7 @@ describe.only('Patch', function() {
     ].join(''));
   });
 
-  it.only('correctly handles blank lines in added, removed, and unchanged regions', function() {
+  it('correctly handles blank lines in added, removed, and unchanged regions', function() {
     const buffer = new TextBuffer({text: '\n\n\n\n\n\n'});
     const layers = buildLayers(buffer);
 
