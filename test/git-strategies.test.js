@@ -158,6 +158,36 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('getDiffsForCommit(sha)', function() {
+      it('returns the diff for the specified commit sha', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+
+        const diffs = await git.getDiffForCommit('18920c90');
+
+        assertDeepPropertyVals(diffs, [{
+          oldPath: 'file.txt',
+          newPath: 'file.txt',
+          oldMode: '100644',
+          newMode: '100644',
+          hunks: [
+            {
+              oldStartLine: 1,
+              oldLineCount: 1,
+              newStartLine: 1,
+              newLineCount: 1,
+              heading: '',
+              lines: [
+                '-one',
+                '+two',
+              ],
+            },
+          ],
+          status: 'modified',
+        }]);
+      });
+    });
+
     describe('getCommits()', function() {
       describe('when no commits exist in the repository', function() {
         it('returns an array with an unborn ref commit when the include unborn option is passed', async function() {
