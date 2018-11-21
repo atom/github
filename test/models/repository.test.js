@@ -731,6 +731,17 @@ describe('Repository', function() {
     });
   });
 
+  describe('getCommit(sha)', function() {
+    it('returns the commit information for the provided sha', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      console.log(await repo.getCommit('18920c90'));
+      // TODO ...
+    });
+  });
+
   describe('undoLastCommit()', function() {
     it('performs a soft reset', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
