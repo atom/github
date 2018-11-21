@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
 import {BarePullRequestDetailView, checkoutStates} from '../../lib/views/pr-detail-view';
+import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
 import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import EnableableOperation from '../../lib/models/enableable-operation';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -57,10 +58,7 @@ describe('PullRequestDetailView', function() {
 
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => n.prop('html') === '<code>stuff</code>'));
 
-    const reactionGroups = wrapper.find('.github-IssueishDetailView-reactionsGroup');
-    assert.lengthOf(reactionGroups.findWhere(n => /👍/u.test(n.text()) && /\b10\b/.test(n.text())), 1);
-    assert.lengthOf(reactionGroups.findWhere(n => /👎/u.test(n.text()) && /\b5\b/.test(n.text())), 1);
-    assert.isFalse(reactionGroups.someWhere(n => /😆/u.test(n.text())));
+    assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
 
     assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
@@ -112,53 +110,6 @@ describe('PullRequestDetailView', function() {
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), `${ownerLogin}/${baseRefName}`);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), `${authorLogin}/${headRefName}`);
-  });
-
-  it('renders issue information', function() {
-    const wrapper = shallow(buildApp({
-      repositoryName: 'repo',
-      ownerLogin: 'user1',
-
-      issueishKind: 'Issue',
-      issueishTitle: 'Issue title',
-      issueishBodyHTML: '<code>nope</code>',
-      issueishAuthorLogin: 'author1',
-      issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/2',
-      issueishNumber: 200,
-      issueishState: 'CLOSED',
-      issueishReactions: [{content: 'THUMBS_UP', count: 6}, {content: 'THUMBS_DOWN', count: 0}, {content: 'LAUGH', count: 2}],
-    }, {
-      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.HIDDEN, 'An issue'),
-    }));
-
-    const badge = wrapper.find('IssueishBadge');
-    assert.strictEqual(badge.prop('type'), 'Issue');
-    assert.strictEqual(badge.prop('state'), 'CLOSED');
-
-    const link = wrapper.find('a.github-IssueishDetailView-headerLink');
-    assert.strictEqual(link.text(), 'user1/repo#200');
-    assert.strictEqual(link.prop('href'), 'https://github.com/user1/repo/issues/200');
-
-    assert.isFalse(wrapper.find('Relay(PrStatuses)').exists());
-    assert.isFalse(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
-
-    const avatarLink = wrapper.find('.github-IssueishDetailView-avatar');
-    assert.strictEqual(avatarLink.prop('href'), 'https://github.com/author1');
-    const avatar = avatarLink.find('img');
-    assert.strictEqual(avatar.prop('src'), 'https://avatars3.githubusercontent.com/u/2');
-    assert.strictEqual(avatar.prop('title'), 'author1');
-
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-title').text(), 'Issue title');
-
-    assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => n.prop('html') === '<code>nope</code>'));
-
-    const reactionGroups = wrapper.find('.github-IssueishDetailView-reactionsGroup');
-    assert.lengthOf(reactionGroups.findWhere(n => /👍/u.test(n.text()) && /\b6\b/.test(n.text())), 1);
-    assert.isFalse(reactionGroups.someWhere(n => /👎/u.test(n.text())));
-    assert.lengthOf(reactionGroups.findWhere(n => /😆/u.test(n.text()) && /\b2\b/.test(n.text())), 1);
-
-    assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
-    assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
   });
 
   it('renders a placeholder issueish body', function() {
