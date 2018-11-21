@@ -237,6 +237,7 @@ class HunkBuilder {
     this.newRowCount = null;
 
     this.sectionHeading = "don't care";
+    this.explicitlyEmpty = false;
 
     this.hunkStartPoint = this.layeredBuffer.getInsertionPoint();
     this.regions = [];
@@ -267,8 +268,13 @@ class HunkBuilder {
     return this;
   }
 
+  empty() {
+    this.explicitlyEmpty = true;
+    return this;
+  }
+
   build() {
-    if (this.regions.length === 0) {
+    if (this.regions.length === 0 && !this.explicitlyEmpty) {
       this.unchanged('0000').added('0001').deleted('0002').unchanged('0003');
     }
 
