@@ -6,7 +6,7 @@ import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
 import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe.only('IssueDetailView', function() {
+describe('IssueDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
     return <BareIssueDetailView {...issueishDetailViewProps(opts, overrideProps)} />;
   }
