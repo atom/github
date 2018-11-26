@@ -65,9 +65,12 @@ describe.only('CommitDetailController', function() {
     sinon.stub(newCommit, 'getMultiFileDiff').returns(mfp);
     const wrapper = mount(buildApp({commit: newCommit}));
 
-    assert.strictEqual(wrapper.find('h3.github-CommitDetailView-title').text(), 'subject');
-    assert.strictEqual(wrapper.find('pre.github-CommitDetailView-moreText').text(), 'messageBody 🌙');
-    assert.strictEqual(wrapper.find('span.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-title').text(), 'subject');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'messageBody 🌙');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha').text(), '420');
+    /* TODO fix href test */
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), '420');
 
   });
 
