@@ -5,7 +5,7 @@ import CommitDetailContainer from '../../lib/containers/commit-detail-container'
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {cloneRepository, buildRepository} from '../helpers';
 
-describe.only('CommitDetailContainer', function() {
+describe('CommitDetailContainer', function() {
   let atomEnv, repository;
 
   beforeEach(async function() {
