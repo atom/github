@@ -145,4 +145,11 @@ describe.only('CommitDetailItem', function() {
     sub.dispose();
   });
 
+  it('has an item-level accessor for the current working directory & sha', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item = await open(wrapper, {workingDirectory: '/dir7', sha: '420'});
+    assert.strictEqual(item.getWorkingDirectory(), '/dir7');
+    assert.strictEqual(item.getSha(), '420');
+  });
+
 });
