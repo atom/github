@@ -189,6 +189,11 @@
       "type": "string",
       "default": "",
       "description": "Comma-separated list of email addresses to exclude from the co-author selection list"
+    },
+    "reportCannotLocateWorkspaceError": {
+      "type": "boolean",
+      "default": "false",
+      "description": "Log an error to the console if a git repository cannot be located for the opened file "
     }
   },
   "deserializers": {
