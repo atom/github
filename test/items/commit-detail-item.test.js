@@ -59,7 +59,7 @@ describe.only('CommitDetailItem', function() {
       sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
       ...options,
     };
-    const uri = CommitDetailItem.buildURI(opts.workingDirectory);
+    const uri = CommitDetailItem.buildURI(opts.workingDirectory, opts.sha);
     return atomEnv.workspace.open(uri);
   }
 
@@ -68,6 +68,29 @@ describe.only('CommitDetailItem', function() {
     await open(wrapper);
 
     assert.isTrue(wrapper.update().find('CommitDetailItem').exists());
+  });
+
+  it('passes extra props to its container', async function() {
+    const extra = Symbol('extra');
+    const wrapper = mount(buildPaneApp({extra}));
+    await open(wrapper);
+
+    assert.strictEqual(wrapper.update().find('CommitDetailItem').prop('extra'), extra);
+  });
+
+  it('serializes itself as a CommitDetailItem', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item0 = await open(wrapper, {workingDirectory: '/dir0', sha: '420'});
+    assert.deepEqual(item0.serialize(), {
+      deserializer: 'CommitDetailStub',
+      uri: 'atom-github://commit-detail?workdir=%2Fdir0&sha=420',
+    });
+
+    const item1 = await open(wrapper, {workingDirectory: '/dir1', sha: '1337'});
+    assert.deepEqual(item1.serialize(), {
+      deserializer: 'CommitDetailStub',
+      uri: 'atom-github://commit-detail?workdir=%2Fdir1&sha=1337',
+    });
   });
 
 });
