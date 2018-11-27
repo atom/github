@@ -103,7 +103,7 @@ Use a package configuration setting to control when features under development a
 
 ## All together
 
-Each set of developers who are online synchronously can divide work into Seams. As that set changes when people come online and drop offline, we use Handoffs to pass context along.
+Each set of developers who are online synchronously can divide work into Seams. As that set changes when people come online and drop offline, we use Handoffs to pass context along. Remaining tasking is tracked in a dedicated, loosely-managed feature project linked from the feature request PR.
 
 As we work, we push commits to a common branch, against a common pull request. Depending on the feature under construction, we either Dark Ship code in an early state or hide its entry points behind a Feature Flag.
 
