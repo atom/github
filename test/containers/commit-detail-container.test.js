@@ -5,6 +5,8 @@ import CommitDetailContainer from '../../lib/containers/commit-detail-container'
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {cloneRepository, buildRepository} from '../helpers';
 
+const VALID_SHA = '18920c900bfa6e4844853e7e246607a31c3e2e8c';
+
 describe('CommitDetailContainer', function() {
   let atomEnv, repository;
 
@@ -23,7 +25,7 @@ describe('CommitDetailContainer', function() {
 
     const props = {
       repository,
-      sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
+      sha: VALID_SHA,
 
       itemType: CommitDetailItem,
       workspace: atomEnv.workspace,
@@ -47,7 +49,7 @@ describe('CommitDetailContainer', function() {
 
   it('renders a loading spinner while the file patch is being loaded', async function() {
     await repository.getLoadPromise();
-    const patchPromise = repository.getStagedChangesPatch();
+    const commitPromise = repository.getCommit(VALID_SHA);
     let resolveDelayedPromise = () => {};
     const delayedPromise = new Promise(resolve => {
       resolveDelayedPromise = resolve;
@@ -57,13 +59,13 @@ describe('CommitDetailContainer', function() {
     const wrapper = mount(buildApp());
 
     assert.isTrue(wrapper.find('LoadingView').exists());
-    resolveDelayedPromise(patchPromise);
+    resolveDelayedPromise(commitPromise);
     await assert.async.isFalse(wrapper.update().find('LoadingView').exists());
   });
 
   it('renders a CommitDetailController once the commit is loaded', async function() {
     await repository.getLoadPromise();
-    const commit = await repository.getCommit('18920c900bfa6e4844853e7e246607a31c3e2e8c');
+    const commit = await repository.getCommit(VALID_SHA);
 
     const wrapper = mount(buildApp());
     await assert.async.isTrue(wrapper.update().find('CommitDetailController').exists());
