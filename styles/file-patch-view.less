@@ -32,14 +32,6 @@
     }
   }
 
-  // Editor overrides
-
-  atom-text-editor {
-    .selection .region {
-      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
-    }
-  }
-
   &-header {
     display: flex;
     justify-content: space-between;
@@ -220,11 +212,6 @@
       min-width: 6ch; // Fit up to 4 characters (+1 padding on each side)
       opacity: 1;
       padding: 0 1ch 0 0;
-
-      &.github-FilePatchView-line--selected {
-        color: contrast(@button-background-color-selected);
-        background: @button-background-color-selected;
-      }
     }
 
     &.icons .line-number {
@@ -249,11 +236,6 @@
       &.github-FilePatchView-line--nonewline:before {
         content: @no-newline;
       }
-
-      &.github-FilePatchView-line--selected {
-        color: contrast(@button-background-color-selected);
-        background: @button-background-color-selected;
-      }
     }
   }
 
@@ -268,6 +250,49 @@
   atom-text-editor[readonly] {
     .cursors {
       display: none;
+    }
+  }
+}
+
+
+// States
+
+// Selected
+.github-FilePatchView {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number {
+      &.github-FilePatchView-line--selected {
+        color: @text-color-selected;
+        background: @background-color-selected;
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: transparent;
+    }
+  }
+}
+
+// Selected + focused
+.github-FilePatchView:focus-within {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number {
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
     }
   }
 }
