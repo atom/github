@@ -19,7 +19,22 @@
   &Label {
     flex: 1;
     margin: @github-dialog-spacing;
+    position: relative;
     line-height: 2;
+
+    &Button {
+      position: absolute;
+      background: transparent;
+      right: .3em;
+      bottom: 0;
+      border: none;
+      color: @text-color-subtle;
+      cursor: pointer;
+
+      &:hover {
+        color: @text-color-highlight;
+      }
+    }
   }
 
   &Buttons {
