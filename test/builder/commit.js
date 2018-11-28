@@ -46,6 +46,12 @@ class CommitBuilder {
     this._multiFileDiff = builder.build().multiFilePatch;
     return this;
   }
+
+  addCoAuthor(name, email) {
+    this._coAuthors.push({name, email});
+    return this;
+  }
+
   build() {
     const commit = new Commit({
       sha: this._sha,
