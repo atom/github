@@ -23,6 +23,8 @@ describe('CommitDetailView', function() {
     const props = {
       repository,
       commit: commitBuilder().build(),
+      messageCollapsible: false,
+      messageOpen: true,
       itemType: CommitDetailItem,
 
       workspace: atomEnv.workspace,
@@ -86,5 +88,15 @@ describe('CommitDetailView', function() {
         'https://avatars.githubusercontent.com/u/e?email=three%40coauthor.com&s=32',
       ],
     );
+  });
+
+  describe('commit message collapsibility', function() {
+    it('renders the full message when messageCollapsible is false');
+
+    it('renders an abbreviated message when messageCollapsible is true and messageOpen is false');
+
+    it('renders the full message when messageCollapsible is true and messageOpen is true');
+
+    it('calls toggleMessage the "See More" or "See Less" buttons are clicked');
   });
 });
