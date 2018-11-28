@@ -1,6 +1,7 @@
 import moment from 'moment';
 
 import Commit from '../../lib/models/commit';
+import {multiFilePatchBuilder} from './patch';
 
 class CommitBuilder {
   constructor() {
@@ -10,6 +11,8 @@ class CommitBuilder {
     this._coAuthors = [];
     this._messageSubject = 'subject';
     this._messageBody = 'body';
+
+    this._multiFileDiff = null;
   }
 
   sha(newSha) {
@@ -37,8 +40,14 @@ class CommitBuilder {
     return this;
   }
 
+  setMultiFileDiff(block = () => {}) {
+    const builder = multiFilePatchBuilder();
+    block(builder);
+    this._multiFileDiff = builder.build().multiFilePatch;
+    return this;
+  }
   build() {
-    return new Commit({
+    const commit = new Commit({
       sha: this._sha,
       authorEmail: this._authorEmail,
       authorDate: this._authorDate,
@@ -46,6 +55,12 @@ class CommitBuilder {
       messageSubject: this._messageSubject,
       messageBody: this._messageBody,
     });
+
+    if (this._multiFileDiff !== null) {
+      commit.setMultiFileDiff(this._multiFileDiff);
+    }
+
+    return commit;
   }
 }
 
