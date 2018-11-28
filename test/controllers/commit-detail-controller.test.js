@@ -1,21 +1,20 @@
 import React from 'react';
-import moment from 'moment';
-import {shallow, mount} from 'enzyme';
+import {shallow} from 'enzyme';
+import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import CommitDetailController from '../../lib/controllers/commit-detail-controller';
-import Commit from '../../lib/models/commit';
-import {multiFilePatchBuilder} from '../builder/patch';
+
+const VALID_SHA = '18920c900bfa6e4844853e7e246607a31c3e2e8c';
 
 describe('CommitDetailController', function() {
-
   let atomEnv, repository, commit;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     repository = await buildRepository(await cloneRepository('multiple-commits'));
-    commit = await repository.getCommit('18920c900bfa6e4844853e7e246607a31c3e2e8c');
+    commit = await repository.getCommit(VALID_SHA);
   });
 
   afterEach(function() {
@@ -41,59 +40,68 @@ describe('CommitDetailController', function() {
     return <CommitDetailController {...props} />;
   }
 
-  it('has a MultiFilePatchController', function() {
-    const wrapper = mount(buildApp());
-    assert.isTrue(wrapper.find('MultiFilePatchController').exists());
+  it('forwards props to its CommitDetailView', function() {
+    const wrapper = shallow(buildApp());
+    const view = wrapper.find('CommitDetailView');
+
+    assert.strictEqual(view.prop('repository'), repository);
+    assert.strictEqual(view.prop('commit'), commit);
+    assert.strictEqual(view.prop('itemType'), CommitDetailItem);
   });
 
-  it('passes unrecognized props to a MultiFilePatchController', function() {
+  it('passes unrecognized props to its CommitDetailView', function() {
     const extra = Symbol('extra');
     const wrapper = shallow(buildApp({extra}));
-
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('extra'), extra);
+    assert.strictEqual(wrapper.find('CommitDetailView').prop('extra'), extra);
   });
 
-  it('renders commit details properly', function() {
-    const newCommit = new Commit({
-      sha: '420',
-      authorEmail: 'very@nice.com',
-      authorDate: moment().subtract(2, 'days').unix(),
-      messageSubject: 'subject',
-      messageBody: 'messageBody',
+  describe('commit body collapsing', function() {
+    const LONG_MESSAGE = dedent`
+      Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
+      essent malorum persius ne mei. Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
+      tantas nullam corrumpit ad, in oratio luptatum eleifend vim.
+
+      Ea salutatus contentiones eos. Eam in veniam facete volutpat, solum appetere adversarium ut quo. Vel cu appetere
+      urbanitas, usu ut aperiri mediocritatem, alia molestie urbanitas cu qui. Velit antiopam erroribus no eum, scripta
+      iudicabit ne nam, in duis clita commodo sit.
+
+      Assum sensibus oportere te vel, vis semper evertitur definiebas in. Tamquam feugiat comprehensam ut his, et eum
+      voluptua ullamcorper, ex mei debitis inciderint. Sit discere pertinax te, an mei liber putant. Ad doctus tractatos
+      ius, duo ad civibus alienum, nominati voluptaria sed an. Libris essent philosophia et vix. Nusquam reprehendunt et
+      mea. Ea eius omnes voluptua sit.
+
+      No cum illud verear efficiantur. Id altera imperdiet nec. Noster audiam accusamus mei at, no zril libris nemore
+      duo, ius ne rebum doctus fuisset. Legimus epicurei in sit, esse purto suscipit eu qui, oporteat deserunt
+      delicatissimi sea in. Est id putent accusata convenire, no tibique molestie accommodare quo, cu est fuisset
+      offendit evertitur.
+    `;
+
+    it('is uncollapsible if the commit message is short', function() {
+      sinon.stub(commit, 'getMessageBody').returns('short');
+      const wrapper = shallow(buildApp());
+      const view = wrapper.find('CommitDetailView');
+      assert.isFalse(view.prop('messageCollapsible'));
+      assert.isTrue(view.prop('messageOpen'));
     });
-    const {multiFilePatch: mfp} = multiFilePatchBuilder().addFilePatch().build();
-    sinon.stub(newCommit, 'getMultiFileDiff').returns(mfp);
-    const wrapper = mount(buildApp({commit: newCommit}));
 
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-title').text(), 'subject');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'messageBody');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha').text(), '420');
-    /* TODO fix href test */
-    // assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), '420');
-    assert.strictEqual(wrapper.find('img.github-RecentCommit-avatar').prop('src'), 'https://avatars.githubusercontent.com/u/e?email=very%40nice.com&s=32');
-  });
+    it('is collapsible and begins collapsed if the commit message is long', function() {
+      sinon.stub(commit, 'getMessageBody').returns(LONG_MESSAGE);
 
-  it('renders multiple avatars for co-authored commit', function() {
-    const newCommit = new Commit({
-      sha: '420',
-      authorEmail: 'very@nice.com',
-      authorDate: moment().subtract(2, 'days').unix(),
-      messageSubject: 'subject',
-      messageBody: 'messageBody',
-      coAuthors: [{name: 'two', email: 'two@coauthor.com'}, {name: 'three', email: 'three@coauthor.com'}],
+      const wrapper = shallow(buildApp());
+      const view = wrapper.find('CommitDetailView');
+      assert.isTrue(view.prop('messageCollapsible'));
+      assert.isFalse(view.prop('messageOpen'));
     });
-    const {multiFilePatch: mfp} = multiFilePatchBuilder().addFilePatch().build();
-    sinon.stub(newCommit, 'getMultiFileDiff').returns(mfp);
-    const wrapper = mount(buildApp({commit: newCommit}));
-    assert.deepEqual(
-      wrapper.find('img.github-RecentCommit-avatar').map(w => w.prop('src')),
-      [
-        'https://avatars.githubusercontent.com/u/e?email=very%40nice.com&s=32',
-        'https://avatars.githubusercontent.com/u/e?email=two%40coauthor.com&s=32',
-        'https://avatars.githubusercontent.com/u/e?email=three%40coauthor.com&s=32',
-      ],
-    );
-  });
 
+    it('toggles collapsed state', async function() {
+      sinon.stub(commit, 'getMessageBody').returns(LONG_MESSAGE);
+
+      const wrapper = shallow(buildApp());
+      assert.isFalse(wrapper.find('CommitDetailView').prop('messageOpen'));
+
+      await wrapper.find('CommitDetailView').prop('toggleMessage')();
+
+      assert.isTrue(wrapper.find('CommitDetailView').prop('messageOpen'));
+    });
+  });
 });
