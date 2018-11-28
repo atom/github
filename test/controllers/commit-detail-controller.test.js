@@ -41,10 +41,9 @@ describe('CommitDetailController', function() {
     return <CommitDetailController {...props} />;
   }
 
-  it('has a MultiFilePatchController that has `disableStageUnstage` flag set to true', function() {
+  it('has a MultiFilePatchController', function() {
     const wrapper = mount(buildApp());
     assert.isTrue(wrapper.find('MultiFilePatchController').exists());
-    assert.isTrue(wrapper.find('MultiFilePatchController').prop('disableStageUnstage'));
   });
 
   it('passes unrecognized props to a MultiFilePatchController', function() {
