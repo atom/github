@@ -1,24 +1,13 @@
-import moment from 'moment';
 import dedent from 'dedent-js';
 
-import Commit, {nullCommit} from '../../lib/models/commit';
+import {nullCommit} from '../../lib/models/commit';
+import {commitBuilder} from '../builder/commit';
 
 describe('Commit', function() {
-  function buildCommit(override = {}) {
-    return new Commit({
-      sha: '0123456789abcdefghij0123456789abcdefghij',
-      authorEmail: 'me@email.com',
-      coAuthors: [],
-      authorDate: moment('2018-11-28T12:00:00', moment.ISO_8601).unix(),
-      messageSubject: 'subject',
-      messageBody: 'body',
-      ...override,
-    });
-  }
-
   describe('isBodyLong()', function() {
     it('returns false if the commit message body is short', function() {
-      assert.isFalse(buildCommit({messageBody: 'short'}).isBodyLong());
+      const commit = commitBuilder().messageBody('short').build();
+      assert.isFalse(commit.isBodyLong());
     });
 
     it('returns true if the commit message body is long', function() {
@@ -41,7 +30,8 @@ describe('Commit', function() {
         delicatissimi sea in. Est id putent accusata convenire, no tibique molestie accommodare quo, cu est fuisset
         offendit evertitur.
       `;
-      assert.isTrue(buildCommit({messageBody}).isBodyLong());
+      const commit = commitBuilder().messageBody(messageBody).build();
+      assert.isTrue(commit.isBodyLong());
     });
 
     it('returns false for a null commit', function() {
