@@ -6,7 +6,7 @@ import PaneItem from '../../lib/atom/pane-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {cloneRepository} from '../helpers';
 
-describe.only('CommitDetailItem', function() {
+describe('CommitDetailItem', function() {
   let atomEnv, repository, pool;
 
   beforeEach(async function() {
