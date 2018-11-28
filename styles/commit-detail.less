@@ -3,19 +3,13 @@
 @default-padding: @component-padding;
 @avatar-dimensions: 16px;
 
-.github-CommitDetail {
-
-  &-root {
-    // TODO: Remove if CommitDetailView gets moved to a editor decoration
-    overflow-y: auto;
-  }
-
-}
-
-
 .github-CommitDetailView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &-header {
+    flex: 0;
     padding: @default-padding;
     padding-bottom: 0;
     background-color: @syntax-background-color;
