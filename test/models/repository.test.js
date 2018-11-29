@@ -64,7 +64,7 @@ describe('Repository', function() {
       for (const method of [
         'isLoadingGuess', 'isAbsentGuess', 'isAbsent', 'isLoading', 'isEmpty', 'isPresent', 'isTooLarge',
         'isUndetermined', 'showGitTabInit', 'showGitTabInitInProgress', 'showGitTabLoading', 'showStatusBarTiles',
-        'hasDiscardHistory', 'isMerging', 'isRebasing',
+        'hasDiscardHistory', 'isMerging', 'isRebasing', 'isCommitPushed',
       ]) {
         assert.isFalse(await repository[method]());
       }
