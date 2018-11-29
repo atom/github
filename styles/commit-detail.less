@@ -69,6 +69,9 @@
     word-break: break-word;
     white-space: pre-wrap;
     background-color: transparent;
+    // in the case of loonnng commit message bodies, we want to cap the height so that
+    // the content beneath will remain visible / scrollable.
+    max-height: 55vh;
     &:empty {
       display: none;
     }
