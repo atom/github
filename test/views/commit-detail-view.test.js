@@ -5,6 +5,7 @@ import dedent from 'dedent-js';
 
 import CommitDetailView from '../../lib/views/commit-detail-view';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
+import Commit from '../../lib/models/commit';
 import {cloneRepository, buildRepository} from '../helpers';
 import {commitBuilder} from '../builder/commit';
 
@@ -93,65 +94,81 @@ describe('CommitDetailView', function() {
   });
 
   describe('commit message collapsibility', function() {
-    let wrapper;
-    const commitMessageBody = dedent`
-          if every pork chop was perfect...
+    let wrapper, shortMessage, longMessage;
 
+    beforeEach(function() {
+      shortMessage = dedent`
+        if every pork chop was perfect...
 
+        we wouldn't have hot dogs!
+        🌭🌭🌭🌭🌭🌭🌭
+      `;
 
-          we wouldn't have hot dogs!
-          🌭🌭🌭🌭🌭🌭🌭
-          `;
-    const commit = commitBuilder()
-      .authorEmail('greg@mruniverse.biz')
-      .messageBody(commitMessageBody)
-      .build();
+      longMessage = 'this message is really really really\n';
+      while (longMessage.length < Commit.LONG_MESSAGE_THRESHOLD) {
+        longMessage += 'really really really really really really\n';
+      }
+      longMessage += 'really really long.';
+    });
+
     describe('when messageCollapsible is false', function() {
       beforeEach(function() {
+        const commit = commitBuilder().messageBody(shortMessage).build();
         wrapper = shallow(buildApp({commit, messageCollapsible: false}));
       });
-      it('renders the full message body', function() {
-        assert.deepEqual(wrapper.find('.github-CommitDetailView-moreText').text(), commitMessageBody);
-      });
-      it('does not render a button', function() {
 
+      it('renders the full message body', function() {
+        assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), shortMessage);
+      });
+
+      it('does not render a button', function() {
+        assert.isFalse(wrapper.find('.github-CommitDetailView-moreButton').exists());
       });
     });
+
     describe('when messageCollapsible is true and messageOpen is false', function() {
       beforeEach(function() {
+        const commit = commitBuilder().messageBody(longMessage).build();
         wrapper = shallow(buildApp({commit, messageCollapsible: true, messageOpen: false}));
       });
-      it('does not render commit message', function() {
-        assert.lengthOf(wrapper.find('.github-CommitDetailView-moreText'), 0);
+
+      it('renders an abbreviated commit message', function() {
+        const messageText = wrapper.find('.github-CommitDetailView-moreText').text();
+        assert.notStrictEqual(messageText, longMessage);
+        assert.isAtMost(messageText.length, Commit.LONG_MESSAGE_THRESHOLD);
       });
 
-      it('renders button with the text `Show More`', function() {
+      it('renders a button to reveal the rest of the message', function() {
         const button = wrapper.find('.github-CommitDetailView-moreButton');
         assert.lengthOf(button, 1);
-        assert.deepEqual(button.text(), 'Show More');
+        assert.strictEqual(button.text(), 'Show More');
       });
     });
 
     describe('when messageCollapsible is true and messageOpen is true', function() {
       let toggleMessage;
+
       beforeEach(function() {
         toggleMessage = sinon.spy();
+        const commit = commitBuilder().messageBody(longMessage).build();
         wrapper = shallow(buildApp({commit, messageCollapsible: true, messageOpen: true, toggleMessage}));
       });
+
       it('renders the full message', function() {
-        assert.deepEqual(wrapper.find('.github-CommitDetailView-moreText').text(), commitMessageBody);
-      });
-      it('renders a button with the text `Hide More`', function() {
-        const button = wrapper.find('.github-CommitDetailView-moreButton');
-        assert.lengthOf(button, 1);
-        assert.deepEqual(button.text(), 'Hide More');
-      });
-      it('button calls `toggleMessage` prop when clicked', function() {
-        const button = wrapper.find('.github-CommitDetailView-moreButton');
-        button.simulate('click');
-        assert.ok(toggleMessage.called);
+        assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), longMessage);
       });
 
+      it('renders a button to collapse the message text', function() {
+        const button = wrapper.find('.github-CommitDetailView-moreButton');
+        assert.lengthOf(button, 1);
+        assert.strictEqual(button.text(), 'Show Less');
+      });
+
+      it('the button calls toggleMessage when clicked', function() {
+        const button = wrapper.find('.github-CommitDetailView-moreButton');
+        button.simulate('click');
+        assert.isTrue(toggleMessage.called);
+      });
     });
   });
 });
