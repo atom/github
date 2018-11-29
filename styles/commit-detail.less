@@ -15,22 +15,16 @@
     background-color: @syntax-background-color;
   }
 
-  &-commitContainer {
-    display: flex;
-    align-items: center;
+  &-commit {
     padding: @default-padding;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
   }
 
-  &-commit {
-    flex: 1;
-  }
-
   &-title {
     margin: 0 0 .25em 0;
-    font-size: 1.2em;
-    line-height: 1.4;
+    font-size: 1.4em;
+    line-height: 1.3;
     color: @text-color-highlight;
   }
 
@@ -41,7 +35,14 @@
     width: @avatar-dimensions;
   }
 
+  &-meta {
+    display: flex;
+    align-items: center;
+    margin-top: @default-padding/2;
+  }
+
   &-metaText {
+    flex: 1;
     margin-left: @avatar-dimensions * 1.3; // leave some space for the avatars
     line-height: @avatar-dimensions;
     color: @text-color-subtle;
@@ -64,7 +65,7 @@
   }
 
   &-moreText {
-    padding: 0 0 @default-padding 0;
+    padding: @default-padding/2 0 @default-padding 0;
     font-size: inherit;
     font-family: var(--editor-font-family);
     word-wrap: initial;
