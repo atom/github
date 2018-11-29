@@ -34,6 +34,15 @@ describe('Commit', function() {
       assert.isTrue(commit.isBodyLong());
     });
 
+    it('returns true if the commit message body contains too many newlines', function() {
+      let messageBody = 'a\n';
+      for (let i = 0; i < 50; i++) {
+        messageBody += 'a\n';
+      }
+      const commit = commitBuilder().messageBody(messageBody).build();
+      assert.isTrue(commit.isBodyLong());
+    });
+
     it('returns false for a null commit', function() {
       assert.isFalse(nullCommit.isBodyLong());
     });
@@ -128,6 +137,15 @@ describe('Commit', function() {
         'mediocritatem,aliamolestieurbanitascuqui.Velitantiopamerroribusnoeum,scriptaiudicabitnenam,in' +
         'duisclitacommodosit.Assumsensibusoporteretevel,vis...',
       );
+    });
+
+    it('truncates the message body when it contains too many newlines', function() {
+      let messageBody = '';
+      for (let i = 0; i < 50; i++) {
+        messageBody += `${i}\n`;
+      }
+      const commit = commitBuilder().messageBody(messageBody).build();
+      assert.strictEqual(commit.abbreviatedBody(), '0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n...');
     });
   });
 });
