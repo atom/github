@@ -17,9 +17,11 @@ import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
+import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;
@@ -320,6 +322,61 @@ describe('RootController', function() {
         'Unable to initialize git repository in /a/path',
         sinon.match({detail: sinon.match(/this is stderr/)}),
       ));
+    });
+  });
+
+  describe('github:open-commit', function() {
+    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit;
+
+    beforeEach(async function() {
+      openCommitDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
+        resolveOpenCommit = resolve;
+      }));
+
+      workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal open-commit panel', function() {
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenCommitDialog'), 1);
+    });
+
+    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenCommitDialog');
+      const sha = 'asdf1234';
+
+      const promise = dialog.prop('didAccept')({sha});
+      resolveOpenCommit();
+      await promise;
+
+      const uri = CommitDetailItem.buildURI(workdirPath, sha);
+
+      assert.isTrue(openCommitDetails.calledWith(uri));
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {package: 'github', from: OpenCommitDialog.name}));
+    });
+
+    it('dismisses the open-commit panel on cancel', function() {
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenCommitDialog');
+      dialog.prop('didCancel')();
+
+      wrapper.update();
+      assert.lengthOf(wrapper.find('OpenCommitDialog'), 0);
+      assert.isFalse(openCommitDetails.called);
+      assert.isFalse(wrapper.state('openCommitDialogActive'));
     });
   });
 
