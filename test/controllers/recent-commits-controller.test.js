@@ -142,16 +142,24 @@ describe('RecentCommitsController', function() {
     });
   });
 
-  it('forwards focus management methods to its view', function() {
+  it('forwards focus management methods to its view', async function() {
     const wrapper = mount(app);
 
     const setFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
-    const rememberFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'rememberFocus');
+    const rememberFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'getFocus');
+    const advanceFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'advanceFocusFrom');
+    const retreatFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'retreatFocusFrom');
 
     wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT);
     assert.isTrue(setFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
 
-    wrapper.instance().rememberFocus({target: null});
-    assert.isTrue(rememberFocusSpy.calledWith({target: null}));
+    wrapper.instance().getFocus(document.body);
+    assert.isTrue(rememberFocusSpy.calledWith(document.body));
+
+    await wrapper.instance().advanceFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
+    assert.isTrue(advanceFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+
+    await wrapper.instance().retreatFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
+    assert.isTrue(retreatFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
   });
 });

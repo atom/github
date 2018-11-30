@@ -39,6 +39,7 @@
 '.github-CommitView-editor atom-text-editor:not([mini])':
   'cmd-enter': 'github:commit'
   'ctrl-enter': 'github:commit'
+  'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
 '.github-CommitView-commitPreview':

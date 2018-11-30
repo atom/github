@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import RecentCommitsView from '../../lib/views/recent-commits-view';
+import CommitView from '../../lib/views/commit-view';
 import {commitBuilder} from '../builder/commit';
 
 describe('RecentCommitsView', function() {
@@ -190,6 +191,33 @@ describe('RecentCommitsView', function() {
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:dive');
 
       assert.isTrue(openCommit.calledWith({sha: '1234', preserveFocus: false}));
+    });
+  });
+
+  describe('focus management', function() {
+    let instance;
+
+    beforeEach(function() {
+      instance = mount(app).instance();
+    });
+
+    it('keeps focus when advancing', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(RecentCommitsView.focus.RECENT_COMMIT),
+        RecentCommitsView.focus.RECENT_COMMIT,
+      );
+    });
+
+    it('retreats focus to the CommitView when retreating', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(RecentCommitsView.focus.RECENT_COMMIT),
+        CommitView.lastFocus,
+      );
+    });
+
+    it('returns null from unrecognized previous focuses', async function() {
+      assert.isNull(await instance.advanceFocusFrom(CommitView.firstFocus));
+      assert.isNull(await instance.retreatFocusFrom(CommitView.firstFocus));
     });
   });
 });
