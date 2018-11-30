@@ -51,6 +51,8 @@
   'enter': 'github:dive'
   'cmd-left': 'github:dive'
   'ctrl-left': 'github:dive'
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
 
 '.github-CommitDetailView':
   'cmd-right': 'github:surface'
