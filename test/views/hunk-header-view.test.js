@@ -128,5 +128,5 @@ describe('HunkHeaderView', function() {
     wrapper = shallow(buildApp({itemType: CommitDetailItem}));
     assert.isFalse(wrapper.find('.github-HunkHeaderView-stageButton').exists());
     assert.isFalse(wrapper.find('.github-HunkHeaderView-discardButton').exists());
-  })
+  });
 });

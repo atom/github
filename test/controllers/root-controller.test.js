@@ -22,7 +22,6 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
-import OpenIssueishDialog from '../../lib/views/open-issueish-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;

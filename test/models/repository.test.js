@@ -737,7 +737,6 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      console.log(await repo.getCommit('18920c90'));
       // TODO ...
     });
   });
