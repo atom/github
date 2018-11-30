@@ -44,7 +44,7 @@ describe('RecentCommitsController', function() {
     assert.isTrue(wrapper.find('RecentCommitsView').prop('isLoading'));
   });
 
-  describe('openCommit({sha})', function() {
+  describe('openCommit({sha, preserveFocus})', function() {
     it('opens a commit detail item', async function() {
       sinon.stub(atomEnv.workspace, 'open').resolves();
 
@@ -53,12 +53,26 @@ describe('RecentCommitsController', function() {
       app = React.cloneElement(app, {commits});
 
       const wrapper = shallow(app);
-      await wrapper.find('RecentCommitsView').prop('openCommit')({sha: 'asdf1234'});
+      await wrapper.find('RecentCommitsView').prop('openCommit')({sha: 'asdf1234', preserveFocus: false});
 
       assert.isTrue(atomEnv.workspace.open.calledWith(
         `atom-github://commit-detail?workdir=${encodeURIComponent(workdirPath)}` +
         `&sha=${encodeURIComponent(sha)}`,
       ));
+    });
+
+    it('preserves keyboard focus within the RecentCommitsView when requested', async function() {
+      sinon.stub(atomEnv.workspace, 'open').resolves();
+
+      const sha = 'asdf1234';
+      const commits = [commitBuilder().sha(sha).build()];
+      app = React.cloneElement(app, {commits});
+
+      const wrapper = mount(app);
+      const focusSpy = sinon.stub(wrapper.find('RecentCommitsView').instance(), 'setFocus').returns(true);
+
+      await wrapper.find('RecentCommitsView').prop('openCommit')({sha: 'asdf1234', preserveFocus: true});
+      assert.isTrue(focusSpy.called);
     });
 
     it('records an event', async function() {
