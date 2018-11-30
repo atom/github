@@ -84,7 +84,7 @@ describe('RecentCommitsController', function() {
       app = React.cloneElement(app, {commits});
       const wrapper = shallow(app);
 
-      await wrapper.instance().openCommit({sha: 'asdf1234'});
+      await wrapper.instance().openCommit({sha: 'asdf1234', preserveFocus: true});
       assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {
         package: 'github',
         from: RecentCommitsController.name,
