@@ -96,6 +96,12 @@
     // is selected
     color: @text-color-selected;
     background: @background-color-selected;
+
+    // also has focus
+    .github-RecentCommits:focus & {
+      color: contrast(@button-background-color-selected);
+      background: @button-background-color-selected;
+    }
   }
 
 }
