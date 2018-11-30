@@ -234,4 +234,13 @@ describe('GitTabView', function() {
     assert.isTrue(setFocus.called);
     assert.isTrue(setFocus.lastCall.returnValue);
   });
+
+  it('imperatively focuses the recent commits view', async function() {
+    const wrapper = mount(await buildApp());
+
+    const setFocus = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
+    wrapper.instance().focusAndSelectRecentCommit();
+    assert.isTrue(setFocus.called);
+    assert.isTrue(setFocus.lastCall.returnValue);
+  });
 });

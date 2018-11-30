@@ -32,6 +32,11 @@
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
+'.github-RecentCommitsView':
+  'up': 'github:recent-commit-up'
+  'down': 'github:recent-commit-down'
+  'enter': 'github:open-recent-commit'
+  
 '.github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
   'ctrl-backspace': 'github:discard-changes-in-selected-files'
