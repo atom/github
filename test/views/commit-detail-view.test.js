@@ -93,6 +93,41 @@ describe('CommitDetailView', function() {
     );
   });
 
+  describe('getAuthorInfo', function() {
+    describe('when there are no co-authors', function() {
+      it('returns only the author', function() {
+        const commit = commitBuilder()
+          .authorEmail('blaze@it.com')
+          .build();
+        const wrapper = shallow(buildApp({commit}));
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com');
+      });
+    });
+
+    describe('when there is one co-author', function() {
+      it('returns author and the co-author', function() {
+        const commit = commitBuilder()
+          .authorEmail('blaze@it.com')
+          .addCoAuthor('two', 'two@coauthor.com')
+          .build();
+        const wrapper = shallow(buildApp({commit}));
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com and two@coauthor.com');
+      });
+    });
+
+    describe('when there is more than one co-author', function() {
+      it('returns the author and number of co-authors', function() {
+        const commit = commitBuilder()
+          .authorEmail('blaze@it.com')
+          .addCoAuthor('two', 'two@coauthor.com')
+          .addCoAuthor('three', 'three@coauthor.com')
+          .build();
+        const wrapper = shallow(buildApp({commit}));
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com and 2 others');
+      });
+    });
+  });
+
   describe('commit message collapsibility', function() {
     let wrapper, shortMessage, longMessage;
 
