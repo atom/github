@@ -183,11 +183,11 @@ describe('RecentCommitsView', function() {
       assert.isTrue(selectPreviousCommit.called);
     });
 
-    it('opens the currently selected commit and does not preserve focus on core:confirm', function() {
+    it('opens the currently selected commit and does not preserve focus on github:dive', function() {
       const openCommit = sinon.spy();
       const wrapper = mount(React.cloneElement(app, {openCommit, selectedCommitSha: '1234'}));
 
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:dive');
 
       assert.isTrue(openCommit.calledWith({sha: '1234', preserveFocus: false}));
     });
