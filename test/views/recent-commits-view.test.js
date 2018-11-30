@@ -53,6 +53,18 @@ describe('RecentCommitsView', function() {
     assert.deepEqual(wrapper.find('RecentCommitView').map(w => w.prop('commit')), commits);
   });
 
+  it('scrolls the selected RecentCommitView into visibility', function() {
+    const commits = ['0', '1', '2', '3'].map(sha => commitBuilder().sha(sha).build());
+
+    app = React.cloneElement(app, {commits, selectedCommitSha: '1'});
+    const wrapper = mount(app);
+    const scrollSpy = sinon.spy(wrapper.find('RecentCommitView').at(3).getDOMNode(), 'scrollIntoViewIfNeeded');
+
+    wrapper.setProps({selectedCommitSha: '3'});
+
+    assert.isTrue(scrollSpy.calledWith(false));
+  });
+
   it('renders emojis in the commit subject', function() {
     const commits = [commitBuilder().messageSubject(':heart: :shirt: :smile:').build()];
 
