@@ -137,4 +137,47 @@ describe('RecentCommitsView', function() {
       'and a commit body',
     );
   });
+
+  it('opens a commit on click, preserving keyboard focus', function() {
+    const openCommit = sinon.spy();
+    const commits = [
+      commitBuilder().sha('0').build(),
+      commitBuilder().sha('1').build(),
+      commitBuilder().sha('2').build(),
+    ];
+    const wrapper = mount(React.cloneElement(app, {commits, openCommit, selectedCommitSha: '2'}));
+
+    wrapper.find('RecentCommitView').at(1).simulate('click');
+
+    assert.isTrue(openCommit.calledWith({sha: '1', preserveFocus: true}));
+  });
+
+  describe('keybindings', function() {
+    it('advances to the next commit on core:move-down', function() {
+      const selectNextCommit = sinon.spy();
+      const wrapper = mount(React.cloneElement(app, {selectNextCommit}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:move-down');
+
+      assert.isTrue(selectNextCommit.called);
+    });
+
+    it('retreats to the previous commit on core:move-up', function() {
+      const selectPreviousCommit = sinon.spy();
+      const wrapper = mount(React.cloneElement(app, {selectPreviousCommit}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:move-up');
+
+      assert.isTrue(selectPreviousCommit.called);
+    });
+
+    it('opens the currently selected commit and does not preserve focus on core:confirm', function() {
+      const openCommit = sinon.spy();
+      const wrapper = mount(React.cloneElement(app, {openCommit, selectedCommitSha: '1234'}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
+
+      assert.isTrue(openCommit.calledWith({sha: '1234', preserveFocus: false}));
+    });
+  });
 });
