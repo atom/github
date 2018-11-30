@@ -32,11 +32,6 @@
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
-'.github-RecentCommitsView':
-  'up': 'github:recent-commit-up'
-  'down': 'github:recent-commit-down'
-  'enter': 'github:open-recent-commit'
-  
 '.github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
   'ctrl-backspace': 'github:discard-changes-in-selected-files'
@@ -50,6 +45,15 @@
   'cmd-left': 'github:dive'
   'ctrl-left': 'github:dive'
   'enter': 'native!'
+
+'.github-RecentCommits':
+  'enter': 'github:dive'
+  'cmd-left': 'github:dive'
+  'ctrl-left': 'github:dive'
+
+'.github-CommitDetailView':
+  'cmd-right': 'github:surface'
+  'ctrl-right': 'github:surface'
 
 '.github-FilePatchView atom-text-editor:not([mini])':
   'cmd-/': 'github:toggle-patch-selection-mode'
