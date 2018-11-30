@@ -77,4 +77,54 @@ describe('RecentCommitsController', function() {
       }));
     });
   });
+
+  describe('commit navigation', function() {
+    let wrapper;
+
+    beforeEach(function() {
+      const commits = ['1', '2', '3', '4', '5'].map(s => commitBuilder().sha(s).build());
+      app = React.cloneElement(app, {commits});
+      wrapper = shallow(app);
+    });
+
+    describe('selectNextCommit', function() {
+      it('selects the first commit if there is no selection', async function() {
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '');
+        await wrapper.find('RecentCommitsView').prop('selectNextCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '1');
+      });
+
+      it('selects the next commit in sequence', async function() {
+        wrapper.setState({selectedCommitSha: '2'});
+        await wrapper.find('RecentCommitsView').prop('selectNextCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '3');
+      });
+
+      it('remains on the last commit', async function() {
+        wrapper.setState({selectedCommitSha: '5'});
+        await wrapper.find('RecentCommitsView').prop('selectNextCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '5');
+      });
+    });
+
+    describe('selectPreviousCommit', function() {
+      it('selects the first commit if there is no selection', async function() {
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '');
+        await wrapper.find('RecentCommitsView').prop('selectPreviousCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '1');
+      });
+
+      it('selects the previous commit in sequence', async function() {
+        wrapper.setState({selectedCommitSha: '3'});
+        await wrapper.find('RecentCommitsView').prop('selectPreviousCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '2');
+      });
+
+      it('remains on the first commit', async function() {
+        wrapper.setState({selectedCommitSha: '1'});
+        await wrapper.find('RecentCommitsView').prop('selectPreviousCommit')();
+        assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '1');
+      });
+    });
+  });
 });
