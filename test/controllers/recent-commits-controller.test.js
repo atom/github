@@ -1,5 +1,5 @@
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 
 import RecentCommitsController from '../../lib/controllers/recent-commits-controller';
 import {commitBuilder} from '../builder/commit';
@@ -126,5 +126,18 @@ describe('RecentCommitsController', function() {
         assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '1');
       });
     });
+  });
+
+  it('forwards focus management methods to its view', function() {
+    const wrapper = mount(app);
+
+    const setFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
+    const rememberFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'rememberFocus');
+
+    wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT);
+    assert.isTrue(setFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+
+    wrapper.instance().rememberFocus({target: null});
+    assert.isTrue(rememberFocusSpy.calledWith({target: null}));
   });
 });
