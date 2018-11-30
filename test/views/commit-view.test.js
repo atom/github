@@ -368,7 +368,16 @@ describe('CommitView', function() {
       );
     });
 
-    it('moves focus to the commit button if the commit editor is focused', async function() {
+    it('moves focus to the RecentCommitsView if the commit editor is focused', async function() {
+      wrapper.setProps({isCommitting: true});
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.EDITOR),
+        RecentCommitsView.firstFocus,
+      );
+    });
+
+    it('moves focus to the commit button if the commit editor is focused and the button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
       assert.strictEqual(
         await instance.advanceFocusFrom(CommitView.focus.EDITOR),
         CommitView.focus.COMMIT_BUTTON,
@@ -391,7 +400,15 @@ describe('CommitView', function() {
       );
     });
 
-    it('moves focus to the commit button if the coauthor input is focused and no merge is in progress', async function() {
+    it('moves focus to the RecentCommitsView if the coauthor input is focused and no merge is in progress', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COAUTHOR_INPUT),
+        RecentCommitsView.firstFocus,
+      );
+    });
+
+    it('moves focus to the commit button if the coauthor input is focused, no merge is in progress, and the button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
       assert.strictEqual(
         await instance.advanceFocusFrom(CommitView.focus.COAUTHOR_INPUT),
         CommitView.focus.COMMIT_BUTTON,
@@ -406,7 +423,15 @@ describe('CommitView', function() {
       );
     });
 
-    it('moves focus to the commit button if the abort merge button is focused', async function() {
+    it('moves focus to the RecentCommitsView if the abort merge button is focused', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
+        RecentCommitsView.firstFocus,
+      );
+    });
+
+    it('moves focus to the commit button if the abort merge button is focused and the commit button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
       assert.strictEqual(
         await instance.advanceFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
         CommitView.focus.COMMIT_BUTTON,
