@@ -11,21 +11,25 @@ const defaultProps = {
     date: '2018-05-16T21:54:24.500Z',
   },
   messageHeadline: 'This one weird trick for getting to the moon will blow your mind 🚀',
-  abbreviatedOid: 'bad1dea',
+  shortSha: 'bad1dea',
+  sha: 'bad1deaea3d816383721478fc631b5edd0c2b370',
   url: 'https://github.com/atom/github/pull/1684/commits/bad1deaea3d816383721478fc631b5edd0c2b370',
 };
-const getProps = function(overrides = {}) {
+const getProps = function(itemOverrides = {}, overrides = {}) {
   return {
     item: {
       ...defaultProps,
-      ...overrides,
+      ...itemOverrides,
     },
+    onBranch: true,
+    openCommit: () => {},
+    ...overrides,
   };
 };
 
 describe('PrCommitView', function() {
-  function buildApp(overrideProps = {}) {
-    return <PrCommitView {...getProps(overrideProps)} />;
+  function buildApp(itemOverrides = {}, overrides = {}) {
+    return <PrCommitView {...getProps(itemOverrides, overrides)} />;
   }
   it('renders the commit view for commits without message body', function() {
     const wrapper = shallow(buildApp({}));
@@ -70,4 +74,24 @@ describe('PrCommitView', function() {
     assert.lengthOf(wrapper.find('.github-PrCommitView-moreText'), 0);
     assert.deepEqual(wrapper.find('.github-PrCommitView-moreButton').text(), 'show more...');
   });
+
+  describe('if PR is checked out', function() {
+    it('shows message headlines as clickable', function() {
+      const wrapper = shallow(buildApp({}));
+      assert.isTrue(wrapper.find('.github-PrCommitView-messageHeadline').at(0).hasClass('clickable'));
+    });
+
+    it('opens a commit with the full sha when title is clicked', function() {
+      const openCommit = sinon.spy();
+      const wrapper = shallow(buildApp({sha: 'longsha123'}, {openCommit}));
+      wrapper.find('.github-PrCommitView-messageHeadline').at(0).simulate('click');
+      assert.isTrue(openCommit.calledWith({sha: 'longsha123'}));
+    });
+  });
+
+  it('does not show message headlines as clickable if PR is not checked out', function() {
+    const wrapper = shallow(buildApp({}, {onBranch: false}));
+    assert.isFalse(wrapper.find('.github-PrCommitView-messageHeadline').at(0).hasClass('clickable'));
+  });
+
 });
