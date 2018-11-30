@@ -1314,4 +1314,26 @@ describe('RootController', function() {
     });
   });
 
+  describe('surfaceToRecentCommit', function() {
+    it('focuses and selects the recent commit', async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      const wrapper = mount(app);
+
+      const gitTabTracker = wrapper.instance().gitTabTracker;
+
+      const gitTab = {
+        focusAndSelectRecentCommit: sinon.spy(),
+      };
+      sinon.stub(gitTabTracker, 'getComponent').returns(gitTab);
+
+      wrapper.instance().surfaceToRecentCommit();
+      assert.isTrue(gitTab.focusAndSelectRecentCommit.called);
+    });
+  });
+
 });

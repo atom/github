@@ -1,5 +1,5 @@
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 import moment from 'moment';
 import dedent from 'dedent-js';
 
@@ -24,7 +24,7 @@ describe('CommitDetailView', function() {
   function buildApp(override = {}) {
     const props = {
       repository,
-      commit: commitBuilder().build(),
+      commit: commitBuilder().setMultiFileDiff().build(),
       messageCollapsible: false,
       messageOpen: true,
       itemType: CommitDetailItem,
@@ -35,8 +35,9 @@ describe('CommitDetailView', function() {
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
 
-      destroy: () => {},
-      toggleMessage: () => {},
+      destroy: () => { },
+      toggleMessage: () => { },
+      surfaceCommit: () => { },
       ...override,
     };
 
@@ -204,6 +205,26 @@ describe('CommitDetailView', function() {
         button.simulate('click');
         assert.isTrue(toggleMessage.called);
       });
+    });
+  });
+
+  describe('keyboard bindings', function() {
+    it('surfaces the recent commit on github:surface', function() {
+      const surfaceCommit = sinon.spy();
+      const wrapper = mount(buildApp({surfaceCommit}));
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface');
+
+      assert.isTrue(surfaceCommit.called);
+    });
+
+    it('surfaces from the embedded MultiFilePatchView', function() {
+      const surfaceCommit = sinon.spy();
+      const wrapper = mount(buildApp({surfaceCommit}));
+
+      atomEnv.commands.dispatch(wrapper.find('.github-FilePatchView').getDOMNode(), 'github:surface');
+
+      assert.isTrue(surfaceCommit.called);
     });
   });
 });
