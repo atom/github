@@ -2,19 +2,37 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import RecentCommitsController from '../../lib/controllers/recent-commits-controller';
-import Commit from '../../lib/models/commit';
+import {commitBuilder} from '../builder/commit';
 import {cloneRepository, buildRepository} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('RecentCommitsController', function() {
-  let app;
+  let atomEnv, workdirPath, app;
 
-  beforeEach(function() {
-    app = <RecentCommitsController commits={[]} undoLastCommit={() => {}} isLoading={false} />;
+  beforeEach(async function() {
+    workdirPath = await cloneRepository('three-files');
+    const repository = await buildRepository(workdirPath);
+
+    atomEnv = global.buildAtomEnvironment();
+
+    app = (
+      <RecentCommitsController
+        commits={[]}
+        isLoading={false}
+        undoLastCommit={() => { }}
+        workspace={atomEnv.workspace}
+        commandRegistry={atomEnv.commands}
+        repository={repository}
+      />
+    );
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
   });
 
   it('passes recent commits to the RecentCommitsView', function() {
-    const commits = [new Commit('1'), new Commit('2'), new Commit('3')];
+    const commits = [commitBuilder().build(), commitBuilder().build(), commitBuilder().build()];
     app = React.cloneElement(app, {commits});
     const wrapper = shallow(app);
     assert.deepEqual(wrapper.find('RecentCommitsView').prop('commits'), commits);
@@ -27,26 +45,15 @@ describe('RecentCommitsController', function() {
   });
 
   describe('openCommit({sha})', function() {
-    let atomEnv, workdirPath, repository;
-
-    beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      workdirPath = await cloneRepository();
-      repository = await buildRepository(workdirPath);
-    });
-
-    afterEach(function() {
-      atomEnv.destroy();
-    });
-
-    it('opens a commit detail item', function() {
+    it('opens a commit detail item', async function() {
       sinon.stub(atomEnv.workspace, 'open').resolves();
 
       const sha = 'asdf1234';
-      const commits = [new Commit({sha})];
-      app = React.cloneElement(app, {commits, workspace: atomEnv.workspace, repository});
+      const commits = [commitBuilder().sha(sha).build()];
+      app = React.cloneElement(app, {commits});
+
       const wrapper = shallow(app);
-      wrapper.instance().openCommit({sha: 'asdf1234'});
+      await wrapper.find('RecentCommitsView').prop('openCommit')({sha: 'asdf1234'});
 
       assert.isTrue(atomEnv.workspace.open.calledWith(
         `atom-github://commit-detail?workdir=${encodeURIComponent(workdirPath)}` +
@@ -59,12 +66,15 @@ describe('RecentCommitsController', function() {
       sinon.stub(reporterProxy, 'addEvent');
 
       const sha = 'asdf1234';
-      const commits = [new Commit({sha})];
-      app = React.cloneElement(app, {commits, workspace: atomEnv.workspace, repository});
+      const commits = [commitBuilder().sha(sha).build()];
+      app = React.cloneElement(app, {commits});
       const wrapper = shallow(app);
 
       await wrapper.instance().openCommit({sha: 'asdf1234'});
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {package: 'github', from: RecentCommitsController.name}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {
+        package: 'github',
+        from: RecentCommitsController.name,
+      }));
     });
   });
 });
