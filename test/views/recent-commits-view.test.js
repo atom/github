@@ -2,13 +2,30 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import RecentCommitsView from '../../lib/views/recent-commits-view';
-import Commit from '../../lib/models/commit';
+import {commitBuilder} from '../builder/commit';
 
 describe('RecentCommitsView', function() {
-  let app;
+  let atomEnv, app;
 
   beforeEach(function() {
-    app = <RecentCommitsView commits={[]} undoLastCommit={() => {}} isLoading={false} />;
+    atomEnv = global.buildAtomEnvironment();
+
+    app = (
+      <RecentCommitsView
+        commits={[]}
+        isLoading={false}
+        selectedCommitSha=""
+        commandRegistry={atomEnv.commands}
+        undoLastCommit={() => { }}
+        openCommit={() => { }}
+        selectNextCommit={() => { }}
+        selectPreviousCommit={() => { }}
+      />
+    );
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
   });
 
   it('shows a placeholder while commits are empty and loading', function() {
@@ -28,11 +45,7 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders a RecentCommitView for each commit', function() {
-    const commits = ['1', '2', '3'].map(sha => {
-      return {
-        getSha() { return sha; },
-      };
-    });
+    const commits = ['1', '2', '3'].map(sha => commitBuilder().sha(sha).build());
 
     app = React.cloneElement(app, {commits});
     const wrapper = shallow(app);
@@ -41,20 +54,19 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders emojis in the commit subject', function() {
-    const commits = [new Commit({
-      sha: '1111111111',
-      authorEmail: 'pizza@unicorn.com',
-      authorDate: 0,
-      messageSubject: ':heart: :shirt: :smile:',
-    })];
+    const commits = [commitBuilder().messageSubject(':heart: :shirt: :smile:').build()];
+
     app = React.cloneElement(app, {commits});
     const wrapper = mount(app);
-    assert.deepEqual(wrapper.find('.github-RecentCommit-message').text(), '❤️ 👕 😄');
+    assert.strictEqual(wrapper.find('.github-RecentCommit-message').text(), '❤️ 👕 😄');
   });
 
   it('renders an avatar corresponding to the GitHub user who authored the commit', function() {
     const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map((authorEmail, i) => {
-      return new Commit({sha: '1111111111' + i, authorEmail, authorDate: 0, message: 'x'});
+      return commitBuilder()
+        .sha(`1111111111${i}`)
+        .authorEmail(authorEmail)
+        .build();
     });
 
     app = React.cloneElement(app, {commits});
@@ -70,13 +82,13 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders multiple avatars for co-authored commits', function() {
-    const commits = [new Commit({
-      sha: '1111111111',
-      authorEmail: 'thr&ee@z.com',
-      authorDate: 0,
-      message: 'x',
-      coAuthors: [{name: 'One', email: 'two@y.com'}, {name: 'Two', email: 'one@x.com'}],
-    })];
+    const commits = [
+      commitBuilder()
+        .authorEmail('thr&ee@z.com')
+        .addCoAuthor('One', 'two@y.com')
+        .addCoAuthor('Two', 'one@x.com')
+        .build(),
+    ];
 
     app = React.cloneElement(app, {commits});
     const wrapper = mount(app);
@@ -91,12 +103,7 @@ describe('RecentCommitsView', function() {
   });
 
   it("renders the commit's relative age", function() {
-    const commit = new Commit({
-      sha: '1111111111',
-      authorEmail: 'me@hooray.party',
-      authorDate: 1519848555,
-      message: 'x',
-    });
+    const commit = commitBuilder().authorDate(1519848555).build();
 
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
@@ -104,13 +111,7 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders emoji in the title attribute', function() {
-    const commit = new Commit({
-      sha: '1111111111',
-      authorEmail: 'me@hooray.horse',
-      authorDate: 0,
-      messageSubject: ':heart:',
-      messageBody: 'and a commit body',
-    });
+    const commit = commitBuilder().messageSubject(':heart:').messageBody('and a commit body').build();
 
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
@@ -122,13 +123,10 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders the full commit message in a title attribute', function() {
-    const commit = new Commit({
-      sha: '1111111111',
-      authorEmail: 'me@hooray.horse',
-      authorDate: 0,
-      messageSubject: 'really really really really really really really long',
-      messageBody: 'and a commit body',
-    });
+    const commit = commitBuilder()
+      .messageSubject('really really really really really really really long')
+      .messageBody('and a commit body')
+      .build();
 
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
