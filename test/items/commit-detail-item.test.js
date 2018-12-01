@@ -151,18 +151,4 @@ describe('CommitDetailItem', function() {
     assert.strictEqual(item.getWorkingDirectory(), '/dir7');
     assert.strictEqual(item.getSha(), '420');
   });
-
-  it('passes a focus() call to the component designated as its initial focus', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item = await open(wrapper);
-    wrapper.update();
-
-    const refHolder = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
-    const initialFocus = await refHolder.getPromise();
-    sinon.spy(initialFocus, 'focus');
-
-    item.focus();
-
-    assert.isTrue(initialFocus.focus.called);
-  });
 });
