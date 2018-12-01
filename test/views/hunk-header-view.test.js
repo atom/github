@@ -120,12 +120,8 @@ describe('HunkHeaderView', function() {
     assert.isTrue(evt.stopPropagation.called);
   });
 
-  it('does not render extra buttons when in a CommitPreviewItem or a CommitDetailItem', function() {
-    let wrapper = shallow(buildApp({itemType: CommitPreviewItem}));
-    assert.isFalse(wrapper.find('.github-HunkHeaderView-stageButton').exists());
-    assert.isFalse(wrapper.find('.github-HunkHeaderView-discardButton').exists());
-
-    wrapper = shallow(buildApp({itemType: CommitDetailItem}));
+  it('does not render extra buttons when in a CommitDetailItem', function() {
+    const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
     assert.isFalse(wrapper.find('.github-HunkHeaderView-stageButton').exists());
     assert.isFalse(wrapper.find('.github-HunkHeaderView-discardButton').exists());
   });
