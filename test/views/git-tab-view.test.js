@@ -153,15 +153,29 @@ describe('GitTabView', function() {
       stagingView = wrapper.prop('refStagingView').get();
       event = {stopPropagation: sinon.spy()};
 
-      sinon.stub(instance, 'setFocus');
+      sinon.spy(instance, 'setFocus');
     });
 
-    it('focuses the commit button if the recent commit view has focus', async function() {
+    it('focuses the enabled commit button if the recent commit view has focus', async function() {
+      const setFocus = sinon.spy(wrapper.find('CommitView').instance(), 'setFocus');
+
+      sinon.stub(instance, 'getFocus').returns(GitTabView.focus.RECENT_COMMIT);
+      sinon.stub(wrapper.find('CommitView').instance(), 'commitIsEnabled').returns(true);
+
+      await wrapper.instance().retreatFocus(event);
+
+      assert.isTrue(setFocus.calledWith(GitTabView.focus.COMMIT_BUTTON));
+      assert.isTrue(event.stopPropagation.called);
+    });
+
+    it('focuses the editor if the recent commit view has focus and the commit button is disabled', async function() {
+      const setFocus = sinon.spy(wrapper.find('CommitView').instance(), 'setFocus');
+
       sinon.stub(instance, 'getFocus').returns(GitTabView.focus.RECENT_COMMIT);
 
       await wrapper.instance().retreatFocus(event);
 
-      assert.isTrue(instance.setFocus.calledWith(GitTabView.focus.COMMIT_BUTTON));
+      assert.isTrue(setFocus.calledWith(GitTabView.focus.EDITOR));
       assert.isTrue(event.stopPropagation.called);
     });
 
