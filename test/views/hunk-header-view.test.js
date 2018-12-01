@@ -5,7 +5,6 @@ import HunkHeaderView from '../../lib/views/hunk-header-view';
 import RefHolder from '../../lib/models/ref-holder';
 import Hunk from '../../lib/models/patch/hunk';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
-import CommitPreviewItem from '../../lib/items/commit-preview-item';
 
 describe('HunkHeaderView', function() {
   let atomEnv, hunk;
