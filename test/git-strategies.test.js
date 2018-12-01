@@ -163,7 +163,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        const diffs = await git.getDiffForCommit('18920c90');
+        const diffs = await git.getDiffsForCommit('18920c90');
 
         assertDeepPropertyVals(diffs, [{
           oldPath: 'file.txt',
