@@ -1,6 +1,5 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import path from 'path';
 
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
