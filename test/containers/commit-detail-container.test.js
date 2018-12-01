@@ -35,6 +35,7 @@ describe('CommitDetailContainer', function() {
       config: atomEnv.config,
 
       destroy: () => {},
+      surfaceCommit: () => {},
 
       ...override,
     };
