@@ -5,21 +5,18 @@ import path from 'path';
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('OpenCommitDialog', function() {
-  let atomEnv, config, commandRegistry;
+  let atomEnv, commandRegistry;
   let app, wrapper, didAccept, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    config = atomEnv.config;
     commandRegistry = atomEnv.commands;
-    sinon.stub(config, 'get').returns(path.join('home', 'me', 'codes'));
 
     didAccept = sinon.stub();
     didCancel = sinon.stub();
 
     app = (
       <OpenCommitDialog
-        config={config}
         commandRegistry={commandRegistry}
         didAccept={didAccept}
         didCancel={didCancel}
@@ -37,7 +34,7 @@ describe('OpenCommitDialog', function() {
   };
 
   describe('entering a commit sha', function() {
-    it("updates the project path automatically if it hasn't been modified", function() {
+    it("updates the commit sha automatically if it hasn't been modified", function() {
       setTextIn('.github-CommitSha atom-text-editor', 'asdf1234');
 
       assert.equal(wrapper.instance().getCommitSha(), 'asdf1234');
