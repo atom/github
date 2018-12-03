@@ -48,28 +48,38 @@ describe('OpenCommitDialog', function() {
     });
   });
 
-  describe('open button enablement', function() {
+  describe('open button enablement and error state', function() {
     it('disables the open button with no commit sha', function() {
       setTextIn('.github-CommitSha atom-text-editor', '');
       wrapper.update();
 
       assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
+      assert.isFalse(wrapper.find('.error').exists());
     });
 
-    it('enables the open button when commit sha box is populated', function() {
-      setTextIn('.github-CommitSha atom-text-editor', 'asdf1234');
+    it('disables the open button with an invalid commit sha', function() {
+      setTextIn('.github-CommitSha atom-text-editor', 'NOOOPE');
+      wrapper.update();
+
+      assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
+      assert.strictEqual(wrapper.find('.error').text(), 'Not a valid git commit identifier');
+    });
+
+    it('enables the open button when commit sha box is populated with a valid sha', function() {
+      setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
       wrapper.update();
 
       assert.isFalse(wrapper.find('button.icon-commit').prop('disabled'));
+      assert.isFalse(wrapper.find('.error').exists());
     });
   });
 
   it('calls the acceptance callback', function() {
-    setTextIn('.github-CommitSha atom-text-editor', 'asdf1234');
+    setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
 
     wrapper.find('button.icon-commit').simulate('click');
 
-    assert.isTrue(didAccept.calledWith({sha: 'asdf1234'}));
+    assert.isTrue(didAccept.calledWith({sha: 'abcd1234'}));
   });
 
   it('calls the cancellation callback', function() {
