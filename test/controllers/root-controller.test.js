@@ -1200,6 +1200,17 @@ describe('RootController', function() {
     });
   });
 
+  describe('opening a CommitDetailItem', async function() {
+    const workdir = await cloneRepository('three-files');
+    const uri = CommitDetailItem.buildURI(workdir, 'abcdef');
+
+    const wrapper = mount(app);
+
+    const item = await atomEnv.workspace.open(uri);
+    assert.strictEqual(item.getTitle(), 'Commit: abcdef');
+    assert.isTrue(wrapper.update().find('CommitDetailItem').exists());
+  });
+
   describe('opening an IssueishDetailItem', function() {
     it('registers an opener for IssueishPaneItems', async function() {
       const uri = IssueishDetailItem.buildURI('https://api.github.com', 'owner', 'repo', 123, __dirname);
