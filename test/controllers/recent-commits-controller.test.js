@@ -144,25 +144,66 @@ describe('RecentCommitsController', function() {
     });
   });
 
-  it('forwards focus management methods to its view', async function() {
-    const wrapper = mount(app);
+  describe('focus management', function() {
+    it('forwards focus management methods to its view', async function() {
+      const wrapper = mount(app);
 
-    const setFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
-    const rememberFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'getFocus');
-    const advanceFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'advanceFocusFrom');
-    const retreatFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'retreatFocusFrom');
+      const setFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
+      const rememberFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'getFocus');
+      const advanceFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'advanceFocusFrom');
+      const retreatFocusSpy = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'retreatFocusFrom');
 
-    wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT);
-    assert.isTrue(setFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+      wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT);
+      assert.isTrue(setFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
 
-    wrapper.instance().getFocus(document.body);
-    assert.isTrue(rememberFocusSpy.calledWith(document.body));
+      wrapper.instance().getFocus(document.body);
+      assert.isTrue(rememberFocusSpy.calledWith(document.body));
 
-    await wrapper.instance().advanceFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
-    assert.isTrue(advanceFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+      await wrapper.instance().advanceFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
+      assert.isTrue(advanceFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
 
-    await wrapper.instance().retreatFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
-    assert.isTrue(retreatFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+      await wrapper.instance().retreatFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
+      assert.isTrue(retreatFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+    });
+
+    it('selects the first commit when focus enters the component', async function() {
+      const commits = ['0', '1', '2'].map(s => commitBuilder().sha(s).build());
+      const wrapper = mount(React.cloneElement(app, {commits, selectedCommitSha: ''}));
+      const stateSpy = sinon.spy(wrapper.instance(), 'setSelectedCommitIndex');
+      sinon.stub(wrapper.find('RecentCommitsView').instance(), 'setFocus').returns(true);
+
+      assert.isTrue(wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT));
+      assert.isTrue(stateSpy.called);
+      await stateSpy.lastCall.returnValue;
+      wrapper.update();
+
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '0');
+    });
+
+    it('leaves an existing commit selection alone', function() {
+      const commits = ['0', '1', '2'].map(s => commitBuilder().sha(s).build());
+      const wrapper = mount(React.cloneElement(app, {commits}));
+      wrapper.setState({selectedCommitSha: '2'});
+      const stateSpy = sinon.spy(wrapper.instance(), 'setSelectedCommitIndex');
+      sinon.stub(wrapper.find('RecentCommitsView').instance(), 'setFocus').returns(true);
+
+      assert.isTrue(wrapper.instance().setFocus(RecentCommitsController.focus.RECENT_COMMIT));
+      assert.isFalse(stateSpy.called);
+
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '2');
+    });
+
+    it('disregards an unrecognized focus', function() {
+      const commits = ['0', '1', '2'].map(s => commitBuilder().sha(s).build());
+      const wrapper = mount(React.cloneElement(app, {commits, selectedCommitSha: ''}));
+      const stateSpy = sinon.spy(wrapper.instance(), 'setSelectedCommitIndex');
+      sinon.stub(wrapper.find('RecentCommitsView').instance(), 'setFocus').returns(false);
+
+      assert.isFalse(wrapper.instance().setFocus(Symbol('unrecognized')));
+      assert.isFalse(stateSpy.called);
+
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '');
+    });
   });
 
   describe('workspace tracking', function() {
