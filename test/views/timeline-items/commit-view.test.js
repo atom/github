@@ -244,4 +244,32 @@ describe('CommitView', function() {
     const instance = shallow(app);
     assert.match(instance.text(), /e6c80aa3/);
   });
+
+  it('opens a CommitDetailItem on click when the commit is on a branch', function() {
+    const item = {
+      author: {
+        name: 'author_name', avatarUrl: '',
+        user: {
+          login: 'author_login',
+        },
+      },
+      committer: {
+        name: 'author_name', avatarUrl: '',
+        user: null,
+      },
+      sha: 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5',
+      authoredByCommitter: true,
+      message: 'full message',
+      messageHeadlineHTML: '<h1>inner HTML</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
+    };
+    const openCommit = sinon.spy();
+    const app = <BareCommitView item={item} onBranch={true} openCommit={openCommit} />;
+    const wrapper = shallow(app);
+
+    assert.isTrue(wrapper.find('.commit-message-headline').hasClass('clickable'));
+    wrapper.find('.commit-message-headline').simulate('click');
+
+    assert.isTrue(openCommit.calledWith({sha: item.sha}));
+  });
 });
