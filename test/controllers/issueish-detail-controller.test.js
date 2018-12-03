@@ -21,7 +21,7 @@ describe('IssueishDetailController', function() {
       repositoryName: 'reponame',
       ownerLogin: 'ownername',
       issueishNumber: 12,
-      issueishTitle: 'the title',
+      pullRequestTitle: 'the title',
     }, {onTitleChange}));
 
     assert.isTrue(onTitleChange.calledWith('PR: ownername/reponame#12 — the title'));
@@ -32,11 +32,11 @@ describe('IssueishDetailController', function() {
     shallow(buildApp({
       repositoryName: 'reponame',
       ownerLogin: 'ownername',
-      issueishKind: 'Issue',
+      issueKind: 'Issue',
       issueishNumber: 34,
-      issueishTitle: 'the title',
+      omitPullRequestData: true,
+      issueTitle: 'the title',
     }, {onTitleChange}));
-
     assert.isTrue(onTitleChange.calledWith('Issue: ownername/reponame#34 — the title'));
   });
 
@@ -46,7 +46,7 @@ describe('IssueishDetailController', function() {
       repositoryName: 'reponame',
       ownerLogin: 'ownername',
       issueishNumber: 12,
-      issueishTitle: 'the title',
+      pullRequestTitle: 'the title',
     }, {onTitleChange}));
     assert.isTrue(onTitleChange.calledWith('PR: ownername/reponame#12 — the title'));
 
@@ -54,7 +54,7 @@ describe('IssueishDetailController', function() {
       repositoryName: 'different',
       ownerLogin: 'new',
       issueishNumber: 34,
-      issueishTitle: 'the title',
+      pullRequestTitle: 'the title',
     }, {onTitleChange}));
 
     assert.isTrue(onTitleChange.calledWith('PR: new/different#34 — the title'));
@@ -69,7 +69,7 @@ describe('IssueishDetailController', function() {
 
   it('leaves the title alone and renders a message if no issueish was found', function() {
     const onTitleChange = sinon.stub();
-    const wrapper = shallow(buildApp({omitIssueish: true}, {onTitleChange, issueishNumber: 123}));
+    const wrapper = shallow(buildApp({omitIssueData: true, omitPullRequestData: true}, {onTitleChange, issueishNumber: 123}));
     assert.isFalse(onTitleChange.called);
     assert.match(wrapper.find('div').text(), /#123 not found/);
   });
@@ -114,9 +114,9 @@ describe('IssueishDetailController', function() {
       ]);
 
       const wrapper = shallow(buildApp({
-        issueishHeadRef: 'feature',
-        issueishHeadRepoOwner: 'aaa',
-        issueishHeadRepoName: 'bbb',
+        pullRequestHeadRef: 'feature',
+        pullRequestHeadRepoOwner: 'aaa',
+        pullRequestHeadRepoName: 'bbb',
       }, {
         branches,
         remotes,
@@ -139,10 +139,10 @@ describe('IssueishDetailController', function() {
       const wrapper = shallow(buildApp({
         repositoryName: 'bbb',
         ownerLogin: 'aaa',
-        issueishHeadRef: 'feature',
-        issueishNumber: 123,
-        issueishHeadRepoOwner: 'ccc',
-        issueishHeadRepoName: 'ddd',
+        pullRequestHeadRef: 'feature',
+        pullRequestNumber: 123,
+        pullRequestHeadRepoOwner: 'ccc',
+        pullRequestHeadRepoName: 'ddd',
       }, {
         branches,
         remotes,
@@ -168,9 +168,9 @@ describe('IssueishDetailController', function() {
 
       const wrapper = shallow(buildApp({
         issueishNumber: 456,
-        issueishHeadRef: 'feature',
-        issueishHeadRepoOwner: 'ccc',
-        issueishHeadRepoName: 'ddd',
+        pullRequestHeadRef: 'feature',
+        pullRequestHeadRepoOwner: 'ccc',
+        pullRequestHeadRepoName: 'ddd',
       }, {
         branches,
         remotes,
@@ -207,9 +207,9 @@ describe('IssueishDetailController', function() {
 
       const wrapper = shallow(buildApp({
         issueishNumber: 789,
-        issueishHeadRef: 'clever-name',
-        issueishHeadRepoOwner: 'ccc',
-        issueishHeadRepoName: 'ddd',
+        pullRequestHeadRef: 'clever-name',
+        pullRequestHeadRepoOwner: 'ccc',
+        pullRequestHeadRepoName: 'ddd',
       }, {
         branches,
         remotes,
@@ -249,9 +249,9 @@ describe('IssueishDetailController', function() {
 
       const wrapper = shallow(buildApp({
         issueishNumber: 456,
-        issueishHeadRef: 'yes',
-        issueishHeadRepoOwner: 'ccc',
-        issueishHeadRepoName: 'ddd',
+        pullRequestHeadRef: 'yes',
+        pullRequestHeadRepoOwner: 'ccc',
+        pullRequestHeadRepoName: 'ddd',
       }, {
         branches,
         remotes,

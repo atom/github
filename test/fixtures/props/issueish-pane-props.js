@@ -34,9 +34,11 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     repositoryName: 'repository',
     ownerLogin: 'owner',
 
-    omitIssueish: false,
+    omitPullRequestData: false,
+    omitIssueData: false,
     issueishNumber: 1,
-    issueishOverrides: {},
+    pullRequestOverrides: {},
+    issueOverrides: {},
 
     ...opts,
   };
@@ -47,7 +49,8 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
       owner: {
         login: o.ownerLogin,
       },
-      issueish: o.omitIssueish ? null : issueishDetailViewProps(opts, o.issueishOverrides).issueish,
+      pullRequest: o.omitPullRequestData ? null : pullRequestDetailViewProps(opts, o.pullRequestOverrides).pullRequest,
+      issue: o.omitIssueData ? null : issueDetailViewProps(opts, o.issueOverrides).issue,
     },
     issueishNumber: o.issueishNumber,
 
@@ -149,6 +152,80 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     },
 
     checkoutOp: new EnableableOperation(() => {}),
+    switchToIssueish: () => {},
+
+    ...overrides,
+  };
+}
+
+export function issueDetailViewProps(opts, overrides = {}) {
+  const o = {
+    repositoryName: 'repository',
+    ownerLogin: 'owner',
+
+    issueKind: 'Issue',
+    issueTitle: 'title',
+    issueBodyHTML: '<p>body</p>',
+    issueBaseRef: 'master',
+    issueAuthorLogin: 'author',
+    issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
+    issueishNumber: 1,
+    issueState: 'OPEN',
+    issueHeadRef: 'aw/feature',
+    issueHeadRepoOwner: 'head-owner',
+    issueHeadRepoName: 'head-name',
+    issueReactions: [],
+
+    relayRefetch: () => {},
+    ...opts,
+  };
+
+  const buildReaction = reaction => {
+    return {
+      content: reaction.content,
+      users: {
+        totalCount: reaction.count,
+      },
+    };
+  };
+
+  return {
+    relay: {
+      refetch: o.relayRefetch,
+    },
+
+    repository: {
+      id: 'repository0',
+      name: o.repositoryName,
+      owner: {
+        login: o.ownerLogin,
+      },
+    },
+
+    issue: {
+      id: 'issue0',
+      __typename: o.issueKind,
+      title: o.issueTitle,
+      url: `https://github.com/${o.ownerLogin}/${o.repositoryName}/issues/${o.issueishNumber}`,
+      bodyHTML: o.issueBodyHTML,
+      number: o.issueishNumber,
+      state: o.issueState,
+      headRepository: {
+        name: o.issueHeadRepoName,
+        owner: {
+          login: o.issueHeadRepoOwner,
+        },
+        url: `https://github.com/${o.issueHeadRepoOwner}/${o.issueHeadRepoName}`,
+        sshUrl: `git@github.com:${o.issueHeadRepoOwner}/${o.issueHeadRepoName}.git`,
+      },
+      author: {
+        login: o.issueAuthorLogin,
+        avatarUrl: o.issueAuthorAvatarURL,
+        url: `https://github.com/${o.issueAuthorLogin}`,
+      },
+      reactionGroups: o.issueReactions.map(buildReaction),
+    },
+
     switchToIssueish: () => {},
 
     ...overrides,
