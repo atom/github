@@ -3,12 +3,12 @@ import {shallow} from 'enzyme';
 
 import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
 import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
-import {issueishDetailViewProps} from '../fixtures/props/issueish-pane-props';
+import {issueDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
-    return <BareIssueDetailView {...issueishDetailViewProps(opts, overrideProps)} />;
+    return <BareIssueDetailView {...issueDetailViewProps(opts, overrideProps)} />;
   }
 
   it('renders issue information', function() {
@@ -16,14 +16,14 @@ describe('IssueDetailView', function() {
       repositoryName: 'repo',
       ownerLogin: 'user1',
 
-      issueishKind: 'Issue',
-      issueishTitle: 'Issue title',
-      issueishBodyHTML: '<code>nope</code>',
-      issueishAuthorLogin: 'author1',
-      issueishAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/2',
+      issueKind: 'Issue',
+      issueTitle: 'Issue title',
+      issueBodyHTML: '<code>nope</code>',
+      issueAuthorLogin: 'author1',
+      issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/2',
       issueishNumber: 200,
-      issueishState: 'CLOSED',
-      issueishReactions: [{content: 'THUMBS_UP', count: 6}, {content: 'THUMBS_DOWN', count: 0}, {content: 'LAUGH', count: 2}],
+      issueState: 'CLOSED',
+      issueReactions: [{content: 'THUMBS_UP', count: 6}, {content: 'THUMBS_DOWN', count: 0}, {content: 'LAUGH', count: 2}],
     }, {}));
 
     const badge = wrapper.find('IssueishBadge');
@@ -50,11 +50,11 @@ describe('IssueDetailView', function() {
     assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
 
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
-    assert.isNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
+    assert.notOk(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
   });
 
   it('renders a placeholder issue body', function() {
-    const wrapper = shallow(buildApp({issueishBodyHTML: null}));
+    const wrapper = shallow(buildApp({issueBodyHTML: null}));
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => /No description/.test(n.prop('html'))));
   });
 
@@ -123,10 +123,10 @@ describe('IssueDetailView', function() {
 
       const link = wrapper.find('a.github-IssueishDetailView-headerLink');
       assert.strictEqual(link.text(), 'user0/repo#100');
-      assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
+      assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/issues/100');
       link.simulate('click');
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BareIssueDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-issue-in-browser', {package: 'github', component: 'BareIssueDetailView'}));
     });
   });
 });
