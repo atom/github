@@ -2,6 +2,8 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import RecentCommitsController from '../../lib/controllers/recent-commits-controller';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
+import URIPattern from '../../lib/atom/uri-pattern';
 import {commitBuilder} from '../builder/commit';
 import {cloneRepository, buildRepository} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -161,5 +163,38 @@ describe('RecentCommitsController', function() {
 
     await wrapper.instance().retreatFocusFrom(RecentCommitsController.focus.RECENT_COMMIT);
     assert.isTrue(retreatFocusSpy.calledWith(RecentCommitsController.focus.RECENT_COMMIT));
+  });
+
+  describe('workspace tracking', function() {
+    beforeEach(function() {
+      const pattern = new URIPattern(CommitDetailItem.uriPattern);
+      // Prevent the Workspace from normalizing CommitDetailItem URIs
+      atomEnv.workspace.addOpener(uri => {
+        if (pattern.matches(uri).ok()) {
+          return {
+            getURI() { return uri; },
+          };
+        }
+        return undefined;
+      });
+    });
+
+    it('updates the selected sha when its CommitDetailItem is activated', async function() {
+      const wrapper = shallow(app);
+      await atomEnv.workspace.open(CommitDetailItem.buildURI(workdirPath, 'abcdef'));
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), 'abcdef');
+    });
+
+    it('silently disregards items with no getURI method', async function() {
+      const wrapper = shallow(app);
+      await atomEnv.workspace.open({item: {}});
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '');
+    });
+
+    it('silently disregards items that do not match the CommitDetailItem URI pattern', async function() {
+      const wrapper = shallow(app);
+      await atomEnv.workspace.open(__filename);
+      assert.strictEqual(wrapper.find('RecentCommitsView').prop('selectedCommitSha'), '');
+    });
   });
 });
