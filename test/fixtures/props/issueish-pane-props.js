@@ -70,6 +70,91 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
   };
 }
 
+export function pullRequestDetailViewProps(opts, overrides = {}) {
+  const o = {
+    repositoryName: 'repository',
+    ownerLogin: 'owner',
+
+    pullRequestKind: 'PullRequest',
+    pullRequestTitle: 'title',
+    pullRequestBodyHTML: '<p>body</p>',
+    pullRequestBaseRef: 'master',
+    pullRequestAuthorLogin: 'author',
+    pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
+    issueishNumber: 1,
+    pullRequestState: 'OPEN',
+    pullRequestHeadRef: 'aw/feature',
+    pullRequestHeadRepoOwner: 'head-owner',
+    pullRequestHeadRepoName: 'head-name',
+    pullRequestReactions: [],
+    pullRequestCommitCount: 0,
+    pullRequestChangedFileCount: 0,
+    pullRequestCrossRepository: false,
+
+    relayRefetch: () => {},
+    ...opts,
+  };
+
+  const buildReaction = reaction => {
+    return {
+      content: reaction.content,
+      users: {
+        totalCount: reaction.count,
+      },
+    };
+  };
+
+  return {
+    relay: {
+      refetch: o.relayRefetch,
+    },
+
+    repository: {
+      id: 'repository0',
+      name: o.repositoryName,
+      owner: {
+        login: o.ownerLogin,
+      },
+    },
+
+    pullRequest: {
+      id: 'pr0',
+      __typename: o.pullRequestKind,
+      title: o.pullRequestTitle,
+      url: `https://github.com/${o.ownerLogin}/${o.repositoryName}/pull/${o.issueishNumber}`,
+      bodyHTML: o.pullRequestBodyHTML,
+      number: o.issueishNumber,
+      state: o.pullRequestState,
+      countedCommits: {
+        totalCount: o.pullRequestCommitCount,
+      },
+      isCrossRepository: o.pullRequestCrossRepository,
+      changedFiles: o.pullRequestChangedFileCount,
+      baseRefName: o.pullRequestBaseRef,
+      headRefName: o.pullRequestHeadRef,
+      headRepository: {
+        name: o.pullRequestHeadRepoName,
+        owner: {
+          login: o.pullRequestHeadRepoOwner,
+        },
+        url: `https://github.com/${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}`,
+        sshUrl: `git@github.com:${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}.git`,
+      },
+      author: {
+        login: o.pullRequestAuthorLogin,
+        avatarUrl: o.pullRequestAuthorAvatarURL,
+        url: `https://github.com/${o.pullRequestAuthorLogin}`,
+      },
+      reactionGroups: o.pullRequestReactions.map(buildReaction),
+    },
+
+    checkoutOp: new EnableableOperation(() => {}),
+    switchToIssueish: () => {},
+
+    ...overrides,
+  };
+}
+
 export function issueishDetailViewProps(opts, overrides = {}) {
   const o = {
     repositoryName: 'repository',
