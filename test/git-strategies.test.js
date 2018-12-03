@@ -11,7 +11,7 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 import * as reporterProxy from '../lib/reporter-proxy';
 
@@ -870,6 +870,35 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
         assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
+      });
+    });
+
+    describe('getBranchesWithCommit', function() {
+      let git;
+
+      const SHA = '18920c900bfa6e4844853e7e246607a31c3e2e8c';
+
+      beforeEach(async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+        git = createTestStrategy(localRepoPath);
+      });
+
+      it('includes only local refs', async function() {
+        assert.sameMembers(await git.getBranchesWithCommit(SHA), ['refs/heads/master']);
+      });
+
+      it('includes both local and remote refs', async function() {
+        assert.sameMembers(
+          await git.getBranchesWithCommit(SHA, {showLocal: true, showRemote: true}),
+          ['refs/heads/master', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
+        );
+      });
+
+      it('includes only remote refs', async function() {
+        assert.sameMembers(
+          await git.getBranchesWithCommit(SHA, {showRemote: true}),
+          ['refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
+        );
       });
     });
 
