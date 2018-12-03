@@ -79,7 +79,7 @@ describe('CommitDetailItem', function() {
   });
 
   it('serializes itself as a CommitDetailItem', async function() {
-    const wrapper = mount(buildPaneApp());
+    mount(buildPaneApp());
     const item0 = await open({workingDirectory: '/dir0', sha: '420'});
     assert.deepEqual(item0.serialize(), {
       deserializer: 'CommitDetailStub',
