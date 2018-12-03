@@ -151,4 +151,21 @@ describe('CommitDetailItem', function() {
     assert.strictEqual(item.getWorkingDirectory(), '/dir7');
     assert.strictEqual(item.getSha(), '420');
   });
+
+  it('brings focus to the element a child populates refInitialFocus after it loads', async function() {
+    const wrapper = mount(buildPaneApp());
+    // Spin forever to keep refInitialFocus from being assigned
+    sinon.stub(repository, 'getCommit').returns(new Promise(() => {}));
+
+    const item = await open();
+    item.focus();
+    wrapper.update();
+
+    const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
+    const focusSpy = sinon.spy();
+    refInitialFocus.setter({focus: focusSpy});
+    await refInitialFocus.getPromise();
+
+    assert.isTrue(focusSpy.called);
+  });
 });
