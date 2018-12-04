@@ -164,7 +164,7 @@ describe('integration: check out a pull request', function() {
   }
 
   // achtung! this test is flaky
-  it.only('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
+  it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
     this.retries(5); // FLAKE
 
     const {resolve: resolve0, promise: promise0} = expectRepositoryQuery();
