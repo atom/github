@@ -6,6 +6,7 @@ import dedent from 'dedent-js';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline, initRepository} from '../helpers';
 import Repository from '../../lib/models/repository';
 import Author from '../../lib/models/author';
@@ -667,6 +668,35 @@ describe('GitTabController', function() {
         const expectedCoAuthor = new Author(coAuthorEmail, coAuthorName);
         assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), commitSubject);
         assert.deepEqual(wrapper.find('CommitView').prop('selectedCoAuthors'), [expectedCoAuthor]);
+      });
+
+      it('closes the corresponding commit item pane, if one is open', async function() {
+        const workdirPath = await cloneRepository('multiple-commits');
+        const repository = await buildRepository(workdirPath);
+        const [lastCommit, prevCommit] = await repository.getRecentCommits({max: 2});
+
+        workspace.addOpener(uri => {
+          if (uri.startsWith('atom-github://')) {
+            return {
+              getURI() { return uri; },
+              getElement() { return document.createElement('div'); },
+            };
+          }
+          return undefined;
+        });
+
+        const wrapper = mount(await buildApp(repository));
+
+        const uri0 = CommitDetailItem.buildURI(workdirPath, lastCommit.getSha());
+        await workspace.open(uri0);
+        const uri1 = CommitDetailItem.buildURI(workdirPath, prevCommit.getSha());
+        await workspace.open(uri1);
+
+        await wrapper.find('GitTabView').prop('undoLastCommit')();
+
+        const openURIs = workspace.getPaneItems().map(item => item.getURI());
+        assert.notInclude(openURIs, uri0);
+        assert.include(openURIs, uri1);
       });
     });
   });
