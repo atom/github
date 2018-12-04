@@ -198,7 +198,6 @@ describe('integration: check out a pull request', function() {
     prOne.simulate('click');
 
     // Wait for the pane item to open and fetch
-    debugger;
     console.log(atomEnv.workspace.getActivePaneItem().getTitle());
     await assert.async.include(
       atomEnv.workspace.getActivePaneItem().getTitle(),
