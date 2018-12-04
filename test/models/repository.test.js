@@ -3,7 +3,7 @@ import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
 import compareSets from 'compare-sets';
-import isEqual from 'lodash.isequal';
+import isEqualWith from 'lodash.isequalwith';
 
 import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
@@ -1634,11 +1634,15 @@ describe('Repository', function() {
         return new Set(
           syncResults
             .filter(({aSync, bSync}) => {
-              if (aSync && aSync.isEqual) {
-                return !aSync.isEqual(bSync);
-              } else {
-                return !isEqual(aSync, bSync);
-              }
+              // Recursively compare synchronous results. If an "isEqual" method is defined on any model, defer to
+              // its definition of equality.
+              return !isEqualWith(aSync, bSync, (a, b) => {
+                if (a && a.isEqual) {
+                  return a.isEqual(b);
+                }
+
+                return undefined;
+              });
             })
             .map(({key}) => key),
         );

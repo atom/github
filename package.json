@@ -92,7 +92,7 @@
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "globby": "5.0.0",
     "hock": "1.3.3",
-    "lodash.isequal": "4.5.0",
+    "lodash.isequalwith": "4.4.0",
     "mkdirp": "0.5.1",
     "mocha": "^5.2.0",
     "mocha-appveyor-reporter": "0.4.1",
