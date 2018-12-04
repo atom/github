@@ -120,7 +120,7 @@ describe('integration: check out a pull request', function() {
           id: 'user0',
           login: 'owner',
         },
-        issueish: createPullRequestDetailResult({
+        pullRequest: createPullRequestDetailResult({
           number: 1,
           title: 'Pull Request 1',
           headRefName: 'pr-head',
@@ -198,6 +198,8 @@ describe('integration: check out a pull request', function() {
     prOne.simulate('click');
 
     // Wait for the pane item to open and fetch
+    debugger;
+    console.log(atomEnv.workspace.getActivePaneItem().getTitle());
     await assert.async.include(
       atomEnv.workspace.getActivePaneItem().getTitle(),
       'PR: owner/repo#1 — Pull Request 1',
