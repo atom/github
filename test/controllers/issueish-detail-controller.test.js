@@ -11,8 +11,29 @@ import {BareIssueishDetailController} from '../../lib/controllers/issueish-detai
 import {issueishDetailControllerProps} from '../fixtures/props/issueish-pane-props';
 
 describe('IssueishDetailController', function() {
+  let atomEnv;
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+
+    atomEnv.workspace.addOpener(uri => {
+      if (uri.startsWith('atom-github://')) {
+        return {
+          getURI() { return uri; },
+        };
+      }
+
+      return undefined;
+    });
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(opts, overrideProps = {}) {
-    return <BareIssueishDetailController {...issueishDetailControllerProps(opts, overrideProps)} />;
+    const props = issueishDetailControllerProps(opts, {workspace: atomEnv.workspace, ...overrideProps});
+    return <BareIssueishDetailController {...props} />;
   }
 
   it('updates the pane title for a pull request on mount', function() {

@@ -66,6 +66,8 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     onTitleChange: () => {},
     switchToIssueish: () => {},
 
+    workdirPath: __dirname,
+
     ...overrides,
   };
 }
