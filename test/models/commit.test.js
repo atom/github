@@ -148,4 +148,67 @@ describe('Commit', function() {
       assert.strictEqual(commit.abbreviatedBody(), '0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n...');
     });
   });
+
+  describe('isEqual()', function() {
+    it('returns true when commits are identical', function() {
+      const a = commitBuilder()
+        .sha('01234')
+        .authorEmail('me@email.com')
+        .authorDate(0)
+        .messageSubject('subject')
+        .messageBody('body')
+        .addCoAuthor('name', 'me@email.com')
+        .setMultiFileDiff()
+        .build();
+
+      const b = commitBuilder()
+        .sha('01234')
+        .authorEmail('me@email.com')
+        .authorDate(0)
+        .messageSubject('subject')
+        .messageBody('body')
+        .addCoAuthor('name', 'me@email.com')
+        .setMultiFileDiff()
+        .build();
+
+      assert.isTrue(a.isEqual(b));
+    });
+
+    it('returns false if a directly comparable attribute differs', function() {
+      const a = commitBuilder().sha('01234').build();
+      const b = commitBuilder().sha('56789').build();
+
+      assert.isFalse(a.isEqual(b));
+    });
+
+    it('returns false if a co-author differs', function() {
+      const a = commitBuilder().addCoAuthor('me', 'me@email.com').build();
+
+      const b0 = commitBuilder().addCoAuthor('me', 'me@email.com').addCoAuthor('extra', 'extra@email.com').build();
+      assert.isFalse(a.isEqual(b0));
+
+      const b1 = commitBuilder().addCoAuthor('different', 'me@email.com').build();
+      assert.isFalse(a.isEqual(b1));
+    });
+
+    it('returns false if the diff... differs', function() {
+      const a = commitBuilder()
+        .setMultiFileDiff(mfp => {
+          mfp.addFilePatch(fp => {
+            fp.addHunk(hunk => hunk.unchanged('-').added('plus').deleted('minus').unchanged('-'));
+          });
+        })
+        .build();
+
+      const b = commitBuilder()
+        .setMultiFileDiff(mfp => {
+          mfp.addFilePatch(fp => {
+            fp.addHunk(hunk => hunk.unchanged('-').added('different').deleted('patch').unchanged('-'));
+          });
+        })
+        .build();
+
+      assert.isFalse(a.isEqual(b));
+    });
+  });
 });
