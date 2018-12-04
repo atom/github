@@ -80,10 +80,12 @@ describe('OpenCommitDialog', function() {
     wrapper.find('button.icon-commit').simulate('click');
 
     assert.isTrue(didAccept.calledWith({sha: 'abcd1234'}));
+    wrapper.unmount();
   });
 
   it('calls the cancellation callback', function() {
     wrapper.find('button.github-CancelButton').simulate('click');
     assert.isTrue(didCancel.called);
+    wrapper.unmount();
   });
 });
