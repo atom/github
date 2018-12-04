@@ -42,7 +42,6 @@ describe('StatusBarTileController', function() {
         confirm={confirm}
         toggleGitTab={() => {}}
         toggleGithubTab={() => {}}
-        ensureGitTabVisible={() => {}}
         {...props}
       />
     );
@@ -628,7 +627,7 @@ describe('StatusBarTileController', function() {
         const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
         await repository.git.exec(['commit', '-am', 'Add conflicting change']);
 
-        const wrapper = await mountAndLoad(buildApp({repository, ensureGitTabVisible: sinon.stub()}));
+        const wrapper = await mountAndLoad(buildApp({repository}));
 
         sinon.stub(notificationManager, 'addWarning');
 
@@ -638,8 +637,6 @@ describe('StatusBarTileController', function() {
           assert(e, 'is error');
         }
         repository.refresh();
-
-        await assert.async.isTrue(wrapper.instance().props.ensureGitTabVisible.called);
 
         await assert.async.isTrue(notificationManager.addWarning.called);
         const notificationArgs = notificationManager.addWarning.args[0];
