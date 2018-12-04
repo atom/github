@@ -75,6 +75,12 @@ describe('IssueishDetailController', function() {
   });
 
   describe('checkoutOp', function() {
+    it('checkout is disabled if the issueish is an issue', function() {
+      const wrapper = shallow(buildApp({pullRequestKind: 'Issue'}));
+      const op = wrapper.instance().checkoutOp;
+      assert.isFalse(op.isEnabled());
+      assert.strictEqual(op.getMessage(), 'Cannot check out an issue');
+    });
     it('is disabled if the repository is loading or absent', function() {
       const wrapper = shallow(buildApp({}, {isAbsent: true}));
       const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
