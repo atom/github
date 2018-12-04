@@ -6,6 +6,7 @@ import dedent from 'dedent-js';
 import CommitDetailView from '../../lib/views/commit-detail-view';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import Commit from '../../lib/models/commit';
+import Remote, {nullRemote} from '../../lib/models/remote';
 import {cloneRepository, buildRepository} from '../helpers';
 import {commitBuilder} from '../builder/commit';
 
@@ -25,8 +26,10 @@ describe('CommitDetailView', function() {
     const props = {
       repository,
       commit: commitBuilder().setMultiFileDiff().build(),
+      currentRemote: new Remote('origin', 'git@github.com:atom/github'),
       messageCollapsible: false,
       messageOpen: true,
+      isCommitPushed: true,
       itemType: CommitDetailItem,
 
       workspace: atomEnv.workspace,
