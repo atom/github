@@ -569,6 +569,21 @@ describe('CommitView', function() {
       assert.isTrue(element.focus.called);
     });
 
+    it('to the editor when a template is present', function() {
+      messageBuffer.setText('# Template text here');
+
+      const wrapper = mount(app);
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
+      assert.isTrue(element.focus.called);
+      assert.deepEqual(
+        element.getModel().getCursorBufferPositions().map(p => p.serialize()),
+        [[0, 0]],
+      );
+    });
+
     it('to the abort merge button', function() {
       const wrapper = mount(React.cloneElement(app, {isMerging: true}));
       sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
@@ -593,6 +608,42 @@ describe('CommitView', function() {
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
       assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the commit button", function() {
+      messageBuffer.setText('non-empty');
+      const wrapper = mount(React.cloneElement(app, {stagedChangesExist: true}));
+      sinon.spy(wrapper.find('.github-CommitView-commit').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-commit').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the abort merge button", function() {
+      const wrapper = mount(React.cloneElement(app, {isMerging: true}));
+      sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the coauthor input", function() {
+      const wrapper = mount(app);
+      wrapper.instance().toggleCoAuthorInput();
+
+      sinon.spy(wrapper.update().find('.github-CommitView-coAuthorEditor input').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the editor", function() {
+      const wrapper = mount(app);
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(element.focus.called);
     });
 
     it('with an unrecognized symbol', function() {
