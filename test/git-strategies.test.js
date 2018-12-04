@@ -193,6 +193,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
@@ -202,6 +203,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
@@ -211,6 +213,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
       });
 
