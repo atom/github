@@ -309,6 +309,77 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.strictEqual(commits[0].messageBody,
           'Detailed explanation paragraph 1\n\nDetailed explanation paragraph 2\n#123 with an issue reference');
       });
+
+      describe('when patch option is true', function() {
+        it('returns the diff associated with fetched commits', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits({max: 3, includePatch: true});
+
+          assertDeepPropertyVals(commits[0].patch, [{
+            oldPath: 'file.txt',
+            newPath: 'file.txt',
+            oldMode: '100644',
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 1,
+                oldLineCount: 1,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '-two',
+                  '+three',
+                ],
+              },
+            ],
+            status: 'modified',
+          }]);
+
+          assertDeepPropertyVals(commits[1].patch, [{
+            oldPath: 'file.txt',
+            newPath: 'file.txt',
+            oldMode: '100644',
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 1,
+                oldLineCount: 1,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '-one',
+                  '+two',
+                ],
+              },
+            ],
+            status: 'modified',
+          }]);
+
+          assertDeepPropertyVals(commits[2].patch, [{
+            oldPath: null,
+            newPath: 'file.txt',
+            oldMode: null,
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 0,
+                oldLineCount: 0,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '+one',
+                ],
+              },
+            ],
+            status: 'added',
+          }]);
+        });
+      });
     });
 
     describe('getAuthors', function() {
