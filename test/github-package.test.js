@@ -716,6 +716,14 @@ describe('GithubPackage', function() {
         assert.strictEqual(item.getTitle(), 'Commit preview');
         assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
       });
+
+      it('creates a stub item for a commit detail item', function() {
+        const item = githubPackage.createCommitDetailStub({uri: 'atom-github://commit-detail?workdir=/home&sha=1234'});
+
+        assert.isFalse(githubPackage.rerender.called);
+        assert.strictEqual(item.getTitle(), 'Commit');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-detail?workdir=/home&sha=1234');
+      });
     });
 
     describe('after the initial render', function() {
@@ -729,6 +737,14 @@ describe('GithubPackage', function() {
         assert.isTrue(githubPackage.rerender.called);
         assert.strictEqual(item.getTitle(), 'Commit preview');
         assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
+      });
+
+      it('creates a stub item for a commit detail item', function() {
+        const item = githubPackage.createCommitDetailStub({uri: 'atom-github://commit-detail?workdir=/home&sha=1234'});
+
+        assert.isTrue(githubPackage.rerender.called);
+        assert.strictEqual(item.getTitle(), 'Commit');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-detail?workdir=/home&sha=1234');
       });
     });
   });
