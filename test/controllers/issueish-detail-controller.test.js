@@ -140,7 +140,7 @@ describe('IssueishDetailController', function() {
         repositoryName: 'bbb',
         ownerLogin: 'aaa',
         pullRequestHeadRef: 'feature',
-        pullRequestNumber: 123,
+        issueishNumber: 123,
         pullRequestHeadRepoOwner: 'ccc',
         pullRequestHeadRepoName: 'ddd',
       }, {
