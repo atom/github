@@ -60,6 +60,7 @@ class CommitBuilder {
       coAuthors: this._coAuthors,
       messageSubject: this._messageSubject,
       messageBody: this._messageBody,
+      patch: [],
     });
 
     if (this._multiFileDiff !== null) {
