@@ -621,6 +621,33 @@ describe('StatusBarTileController', function() {
         await assert.async.isTrue(repository.git.push.calledWith('origin', 'master', sinon.match({force: true, setUpstream: false})));
         await assert.async.isFalse(repository.getOperationStates().isPushInProgress());
       });
+
+      it('displays a warning notification when pull results in merge conflicts', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
+        fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
+        const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
+        await repository.git.exec(['commit', '-am', 'Add conflicting change']);
+
+        const wrapper = await mountAndLoad(buildApp({repository, ensureGitTabVisible: sinon.stub()}));
+
+        sinon.stub(notificationManager, 'addWarning');
+
+        try {
+          await wrapper.instance().pull(await wrapper.instance().fetchData(repository))();
+        } catch (e) {
+          assert(e, 'is error');
+        }
+        repository.refresh();
+
+        await assert.async.isTrue(wrapper.instance().props.ensureGitTabVisible.called);
+
+        await assert.async.isTrue(notificationManager.addWarning.called);
+        const notificationArgs = notificationManager.addWarning.args[0];
+        assert.equal(notificationArgs[0], 'Merge conflicts');
+        assert.match(notificationArgs[1].description, /Your local changes conflicted with changes made on the remote branch./);
+
+        assert.isTrue(await repository.isMerging());
+      });
     });
   });
 
