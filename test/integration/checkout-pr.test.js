@@ -164,7 +164,7 @@ describe('integration: check out a pull request', function() {
   }
 
   // achtung! this test is flaky
-  it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
+  it.only('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
     this.retries(5); // FLAKE
 
     const {resolve: resolve0, promise: promise0} = expectRepositoryQuery();
@@ -198,7 +198,6 @@ describe('integration: check out a pull request', function() {
     prOne.simulate('click');
 
     // Wait for the pane item to open and fetch
-    console.log(atomEnv.workspace.getActivePaneItem().getTitle());
     await assert.async.include(
       atomEnv.workspace.getActivePaneItem().getTitle(),
       'PR: owner/repo#1 — Pull Request 1',
