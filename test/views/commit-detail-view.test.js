@@ -97,6 +97,65 @@ describe('CommitDetailView', function() {
     );
   });
 
+  it('handles noreply email addresses', function() {
+    const commit = commitBuilder()
+      .authorEmail('1234+username@users.noreply.github.com')
+      .build();
+    const wrapper = shallow(buildApp({commit}));
+
+    assert.strictEqual(
+      wrapper.find('img.github-CommitDetailView-avatar').prop('src'),
+      'https://avatars.githubusercontent.com/u/1234?s=32',
+    );
+  });
+
+  describe('dotcom link rendering', function() {
+    it('renders a link to GitHub', function() {
+      const wrapper = shallow(buildApp({
+        commit: commitBuilder().sha('0123').build(),
+        currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
+        isCommitPushed: true,
+      }));
+
+      const link = wrapper.find('a');
+      assert.strictEqual(link.text(), '0123');
+      assert.strictEqual(link.prop('href'), 'https://github.com/atom/github/commit/0123');
+    });
+
+    it('omits the link if there is no current remote', function() {
+      const wrapper = shallow(buildApp({
+        commit: commitBuilder().sha('0123').build(),
+        currentRemote: nullRemote,
+        isCommitPushed: true,
+      }));
+
+      assert.isFalse(wrapper.find('a').exists());
+      assert.include(wrapper.find('span').map(w => w.text()), '0123');
+    });
+
+    it('omits the link if the current remote is not a GitHub remote', function() {
+      const wrapper = shallow(buildApp({
+        commit: commitBuilder().sha('0123').build(),
+        currentRemote: new Remote('elsewhere', 'git@somehost.com:atom/github'),
+        isCommitPushed: true,
+      }));
+
+      assert.isFalse(wrapper.find('a').exists());
+      assert.include(wrapper.find('span').map(w => w.text()), '0123');
+    });
+
+    it('omits the link if the commit is not pushed', function() {
+      const wrapper = shallow(buildApp({
+        commit: commitBuilder().sha('0123').build(),
+        currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
+        isCommitPushed: false,
+      }));
+
+      assert.isFalse(wrapper.find('a').exists());
+      assert.include(wrapper.find('span').map(w => w.text()), '0123');
+    });
+  });
+
   describe('getAuthorInfo', function() {
     describe('when there are no co-authors', function() {
       it('returns only the author', function() {
