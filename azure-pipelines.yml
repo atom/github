@@ -57,6 +57,9 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
+  - bash: npm run codecov
+    displayName: publish code coverage to CodeCov
+    condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
       codeCoverageTool: cobertura
@@ -100,6 +103,9 @@ jobs:
     condition: succeededOrFailed()
   - bash: npm run report:coverage
     displayName: generate code coverage reports
+    condition: succeededOrFailed()
+  - bash: npm run codecov
+    displayName: publish code coverage to CodeCov
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -164,6 +170,9 @@ jobs:
     condition: succeededOrFailed()
   - powershell: npm run report:coverage
     displayName: generate code coverage reports
+    condition: succeededOrFailed()
+  - powershell: npm run codecov
+    displayName: publish code coverage to CodeCov
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
