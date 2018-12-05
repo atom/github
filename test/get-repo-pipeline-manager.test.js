@@ -69,7 +69,7 @@ describe('getRepoPipelineManager()', function() {
 
         pushPipeline.run(pushStub, repo, '', {force: true});
         assert.isFalse(confirm.called);
-        assert.isFalse(pushStub.called());
+        assert.isFalse(pushStub.called);
       });
     });
 
