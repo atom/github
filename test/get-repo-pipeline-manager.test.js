@@ -206,14 +206,6 @@ describe('getRepoPipelineManager()', function() {
       commitPipeline = getPipeline(pipelineManager, 'COMMIT');
     });
 
-    // it('confirm-commit', function() {
-    //
-    // });
-    //
-    // it('clean-up-disk-commit-msg', function() {
-    //
-    // });
-
     it('set-commit-in-progress', async function() {
       const commitStub = sinon.stub().callsFake(() => {
         assert.isTrue(repo.getOperationStates().isCommitInProgress());
