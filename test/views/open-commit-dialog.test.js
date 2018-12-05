@@ -4,7 +4,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
-describe('OpenCommitDialog', async function() {
+describe('OpenCommitDialog', function() {
   let atomEnv, commandRegistry;
   let app, wrapper, didAccept, didCancel;
   let repository, workdirPath;
@@ -79,7 +79,6 @@ describe('OpenCommitDialog', async function() {
       await assert.async.strictEqual(wrapper.update().find('.error').text(), 'Commit with that sha does not exist in this repository');
       assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
     });
-
 
     it('enables the open button when commit sha box is populated with a valid sha', function() {
       setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
