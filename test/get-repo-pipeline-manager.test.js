@@ -138,15 +138,24 @@ describe('getRepoPipelineManager()', function() {
     });
   });
 
-  // describe('FETCH pipeline', function() {
-  //   it('set-fetch-in-progress', function() {
-  //
-  //   });
-  //
-  //   it('failed-to-fetch-error', function() {
-  //
-  //   });
-  // });
+  describe('FETCH pipeline', function() {
+
+    let fetchPipeline;
+
+    beforeEach(function() {
+      fetchPipeline = getPipeline(pipelineManager, 'FETCH');
+    });
+
+    it('set-fetch-in-progress', async function() {
+      const fetchStub = sinon.stub().callsFake(() => {
+        assert.isTrue(repo.getOperationStates().isFetchInProgress());
+        return Promise.resolve();
+      });
+      fetchPipeline.run(fetchStub, repo, '', {});
+      assert.isTrue(fetchStub.called);
+      await assert.async.isFalse(repo.getOperationStates().isFetchInProgress());
+    });
+
   //
   // describe('CHECKOUT pipeline', function() {
   //   it('set-checkout-in-progress', function() {
