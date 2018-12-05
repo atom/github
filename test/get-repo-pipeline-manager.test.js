@@ -1,17 +1,35 @@
 import {cloneRepository, buildRepositoryWithPipeline} from './helpers';
-import getRepoPipelineManager from '../lib/get-repo-pipeline-manager';
+import {GitError} from '../lib/git-shell-out-strategy';
 
 
 describe('getRepoPipelineManager()', function() {
 
-  let atomEnv, workspace, notificationManager, confirm, pipelineManager;
+  let atomEnv, workspace, notificationManager, repo, pipelineManager, confirm;
 
-  beforeEach(function() {
+  const getPipeline = (pm, actionName) => {
+    const actionKey = pm.actionKeys[actionName];
+    return pm.getPipeline(actionKey);
+  };
+
+  const buildRepo = (workdir, override = {}) => {
+    const option = {
+      confirm,
+      notificationManager,
+      workspace,
+      ...override,
+    };
+    return buildRepositoryWithPipeline(workdir, option);
+  };
+
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     notificationManager = atomEnv.notifications;
     confirm = sinon.stub(atomEnv, 'confirm');
-    pipelineManager = getRepoPipelineManager({confirm, notificationManager, workspace});
+
+    const workdir = await cloneRepository('multiple-commits');
+    repo = await buildRepo(workdir);
+    pipelineManager = repo.pipelineManager;
   });
 
   afterEach(function() {
@@ -21,8 +39,64 @@ describe('getRepoPipelineManager()', function() {
   it('has all the action pipelines', function() {
     const expectedActions = ['PUSH', 'PULL', 'FETCH', 'COMMIT', 'CHECKOUT', 'ADDREMOTE'];
     for (const actionName of expectedActions) {
-      const action = pipelineManager.actionKeys[actionName];
-      assert.ok(pipelineManager.getPipeline(action));
+      assert.ok(getPipeline(pipelineManager, actionName));
     }
+  });
+
+  describe('PUSH pipeline', function() {
+
+    it('confirm-force-push', function() {
+      it('before confirming', function() {
+        const pushPipeline = getPipeline(pipelineManager, 'PUSH');
+        const pushStub = sinon.stub();
+        sinon.spy(notificationManager, 'addError');
+        pushPipeline.run(pushStub, repo, '', {force: true});
+        assert.isTrue(confirm.calledWith({
+          message: 'Are you sure you want to force push?',
+          detailedMessage: 'This operation could result in losing data on the remote.',
+          buttons: ['Force Push', 'Cancel'],
+        }));
+        assert.isTrue(pushStub.called());
+      });
+
+      it('after confirming', async function() {
+        const nWorkdir = await cloneRepository('multiple-commits');
+        const confirmStub = sinon.stub(atomEnv, 'confirm').return(0);
+        const nRepo = buildRepo(nWorkdir, {confirm: confirmStub});
+        const pushPipeline = getPipeline(nRepo.pipelineManager, 'PUSH');
+        const pushStub = sinon.stub();
+        sinon.spy(notificationManager, 'addError');
+
+        pushPipeline.run(pushStub, repo, '', {force: true});
+        assert.isFalse(confirm.called);
+        assert.isFalse(pushStub.called());
+      });
+    });
+
+    it('set-push-in-progress', function() {
+      const pushPipeline = getPipeline(pipelineManager, 'PUSH');
+      const pushStub = sinon.stub().callsFake(() => {
+        assert.isTrue(repo.getOperationStates().isPushInProgress());
+        return Promise.resolve();
+      });
+      pushPipeline.run(pushStub, repo, '', {});
+      assert.isTrue(pushStub.called);
+      assert.isFalse(repo.getOperationStates().isPushInProgress());
+    });
+
+    it('failed-to-push-error', function() {
+      const pushPipeline = getPipeline(pipelineManager, 'PUSH');
+      sinon.spy(notificationManager, 'addError');
+      pushPipeline.run(() => {
+        const err = new GitError();
+        err.stdErr = 'rejected failed to push';
+        throw err;
+      }, repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWith('Push rejected', {
+        description: 'The tip of your current branch is behind its remote counterpart.' +
+        ' Try pulling before pushing.<br />To force push, hold `cmd` or `ctrl` while clicking.',
+        dismissable: true,
+      }));
+    });
   });
 });
