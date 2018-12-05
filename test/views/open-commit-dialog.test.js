@@ -9,7 +9,6 @@ describe('OpenCommitDialog', function() {
   let app, wrapper, didAccept, didCancel;
   let repository, workdirPath;
 
-
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
@@ -71,9 +70,8 @@ describe('OpenCommitDialog', function() {
       assert.strictEqual(wrapper.find('.error').text(), 'Not a valid git commit identifier');
     });
 
-    it('disables open button when commit does not exist in repo', async function() {
+    it('disables the open button when the commit does not exist in repo', async function() {
       setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
-      wrapper.update();
       wrapper.find('button.icon-commit').simulate('click');
 
       await assert.async.strictEqual(wrapper.update().find('.error').text(), 'Commit with that sha does not exist in this repository');
@@ -97,6 +95,16 @@ describe('OpenCommitDialog', function() {
 
     await assert.async.isTrue(didAccept.calledWith({sha: commit.sha}));
     wrapper.unmount();
+  });
+
+  it('re-throws other exceptions encountered during acceptance', async function() {
+    sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
+    const acceptSpy = sinon.spy(wrapper.instance(), 'accept');
+
+    setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
+    wrapper.find('button.icon-commit').simulate('click');
+
+    await assert.isRejected(acceptSpy.lastCall.returnValue, 'Oh shit');
   });
 
   it('calls the cancellation callback', function() {
