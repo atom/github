@@ -59,6 +59,8 @@ jobs:
     condition: succeededOrFailed()
   - bash: npm run codecov
     displayName: publish code coverage to CodeCov
+    env:
+      CODECOV_TOKEN: $(codecov.token)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -106,6 +108,8 @@ jobs:
     condition: succeededOrFailed()
   - bash: npm run codecov
     displayName: publish code coverage to CodeCov
+    env:
+      CODECOV_TOKEN: $(codecov.token)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -173,6 +177,8 @@ jobs:
     condition: succeededOrFailed()
   - powershell: npm run codecov
     displayName: publish code coverage to CodeCov
+    env:
+      CODECOV_TOKEN: $(codecov.token)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
