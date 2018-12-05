@@ -199,25 +199,40 @@ describe('getRepoPipelineManager()', function() {
       assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create branch', {detail: 'something else', dismissable: true}));
     });
   });
-  //
-  // describe('COMMIT pipeline', function() {
-  //   it('confirm-commit', function() {
-  //
-  //   });
-  //
-  //   it('clean-up-disk-commit-msg', function() {
-  //
-  //   });
-  //
-  //   it('set-commit-in-progress', function() {
-  //
-  //   });
-  //
-  //   it('failed-to-commit-error', function() {
-  //
-  //   });
-  // });
-  //
+
+  describe('COMMIT pipeline', function() {
+    let commitPipeline;
+
+    beforeEach(function() {
+      commitPipeline = getPipeline(pipelineManager, 'COMMIT');
+    });
+
+    // it('confirm-commit', function() {
+    //
+    // });
+    //
+    // it('clean-up-disk-commit-msg', function() {
+    //
+    // });
+
+    it('set-commit-in-progress', async function() {
+      const commitStub = sinon.stub().callsFake(() => {
+        assert.isTrue(repo.getOperationStates().isCommitInProgress());
+        return Promise.resolve();
+      });
+      commitPipeline.run(commitStub, repo, '', {});
+      assert.isTrue(commitStub.called);
+      await assert.async.isFalse(repo.getOperationStates().isCommitInProgress());
+    });
+
+    it('failed-to-commit-error', function() {
+      sinon.spy(notificationManager, 'addError');
+
+      commitPipeline.run(gitErrorStub('a nice msg'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to commit', {detail: 'a nice msg', dismissable: true}));
+    });
+  });
+
   describe('ADDREMOTE pipeline', function() {
     it('failed-to-add-remote', function() {
       const addRemotePipeline = getPipeline(pipelineManager, 'ADDREMOTE');
