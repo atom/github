@@ -218,9 +218,13 @@ describe('getRepoPipelineManager()', function() {
   //   });
   // });
   //
-  // describe('ADDREMOTE pipeline', function() {
-  //   it('failed-to-add-remote', function() {
-  //
-  //   });
-  // });
+  describe('ADDREMOTE pipeline', function() {
+    it('failed-to-add-remote', function() {
+      const addRemotePipeline = getPipeline(pipelineManager, 'ADDREMOTE');
+      sinon.spy(notificationManager, 'addError');
+
+      addRemotePipeline.run(gitErrorStub('fatal: remote XXX already exists'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {dismissable: true}));
+    });
+  });
 });
