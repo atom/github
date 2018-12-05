@@ -90,6 +90,13 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<IssueishDetailController>`](/lib/controllers/issueish-detail-controller.js)
 > > [`<IssueishDetailView>`](/lib/controllers/issueish-detail-controller.js)
 > >
+> > The workspace-center pane that appears when looking at all the changes
+> > associated with a single commit that already exists in the current repository.
+> > [`<CommitDetailItem>`](/lib/items/issueish-detail-item.js)
+> > [`<CommitDetailContainer>`](/lib/containers/commit-detail-container.js)
+> > [`<CommitDetailController>`](/lib/controllers/commit-detail-controller.js)
+> > [`<CommitDetailView>`](/lib/views/commit-detail-controller.js)
+> >
 > > The workspace-center pane that displays information about a pull request or issue ("issueish", collectively) from github.com.
 > >
 > > > [`<IssueTimelineController>`](/lib/controllers/issue-timeline-controller.js)
