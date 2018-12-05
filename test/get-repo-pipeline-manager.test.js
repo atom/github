@@ -106,27 +106,79 @@ describe('getRepoPipelineManager()', function() {
     });
   });
 
-  describe('COMMIT pipeline', function() {
-    it('confirm-commit', function() {
-
+  describe('PULL pipeline', function() {
+    it('set-pull-in-progress', async function() {
+      const pull = getPipeline(pipelineManager, 'PULL');
+      const pullStub = sinon.stub().callsFake(() => {
+        assert.isTrue(repo.getOperationStates().isPullInProgress());
+        return Promise.resolve();
+      });
+      pull.run(pullStub, repo, '', {});
+      assert.isTrue(pullStub.called);
+      await assert.async.isFalse(repo.getOperationStates().isPullInProgress());
     });
 
-    it('clean-up-disk-commit-msg', function() {
+    it('failed-to-pull-error', function() {
+      const pullPipeline = getPipeline(pipelineManager, 'PULL');
+      sinon.spy(notificationManager, 'addError');
+      sinon.spy(notificationManager, 'addWarning');
 
-    });
+      pullPipeline.run(gitErrorStub('error: Your local changes to the following files would be overwritten by merge'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Pull aborted', {dismissable: true}));
 
-    it('set-commit-in-progress', function() {
+      pullPipeline.run(gitErrorStub('', 'Automatic merge failed; fix conflicts and then commit the result.'), repo, '', {});
+      // console.log(notificationManager.addError.args)
+      assert.isTrue(notificationManager.addWarning.calledWithMatch('Merge conflicts', {dismissable: true}));
 
-    });
+      pullPipeline.run(gitErrorStub('fatal: Not possible to fast-forward, aborting.'), repo, '', {});
+      assert.isTrue(notificationManager.addWarning.calledWithMatch('Unmerged changes', {dismissable: true}));
 
-    it('failed-to-commit-error', function() {
-
+      pullPipeline.run(gitErrorStub('something else'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to pull', {dismissable: true}));
     });
   });
 
-  describe('ADDREMOTE pipeline', function() {
-    it('failed-to-add-remote', function() {
-
-    });
-  });
+  // describe('FETCH pipeline', function() {
+  //   it('set-fetch-in-progress', function() {
+  //
+  //   });
+  //
+  //   it('failed-to-fetch-error', function() {
+  //
+  //   });
+  // });
+  //
+  // describe('CHECKOUT pipeline', function() {
+  //   it('set-checkout-in-progress', function() {
+  //
+  //   });
+  //
+  //   it('failed-to-checkout-error', function() {
+  //
+  //   });
+  // });
+  //
+  // describe('COMMIT pipeline', function() {
+  //   it('confirm-commit', function() {
+  //
+  //   });
+  //
+  //   it('clean-up-disk-commit-msg', function() {
+  //
+  //   });
+  //
+  //   it('set-commit-in-progress', function() {
+  //
+  //   });
+  //
+  //   it('failed-to-commit-error', function() {
+  //
+  //   });
+  // });
+  //
+  // describe('ADDREMOTE pipeline', function() {
+  //   it('failed-to-add-remote', function() {
+  //
+  //   });
+  // });
 });
