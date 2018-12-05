@@ -737,7 +737,15 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      // TODO ...
+      const commit = await repo.getCommit('18920c900bfa6e4844853e7e246607a31c3e2e8c');
+
+      assert.isTrue(commit.isPresent());
+      assert.strictEqual(commit.getSha(), '18920c900bfa6e4844853e7e246607a31c3e2e8c');
+      assert.strictEqual(commit.getAuthorEmail(), 'kuychaco@github.com');
+      assert.strictEqual(commit.getAuthorDate(), 1471113642);
+      assert.lengthOf(commit.getCoAuthors(), 0);
+      assert.strictEqual(commit.getMessageSubject(), 'second commit');
+      assert.strictEqual(commit.getMessageBody(), '');
     });
   });
 
