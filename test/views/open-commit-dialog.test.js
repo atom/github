@@ -1,24 +1,30 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {cloneRepository, buildRepository} from '../helpers';
 
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
-describe('OpenCommitDialog', function() {
+describe('OpenCommitDialog', async function() {
   let atomEnv, commandRegistry;
   let app, wrapper, didAccept, didCancel;
+  let repository, workdirPath;
 
-  beforeEach(function() {
+
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
 
     didAccept = sinon.stub();
     didCancel = sinon.stub();
+    workdirPath = await cloneRepository('three-files');
+    repository = await buildRepository(workdirPath);
 
     app = (
       <OpenCommitDialog
         commandRegistry={commandRegistry}
         didAccept={didAccept}
         didCancel={didCancel}
+        repository={repository}
       />
     );
     wrapper = mount(app);
@@ -65,6 +71,16 @@ describe('OpenCommitDialog', function() {
       assert.strictEqual(wrapper.find('.error').text(), 'Not a valid git commit identifier');
     });
 
+    it('disables open button when commit does not exist in repo', async function() {
+      setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
+      wrapper.update();
+      wrapper.find('button.icon-commit').simulate('click');
+
+      await assert.async.strictEqual(wrapper.update().find('.error').text(), 'Commit with that sha does not exist in this repository');
+      assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
+    });
+
+
     it('enables the open button when commit sha box is populated with a valid sha', function() {
       setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
       wrapper.update();
@@ -74,12 +90,13 @@ describe('OpenCommitDialog', function() {
     });
   });
 
-  it('calls the acceptance callback', function() {
-    setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
+  it('calls the acceptance callback', async function() {
+    const commit = await repository.getLastCommit();
+    setTextIn('.github-CommitSha atom-text-editor', commit.sha);
 
     wrapper.find('button.icon-commit').simulate('click');
 
-    assert.isTrue(didAccept.calledWith({sha: 'abcd1234'}));
+    await assert.async.isTrue(didAccept.calledWith({sha: commit.sha}));
     wrapper.unmount();
   });
 
