@@ -123,11 +123,10 @@ describe('getRepoPipelineManager()', function() {
       sinon.spy(notificationManager, 'addError');
       sinon.spy(notificationManager, 'addWarning');
 
-      pullPipeline.run(gitErrorStub('error: Your local changes to the following files would be overwritten by merge'), repo, '', {});
+      pullPipeline.run(gitErrorStub('error: Your local changes to the following files would be overwritten by merge:\n\ta.txt\n\tb.txt'), repo, '', {});
       assert.isTrue(notificationManager.addError.calledWithMatch('Pull aborted', {dismissable: true}));
 
       pullPipeline.run(gitErrorStub('', 'Automatic merge failed; fix conflicts and then commit the result.'), repo, '', {});
-      // console.log(notificationManager.addError.args)
       assert.isTrue(notificationManager.addWarning.calledWithMatch('Merge conflicts', {dismissable: true}));
 
       pullPipeline.run(gitErrorStub('fatal: Not possible to fast-forward, aborting.'), repo, '', {});
@@ -186,7 +185,7 @@ describe('getRepoPipelineManager()', function() {
     it('failed-to-checkout-error', function() {
       sinon.spy(notificationManager, 'addError');
 
-      checkoutPipeline.run(gitErrorStub('local changes would be overwritten'), repo, '', {createNew: false});
+      checkoutPipeline.run(gitErrorStub('local changes would be overwritten: \n\ta.txt\n\tb.txt'), repo, '', {createNew: false});
       assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
 
       checkoutPipeline.run(gitErrorStub('branch x already exists'), repo, '', {createNew: false});
@@ -238,8 +237,17 @@ describe('getRepoPipelineManager()', function() {
       const addRemotePipeline = getPipeline(pipelineManager, 'ADDREMOTE');
       sinon.spy(notificationManager, 'addError');
 
-      addRemotePipeline.run(gitErrorStub('fatal: remote XXX already exists'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {dismissable: true}));
+      addRemotePipeline.run(gitErrorStub('fatal: remote x already exists.'), repo, 'existential-crisis');
+      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {
+        detail: 'The repository already contains a remote named existential-crisis.',
+        dismissable: true,
+      }));
+
+      addRemotePipeline.run(gitErrorStub('something else'), repo, 'remotename');
+      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {
+        detail: 'something else',
+        dismissable: true,
+      }));
     });
   });
 });
