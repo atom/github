@@ -99,4 +99,58 @@ describe('getRepoPipelineManager()', function() {
       }));
     });
   });
+
+  describe('PULL pipeline', function() {
+    it('set-pull-in-progress', function() {
+
+    });
+
+    it('failed-to-pull-error', function() {
+
+    });
+  });
+
+  describe('FETCH pipeline', function() {
+    it('set-fetch-in-progress', function() {
+
+    });
+
+    it('failed-to-fetch-error', function() {
+
+    });
+  });
+
+  describe('CHECKOUT pipeline', function() {
+    it('set-checkout-in-progress', function() {
+
+    });
+
+    it('failed-to-checkout-error', function() {
+
+    });
+  });
+
+  describe('COMMIT pipeline', function() {
+    it('confirm-commit', function() {
+
+    });
+
+    it('clean-up-disk-commit-msg', function() {
+
+    });
+
+    it('set-commit-in-progress', function() {
+
+    });
+
+    it('failed-to-commit-error', function() {
+
+    });
+  });
+
+  describe('ADDREMOTE pipeline', function() {
+    it('failed-to-add-remote', function() {
+
+    });
+  });
 });
