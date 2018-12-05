@@ -139,7 +139,6 @@ describe('getRepoPipelineManager()', function() {
   });
 
   describe('FETCH pipeline', function() {
-
     let fetchPipeline;
 
     beforeEach(function() {
@@ -156,16 +155,50 @@ describe('getRepoPipelineManager()', function() {
       await assert.async.isFalse(repo.getOperationStates().isFetchInProgress());
     });
 
-  //
-  // describe('CHECKOUT pipeline', function() {
-  //   it('set-checkout-in-progress', function() {
-  //
-  //   });
-  //
-  //   it('failed-to-checkout-error', function() {
-  //
-  //   });
-  // });
+    it('failed-to-fetch-error', function() {
+      sinon.spy(notificationManager, 'addError');
+
+      fetchPipeline.run(gitErrorStub('this is a nice error msg'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to fetch', {
+        detail: 'this is a nice error msg',
+        dismissable: true,
+      }));
+    });
+  });
+
+  describe('CHECKOUT pipeline', function() {
+    let checkoutPipeline;
+
+    beforeEach(function() {
+      checkoutPipeline = getPipeline(pipelineManager, 'CHECKOUT');
+    });
+
+    it('set-checkout-in-progress', async function() {
+      const checkoutStub = sinon.stub().callsFake(() => {
+        assert.isTrue(repo.getOperationStates().isCheckoutInProgress());
+        return Promise.resolve();
+      });
+      checkoutPipeline.run(checkoutStub, repo, '', {});
+      assert.isTrue(checkoutStub.called);
+      await assert.async.isFalse(repo.getOperationStates().isCheckoutInProgress());
+    });
+
+    it('failed-to-checkout-error', function() {
+      sinon.spy(notificationManager, 'addError');
+
+      checkoutPipeline.run(gitErrorStub('local changes would be overwritten'), repo, '', {createNew: false});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+
+      checkoutPipeline.run(gitErrorStub('branch x already exists'), repo, '', {createNew: false});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+
+      checkoutPipeline.run(gitErrorStub('error: you need to resolve your current index first'), repo, '', {createNew: false});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+
+      checkoutPipeline.run(gitErrorStub('something else'), repo, '', {createNew: true});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create branch', {detail: 'something else', dismissable: true}));
+    });
+  });
   //
   // describe('COMMIT pipeline', function() {
   //   it('confirm-commit', function() {
