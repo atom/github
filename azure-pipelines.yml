@@ -57,7 +57,7 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: npm run codecov
+  - bash: npm run codecov -- --build "Linux $(atom_channel)"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -106,7 +106,7 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: npm run codecov
+  - bash: npm run codecov -- --build "MacOS $(atom_channel)"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -172,7 +172,7 @@ jobs:
       testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
       testRunTitle: Windows $(atom_channel)
     condition: succeededOrFailed()
-  - powershell: npm run report:coverage
+  - powershell: npm run report:coverage -- --build "Windows $(atom_channel)"
     displayName: generate code coverage reports
     condition: succeededOrFailed()
   - powershell: npm run codecov
