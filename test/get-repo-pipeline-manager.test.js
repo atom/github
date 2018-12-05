@@ -73,7 +73,7 @@ describe('getRepoPipelineManager()', function() {
       });
     });
 
-    it('set-push-in-progress', function() {
+    it('set-push-in-progress', async function() {
       const pushPipeline = getPipeline(pipelineManager, 'PUSH');
       const pushStub = sinon.stub().callsFake(() => {
         assert.isTrue(repo.getOperationStates().isPushInProgress());
@@ -81,7 +81,7 @@ describe('getRepoPipelineManager()', function() {
       });
       pushPipeline.run(pushStub, repo, '', {});
       assert.isTrue(pushStub.called);
-      assert.isFalse(repo.getOperationStates().isPushInProgress());
+      await assert.async.isFalse(repo.getOperationStates().isPushInProgress());
     });
 
     it('failed-to-push-error', function() {
