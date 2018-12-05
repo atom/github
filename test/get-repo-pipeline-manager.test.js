@@ -21,6 +21,15 @@ describe('getRepoPipelineManager()', function() {
     return buildRepositoryWithPipeline(workdir, option);
   };
 
+  const gitErrorStub = (stdErr = '', stdOut = '') => {
+    return sinon.stub().throws(() => {
+      const err = new GitError();
+      err.stdErr = stdErr;
+      err.stdOut = stdOut;
+      return err;
+    });
+  };
+
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
@@ -87,46 +96,13 @@ describe('getRepoPipelineManager()', function() {
     it('failed-to-push-error', function() {
       const pushPipeline = getPipeline(pipelineManager, 'PUSH');
       sinon.spy(notificationManager, 'addError');
-      pushPipeline.run(() => {
-        const err = new GitError();
-        err.stdErr = 'rejected failed to push';
-        throw err;
-      }, repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWith('Push rejected', {
-        description: 'The tip of your current branch is behind its remote counterpart.' +
-        ' Try pulling before pushing.<br />To force push, hold `cmd` or `ctrl` while clicking.',
-        dismissable: true,
-      }));
-    });
-  });
 
-  describe('PULL pipeline', function() {
-    it('set-pull-in-progress', function() {
 
-    });
+      pushPipeline.run(gitErrorStub('rejected failed to push'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Push rejected', {dismissable: true}));
 
-    it('failed-to-pull-error', function() {
-
-    });
-  });
-
-  describe('FETCH pipeline', function() {
-    it('set-fetch-in-progress', function() {
-
-    });
-
-    it('failed-to-fetch-error', function() {
-
-    });
-  });
-
-  describe('CHECKOUT pipeline', function() {
-    it('set-checkout-in-progress', function() {
-
-    });
-
-    it('failed-to-checkout-error', function() {
-
+      pushPipeline.run(gitErrorStub('something else'), repo, '', {});
+      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to push', {dismissable: true}));
     });
   });
 
