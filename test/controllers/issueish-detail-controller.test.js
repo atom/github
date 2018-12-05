@@ -320,7 +320,7 @@ describe('IssueishDetailController', function() {
   describe('openCommit', function() {
     it('opens a CommitDetailItem in the workspace', async function() {
       const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
-      await wrapper.find('Relay(BareIssueishDetailView)').prop('openCommit')({sha: '1234'});
+      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
@@ -332,7 +332,7 @@ describe('IssueishDetailController', function() {
       sinon.stub(reporterProxy, 'addEvent');
 
       const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
-      await wrapper.find('Relay(BareIssueishDetailView)').prop('openCommit')({sha: '1234'});
+      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
 
       assert.isTrue(
         reporterProxy.addEvent.calledWith(
