@@ -85,4 +85,10 @@ describe('CredentialDialog', function() {
       assert.isFalse(wrapper.find('.github-CredentialDialog-remember').exists());
     });
   });
+
+  it('calls the cancel callback', function() {
+    wrapper = mount(app);
+    wrapper.find('.github-CancelButton').simulate('click');
+    assert.isTrue(didCancel.called);
+  });
 });
