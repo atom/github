@@ -13,6 +13,10 @@ describe('WorkdirCache', function() {
     cache = new WorkdirCache(5);
   });
 
+  it('defaults to 1000 entries', function() {
+    assert.strictEqual((new WorkdirCache()).maxSize, 1000);
+  });
+
   it('finds a workdir that is the given path', async function() {
     const sameDir = await cloneRepository('three-files');
     const workDir = await cache.find(sameDir);
