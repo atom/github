@@ -31,6 +31,14 @@ describe('WorkdirCache', function() {
     assert.equal(actualDir, expectedDir);
   });
 
+  it('finds a workdir from within the .git directory', async function() {
+    const expectedDir = await cloneRepository('three-files');
+    const givenDir = path.join(expectedDir, '.git/hooks');
+    const actualDir = await cache.find(givenDir);
+
+    assert.strictEqual(actualDir, expectedDir);
+  });
+
   it('finds a workdir from a gitdir file', async function() {
     const repoDir = await cloneRepository('three-files');
     const expectedDir = await fs.realpath(temp.mkdirSync());
