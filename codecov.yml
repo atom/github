@@ -8,7 +8,3 @@ coverage:
     patch:
       default:
         threshold: 2
-
-    changes:
-      default:
-        threshold: 2
