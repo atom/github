@@ -48,11 +48,13 @@ describe('CommitView', function() {
 
   it('displays the names if the are no usernames ', function() {
     const author = {
-      name: 'author_name', avatarUrl: '',
+      name: 'author_name',
+      avatarUrl: '',
       user: null,
     };
     const committer = {
-      name: 'committer_name', avatarUrl: '',
+      name: 'committer_name',
+      avatarUrl: '',
       user: null,
     };
     const app = buildApp({author, committer});
@@ -66,16 +68,18 @@ describe('CommitView', function() {
   });
 
   it('ignores committer when it authored by the same person', function() {
-      const author = {
-        name: 'author_name', avatarUrl: '',
-        user: {
-          login: 'author_login',
-        },
-      };
-      const committer = {
-        name: 'author_name', avatarUrl: '',
-        user: null,
-      };
+    const author = {
+      name: 'author_name',
+      avatarUrl: '',
+      user: {
+        login: 'author_login',
+      },
+    };
+    const committer = {
+      name: 'author_name',
+      avatarUrl: '',
+      user: null,
+    };
     const app = buildApp({author, committer});
     const instance = shallow(app);
     assert.isTrue(
@@ -183,7 +187,7 @@ describe('CommitView', function() {
 
   it('opens a CommitDetailcommit on click when the commit is on a branch', function() {
     const openCommit = sinon.spy();
-    const sha = 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5'
+    const sha = 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5';
     const app = buildApp({sha}, {openCommit, onBranch: true});
     const wrapper = shallow(app);
 
