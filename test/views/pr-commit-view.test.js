@@ -78,20 +78,20 @@ describe('PrCommitView', function() {
   describe('if PR is checked out', function() {
     it('shows message headlines as clickable', function() {
       const wrapper = shallow(buildApp({}));
-      assert.isTrue(wrapper.find('.github-PrCommitView-messageHeadline').at(0).hasClass('clickable'));
+      assert.isTrue(wrapper.find('.github-PrCommitView-messageHeadline').is('button'));
     });
 
     it('opens a commit with the full sha when title is clicked', function() {
       const openCommit = sinon.spy();
       const wrapper = shallow(buildApp({sha: 'longsha123'}, {openCommit}));
-      wrapper.find('.github-PrCommitView-messageHeadline').at(0).simulate('click');
+      wrapper.find('button.github-PrCommitView-messageHeadline').at(0).simulate('click');
       assert.isTrue(openCommit.calledWith({sha: 'longsha123'}));
     });
   });
 
   it('does not show message headlines as clickable if PR is not checked out', function() {
     const wrapper = shallow(buildApp({}, {onBranch: false}));
-    assert.isFalse(wrapper.find('.github-PrCommitView-messageHeadline').at(0).hasClass('clickable'));
+    assert.isTrue(wrapper.find('.github-PrCommitView-messageHeadline').is('span'));
   });
 
 });

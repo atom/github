@@ -263,13 +263,41 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>inner HTML</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
+
     const openCommit = sinon.spy();
     const app = <BareCommitView item={item} onBranch={true} openCommit={openCommit} />;
     const wrapper = shallow(app);
 
-    assert.isTrue(wrapper.find('.commit-message-headline').hasClass('clickable'));
-    wrapper.find('.commit-message-headline').simulate('click');
+    assert.isTrue(wrapper.find('.commit-message-headline button').exists());
 
+    wrapper.find('.commit-message-headline button').simulate('click');
     assert.isTrue(openCommit.calledWith({sha: item.sha}));
+  });
+
+  it('renders the message headline as a span when the commit is not on a branch', function() {
+    const item = {
+      author: {
+        name: 'author_name', avatarUrl: '',
+        user: {
+          login: 'author_login',
+        },
+      },
+      committer: {
+        name: 'author_name', avatarUrl: '',
+        user: null,
+      },
+      sha: 'e6c80aa37dc6f7a5e5491e0ed6e00ec2c812b1a5',
+      authoredByCommitter: true,
+      message: 'full message',
+      messageHeadlineHTML: '<h1>inner HTML</h1>',
+      commitURL: 'https://github.com/aaa/bbb/commit/123abc',
+    };
+
+    const openCommit = sinon.spy();
+    const app = <BareCommitView item={item} onBranch={false} openCommit={openCommit} />;
+    const wrapper = shallow(app);
+
+    assert.isTrue(wrapper.find('.commit-message-headline span').exists());
+    assert.isFalse(wrapper.find('.commit-message-headline button').exists());
   });
 });
