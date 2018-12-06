@@ -6,7 +6,7 @@ import {BareCommitView} from '../../../lib/views/timeline-items/commit-view';
 
 describe('CommitView', function() {
   it('prefers displaying usernames from `user.login`', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -24,7 +24,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -35,7 +35,7 @@ describe('CommitView', function() {
   });
 
   it('displays the names if the are no usernames ', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: null,
@@ -50,7 +50,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} onBranch={false} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_name" />),
@@ -61,7 +61,7 @@ describe('CommitView', function() {
   });
 
   it('ignores committer when it authored by the same person', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -78,7 +78,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -89,7 +89,7 @@ describe('CommitView', function() {
   });
 
   it('ignores the committer when it is authored by GitHub', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -106,7 +106,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -117,7 +117,7 @@ describe('CommitView', function() {
   });
 
   it('ignores the committer when it uses the GitHub no-reply address', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -134,7 +134,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img title="author_login" />),
@@ -145,7 +145,7 @@ describe('CommitView', function() {
   });
 
   it('renders avatar URLs', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: 'URL1',
         user: {
@@ -164,7 +164,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<img src="URL1" />),
@@ -175,7 +175,7 @@ describe('CommitView', function() {
   });
 
   it('shows the full commit message as tooltip', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -192,7 +192,7 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>html</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.isTrue(
       instance.containsMatchingElement(<span title="full message" />),
@@ -200,7 +200,7 @@ describe('CommitView', function() {
   });
 
   it('renders commit message headline', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -217,13 +217,13 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>inner HTML</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.match(instance.html(), /<h1>inner HTML<\/h1>/);
   });
 
   it('renders commit sha', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -240,13 +240,13 @@ describe('CommitView', function() {
       messageHeadlineHTML: '<h1>inner HTML</h1>',
       commitURL: 'https://github.com/aaa/bbb/commit/123abc',
     };
-    const app = <BareCommitView item={item} />;
+    const app = <BareCommitView commit={commit} />;
     const instance = shallow(app);
     assert.match(instance.text(), /e6c80aa3/);
   });
 
-  it('opens a CommitDetailItem on click when the commit is on a branch', function() {
-    const item = {
+  it('opens a CommitDetailcommit on click when the commit is on a branch', function() {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -265,17 +265,17 @@ describe('CommitView', function() {
     };
 
     const openCommit = sinon.spy();
-    const app = <BareCommitView item={item} onBranch={true} openCommit={openCommit} />;
+    const app = <BareCommitView commit={commit} onBranch={true} openCommit={openCommit} />;
     const wrapper = shallow(app);
 
     assert.isTrue(wrapper.find('.commit-message-headline button').exists());
 
     wrapper.find('.commit-message-headline button').simulate('click');
-    assert.isTrue(openCommit.calledWith({sha: item.sha}));
+    assert.isTrue(openCommit.calledWith({sha: commit.sha}));
   });
 
   it('renders the message headline as a span when the commit is not on a branch', function() {
-    const item = {
+    const commit = {
       author: {
         name: 'author_name', avatarUrl: '',
         user: {
@@ -294,7 +294,7 @@ describe('CommitView', function() {
     };
 
     const openCommit = sinon.spy();
-    const app = <BareCommitView item={item} onBranch={false} openCommit={openCommit} />;
+    const app = <BareCommitView commit={commit} onBranch={false} openCommit={openCommit} />;
     const wrapper = shallow(app);
 
     assert.isTrue(wrapper.find('.commit-message-headline span').exists());
