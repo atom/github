@@ -91,7 +91,7 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<IssueDetailView>`](/lib/views/issue-detail-view.js)
 > > [`<PullRequestDetailView>`](/lib/views/pr-detail-view.js)
 > >
-> > The workspace-center pane that appears when looking at all the changes
+> > The workspace-center pane item that appears when looking at all the changes
 > > associated with a single commit that already exists in the current repository.
 > > [`<CommitDetailItem>`](/lib/items/issueish-detail-item.js)
 > > [`<CommitDetailContainer>`](/lib/containers/commit-detail-container.js)
