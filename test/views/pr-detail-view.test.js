@@ -95,6 +95,35 @@ describe('PullRequestDetailView', function() {
     assert.lengthOf(wrapper.find(TabPanel), 3);
   });
 
+  it('tells its tabs when the pull request is currently checked out', function() {
+    const wrapper = shallow(buildApp({}, {
+      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
+    }));
+
+    assert.isTrue(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
+    assert.isTrue(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+  });
+
+  it('tells its tabs when the pull request is not checked out', function() {
+    const checkoutOp = new EnableableOperation(() => {});
+
+    const wrapper = shallow(buildApp({}, {checkoutOp}));
+    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+
+    wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.HIDDEN, 'message')});
+    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+
+    wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.DISABLED, 'message')});
+    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+
+    wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.BUSY, 'message')});
+    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+  });
+
   it('renders pull request information for cross repository PR', function() {
     const baseRefName = 'master';
     const headRefName = 'tt-heck-yes';
@@ -133,7 +162,7 @@ describe('PullRequestDetailView', function() {
     assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
   });
 
-  it('disregardes a double refresh', function() {
+  it('disregards a double refresh', function() {
     let callback = null;
     const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {
       callback = cb;
