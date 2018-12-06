@@ -15,6 +15,7 @@ const defaultProps = {
   sha: 'bad1deaea3d816383721478fc631b5edd0c2b370',
   url: 'https://github.com/atom/github/pull/1684/commits/bad1deaea3d816383721478fc631b5edd0c2b370',
 };
+
 const getProps = function(itemOverrides = {}, overrides = {}) {
   return {
     item: {
@@ -31,6 +32,7 @@ describe('PrCommitView', function() {
   function buildApp(itemOverrides = {}, overrides = {}) {
     return <PrCommitView {...getProps(itemOverrides, overrides)} />;
   }
+
   it('renders the commit view for commits without message body', function() {
     const wrapper = shallow(buildApp({}));
     assert.deepEqual(wrapper.find('.github-PrCommitView-title').text(), defaultProps.messageHeadline);
@@ -93,5 +95,4 @@ describe('PrCommitView', function() {
     const wrapper = shallow(buildApp({}, {onBranch: false}));
     assert.isTrue(wrapper.find('.github-PrCommitView-messageHeadline').is('span'));
   });
-
 });
