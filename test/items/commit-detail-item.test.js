@@ -152,20 +152,39 @@ describe('CommitDetailItem', function() {
     assert.strictEqual(item.getSha(), '420');
   });
 
-  it('brings focus to the element a child populates refInitialFocus after it loads', async function() {
-    const wrapper = mount(buildPaneApp());
-    // Spin forever to keep refInitialFocus from being assigned
-    sinon.stub(repository, 'getCommit').returns(new Promise(() => {}));
+  describe('initial focus', function() {
+    it('brings focus to the element a child populates refInitialFocus after it loads', async function() {
+      const wrapper = mount(buildPaneApp());
+      // Spin forever to keep refInitialFocus from being assigned
+      sinon.stub(repository, 'getCommit').returns(new Promise(() => {}));
 
-    const item = await open();
-    item.focus();
-    wrapper.update();
+      const item = await open();
+      item.focus();
+      wrapper.update();
 
-    const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
-    const focusSpy = sinon.spy();
-    refInitialFocus.setter({focus: focusSpy});
-    await refInitialFocus.getPromise();
+      const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
+      const focusSpy = sinon.spy();
+      refInitialFocus.setter({focus: focusSpy});
+      await refInitialFocus.getPromise();
 
-    assert.isTrue(focusSpy.called);
+      assert.isTrue(focusSpy.called);
+    });
+
+    it("prevents the item from stealing focus if it's been answered", async function() {
+      const wrapper = mount(buildPaneApp());
+      sinon.stub(repository, 'getCommit').returns(new Promise(() => {}));
+
+      const item = await open();
+      item.preventFocus();
+      item.focus();
+      wrapper.update();
+
+      const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
+      const focusSpy = sinon.spy();
+      refInitialFocus.setter({focus: focusSpy});
+      await refInitialFocus.getPromise();
+
+      assert.isFalse(focusSpy.called);
+    });
   });
 });
