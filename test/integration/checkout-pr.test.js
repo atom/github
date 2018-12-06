@@ -120,7 +120,7 @@ describe('integration: check out a pull request', function() {
           id: 'user0',
           login: 'owner',
         },
-        issueish: createPullRequestDetailResult({
+        pullRequest: createPullRequestDetailResult({
           number: 1,
           title: 'Pull Request 1',
           headRefName: 'pr-head',
