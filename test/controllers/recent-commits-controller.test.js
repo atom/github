@@ -64,7 +64,8 @@ describe('RecentCommitsController', function() {
     });
 
     it('preserves keyboard focus within the RecentCommitsView when requested', async function() {
-      sinon.stub(atomEnv.workspace, 'open').resolves();
+      const preventFocus = sinon.spy();
+      sinon.stub(atomEnv.workspace, 'open').resolves({preventFocus});
 
       const sha = 'asdf1234';
       const commits = [commitBuilder().sha(sha).build()];
@@ -75,10 +76,11 @@ describe('RecentCommitsController', function() {
 
       await wrapper.find('RecentCommitsView').prop('openCommit')({sha: 'asdf1234', preserveFocus: true});
       assert.isTrue(focusSpy.called);
+      assert.isTrue(preventFocus.called);
     });
 
     it('records an event', async function() {
-      sinon.stub(atomEnv.workspace, 'open').resolves();
+      sinon.stub(atomEnv.workspace, 'open').resolves({preventFocus() {}});
       sinon.stub(reporterProxy, 'addEvent');
 
       const sha = 'asdf1234';
