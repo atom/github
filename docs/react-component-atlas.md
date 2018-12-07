@@ -80,7 +80,7 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
 > > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
 > >
-> > The workspace-center pane that appears when looking at _all_ the staged changes that will be going into the next commit.
+> > The workspace-center pane item that appears when looking at _all_ the staged changes that will be going into the next commit.
 > >
 > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
