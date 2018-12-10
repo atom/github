@@ -86,7 +86,7 @@
     "electron-link": "0.2.2",
     "electron-mksnapshot": "3.0.0-beta.1",
     "enzyme": "3.8.0",
-    "enzyme-adapter-react-16": "1.7.0",
+    "enzyme-adapter-react-16": "1.7.1",
     "eslint": "5.0.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
