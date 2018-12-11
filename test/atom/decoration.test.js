@@ -44,7 +44,7 @@ describe('Decoration', function() {
 
     it('creates a block decoration', function() {
       const app = (
-        <Decoration editor={editor} decorable={marker} type="block">
+        <Decoration editor={editor} decorable={marker} type="block" className="parent">
           <div className="decoration-subtree">
             This is a subtree
           </div>
@@ -55,7 +55,9 @@ describe('Decoration', function() {
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'block');
-      const child = args[1].item.getElement().firstElementChild;
+      const element = args[1].item.getElement();
+      assert.strictEqual(element.className, 'react-atom-decoration parent');
+      const child = element.firstElementChild;
       assert.equal(child.className, 'decoration-subtree');
       assert.equal(child.textContent, 'This is a subtree');
     });

@@ -66,17 +66,30 @@ This is a high-level overview of the structure of the React component tree that 
 > > > > > >
 > > > > > > Render a list of issueish results as rows within the result list of a specific search.
 >
-> > [`<FilePatchController>`](/lib/controllers/file-patch-controller.js)
-> > [`<FilePatchView>`](/lib/views/file-patch-view.js)
+> > [`<ChangedFileItem>`](/lib/items/changed-file-item.js)
+> > [`<ChangedFileContainer>`](/lib/containers/changed-file-container.js)
 > >
 > > The workspace-center pane that appears when looking at the staged or unstaged changes associated with a file.
 > >
-> > :construction: Being rewritten in [#1712](https://github.com/atom/github/pull/1512) :construction:
+> > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
+> > >
+> > > Render a sequence of git-generated file patches within a TextEditor, using decorations to include contextually
+> > > relevant controls.
+>
+> > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
+> > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
+> >
+> > The workspace-center pane that appears when looking at _all_ the staged changes that will be going into the next commit.
+> >
+> > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 >
 > > [`<IssueishDetailItem>`](/lib/items/issueish-detail-item.js)
 > > [`<IssueishDetailContainer>`](/lib/containers/issueish-detail-container.js)
 > > [`<IssueishDetailController>`](/lib/controllers/issueish-detail-controller.js)
-> > [`<IssueishDetailView>`](/lib/controllers/issueish-detail-controller.js)
+> > [`<IssueDetailView>`](/lib/views/issue-detail-view.js)
+> > [`<PullRequestDetailView>`](/lib/views/pr-detail-view.js)
 > >
 > > The workspace-center pane that displays information about a pull request or issue ("issueish", collectively) from github.com.
 > >

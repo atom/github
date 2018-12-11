@@ -50,25 +50,6 @@ describe('Hunk', function() {
     assert.strictEqual(h.bufferRowCount(), 11);
     assert.lengthOf(h.getChanges(), 3);
     assert.lengthOf(h.getRegions(), 4);
-    assert.lengthOf(h.getAdditionRanges(), 1);
-    assert.lengthOf(h.getDeletionRanges(), 2);
-    assert.isNull(h.getNoNewlineRange());
-  });
-
-  it('returns the range of a no-newline region', function() {
-    const h = new Hunk({
-      ...attrs,
-      regions: [
-        new Addition(buffer.markRange([[1, 0], [2, 4]])),
-        new Deletion(buffer.markRange([[4, 0], [5, 4]])),
-        new Unchanged(buffer.markRange([[6, 0], [9, 4]])),
-        new NoNewline(buffer.markRange([[10, 0], [10, 4]])),
-      ],
-    });
-
-    const nl = h.getNoNewlineRange();
-    assert.isNotNull(nl);
-    assert.deepEqual(nl.serialize(), [[10, 0], [10, 4]]);
   });
 
   it('generates a patch section header', function() {

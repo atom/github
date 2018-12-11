@@ -6,6 +6,7 @@ import {shallow, mount} from 'enzyme';
 import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
@@ -15,6 +16,7 @@ import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -487,13 +489,31 @@ describe('RootController', function() {
   });
 
   describe('discarding and restoring changed lines', () => {
-    describe('discardLines(filePatch, lines)', () => {
+    describe('discardLines(multiFilePatch, lines)', () => {
+      it('is a no-op when multiple FilePatches are present', async () => {
+        const workdirPath = await cloneRepository('three-files');
+        const repository = await buildRepository(workdirPath);
+
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch()
+          .addFilePatch()
+          .build();
+
+        sinon.spy(repository, 'applyPatchToWorkdir');
+
+        const wrapper = shallow(React.cloneElement(app, {repository}));
+        await wrapper.instance().discardLines(multiFilePatch, new Set([0]));
+
+        assert.isFalse(repository.applyPatchToWorkdir.called);
+      });
+
       it('only discards lines if buffer is unmodified, otherwise notifies user', async () => {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
 
         fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
-        const unstagedFilePatch = await repository.getFilePatchForPath('a.txt');
+        const multiFilePatch = await repository.getFilePatchForPath('a.txt');
+        const unstagedFilePatch = multiFilePatch.getFilePatches()[0];
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
@@ -510,14 +530,14 @@ describe('RootController', function() {
         sinon.stub(notificationManager, 'addError');
         // unmodified buffer
         const hunkLines = unstagedFilePatch.getHunks()[0].getBufferRows();
-        await wrapper.instance().discardLines(unstagedFilePatch, new Set([hunkLines[0]]));
+        await wrapper.instance().discardLines(multiFilePatch, new Set([hunkLines[0]]));
         assert.isTrue(repository.applyPatchToWorkdir.calledOnce);
         assert.isFalse(notificationManager.addError.called);
 
         // modified buffer
         repository.applyPatchToWorkdir.reset();
         editor.setText('modify contents');
-        await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows()));
+        await wrapper.instance().discardLines(multiFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows()));
         assert.isFalse(repository.applyPatchToWorkdir.called);
         const notificationArgs = notificationManager.addError.args[0];
         assert.equal(notificationArgs[0], 'Cannot discard lines.');
@@ -559,34 +579,34 @@ describe('RootController', function() {
 
     describe('undoLastDiscard(partialDiscardFilePath)', () => {
       describe('when partialDiscardFilePath is not null', () => {
-        let unstagedFilePatch, repository, absFilePath, wrapper;
+        let multiFilePatch, repository, absFilePath, wrapper;
+
         beforeEach(async () => {
           const workdirPath = await cloneRepository('multi-line-file');
           repository = await buildRepository(workdirPath);
 
           absFilePath = path.join(workdirPath, 'sample.js');
           fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
+          multiFilePatch = await repository.getFilePatchForPath('sample.js');
 
           app = React.cloneElement(app, {repository});
           wrapper = shallow(app);
-          wrapper.setState({
-            filePath: 'sample.js',
-            filePatch: unstagedFilePatch,
-            stagingStatus: 'unstaged',
-          });
         });
 
         it('reverses last discard for file path', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0, repository);
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
+
           assert.notEqual(contents1, contents2);
           await repository.refresh();
 
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-          wrapper.setState({filePatch: unstagedFilePatch});
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
+          multiFilePatch = await repository.getFilePatchForPath('sample.js');
+
+          const rows1 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(2, 4));
+          await wrapper.instance().discardLines(multiFilePatch, rows1);
           const contents3 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
@@ -598,7 +618,8 @@ describe('RootController', function() {
 
         it('does not undo if buffer is modified', async () => {
           const contents1 = fs.readFileSync(absFilePath, 'utf8');
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0);
           const contents2 = fs.readFileSync(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
@@ -610,8 +631,6 @@ describe('RootController', function() {
           sinon.stub(notificationManager, 'addError');
 
           await repository.refresh();
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-          wrapper.setState({filePatch: unstagedFilePatch});
           await wrapper.instance().undoLastDiscard('sample.js');
           const notificationArgs = notificationManager.addError.args[0];
           assert.equal(notificationArgs[0], 'Cannot undo last discard.');
@@ -622,7 +641,8 @@ describe('RootController', function() {
         describe('when file content has changed since last discard', () => {
           it('successfully undoes discard if changes do not conflict', async () => {
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+            const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+            await wrapper.instance().discardLines(multiFilePatch, rows0);
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -631,8 +651,6 @@ describe('RootController', function() {
             fs.writeFileSync(absFilePath, contents2 + change);
 
             await repository.refresh();
-            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-            wrapper.setState({filePatch: unstagedFilePatch});
             await wrapper.instance().undoLastDiscard('sample.js');
 
             await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
@@ -642,7 +660,8 @@ describe('RootController', function() {
             await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
             const contents1 = fs.readFileSync(absFilePath, 'utf8');
-            await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+            const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+            await wrapper.instance().discardLines(multiFilePatch, rows0);
             const contents2 = fs.readFileSync(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
@@ -651,8 +670,6 @@ describe('RootController', function() {
             fs.writeFileSync(absFilePath, change + contents2);
 
             await repository.refresh();
-            unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-            wrapper.setState({filePatch: unstagedFilePatch});
 
             // click 'Cancel'
             confirm.returns(2);
@@ -705,11 +722,13 @@ describe('RootController', function() {
 
         it('clears the discard history if the last blob is no longer valid', async () => {
           // this would occur in the case of garbage collection cleaning out the blob
-          await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(0, 2)));
+          const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
+          await wrapper.instance().discardLines(multiFilePatch, rows0);
           await repository.refresh();
-          unstagedFilePatch = await repository.getFilePatchForPath('sample.js');
-          wrapper.setState({filePatch: unstagedFilePatch});
-          const {beforeSha} = await wrapper.instance().discardLines(unstagedFilePatch, new Set(unstagedFilePatch.getHunks()[0].getBufferRows().slice(2, 4)));
+
+          const multiFilePatch1 = await repository.getFilePatchForPath('sample.js');
+          const rows1 = new Set(multiFilePatch1.getFilePatches()[0].getHunks()[0].getBufferRows().slice(2, 4));
+          const {beforeSha} = await wrapper.instance().discardLines(multiFilePatch1, rows1);
 
           // remove blob from git object store
           fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
@@ -989,13 +1008,13 @@ describe('RootController', function() {
         editor.setCursorBufferPosition([7, 0]);
 
         // TODO: too implementation-detail-y
-        const filePatchItem = {
+        const changedFileItem = {
           goToDiffLine: sinon.spy(),
           focus: sinon.spy(),
           getRealItemPromise: () => Promise.resolve(),
           getFilePatchLoadedPromise: () => Promise.resolve(),
         };
-        sinon.stub(workspace, 'open').returns(filePatchItem);
+        sinon.stub(workspace, 'open').returns(changedFileItem);
         await wrapper.instance().viewUnstagedChangesForCurrentFile();
 
         await assert.async.equal(workspace.open.callCount, 1);
@@ -1003,9 +1022,9 @@ describe('RootController', function() {
           `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=unstaged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
-        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-        assert.equal(filePatchItem.focus.callCount, 1);
+        await assert.async.equal(changedFileItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(changedFileItem.goToDiffLine.args[0], [8]);
+        assert.equal(changedFileItem.focus.callCount, 1);
       });
 
       it('does nothing on an untitled buffer', async function() {
@@ -1034,13 +1053,13 @@ describe('RootController', function() {
         editor.setCursorBufferPosition([7, 0]);
 
         // TODO: too implementation-detail-y
-        const filePatchItem = {
+        const changedFileItem = {
           goToDiffLine: sinon.spy(),
           focus: sinon.spy(),
           getRealItemPromise: () => Promise.resolve(),
           getFilePatchLoadedPromise: () => Promise.resolve(),
         };
-        sinon.stub(workspace, 'open').returns(filePatchItem);
+        sinon.stub(workspace, 'open').returns(changedFileItem);
         await wrapper.instance().viewStagedChangesForCurrentFile();
 
         await assert.async.equal(workspace.open.callCount, 1);
@@ -1048,9 +1067,9 @@ describe('RootController', function() {
           `atom-github://file-patch/a.txt?workdir=${encodeURIComponent(workdirPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, activateItem: true},
         ]);
-        await assert.async.equal(filePatchItem.goToDiffLine.callCount, 1);
-        assert.deepEqual(filePatchItem.goToDiffLine.args[0], [8]);
-        assert.equal(filePatchItem.focus.callCount, 1);
+        await assert.async.equal(changedFileItem.goToDiffLine.callCount, 1);
+        assert.deepEqual(changedFileItem.goToDiffLine.args[0], [8]);
+        assert.equal(changedFileItem.focus.callCount, 1);
       });
 
       it('does nothing on an untitled buffer', async function() {
@@ -1085,6 +1104,31 @@ describe('RootController', function() {
         await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
         assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
       });
+    });
+  });
+
+  describe('opening a CommitPreviewItem', function() {
+    it('registers an opener for CommitPreviewItems', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+
+      const uri = CommitPreviewItem.buildURI(workdir);
+      const item = await atomEnv.workspace.open(uri);
+
+      assert.strictEqual(item.getTitle(), 'Commit preview');
+      assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
+    });
+
+    it('registers a command to toggle the commit preview item', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+      const wrapper = mount(React.cloneElement(app, {repository}));
+      assert.isFalse(wrapper.find('CommitPreviewItem').exists());
+
+      atomEnv.commands.dispatch(workspace.getElement(), 'github:toggle-commit-preview');
+
+      assert.lengthOf(wrapper.update().find('CommitPreviewItem'), 1);
     });
   });
 
@@ -1132,4 +1176,28 @@ describe('RootController', function() {
       assert.isFalse(reporterProxy.addEvent.called);
     });
   });
+
+  describe('surfaceToCommitPreviewButton', function() {
+    it('focuses and selects the commit preview button', async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      const wrapper = mount(app);
+
+      const gitTabTracker = wrapper.instance().gitTabTracker;
+
+      const gitTab = {
+        focusAndSelectCommitPreviewButton: sinon.spy(),
+      };
+
+      sinon.stub(gitTabTracker, 'getComponent').returns(gitTab);
+
+      wrapper.instance().surfaceToCommitPreviewButton();
+      assert.isTrue(gitTab.focusAndSelectCommitPreviewButton.called);
+    });
+  });
+
 });

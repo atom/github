@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.22.1-0",
+  "version": "0.23.0",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -12,8 +12,8 @@
     "test:coverage:html": "nyc --reporter=html npm run test:coverage",
     "test:coverage:lcov": "npm run test:coverage",
     "test:snapshot": "cross-env-shell ATOM_GITHUB_TEST_SUITE=snapshot \"${ATOM_SCRIPT_PATH:-atom} --test test\"",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "report:coverage": "nyc report --reporter=cobertura --reporter=html",
+    "codecov": "codecov",
+    "report:coverage": "nyc report --reporter=cobertura --reporter=html --reporter=lcovonly",
     "lint": "eslint --max-warnings 0 test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
@@ -75,18 +75,18 @@
   },
   "devDependencies": {
     "@smashwilson/atom-mocha-test-runner": "1.4.0",
-    "@smashwilson/enzyme-adapter-react-16": "1.0.2",
     "babel-plugin-istanbul": "4.1.6",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
-    "coveralls": "^3.0.1",
+    "codecov": "3.1.0",
     "cross-env": "5.2.0",
     "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
     "electron-link": "0.2.2",
     "electron-mksnapshot": "3.0.0-beta.1",
-    "enzyme": "3.4.1",
+    "enzyme": "3.7.0",
+    "enzyme-adapter-react-16": "1.7.0",
     "eslint": "5.0.1",
     "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
@@ -189,6 +189,11 @@
       "type": "string",
       "default": "",
       "description": "Comma-separated list of email addresses to exclude from the co-author selection list"
+    },
+    "reportCannotLocateWorkspaceError": {
+      "type": "boolean",
+      "default": "false",
+      "description": "Log an error to the console if a git repository cannot be located for the opened file "
     }
   },
   "deserializers": {
@@ -197,6 +202,7 @@
     "IssueishPaneItem": "createIssueishPaneItemStub",
     "GitDockItem": "createDockItemStub",
     "GithubDockItem": "createDockItemStub",
-    "FilePatchControllerStub": "createFilePatchControllerStub"
+    "FilePatchControllerStub": "createFilePatchControllerStub",
+    "CommitPreviewStub": "createCommitPreviewStub"
   }
 }

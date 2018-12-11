@@ -1,17 +1,19 @@
-import {buildFilePatch} from '../../../lib/models/patch';
-import {assertInPatch} from '../../helpers';
+import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
+import {assertInPatch, assertInFilePatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
   it('returns a null patch for an empty diff list', function() {
-    const p = buildFilePatch([]);
-    assert.isFalse(p.getOldFile().isPresent());
-    assert.isFalse(p.getNewFile().isPresent());
-    assert.isFalse(p.getPatch().isPresent());
+    const multiFilePatch = buildFilePatch([]);
+    const [filePatch] = multiFilePatch.getFilePatches();
+
+    assert.isFalse(filePatch.getOldFile().isPresent());
+    assert.isFalse(filePatch.getNewFile().isPresent());
+    assert.isFalse(filePatch.getPatch().isPresent());
   });
 
   describe('with a single diff', function() {
     it('assembles a patch from non-symlink sides', function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '100644',
         newPath: 'new/path',
@@ -64,18 +66,22 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.strictEqual(p.getOldPath(), 'old/path');
       assert.strictEqual(p.getOldMode(), '100644');
       assert.strictEqual(p.getNewPath(), 'new/path');
       assert.strictEqual(p.getNewMode(), '100755');
       assert.strictEqual(p.getPatch().getStatus(), 'modified');
 
-      const buffer =
+      const bufferText =
         'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\nline-7\nline-8\nline-9\nline-10\n' +
         'line-11\nline-12\nline-13\nline-14\nline-15\nline-16\nline-17\nline-18\n';
-      assert.strictEqual(p.getBuffer().getText(), buffer);
+      assert.strictEqual(buffer.getText(), bufferText);
 
-      assertInPatch(p).hunks(
+      assertInPatch(p, buffer).hunks(
         {
           startRow: 0,
           endRow: 8,
@@ -113,7 +119,7 @@ describe('buildFilePatch', function() {
     });
 
     it("sets the old file's symlink destination", function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '120000',
         newPath: 'new/path',
@@ -130,12 +136,14 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
       assert.strictEqual(p.getOldSymlink(), 'old/destination');
       assert.isNull(p.getNewSymlink());
     });
 
     it("sets the new file's symlink destination", function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '100644',
         newPath: 'new/path',
@@ -152,12 +160,14 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
       assert.isNull(p.getOldSymlink());
       assert.strictEqual(p.getNewSymlink(), 'new/destination');
     });
 
     it("sets both files' symlink destinations", function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '120000',
         newPath: 'new/path',
@@ -178,12 +188,14 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
       assert.strictEqual(p.getOldSymlink(), 'old/destination');
       assert.strictEqual(p.getNewSymlink(), 'new/destination');
     });
 
     it('assembles a patch from a file deletion', function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '100644',
         newPath: null,
@@ -206,16 +218,20 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.isTrue(p.getOldFile().isPresent());
       assert.strictEqual(p.getOldPath(), 'old/path');
       assert.strictEqual(p.getOldMode(), '100644');
       assert.isFalse(p.getNewFile().isPresent());
       assert.strictEqual(p.getPatch().getStatus(), 'deleted');
 
-      const buffer = 'line-0\nline-1\nline-2\nline-3\n\n';
-      assert.strictEqual(p.getBuffer().getText(), buffer);
+      const bufferText = 'line-0\nline-1\nline-2\nline-3\n\n';
+      assert.strictEqual(buffer.getText(), bufferText);
 
-      assertInPatch(p).hunks(
+      assertInPatch(p, buffer).hunks(
         {
           startRow: 0,
           endRow: 4,
@@ -228,7 +244,7 @@ describe('buildFilePatch', function() {
     });
 
     it('assembles a patch from a file addition', function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: null,
         oldMode: null,
         newPath: 'new/path',
@@ -249,16 +265,20 @@ describe('buildFilePatch', function() {
         ],
       }]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.isFalse(p.getOldFile().isPresent());
       assert.isTrue(p.getNewFile().isPresent());
       assert.strictEqual(p.getNewPath(), 'new/path');
       assert.strictEqual(p.getNewMode(), '100755');
       assert.strictEqual(p.getPatch().getStatus(), 'added');
 
-      const buffer = 'line-0\nline-1\nline-2\n';
-      assert.strictEqual(p.getBuffer().getText(), buffer);
+      const bufferText = 'line-0\nline-1\nline-2\n';
+      assert.strictEqual(buffer.getText(), bufferText);
 
-      assertInPatch(p).hunks(
+      assertInPatch(p, buffer).hunks(
         {
           startRow: 0,
           endRow: 2,
@@ -284,7 +304,7 @@ describe('buildFilePatch', function() {
     });
 
     it('parses a no-newline marker', function() {
-      const p = buildFilePatch([{
+      const multiFilePatch = buildFilePatch([{
         oldPath: 'old/path',
         oldMode: '100644',
         newPath: 'new/path',
@@ -295,9 +315,12 @@ describe('buildFilePatch', function() {
         ]}],
       }]);
 
-      assert.strictEqual(p.getBuffer().getText(), 'line-0\nline-1\n No newline at end of file\n');
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n No newline at end of file\n');
 
-      assertInPatch(p).hunks({
+      assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 2,
         header: '@@ -0,1 +0,1 @@',
@@ -312,7 +335,7 @@ describe('buildFilePatch', function() {
 
   describe('with a mode change and a content diff', function() {
     it('identifies a file that was deleted and replaced by a symlink', function() {
-      const p = buildFilePatch([
+      const multiFilePatch = buildFilePatch([
         {
           oldPath: 'the-path',
           oldMode: '000000',
@@ -347,6 +370,10 @@ describe('buildFilePatch', function() {
         },
       ]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.strictEqual(p.getOldPath(), 'the-path');
       assert.strictEqual(p.getOldMode(), '100644');
       assert.isNull(p.getOldSymlink());
@@ -355,8 +382,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      assert.strictEqual(p.getBuffer().getText(), 'line-0\nline-1\n');
-      assertInPatch(p).hunks({
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
@@ -367,7 +394,7 @@ describe('buildFilePatch', function() {
     });
 
     it('identifies a symlink that was deleted and replaced by a file', function() {
-      const p = buildFilePatch([
+      const multiFilePatch = buildFilePatch([
         {
           oldPath: 'the-path',
           oldMode: '120000',
@@ -402,6 +429,10 @@ describe('buildFilePatch', function() {
         },
       ]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.strictEqual(p.getOldPath(), 'the-path');
       assert.strictEqual(p.getOldMode(), '120000');
       assert.strictEqual(p.getOldSymlink(), 'the-destination');
@@ -410,8 +441,8 @@ describe('buildFilePatch', function() {
       assert.isNull(p.getNewSymlink());
       assert.strictEqual(p.getStatus(), 'added');
 
-      assert.strictEqual(p.getBuffer().getText(), 'line-0\nline-1\n');
-      assertInPatch(p).hunks({
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,2 +0,0 @@',
@@ -422,7 +453,7 @@ describe('buildFilePatch', function() {
     });
 
     it('is indifferent to the order of the diffs', function() {
-      const p = buildFilePatch([
+      const multiFilePatch = buildFilePatch([
         {
           oldMode: '100644',
           newPath: 'the-path',
@@ -456,6 +487,10 @@ describe('buildFilePatch', function() {
         },
       ]);
 
+      assert.lengthOf(multiFilePatch.getFilePatches(), 1);
+      const [p] = multiFilePatch.getFilePatches();
+      const buffer = multiFilePatch.getBuffer();
+
       assert.strictEqual(p.getOldPath(), 'the-path');
       assert.strictEqual(p.getOldMode(), '100644');
       assert.isNull(p.getOldSymlink());
@@ -464,8 +499,8 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      assert.strictEqual(p.getBuffer().getText(), 'line-0\nline-1\n');
-      assertInPatch(p).hunks({
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
@@ -498,6 +533,270 @@ describe('buildFilePatch', function() {
           },
         ]);
       }, /mode change diff status: modified/);
+    });
+  });
+
+  describe('with multiple diffs', function() {
+    it('creates a MultiFilePatch containing each', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 4,
+              lines: [
+                ' line-0',
+                '+line-1',
+                '+line-2',
+                ' line-3',
+              ],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 12, newLineCount: 2,
+              lines: [
+                ' line-4',
+                '-line-5',
+                ' line-6',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
+              lines: [
+                ' line-5',
+                '+line-6',
+                '-line-7',
+                ' line-8',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'third', oldMode: '100755', newPath: 'third', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 3,
+              lines: [
+                '+line-0',
+                '+line-1',
+                '+line-2',
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const buffer = mp.getBuffer();
+
+      assert.lengthOf(mp.getFilePatches(), 3);
+
+      assert.strictEqual(
+        mp.getBuffer().getText(),
+        'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\n' +
+        'line-5\nline-6\nline-7\nline-8\n' +
+        'line-0\nline-1\nline-2\n',
+      );
+
+      assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
+      assert.deepEqual(mp.getFilePatches()[0].getMarker().getRange().serialize(), [[0, 0], [6, 6]]);
+      assertInFilePatch(mp.getFilePatches()[0], buffer).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,2 +1,4 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n+line-2\n', range: [[1, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+        {
+          startRow: 4, endRow: 6, header: '@@ -10,3 +12,2 @@', regions: [
+            {kind: 'unchanged', string: ' line-4\n', range: [[4, 0], [4, 6]]},
+            {kind: 'deletion', string: '-line-5\n', range: [[5, 0], [5, 6]]},
+            {kind: 'unchanged', string: ' line-6\n', range: [[6, 0], [6, 6]]},
+          ],
+        },
+      );
+      assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
+      assertInFilePatch(mp.getFilePatches()[1], buffer).hunks(
+        {
+          startRow: 7, endRow: 10, header: '@@ -5,3 +5,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-5\n', range: [[7, 0], [7, 6]]},
+            {kind: 'addition', string: '+line-6\n', range: [[8, 0], [8, 6]]},
+            {kind: 'deletion', string: '-line-7\n', range: [[9, 0], [9, 6]]},
+            {kind: 'unchanged', string: ' line-8\n', range: [[10, 0], [10, 6]]},
+          ],
+        },
+      );
+      assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
+      assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[11, 0], [13, 6]]);
+      assertInFilePatch(mp.getFilePatches()[2], buffer).hunks(
+        {
+          startRow: 11, endRow: 13, header: '@@ -1,0 +1,3 @@', regions: [
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[11, 0], [13, 6]]},
+          ],
+        },
+      );
+    });
+
+    it('identifies mode and content change pairs within the patch list', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
+              lines: [
+                ' line-0',
+                '+line-1',
+                ' line-2',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-non-symlink', oldMode: '100644', newPath: 'was-non-symlink', newMode: '000000', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 0,
+              lines: ['-line-0', '-line-1'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-symlink', oldMode: '000000', newPath: 'was-symlink', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 2,
+              lines: ['+line-0', '+line-1'],
+            },
+          ],
+        },
+        {
+          oldMode: '100644', newPath: 'third', newMode: '100644', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 0,
+              lines: ['-line-0', '-line-1', '-line-2'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-symlink', oldMode: '120000', newPath: 'was-non-symlink', newMode: '000000', status: 'deleted',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 0, newLineCount: 0,
+              lines: ['-was-symlink-destination'],
+            },
+          ],
+        },
+        {
+          oldPath: 'was-non-symlink', oldMode: '000000', newPath: 'was-non-symlink', newMode: '120000', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 0, newStartLine: 1, newLineCount: 1,
+              lines: ['+was-non-symlink-destination'],
+            },
+          ],
+        },
+      ]);
+
+      const buffer = mp.getBuffer();
+
+      assert.lengthOf(mp.getFilePatches(), 4);
+      const [fp0, fp1, fp2, fp3] = mp.getFilePatches();
+
+      assert.strictEqual(fp0.getOldPath(), 'first');
+      assertInFilePatch(fp0, buffer).hunks({
+        startRow: 0, endRow: 2, header: '@@ -1,2 +1,3 @@', regions: [
+          {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+          {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+          {kind: 'unchanged', string: ' line-2\n', range: [[2, 0], [2, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp1.getOldPath(), 'was-non-symlink');
+      assert.isTrue(fp1.hasTypechange());
+      assert.strictEqual(fp1.getNewSymlink(), 'was-non-symlink-destination');
+      assertInFilePatch(fp1, buffer).hunks({
+        startRow: 3, endRow: 4, header: '@@ -1,2 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[3, 0], [4, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp2.getOldPath(), 'was-symlink');
+      assert.isTrue(fp2.hasTypechange());
+      assert.strictEqual(fp2.getOldSymlink(), 'was-symlink-destination');
+      assertInFilePatch(fp2, buffer).hunks({
+        startRow: 5, endRow: 6, header: '@@ -1,0 +1,2 @@', regions: [
+          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[5, 0], [6, 6]]},
+        ],
+      });
+
+      assert.strictEqual(fp3.getNewPath(), 'third');
+      assertInFilePatch(fp3, buffer).hunks({
+        startRow: 7, endRow: 9, header: '@@ -1,3 +1,0 @@', regions: [
+          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[7, 0], [9, 6]]},
+        ],
+      });
+    });
+
+    it('sets the correct marker range for diffs with no hunks', function() {
+      const mp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 4,
+              lines: [
+                ' line-0',
+                '+line-1',
+                '+line-2',
+                ' line-3',
+              ],
+            },
+            {
+              oldStartLine: 10, oldLineCount: 3, newStartLine: 12, newLineCount: 2,
+              lines: [
+                ' line-4',
+                '-line-5',
+                ' line-6',
+              ],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100755', status: 'modified',
+          hunks: [],
+        },
+        {
+          oldPath: 'third', oldMode: '100755', newPath: 'third', newMode: '100755', status: 'added',
+          hunks: [
+            {
+              oldStartLine: 5, oldLineCount: 3, newStartLine: 5, newLineCount: 3,
+              lines: [
+                ' line-5',
+                '+line-6',
+                '-line-7',
+                ' line-8',
+              ],
+            },
+          ],
+        },
+      ]);
+
+      assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
+      assert.deepEqual(mp.getFilePatches()[0].getMarker().getRange().serialize(), [[0, 0], [6, 6]]);
+
+      assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
+      assert.deepEqual(mp.getFilePatches()[1].getHunks(), []);
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [7, 0]]);
+
+      assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
+      assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
     });
   });
 

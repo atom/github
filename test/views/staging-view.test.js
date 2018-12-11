@@ -2,6 +2,7 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import StagingView from '../../lib/views/staging-view';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -224,12 +225,12 @@ describe('StagingView', function() {
       it('passes activation options and focuses the returned item if activate is true', async function() {
         const wrapper = mount(app);
 
-        const filePatchItem = {
-          getElement: () => filePatchItem,
-          querySelector: () => filePatchItem,
+        const changedFileItem = {
+          getElement: () => changedFileItem,
+          querySelector: () => changedFileItem,
           focus: sinon.spy(),
         };
-        workspace.open.returns(filePatchItem);
+        workspace.open.returns(changedFileItem);
 
         await wrapper.instance().showFilePatchItem('file.txt', 'staged', {activate: true});
 
@@ -238,15 +239,15 @@ describe('StagingView', function() {
           `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
           {pending: true, activatePane: true, pane: undefined, activateItem: true},
         ]);
-        assert.isTrue(filePatchItem.focus.called);
+        assert.isTrue(changedFileItem.focus.called);
       });
 
       it('makes the item visible if activate is false', async function() {
         const wrapper = mount(app);
 
         const focus = sinon.spy();
-        const filePatchItem = {focus};
-        workspace.open.returns(filePatchItem);
+        const changedFileItem = {focus};
+        workspace.open.returns(changedFileItem);
         const activateItem = sinon.spy();
         workspace.paneForItem.returns({activateItem});
 
@@ -259,7 +260,7 @@ describe('StagingView', function() {
         ]);
         assert.isFalse(focus.called);
         assert.equal(activateItem.callCount, 1);
-        assert.equal(activateItem.args[0][0], filePatchItem);
+        assert.equal(activateItem.args[0][0], changedFileItem);
       });
     });
   });
@@ -302,6 +303,20 @@ describe('StagingView', function() {
         assert.equal(notificationManager.addInfo.callCount, 1);
         assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
       });
+    });
+  });
+
+  describe('getPanesWithStalePendingFilePatchItem', function() {
+    it('ignores CommitPreviewItems', function() {
+      const pane = workspace.getCenter().getPanes()[0];
+
+      const changedFileItem = new CommitPreviewItem({});
+      sinon.stub(pane, 'getPendingItem').returns({
+        getRealItem: () => changedFileItem,
+      });
+      const wrapper = mount(app);
+
+      assert.deepEqual(wrapper.instance().getPanesWithStalePendingFilePatchItem(), []);
     });
   });
 
