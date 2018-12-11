@@ -326,7 +326,7 @@ describe('RootController', function() {
   });
 
   describe('github:open-commit', function() {
-    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit;
+    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit, repository;
 
     beforeEach(async function() {
       openCommitDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
@@ -334,7 +334,7 @@ describe('RootController', function() {
       }));
 
       workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
+      repository = await buildRepository(workdirPath);
 
       app = React.cloneElement(app, {repository});
       wrapper = shallow(app);
@@ -377,6 +377,18 @@ describe('RootController', function() {
       assert.lengthOf(wrapper.find('OpenCommitDialog'), 0);
       assert.isFalse(openCommitDetails.called);
       assert.isFalse(wrapper.state('openCommitDialogActive'));
+    });
+
+    describe('isValidCommit', function() {
+      it('returns true if commit exists in repo, false if not', async function() {
+        assert.isTrue(await wrapper.instance().isValidCommit('HEAD'));
+        assert.isFalse(await wrapper.instance().isValidCommit('invalidCommitRef'));
+      });
+
+      it('re-throws exceptions encountered during validation check', async function() {
+        sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
+        await assert.isRejected(wrapper.instance().isValidCommit('HEAD'), 'Oh shit');
+      });
     });
   });
 
