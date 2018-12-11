@@ -43,7 +43,7 @@ Each **recent commit** within the recent commits section summarizes that commit'
 * The commit message (first line of the commit body) elided if it would be too wide.
 * A relative timestamp indicating how long ago the commit was created.
 * A background highlight for commits that haven't been pushed yet to the remote tracking branch.
- 
+
 ![metadata](https://user-images.githubusercontent.com/378023/39227929-4326d5ac-4896-11e8-9bbd-114d64335fad.png)
 
 ### Undo

@@ -6,8 +6,10 @@ import {shallow, mount} from 'enzyme';
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
+import URIPattern from '../../lib/atom/uri-pattern';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -28,6 +30,23 @@ describe('CommitController', function() {
     const noop = () => {};
     const store = new UserStore({config});
 
+    // Ensure the Workspace doesn't mangle atom-github://... URIs.
+    // If you don't have an opener registered for a non-standard URI protocol, the Workspace coerces it into a file URI
+    // and tries to open it with a TextEditor. In the process, the URI gets mangled:
+    //
+    // atom.workspace.open('atom-github://unknown/whatever').then(item => console.log(item.getURI()))
+    // > 'atom-github:/unknown/whatever'
+    //
+    // Adding an opener that creates fake items prevents it from doing this and keeps the URIs unchanged.
+    const pattern = new URIPattern(CommitPreviewItem.uriPattern);
+    workspace.addOpener(uri => {
+      if (pattern.matches(uri).ok()) {
+        return {getURI() { return uri; }};
+      } else {
+        return undefined;
+      }
+    });
+
     app = (
       <CommitController
         workspace={workspace}
@@ -40,7 +59,6 @@ describe('CommitController', function() {
         isMerging={false}
         mergeConflictsExist={false}
         stagedChangesExist={false}
-        mergeMessage={''}
         lastCommit={lastCommit}
         currentBranch={nullBranch}
         userStore={store}
@@ -61,19 +79,29 @@ describe('CommitController', function() {
     const workdirPath2 = await cloneRepository('three-files');
     const repository2 = await buildRepository(workdirPath2);
 
+    // set commit template for repository2
+    const templatePath = path.join(workdirPath2, 'a.txt');
+    const templateText = fs.readFileSync(templatePath, 'utf8');
+    await repository2.git.setConfig('commit.template', templatePath);
+    await assert.async.strictEqual(repository2.getCommitMessage(), templateText);
+
     app = React.cloneElement(app, {repository: repository1});
     const wrapper = shallow(app, {disableLifecycleMethods: true});
 
     assert.strictEqual(wrapper.instance().getCommitMessage(), '');
 
     wrapper.instance().setCommitMessage('message 1');
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
 
     wrapper.setProps({repository: repository2});
-
-    assert.strictEqual(wrapper.instance().getCommitMessage(), '');
+    await assert.async.strictEqual(wrapper.instance().getCommitMessage(), templateText);
+    wrapper.instance().setCommitMessage('message 2');
 
     wrapper.setProps({repository: repository1});
     assert.equal(wrapper.instance().getCommitMessage(), 'message 1');
+
+    wrapper.setProps({repository: repository2});
+    assert.equal(wrapper.instance().getCommitMessage(), 'message 2');
   });
 
   describe('the passed commit message', function() {
@@ -100,21 +128,6 @@ describe('CommitController', function() {
       wrapper.find('CommitView').prop('messageBuffer').setText('new message');
       assert.strictEqual(instance.getCommitMessage(), 'new message');
       assert.isFalse(repository.state.didUpdate.called);
-    });
-
-    describe('when a merge message is defined', function() {
-      it('is set to the merge message when merging', function() {
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app);
-        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), 'merge conflict!');
-      });
-
-      it('is set to getCommitMessage() if it is set', function() {
-        repository.setCommitMessage('some commit message');
-        app = React.cloneElement(app, {isMerging: true, mergeMessage: 'merge conflict!'});
-        const wrapper = shallow(app, {disableLifecycleMethods: true});
-        assert.strictEqual(wrapper.find('CommitView').prop('messageBuffer').getText(), 'some commit message');
-      });
     });
   });
 
@@ -172,6 +185,26 @@ describe('CommitController', function() {
       assert.isTrue(notificationManager.addError.called);
 
       assert.strictEqual(repository.getCommitMessage(), 'some message');
+    });
+
+    it('restores template after committing', async function() {
+      const templatePath = path.join(workdirPath, 'a.txt');
+      const templateText = fs.readFileSync(templatePath, 'utf8');
+      await repository.git.setConfig('commit.template', templatePath);
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
+
+      const nonTemplateText = 'some new text...';
+      repository.setCommitMessage(nonTemplateText);
+
+      assert.strictEqual(repository.getCommitMessage(), nonTemplateText);
+
+      app = React.cloneElement(app, {repository});
+      const wrapper = shallow(app, {disableLifecycleMethods: true});
+      await fs.writeFile(path.join(workdirPath, 'new-file.txt'), 'some changes', {encoding: 'utf8'});
+      await repository.stageFiles(['new-file.txt']);
+      await wrapper.instance().commit(nonTemplateText);
+
+      await assert.async.strictEqual(repository.getCommitMessage(), templateText);
     });
 
     describe('message formatting', function() {
@@ -383,8 +416,9 @@ describe('CommitController', function() {
 
       sinon.spy(view, 'rememberFocus');
       sinon.spy(view, 'setFocus');
-      sinon.spy(view, 'hasFocus');
-      sinon.spy(view, 'hasFocusEditor');
+      sinon.spy(view, 'advanceFocus');
+      sinon.spy(view, 'retreatFocus');
+      sinon.spy(view, 'hasFocusAtBeginning');
 
       const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
       wrapper.instance().rememberFocus({target: element});
@@ -393,11 +427,14 @@ describe('CommitController', function() {
       wrapper.instance().setFocus(CommitController.focus.EDITOR);
       assert.isTrue(view.setFocus.called);
 
-      wrapper.instance().hasFocus();
-      assert.isTrue(view.hasFocus.called);
+      wrapper.instance().advanceFocus({stopPropagation() {}});
+      assert.isTrue(view.advanceFocus.called);
 
-      wrapper.instance().hasFocusEditor();
-      assert.isTrue(view.hasFocusEditor.called);
+      wrapper.instance().retreatFocus({stopPropagation() {}});
+      assert.isTrue(view.retreatFocus.called);
+
+      wrapper.instance().hasFocusAtBeginning();
+      assert.isTrue(view.hasFocusAtBeginning.called);
     });
 
     it('no-ops focus management methods when the view ref is unassigned', function() {
@@ -406,8 +443,110 @@ describe('CommitController', function() {
 
       assert.isNull(wrapper.instance().rememberFocus({}));
       assert.isFalse(wrapper.instance().setFocus(CommitController.focus.EDITOR));
-      assert.isFalse(wrapper.instance().hasFocus());
-      assert.isFalse(wrapper.instance().hasFocusEditor());
+      assert.isFalse(wrapper.instance().hasFocusAtBeginning());
     });
+  });
+
+  describe('tri-state toggle commit preview', function() {
+    it('opens, hides, and closes commit preview pane', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+      const previewURI = CommitPreviewItem.buildURI(workdir);
+
+      const wrapper = shallow(React.cloneElement(app, {repository}));
+
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await workspace.open(path.join(workdir, 'a.txt'));
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+
+      // Commit preview open as active pane item
+      assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForURI(previewURI).getPendingItem());
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await workspace.open(path.join(workdir, 'a.txt'));
+
+      // Commit preview open, but not active
+      assert.include(workspace.getPaneItems().map(i => i.getURI()), previewURI);
+      assert.notStrictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+
+      // Open as active pane item again
+      assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+      assert.strictEqual(workspace.getActivePaneItem(), workspace.paneForURI(previewURI).getPendingItem());
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+
+      // Commit preview closed
+      assert.notInclude(workspace.getPaneItems().map(i => i.getURI()), previewURI);
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+    });
+
+    it('records a metrics event when pane is toggled', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      const workdir = await cloneRepository('three-files');
+      const repository = await buildRepository(workdir);
+
+      const wrapper = shallow(React.cloneElement(app, {repository}));
+
+      assert.isFalse(reporterProxy.addEvent.called);
+
+      await wrapper.instance().toggleCommitPreview();
+
+      assert.isTrue(reporterProxy.addEvent.calledOnceWithExactly('toggle-commit-preview', {package: 'github'}));
+    });
+
+    it('toggles the commit preview pane for the active repository', async function() {
+      const workdir0 = await cloneRepository('three-files');
+      const repository0 = await buildRepository(workdir0);
+
+      const workdir1 = await cloneRepository('three-files');
+      const repository1 = await buildRepository(workdir1);
+
+      const wrapper = shallow(React.cloneElement(app, {repository: repository0}));
+
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      wrapper.setProps({repository: repository1});
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isTrue(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isTrue(wrapper.find('CommitView').prop('commitPreviewActive'));
+
+      await wrapper.find('CommitView').prop('toggleCommitPreview')();
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir0)));
+      assert.isFalse(workspace.getPaneItems().some(item => item.getURI() === CommitPreviewItem.buildURI(workdir1)));
+      assert.isFalse(wrapper.find('CommitView').prop('commitPreviewActive'));
+    });
+  });
+
+  it('unconditionally activates the commit preview item', async function() {
+    const workdir = await cloneRepository('three-files');
+    const repository = await buildRepository(workdir);
+    const previewURI = CommitPreviewItem.buildURI(workdir);
+
+    const wrapper = shallow(React.cloneElement(app, {repository}));
+
+    await wrapper.find('CommitView').prop('activateCommitPreview')();
+    assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+
+    await workspace.open(__filename);
+    assert.notStrictEqual(workspace.getActivePaneItem().getURI(), previewURI);
+
+    await wrapper.find('CommitView').prop('activateCommitPreview')();
+    assert.strictEqual(workspace.getActivePaneItem().getURI(), previewURI);
   });
 });
