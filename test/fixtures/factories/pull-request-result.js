@@ -187,6 +187,7 @@ export function createPullRequestDetailResult(attrs = {}) {
 
   const o = {
     id: idGen.generate('pullrequest'),
+    __typename: 'PullRequest',
     number: 0,
     title: 'title',
     state: 'OPEN',

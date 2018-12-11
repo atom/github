@@ -3,11 +3,11 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import PaneItem from '../../lib/atom/pane-item';
-import FilePatchItem from '../../lib/items/file-patch-item';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {cloneRepository} from '../helpers';
 
-describe('FilePatchItem', function() {
+describe('ChangedFileItem', function() {
   let atomEnv, repository, pool;
 
   beforeEach(async function() {
@@ -41,10 +41,10 @@ describe('FilePatchItem', function() {
     };
 
     return (
-      <PaneItem workspace={atomEnv.workspace} uriPattern={FilePatchItem.uriPattern}>
+      <PaneItem workspace={atomEnv.workspace} uriPattern={ChangedFileItem.uriPattern}>
         {({itemHolder, params}) => {
           return (
-            <FilePatchItem
+            <ChangedFileItem
               ref={itemHolder.setter}
               workingDirectory={params.workingDirectory}
               relPath={path.join(...params.relPath)}
@@ -64,7 +64,7 @@ describe('FilePatchItem', function() {
       stagingStatus: 'unstaged',
       ...options,
     };
-    const uri = FilePatchItem.buildURI(opts.relPath, opts.workingDirectory, opts.stagingStatus);
+    const uri = ChangedFileItem.buildURI(opts.relPath, opts.workingDirectory, opts.stagingStatus);
     return atomEnv.workspace.open(uri);
   }
 
@@ -72,14 +72,14 @@ describe('FilePatchItem', function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('FilePatchContainer').prop('repository'), repository);
+    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('repository'), repository);
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper, {workingDirectory: '/nope'});
 
-    assert.isTrue(wrapper.update().find('FilePatchContainer').prop('repository').isAbsent());
+    assert.isTrue(wrapper.update().find('ChangedFileContainer').prop('repository').isAbsent());
   });
 
   it('passes other props to the container', async function() {
@@ -87,7 +87,7 @@ describe('FilePatchItem', function() {
     const wrapper = mount(buildPaneApp({other}));
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('FilePatchContainer').prop('other'), other);
+    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('other'), other);
   });
 
   describe('getTitle()', function() {
@@ -112,7 +112,7 @@ describe('FilePatchItem', function() {
       const stagingStatus = 'staged';
       const workdirPath = '/???/!!!';
 
-      const uri = FilePatchItem.buildURI(filePathWithSpecialChars, workdirPath, stagingStatus);
+      const uri = ChangedFileItem.buildURI(filePathWithSpecialChars, workdirPath, stagingStatus);
       assert.include(uri, encodeURIComponent(filePathWithSpecialChars));
       assert.include(uri, encodeURIComponent(workdirPath));
       assert.include(uri, encodeURIComponent(stagingStatus));

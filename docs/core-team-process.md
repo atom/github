@@ -57,9 +57,9 @@ The problem at hand is decomposed into a queue of relatively independent tasks t
 
 ### 3. Hand-offs
 
-In this method, each developer (or pair) tackles a single problem in serial during their working hours. When the next developer becomes available, the previous one writes a summary of their efforts and progress in a hand-off, either synchronously and interactively in Slack or asynchronously with a pull request comment. Once the next developer is caught up, they make progress and hand off to the next, and so on.
+In this method, each developer (or pair) tackles a single problem in serial during their working hours. When the next developer becomes available, the previous one writes a summary of their efforts and progress in a hand-off, synchronously and interactively in a dedicated Slack channel. Once the next developer is caught up, they make progress and hand off to the next, and so on.
 
-> Example: developer A logs in during their morning and works for a few hours on the next phase of a feature implementation. They make some progress on the model, but don't progress the controller beyond some stubs and don't get a chance to touch the view at all. When developer B logs in, developer A shares their progress with a conversation in Slack or Zoom until developer B is confident that they understand the problem's current state, at which point developer B begins working and making commits to the feature branch. Developer B implements the view, correcting and adding some methods to the model as needed. Finally, developer C logs in, and developers A and C pair to write the controller methods. They write a comment on the pull request as they wrap up describing the changes that they've made together. Developer B returns the next day, puts the finishing touches on the tests, writes or refines some documentation on the new code, and merges the pull request.
+> Example: developer A logs in during their morning and works for a few hours on the next phase of a feature implementation. They make some progress on the model, but don't progress the controller beyond some stubs and don't get a chance to touch the view at all. When developer B logs in, developer A shares their progress with a conversation in Slack until developer B is confident that they understand the problem's current state, at which point developer B begins working and making commits to the feature branch. Developer B implements the view, correcting and adding some methods to the model as needed. Finally, developer C logs in, and developers A and C pair to write the controller methods. They update Slack with their progress as they wrap up describing the changes that they've made together. Developer B returns the next day, puts the finishing touches on the tests, writes or refines some documentation on the new code, and merges the pull request.
 
 :+1: _Advantages:_
 
@@ -103,7 +103,7 @@ Use a package configuration setting to control when features under development a
 
 ## All together
 
-Each set of developers who are online synchronously can divide work into Seams. As that set changes when people come online and drop offline, we use Handoffs to pass context along.
+Each set of developers who are online synchronously can divide work into Seams. As that set changes when people come online and drop offline, we use Handoffs to pass context along. Remaining tasking is tracked in a dedicated, loosely-managed feature project linked from the feature request PR.
 
 As we work, we push commits to a common branch, against a common pull request. Depending on the feature under construction, we either Dark Ship code in an early state or hide its entry points behind a Feature Flag.
 

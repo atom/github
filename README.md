@@ -2,15 +2,15 @@
 
 | Build | Code Coverage | Dependencies |
 |-------|---------------|--------------|
-| [![Build Status](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_apis/build/status/atom.github)](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/latest?definitionId=1) | [![Coverage Status](https://coveralls.io/repos/github/atom/github/badge.svg?branch=master)](https://coveralls.io/github/atom/github?branch=master) | [![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/) [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github) |
+| [![Build Status](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_apis/build/status/atom.github)](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/latest?definitionId=1) | [![codecov](https://codecov.io/gh/atom/github/branch/master/graph/badge.svg)](https://codecov.io/gh/atom/github) | [![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/) [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github) |
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
-<img width="880" alt="git-integration" src="https://user-images.githubusercontent.com/378023/42010937-0961e420-7acc-11e8-9aaa-417514317206.png">
+<img width="880" alt="GitHub for Atom" src="https://user-images.githubusercontent.com/378023/49062969-2e717a00-f259-11e8-8207-2ecbc6981cd6.png">
 
-<img width="880" alt="merge-conflicts" src="https://user-images.githubusercontent.com/378023/42010938-098e3430-7acc-11e8-95dd-770409785471.png">
+<img width="880" alt="git-integration" src="https://user-images.githubusercontent.com/378023/49062970-2f0a1080-f259-11e8-91e9-9402ec76cd66.png">
 
-<img width="880" alt="github-integration" src="https://user-images.githubusercontent.com/378023/42010939-09b90dea-7acc-11e8-899c-99fc7faeba8e.png">
+<img width="880" alt="github-integration" src="https://user-images.githubusercontent.com/378023/49062971-2f0a1080-f259-11e8-9efd-417d2017cd01.png">
 
 ## Installation
 

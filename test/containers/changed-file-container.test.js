@@ -3,10 +3,11 @@ import fs from 'fs-extra';
 import React from 'react';
 import {mount} from 'enzyme';
 
-import FilePatchContainer from '../../lib/containers/file-patch-container';
+import ChangedFileContainer from '../../lib/containers/changed-file-container';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 import {cloneRepository, buildRepository} from '../helpers';
 
-describe('FilePatchContainer', function() {
+describe('ChangedFileContainer', function() {
   let atomEnv, repository;
 
   beforeEach(async function() {
@@ -34,19 +35,23 @@ describe('FilePatchContainer', function() {
       repository,
       stagingStatus: 'unstaged',
       relPath: 'a.txt',
+      itemType: ChangedFileItem,
+
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
+
       discardLines: () => {},
       undoLastDiscard: () => {},
       surfaceFileAtPath: () => {},
       destroy: () => {},
+
       ...overrideProps,
     };
 
-    return <FilePatchContainer {...props} />;
+    return <ChangedFileContainer {...props} />;
   }
 
   it('renders a loading spinner before file patch data arrives', function() {
@@ -54,45 +59,45 @@ describe('FilePatchContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it('renders a FilePatchView', async function() {
+  it('renders a ChangedFileController', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchView').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
   });
 
   it('adopts the buffer from the previous FilePatch when a new one arrives', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
 
-    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     const prevBuffer = prevPatch.getBuffer();
 
     await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'changed\nagain\n');
     repository.refresh();
 
-    await assert.async.notStrictEqual(wrapper.update().find('FilePatchController').prop('filePatch'), prevPatch);
+    await assert.async.notStrictEqual(wrapper.update().find('ChangedFileController').prop('multiFilePatch'), prevPatch);
 
-    const nextBuffer = wrapper.find('FilePatchController').prop('filePatch').getBuffer();
+    const nextBuffer = wrapper.find('ChangedFileController').prop('multiFilePatch').getBuffer();
     assert.strictEqual(nextBuffer, prevBuffer);
   });
 
   it('does not adopt a buffer from an unchanged patch', async function() {
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('FilePatchController').exists());
+    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
 
-    const prevPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     sinon.spy(prevPatch, 'adoptBufferFrom');
 
     wrapper.setProps({});
 
     assert.isFalse(prevPatch.adoptBufferFrom.called);
 
-    const nextPatch = wrapper.find('FilePatchController').prop('filePatch');
+    const nextPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
     assert.strictEqual(nextPatch, prevPatch);
   });
 
   it('passes unrecognized props to the FilePatchView', async function() {
     const extra = Symbol('extra');
     const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged', extra}));
-    await assert.async.strictEqual(wrapper.update().find('FilePatchView').prop('extra'), extra);
+    await assert.async.strictEqual(wrapper.update().find('MultiFilePatchView').prop('extra'), extra);
   });
 });

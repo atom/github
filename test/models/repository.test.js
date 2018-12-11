@@ -110,7 +110,7 @@ describe('Repository', function() {
       assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
       assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
       assert.strictEqual(await repository.getCommitMessage(), '');
-      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).isPresent());
+      assert.isFalse((await repository.getFilePatchForPath('anything.txt')).anyPresent());
     });
 
     it('returns a rejecting promise', async function() {
@@ -343,7 +343,9 @@ describe('Repository', function() {
       await repo.stageFileSymlinkChange(deletedSymlinkAddedFilePath);
       assert.isNull(await indexModeAndOid(deletedSymlinkAddedFilePath));
       const unstagedFilePatch = await repo.getFilePatchForPath(deletedSymlinkAddedFilePath, {staged: false});
-      assert.equal(unstagedFilePatch.getStatus(), 'added');
+      assert.lengthOf(unstagedFilePatch.getFilePatches(), 1);
+      const [uFilePatch] = unstagedFilePatch.getFilePatches();
+      assert.equal(uFilePatch.getStatus(), 'added');
       assert.equal(unstagedFilePatch.toString(), dedent`
         diff --git a/symlink.txt b/symlink.txt
         new file mode 100644
@@ -362,7 +364,9 @@ describe('Repository', function() {
       await repo.stageFileSymlinkChange(deletedFileAddedSymlinkPath);
       assert.isNull(await indexModeAndOid(deletedFileAddedSymlinkPath));
       const stagedFilePatch = await repo.getFilePatchForPath(deletedFileAddedSymlinkPath, {staged: true});
-      assert.equal(stagedFilePatch.getStatus(), 'deleted');
+      assert.lengthOf(stagedFilePatch.getFilePatches(), 1);
+      const [sFilePatch] = stagedFilePatch.getFilePatches();
+      assert.equal(sFilePatch.getStatus(), 'deleted');
       assert.equal(stagedFilePatch.toString(), dedent`
         diff --git a/a.txt b/a.txt
         deleted file mode 100644
@@ -403,7 +407,7 @@ describe('Repository', function() {
   });
 
   describe('getFilePatchForPath', function() {
-    it('returns cached FilePatch objects if they exist', async function() {
+    it('returns cached MultiFilePatch objects if they exist', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
@@ -418,7 +422,7 @@ describe('Repository', function() {
       assert.equal(await repo.getFilePatchForPath('file.txt', {staged: true}), stagedFilePatch);
     });
 
-    it('returns new FilePatch object after repository refresh', async function() {
+    it('returns new MultiFilePatch object after repository refresh', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
@@ -433,13 +437,32 @@ describe('Repository', function() {
       assert.isTrue((await repo.getFilePatchForPath('a.txt')).isEqual(filePatchA));
     });
 
-    it('returns a nullFilePatch for unknown paths', async function() {
+    it('returns an empty MultiFilePatch for unknown paths', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
       const patch = await repo.getFilePatchForPath('no.txt');
-      assert.isFalse(patch.isPresent());
+      assert.isFalse(patch.anyPresent());
+    });
+  });
+
+  describe('getStagedChangesPatch', function() {
+    it('computes a multi-file patch of the staged changes', async function() {
+      const workdir = await cloneRepository('each-staging-group');
+      const repo = new Repository(workdir);
+      await repo.getLoadPromise();
+
+      await fs.writeFile(path.join(workdir, 'unstaged-1.txt'), 'Unstaged file');
+
+      await fs.writeFile(path.join(workdir, 'staged-1.txt'), 'Staged file');
+      await fs.writeFile(path.join(workdir, 'staged-2.txt'), 'Staged file');
+      await repo.stageFiles(['staged-1.txt', 'staged-2.txt']);
+
+      const mp = await repo.getStagedChangesPatch();
+
+      assert.lengthOf(mp.getFilePatches(), 2);
+      assert.deepEqual(mp.getFilePatches().map(fp => fp.getPath()), ['staged-1.txt', 'staged-2.txt']);
     });
   });
 
@@ -1089,6 +1112,44 @@ describe('Repository', function() {
     });
   });
 
+  describe('saveDiscardHistory()', function() {
+    let repository;
+
+    beforeEach(async function() {
+      const workdir = await cloneRepository('three-files');
+      repository = new Repository(workdir);
+      await repository.getLoadPromise();
+    });
+
+    it('does nothing on a destroyed repository', async function() {
+      repository.destroy();
+
+      await repository.saveDiscardHistory();
+
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+    });
+
+    it('does nothing if the repository is destroyed after the blob is created', async function() {
+      let resolveCreateHistoryBlob = () => {};
+      sinon.stub(repository, 'createDiscardHistoryBlob').callsFake(() => new Promise(resolve => {
+        resolveCreateHistoryBlob = resolve;
+      }));
+
+      const promise = repository.saveDiscardHistory();
+      repository.destroy();
+      resolveCreateHistoryBlob('nope');
+      await promise;
+
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+    });
+
+    it('creates a blob and saves it in the git config', async function() {
+      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+      await repository.saveDiscardHistory();
+      assert.match(await repository.getConfig('atomGithub.historySha'), /^[a-z0-9]{40}$/);
+    });
+  });
+
   describe('merge conflicts', function() {
     describe('getMergeConflicts()', function() {
       it('returns a promise resolving to an array of MergeConflict objects', async function() {
@@ -1475,6 +1536,10 @@ describe('Repository', function() {
       calls.set(
         'getRemotes',
         () => repository.getRemotes(),
+      );
+      calls.set(
+        'getStagedChangesPatch',
+        () => repository.getStagedChangesPatch(),
       );
 
       const withFile = fileName => {
@@ -2092,6 +2157,22 @@ describe('Repository', function() {
 
     afterEach(function() {
       sub && sub.dispose();
+    });
+
+    describe('updateCommitMessageAfterFileSystemChange', function() {
+      it('handles events with no `path` property', async function() {
+        const {repository} = await wireUpObserver();
+
+        // sometimes we all lose our path in life.
+        const eventWithNoPath = {};
+        try {
+          await repository.updateCommitMessageAfterFileSystemChange([eventWithNoPath]);
+          // this is a little jank but we want to test that the code does not throw an error
+          // and chai's promise assertions did not work when we negated our assertion.
+        } catch (e) {
+          throw e;
+        }
+      });
     });
 
     describe('config commit.template change', function() {

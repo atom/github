@@ -99,6 +99,7 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await localGit.exec(['config', '--local', 'commit.gpgsign', 'false']);
   await localGit.exec(['config', '--local', 'user.email', FAKE_USER.email]);
   await localGit.exec(['config', '--local', 'user.name', FAKE_USER.name]);
+  await localGit.exec(['config', '--local', 'pull.rebase', false]);
   return {baseRepoPath, remoteRepoPath, localRepoPath};
 }
 
@@ -157,8 +158,9 @@ export function assertEqualSortedArraysByKey(arr1, arr2, key) {
 // Helpers for test/models/patch classes
 
 class PatchBufferAssertions {
-  constructor(patch) {
+  constructor(patch, buffer) {
     this.patch = patch;
+    this.buffer = buffer;
   }
 
   hunk(hunkIndex, {startRow, endRow, header, regions}) {
@@ -175,7 +177,7 @@ class PatchBufferAssertions {
       const spec = regions[i];
 
       assert.strictEqual(region.constructor.name.toLowerCase(), spec.kind);
-      assert.strictEqual(region.toStringIn(this.patch.getBuffer()), spec.string);
+      assert.strictEqual(region.toStringIn(this.buffer), spec.string);
       assert.deepEqual(region.getRange().serialize(), spec.range);
     }
   }
@@ -188,12 +190,12 @@ class PatchBufferAssertions {
   }
 }
 
-export function assertInPatch(patch) {
-  return new PatchBufferAssertions(patch);
+export function assertInPatch(patch, buffer) {
+  return new PatchBufferAssertions(patch, buffer);
 }
 
-export function assertInFilePatch(filePatch) {
-  return assertInPatch(filePatch.getPatch());
+export function assertInFilePatch(filePatch, buffer) {
+  return assertInPatch(filePatch.getPatch(), buffer);
 }
 
 let activeRenderers = [];

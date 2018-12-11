@@ -2,13 +2,16 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import FilePatchView from '../../lib/views/file-patch-view';
-import {buildFilePatch} from '../../lib/models/patch';
+import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
+import RefHolder from '../../lib/models/ref-holder';
+import CommitPreviewItem from '../../lib/items/commit-preview-item';
+import ChangedFileItem from '../../lib/items/changed-file-item';
 
-describe('FilePatchView', function() {
-  let atomEnv, workspace, repository, filePatch;
+describe('MultiFilePatchView', function() {
+  let atomEnv, workspace, repository, filePatches;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -17,26 +20,20 @@ describe('FilePatchView', function() {
     const workdirPath = await cloneRepository();
     repository = await buildRepository(workdirPath);
 
-    // path.txt: unstaged changes
-    filePatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 4, oldLineCount: 3, newStartLine: 4, newLineCount: 4,
-          heading: 'zero',
-          lines: [' 0000', '+0001', '+0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 8, oldLineCount: 3, newStartLine: 9, newLineCount: 3,
-          heading: 'one',
-          lines: [' 0005', '+0006', '-0007', ' 0008'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(4);
+          h.unchanged('0000').added('0001', '0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(8);
+          h.unchanged('0005').added('0006').deleted('0007').unchanged('0008');
+        });
+      }).build();
+
+    filePatches = multiFilePatch;
   });
 
   afterEach(function() {
@@ -48,11 +45,13 @@ describe('FilePatchView', function() {
       relPath: 'path.txt',
       stagingStatus: 'unstaged',
       isPartiallyStaged: false,
-      filePatch,
+      multiFilePatch: filePatches,
       hasUndoHistory: false,
       selectionMode: 'line',
       selectedRows: new Set(),
+      hasMultipleFileSelections: false,
       repository,
+      isActive: true,
 
       workspace,
       config: atomEnv.config,
@@ -63,7 +62,7 @@ describe('FilePatchView', function() {
       selectedRowsChanged: () => {},
 
       diveIntoMirrorPatch: () => {},
-      surfaceFile: () => {},
+      surface: () => {},
       openFile: () => {},
       toggleFile: () => {},
       toggleRows: () => {},
@@ -72,10 +71,12 @@ describe('FilePatchView', function() {
       undoLastDiscard: () => {},
       discardRows: () => {},
 
+      itemType: CommitPreviewItem,
+
       ...overrideProps,
     };
 
-    return <FilePatchView {...props} />;
+    return <MultiFilePatchView {...props} />;
   }
 
   it('renders the file header', function() {
@@ -87,16 +88,57 @@ describe('FilePatchView', function() {
     const undoLastDiscard = sinon.spy();
     const wrapper = shallow(buildApp({undoLastDiscard}));
 
-    wrapper.find('FilePatchHeaderView').prop('undoLastDiscard')();
+    wrapper.find('FilePatchHeaderView').first().prop('undoLastDiscard')();
 
-    assert.isTrue(undoLastDiscard.calledWith({eventSource: 'button'}));
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(undoLastDiscard.calledWith(filePatch, {eventSource: 'button'}));
+  });
+
+  it('dives into the mirror patch from the file header button', function() {
+    const diveIntoMirrorPatch = sinon.spy();
+    const wrapper = shallow(buildApp({diveIntoMirrorPatch}));
+
+    wrapper.find('FilePatchHeaderView').prop('diveIntoMirrorPatch')();
+
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(diveIntoMirrorPatch.calledWith(filePatch));
+  });
+
+  it('toggles a file from staged to unstaged from the file header button', function() {
+    const toggleFile = sinon.spy();
+    const wrapper = shallow(buildApp({toggleFile}));
+
+    wrapper.find('FilePatchHeaderView').prop('toggleFile')();
+
+    assert.lengthOf(filePatches.getFilePatches(), 1);
+    const [filePatch] = filePatches.getFilePatches();
+    assert.isTrue(toggleFile.calledWith(filePatch));
+  });
+
+  it('passes hasMultipleFileSelections to all file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+
+    const wrapper = shallow(buildApp({multiFilePatch, hasMultipleFileSelections: true}));
+
+    assert.isTrue(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
+    assert.isTrue(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
+
+    wrapper.setProps({hasMultipleFileSelections: false});
+
+    assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
+    assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
   });
 
   it('renders the file patch within an editor', function() {
     const wrapper = mount(buildApp());
 
     const editor = wrapper.find('AtomTextEditor');
-    assert.strictEqual(editor.instance().getModel().getText(), filePatch.getBuffer().getText());
+    assert.strictEqual(editor.instance().getModel().getText(), filePatches.getBuffer().getText());
   });
 
   it('sets the root class when in hunk selection mode', function() {
@@ -104,6 +146,36 @@ describe('FilePatchView', function() {
     assert.isFalse(wrapper.find('.github-FilePatchView--hunkMode').exists());
     wrapper.setProps({selectionMode: 'hunk'});
     assert.isTrue(wrapper.find('.github-FilePatchView--hunkMode').exists());
+  });
+
+  describe('initial selection', function() {
+    it('selects the origin with an empty FilePatch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => fp.empty())
+        .build();
+      const wrapper = mount(buildApp({multiFilePatch}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [[[0, 0], [0, 0]]]);
+    });
+
+    it('selects the first hunk with a populated file patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.addHunk(h => h.unchanged('0').added('1', '2').deleted('3').unchanged('4'));
+          fp.addHunk(h => h.added('5', '6'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-1'));
+          fp.addHunk(h => h.deleted('7', '8', '9'));
+        })
+        .build();
+      const wrapper = mount(buildApp({multiFilePatch}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [[[0, 0], [4, 1]]]);
+    });
   });
 
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
@@ -114,22 +186,16 @@ describe('FilePatchView', function() {
       selectedRowsChanged,
     }));
 
-    const nextPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 5, oldLineCount: 4, newStartLine: 5, newLineCount: 3,
-          heading: 'heading',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(5);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+      }).build();
 
-    wrapper.setProps({filePatch: nextPatch});
+    wrapper.setProps({multiFilePatch});
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
@@ -144,71 +210,53 @@ describe('FilePatchView', function() {
   });
 
   it('selects the next full hunk when a new file patch arrives in hunk selection mode', function() {
-    const multiHunkPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
-          heading: '0',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 20, oldLineCount: 3, newStartLine: 20, newLineCount: 4,
-          heading: '1',
-          lines: [' 0005', '+0006', '+0007', '-0008', ' 0009'],
-        },
-        {
-          oldStartLine: 30, oldLineCount: 3, newStartLine: 31, newLineCount: 3,
-          heading: '2',
-          lines: [' 0010', '+0011', '-0012', ' 0013'],
-        },
-        {
-          oldStartLine: 40, oldLineCount: 4, newStartLine: 41, newLineCount: 4,
-          heading: '3',
-          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
-        },
-      ],
-    }]);
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(10);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(20);
+          h.unchanged('0005').added('0006').added('0007').deleted('0008').unchanged('0009');
+        });
+        fp.addHunk(h => {
+          h.oldRow(30);
+          h.unchanged('0010').added('0011').deleted('0012').unchanged('0013');
+        });
+        fp.addHunk(h => {
+          h.oldRow(40);
+          h.unchanged('0014').deleted('0015').unchanged('0016').added('0017').unchanged('0018');
+        });
+      }).build();
 
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
-      filePatch: multiHunkPatch,
+      multiFilePatch,
       selectedRows: new Set([6, 7, 8]),
       selectionMode: 'hunk',
       selectedRowsChanged,
     }));
 
-    const nextPatch = buildFilePatch([{
-      oldPath: 'path.txt',
-      oldMode: '100644',
-      newPath: 'path.txt',
-      newMode: '100644',
-      status: 'modified',
-      hunks: [
-        {
-          oldStartLine: 10, oldLineCount: 4, newStartLine: 10, newLineCount: 4,
-          heading: '0',
-          lines: [' 0000', '+0001', ' 0002', '-0003', ' 0004'],
-        },
-        {
-          oldStartLine: 30, oldLineCount: 3, newStartLine: 30, newLineCount: 3,
-          heading: '2',
-          //       5         6        7        8
-          lines: [' 0010', '+0011', '-0012', ' 0013'],
-        },
-        {
-          oldStartLine: 40, oldLineCount: 4, newStartLine: 40, newLineCount: 4,
-          heading: '3',
-          lines: [' 0014', '-0015', ' 0016', '+0017', ' 0018'],
-        },
-      ],
-    }]);
+    const {multiFilePatch: nextMfp} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('path.txt'));
+        fp.addHunk(h => {
+          h.oldRow(10);
+          h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+        });
+        fp.addHunk(h => {
+          h.oldRow(30);
+          h.unchanged('0010').added('0011').deleted('0012').unchanged('0013');
+        });
+        fp.addHunk(h => {
+          h.oldRow(40);
+          h.unchanged('0014').deleted('0015').unchanged('0016').added('0017').unchanged('0018');
+        });
+      }).build();
 
-    wrapper.setProps({filePatch: nextPatch});
+    wrapper.setProps({multiFilePatch: nextMfp});
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
@@ -233,24 +281,67 @@ describe('FilePatchView', function() {
     assert.isTrue(window.removeEventListener.calledWith('mouseup', handler));
   });
 
+  describe('refInitialFocus', function() {
+    it('is set to its editor', function() {
+      const refInitialFocus = new RefHolder();
+      const wrapper = mount(buildApp({refInitialFocus}));
+
+      assert.isFalse(refInitialFocus.isEmpty());
+      assert.strictEqual(
+        refInitialFocus.get(),
+        wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor'),
+      );
+    });
+
+    it('may be swapped out for a new RefHolder', function() {
+      const refInitialFocus0 = new RefHolder();
+      const wrapper = mount(buildApp({refInitialFocus: refInitialFocus0}));
+      const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+
+      assert.strictEqual(refInitialFocus0.getOr(null), editorElement);
+
+      const refInitialFocus1 = new RefHolder();
+      wrapper.setProps({refInitialFocus: refInitialFocus1});
+
+      assert.isTrue(refInitialFocus0.isEmpty());
+      assert.strictEqual(refInitialFocus1.getOr(null), editorElement);
+
+      wrapper.setProps({refInitialFocus: null});
+
+      assert.isTrue(refInitialFocus0.isEmpty());
+      assert.isTrue(refInitialFocus1.isEmpty());
+
+      wrapper.setProps({refInitialFocus: refInitialFocus0});
+
+      assert.strictEqual(refInitialFocus0.getOr(null), editorElement);
+      assert.isTrue(refInitialFocus1.isEmpty());
+    });
+  });
+
   describe('executable mode changes', function() {
     it('does not render if the mode has not changed', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
-        newFile: filePatch.getNewFile().clone({mode: '100644'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '100644'}),
+          newFile: fp.getNewFile().clone({mode: '100644'}),
+        })],
       });
 
-      const wrapper = shallow(buildApp({filePatch: fp}));
+      const wrapper = shallow(buildApp({multiFilePatch: mfp}));
       assert.isFalse(wrapper.find('FilePatchMetaView[title="Mode change"]').exists());
     });
 
     it('renders change details within a meta container', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
-        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '100644'}),
+          newFile: fp.getNewFile().clone({mode: '100755'}),
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'unstaged'}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'unstaged'}));
 
       const meta = wrapper.find('FilePatchMetaView[title="Mode change"]');
       assert.strictEqual(meta.prop('actionIcon'), 'icon-move-down');
@@ -261,13 +352,17 @@ describe('FilePatchView', function() {
     });
 
     it("stages or unstages the mode change when the meta container's action is triggered", function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
-        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      const [fp] = filePatches.getFilePatches();
+
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '100644'}),
+          newFile: fp.getNewFile().clone({mode: '100755'}),
+        })],
       });
 
       const toggleModeChange = sinon.stub();
-      const wrapper = shallow(buildApp({filePatch: fp, stagingStatus: 'staged', toggleModeChange}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'staged', toggleModeChange}));
 
       const meta = wrapper.find('FilePatchMetaView[title="Mode change"]');
       assert.isTrue(meta.exists());
@@ -281,22 +376,28 @@ describe('FilePatchView', function() {
 
   describe('symlink changes', function() {
     it('does not render if the symlink status is unchanged', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '100644'}),
-        newFile: filePatch.getNewFile().clone({mode: '100755'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '100644'}),
+          newFile: fp.getNewFile().clone({mode: '100755'}),
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
       assert.lengthOf(wrapper.find('FilePatchMetaView').filterWhere(v => v.prop('title').startsWith('Symlink')), 0);
     });
 
     it('renders symlink change information within a meta container', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
-        newFile: filePatch.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+          newFile: fp.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'unstaged'}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'unstaged'}));
       const meta = wrapper.find('FilePatchMetaView[title="Symlink changed"]');
       assert.isTrue(meta.exists());
       assert.strictEqual(meta.prop('actionIcon'), 'icon-move-down');
@@ -309,12 +410,15 @@ describe('FilePatchView', function() {
 
     it('stages or unstages the symlink change', function() {
       const toggleSymlinkChange = sinon.stub();
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
-        newFile: filePatch.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+          newFile: fp.getNewFile().clone({mode: '120000', symlink: '/new.txt'}),
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp, stagingStatus: 'staged', toggleSymlinkChange}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, stagingStatus: 'staged', toggleSymlinkChange}));
       const meta = wrapper.find('FilePatchMetaView[title="Symlink changed"]');
       assert.isTrue(meta.exists());
       assert.strictEqual(meta.prop('actionIcon'), 'icon-move-up');
@@ -325,12 +429,15 @@ describe('FilePatchView', function() {
     });
 
     it('renders details for a symlink deletion', function() {
-      const fp = filePatch.clone({
-        oldFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
-        newFile: nullFile,
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: fp.getOldFile().clone({mode: '120000', symlink: '/old.txt'}),
+          newFile: nullFile,
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
       const meta = wrapper.find('FilePatchMetaView[title="Symlink deleted"]');
       assert.isTrue(meta.exists());
       assert.strictEqual(
@@ -340,12 +447,15 @@ describe('FilePatchView', function() {
     });
 
     it('renders details for a symlink creation', function() {
-      const fp = filePatch.clone({
-        oldFile: nullFile,
-        newFile: filePatch.getOldFile().clone({mode: '120000', symlink: '/new.txt'}),
+      const [fp] = filePatches.getFilePatches();
+      const mfp = filePatches.clone({
+        filePatches: [fp.clone({
+          oldFile: nullFile,
+          newFile: fp.getOldFile().clone({mode: '120000', symlink: '/new.txt'}),
+        })],
       });
 
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
       const meta = wrapper.find('FilePatchMetaView[title="Symlink created"]');
       assert.isTrue(meta.exists());
       assert.strictEqual(
@@ -357,28 +467,22 @@ describe('FilePatchView', function() {
 
   describe('hunk headers', function() {
     it('renders one for each hunk', function() {
-      const fp = buildFilePatch([{
-        oldPath: 'path.txt',
-        oldMode: '100644',
-        newPath: 'path.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', ' 0002'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-            heading: 'second hunk',
-            lines: [' 0003', '-0004', ' 0005'],
-          },
-        ],
-      }]);
-      const hunks = fp.getHunks();
+      const {multiFilePatch: mfp} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+        }).build();
 
-      const wrapper = mount(buildApp({filePatch: fp}));
+      const hunks = mfp.getFilePatches()[0].getHunks();
+      const wrapper = mount(buildApp({multiFilePatch: mfp}));
+
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[0]));
       assert.isTrue(wrapper.find('HunkHeaderView').someWhere(h => h.prop('hunk') === hunks[1]));
     });
@@ -440,30 +544,23 @@ describe('FilePatchView', function() {
     });
 
     it('handles mousedown as a selection event', function() {
-      const fp = buildFilePatch([{
-        oldPath: 'path.txt',
-        oldMode: '100644',
-        newPath: 'path.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 2, newStartLine: 1, newLineCount: 3,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', ' 0002'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-            heading: 'second hunk',
-            lines: [' 0003', '-0004', ' 0005'],
-          },
-        ],
-      }]);
+      const {multiFilePatch: mfp} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+        }).build();
 
       const selectedRowsChanged = sinon.spy();
-      const wrapper = mount(buildApp({filePatch: fp, selectedRowsChanged, selectionMode: 'line'}));
+      const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectionMode: 'line'}));
 
-      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, fp.getHunks()[1]);
+      wrapper.find('HunkHeaderView').at(1).prop('mouseDown')({button: 0}, mfp.getFilePatches()[0].getHunks()[1]);
 
       assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [4]);
       assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
@@ -549,8 +646,9 @@ describe('FilePatchView', function() {
         const decorations = layerWrapper.find('Decoration[type="line-number"][gutterName="diff-icons"]');
         assert.isTrue(decorations.exists());
       };
-      assertLayerDecorated(filePatch.getAdditionLayer());
-      assertLayerDecorated(filePatch.getDeletionLayer());
+
+      assertLayerDecorated(filePatches.getAdditionLayer());
+      assertLayerDecorated(filePatches.getDeletionLayer());
 
       atomEnv.config.set('github.showDiffIconGutter', false);
       wrapper.update();
@@ -751,32 +849,24 @@ describe('FilePatchView', function() {
     let linesPatch;
 
     beforeEach(function() {
-      linesPatch = buildFilePatch([{
-        oldPath: 'file.txt',
-        oldMode: '100644',
-        newPath: 'file.txt',
-        newMode: '100644',
-        status: 'modified',
-        hunks: [
-          {
-            oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 6,
-            heading: 'first hunk',
-            lines: [' 0000', '+0001', '+0002', '-0003', '+0004', '+0005', ' 0006'],
-          },
-          {
-            oldStartLine: 10, oldLineCount: 0, newStartLine: 13, newLineCount: 0,
-            heading: 'second hunk',
-            lines: [
-              ' 0007', '-0008', '-0009', '-0010', ' 0011', '+0012', '+0013', '+0014', '-0015', ' 0016',
-              '\\ No newline at end of file',
-            ],
-          },
-        ],
-      }]);
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(1);
+            h.unchanged('0000').added('0001', '0002').deleted('0003').added('0004').added('0005').unchanged('0006');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0007').deleted('0008', '0009', '0010').unchanged('0011').added('0012', '0013', '0014').deleted('0015').unchanged('0016').noNewline();
+          });
+        }).build();
+      linesPatch = multiFilePatch;
     });
 
     it('decorates added lines', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--added"]';
       const decoration = wrapper.find(decorationSelector);
@@ -787,7 +877,7 @@ describe('FilePatchView', function() {
     });
 
     it('decorates deleted lines', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--deleted"]';
       const decoration = wrapper.find(decorationSelector);
@@ -798,7 +888,7 @@ describe('FilePatchView', function() {
     });
 
     it('decorates the nonewline line', function() {
-      const wrapper = mount(buildApp({filePatch: linesPatch}));
+      const wrapper = mount(buildApp({multiFilePatch: linesPatch}));
 
       const decorationSelector = 'Decoration[type="line"][className="github-FilePatchView-line--nonewline"]';
       const decoration = wrapper.find(decorationSelector);
@@ -809,22 +899,60 @@ describe('FilePatchView', function() {
     });
   });
 
-  it('notifies a callback when the editor selection changes', function() {
-    const selectedRowsChanged = sinon.spy();
-    const wrapper = mount(buildApp({selectedRowsChanged}));
-    const editor = wrapper.find('AtomTextEditor').instance().getModel();
+  describe('editor selection change notification', function() {
+    let multiFilePatch;
 
-    selectedRowsChanged.resetHistory();
+    beforeEach(function() {
+      multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0'));
+          fp.addHunk(h => h.oldRow(1).unchanged('0').added('1', '2').deleted('3').unchanged('4'));
+          fp.addHunk(h => h.oldRow(10).unchanged('5').added('6', '7').deleted('8').unchanged('9'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1'));
+          fp.addHunk(h => h.oldRow(1).unchanged('10').added('11', '12').deleted('13').unchanged('14'));
+          fp.addHunk(h => h.oldRow(10).unchanged('15').added('16', '17').deleted('18').unchanged('19'));
+        })
+        .build()
+        .multiFilePatch;
+    });
 
-    editor.setSelectedBufferRange([[5, 1], [6, 2]]);
+    it('notifies a callback when the selected rows change', function() {
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({multiFilePatch, selectedRowsChanged}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
 
-    assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
-    assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      selectedRowsChanged.resetHistory();
+
+      editor.setSelectedBufferRange([[5, 1], [6, 2]]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isFalse(selectedRowsChanged.lastCall.args[2]);
+    });
+
+    it('notifies a callback when cursors span multiple files', function() {
+      const selectedRowsChanged = sinon.spy();
+      const wrapper = mount(buildApp({multiFilePatch, selectedRowsChanged}));
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+
+      selectedRowsChanged.resetHistory();
+      editor.setSelectedBufferRanges([
+        [[5, 0], [5, 0]],
+        [[16, 0], [16, 0]],
+      ]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [16]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isTrue(selectedRowsChanged.lastCall.args[2]);
+    });
   });
 
   describe('when viewing an empty patch', function() {
     it('renders an empty patch message', function() {
-      const wrapper = shallow(buildApp({filePatch: FilePatch.createNull()}));
+      const {multiFilePatch: emptyMfp} = multiFilePatchBuilder().build();
+      const wrapper = shallow(buildApp({multiFilePatch: emptyMfp}));
       assert.isTrue(wrapper.find('.github-FilePatchView').hasClass('github-FilePatchView--blank'));
       assert.isTrue(wrapper.find('.github-FilePatchView-message').exists());
     });
@@ -836,6 +964,114 @@ describe('FilePatchView', function() {
   });
 
   describe('registers Atom commands', function() {
+    it('toggles all mode changes', function() {
+      function tenLineHunk(builder) {
+        builder.addHunk(h => {
+          for (let i = 0; i < 10; i++) {
+            h.added('xxxxx');
+          }
+        });
+      }
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f0'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f1'));
+          fp.setNewFile(f => f.path('f1').executable());
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f2'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f3').executable());
+          fp.setNewFile(f => f.path('f3'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f4').executable());
+          tenLineHunk(fp);
+        })
+        .build();
+      const toggleModeChange = sinon.spy();
+      const wrapper = mount(buildApp({toggleModeChange, multiFilePatch}));
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([
+        [[5, 0], [5, 2]],
+        [[37, 0], [42, 0]],
+      ]);
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:stage-file-mode-change');
+
+      const [fp0, fp1, fp2, fp3, fp4] = multiFilePatch.getFilePatches();
+
+      assert.isFalse(toggleModeChange.calledWith(fp0));
+      assert.isFalse(toggleModeChange.calledWith(fp1));
+      assert.isFalse(toggleModeChange.calledWith(fp2));
+      assert.isTrue(toggleModeChange.calledWith(fp3));
+      assert.isFalse(toggleModeChange.calledWith(fp4));
+    });
+
+    it('toggles all symlink changes', function() {
+      function tenLineHunk(builder) {
+        builder.addHunk(h => {
+          for (let i = 0; i < 10; i++) {
+            h.added('zzzzz');
+          }
+        });
+      }
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f0').symlinkTo('elsewhere'));
+          fp.setNewFile(f => f.path('f0'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f1'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setNewFile(f => f.path('f2'));
+          fp.setOldFile(f => f.path('f2').symlinkTo('somewhere'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f3').symlinkTo('unchanged'));
+          tenLineHunk(fp);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f4').executable());
+          tenLineHunk(fp);
+        })
+        .build();
+
+      const toggleSymlinkChange = sinon.spy();
+      const wrapper = mount(buildApp({toggleSymlinkChange, multiFilePatch}));
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      editor.setSelectedBufferRanges([
+        [[0, 0], [2, 2]],
+        [[5, 1], [6, 2]],
+        [[37, 0], [37, 0]],
+      ]);
+
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:stage-symlink-change');
+
+      const [fp0, fp1, fp2, fp3, fp4] = multiFilePatch.getFilePatches();
+
+      assert.isTrue(toggleSymlinkChange.calledWith(fp0));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp1));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp2));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp3));
+      assert.isFalse(toggleSymlinkChange.calledWith(fp4));
+    });
+
     it('toggles the current selection', function() {
       const toggleRows = sinon.spy();
       const wrapper = mount(buildApp({toggleRows}));
@@ -847,11 +1083,12 @@ describe('FilePatchView', function() {
 
     it('undoes the last discard', function() {
       const undoLastDiscard = sinon.spy();
-      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true}));
+      const wrapper = mount(buildApp({undoLastDiscard, hasUndoHistory: true, itemType: ChangedFileItem}));
 
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'core:undo');
 
-      assert.isTrue(undoLastDiscard.calledWith({eventSource: {command: 'core:undo'}}));
+      const [filePatch] = filePatches.getFilePatches();
+      assert.isTrue(undoLastDiscard.calledWith(filePatch, {eventSource: {command: 'core:undo'}}));
     });
 
     it('does nothing when there is no last discard to undo', function() {
@@ -922,55 +1159,47 @@ describe('FilePatchView', function() {
     });
 
     it('surfaces focus to the git tab', function() {
-      const surfaceFile = sinon.spy();
-      const wrapper = mount(buildApp({surfaceFile}));
+      const surface = sinon.spy();
+      const wrapper = mount(buildApp({surface}));
 
-      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface-file');
-      assert.isTrue(surfaceFile.called);
+      atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:surface');
+      assert.isTrue(surface.called);
     });
 
     describe('hunk mode navigation', function() {
+      let mfp;
+
       beforeEach(function() {
-        filePatch = buildFilePatch([{
-          oldPath: 'path.txt',
-          oldMode: '100644',
-          newPath: 'path.txt',
-          newMode: '100644',
-          status: 'modified',
-          hunks: [
-            {
-              oldStartLine: 4, oldLineCount: 2, newStartLine: 4, newLineCount: 3,
-              heading: 'zero',
-              lines: [' 0000', '+0001', ' 0002'],
-            },
-            {
-              oldStartLine: 10, oldLineCount: 3, newStartLine: 11, newLineCount: 2,
-              heading: 'one',
-              lines: [' 0003', '-0004', ' 0005'],
-            },
-            {
-              oldStartLine: 20, oldLineCount: 2, newStartLine: 20, newLineCount: 3,
-              heading: 'two',
-              lines: [' 0006', '+0007', ' 0008'],
-            },
-            {
-              oldStartLine: 30, oldLineCount: 2, newStartLine: 31, newLineCount: 3,
-              heading: 'three',
-              lines: [' 0009', '+0010', ' 0011'],
-            },
-            {
-              oldStartLine: 40, oldLineCount: 4, newStartLine: 42, newLineCount: 2,
-              heading: 'four',
-              lines: [' 0012', '-0013', '-0014', ' 0015'],
-            },
-          ],
-        }]);
+        const {multiFilePatch} = multiFilePatchBuilder().addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(4);
+            h.unchanged('0000').added('0001').unchanged('0002');
+          });
+          fp.addHunk(h => {
+            h.oldRow(10);
+            h.unchanged('0003').deleted('0004').unchanged('0005');
+          });
+          fp.addHunk(h => {
+            h.oldRow(20);
+            h.unchanged('0006').added('0007').unchanged('0008');
+          });
+          fp.addHunk(h => {
+            h.oldRow(30);
+            h.unchanged('0009').added('0010').unchanged('0011');
+          });
+          fp.addHunk(h => {
+            h.oldRow(40);
+            h.unchanged('0012').deleted('0013', '0014').unchanged('0015');
+          });
+        }).build();
+        mfp = multiFilePatch;
       });
 
       it('advances the selection to the next hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([1, 7, 10]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
@@ -994,7 +1223,7 @@ describe('FilePatchView', function() {
       it('does not advance a selected hunk at the end of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1016,7 +1245,7 @@ describe('FilePatchView', function() {
       it('retreats the selection to the previous hunks', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[3, 0], [5, 4]], // hunk 1
@@ -1040,7 +1269,7 @@ describe('FilePatchView', function() {
       it('does not retreat a selected hunk at the beginning of the patch', function() {
         const selectedRowsChanged = sinon.spy();
         const selectedRows = new Set([4, 10, 13, 14]);
-        const wrapper = mount(buildApp({filePatch, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, selectedRowsChanged, selectedRows, selectionMode: 'hunk'}));
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setSelectedBufferRanges([
           [[0, 0], [2, 4]], // hunk 0
@@ -1060,72 +1289,73 @@ describe('FilePatchView', function() {
       });
     });
 
-    describe('opening the file', function() {
-      let fp;
+    describe('jump to file', function() {
+      let mfp, fp;
 
       beforeEach(function() {
-        fp = buildFilePatch([{
-          oldPath: 'path.txt',
-          oldMode: '100644',
-          newPath: 'path.txt',
-          newMode: '100644',
-          status: 'modified',
-          hunks: [
-            {
-              oldStartLine: 2, oldLineCount: 2, newStartLine: 2, newLineCount: 3,
-              heading: 'first hunk',
-              //        2        3        4
-              lines: [' 0000', '+0001', ' 0002'],
-            },
-            {
-              oldStartLine: 10, oldLineCount: 5, newStartLine: 11, newLineCount: 6,
-              heading: 'second hunk',
-              //        11       12       13                14       15                16
-              lines: [' 0003', '+0004', '+0005', '-0006', ' 0007', '+0008', '-0009', ' 0010'],
-            },
-          ],
-        }]);
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(filePatch => {
+            filePatch.setOldFile(f => f.path('path.txt'));
+            filePatch.addHunk(h => {
+              h.oldRow(2);
+              h.unchanged('0000').added('0001').unchanged('0002');
+            });
+            filePatch.addHunk(h => {
+              h.oldRow(10);
+              h.unchanged('0003').added('0004', '0005').deleted('0006').unchanged('0007').added('0008').deleted('0009').unchanged('0010');
+            });
+          })
+          .addFilePatch(filePatch => {
+            filePatch.setOldFile(f => f.path('other.txt'));
+            filePatch.addHunk(h => {
+              h.oldRow(10);
+              h.unchanged('0011').added('0012').unchanged('0013');
+            });
+          })
+          .build();
+
+        mfp = multiFilePatch;
+        fp = mfp.getFilePatches()[0];
       });
 
       it('opens the file at the current unchanged row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([7, 2]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
-
-        assert.isTrue(openFile.calledWith([[14, 2]]));
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
+        assert.isTrue(openFile.calledWith(fp, [[13, 2]], true));
       });
 
       it('opens the file at a current added row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([8, 3]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
-        assert.isTrue(openFile.calledWith([[15, 3]]));
+        assert.isTrue(openFile.calledWith(fp, [[14, 3]], true));
       });
 
       it('opens the file at the beginning of the previous added or unchanged row', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([9, 2]);
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
-        assert.isTrue(openFile.calledWith([[15, 0]]));
+        assert.isTrue(openFile.calledWith(fp, [[15, 0]], true));
       });
 
       it('preserves multiple cursors', function() {
         const openFile = sinon.spy();
-        const wrapper = mount(buildApp({filePatch: fp, openFile}));
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
 
         const editor = wrapper.find('AtomTextEditor').instance().getModel();
         editor.setCursorBufferPosition([3, 2]);
@@ -1136,14 +1366,69 @@ describe('FilePatchView', function() {
 
         // [9, 2] and [9, 3] should be collapsed into a single cursor at [15, 0]
 
-        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:open-file');
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
 
-        assert.isTrue(openFile.calledWith([
+        assert.isTrue(openFile.calledWith(fp, [
+          [10, 2],
           [11, 2],
-          [12, 2],
-          [3, 3],
+          [2, 3],
           [15, 0],
-        ]));
+        ], true));
+      });
+
+      it('opens non-pending editors when opening multiple', function() {
+        const openFile = sinon.spy();
+        const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+        const editor = wrapper.find('AtomTextEditor').instance().getModel();
+        editor.setSelectedBufferRanges([
+          [[4, 0], [4, 0]],
+          [[12, 0], [12, 0]],
+        ]);
+
+        atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:jump-to-file');
+
+        assert.isTrue(openFile.calledWith(mfp.getFilePatches()[0], [[11, 0]], false));
+        assert.isTrue(openFile.calledWith(mfp.getFilePatches()[1], [[10, 0]], false));
+      });
+
+      describe('didOpenFile(selectedFilePatch)', function() {
+        describe('when there is a selection in the selectedFilePatch', function() {
+          it('opens the file and places the cursor corresponding to the selection', function() {
+            const openFile = sinon.spy();
+            const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+            const editor = wrapper.find('AtomTextEditor').instance().getModel();
+            editor.setSelectedBufferRanges([
+              [[4, 0], [4, 0]], // cursor in first file patch
+            ]);
+
+            // click button for first file
+            wrapper.find('.github-FilePatchHeaderView-jumpToFileButton').at(0).simulate('click');
+
+            assert.isTrue(openFile.calledWith(mfp.getFilePatches()[0], [[11, 0]], true));
+          });
+        });
+
+        describe('when there are no selections in the selectedFilePatch', function() {
+          it('opens the file and places the cursor at the beginning of the first hunk', function() {
+            const openFile = sinon.spy();
+            const wrapper = mount(buildApp({multiFilePatch: mfp, openFile}));
+
+            const editor = wrapper.find('AtomTextEditor').instance().getModel();
+            editor.setSelectedBufferRanges([
+              [[4, 0], [4, 0]], // cursor in first file patch
+            ]);
+
+            // click button for second file
+            wrapper.find('.github-FilePatchHeaderView-jumpToFileButton').at(1).simulate('click');
+
+            const secondFilePatch = mfp.getFilePatches()[1];
+            const firstHunkBufferRow = secondFilePatch.getHunks()[0].getNewStartRow() - 1;
+
+            assert.isTrue(openFile.calledWith(secondFilePatch, [[firstHunkBufferRow, 0]], true));
+          });
+        });
       });
     });
   });

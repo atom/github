@@ -702,4 +702,34 @@ describe('GithubPackage', function() {
       );
     });
   });
+
+  describe('stub item creation', function() {
+    beforeEach(function() {
+      sinon.spy(githubPackage, 'rerender');
+    });
+
+    describe('before the initial render', function() {
+      it('creates a stub item for a commit preview item', function() {
+        const item = githubPackage.createCommitPreviewStub({uri: 'atom-github://commit-preview'});
+
+        assert.isFalse(githubPackage.rerender.called);
+        assert.strictEqual(item.getTitle(), 'Commit preview');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
+      });
+    });
+
+    describe('after the initial render', function() {
+      beforeEach(function() {
+        githubPackage.controller = Symbol('controller');
+      });
+
+      it('creates a stub item for a commit preview item', function() {
+        const item = githubPackage.createCommitPreviewStub({uri: 'atom-github://commit-preview'});
+
+        assert.isTrue(githubPackage.rerender.called);
+        assert.strictEqual(item.getTitle(), 'Commit preview');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
+      });
+    });
+  });
 });
