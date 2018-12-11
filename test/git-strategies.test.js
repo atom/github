@@ -11,7 +11,7 @@ import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals} from './helpers';
+import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 import * as reporterProxy from '../lib/reporter-proxy';
 
@@ -193,6 +193,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
@@ -202,6 +203,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
@@ -211,6 +213,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           messageBody: '',
           coAuthors: [],
           unbornRef: false,
+          patch: [],
         });
       });
 
@@ -278,6 +281,77 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.strictEqual(commits[0].messageSubject, 'Implemented feature');
         assert.strictEqual(commits[0].messageBody,
           'Detailed explanation paragraph 1\n\nDetailed explanation paragraph 2\n#123 with an issue reference');
+      });
+
+      describe('when patch option is true', function() {
+        it('returns the diff associated with fetched commits', async function() {
+          const workingDirPath = await cloneRepository('multiple-commits');
+          const git = createTestStrategy(workingDirPath);
+
+          const commits = await git.getCommits({max: 3, includePatch: true});
+
+          assertDeepPropertyVals(commits[0].patch, [{
+            oldPath: 'file.txt',
+            newPath: 'file.txt',
+            oldMode: '100644',
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 1,
+                oldLineCount: 1,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '-two',
+                  '+three',
+                ],
+              },
+            ],
+            status: 'modified',
+          }]);
+
+          assertDeepPropertyVals(commits[1].patch, [{
+            oldPath: 'file.txt',
+            newPath: 'file.txt',
+            oldMode: '100644',
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 1,
+                oldLineCount: 1,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '-one',
+                  '+two',
+                ],
+              },
+            ],
+            status: 'modified',
+          }]);
+
+          assertDeepPropertyVals(commits[2].patch, [{
+            oldPath: null,
+            newPath: 'file.txt',
+            oldMode: null,
+            newMode: '100644',
+            hunks: [
+              {
+                oldStartLine: 0,
+                oldLineCount: 0,
+                newStartLine: 1,
+                newLineCount: 1,
+                heading: '',
+                lines: [
+                  '+one',
+                ],
+              },
+            ],
+            status: 'added',
+          }]);
+        });
       });
     });
 
@@ -840,6 +914,35 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
         assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
+      });
+    });
+
+    describe('getBranchesWithCommit', function() {
+      let git;
+
+      const SHA = '18920c900bfa6e4844853e7e246607a31c3e2e8c';
+
+      beforeEach(async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+        git = createTestStrategy(localRepoPath);
+      });
+
+      it('includes only local refs', async function() {
+        assert.sameMembers(await git.getBranchesWithCommit(SHA), ['refs/heads/master']);
+      });
+
+      it('includes both local and remote refs', async function() {
+        assert.sameMembers(
+          await git.getBranchesWithCommit(SHA, {showLocal: true, showRemote: true}),
+          ['refs/heads/master', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
+        );
+      });
+
+      it('includes only remote refs', async function() {
+        assert.sameMembers(
+          await git.getBranchesWithCommit(SHA, {showRemote: true}),
+          ['refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
+        );
       });
     });
 

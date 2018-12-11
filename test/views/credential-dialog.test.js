@@ -86,6 +86,12 @@ describe('CredentialDialog', function() {
     });
   });
 
+  it('calls the cancel callback', function() {
+    wrapper = mount(app);
+    wrapper.find('.github-CancelButton').simulate('click');
+    assert.isTrue(didCancel.called);
+  });
+
   describe('show password', function() {
     it('sets the passwords input type to "text" on the first click', function() {
       wrapper = mount(app);

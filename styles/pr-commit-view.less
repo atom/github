@@ -38,6 +38,19 @@
     flex: 1;
   }
 
+  &-messageHeadline.is-button {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    &:hover,
+    &:focus {
+      color: @text-color-highlight;
+    }
+    &:active {
+      color: @text-color-subtle;
+    }
+  }
+
   &-title {
     margin: 0 0 .25em 0;
     font-size: 1.2em;

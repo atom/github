@@ -7,12 +7,34 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
 import {GitError} from '../../lib/git-shell-out-strategy';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {BareIssueishDetailController} from '../../lib/controllers/issueish-detail-controller';
 import {issueishDetailControllerProps} from '../fixtures/props/issueish-pane-props';
 
 describe('IssueishDetailController', function() {
+  let atomEnv;
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+
+    atomEnv.workspace.addOpener(uri => {
+      if (uri.startsWith('atom-github://')) {
+        return {
+          getURI() { return uri; },
+        };
+      }
+
+      return undefined;
+    });
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(opts, overrideProps = {}) {
-    return <BareIssueishDetailController {...issueishDetailControllerProps(opts, overrideProps)} />;
+    const props = issueishDetailControllerProps(opts, {workspace: atomEnv.workspace, ...overrideProps});
+    return <BareIssueishDetailController {...props} />;
   }
 
   it('updates the pane title for a pull request on mount', function() {
@@ -301,6 +323,31 @@ describe('IssueishDetailController', function() {
         /not handled by the pipeline/,
       );
       assert.isTrue(addRemote.called);
+    });
+  });
+
+  describe('openCommit', function() {
+    it('opens a CommitDetailItem in the workspace', async function() {
+      const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
+      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
+
+      assert.include(
+        atomEnv.workspace.getPaneItems().map(item => item.getURI()),
+        CommitDetailItem.buildURI(__dirname, '1234'),
+      );
+    });
+
+    it('reports an event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+
+      const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
+      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
+
+      assert.isTrue(
+        reporterProxy.addEvent.calledWith(
+          'open-commit-in-pane', {package: 'github', from: 'BareIssueishDetailController'},
+        ),
+      );
     });
   });
 });

@@ -4,6 +4,7 @@ import {shallow} from 'enzyme';
 import HunkHeaderView from '../../lib/views/hunk-header-view';
 import RefHolder from '../../lib/models/ref-holder';
 import Hunk from '../../lib/models/patch/hunk';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 
 describe('HunkHeaderView', function() {
   let atomEnv, hunk;
@@ -116,5 +117,11 @@ describe('HunkHeaderView', function() {
 
     assert.isFalse(mouseDown.called);
     assert.isTrue(evt.stopPropagation.called);
+  });
+
+  it('does not render extra buttons when in a CommitDetailItem', function() {
+    const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
+    assert.isFalse(wrapper.find('.github-HunkHeaderView-stageButton').exists());
+    assert.isFalse(wrapper.find('.github-HunkHeaderView-discardButton').exists());
   });
 });

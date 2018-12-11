@@ -17,9 +17,11 @@ import GitHubTabItem from '../../lib/items/github-tab-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
+import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;
@@ -320,6 +322,130 @@ describe('RootController', function() {
         'Unable to initialize git repository in /a/path',
         sinon.match({detail: sinon.match(/this is stderr/)}),
       ));
+    });
+  });
+
+  describe('github:open-commit', function() {
+    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit, repository;
+
+    beforeEach(async function() {
+      openCommitDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
+        resolveOpenCommit = resolve;
+      }));
+
+      workdirPath = await cloneRepository('multiple-commits');
+      repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal open-commit panel', function() {
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenCommitDialog'), 1);
+    });
+
+    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenCommitDialog');
+      const ref = 'asdf1234';
+
+      const promise = dialog.prop('didAccept')({ref});
+      resolveOpenCommit();
+      await promise;
+
+      const uri = CommitDetailItem.buildURI(workdirPath, ref);
+
+      assert.isTrue(openCommitDetails.calledWith(uri));
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {package: 'github', from: OpenCommitDialog.name}));
+    });
+
+    it('dismisses the open-commit panel on cancel', function() {
+      wrapper.instance().showOpenCommitDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenCommitDialog');
+      dialog.prop('didCancel')();
+
+      wrapper.update();
+      assert.lengthOf(wrapper.find('OpenCommitDialog'), 0);
+      assert.isFalse(openCommitDetails.called);
+      assert.isFalse(wrapper.state('openCommitDialogActive'));
+    });
+
+    describe('isValidCommit', function() {
+      it('returns true if commit exists in repo, false if not', async function() {
+        assert.isTrue(await wrapper.instance().isValidCommit('HEAD'));
+        assert.isFalse(await wrapper.instance().isValidCommit('invalidCommitRef'));
+      });
+
+      it('re-throws exceptions encountered during validation check', async function() {
+        sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
+        await assert.isRejected(wrapper.instance().isValidCommit('HEAD'), 'Oh shit');
+      });
+    });
+  });
+
+  describe('github:open-issue-or-pull-request', function() {
+    let workdirPath, wrapper, openIssueishDetails, resolveOpenIssueish;
+
+    beforeEach(async function() {
+      openIssueishDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
+        resolveOpenIssueish = resolve;
+      }));
+
+      workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
+
+      app = React.cloneElement(app, {repository});
+      wrapper = shallow(app);
+    });
+
+    it('renders the modal open-commit panel', function() {
+      wrapper.instance().showOpenIssueishDialog();
+      wrapper.update();
+
+      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenIssueishDialog'), 1);
+    });
+
+    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      wrapper.instance().showOpenIssueishDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenIssueishDialog');
+      const repoOwner = 'owner';
+      const repoName = 'name';
+      const issueishNumber = 1234;
+
+      const promise = dialog.prop('didAccept')({repoOwner, repoName, issueishNumber});
+      resolveOpenIssueish();
+      await promise;
+
+      const uri = IssueishDetailItem.buildURI('https://api.github.com', repoOwner, repoName, issueishNumber);
+
+      assert.isTrue(openIssueishDetails.calledWith(uri));
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
+    });
+
+    it('dismisses the open-commit panel on cancel', function() {
+      wrapper.instance().showOpenIssueishDialog();
+      wrapper.update();
+
+      const dialog = wrapper.find('OpenIssueishDialog');
+      dialog.prop('didCancel')();
+
+      wrapper.update();
+      assert.lengthOf(wrapper.find('OpenIssueishDialog'), 0);
+      assert.isFalse(openIssueishDetails.called);
+      assert.isFalse(wrapper.state('openIssueishDialogActive'));
     });
   });
 
@@ -1086,6 +1212,19 @@ describe('RootController', function() {
     });
   });
 
+  describe('opening a CommitDetailItem', function() {
+    it('registers an opener for a CommitDetailItem', async function() {
+      const workdir = await cloneRepository('three-files');
+      const uri = CommitDetailItem.buildURI(workdir, 'abcdef');
+
+      const wrapper = mount(app);
+
+      const item = await atomEnv.workspace.open(uri);
+      assert.strictEqual(item.getTitle(), 'Commit: abcdef');
+      assert.isTrue(wrapper.update().find('CommitDetailItem').exists());
+    });
+  });
+
   describe('opening an IssueishDetailItem', function() {
     it('registers an opener for IssueishPaneItems', async function() {
       const uri = IssueishDetailItem.buildURI('https://api.github.com', 'owner', 'repo', 123, __dirname);
@@ -1197,6 +1336,28 @@ describe('RootController', function() {
 
       wrapper.instance().surfaceToCommitPreviewButton();
       assert.isTrue(gitTab.focusAndSelectCommitPreviewButton.called);
+    });
+  });
+
+  describe('surfaceToRecentCommit', function() {
+    it('focuses and selects the recent commit', async function() {
+      const repository = await buildRepository(await cloneRepository('multiple-commits'));
+      app = React.cloneElement(app, {
+        repository,
+        startOpen: true,
+        startRevealed: true,
+      });
+      const wrapper = mount(app);
+
+      const gitTabTracker = wrapper.instance().gitTabTracker;
+
+      const gitTab = {
+        focusAndSelectRecentCommit: sinon.spy(),
+      };
+      sinon.stub(gitTabTracker, 'getComponent').returns(gitTab);
+
+      wrapper.instance().surfaceToRecentCommit();
+      assert.isTrue(gitTab.focusAndSelectRecentCommit.called);
     });
   });
 

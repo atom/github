@@ -3,7 +3,7 @@ import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
 import compareSets from 'compare-sets';
-import isEqual from 'lodash.isequal';
+import isEqualWith from 'lodash.isequalwith';
 
 import Repository from '../../lib/models/repository';
 import {nullCommit} from '../../lib/models/commit';
@@ -64,7 +64,7 @@ describe('Repository', function() {
       for (const method of [
         'isLoadingGuess', 'isAbsentGuess', 'isAbsent', 'isLoading', 'isEmpty', 'isPresent', 'isTooLarge',
         'isUndetermined', 'showGitTabInit', 'showGitTabInitInProgress', 'showGitTabLoading', 'showStatusBarTiles',
-        'hasDiscardHistory', 'isMerging', 'isRebasing',
+        'hasDiscardHistory', 'isMerging', 'isRebasing', 'isCommitPushed',
       ]) {
         assert.isFalse(await repository[method]());
       }
@@ -728,6 +728,24 @@ describe('Repository', function() {
         await assert.isRejected(repo.commit('Commit yo!'));
         assert.isFalse(reporterProxy.addEvent.called);
       });
+    });
+  });
+
+  describe('getCommit(sha)', function() {
+    it('returns the commit information for the provided sha', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const commit = await repo.getCommit('18920c900bfa6e4844853e7e246607a31c3e2e8c');
+
+      assert.isTrue(commit.isPresent());
+      assert.strictEqual(commit.getSha(), '18920c900bfa6e4844853e7e246607a31c3e2e8c');
+      assert.strictEqual(commit.getAuthorEmail(), 'kuychaco@github.com');
+      assert.strictEqual(commit.getAuthorDate(), 1471113642);
+      assert.lengthOf(commit.getCoAuthors(), 0);
+      assert.strictEqual(commit.getMessageSubject(), 'second commit');
+      assert.strictEqual(commit.getMessageBody(), '');
     });
   });
 
@@ -1624,11 +1642,15 @@ describe('Repository', function() {
         return new Set(
           syncResults
             .filter(({aSync, bSync}) => {
-              if (aSync && aSync.isEqual) {
-                return !aSync.isEqual(bSync);
-              } else {
-                return !isEqual(aSync, bSync);
-              }
+              // Recursively compare synchronous results. If an "isEqual" method is defined on any model, defer to
+              // its definition of equality.
+              return !isEqualWith(aSync, bSync, (a, b) => {
+                if (a && a.isEqual) {
+                  return a.isEqual(b);
+                }
+
+                return undefined;
+              });
             })
             .map(({key}) => key),
         );

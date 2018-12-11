@@ -26,6 +26,19 @@
     border-radius: @component-border-radius;
   }
 
+  .open-commit-detail-button {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    &:hover,
+    &:focus {
+      color: @text-color-highlight;
+    }
+    &:active {
+      color: @text-color-subtle;
+    }
+  }
+
   .pre-timeline-item-icon {
     position: absolute;
     margin-left: -25px;
