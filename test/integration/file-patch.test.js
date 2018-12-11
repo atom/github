@@ -15,6 +15,8 @@ describe('integration: file patches', function() {
 
   this.timeout(Math.max(this.timeout(), 10000));
 
+  this.retries(5); // FLAKE
+
   beforeEach(function() {
     // These tests take a little longer because they rely on real filesystem events and git operations.
     until.setDefaultTimeout(9000);
@@ -73,15 +75,15 @@ describe('integration: file patches', function() {
     listItem.simulate('mousedown', {button: 0, persist() {}});
     window.dispatchEvent(new MouseEvent('mouseup'));
 
-    const itemSelector = `FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
+    const itemSelector = `ChangedFileItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`;
     await until(
       () => wrapper.update().find(itemSelector).find('.github-FilePatchView').exists(),
-      `the FilePatchItem for ${relativePath} arrives and loads`,
+      `the ChangedFileItem for ${relativePath} arrives and loads`,
     );
   }
 
   function getPatchItem(stagingStatus, relativePath) {
-    return wrapper.update().find(`FilePatchItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`);
+    return wrapper.update().find(`ChangedFileItem[relPath="${relativePath}"][stagingStatus="${stagingStatus}"]`);
   }
 
   function getPatchEditor(stagingStatus, relativePath) {
@@ -276,7 +278,6 @@ describe('integration: file patches', function() {
 
       it('may be partially unstaged', async function() {
         this.retries(5); // FLAKE
-
         getPatchEditor('staged', 'added-file.txt').setSelectedBufferRange([[3, 0], [4, 3]]);
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
@@ -301,6 +302,7 @@ describe('integration: file patches', function() {
       });
 
       it('may be completely unstaged', async function() {
+        this.retries(5); // FLAKE
         getPatchEditor('staged', 'added-file.txt').selectAll();
         wrapper.find('.github-HunkHeaderView-stageButton').simulate('click');
 
@@ -508,6 +510,12 @@ describe('integration: file patches', function() {
       it('may stage the content deletion without the symlink creation', async function() {
         getPatchEditor('unstaged', 'sample.js').selectAll();
         getPatchItem('unstaged', 'sample.js').find('.github-HunkHeaderView-stageButton').simulate('click');
+
+        await patchContent(
+          'unstaged', 'sample.js',
+          [repoPath('target.txt'), 'selected'],
+          [' No newline at end of file'],
+        );
 
         assert.isTrue(getPatchItem('unstaged', 'sample.js').find('.github-FilePatchView-metaTitle').exists());
 
@@ -734,25 +742,28 @@ describe('integration: file patches', function() {
       });
 
       it('may be partially staged', async function() {
-        this.retries(5); // FLAKE
-
         getPatchEditor('unstaged', 'sample.js').setSelectedBufferRanges([
           [[2, 0], [2, 0]],
           [[10, 0], [10, 0]],
         ]);
+
         getPatchItem('unstaged', 'sample.js').find('.github-HunkHeaderView-stageButton').simulate('click');
+        // in the case of multiple selections, the next selection is calculated based on bottom most selection
+        // When the bottom most changed line in a diff is staged/unstaged, then the new bottom most changed
+        // line is selected.
+        // Essentially we want to keep the selection close to where it was, for ease of keyboard navigation.
 
         await patchContent(
           'unstaged', 'sample.js',
           ['const quicksort = function() {'],
           ['  const sort = function(items) {'],
-          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted', 'selected'],
+          ['    let pivot = items.shift(), current, left = [], right = [];', 'deleted'],
           ['    while (items.length > 0) {'],
           ['      current = items.shift();'],
           ['      current < pivot ? left.push(current) : right.push(current);'],
           ['    }'],
           ['    return sort(left).concat(pivot).concat(sort(right));'],
-          ['    // added 0', 'added'],
+          ['    // added 0', 'added', 'selected'],
           ['    // added 1'],
           ['  };'],
           [''],
@@ -861,14 +872,14 @@ describe('integration: file patches', function() {
           'staged', 'sample.js',
           ['const quicksort = function() {'],
           ['  const sort = function(items) {'],
-          ['    if (items.length <= 1) { return items; }', 'deleted', 'selected'],
+          ['    if (items.length <= 1) { return items; }', 'deleted'],
           ['    let pivot = items.shift(), current, left = [], right = [];'],
           ['    while (items.length > 0) {'],
           ['      current = items.shift();'],
           ['      current < pivot ? left.push(current) : right.push(current);'],
           ['    }'],
           ['    return sort(left).concat(pivot).concat(sort(right));'],
-          ['    // added 0', 'added'],
+          ['    // added 0', 'added', 'selected'],
           ['  };'],
           [''],
           ['  return sort(Array.apply(this, arguments));'],

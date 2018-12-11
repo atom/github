@@ -24,8 +24,13 @@
 '.github-StagingView':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
-  'o': 'github:open-file'
+  'o': 'github:jump-to-file'
   'left': 'core:move-left'
+  'cmd-left': 'core:move-left'
+
+'.github-CommitView button':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
 
 '.github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
@@ -36,17 +41,22 @@
   'ctrl-enter': 'github:commit'
   'shift-tab': 'core:focus-previous'
 
+'.github-CommitView-commitPreview':
+  'cmd-left': 'github:dive'
+  'ctrl-left': 'github:dive'
+  'enter': 'native!'
+
 '.github-FilePatchView atom-text-editor:not([mini])':
   'cmd-/': 'github:toggle-patch-selection-mode'
   'ctrl-/': 'github:toggle-patch-selection-mode'
   'cmd-backspace': 'github:discard-selected-lines'
   'ctrl-backspace': 'github:discard-selected-lines'
-  'cmd-enter': 'core:confirm'
   'ctrl-enter': 'core:confirm'
-  'cmd-right': 'github:surface-file'
-  'ctrl-right': 'github:surface-file'
-  'cmd-o': 'github:open-file'
-  'ctrl-o': 'github:open-file'
+  'cmd-enter': 'core:confirm'
+  'cmd-right': 'github:surface'
+  'ctrl-right': 'github:surface'
+  'cmd-o': 'github:jump-to-file'
+  'ctrl-o': 'github:jump-to-file'
 
 '.github-FilePatchView--hunkMode atom-text-editor:not([mini])':
   'down': 'github:select-next-hunk'

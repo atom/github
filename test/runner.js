@@ -101,7 +101,7 @@ module.exports = createRunner({
   }
 
   const Enzyme = require('enzyme');
-  const Adapter = require('@smashwilson/enzyme-adapter-react-16');
+  const Adapter = require('enzyme-adapter-react-16');
   Enzyme.configure({adapter: new Adapter()});
 
   require('mocha-stress');
@@ -110,12 +110,12 @@ module.exports = createRunner({
 
   if (process.env.TEST_JUNIT_XML_PATH) {
     mocha.reporter(require('mocha-multi-reporters'), {
-      reporterEnabled: 'xunit, list',
-      xunitReporterOptions: {
-        output: process.env.TEST_JUNIT_XML_PATH,
+      reporterEnabled: 'mocha-junit-reporter, list',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: process.env.TEST_JUNIT_XML_PATH,
+        useFullSuiteTitle: true,
+        suiteTitleSeparedBy: ' / ',
       },
     });
-  } else if (process.env.APPVEYOR_API_URL) {
-    mocha.reporter(require('mocha-appveyor-reporter'));
   }
 });

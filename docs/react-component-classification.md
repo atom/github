@@ -6,7 +6,7 @@ This is a high-level summary of the organization and implementation of our React
 
 **Items** are intended to be used as top-level components within subtrees that are rendered into some [Portal](https://reactjs.org/docs/portals.html) and passed to the Atom API, like pane items, dock items, or tooltips. They are mostly responsible for implementing the [Atom "item" contract](https://github.com/atom/atom/blob/a3631f0dafac146185289ac5e37eaff17b8b0209/src/workspace.js#L29-L174).
 
-These live within [`lib/items/`](/lib/items), are tested within [`test/items/`](/test/items), and are named with an `Item` suffix. Examples: `PullRequestDetailItem`, `FilePatchItem`.
+These live within [`lib/items/`](/lib/items), are tested within [`test/items/`](/test/items), and are named with an `Item` suffix. Examples: `PullRequestDetailItem`, `ChangedFileItem`.
 
 ## Containers
 
