@@ -59,16 +59,17 @@ describe('Commit', function() {
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei.
 
-        Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
-        tantas nullam corrumpit ad, in oratio luptatum eleifend vim. Ea salutatus contentiones eos. Eam in veniam facete
-        volutpat, solum appetere adversarium ut quo. Vel cu appetere urbanitas, usu ut aperiri mediocritatem, alia
-        molestie urbanitas cu qui.
+        Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam tantas nullam corrumpit ad, in
+        oratio luptatum eleifend vim.
 
-        Velit antiopam erroribus no eu|m, scripta iudicabit ne nam, in duis clita commodo
-        sit. Assum sensibus oportere te vel, vis semper evertitur definiebas in. Tamquam feugiat comprehensam ut his, et
-        eum voluptua ullamcorper, ex mei debitis inciderint. Sit discere pertinax te, an mei liber putant. Ad doctus
-        tractatos ius, duo ad civibus alienum, nominati voluptaria sed an. Libris essent philosophia et vix. Nusquam
-        reprehendunt et mea. Ea eius omnes voluptua sit.
+        Ea salutatus contentiones eos. Eam in veniam facete volutpat, solum appetere adversarium ut quo. Vel cu appetere
+        urbanitas, usu ut aperiri mediocritatem, alia molestie urbanitas cu qui.
+
+        Velit antiopam erroribus no eu|m, scripta iudicabit ne nam, in duis clita commodo sit. Assum sensibus oportere
+        te vel, vis semper evertitur definiebas in. Tamquam feugiat comprehensam ut his, et eum voluptua ullamcorper, ex
+        mei debitis inciderint. Sit discere pertinax te, an mei liber putant. Ad doctus tractatos ius, duo ad civibus
+        alienum, nominati voluptaria sed an. Libris essent philosophia et vix. Nusquam reprehendunt et mea. Ea eius
+        omnes voluptua sit.
       `;
 
       const commit = commitBuilder().messageBody(body).build();
@@ -76,28 +77,25 @@ describe('Commit', function() {
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei.
 
-        Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
-        tantas nullam corrumpit ad, in oratio luptatum eleifend vim. Ea salutatus contentiones eos. Eam in veniam facete
-        volutpat, solum appetere adversarium ut quo. Vel cu appetere urbanitas, usu ut aperiri mediocritatem, alia
-        molestie urbanitas cu qui.
-
+        Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam tantas nullam corrumpit ad, in
+        oratio luptatum eleifend vim.
         ...
       `);
     });
 
     it('truncates the message body at the nearest word boundary before the cutoff if one is present', function() {
-      // The | is at the 500-character mark.
+      // The | is at the 400-character mark.
       const body = dedent`
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei. Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
         tantas nullam corrumpit ad, in oratio luptatum eleifend vim. Ea salutatus contentiones eos. Eam in veniam facete
-        volutpat, solum appetere adversarium ut quo. Vel cu appetere urbanitas, usu ut aperiri mediocritatem, alia
-        molestie urbanitas cu qui. Velit antiopam erroribus no eum,| scripta iudicabit ne nam, in duis clita commodo
+        volutpat, solum appetere adversarium ut quo. Vel cu appetere urban|itas, usu ut aperiri mediocritatem, alia
+        molestie urbanitas cu qui. Velit antiopam erroribus no eum, scripta iudicabit ne nam, in duis clita commodo
         sit. Assum sensibus oportere te vel, vis semper evertitur definiebas in. Tamquam feugiat comprehensam ut his, et
         eum voluptua ullamcorper, ex mei debitis inciderint. Sit discere pertinax te, an mei liber putant. Ad doctus
         tractatos ius, duo ad civibus alienum, nominati voluptaria sed an. Libris essent philosophia et vix. Nusquam
         reprehendunt et mea. Ea eius omnes voluptua sit. No cum illud verear efficiantur. Id altera imperdiet nec.
-        Noster audia|m accusamus mei at, no zril libris nemore duo, ius ne rebum doctus fuisset. Legimus epicurei in
+        Noster audiam accusamus mei at, no zril libris nemore duo, ius ne rebum doctus fuisset. Legimus epicurei in
         sit, esse purto suscipit eu qui, oporteat deserunt delicatissimi sea in. Est id putent accusata convenire, no
         tibique molestie accommodare quo, cu est fuisset offendit evertitur.
       `;
@@ -107,35 +105,34 @@ describe('Commit', function() {
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei. Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
         tantas nullam corrumpit ad, in oratio luptatum eleifend vim. Ea salutatus contentiones eos. Eam in veniam facete
-        volutpat, solum appetere adversarium ut quo. Vel cu appetere urbanitas, usu ut aperiri mediocritatem, alia
-        molestie urbanitas cu qui. Velit antiopam erroribus no...
+        volutpat, solum appetere adversarium ut quo. Vel cu appetere...
       `);
     });
 
     it('truncates the message body at the character cutoff if no word or paragraph boundaries can be found', function() {
-      // The | is at the 500-character mark.
-      const body = 'Loremipsumdolorsitamet,ethisjustodeleniti,omniumfastidiiadversariumathas.' +
-        'Mazimalterumseaea,essentmalorumpersiusnemei.Nameatemporqualisque,modusdomingtehas.Affertdolore' +
-        'albuciustevis,eamtantasnullamcorrumpitad,inoratioluptatumeleifendvim.Easalutatuscontentioneseos.' +
-        'Eaminveniamfacetevolutpat,solumappetereadversariumutquo.Velcuappetereurbanitas,usuutaperiri' +
-        'mediocritatem,aliamolestieurbanitascuqui.Velitantiopamerroribusnoeum,scriptaiudicabitnenam,in' +
-        'duisclitacommodosit.Assumsensibusoporteretevel,vissem|perevertiturdefiniebasin.Tamquamfeugiat' +
-        'comprehensamuthis,eteumvoluptuaullamcorper,exmeidebitisinciderint.Sitdiscerepertinaxte,anmei' +
-        'liberputant.Addoctustractatosius,duoadcivibusalienum,nominativoluptariasedan.Librisessent' +
-        'philosophiaetvix.Nusquamreprehenduntetmea.Eaeiusomnesvoluptuasit.Nocumilludverearefficiantur.Id' +
-        'alteraimperdietnec.Nosteraudiamaccusamusmeiat,nozrillibrisnemoreduo,iusnerebumdoctusfuisset.' +
-        'Legimusepicureiinsit,essepurtosuscipiteuqui,oporteatdeseruntdelicatissimiseain.Estidputent' +
-        'accusataconvenire,notibiquemolestieaccommodarequo,cuestfuissetoffenditevertitur.';
+      // The | is at the 400-character mark.
+      const body = 'Loremipsumdolorsitametethisjustodelenitiomniumfastidiiadversariumathas' +
+        'MazimalterumseaeaessentmalorumpersiusnemeiNameatemporqualisquemodusdomingtehasAffertdolore' +
+        'albuciusteviseamtantasnullamcorrumpitadinoratioluptatumeleifendvimEasalutatuscontentioneseos' +
+        'EaminveniamfacetevolutpatsolumappetereadversariumutquoVelcuappetereurbanitasusuutaperiri' +
+        'mediocritatemaliamolestieurbanitascuquiVelitantiopamerroribu|snoeumscriptaiudicabitnenamin' +
+        'duisclitacommodositAssumsensibusoporteretevelvissemperevertiturdefiniebasinTamquamfeugiat' +
+        'comprehensamuthiseteumvoluptuaullamcorperexmeidebitisinciderintSitdiscerepertinaxteanmei' +
+        'liberputantAddoctustractatosiusduoadcivibusalienumnominativoluptariasedanLibrisessent' +
+        'philosophiaetvixNusquamreprehenduntetmeaEaeiusomnesvoluptuasitNocumilludverearefficianturId' +
+        'alteraimperdietnecNosteraudiamaccusamusmeiatnozrillibrisnemoreduoiusnerebumdoctusfuisset' +
+        'LegimusepicureiinsitessepurtosuscipiteuquioporteatdeseruntdelicatissimiseainEstidputent' +
+        'accusataconvenirenotibiquemolestieaccommodarequocuestfuissetoffenditevertitur';
 
+      // Note that the elision happens three characters before the 400-mark to leave room for the "..."
       const commit = commitBuilder().messageBody(body).build();
       assert.strictEqual(
         commit.abbreviatedBody(),
-        'Loremipsumdolorsitamet,ethisjustodeleniti,omniumfastidiiadversariumathas.' +
-        'Mazimalterumseaea,essentmalorumpersiusnemei.Nameatemporqualisque,modusdomingtehas.Affertdolore' +
-        'albuciustevis,eamtantasnullamcorrumpitad,inoratioluptatumeleifendvim.Easalutatuscontentioneseos.' +
-        'Eaminveniamfacetevolutpat,solumappetereadversariumutquo.Velcuappetereurbanitas,usuutaperiri' +
-        'mediocritatem,aliamolestieurbanitascuqui.Velitantiopamerroribusnoeum,scriptaiudicabitnenam,in' +
-        'duisclitacommodosit.Assumsensibusoporteretevel,vis...',
+        'Loremipsumdolorsitametethisjustodelenitiomniumfastidiiadversariumathas' +
+        'MazimalterumseaeaessentmalorumpersiusnemeiNameatemporqualisquemodusdomingtehasAffertdolore' +
+        'albuciusteviseamtantasnullamcorrumpitadinoratioluptatumeleifendvimEasalutatuscontentioneseos' +
+        'EaminveniamfacetevolutpatsolumappetereadversariumutquoVelcuappetereurbanitasusuutaperiri' +
+        'mediocritatemaliamolestieurbanitascuquiVelitantiopamerror...',
       );
     });
 
@@ -145,7 +142,7 @@ describe('Commit', function() {
         messageBody += `${i}\n`;
       }
       const commit = commitBuilder().messageBody(messageBody).build();
-      assert.strictEqual(commit.abbreviatedBody(), '0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n...');
+      assert.strictEqual(commit.abbreviatedBody(), '0\n1\n2\n3\n4\n5\n...');
     });
   });
 
