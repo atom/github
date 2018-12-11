@@ -51,7 +51,7 @@
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",
     "dugite": "^1.79.0",
-    "event-kit": "2.5.2",
+    "event-kit": "2.5.3",
     "fs-extra": "4.0.3",
     "graphql": "0.13.2",
     "keytar": "4.2.1",
