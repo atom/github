@@ -38,11 +38,10 @@ describe('PullRequestChangedFilesContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it.only('builds the diff URL', function() {
+  it('builds the diff URL', function() {
     const wrapper = shallow(buildApp());
     const pullRequestURL = 'https://github.com/atom/github/pull/1804';
     const diffURL = wrapper.instance().generatePatchDiffURL(pullRequestURL);
-    console.log(diffURL);
     assert.strictEqual(diffURL, 'https://patch-diff.githubusercontent.com/raw/atom/github/pull/1804.diff');
   });
 
