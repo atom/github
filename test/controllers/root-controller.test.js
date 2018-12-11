@@ -353,13 +353,13 @@ describe('RootController', function() {
       wrapper.update();
 
       const dialog = wrapper.find('OpenCommitDialog');
-      const sha = 'asdf1234';
+      const ref = 'asdf1234';
 
-      const promise = dialog.prop('didAccept')({sha});
+      const promise = dialog.prop('didAccept')({ref});
       resolveOpenCommit();
       await promise;
 
-      const uri = CommitDetailItem.buildURI(workdirPath, sha);
+      const uri = CommitDetailItem.buildURI(workdirPath, ref);
 
       assert.isTrue(openCommitDetails.calledWith(uri));
 
