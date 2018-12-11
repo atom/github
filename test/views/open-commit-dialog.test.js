@@ -1,29 +1,26 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {cloneRepository, buildRepository} from '../helpers';
 
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('OpenCommitDialog', function() {
   let atomEnv, commandRegistry;
-  let app, wrapper, didAccept, didCancel;
-  let repository, workdirPath;
+  let app, wrapper, didAccept, didCancel, isValidEntry;
 
-  beforeEach(async function() {
+  beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     commandRegistry = atomEnv.commands;
 
     didAccept = sinon.stub();
     didCancel = sinon.stub();
-    workdirPath = await cloneRepository('three-files');
-    repository = await buildRepository(workdirPath);
+    isValidEntry = sinon.stub().returns(true);
 
     app = (
       <OpenCommitDialog
         commandRegistry={commandRegistry}
         didAccept={didAccept}
         didCancel={didCancel}
-        repository={repository}
+        isValidEntry={isValidEntry}
       />
     );
     wrapper = mount(app);
@@ -71,6 +68,7 @@ describe('OpenCommitDialog', function() {
     });
 
     it('disables the open button when the commit does not exist in repo', async function() {
+      isValidEntry.returns(false);
       setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
       wrapper.find('button.icon-commit').simulate('click');
 
@@ -87,24 +85,15 @@ describe('OpenCommitDialog', function() {
     });
   });
 
-  it('calls the acceptance callback', async function() {
-    const commit = await repository.getLastCommit();
-    setTextIn('.github-CommitSha atom-text-editor', commit.sha);
+  it('calls the acceptance callback after validation', async function() {
+    isValidEntry.returns(true);
+    const sha = 'abcd1234';
+    setTextIn('.github-CommitSha atom-text-editor', sha);
 
     wrapper.find('button.icon-commit').simulate('click');
 
-    await assert.async.isTrue(didAccept.calledWith({sha: commit.sha}));
+    await assert.async.isTrue(didAccept.calledWith({sha}));
     wrapper.unmount();
-  });
-
-  it('re-throws other exceptions encountered during acceptance', async function() {
-    sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
-    const acceptSpy = sinon.spy(wrapper.instance(), 'accept');
-
-    setTextIn('.github-CommitSha atom-text-editor', 'abcd1234');
-    wrapper.find('button.icon-commit').simulate('click');
-
-    await assert.isRejected(acceptSpy.lastCall.returnValue, 'Oh shit');
   });
 
   it('calls the cancellation callback', function() {
