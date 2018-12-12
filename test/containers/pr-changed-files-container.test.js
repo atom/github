@@ -50,14 +50,6 @@ describe.only('PullRequestChangedFilesContainer', function() {
     assert.strictEqual(controller.prop('extraProp'), extraProp);
   });
 
-  it('passes itemType prop to PullRequestChangedFilesController', async function() {
-    const wrapper = shallow(buildApp());
-    await assert.async.isTrue(wrapper.update().find('PullRequestChangedFilesController').exists());
-
-    const controller = wrapper.find('PullRequestChangedFilesController');
-    assert.strictEqual(controller.prop('itemType'), PullRequestChangedFilesContainer);
-  });
-
   it('builds the diff URL', function() {
     const wrapper = shallow(buildApp({
       owner: 'smashwilson',
