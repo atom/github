@@ -1,9 +1,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import {multiFilePatchBuilder} from '../builder/patch';
+import patch from '../fixtures/diffs/patch';
 import PullRequestChangedFilesContainer from '../../lib/containers/pr-changed-files-container';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
-describe('PullRequestChangedFilesContainer', function() {
+
+
+describe.only('PullRequestChangedFilesContainer', function() {
   let diffResponse;
 
   function buildApp(overrideProps = {}) {
@@ -14,6 +19,7 @@ describe('PullRequestChangedFilesContainer', function() {
         number={1804}
         token="1234"
         host="github.com"
+        itemType={IssueishDetailItem}
         {...overrideProps}
       />
     );
@@ -27,7 +33,15 @@ describe('PullRequestChangedFilesContainer', function() {
   }
 
   beforeEach(function() {
-    setDiffResponse('default');
+    const multiFilePatch = multiFilePatchBuilder()
+     .addFilePatch(fp => {
+       fp.addHunk(h => {
+         h.unchanged('line 0', 'line-1').added('added line').unchanged('line 2');
+       });
+     })
+     .build();
+    console.log('!!!! PATCH', patch);
+    setDiffResponse(patch);
     sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
   });
 
@@ -36,7 +50,7 @@ describe('PullRequestChangedFilesContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it('passes extra props through to PullRequestChangedFilesController', async function() {
+  it.only('passes extra props through to PullRequestChangedFilesController', async function() {
     const extraProp = Symbol('really really extra');
 
     const wrapper = shallow(buildApp({extraProp}));
@@ -67,14 +81,13 @@ describe('PullRequestChangedFilesContainer', function() {
   });
 
   it('passes loaded diff data through to the controller', async function() {
-    setDiffResponse('some really swell diff');
     const wrapper = shallow(buildApp({
       token: '4321',
     }));
     await assert.async.isTrue(wrapper.update().find('PullRequestChangedFilesController').exists());
 
     const controller = wrapper.find('PullRequestChangedFilesController');
-    assert.strictEqual(controller.prop('diff'), '"some really swell diff"');
+    assert.strictEqual(controller.prop('patch'), patch);
 
     assert.deepEqual(window.fetch.lastCall.args, [
       'https://api.github.com/repos/atom/github/pulls/1804',
