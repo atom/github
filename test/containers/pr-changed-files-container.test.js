@@ -1,8 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {multiFilePatchBuilder} from '../builder/patch';
-import patch from '../fixtures/diffs/patch';
+import rawDiff from '../fixtures/diffs/raw-diff';
 import PullRequestChangedFilesContainer from '../../lib/containers/pr-changed-files-container';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
@@ -32,7 +31,7 @@ describe.only('PullRequestChangedFilesContainer', function() {
   }
 
   beforeEach(function() {
-    setDiffResponse(patch);
+    setDiffResponse(rawDiff);
     sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
   });
 
@@ -41,7 +40,7 @@ describe.only('PullRequestChangedFilesContainer', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
-  it.only('passes extra props through to PullRequestChangedFilesController', async function() {
+  it('passes extra props through to PullRequestChangedFilesController', async function() {
     const extraProp = Symbol('really really extra');
 
     const wrapper = shallow(buildApp({extraProp}));
