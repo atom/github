@@ -78,7 +78,7 @@ describe('PullRequestDetailView', function() {
     assert.lengthOf(wrapper.find(TabList), 1);
 
     const tabs = wrapper.find(Tab).getElements();
-    assert.lengthOf(tabs, 3);
+    assert.lengthOf(tabs, 4);
 
     const tab0Children = tabs[0].props.children;
     assert.deepEqual(tab0Children[0].props, {icon: 'info', className: 'github-IssueishDetailView-tab-icon'});
@@ -92,7 +92,11 @@ describe('PullRequestDetailView', function() {
     assert.deepEqual(tab2Children[0].props, {icon: 'git-commit', className: 'github-IssueishDetailView-tab-icon'});
     assert.deepEqual(tab2Children[1], 'Commits');
 
-    assert.lengthOf(wrapper.find(TabPanel), 3);
+    const tab3Children = tabs[3].props.children;
+    assert.deepEqual(tab3Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab3Children[1], 'Files Changed');
+
+    assert.lengthOf(wrapper.find(TabPanel), 4);
   });
 
   it('tells its tabs when the pull request is currently checked out', function() {
