@@ -7,7 +7,6 @@ import PullRequestChangedFilesContainer from '../../lib/containers/pr-changed-fi
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
 
-
 describe.only('PullRequestChangedFilesContainer', function() {
   let diffResponse;
 
@@ -26,21 +25,13 @@ describe.only('PullRequestChangedFilesContainer', function() {
   }
 
   function setDiffResponse(body) {
-    diffResponse = new window.Response(JSON.stringify(body), {
+    diffResponse = new window.Response(body, {
       status: 200,
       headers: {'Content-type': 'text/plain'},
     });
   }
 
   beforeEach(function() {
-    const multiFilePatch = multiFilePatchBuilder()
-     .addFilePatch(fp => {
-       fp.addHunk(h => {
-         h.unchanged('line 0', 'line-1').added('added line').unchanged('line 2');
-       });
-     })
-     .build();
-    console.log('!!!! PATCH', patch);
     setDiffResponse(patch);
     sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
   });
