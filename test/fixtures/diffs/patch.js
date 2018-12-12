@@ -1,5 +1,5 @@
 import dedent from 'dedent-js';
-const patch = `
+const patch = dedent`
   diff --git file.txt file.txt
   index 83db48f..bf269f4 100644
   --- file.txt
