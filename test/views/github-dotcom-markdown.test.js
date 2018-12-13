@@ -4,6 +4,7 @@ import {shell} from 'electron';
 
 import {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
 import {handleClickEvent, openIssueishLinkInNewTab, openLinkInBrowser} from '../../lib/views/issueish-link';
+import {getEndpoint} from '../../lib/models/endpoint';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -11,7 +12,8 @@ describe('GithubDotcomMarkdown', function() {
   let relayEnvironment;
 
   beforeEach(function() {
-    relayEnvironment = RelayNetworkLayerManager.getEnvironmentForHost('https://api.somehost.com', '1234');
+    const endpoint = getEndpoint('somehost.com');
+    relayEnvironment = RelayNetworkLayerManager.getEnvironmentForHost(endpoint, '1234');
   });
 
   function buildApp(overloadProps = {}) {
