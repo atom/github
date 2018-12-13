@@ -14,10 +14,15 @@ describe('Endpoint', function() {
 
     it('identifies the REST base resource URI', function() {
       assert.strictEqual(dotcom.getRestRoot(), 'https://api.github.com');
+      assert.strictEqual(dotcom.getRestURI(), 'https://api.github.com');
     });
 
     it('joins additional path segments to a REST URI', function() {
       assert.strictEqual(dotcom.getRestURI('sub', 're?source'), 'https://api.github.com/sub/re%3Fsource');
+    });
+
+    it('accesses the hostname', function() {
+      assert.strictEqual(dotcom.getHost(), 'github.com');
     });
 
     it('accesses a login model account', function() {
@@ -38,10 +43,15 @@ describe('Endpoint', function() {
 
     it('identifies the REST base resource URI', function() {
       assert.strictEqual(enterprise.getRestRoot(), 'https://github.horse/api/v3');
+      assert.strictEqual(enterprise.getRestURI(), 'https://github.horse/api/v3');
     });
 
     it('joins additional path segments to the REST URI', function() {
       assert.strictEqual(enterprise.getRestURI('sub', 're?source'), 'https://github.horse/api/v3/sub/re%3Fsource');
+    });
+
+    it('accesses the hostname', function() {
+      assert.strictEqual(enterprise.getHost(), 'github.horse');
     });
 
     it('accesses a login model key', function() {
