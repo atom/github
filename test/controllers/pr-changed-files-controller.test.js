@@ -18,7 +18,8 @@ describe('PullRequestChangedFilesController', function() {
   function buildApp(overrideProps = {}) {
     return (
       <PullRequestChangedFilesController
-        patch={multiFilePatch}
+        multiFilePatch={multiFilePatch}
+        localRepository={{}}
         {...overrideProps}
       />
     );
@@ -26,10 +27,10 @@ describe('PullRequestChangedFilesController', function() {
 
   it('passes child props through to MultiFilePatchView', function() {
       const extraProp = Symbol('so extra you wont believe it');
-
       const wrapper = shallow(buildApp({extraProp}));
 
       const controller = wrapper.find('PullRequestChangedFilesView');
       assert.strictEqual(controller.prop('extraProp'), extraProp);
   });
+
 });
