@@ -94,7 +94,7 @@ describe('PullRequestChangedFilesContainer', function() {
     });
   });
 
-  describe('when fetch fails', function() {
+  describe.only('when fetch fails', function() {
     it('renders an error if fetch returns a non-ok response', async function() {
         const badResponse = new window.Response(rawDiff, {
           status: 404,
@@ -103,7 +103,10 @@ describe('PullRequestChangedFilesContainer', function() {
         });
         sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(badResponse));
         const wrapper = shallow(buildApp());
-        await assert.async.strictEqual(wrapper.update().instance().state.error, 'Unable to load diff for this PR.');
+        const expectedErrorMessage = 'Unable to fetch diff for this pull request: oh noes.';
+        await assert.async.deepEqual(wrapper.update().instance().state.error, expectedErrorMessage);
+        const errorView = wrapper.find('ErrorView');
+      assert.deepEqual(errorView.prop('descriptions'), [expectedErrorMessage]);
       });
   });
 });
