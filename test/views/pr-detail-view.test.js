@@ -243,15 +243,17 @@ describe('PullRequestDetailView', function() {
     });
   });
 
-  describe('clicking link to view issueish link', function() {
-    it('records an event', function() {
+  describe('metrics', function() {
+    beforeEach(function() {
+      sinon.stub(reporterProxy, 'addEvent');
+    });
+
+    it('records clicking the link to view an issueish', function() {
       const wrapper = shallow(buildApp({
         repositoryName: 'repo',
         ownerLogin: 'user0',
         issueishNumber: 100,
       }));
-
-      sinon.stub(reporterProxy, 'addEvent');
 
       const link = wrapper.find('a.github-IssueishDetailView-headerLink');
       assert.strictEqual(link.text(), 'user0/repo#100');
@@ -259,6 +261,42 @@ describe('PullRequestDetailView', function() {
       link.simulate('click');
 
       assert.isTrue(reporterProxy.addEvent.calledWith('open-pull-request-in-browser', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the Overview tab', function() {
+      const wrapper = shallow(buildApp());
+      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Overview');
+
+      wrapper.find('Tabs').prop('onSelect')(ind);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-overview', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the Build Status tab', function() {
+      const wrapper = shallow(buildApp());
+      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Build Status');
+
+      wrapper.find('Tabs').prop('onSelect')(ind);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-build-status', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the Commits tab', function() {
+      const wrapper = shallow(buildApp());
+      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Commits');
+
+      wrapper.find('Tabs').prop('onSelect')(ind);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-commits', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the "Files Changed" tab', function() {
+      const wrapper = shallow(buildApp());
+      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Files Changed');
+
+      wrapper.find('Tabs').prop('onSelect')(ind);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-files-changed', {package: 'github', component: 'BarePullRequestDetailView'}));
     });
   });
 });
