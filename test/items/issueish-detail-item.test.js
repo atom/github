@@ -89,7 +89,7 @@ describe('IssueishDetailItem', function() {
       await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
 
       const before = wrapper.update().find('IssueishDetailContainer');
-      assert.strictEqual(before.prop('host'), 'host.com');
+      assert.strictEqual(before.prop('endpoint').getHost(), 'host.com');
       assert.strictEqual(before.prop('owner'), 'me');
       assert.strictEqual(before.prop('repo'), 'original');
       assert.strictEqual(before.prop('issueishNumber'), 1);
@@ -97,7 +97,7 @@ describe('IssueishDetailItem', function() {
       await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('you', 'switched', 2);
 
       const after = wrapper.update().find('IssueishDetailContainer');
-      assert.strictEqual(after.prop('host'), 'host.com');
+      assert.strictEqual(after.prop('endpoint').getHost(), 'host.com');
       assert.strictEqual(after.prop('owner'), 'you');
       assert.strictEqual(after.prop('repo'), 'switched');
       assert.strictEqual(after.prop('issueishNumber'), 2);

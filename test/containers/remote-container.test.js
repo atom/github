@@ -8,6 +8,7 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
+import {getEndpoint} from '../../lib/models/endpoint';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import RemoteContainer from '../../lib/containers/remote-container';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
@@ -34,7 +35,7 @@ describe('RemoteContainer', function() {
       <RemoteContainer
         loginModel={model}
 
-        host="https://api.github.com"
+        endpoint={getEndpoint('github.com')}
 
         remoteOperationObserver={nullOperationStateObserver}
         workingDirectory={__dirname}

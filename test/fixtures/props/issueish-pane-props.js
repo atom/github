@@ -2,6 +2,7 @@ import GithubLoginModel from '../../../lib/models/github-login-model';
 import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import BranchSet from '../../../lib/models/branch-set';
 import RemoteSet from '../../../lib/models/remote-set';
+import {getEndpoint} from '../../../lib/models/endpoint';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import EnableableOperation from '../../../lib/models/enableable-operation';
 
@@ -15,7 +16,7 @@ export function issueishPaneItemProps(overrides = {}) {
 
 export function issueishDetailContainerProps(overrides = {}) {
   return {
-    host: 'https://api.github.com',
+    endpoint: getEndpoint('github.com'),
     owner: 'owner',
     repo: 'repo',
     issueishNumber: 1,
