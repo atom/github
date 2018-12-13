@@ -19,6 +19,10 @@ describe('Endpoint', function() {
     it('joins additional path segments to a REST URI', function() {
       assert.strictEqual(dotcom.getRestURI('sub', 're?source'), 'https://api.github.com/sub/re%3Fsource');
     });
+
+    it('accesses a login model account', function() {
+      assert.strictEqual(dotcom.getLoginAccount(), 'https://api.github.com');
+    });
   });
 
   describe('an enterprise instance', function() {
@@ -38,6 +42,10 @@ describe('Endpoint', function() {
 
     it('joins additional path segments to the REST URI', function() {
       assert.strictEqual(enterprise.getRestURI('sub', 're?source'), 'https://github.horse/api/v3/sub/re%3Fsource');
+    });
+
+    it('accesses a login model key', function() {
+      assert.strictEqual(enterprise.getLoginAccount(), 'https://github.horse');
     });
   });
 });
