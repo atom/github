@@ -21,6 +21,14 @@ describe('PullRequestChangedFilesContainer', function() {
         token="1234"
         endpoint={getEndpoint('github.com')}
         itemType={IssueishDetailItem}
+        destroy={() => {}}
+        shouldRefetch={false}
+        workspace={{}}
+        commands={{}}
+        keymaps={{}}
+        tooltips={{}}
+        config={{}}
+        localRepository={{}}
         {...overrideProps}
       />
     );
@@ -33,58 +41,69 @@ describe('PullRequestChangedFilesContainer', function() {
     });
   }
 
-  beforeEach(function() {
-    setDiffResponse(rawDiff);
-    sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
-  });
+  describe('when the data is able to be fetched successfully', function() {
+    beforeEach(function() {
+      setDiffResponse(rawDiff);
+      sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
+    });
+    it('renders a loading spinner if data has not yet been fetched', function() {
+      const wrapper = shallow(buildApp());
+      assert.isTrue(wrapper.find('LoadingView').exists());
+    });
+    it('passes extra props through to PullRequestChangedFilesController', async function() {
+      const extraProp = Symbol('really really extra');
 
-  it('renders a loading spinner if data has not yet been fetched', function() {
-    const wrapper = shallow(buildApp());
-    assert.isTrue(wrapper.find('LoadingView').exists());
-  });
+      const wrapper = shallow(buildApp({extraProp}));
+      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
 
-  it('passes extra props through to PullRequestChangedFilesController', async function() {
-    const extraProp = Symbol('really really extra');
+      const controller = wrapper.find('MultiFilePatchController');
+      assert.strictEqual(controller.prop('extraProp'), extraProp);
+    });
 
-    const wrapper = shallow(buildApp({extraProp}));
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+    it('builds the diff URL', function() {
+      const wrapper = shallow(buildApp({
+        owner: 'smashwilson',
+        repo: 'pushbot',
+        number: 12,
+        endpoint: getEndpoint('github.com'),
+      }));
 
-    const controller = wrapper.find('MultiFilePatchController');
-    assert.strictEqual(controller.prop('extraProp'), extraProp);
-  });
+      const diffURL = wrapper.instance().getDiffURL();
+      assert.strictEqual(diffURL, 'https://api.github.com/repos/smashwilson/pushbot/pulls/12');
+    });
 
-  it('builds the diff URL', function() {
-    const wrapper = shallow(buildApp({
-      owner: 'smashwilson',
-      repo: 'pushbot',
-      number: 12,
-      endpoint: getEndpoint('github.com'),
-    }));
+    it('passes loaded diff data through to the controller', async function() {
+      const wrapper = shallow(buildApp({
+        token: '4321',
+      }));
+      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
 
-    const diffURL = wrapper.instance().getDiffURL();
-    assert.strictEqual(diffURL, 'https://api.github.com/repos/smashwilson/pushbot/pulls/12');
-  });
+      const controller = wrapper.find('MultiFilePatchController');
+      const expected = buildMultiFilePatch(parseDiff(rawDiff));
+      assert.isTrue(controller.prop('multiFilePatch').isEqual(expected));
 
-  it('passes loaded diff data through to the controller', async function() {
-    const wrapper = shallow(buildApp({
-      token: '4321',
-    }));
-    await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
-
-    const controller = wrapper.find('MultiFilePatchController');
-    const expected = buildMultiFilePatch(parseDiff(rawDiff));
-    assert.isTrue(controller.prop('multiFilePatch').isEqual(expected));
-
-    assert.deepEqual(window.fetch.lastCall.args, [
-      'https://api.github.com/repos/atom/github/pulls/1804',
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3.diff',
-          Authorization: 'bearer 4321',
+      assert.deepEqual(window.fetch.lastCall.args, [
+        'https://api.github.com/repos/atom/github/pulls/1804',
+        {
+          headers: {
+            Accept: 'application/vnd.github.v3.diff',
+            Authorization: 'bearer 4321',
+          },
         },
-      },
-    ]);
+      ]);
+    });
   });
 
-  it('renders an error if fetch returns a non-ok response');
+  describe('when fetch fails', function() {
+    it('renders an error if fetch returns a non-ok response', async function() {
+        const badResponse = new window.Response(rawDiff, {
+          status: 404,
+          statusText: 'oh noes',
+          headers: {'Content-type': 'text/plain'},
+        });
+        sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(badResponse));
+        const wrapper = shallow(buildApp());
+        await assert.async.strictEqual(wrapper.update().instance().state.error, 'Unable to load diff for this PR.');
+      });
+  });
 });
