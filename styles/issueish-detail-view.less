@@ -1,7 +1,6 @@
 @import 'variables';
 
 .github-IssueishDetailView {
-  // overflow: auto; // TODO add somewhere else
   position: absolute;
   top: 0;
   right: 0;
@@ -11,9 +10,24 @@
   line-height: 1.5;
   background-color: @base-background-color;
 
+
+  // Layout ------------------------
+
   &-container {
-    // max-width: 48em; // TODO add somewhere else
-    // margin: 0 auto; // TODO add somewhere else
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .react-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .react-tabs__tab-panel--selected {
+    flex: 1;
+    overflow: auto;
   }
 
 
@@ -104,23 +118,6 @@
     }
   }
 
-
-  // Reactions ------------------------
-
-  &-reactions {
-    padding-top: @component-padding*3;
-    border-top: 1px solid @base-border-color;
-
-    &:empty {
-      display: none;
-    }
-
-    &Group {
-      margin-right: @component-padding*2;
-    }
-  }
-
-
   // Meta ------------------------
 
   &-meta {
@@ -136,9 +133,11 @@
   // Tabs ------------------------
 
   &-tablist {
+    flex: none;
     display: flex;
     justify-content: center;
     padding: 0;
+    margin: 0;
     list-style: none;
     border-bottom: 1px solid @base-border-color;
     background-color: @app-background-color;
@@ -165,43 +164,61 @@
     }
   }
 
-  // Files Changed ------------------------
-  // TODO: it would probably be better to use absolute positioning
-  // and then just set top / left / bottom right, and also to make
-  // the whole tab container responsive for bigger screens.
-  &-filesChanged {
-    height: 100vh;
-  }
-
-  // Build Status ------------------------
-
-  &-buildStatus {
-    margin: @component-padding*3 0;
-
-    &:empty {
-      display: none;
-    }
-  }
-
-
-  // PR body ------------------------
-
-  &-container > .github-DotComMarkdownHtml {
-    margin: @component-padding*3 0;
-  }
-
-
   // Footer ------------------------
 
   &-footer {
-    margin-top: @component-padding * 3;
+    padding: @component-padding;
     text-align: center;
+    border-top: 1px solid @base-border-color;
+    background-color: @app-background-color;
+
     &Link.icon {
       color: @text-color-subtle;
       &:before {
         vertical-align: -2px;
       }
     }
+  }
+
+  // Tab Content ------------------------
+
+  .github-DotComMarkdownHtml,
+  &-reactions,
+  .github-PrTimeline {
+    max-width: 60em;
+    margin: 0 auto;
+  }
+
+  // Overview
+  .github-DotComMarkdownHtml {
+    padding: @component-padding*2;
+  }
+  &-reactions {
+    padding-top: @component-padding*3;
+    border-top: 1px solid @base-border-color;
+    &:empty {
+      display: none;
+    }
+    &Group {
+      margin-right: @component-padding*2;
+    }
+  }
+  .github-PrTimeline {
+    padding: @component-padding*2;
+  }
+
+
+  // Build Status
+  &-buildStatus {
+    padding: @component-padding;
+    &:empty {
+      display: none;
+    }
+  }
+
+  // Commits
+  .github-PrCommitsView-commitWrapper {
+    padding: @component-padding;
   }
 
 }
