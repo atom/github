@@ -3,19 +3,11 @@ trigger:
     include:
     - master
     - releases/*
-  paths:
-    exclude:
-    - README.md
-    - docs/*
 
 pr:
   branches:
     include:
     - "*"
-  paths:
-    exclude:
-    - README.md
-    - docs/*
 
 jobs:
 - job: Linux
