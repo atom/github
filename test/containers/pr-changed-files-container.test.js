@@ -1,12 +1,16 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {parse as parseDiff} from 'what-the-diff';
+
 
 import rawDiff from '../fixtures/diffs/raw-diff';
+import {buildMultiFilePatch} from '../../lib/models/patch';
+
 import PullRequestChangedFilesContainer from '../../lib/containers/pr-changed-files-container';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
 
-describe.only('PullRequestChangedFilesContainer', function() {
+describe('PullRequestChangedFilesContainer', function() {
   let diffResponse;
 
   function buildApp(overrideProps = {}) {
@@ -69,7 +73,11 @@ describe.only('PullRequestChangedFilesContainer', function() {
     await assert.async.isTrue(wrapper.update().find('PullRequestChangedFilesController').exists());
 
     const controller = wrapper.find('PullRequestChangedFilesController');
-    assert.strictEqual(controller.prop('patch'), patch);
+    // comparing the whole multiFilePatch is annoying because there are hashes
+    // that are generated that will always be different when a new mfp is built.
+    // just verify the filePatches are the same and move on with our lives.
+    const expectedFilePatches = buildMultiFilePatch(parseDiff(rawDiff)).filePatches;
+    assert.deepEqual(controller.prop('multiFilePatch').filePatches, expectedFilePatches);
 
     assert.deepEqual(window.fetch.lastCall.args, [
       'https://api.github.com/repos/atom/github/pulls/1804',
