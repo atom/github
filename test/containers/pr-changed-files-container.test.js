@@ -104,7 +104,6 @@ describe('PullRequestChangedFilesContainer', function() {
       setDiffResponse('bad diff no treat for you');
       sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
       const wrapper = shallow(buildApp());
-      const expectedErrorMessage = 'Unable to parse diff for this pull request.';
       await assertErrorRendered('Unable to parse diff for this pull request.', wrapper);
     });
 
