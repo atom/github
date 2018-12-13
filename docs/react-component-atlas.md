@@ -85,18 +85,21 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 >
+> > [`<CommitDetailItem>`](/lib/items/issueish-detail-item.js)
+> > [`<CommitDetailContainer>`](/lib/containers/commit-detail-container.js)
+> > [`<CommitDetailController>`](/lib/controllers/commit-detail-controller.js)
+> > [`<CommitDetailView>`](/lib/views/commit-detail-controller.js)
+> >
+> > The workspace-center pane item that appears when looking at all the changes associated with a single commit that already exists in the current branch.
+> >
+> > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
+>
 > > [`<IssueishDetailItem>`](/lib/items/issueish-detail-item.js)
 > > [`<IssueishDetailContainer>`](/lib/containers/issueish-detail-container.js)
 > > [`<IssueishDetailController>`](/lib/controllers/issueish-detail-controller.js)
 > > [`<IssueDetailView>`](/lib/views/issue-detail-view.js)
 > > [`<PullRequestDetailView>`](/lib/views/pr-detail-view.js)
-> >
-> > The workspace-center pane item that appears when looking at all the changes
-> > associated with a single commit that already exists in the current repository.
-> > [`<CommitDetailItem>`](/lib/items/issueish-detail-item.js)
-> > [`<CommitDetailContainer>`](/lib/containers/commit-detail-container.js)
-> > [`<CommitDetailController>`](/lib/controllers/commit-detail-controller.js)
-> > [`<CommitDetailView>`](/lib/views/commit-detail-controller.js)
 > >
 > > The workspace-center pane that displays information about a pull request or issue ("issueish", collectively) from github.com.
 > >
