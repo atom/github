@@ -94,7 +94,20 @@ describe('PullRequestChangedFilesContainer', function() {
     });
   });
 
-  describe('when fetch fails', function() {
+  describe('error states', function() {
+    async function assertErrorRendered(expectedErrorMessage, wrapper) {
+      await assert.async.deepEqual(wrapper.update().instance().state.error, expectedErrorMessage);
+      const errorView = wrapper.find('ErrorView');
+      assert.deepEqual(errorView.prop('descriptions'), [expectedErrorMessage]);
+    }
+    it('renders an error if diff parsing fails', async function() {
+      setDiffResponse('bad diff no treat for you');
+      sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
+      const wrapper = shallow(buildApp());
+      const expectedErrorMessage = 'Unable to parse diff for this pull request.';
+      await assertErrorRendered('Unable to parse diff for this pull request.', wrapper);
+    });
+
     it('renders an error if fetch returns a non-ok response', async function() {
       const badResponse = new window.Response(rawDiff, {
         status: 404,
@@ -103,10 +116,7 @@ describe('PullRequestChangedFilesContainer', function() {
       });
       sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(badResponse));
       const wrapper = shallow(buildApp());
-      const expectedErrorMessage = 'Unable to fetch diff for this pull request: oh noes.';
-      await assert.async.deepEqual(wrapper.update().instance().state.error, expectedErrorMessage);
-      const errorView = wrapper.find('ErrorView');
-      assert.deepEqual(errorView.prop('descriptions'), [expectedErrorMessage]);
+      await assertErrorRendered('Unable to fetch diff for this pull request: oh noes.', wrapper);
     });
   });
 });
