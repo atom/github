@@ -1,8 +1,7 @@
 @import 'variables';
 
 .github-IssueishDetailView {
-  padding: @component-padding * 3;
-  overflow: auto;
+  // overflow: auto; // TODO add somewhere else
   position: absolute;
   top: 0;
   right: 0;
@@ -13,17 +12,15 @@
   background-color: @base-background-color;
 
   &-container {
-    max-width: 48em;
-    margin: 0 auto;
+    // max-width: 48em; // TODO add somewhere else
+    // margin: 0 auto; // TODO add somewhere else
   }
 
 
   // Header ------------------------
 
   &-header {
-    border: 1px solid @base-border-color;
-    border-radius: @component-border-radius;
-    margin-bottom: 20px;
+    border-bottom: 1px solid @base-border-color;
   }
 
   &-headerRow {
@@ -140,23 +137,24 @@
 
   &-tablist {
     display: flex;
+    justify-content: center;
     padding: 0;
     list-style: none;
+    border-bottom: 1px solid @base-border-color;
+    background-color: @app-background-color;
   }
 
   &-tab {
-    flex: 1;
-    padding: @component-padding/2 @component-padding;
+    padding: @component-padding @component-padding*1.5;
     text-align: center;
-    border: 1px solid transparent;
-    border-bottom-color: @base-border-color;
-    border-radius: @component-border-radius @component-border-radius 0 0;
+    font-size: @font-size;
+    font-weight: 600;
+    color: @text-color-subtle;
     cursor: default;
 
     &.react-tabs__tab--selected {
-      color: @text-color-highlight;
-      border-color: @base-border-color;
-      border-bottom-color: transparent;
+      color: @text-color-selected;
+      box-shadow: 0 1px 0 @button-background-color-selected;
     }
   }
 
