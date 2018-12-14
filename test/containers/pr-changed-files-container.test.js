@@ -108,6 +108,12 @@ describe('PullRequestChangedFilesContainer', function() {
       const errorView = wrapper.find('ErrorView');
       assert.deepEqual(errorView.prop('descriptions'), [expectedErrorMessage]);
     }
+    it('renders an error if network request fails', async function() {
+      sinon.stub(window, 'fetch').callsFake(() => Promise.reject(new Error('oh shit')));
+      const wrapper = shallow(buildApp());
+      await assertErrorRendered('Network error encountered at fetching https://api.github.com/repos/atom/github/pulls/1804', wrapper);
+    });
+
     it('renders an error if diff parsing fails', async function() {
       setDiffResponse('bad diff no treat for you');
       sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
