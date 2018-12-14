@@ -14,8 +14,6 @@ describe('PullRequestDetailView', function() {
   }
 
   it('renders pull request information', function() {
-    const commitCount = 11;
-    const fileCount = 22;
     const baseRefName = 'master';
     const headRefName = 'tt/heck-yes';
     const wrapper = shallow(buildApp({
@@ -31,8 +29,6 @@ describe('PullRequestDetailView', function() {
       pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
       issueishNumber: 100,
       pullRequestState: 'MERGED',
-      pullRequestCommitCount: commitCount,
-      pullRequestChangedFileCount: fileCount,
       pullRequestReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
     }));
 
@@ -64,15 +60,14 @@ describe('PullRequestDetailView', function() {
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
     assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
 
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-fileCount').text(), `${fileCount} changed files`);
-
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
 
   it('renders tabs', function() {
-    const wrapper = shallow(buildApp({}));
+    const pullRequestCommitCount = 11;
+    const pullRequestChangedFileCount = 22;
+    const wrapper = shallow(buildApp({pullRequestCommitCount, pullRequestChangedFileCount}));
 
     assert.lengthOf(wrapper.find(Tabs), 1);
     assert.lengthOf(wrapper.find(TabList), 1);
@@ -94,7 +89,12 @@ describe('PullRequestDetailView', function() {
 
     const tab3Children = tabs[3].props.children;
     assert.deepEqual(tab3Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
-    assert.deepEqual(tab3Children[1], 'Files Changed');
+    assert.deepEqual(tab3Children[1], 'Files');
+
+    const tabCounts = wrapper.find('.github-IssueishDetailView-tab-count');
+    assert.lengthOf(tabCounts, 2);
+    assert.strictEqual(tabCounts.at(0).text(), `${pullRequestCommitCount}`);
+    assert.strictEqual(tabCounts.at(1).text(), `${pullRequestChangedFileCount}`);
 
     assert.lengthOf(wrapper.find(TabPanel), 4);
   });
@@ -292,7 +292,7 @@ describe('PullRequestDetailView', function() {
 
     it('records opening the "Files Changed" tab', function() {
       const wrapper = shallow(buildApp());
-      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Files Changed');
+      const ind = wrapper.find('Tab').map(t => t.children().last().text()).indexOf('Files');
 
       wrapper.find('Tabs').prop('onSelect')(ind);
 
