@@ -92,7 +92,15 @@ describe('PullRequestChangedFilesContainer', function() {
         },
       ]);
     });
-  });
+    it('re fetches data when shouldRefetch is true', async function() {
+      const wrapper = shallow(buildApp());
+      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+      assert.strictEqual(window.fetch.callCount, 1);
+      wrapper.setProps({shouldRefetch: true});
+      assert.isTrue(wrapper.instance().state.isLoading);
+      await assert.async.strictEqual(window.fetch.callCount, 2);
+      });
+    });
 
   describe('error states', function() {
     async function assertErrorRendered(expectedErrorMessage, wrapper) {
