@@ -131,6 +131,15 @@ describe('IssueishDetailController', function() {
       assert.isFalse(op1.isEnabled());
       assert.strictEqual(op1.getMessage(), 'Rebase in progress');
     });
+    it('is disabled if pullRequest.headRepository is null', function() {
+      const props = issueishDetailControllerProps({}, {});
+      props.repository.pullRequest.headRepository = null;
+      const wrapper = shallow(buildApp({}, {...props}));
+      const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      assert.isFalse(op.isEnabled());
+      assert.strictEqual(op.getMessage(), 'Pull request head repository does not exist');
+    });
+
 
     it('is disabled if the current branch already corresponds to the pull request', function() {
       const upstream = Branch.createRemoteTracking('remotes/origin/feature', 'origin', 'refs/heads/feature');

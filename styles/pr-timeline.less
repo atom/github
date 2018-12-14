@@ -27,9 +27,14 @@
   }
 
   .open-commit-detail-button {
-    background-color: inherit;
+    padding: 0;
+    background-color: transparent;
     border: none;
-    &:hover {
+    &:hover,
+    &:focus {
+      color: @text-color-highlight;
+    }
+    &:active {
       color: @text-color-subtle;
     }
   }

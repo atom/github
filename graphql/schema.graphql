@@ -17,12 +17,12 @@ type AcceptTopicSuggestionPayload {
 
   """
   The accepted topic.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   topic: Topic!
 }
@@ -66,34 +66,34 @@ type AddCommentPayload {
 
   """
   The edge from the subject's comment connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from `IssueCommentEdge!` to `IssueCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   commentEdge: IssueCommentEdge!
 
   """
   The subject
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Node!` to `Node`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   subject: Node!
 
   """
   The edge from the subject's timeline connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `timelineEdge` will change from `IssueTimelineItemEdge!` to `IssueTimelineItemEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   timelineEdge: IssueTimelineItemEdge!
 }
@@ -134,12 +134,12 @@ input AddProjectCardInput {
 type AddProjectCardPayload {
   """
   The edge from the ProjectColumn's card connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   cardEdge: ProjectCardEdge!
 
@@ -148,12 +148,12 @@ type AddProjectCardPayload {
 
   """
   The ProjectColumn
-
+  
   **Upcoming Change on 2019-01-01 UTC**
-  **Description:** Type for `projectColumn` will change from `Project!` to `Project`.
+  **Description:** Type for `projectColumn` will change from `Project!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   projectColumn: Project!
 }
@@ -177,23 +177,23 @@ type AddProjectColumnPayload {
 
   """
   The edge from the project's column connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   columnEdge: ProjectColumnEdge!
 
   """
   The project
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   project: Project!
 }
@@ -229,24 +229,24 @@ type AddPullRequestReviewCommentPayload {
 
   """
   The newly created comment.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `comment` will change from `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   comment: PullRequestReviewComment!
 
   """
   The edge from the review's comment connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from
   `PullRequestReviewCommentEdge!` to `PullRequestReviewCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   commentEdge: PullRequestReviewCommentEdge!
 }
@@ -279,23 +279,23 @@ type AddPullRequestReviewPayload {
 
   """
   The newly created pull request review.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReview: PullRequestReview!
 
   """
   The edge from the pull request's review connection.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reviewEdge` will change from `PullRequestReviewEdge!` to `PullRequestReviewEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   reviewEdge: PullRequestReviewEdge!
 }
@@ -319,23 +319,23 @@ type AddReactionPayload {
 
   """
   The reaction object.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   subject: Reactable!
 }
@@ -356,12 +356,12 @@ type AddStarPayload {
 
   """
   The starrable.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   starrable: Starrable!
 }
@@ -377,6 +377,9 @@ type App implements Node {
   """The description of the app."""
   description: String
   id: ID!
+
+  """The hex color code, without the leading '#', for the logo background."""
+  logoBackgroundColor: String!
 
   """A URL pointing to the app's logo."""
   logoUrl(
@@ -410,21 +413,21 @@ type AppEdge {
 interface Assignable {
   """A list of Users assigned to this object."""
   assignees(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 }
 
@@ -572,6 +575,194 @@ type Bot implements Node & Actor & UniformResourceLocatable {
   url: URI!
 }
 
+"""A branch protection rule."""
+type BranchProtectionRule implements Node {
+  """
+  A list of conflicts matching branches protection rule and other branch protection rules
+  """
+  branchProtectionRuleConflicts(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): BranchProtectionRuleConflictConnection!
+
+  """The actor who created this branch protection rule."""
+  creator: Actor
+
+  """Identifies the primary key from the database."""
+  databaseId: Int
+
+  """
+  Will new commits pushed to matching branches dismiss pull request review approvals.
+  """
+  dismissesStaleReviews: Boolean!
+  id: ID!
+
+  """Can admins overwrite branch protection."""
+  isAdminEnforced: Boolean!
+
+  """Repository refs that are protected by this rule"""
+  matchingRefs(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): RefConnection!
+
+  """Identifies the protection rule pattern."""
+  pattern: String!
+
+  """A list push allowances for this branch protection rule."""
+  pushAllowances(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): PushAllowanceConnection!
+
+  """The repository associated with this branch protection rule."""
+  repository: Repository
+
+  """Number of approving reviews required to update matching branches."""
+  requiredApprovingReviewCount: Int
+
+  """
+  List of required status check contexts that must pass for commits to be accepted to matching branches.
+  """
+  requiredStatusCheckContexts: [String]
+
+  """Are approving reviews required to update matching branches."""
+  requiresApprovingReviews: Boolean!
+
+  """Are commits required to be signed."""
+  requiresCommitSignatures: Boolean!
+
+  """Are status checks required to update matching branches."""
+  requiresStatusChecks: Boolean!
+
+  """Are branches required to be up to date before merging."""
+  requiresStrictStatusChecks: Boolean!
+
+  """Is pushing to matching branches restricted."""
+  restrictsPushes: Boolean!
+
+  """Is dismissal of pull request reviews restricted."""
+  restrictsReviewDismissals: Boolean!
+
+  """A list review dismissal allowances for this branch protection rule."""
+  reviewDismissalAllowances(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): ReviewDismissalAllowanceConnection!
+}
+
+"""A conflict between two branch protection rules."""
+type BranchProtectionRuleConflict {
+  """Identifies the branch protection rule."""
+  branchProtectionRule: BranchProtectionRule
+
+  """Identifies the conflicting branch protection rule."""
+  conflictingBranchProtectionRule: BranchProtectionRule
+
+  """Identifies the branch ref that has conflicting rules"""
+  ref: Ref
+}
+
+"""The connection type for BranchProtectionRuleConflict."""
+type BranchProtectionRuleConflictConnection {
+  """A list of edges."""
+  edges: [BranchProtectionRuleConflictEdge]
+
+  """A list of nodes."""
+  nodes: [BranchProtectionRuleConflict]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type BranchProtectionRuleConflictEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: BranchProtectionRuleConflict
+}
+
+"""The connection type for BranchProtectionRule."""
+type BranchProtectionRuleConnection {
+  """A list of edges."""
+  edges: [BranchProtectionRuleEdge]
+
+  """A list of nodes."""
+  nodes: [BranchProtectionRule]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type BranchProtectionRuleEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: BranchProtectionRule
+}
+
 """An object that can be closed"""
 interface Closable {
   """
@@ -683,21 +874,21 @@ interface Comment {
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Did the viewer author this comment."""
@@ -746,6 +937,9 @@ enum CommentCannotUpdateReason {
 
   """At least one email address must be verified to update this comment."""
   VERIFIED_EMAIL_REQUIRED
+
+  """You cannot update this comment"""
+  DENIED
 }
 
 """
@@ -764,7 +958,7 @@ type CommentDeletedEvent implements Node {
 }
 
 """Represents a Git commit."""
-type Commit implements Node & GitObject & Subscribable {
+type Commit implements Node & GitObject & Subscribable & UniformResourceLocatable {
   """An abbreviated version of the Git object ID"""
   abbreviatedOid: String!
 
@@ -791,21 +985,21 @@ type Commit implements Node & GitObject & Subscribable {
 
   """Comments made on the commit."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): CommitCommentConnection!
 
   """The HTTP path for this Git object"""
@@ -830,21 +1024,21 @@ type Commit implements Node & GitObject & Subscribable {
   The linear commit history starting from (and including) this commit, in the same order as `git log`.
   """
   history(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """
     If non-null, filters history to only show commits touching files under this path.
@@ -884,21 +1078,21 @@ type Commit implements Node & GitObject & Subscribable {
 
   """The parents of a commit."""
   parents(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): CommitConnection!
 
   """The datetime when this commit was pushed."""
@@ -1005,8 +1199,14 @@ type CommitComment implements Node & Comment & Deletable & Updatable & Updatable
   """
   includesCreatedEdit: Boolean!
 
+  """Returns whether or not a comment has been minimized."""
+  isMinimized: Boolean!
+
   """The moment the editor made the last edit"""
   lastEditedAt: DateTime
+
+  """Returns why the comment was minimized."""
+  minimizedReason: String
 
   """Identifies the file path associated with the comment."""
   path: String
@@ -1022,21 +1222,21 @@ type CommitComment implements Node & Comment & Deletable & Updatable & Updatable
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -1059,25 +1259,28 @@ type CommitComment implements Node & Comment & Deletable & Updatable & Updatable
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Check if the current viewer can delete this object."""
   viewerCanDelete: Boolean!
+
+  """Check if the current viewer can minimize this object."""
+  viewerCanMinimize: Boolean!
 
   """Can user react to this subject"""
   viewerCanReact: Boolean!
@@ -1120,21 +1323,21 @@ type CommitCommentEdge {
 type CommitCommentThread implements Node & RepositoryNode {
   """The comments that exist in this thread."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): CommitCommentConnection!
 
   """The commit the comments were made on."""
@@ -1189,6 +1392,224 @@ type CommitHistoryConnection {
   totalCount: Int!
 }
 
+"""A content attachment"""
+type ContentAttachment {
+  """
+  The body text of the content attachment. This parameter supports markdown.
+  """
+  body: String!
+
+  """The content reference that the content attachment is attached to."""
+  contentReference: ContentReference!
+
+  """Identifies the primary key from the database."""
+  databaseId: Int!
+  id: ID!
+
+  """The title of the content attachment."""
+  title: String!
+}
+
+"""A content reference"""
+type ContentReference {
+  """Identifies the primary key from the database."""
+  databaseId: Int!
+  id: ID!
+
+  """The reference of the content reference."""
+  reference: String!
+}
+
+"""A calendar of contributions made on GitHub by a user."""
+type ContributionCalendar {
+  """
+  A list of hex color codes used in this calendar. The darker the color, the more contributions it represents.
+  """
+  colors: [String!]!
+
+  """
+  Determine if the color set was chosen because it's currently Halloween.
+  """
+  isHalloween: Boolean!
+
+  """A list of the months of contributions in this calendar."""
+  months: [ContributionCalendarMonth!]!
+
+  """The count of total contributions in the calendar."""
+  totalContributions: Int!
+
+  """A list of the weeks of contributions in this calendar."""
+  weeks: [ContributionCalendarWeek!]!
+}
+
+"""Represents a single day of contributions on GitHub by a user."""
+type ContributionCalendarDay {
+  """
+  The hex color code that represents how many contributions were made on this day compared to others in the calendar.
+  """
+  color: String!
+
+  """How many contributions were made by the user on this day."""
+  contributionCount: Int!
+
+  """The day this square represents."""
+  date: Date!
+
+  """
+  A number representing which day of the week this square represents, e.g., 1 is Monday.
+  """
+  weekday: Int!
+}
+
+"""A month of contributions in a user's contribution graph."""
+type ContributionCalendarMonth {
+  """The date of the first day of this month."""
+  firstDay: Date!
+
+  """The name of the month."""
+  name: String!
+
+  """How many weeks started in this month."""
+  totalWeeks: Int!
+
+  """The year the month occurred in."""
+  year: Int!
+}
+
+"""A week of contributions in a user's contribution graph."""
+type ContributionCalendarWeek {
+  """The days of contributions in this week."""
+  contributionDays: [ContributionCalendarDay!]!
+
+  """The date of the earliest square in this week."""
+  firstDay: Date!
+}
+
+"""
+A contributions collection aggregates contributions such as opened issues and commits created by a user.
+"""
+type ContributionsCollection {
+  """A calendar of this user's contributions on GitHub."""
+  contributionCalendar: ContributionCalendar!
+
+  """
+  Determine if this collection's time span ends in the current month.
+  
+  """
+  doesEndInCurrentMonth: Boolean!
+
+  """
+  The date of the first restricted contribution the user made in this time
+  period. Can only be non-null when the user has enabled private contribution counts.
+  """
+  earliestRestrictedContributionDate: Date
+
+  """The ending date and time of this collection."""
+  endedAt: DateTime!
+
+  """Determine if there are any contributions in this collection."""
+  hasAnyContributions: Boolean!
+
+  """
+  Determine if the user made any contributions in this time frame whose details
+  are not visible because they were made in a private repository. Can only be
+  true if the user enabled private contribution counts.
+  """
+  hasAnyRestrictedContributions: Boolean!
+
+  """Whether or not the collector's time span is all within the same day."""
+  isSingleDay: Boolean!
+
+  """
+  The date of the most recent restricted contribution the user made in this time
+  period. Can only be non-null when the user has enabled private contribution counts.
+  """
+  latestRestrictedContributionDate: Date
+
+  """
+  When this collection's time range does not include any activity from the user, use this
+  to get a different collection from an earlier time range that does have activity.
+  
+  """
+  mostRecentCollectionWithActivity: ContributionsCollection
+
+  """
+  A count of contributions made by the user that the viewer cannot access. Only
+  non-zero when the user has chosen to share their private contribution counts.
+  """
+  restrictedContributionsCount: Int!
+
+  """The beginning date and time of this collection."""
+  startedAt: DateTime!
+
+  """How many commits were made by the user in this time span."""
+  totalCommitContributions: Int!
+
+  """How many issues the user opened."""
+  totalIssueContributions(
+    """Should the user's first issue ever be excluded from this count."""
+    excludeFirst: Boolean = false
+
+    """Should the user's most commented issue be excluded from this count."""
+    excludePopular: Boolean = false
+  ): Int!
+
+  """How many pull requests the user opened."""
+  totalPullRequestContributions(
+    """
+    Should the user's first pull request ever be excluded from this count.
+    """
+    excludeFirst: Boolean = false
+
+    """
+    Should the user's most commented pull request be excluded from this count.
+    """
+    excludePopular: Boolean = false
+  ): Int!
+
+  """How many pull request reviews the user left."""
+  totalPullRequestReviewContributions: Int!
+
+  """How many different repositories the user committed to."""
+  totalRepositoriesWithContributedCommits: Int!
+
+  """How many different repositories the user opened issues in."""
+  totalRepositoriesWithContributedIssues(
+    """Should the user's first issue ever be excluded from this count."""
+    excludeFirst: Boolean = false
+
+    """Should the user's most commented issue be excluded from this count."""
+    excludePopular: Boolean = false
+  ): Int!
+
+  """
+  How many different repositories the user left pull request reviews in.
+  """
+  totalRepositoriesWithContributedPullRequestReviews: Int!
+
+  """How many different repositories the user opened pull requests in."""
+  totalRepositoriesWithContributedPullRequests(
+    """
+    Should the user's first pull request ever be excluded from this count.
+    """
+    excludeFirst: Boolean = false
+
+    """
+    Should the user's most commented pull request be excluded from this count.
+    """
+    excludePopular: Boolean = false
+  ): Int!
+
+  """How many repositories the user created."""
+  totalRepositoryContributions(
+    """Should the user's first repository ever be excluded from this count."""
+    excludeFirst: Boolean = false
+  ): Int!
+
+  """The user who made the contributions in this collection."""
+  user: User!
+}
+
 """
 Represents a 'converted_note_to_issue' event on a given issue or pull request.
 """
@@ -1202,6 +1623,89 @@ type ConvertedNoteToIssueEvent implements Node {
   """Identifies the primary key from the database."""
   databaseId: Int
   id: ID!
+}
+
+"""Autogenerated input type of CreateBranchProtectionRule"""
+input CreateBranchProtectionRuleInput {
+  """
+  The global relay id of the repository in which a new branch protection rule should be created in.
+  """
+  repositoryId: ID!
+
+  """The glob-like pattern used to determine matching branches."""
+  pattern: String!
+
+  """Are approving reviews required to update matching branches."""
+  requiresApprovingReviews: Boolean
+
+  """Number of approving reviews required to update matching branches."""
+  requiredApprovingReviewCount: Int
+
+  """Are commits required to be signed."""
+  requiresCommitSignatures: Boolean
+
+  """Can admins overwrite branch protection."""
+  isAdminEnforced: Boolean
+
+  """Are status checks required to update matching branches."""
+  requiresStatusChecks: Boolean
+
+  """Are branches required to be up to date before merging."""
+  requiresStrictStatusChecks: Boolean
+
+  """Are reviews from code owners required to update matching branches."""
+  requiresCodeOwnerReviews: Boolean
+
+  """
+  Will new commits pushed to matching branches dismiss pull request review approvals.
+  """
+  dismissesStaleReviews: Boolean
+
+  """Is dismissal of pull request reviews restricted."""
+  restrictsReviewDismissals: Boolean
+
+  """
+  A list of User or Team IDs allowed to dismiss reviews on pull requests targeting matching branches.
+  """
+  reviewDismissalActorIds: [ID!]
+
+  """Is pushing to matching branches restricted."""
+  restrictsPushes: Boolean
+
+  """A list of User or Team IDs allowed to push to matching branches."""
+  pushActorIds: [ID!]
+
+  """
+  List of required status check contexts that must pass for commits to be accepted to matching branches.
+  """
+  requiredStatusCheckContexts: [String!]
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of CreateBranchProtectionRule"""
+type CreateBranchProtectionRulePayload {
+  """The newly created BranchProtectionRule."""
+  branchProtectionRule: BranchProtectionRule
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of CreateContentAttachment"""
+input CreateContentAttachmentInput {
+  """The node ID of the content_reference."""
+  contentReferenceId: ID!
+
+  """The title of the content attachment."""
+  title: String!
+
+  """The body of the content attachment, which may contain markdown."""
+  body: String!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
 }
 
 """Autogenerated input type of CreateProject"""
@@ -1226,12 +1730,12 @@ type CreateProjectPayload {
 
   """
   The new project.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   project: Project!
 }
@@ -1295,12 +1799,12 @@ type DeclineTopicSuggestionPayload {
 
   """
   The declined topic.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   topic: Topic!
 }
@@ -1326,6 +1830,21 @@ interface Deletable {
   viewerCanDelete: Boolean!
 }
 
+"""Autogenerated input type of DeleteBranchProtectionRule"""
+input DeleteBranchProtectionRuleInput {
+  """The global relay id of the branch protection rule to be deleted."""
+  branchProtectionRuleId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of DeleteBranchProtectionRule"""
+type DeleteBranchProtectionRulePayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
 """Autogenerated input type of DeleteProjectCard"""
 input DeleteProjectCardInput {
   """The id of the card to delete."""
@@ -1342,23 +1861,23 @@ type DeleteProjectCardPayload {
 
   """
   The column the deleted card was in.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `column` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   column: ProjectColumn!
 
   """
   The deleted card ID.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedCardId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   deletedCardId: ID!
 }
@@ -1379,23 +1898,23 @@ type DeleteProjectColumnPayload {
 
   """
   The deleted column ID.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedColumnId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   deletedColumnId: ID!
 
   """
   The project the deleted column was in.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   project: Project!
 }
@@ -1416,12 +1935,12 @@ type DeleteProjectPayload {
 
   """
   The repository or organization the project was removed from.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `owner` will change from `ProjectOwner!` to `ProjectOwner`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   owner: ProjectOwner!
 }
@@ -1442,12 +1961,12 @@ type DeletePullRequestReviewPayload {
 
   """
   The deleted pull request review.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -1540,6 +2059,11 @@ type Deployment implements Node {
   """Identifies the commit sha of the deployment."""
   commit: Commit
 
+  """
+  Identifies the oid of the deployment commit, even if the commit has been deleted.
+  """
+  commitOid: String!
+
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
 
@@ -1562,6 +2086,11 @@ type Deployment implements Node {
   """Extra information that a deployment system might need."""
   payload: String
 
+  """
+  Identifies the Ref of the deployment, if the deployment was created by ref.
+  """
+  ref: Ref
+
   """Identifies the repository associated with the deployment."""
   repository: Repository!
 
@@ -1570,21 +2099,21 @@ type Deployment implements Node {
 
   """A list of statuses associated with the deployment."""
   statuses(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): DeploymentStatusConnection
 
   """The deployment task."""
@@ -1616,6 +2145,24 @@ type DeploymentEdge {
 
   """The item at the end of the edge."""
   node: Deployment
+}
+
+"""
+Represents a 'deployment_environment_changed' event on a given pull request.
+"""
+type DeploymentEnvironmentChangedEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+
+  """The deployment status that updated the deployment environment."""
+  deploymentStatus: DeploymentStatus!
+  id: ID!
+
+  """PullRequest referenced by event."""
+  pullRequest: PullRequest!
 }
 
 """The possible states in which a deployment can be."""
@@ -1731,12 +2278,12 @@ type DismissPullRequestReviewPayload {
 
   """
   The dismissed pull request review.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -1844,21 +2391,21 @@ type FollowingConnection {
 type Gist implements Node & Starrable {
   """A list of comments associated with the gist"""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): GistCommentConnection!
 
   """Identifies the date and time when the object was created."""
@@ -1882,21 +2429,21 @@ type Gist implements Node & Starrable {
 
   """A list of users who have starred this starrable."""
   stargazers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Order for connection"""
     orderBy: StarOrder
@@ -1949,8 +2496,14 @@ type GistComment implements Node & Comment & Deletable & Updatable & UpdatableCo
   """
   includesCreatedEdit: Boolean!
 
+  """Returns whether or not a comment has been minimized."""
+  isMinimized: Boolean!
+
   """The moment the editor made the last edit"""
   lastEditedAt: DateTime
+
+  """Returns why the comment was minimized."""
+  minimizedReason: String
 
   """Identifies when the comment was published at."""
   publishedAt: DateTime
@@ -1960,25 +2513,28 @@ type GistComment implements Node & Comment & Deletable & Updatable & UpdatableCo
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Check if the current viewer can delete this object."""
   viewerCanDelete: Boolean!
+
+  """Check if the current viewer can minimize this object."""
+  viewerCanMinimize: Boolean!
 
   """Check if the current viewer can update this object."""
   viewerCanUpdate: Boolean!
@@ -2168,45 +2724,45 @@ interface GitSignature {
 
 """The state of a Git signature."""
 enum GitSignatureState {
-  """Valid signature and verified by GitHub."""
+  """Valid signature and verified by GitHub"""
   VALID
 
-  """Invalid signature."""
+  """Invalid signature"""
   INVALID
 
-  """Malformed signature."""
+  """Malformed signature"""
   MALFORMED_SIG
 
-  """Key used for signing not known to GitHub."""
+  """Key used for signing not known to GitHub"""
   UNKNOWN_KEY
 
-  """Invalid email used for signing."""
+  """Invalid email used for signing"""
   BAD_EMAIL
 
-  """Email used for signing unverified on GitHub."""
+  """Email used for signing unverified on GitHub"""
   UNVERIFIED_EMAIL
 
-  """Email used for signing not known to GitHub."""
+  """Email used for signing not known to GitHub"""
   NO_USER
 
-  """Unknown signature type."""
+  """Unknown signature type"""
   UNKNOWN_SIG_TYPE
 
-  """Unsigned."""
+  """Unsigned"""
   UNSIGNED
 
   """
-  Internal error - the GPG verification service is unavailable at the moment.
+  Internal error - the GPG verification service is unavailable at the moment
   """
   GPGVERIFY_UNAVAILABLE
 
-  """Internal error - the GPG verification service misbehaved."""
+  """Internal error - the GPG verification service misbehaved"""
   GPGVERIFY_ERROR
 
-  """The usage flags for the key that signed this don't allow signing."""
+  """The usage flags for the key that signed this don't allow signing"""
   NOT_SIGNING_KEY
 
-  """Signing key expired."""
+  """Signing key expired"""
   EXPIRED_KEY
 
   """Valid signature, pending certificate revocation checking"""
@@ -2214,6 +2770,9 @@ enum GitSignatureState {
 
   """Valid siganture, though certificate revocation check failed"""
   OCSP_ERROR
+
+  """The signing certificate or its chain could not be verified"""
+  BAD_CERT
 
   """One or more certificates in chain has been revoked"""
   OCSP_REVOKED
@@ -2333,21 +2892,21 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of Users assigned to this object."""
   assignees(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 
   """The actor who authored the comment."""
@@ -2375,21 +2934,21 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of comments associated with the Issue."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueCommentConnection!
 
   """Identifies the date and time when the object was created."""
@@ -2412,21 +2971,21 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of labels associated with the object."""
   labels(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): LabelConnection
 
   """The moment the editor made the last edit"""
@@ -2443,40 +3002,43 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of Users that are participating in the Issue conversation."""
   participants(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 
   """List of project cards associated with this issue."""
   projectCards(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """A list of archived states to filter the cards by"""
+    archivedStates: [ProjectCardArchivedState]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectCardConnection!
 
   """Identifies when the comment was published at."""
@@ -2487,21 +3049,21 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -2521,24 +3083,24 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of events, comments, commits, etc. associated with the issue."""
   timeline(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Allows filtering timeline events by a `since` timestamp."""
+    since: DateTime
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """Allows filtering timeline events by a `since` timestamp."""
-    since: DateTime
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueTimelineConnection!
 
   """Identifies the issue title."""
@@ -2552,21 +3114,21 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Can user react to this subject"""
@@ -2627,11 +3189,17 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
   """
   includesCreatedEdit: Boolean!
 
+  """Returns whether or not a comment has been minimized."""
+  isMinimized: Boolean!
+
   """Identifies the issue associated with the comment."""
   issue: Issue!
 
   """The moment the editor made the last edit"""
   lastEditedAt: DateTime
+
+  """Returns why the comment was minimized."""
+  minimizedReason: String
 
   """Identifies when the comment was published at."""
   publishedAt: DateTime
@@ -2639,7 +3207,7 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
   """
   Returns the pull request associated with the comment, if this comment was made on a
   pull request.
-
+  
   """
   pullRequest: PullRequest
 
@@ -2648,21 +3216,21 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -2685,25 +3253,28 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Check if the current viewer can delete this object."""
   viewerCanDelete: Boolean!
+
+  """Check if the current viewer can minimize this object."""
+  viewerCanMinimize: Boolean!
 
   """Can user react to this subject"""
   viewerCanReact: Boolean!
@@ -2800,6 +3371,9 @@ enum IssuePubSubTopic {
 
   """The channel ID for updating items on the issue timeline."""
   TIMELINE
+
+  """The channel ID for observing issue state updates."""
+  STATE
 }
 
 """The possible states of an issue."""
@@ -2827,7 +3401,7 @@ type IssueTimelineConnection {
 }
 
 """An item in an issue timeline"""
-union IssueTimelineItem = Commit | IssueComment | CrossReferencedEvent | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent
+union IssueTimelineItem = Commit | IssueComment | CrossReferencedEvent | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | ReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | TransferredEvent
 
 """An edge in a connection."""
 type IssueTimelineItemEdge {
@@ -2836,6 +3410,100 @@ type IssueTimelineItemEdge {
 
   """The item at the end of the edge."""
   node: IssueTimelineItem
+}
+
+"""An item in an issue timeline"""
+union IssueTimelineItems = IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnsubscribedEvent
+
+"""An edge in a connection."""
+type IssueTimelineItemsEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: IssueTimelineItems
+}
+
+"""The possible item types found in a timeline."""
+enum IssueTimelineItemsItemType {
+  """Represents a comment on an Issue."""
+  ISSUE_COMMENT
+
+  """Represents a mention made by one issue or pull request to another."""
+  CROSS_REFERENCED_EVENT
+
+  """
+  Represents a 'added_to_project' event on a given issue or pull request.
+  """
+  ADDED_TO_PROJECT_EVENT
+
+  """Represents an 'assigned' event on any assignable object."""
+  ASSIGNED_EVENT
+
+  """Represents a 'closed' event on any `Closable`."""
+  CLOSED_EVENT
+
+  """
+  Represents a 'comment_deleted' event on a given issue or pull request.
+  """
+  COMMENT_DELETED_EVENT
+
+  """
+  Represents a 'converted_note_to_issue' event on a given issue or pull request.
+  """
+  CONVERTED_NOTE_TO_ISSUE_EVENT
+
+  """Represents a 'demilestoned' event on a given issue or pull request."""
+  DEMILESTONED_EVENT
+
+  """Represents a 'labeled' event on a given issue or pull request."""
+  LABELED_EVENT
+
+  """Represents a 'locked' event on a given issue or pull request."""
+  LOCKED_EVENT
+
+  """Represents a 'mentioned' event on a given issue or pull request."""
+  MENTIONED_EVENT
+
+  """Represents a 'milestoned' event on a given issue or pull request."""
+  MILESTONED_EVENT
+
+  """
+  Represents a 'moved_columns_in_project' event on a given issue or pull request.
+  """
+  MOVED_COLUMNS_IN_PROJECT_EVENT
+
+  """Represents a 'referenced' event on a given `ReferencedSubject`."""
+  REFERENCED_EVENT
+
+  """
+  Represents a 'removed_from_project' event on a given issue or pull request.
+  """
+  REMOVED_FROM_PROJECT_EVENT
+
+  """Represents a 'renamed' event on a given issue or pull request"""
+  RENAMED_TITLE_EVENT
+
+  """Represents a 'reopened' event on any `Closable`."""
+  REOPENED_EVENT
+
+  """Represents a 'subscribed' event on a given `Subscribable`."""
+  SUBSCRIBED_EVENT
+
+  """Represents a 'transferred' event on a given issue or pull request."""
+  TRANSFERRED_EVENT
+
+  """Represents an 'unassigned' event on any assignable object."""
+  UNASSIGNED_EVENT
+
+  """Represents an 'unlabeled' event on a given issue or pull request."""
+  UNLABELED_EVENT
+
+  """Represents an 'unlocked' event on a given issue or pull request."""
+  UNLOCKED_EVENT
+
+  """Represents an 'unsubscribed' event on a given `Subscribable`."""
+  UNSUBSCRIBED_EVENT
 }
 
 """
@@ -2857,30 +3525,30 @@ type Label implements Node {
 
   """A list of issues associated with this label."""
   issues(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Ordering options for issues returned from the connection."""
+    orderBy: IssueOrder
+
+    """A list of label names to filter the pull requests by."""
+    labels: [String!]
+
+    """A list of states to filter the issues by."""
+    states: [IssueState!]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """A list of label names to filter the pull requests by."""
-    labels: [String!]
+    """Returns the first _n_ elements from the list."""
+    first: Int
 
-    """Ordering options for issues returned from the connection."""
-    orderBy: IssueOrder
-
-    """A list of states to filter the issues by."""
-    states: [IssueState!]
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueConnection!
 
   """Identifies the label name."""
@@ -2888,22 +3556,6 @@ type Label implements Node {
 
   """A list of pull requests associated with this label."""
   pullRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """A list of states to filter the pull requests by."""
     states: [PullRequestState!]
 
@@ -2918,6 +3570,22 @@ type Label implements Node {
 
     """Ordering options for pull requests returned from the connection."""
     orderBy: IssueOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestConnection!
 
   """The repository associated with this label."""
@@ -2937,21 +3605,21 @@ type Label implements Node {
 interface Labelable {
   """A list of labels associated with the object."""
   labels(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): LabelConnection
 }
 
@@ -3358,7 +4026,7 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer edit the primary and secondary category of this
   Marketplace listing.
-
+  
   """
   viewerCanEditCategories: Boolean!
 
@@ -3368,40 +4036,40 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer return this Marketplace listing to draft state
   so it becomes editable again.
-
+  
   """
   viewerCanRedraft: Boolean!
 
   """
   Can the current viewer reject this Marketplace listing by returning it to
   an editable draft state or rejecting it entirely.
-
+  
   """
   viewerCanReject: Boolean!
 
   """
   Can the current viewer request this listing be reviewed for display in
   the Marketplace.
-
+  
   """
   viewerCanRequestApproval: Boolean!
 
   """
   Indicates whether the current user has an active subscription to this Marketplace listing.
-
+  
   """
   viewerHasPurchased: Boolean!
 
   """
   Indicates if the current user has purchased a subscription to this Marketplace listing
   for all of the organizations the user owns.
-
+  
   """
   viewerHasPurchasedForAllOrganizations: Boolean!
 
   """
   Does the current viewer role allow them to administer this Marketplace listing.
-
+  
   """
   viewerIsListingAdmin: Boolean!
 }
@@ -3508,30 +4176,30 @@ type Milestone implements Node & Closable & UniformResourceLocatable {
 
   """A list of issues associated with the milestone."""
   issues(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Ordering options for issues returned from the connection."""
+    orderBy: IssueOrder
+
+    """A list of label names to filter the pull requests by."""
+    labels: [String!]
+
+    """A list of states to filter the issues by."""
+    states: [IssueState!]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """A list of label names to filter the pull requests by."""
-    labels: [String!]
+    """Returns the first _n_ elements from the list."""
+    first: Int
 
-    """Ordering options for issues returned from the connection."""
-    orderBy: IssueOrder
-
-    """A list of states to filter the issues by."""
-    states: [IssueState!]
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueConnection!
 
   """Identifies the number of the milestone."""
@@ -3539,22 +4207,6 @@ type Milestone implements Node & Closable & UniformResourceLocatable {
 
   """A list of pull requests associated with the milestone."""
   pullRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """A list of states to filter the pull requests by."""
     states: [PullRequestState!]
 
@@ -3569,6 +4221,22 @@ type Milestone implements Node & Closable & UniformResourceLocatable {
 
     """Ordering options for pull requests returned from the connection."""
     orderBy: IssueOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestConnection!
 
   """The repository associated with this milestone."""
@@ -3668,6 +4336,18 @@ enum MilestoneState {
   CLOSED
 }
 
+"""Autogenerated input type of MinimizeComment"""
+input MinimizeCommentInput {
+  """The Node ID of the subject to modify."""
+  subjectId: ID!
+
+  """The classification of comment"""
+  classifier: ReportedContentClassifiers!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
 """
 Represents a 'moved_columns_in_project' event on a given issue or pull request.
 """
@@ -3704,12 +4384,12 @@ input MoveProjectCardInput {
 type MoveProjectCardPayload {
   """
   The new edge of the moved card.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   cardEdge: ProjectCardEdge!
 
@@ -3738,12 +4418,12 @@ type MoveProjectColumnPayload {
 
   """
   The new edge of the moved column.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   columnEdge: ProjectColumnEdge!
 }
@@ -3776,11 +4456,17 @@ type Mutation {
   """Adds a star to a Starrable."""
   addStar(input: AddStarInput!): AddStarPayload
 
+  """Create a new branch protection rule"""
+  createBranchProtectionRule(input: CreateBranchProtectionRuleInput!): CreateBranchProtectionRulePayload
+
   """Creates a new project."""
   createProject(input: CreateProjectInput!): CreateProjectPayload
 
   """Rejects a suggested topic for the repository."""
   declineTopicSuggestion(input: DeclineTopicSuggestionInput!): DeclineTopicSuggestionPayload
+
+  """Delete a branch protection rule"""
+  deleteBranchProtectionRule(input: DeleteBranchProtectionRuleInput!): DeleteBranchProtectionRulePayload
 
   """Deletes a project."""
   deleteProject(input: DeleteProjectInput!): DeleteProjectPayload
@@ -3825,6 +4511,9 @@ type Mutation {
 
   """Unlock a lockable object"""
   unlockLockable(input: UnlockLockableInput!): UnlockLockablePayload
+
+  """Create a new branch protection rule"""
+  updateBranchProtectionRule(input: UpdateBranchProtectionRuleInput!): UpdateBranchProtectionRulePayload
 
   """Updates an existing project."""
   updateProject(input: UpdateProjectInput!): UpdateProjectPayload
@@ -3896,22 +4585,41 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """A list of users who are members of this organization."""
   members(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
     """Returns the last _n_ elements from the list."""
     last: Int
+  ): UserConnection! @deprecated(reason: "The `members` field is deprecated and will be removed soon. Use `Organization.membersWithRole` instead. Removal on 2019-04-01 UTC.")
+
+  """A list of users who are members of this organization."""
+  membersWithRole(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
 
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
-  ): UserConnection!
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): OrganizationMemberConnection!
 
   """The organization's public profile name."""
   name: String
@@ -3927,35 +4635,46 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """A list of repositories this user has pinned to their profile"""
   pinnedRepositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """Find project by number."""
@@ -3966,22 +4685,6 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """A list of projects under the owner."""
   projects(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """Ordering options for projects returned from the connection"""
     orderBy: ProjectOrder
 
@@ -3990,6 +4693,22 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
     """A list of states to filter the projects by."""
     states: [ProjectState!]
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectConnection!
 
   """The HTTP path listing organization's projects"""
@@ -4000,35 +4719,46 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """A list of repositories that the user owns."""
   repositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """
     If non-null, filters repositories according to whether they are forks of another repository
@@ -4042,7 +4772,13 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
     name: String!
   ): Repository
 
-  """The HTTP path for this user"""
+  """
+  When true the organization requires all members, billing managers, and outside
+  collaborators to enable two-factor authentication.
+  """
+  requiresTwoFactorAuthentication: Boolean
+
+  """The HTTP path for this organization."""
   resourcePath: URI!
 
   """The Organization's SAML Identity Providers"""
@@ -4056,22 +4792,6 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """A list of teams in this organization."""
   teams(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters teams according to privacy"""
     privacy: TeamPrivacy
 
@@ -4096,6 +4816,22 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
     """If true, restrict to only root teams"""
     rootTeamsOnly: Boolean = false
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): TeamConnection!
 
   """The HTTP path listing organization's teams"""
@@ -4104,7 +4840,7 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
   """The HTTP URL listing organization's teams"""
   teamsUrl: URI!
 
-  """The HTTP URL for this user"""
+  """The HTTP URL for this organization."""
   url: URI!
 
   """Organization is adminable by the viewer."""
@@ -4161,21 +4897,21 @@ type OrganizationIdentityProvider implements Node {
 
   """External Identities provisioned by this Identity Provider"""
   externalIdentities(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ExternalIdentityConnection!
   id: ID!
 
@@ -4272,6 +5008,42 @@ enum OrganizationInvitationType {
   EMAIL
 }
 
+"""The connection type for User."""
+type OrganizationMemberConnection {
+  """A list of edges."""
+  edges: [OrganizationMemberEdge]
+
+  """A list of nodes."""
+  nodes: [User]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""Represents a user within an organization."""
+type OrganizationMemberEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: User
+
+  """The role this user has in the organization."""
+  role: OrganizationMemberRole
+}
+
+"""The possible roles within an organization for its members."""
+enum OrganizationMemberRole {
+  """The user is a member of the organization."""
+  MEMBER
+
+  """The user is an administrator of the organization."""
+  ADMIN
+}
+
 """Information about pagination in a connection."""
 type PageInfo {
   """When paginating forwards, the cursor to continue."""
@@ -4307,21 +5079,21 @@ type Project implements Node & Closable & Updatable {
 
   """List of columns in the project"""
   columns(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectColumnConnection!
 
   """Identifies the date and time when the object was created."""
@@ -4347,21 +5119,24 @@ type Project implements Node & Closable & Updatable {
 
   """List of pending cards in this project"""
   pendingCards(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """A list of archived states to filter the cards by"""
+    archivedStates: [ProjectCardArchivedState]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectCardConnection!
 
   """The HTTP path for this project"""
@@ -4387,7 +5162,7 @@ type ProjectCard implements Node {
   project column at a time. The column field will be null if the card is created
   in a pending state and has yet to be associated with a column. Once cards are
   associated with a column, they will not become pending in the future.
-
+  
   """
   column: ProjectColumn
 
@@ -4403,6 +5178,9 @@ type ProjectCard implements Node {
   """Identifies the primary key from the database."""
   databaseId: Int
   id: ID!
+
+  """Whether the card is archived"""
+  isArchived: Boolean!
 
   """The card note"""
   note: String
@@ -4421,6 +5199,15 @@ type ProjectCard implements Node {
 
   """The HTTP URL for this card"""
   url: URI!
+}
+
+"""The possible archived states of a project card."""
+enum ProjectCardArchivedState {
+  """A project card that is archived"""
+  ARCHIVED
+
+  """A project card that is not archived"""
+  NOT_ARCHIVED
 }
 
 """The connection type for ProjectCard."""
@@ -4466,21 +5253,24 @@ enum ProjectCardState {
 type ProjectColumn implements Node {
   """List of cards in the column"""
   cards(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """A list of archived states to filter the cards by"""
+    archivedStates: [ProjectCardArchivedState]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectCardConnection!
 
   """Identifies the date and time when the object was created."""
@@ -4495,6 +5285,9 @@ type ProjectColumn implements Node {
 
   """The project that contains this column."""
   project: Project!
+
+  """The semantic purpose of the column"""
+  purpose: ProjectColumnPurpose
 
   """The HTTP path for this project column"""
   resourcePath: URI!
@@ -4528,6 +5321,18 @@ type ProjectColumnEdge {
 
   """The item at the end of the edge."""
   node: ProjectColumn
+}
+
+"""The semantic purpose of the column - todo, in progress, or done."""
+enum ProjectColumnPurpose {
+  """The column contains cards still to be worked on"""
+  TODO
+
+  """The column contains cards which are currently being worked on"""
+  IN_PROGRESS
+
+  """The column contains cards which are complete"""
+  DONE
 }
 
 """A list of projects associated with the owner."""
@@ -4587,22 +5392,6 @@ interface ProjectOwner {
 
   """A list of projects under the owner."""
   projects(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """Ordering options for projects returned from the connection"""
     orderBy: ProjectOrder
 
@@ -4611,6 +5400,22 @@ interface ProjectOwner {
 
     """A list of states to filter the projects by."""
     states: [ProjectState!]
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectConnection!
 
   """The HTTP path listing owners projects"""
@@ -4661,26 +5466,26 @@ type ProtectedBranch implements Node {
   """Can admins overwrite branch protection."""
   isAdminEnforced: Boolean!
 
-  """Identifies the name of the protected branch."""
+  """The name of the protected branch rule."""
   name: String!
 
   """A list push allowances for this protected branch."""
   pushAllowances(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PushAllowanceConnection!
 
   """The repository associated with this protected branch."""
@@ -4693,21 +5498,21 @@ type ProtectedBranch implements Node {
 
   """A list review dismissal allowances for this protected branch."""
   reviewDismissalAllowances(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ReviewDismissalAllowanceConnection!
 }
 
@@ -4777,21 +5582,21 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of Users assigned to this object."""
   assignees(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 
   """The actor who authored the comment."""
@@ -4833,42 +5638,42 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of comments associated with the pull request."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueCommentConnection!
 
   """
   A list of commits present in this pull request's head branch not present in the base branch.
   """
   commits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestCommitConnection!
 
   """Identifies the date and time when the object was created."""
@@ -4918,21 +5723,21 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of labels associated with the object."""
   labels(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): LabelConnection
 
   """The moment the editor made the last edit"""
@@ -4971,21 +5776,21 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
   A list of Users that are participating in the Pull Request conversation.
   """
   participants(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 
   """The permalink to the pull request."""
@@ -5001,21 +5806,24 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """List of project cards associated with this pull request."""
   projectCards(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """A list of archived states to filter the cards by"""
+    archivedStates: [ProjectCardArchivedState]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ProjectCardConnection!
 
   """Identifies when the comment was published at."""
@@ -5026,21 +5834,21 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -5063,40 +5871,40 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of review requests associated with the pull request."""
   reviewRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ReviewRequestConnection
 
   """A list of reviews associated with the pull request."""
   reviews(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """A list of states to filter the reviews."""
     states: [PullRequestReviewState!]
@@ -5117,24 +5925,24 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
   A list of events, comments, commits, etc. associated with the pull request.
   """
   timeline(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Allows filtering timeline events by a `since` timestamp."""
+    since: DateTime
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """Allows filtering timeline events by a `since` timestamp."""
-    since: DateTime
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestTimelineConnection!
 
   """Identifies the pull request title."""
@@ -5148,22 +5956,25 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
+
+  """Whether or not the viewer can apply suggestion."""
+  viewerCanApplySuggestion: Boolean!
 
   """Can user react to this subject"""
   viewerCanReact: Boolean!
@@ -5252,6 +6063,24 @@ type PullRequestEdge {
   node: PullRequest
 }
 
+"""Ways in which lists of issues can be ordered upon return."""
+input PullRequestOrder {
+  """The field in which to order pull requests by."""
+  field: PullRequestOrderField!
+
+  """The direction in which to order pull requests by the specified field."""
+  direction: OrderDirection!
+}
+
+"""Properties by which pull_requests connections can be ordered."""
+enum PullRequestOrderField {
+  """Order pull_requests by creation time"""
+  CREATED_AT
+
+  """Order pull_requests by update time"""
+  UPDATED_AT
+}
+
 """The possible PubSub channels for a pull request."""
 enum PullRequestPubSubTopic {
   """The channel ID for observing pull request updates."""
@@ -5265,6 +6094,9 @@ enum PullRequestPubSubTopic {
 
   """The channel ID for updating items on the pull request timeline."""
   TIMELINE
+
+  """The channel ID for observing pull request state updates."""
+  STATE
 }
 
 """A review object for a given pull request."""
@@ -5286,21 +6118,21 @@ type PullRequestReview implements Node & Comment & Deletable & Updatable & Updat
 
   """A list of review comments for the current pull request review."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestReviewCommentConnection!
 
   """Identifies the commit associated with this pull request review."""
@@ -5326,6 +6158,25 @@ type PullRequestReview implements Node & Comment & Deletable & Updatable & Updat
 
   """The moment the editor made the last edit"""
   lastEditedAt: DateTime
+
+  """A list of teams that this review was made on behalf of."""
+  onBehalfOf(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): TeamConnection!
 
   """Identifies when the comment was published at."""
   publishedAt: DateTime
@@ -5353,21 +6204,21 @@ type PullRequestReview implements Node & Comment & Deletable & Updatable & Updat
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Check if the current viewer can delete this object."""
@@ -5427,14 +6278,23 @@ type PullRequestReviewComment implements Node & Comment & Deletable & Updatable 
   """
   includesCreatedEdit: Boolean!
 
+  """Returns whether or not a comment has been minimized."""
+  isMinimized: Boolean!
+
   """The moment the editor made the last edit"""
   lastEditedAt: DateTime
+
+  """Returns why the comment was minimized."""
+  minimizedReason: String
 
   """Identifies the original commit associated with the comment."""
   originalCommit: Commit
 
   """The original line index in the diff to which the comment applies."""
   originalPosition: Int!
+
+  """Identifies when the comment body is outdated"""
+  outdated: Boolean!
 
   """The path to which the comment applies."""
   path: String!
@@ -5456,21 +6316,21 @@ type PullRequestReviewComment implements Node & Comment & Deletable & Updatable 
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -5488,6 +6348,9 @@ type PullRequestReviewComment implements Node & Comment & Deletable & Updatable 
   """The HTTP path permalink for this review comment."""
   resourcePath: URI!
 
+  """Identifies the state of the comment."""
+  state: PullRequestReviewCommentState!
+
   """Identifies when the comment was last updated."""
   updatedAt: DateTime!
 
@@ -5496,25 +6359,28 @@ type PullRequestReviewComment implements Node & Comment & Deletable & Updatable 
 
   """A list of edits to this content."""
   userContentEdits(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserContentEditConnection
 
   """Check if the current viewer can delete this object."""
   viewerCanDelete: Boolean!
+
+  """Check if the current viewer can minimize this object."""
+  viewerCanMinimize: Boolean!
 
   """Can user react to this subject"""
   viewerCanReact: Boolean!
@@ -5551,6 +6417,15 @@ type PullRequestReviewCommentEdge {
 
   """The item at the end of the edge."""
   node: PullRequestReviewComment
+}
+
+"""The possible states of a pull request review comment."""
+enum PullRequestReviewCommentState {
+  """A comment that is part of a pending review"""
+  PENDING
+
+  """A comment that is part of a submitted review"""
+  SUBMITTED
 }
 
 """The connection type for PullRequestReview."""
@@ -5614,21 +6489,21 @@ enum PullRequestReviewState {
 type PullRequestReviewThread implements Node {
   """A list of pull request comments associated with the thread."""
   comments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestReviewCommentConnection!
   id: ID!
 
@@ -5667,7 +6542,7 @@ type PullRequestTimelineConnection {
 }
 
 """An item in an pull request timeline"""
-union PullRequestTimelineItem = Commit | CommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | CrossReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | DeployedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
+union PullRequestTimelineItem = Commit | CommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestReviewComment | IssueComment | ClosedEvent | ReopenedEvent | SubscribedEvent | UnsubscribedEvent | MergedEvent | ReferencedEvent | CrossReferencedEvent | AssignedEvent | UnassignedEvent | LabeledEvent | UnlabeledEvent | MilestonedEvent | DemilestonedEvent | RenamedTitleEvent | LockedEvent | UnlockedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | HeadRefDeletedEvent | HeadRefRestoredEvent | HeadRefForcePushedEvent | BaseRefForcePushedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | ReviewDismissedEvent
 
 """An edge in a connection."""
 type PullRequestTimelineItemEdge {
@@ -5678,16 +6553,171 @@ type PullRequestTimelineItemEdge {
   node: PullRequestTimelineItem
 }
 
+"""An item in a pull request timeline"""
+union PullRequestTimelineItems = PullRequestCommit | PullRequestReview | PullRequestReviewThread | BaseRefChangedEvent | BaseRefForcePushedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | HeadRefDeletedEvent | HeadRefForcePushedEvent | HeadRefRestoredEvent | MergedEvent | ReviewDismissedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnsubscribedEvent
+
+"""An edge in a connection."""
+type PullRequestTimelineItemsEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: PullRequestTimelineItems
+}
+
+"""The possible item types found in a timeline."""
+enum PullRequestTimelineItemsItemType {
+  """Represents a Git commit part of a pull request."""
+  PULL_REQUEST_COMMIT
+
+  """Represents a commit comment thread part of a pull request."""
+  PULL_REQUEST_COMMIT_COMMENT_THREAD
+
+  """A review object for a given pull request."""
+  PULL_REQUEST_REVIEW
+
+  """A threaded list of comments for a given pull request."""
+  PULL_REQUEST_REVIEW_THREAD
+
+  """
+  Represents the latest point in the pull request timeline for which the viewer has seen the pull request's commits.
+  """
+  PULL_REQUEST_REVISION_MARKER
+
+  """
+  Represents a 'base_ref_changed' event on a given issue or pull request.
+  """
+  BASE_REF_CHANGED_EVENT
+
+  """Represents a 'base_ref_force_pushed' event on a given pull request."""
+  BASE_REF_FORCE_PUSHED_EVENT
+
+  """Represents a 'deployed' event on a given pull request."""
+  DEPLOYED_EVENT
+
+  """
+  Represents a 'deployment_environment_changed' event on a given pull request.
+  """
+  DEPLOYMENT_ENVIRONMENT_CHANGED_EVENT
+
+  """Represents a 'head_ref_deleted' event on a given pull request."""
+  HEAD_REF_DELETED_EVENT
+
+  """Represents a 'head_ref_force_pushed' event on a given pull request."""
+  HEAD_REF_FORCE_PUSHED_EVENT
+
+  """Represents a 'head_ref_restored' event on a given pull request."""
+  HEAD_REF_RESTORED_EVENT
+
+  """Represents a 'merged' event on a given pull request."""
+  MERGED_EVENT
+
+  """
+  Represents a 'review_dismissed' event on a given issue or pull request.
+  """
+  REVIEW_DISMISSED_EVENT
+
+  """Represents an 'review_requested' event on a given pull request."""
+  REVIEW_REQUESTED_EVENT
+
+  """Represents an 'review_request_removed' event on a given pull request."""
+  REVIEW_REQUEST_REMOVED_EVENT
+
+  """Represents a comment on an Issue."""
+  ISSUE_COMMENT
+
+  """Represents a mention made by one issue or pull request to another."""
+  CROSS_REFERENCED_EVENT
+
+  """
+  Represents a 'added_to_project' event on a given issue or pull request.
+  """
+  ADDED_TO_PROJECT_EVENT
+
+  """Represents an 'assigned' event on any assignable object."""
+  ASSIGNED_EVENT
+
+  """Represents a 'closed' event on any `Closable`."""
+  CLOSED_EVENT
+
+  """
+  Represents a 'comment_deleted' event on a given issue or pull request.
+  """
+  COMMENT_DELETED_EVENT
+
+  """
+  Represents a 'converted_note_to_issue' event on a given issue or pull request.
+  """
+  CONVERTED_NOTE_TO_ISSUE_EVENT
+
+  """Represents a 'demilestoned' event on a given issue or pull request."""
+  DEMILESTONED_EVENT
+
+  """Represents a 'labeled' event on a given issue or pull request."""
+  LABELED_EVENT
+
+  """Represents a 'locked' event on a given issue or pull request."""
+  LOCKED_EVENT
+
+  """Represents a 'mentioned' event on a given issue or pull request."""
+  MENTIONED_EVENT
+
+  """Represents a 'milestoned' event on a given issue or pull request."""
+  MILESTONED_EVENT
+
+  """
+  Represents a 'moved_columns_in_project' event on a given issue or pull request.
+  """
+  MOVED_COLUMNS_IN_PROJECT_EVENT
+
+  """Represents a 'referenced' event on a given `ReferencedSubject`."""
+  REFERENCED_EVENT
+
+  """
+  Represents a 'removed_from_project' event on a given issue or pull request.
+  """
+  REMOVED_FROM_PROJECT_EVENT
+
+  """Represents a 'renamed' event on a given issue or pull request"""
+  RENAMED_TITLE_EVENT
+
+  """Represents a 'reopened' event on any `Closable`."""
+  REOPENED_EVENT
+
+  """Represents a 'subscribed' event on a given `Subscribable`."""
+  SUBSCRIBED_EVENT
+
+  """Represents a 'transferred' event on a given issue or pull request."""
+  TRANSFERRED_EVENT
+
+  """Represents an 'unassigned' event on any assignable object."""
+  UNASSIGNED_EVENT
+
+  """Represents an 'unlabeled' event on a given issue or pull request."""
+  UNLABELED_EVENT
+
+  """Represents an 'unlocked' event on a given issue or pull request."""
+  UNLOCKED_EVENT
+
+  """Represents an 'unsubscribed' event on a given `Subscribable`."""
+  UNSUBSCRIBED_EVENT
+}
+
 """A team or user who has the ability to push to a protected branch."""
 type PushAllowance implements Node {
   """The actor that can push."""
   actor: PushAllowanceActor
+
+  """
+  Identifies the branch protection rule associated with the allowed user or team.
+  """
+  branchProtectionRule: BranchProtectionRule
   id: ID!
 
   """
   Identifies the protected branch associated with the allowed user or team.
   """
-  protectedBranch: ProtectedBranch!
+  protectedBranch: ProtectedBranch! @deprecated(reason: "The `ProtectedBranch` type is deprecated and will be removed soon. Use `Repository.branchProtectionRule` instead. Removal on 2019-01-01 UTC.")
 }
 
 """Types that can be an actor."""
@@ -5739,10 +6769,13 @@ type Query {
 
   """Get alphabetically sorted list of Marketplace categories"""
   marketplaceCategories(
+    """Return only the specified categories."""
+    includeCategories: [String!]
+
     """Exclude categories with no listings."""
     excludeEmpty: Boolean
 
-    """Exclude subcategories"""
+    """Returns top level categories only, excluding any subcategories."""
     excludeSubcategories: Boolean
   ): [MarketplaceCategory!]!
 
@@ -5765,21 +6798,21 @@ type Query {
 
   """Look up Marketplace listings"""
   marketplaceListings(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Select only listings with the given category."""
     categorySlug: String
@@ -5790,7 +6823,7 @@ type Query {
     """
     Select listings to which user has admin access. If omitted, listings visible to the
     viewer are returned.
-
+    
     """
     viewerCanAdmin: Boolean
 
@@ -5803,7 +6836,7 @@ type Query {
     """
     Select listings visible to the viewer even if they are not approved. If omitted or
     false, only approved listings will be returned.
-
+    
     """
     allStates: Boolean
 
@@ -5878,21 +6911,21 @@ type Query {
 
   """Perform a search across resources."""
   search(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """The search string to look for."""
     query: String!
@@ -5950,21 +6983,21 @@ interface Reactable {
 
   """A list of Reactions left on the Issue."""
   reactions(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Allows filtering Reactions by emoji."""
     content: ReactionContent
@@ -6086,21 +7119,21 @@ type ReactionGroup {
   Users who have reacted to the reaction subject with the emotion represented by this reaction group
   """
   users(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): ReactingUserConnection!
 
   """
@@ -6128,22 +7161,6 @@ enum ReactionOrderField {
 type Ref implements Node {
   """A list of pull requests with this ref as the head ref."""
   associatedPullRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """A list of states to filter the pull requests by."""
     states: [PullRequestState!]
 
@@ -6158,6 +7175,22 @@ type Ref implements Node {
 
     """Ordering options for pull requests returned from the connection."""
     orderBy: IssueOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestConnection!
   id: ID!
 
@@ -6282,21 +7315,21 @@ type Release implements Node & UniformResourceLocatable {
 
   """List of releases assets which are dependent on this release."""
   releaseAssets(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """A list of names to filter the assets by."""
     name: String
@@ -6307,6 +7340,9 @@ type Release implements Node & UniformResourceLocatable {
 
   """The Git tag the release points to"""
   tag: Ref
+
+  """The name of the release's Git tag"""
+  tagName: String!
 
   """Identifies the date and time when the object was last updated."""
   updatedAt: DateTime!
@@ -6451,12 +7487,12 @@ type RemoveOutsideCollaboratorPayload {
 
   """
   The user that was removed as an outside collaborator.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `removedUser` will change from `User!` to `User`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   removedUser: User!
 }
@@ -6480,23 +7516,23 @@ type RemoveReactionPayload {
 
   """
   The reaction object.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   subject: Reactable!
 }
@@ -6517,12 +7553,12 @@ type RemoveStarPayload {
 
   """
   The starrable.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   starrable: Starrable!
 }
@@ -6562,47 +7598,84 @@ type ReopenedEvent implements Node {
   id: ID!
 }
 
+"""The reasons a piece of content can be reported or minimized."""
+enum ReportedContentClassifiers {
+  """A spammy piece of content"""
+  SPAM
+
+  """An abusive or harassing piece of content"""
+  ABUSE
+
+  """An irrelevant piece of content"""
+  OFF_TOPIC
+
+  """An outdated piece of content"""
+  OUTDATED
+
+  """The content has been resolved"""
+  RESOLVED
+}
+
 """A repository contains the content for a project."""
 type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscribable & Starrable & UniformResourceLocatable & RepositoryInfo {
   """A list of users that can be assigned to issues in this repository."""
   assignableUsers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
     """Returns the last _n_ elements from the list."""
     last: Int
+  ): UserConnection!
+
+  """A list of branch protection rules for this repository."""
+  branchProtectionRules(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
 
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
-  ): UserConnection!
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): BranchProtectionRuleConnection!
 
   """Returns the code of conduct for this repository"""
   codeOfConduct: CodeOfConduct
 
   """A list of collaborators associated with the repository."""
   collaborators(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Collaborators affiliation level with a repository."""
     affiliation: CollaboratorAffiliation
@@ -6610,21 +7683,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of commit comments associated with the repository."""
   commitComments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): CommitCommentConnection!
 
   """Identifies the date and time when the object was created."""
@@ -6638,40 +7711,40 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of deploy keys that are on this repository."""
   deployKeys(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): DeployKeyConnection!
 
   """Deployments associated with the repository"""
   deployments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Environments to list deployments for"""
     environments: [String!]
@@ -6693,35 +7766,46 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of direct forked repositories."""
   forks(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """Indicates if the repository has issues feature enabled."""
@@ -6765,30 +7849,30 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of issues that have been opened in the repository."""
   issues(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Ordering options for issues returned from the connection."""
+    orderBy: IssueOrder
+
+    """A list of label names to filter the pull requests by."""
+    labels: [String!]
+
+    """A list of states to filter the issues by."""
+    states: [IssueState!]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """A list of label names to filter the pull requests by."""
-    labels: [String!]
+    """Returns the first _n_ elements from the list."""
+    first: Int
 
-    """Ordering options for issues returned from the connection."""
-    orderBy: IssueOrder
-
-    """A list of states to filter the issues by."""
-    states: [IssueState!]
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueConnection!
 
   """Returns a single label by name"""
@@ -6799,21 +7883,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of labels associated with the repository."""
   labels(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """If provided, searches labels by name and description."""
     query: String
@@ -6823,21 +7907,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
   A list containing a breakdown of the language composition of the repository.
   """
   languages(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Order for connection"""
     orderBy: LanguageOrder
@@ -6853,21 +7937,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
   A list of Users that can be mentioned in the context of the repository.
   """
   mentionableUsers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 
   """Whether or not PRs are merged with a merge commit on this repository."""
@@ -6881,21 +7965,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of milestones associated with the repository."""
   milestones(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Filter by the state of the milestones."""
     states: [MilestoneState!]
@@ -6939,22 +8023,6 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of projects under the owner."""
   projects(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """Ordering options for projects returned from the connection"""
     orderBy: ProjectOrder
 
@@ -6963,32 +8031,48 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
     """A list of states to filter the projects by."""
     states: [ProjectState!]
-  ): ProjectConnection!
-
-  """The HTTP path listing repository's projects"""
-  projectsResourcePath: URI!
-
-  """The HTTP URL listing repository's projects"""
-  projectsUrl: URI!
-
-  """A list of protected branches that are on this repository."""
-  protectedBranches(
-    """Returns the first _n_ elements from the list."""
-    first: Int
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
     """Returns the last _n_ elements from the list."""
     last: Int
+  ): ProjectConnection!
+
+  """The HTTP path listing the repository's projects"""
+  projectsResourcePath: URI!
+
+  """The HTTP URL listing the repository's projects"""
+  projectsUrl: URI!
+
+  """A list of protected branches that are on this repository."""
+  protectedBranches(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
 
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
-  ): ProtectedBranchConnection!
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): ProtectedBranchConnection! @deprecated(reason: "The `ProtectedBranch` type is deprecated and will be removed soon. Use `Repository.branchProtectionRules` instead. Removal on 2019-01-01 UTC.")
 
   """Returns a single pull request from the current repository by number."""
   pullRequest(
@@ -6998,22 +8082,6 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of pull requests that have been opened in the repository."""
   pullRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """A list of states to filter the pull requests by."""
     states: [PullRequestState!]
 
@@ -7028,6 +8096,22 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
     """Ordering options for pull requests returned from the connection."""
     orderBy: IssueOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PullRequestConnection!
 
   """Identifies when the repository was last pushed to."""
@@ -7047,21 +8131,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """Fetch a list of refs from the repository"""
   refs(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """A ref name prefix like `refs/heads/`, `refs/tags/`, etc."""
     refPrefix: String!
@@ -7081,21 +8165,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """List of releases which are dependent on this repository."""
   releases(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Order for connection"""
     orderBy: ReleaseOrder
@@ -7103,21 +8187,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of applied repository-topic associations for this repository."""
   repositoryTopics(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryTopicConnection!
 
   """The HTTP path for this repository"""
@@ -7139,21 +8223,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of users who have starred this starrable."""
   stargazers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Order for connection"""
     orderBy: StarOrder
@@ -7200,21 +8284,21 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
 
   """A list of users watching the repository."""
   watchers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): UserConnection!
 }
 
@@ -7479,68 +8563,90 @@ interface RepositoryOwner {
 
   """A list of repositories this user has pinned to their profile"""
   pinnedRepositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """A list of repositories that the user owns."""
   repositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """
     If non-null, filters repositories according to whether they are forks of another repository
@@ -7648,25 +8754,34 @@ type RequestReviewsPayload {
 
   """
   The pull request that is getting requests.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequest` will change from `PullRequest!` to `PullRequest`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequest: PullRequest!
 
   """
   The edge from the pull request to the requested reviewers.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `requestedReviewersEdge` will change from `UserEdge!` to `UserEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   requestedReviewersEdge: UserEdge!
+}
+
+"""Autogenerated input type of ResolveReviewThread"""
+input ResolveReviewThreadInput {
+  """The ID of the thread to resolve"""
+  threadId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
 }
 
 """
@@ -7675,12 +8790,17 @@ A team or user who has the ability to dismiss a review on a protected branch.
 type ReviewDismissalAllowance implements Node {
   """The actor that can dismiss."""
   actor: ReviewDismissalAllowanceActor
+
+  """
+  Identifies the branch protection rule associated with the allowed user or team.
+  """
+  branchProtectionRule: BranchProtectionRule
   id: ID!
 
   """
   Identifies the protected branch associated with the allowed user or team.
   """
-  protectedBranch: ProtectedBranch!
+  protectedBranch: ProtectedBranch! @deprecated(reason: "The `ProtectedBranch` type is deprecated and will be removed soon. Use `ReviewDismissalAllowance.branchProtectionRule` instead. Removal on 2019-01-01 UTC.")
 }
 
 """Types that can be an actor."""
@@ -7949,21 +9069,21 @@ interface Starrable {
 
   """A list of users who have starred this starrable."""
   stargazers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """Order for connection"""
     orderBy: StarOrder
@@ -8084,12 +9204,12 @@ type SubmitPullRequestReviewPayload {
 
   """
   The submitted pull request review.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -8124,7 +9244,7 @@ type SubscribedEvent implements Node {
 
 """The possible states of a subscription."""
 enum SubscriptionState {
-  """The User is only notified when particpating or @mentioned."""
+  """The User is only notified when participating or @mentioned."""
   UNSUBSCRIBED
 
   """The User is notified of all conversations."""
@@ -8183,21 +9303,21 @@ type Tag implements Node & GitObject {
 type Team implements Node & Subscribable {
   """A list of teams that are ancestors of this team."""
   ancestors(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): TeamConnection!
 
   """A URL pointing to the team's avatar."""
@@ -8208,22 +9328,6 @@ type Team implements Node & Subscribable {
 
   """List of child teams belonging to this team"""
   childTeams(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """Order for connection"""
     orderBy: TeamOrder
 
@@ -8232,6 +9336,22 @@ type Team implements Node & Subscribable {
 
     """Whether to list immediate child teams or all descendant child teams."""
     immediateOnly: Boolean = true
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): TeamConnection!
 
   """The slug corresponding to the organization and team."""
@@ -8252,40 +9372,40 @@ type Team implements Node & Subscribable {
 
   """A list of pending invitations for users to this team"""
   invitations(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): OrganizationInvitationConnection
 
   """A list of users who are members of this team."""
   members(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """The search string to look for."""
     query: String
@@ -8326,21 +9446,21 @@ type Team implements Node & Subscribable {
 
   """A list of repositories this team has access to."""
   repositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """The search string to look for."""
     query: String
@@ -8598,7 +9718,7 @@ type TextMatchHighlight {
 }
 
 """A topic aggregates entities that are related to a subject."""
-type Topic implements Node {
+type Topic implements Node & Starrable {
   id: ID!
 
   """The topic's name."""
@@ -8607,9 +9727,36 @@ type Topic implements Node {
   """
   A list of related topics, including aliases of this topic, sorted with the most relevant
   first.
-
+  
   """
   relatedTopics: [Topic!]!
+
+  """A list of users who have starred this starrable."""
+  stargazers(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Order for connection"""
+    orderBy: StarOrder
+  ): StargazerConnection!
+
+  """
+  Returns a boolean indicating whether the viewing user has starred this starrable.
+  """
+  viewerHasStarred: Boolean!
 }
 
 """The connection type for Topic."""
@@ -8651,6 +9798,22 @@ enum TopicSuggestionDeclineReason {
 
   """The suggested topic is too general for the repository."""
   TOO_GENERAL
+}
+
+"""Represents a 'transferred' event on a given issue or pull request."""
+type TransferredEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+
+  """The repository this came from"""
+  fromRepository: Repository
+  id: ID!
+
+  """Identifies the issue associated with the event."""
+  issue: Issue!
 }
 
 """Represents a Git tree."""
@@ -8797,6 +9960,24 @@ type UnlockLockablePayload {
   unlockedRecord: Lockable
 }
 
+"""Autogenerated input type of UnminimizeComment"""
+input UnminimizeCommentInput {
+  """The Node ID of the subject to modify."""
+  subjectId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UnresolveReviewThread"""
+input UnresolveReviewThreadInput {
+  """The ID of the thread to unresolve"""
+  threadId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
 """Represents an 'unsubscribed' event on a given `Subscribable`."""
 type UnsubscribedEvent implements Node {
   """Identifies the actor who performed the event."""
@@ -8822,10 +10003,79 @@ interface UpdatableComment {
   viewerCannotUpdateReasons: [CommentCannotUpdateReason!]!
 }
 
+"""Autogenerated input type of UpdateBranchProtectionRule"""
+input UpdateBranchProtectionRuleInput {
+  """The global relay id of the branch protection rule to be updated."""
+  branchProtectionRuleId: ID!
+
+  """The glob-like pattern used to determine matching branches."""
+  pattern: String
+
+  """Are approving reviews required to update matching branches."""
+  requiresApprovingReviews: Boolean
+
+  """Number of approving reviews required to update matching branches."""
+  requiredApprovingReviewCount: Int
+
+  """Are commits required to be signed."""
+  requiresCommitSignatures: Boolean
+
+  """Can admins overwrite branch protection."""
+  isAdminEnforced: Boolean
+
+  """Are status checks required to update matching branches."""
+  requiresStatusChecks: Boolean
+
+  """Are branches required to be up to date before merging."""
+  requiresStrictStatusChecks: Boolean
+
+  """Are reviews from code owners required to update matching branches."""
+  requiresCodeOwnerReviews: Boolean
+
+  """
+  Will new commits pushed to matching branches dismiss pull request review approvals.
+  """
+  dismissesStaleReviews: Boolean
+
+  """Is dismissal of pull request reviews restricted."""
+  restrictsReviewDismissals: Boolean
+
+  """
+  A list of User or Team IDs allowed to dismiss reviews on pull requests targeting matching branches.
+  """
+  reviewDismissalActorIds: [ID!]
+
+  """Is pushing to matching branches restricted."""
+  restrictsPushes: Boolean
+
+  """A list of User or Team IDs allowed to push to matching branches."""
+  pushActorIds: [ID!]
+
+  """
+  List of required status check contexts that must pass for commits to be accepted to matching branches.
+  """
+  requiredStatusCheckContexts: [String!]
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of UpdateBranchProtectionRule"""
+type UpdateBranchProtectionRulePayload {
+  """The newly created BranchProtectionRule."""
+  branchProtectionRule: BranchProtectionRule
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
 """Autogenerated input type of UpdateProjectCard"""
 input UpdateProjectCardInput {
   """The ProjectCard ID to update."""
   projectCardId: ID!
+
+  """Whether or not the ProjectCard should be archived"""
+  isArchived: Boolean
 
   """The note of ProjectCard."""
   note: String
@@ -8841,12 +10091,12 @@ type UpdateProjectCardPayload {
 
   """
   The updated ProjectCard.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectCard` will change from `ProjectCard!` to `ProjectCard`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   projectCard: ProjectCard!
 }
@@ -8870,12 +10120,12 @@ type UpdateProjectColumnPayload {
 
   """
   The updated project column.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectColumn` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   projectColumn: ProjectColumn!
 }
@@ -8908,12 +10158,12 @@ type UpdateProjectPayload {
 
   """
   The updated project.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   project: Project!
 }
@@ -8937,13 +10187,13 @@ type UpdatePullRequestReviewCommentPayload {
 
   """
   The updated comment.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReviewComment` will change from
   `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReviewComment: PullRequestReviewComment!
 }
@@ -8967,12 +10217,12 @@ type UpdatePullRequestReviewPayload {
 
   """
   The updated pull request review.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -8996,12 +10246,12 @@ type UpdateSubscriptionPayload {
 
   """
   The input subscribable entity.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subscribable` will change from `Subscribable!` to `Subscribable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   subscribable: Subscribable!
 }
@@ -9028,12 +10278,12 @@ type UpdateTopicsPayload {
 
   """
   The updated repository.
-
+  
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `repository` will change from `Repository!` to `Repository`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-
+  
   """
   repository: Repository!
 }
@@ -9059,21 +10309,21 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of commit comments made by this user."""
   commitComments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): CommitCommentConnection!
 
   """The user's public profile company."""
@@ -9081,6 +10331,25 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """The user's public profile company as HTML."""
   companyHTML: HTML!
+
+  """
+  The collection of contributions this user has made to different repositories.
+  """
+  contributionsCollection(
+    """The ID of the organization used to filter contributions."""
+    organizationID: ID
+
+    """
+    Only contributions made at this time or later will be counted. If omitted, defaults to a year ago.
+    """
+    from: DateTime
+
+    """
+    Only contributions made before and up to and including this time will be
+    counted. If omitted, defaults to the current time.
+    """
+    to: DateTime
+  ): ContributionsCollection!
 
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
@@ -9093,40 +10362,40 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of users the given user is followed by."""
   followers(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): FollowerConnection!
 
   """A list of users the given user is following."""
   following(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): FollowingConnection!
 
   """Find gist by repo name."""
@@ -9137,46 +10406,46 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of gist comments made by this user."""
   gistComments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): GistCommentConnection!
 
   """A list of the Gists the user has created."""
   gists(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """Filters Gists according to privacy."""
     privacy: GistPrivacy
 
     """Ordering options for gists returned from the connection"""
     orderBy: GistOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): GistConnection!
   id: ID!
 
@@ -9207,49 +10476,49 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of issue comments made by this user."""
   issueComments(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueCommentConnection!
 
   """A list of issues associated with this user."""
   issues(
-    """Returns the first _n_ elements from the list."""
-    first: Int
+    """Ordering options for issues returned from the connection."""
+    orderBy: IssueOrder
+
+    """A list of label names to filter the pull requests by."""
+    labels: [String!]
+
+    """A list of states to filter the issues by."""
+    states: [IssueState!]
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
-    """A list of label names to filter the pull requests by."""
-    labels: [String!]
+    """Returns the first _n_ elements from the list."""
+    first: Int
 
-    """Ordering options for issues returned from the connection."""
-    orderBy: IssueOrder
-
-    """A list of states to filter the issues by."""
-    states: [IssueState!]
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): IssueConnection!
 
   """The user's public profile location."""
@@ -9269,93 +10538,88 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of organizations the user belongs to."""
   organizations(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): OrganizationConnection!
 
   """A list of repositories this user has pinned to their profile"""
   pinnedRepositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """A list of public keys associated with this user."""
   publicKeys(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): PublicKeyConnection!
 
   """A list of pull requests associated with this user."""
   pullRequests(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """A list of states to filter the pull requests by."""
     states: [PullRequestState!]
 
@@ -9370,39 +10634,66 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
     """Ordering options for pull requests returned from the connection."""
     orderBy: IssueOrder
-  ): PullRequestConnection!
-
-  """A list of repositories that the user owns."""
-  repositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
 
     """
     Returns the elements in the list that come after the specified cursor.
     """
     after: String
 
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
     """
     Returns the elements in the list that come before the specified cursor.
     """
     before: String
 
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): PullRequestConnection!
+
+  """A list of repositories that the user owns."""
+  repositories(
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
     """Ordering options for repositories returned from the connection"""
     orderBy: RepositoryOrder
 
-    """Affiliation options for repositories returned from the connection"""
+    """
+    Array of viewer's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    current viewer owns.
+    """
     affiliations: [RepositoryAffiliation]
+
+    """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
 
     """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
 
     """
     If non-null, filters repositories according to whether they are forks of another repository
@@ -9412,22 +10703,6 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of repositories that the user recently contributed to."""
   repositoriesContributedTo(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
@@ -9447,6 +10722,22 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
     GitHub.com UI uses [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]
     """
     contributionTypes: [RepositoryContributionType]
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """Find Repository."""
@@ -9460,22 +10751,6 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """Repositories the user has starred."""
   starredRepositories(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """
     Filters starred repositories to only return repositories owned by the viewer.
     """
@@ -9483,6 +10758,22 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
     """Order for connection"""
     orderBy: StarOrder
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): StarredRepositoryConnection!
 
   """Identifies the date and time when the object was last updated."""
@@ -9499,22 +10790,6 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
 
   """A list of repositories the given user is watching."""
   watching(
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come after the specified cursor.
-    """
-    after: String
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
     """If non-null, filters repositories according to privacy"""
     privacy: RepositoryPrivacy
 
@@ -9525,9 +10800,32 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
     affiliations: [RepositoryAffiliation]
 
     """
+    Array of owner's affiliation options for repositories returned from the
+    connection. For example, OWNER will include only repositories that the
+    organization or user being viewed owns.
+    """
+    ownerAffiliations: [RepositoryAffiliation]
+
+    """
     If non-null, filters repositories according to whether they have been locked
     """
     isLocked: Boolean
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
   ): RepositoryConnection!
 
   """A URL pointing to the user's public website/blog."""
@@ -9598,7 +10896,7 @@ type UserContentEditEdge {
   node: UserContentEdit
 }
 
-"""An edge in a connection."""
+"""Represents a user."""
 type UserEdge {
   """A cursor for use in pagination."""
   cursor: String!
