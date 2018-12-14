@@ -1,5 +1,5 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import {TextBuffer} from 'atom';
 
 import RefHolder from '../../lib/models/ref-holder';
@@ -33,6 +33,12 @@ describe('AtomTextEditor', function() {
   it('creates its own model ref if one is not provided by a parent', function() {
     const app = mount(<AtomTextEditor workspace={workspace} />);
     assert.isTrue(workspace.isTextEditor(app.instance().refModel.get()));
+  });
+
+  it('returns undefined if the current model is unavailable', function() {
+    const emptyHolder = new RefHolder();
+    const app = shallow(<AtomTextEditor refModel={emptyHolder} />);
+    assert.isUndefined(app.instance().getModel());
   });
 
   it('configures the created text editor with props', function() {
