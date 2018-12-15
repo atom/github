@@ -267,12 +267,12 @@ describe('PullRequestDetailView', function() {
       let finalIndex;
       let tempIndex = 0;
       wrapper.find('Tab').forEach(t => {
-        t.children().map(child => {
+        t.children().forEach(child => {
           if (child.text() === tabText) {
             finalIndex = tempIndex;
           }
         });
-      tempIndex ++;
+        tempIndex++;
       });
       return finalIndex;
     }
