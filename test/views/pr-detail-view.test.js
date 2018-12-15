@@ -8,7 +8,7 @@ import {pullRequestDetailViewProps} from '../fixtures/props/issueish-pane-props'
 import EnableableOperation from '../../lib/models/enableable-operation';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe.only('PullRequestDetailView', function() {
+describe('PullRequestDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
     return <BarePullRequestDetailView {...pullRequestDetailViewProps(opts, overrideProps)} />;
   }
