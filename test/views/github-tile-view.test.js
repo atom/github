@@ -17,13 +17,13 @@ describe('GithubTileView', function() {
   });
 
   it('calls props.didClick when clicked', function() {
-    wrapper.simulate('click');
+    wrapper.find('button').simulate('click');
     assert.isTrue(clickSpy.calledOnce);
   });
 
   it('records an event on click', function() {
     sinon.stub(reporterProxy, 'addEvent');
-    wrapper.simulate('click');
+    wrapper.find('button').simulate('click');
     assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'GithubTileView'}));
   });
 });
