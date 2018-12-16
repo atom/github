@@ -1,20 +1,28 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import GithubTileView from '../../lib/views/github-tile-view';
+import GithubTileView, {toolTipMessage} from '../../lib/views/github-tile-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('GithubTileView', function() {
   let wrapper, clickSpy;
   beforeEach(function() {
     clickSpy = sinon.spy();
-    wrapper = shallow(<GithubTileView didClick={clickSpy} />);
+    wrapper = shallow(<GithubTileView didClick={clickSpy}
+      tooltips={{}}
+    />);
   });
 
   it('renders github icon and text', function() {
     assert.isTrue(wrapper.html().includes('mark-github'));
     assert.isTrue(wrapper.text().includes('GitHub'));
   });
+
+  it('renders tooltip', function() {
+    const tooltip = wrapper.find('Tooltip');
+    assert.isTrue(tooltip.props().title.includes(toolTipMessage));
+  });
+
 
   it('calls props.didClick when clicked', function() {
     wrapper.find('button').simulate('click');
