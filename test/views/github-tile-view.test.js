@@ -8,9 +8,12 @@ describe('GithubTileView', function() {
   let wrapper, clickSpy;
   beforeEach(function() {
     clickSpy = sinon.spy();
-    wrapper = shallow(<GithubTileView didClick={clickSpy}
-      tooltips={{}}
-    />);
+    wrapper = shallow(
+      <GithubTileView
+        didClick={clickSpy}
+        tooltips={{}}
+      />,
+    );
   });
 
   it('renders github icon and text', function() {
