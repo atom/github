@@ -42,7 +42,6 @@ describe('StatusBarTileController', function() {
         confirm={confirm}
         toggleGitTab={() => {}}
         toggleGithubTab={() => {}}
-        ensureGitTabVisible={() => {}}
         {...props}
       />
     );
@@ -622,14 +621,13 @@ describe('StatusBarTileController', function() {
         await assert.async.isFalse(repository.getOperationStates().isPushInProgress());
       });
 
-
       it('displays a warning notification when pull results in merge conflicts', async function() {
         const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits', {remoteAhead: true});
         fs.writeFileSync(path.join(localRepoPath, 'file.txt'), 'apple');
         const repository = await buildRepositoryWithPipeline(localRepoPath, {confirm, notificationManager, workspace});
         await repository.git.exec(['commit', '-am', 'Add conflicting change']);
 
-        const wrapper = await mountAndLoad(buildApp({repository, ensureGitTabVisible: sinon.stub()}));
+        const wrapper = await mountAndLoad(buildApp({repository}));
 
         sinon.stub(notificationManager, 'addWarning');
 
@@ -639,8 +637,6 @@ describe('StatusBarTileController', function() {
           assert(e, 'is error');
         }
         repository.refresh();
-
-        await assert.async.isTrue(wrapper.instance().props.ensureGitTabVisible.called);
 
         await assert.async.isTrue(notificationManager.addWarning.called);
         const notificationArgs = notificationManager.addWarning.args[0];
