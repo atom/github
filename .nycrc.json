@@ -6,6 +6,7 @@
   ],
   "exclude": [
     "lib/views/git-cache-view.js",
-    "lib/views/git-timings-view.js"
+    "lib/views/git-timings-view.js",
+    "lib/relay-network-layer-manager.js"
   ]
 }
