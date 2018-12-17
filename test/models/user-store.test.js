@@ -408,7 +408,23 @@ describe('UserStore', function() {
     });
 
   });
+  describe('loadMentionableUsers', function() {
+    it('returns undefined if token is null', async function() {
+      const workdirPath = await cloneRepository('multiple-commits');
+      const repository = await buildRepository(workdirPath);
 
+      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+
+      store = new UserStore({repository, login, config});
+      sinon.stub(store, 'getToken').returns(null);
+
+      const remoteSet = await repository.getRemotes();
+      const remote = remoteSet.byDotcomRepo.get('me/stuff')[0];
+
+      const users = await store.loadMentionableUsers(remote);
+      assert.notOk(users);
+    });
+  });
 
   describe('GraphQL response caching', function() {
     it('caches mentionable users acquired from GraphQL', async function() {
@@ -431,7 +447,7 @@ describe('UserStore', function() {
       sinon.spy(store, 'loadUsers');
       sinon.spy(store, 'getToken');
 
-      // The first update is triggered by the commiter, the second from GraphQL results arriving.
+      // The first update is triggered by the committer, the second from GraphQL results arriving.
       await nextUpdatePromise();
       await nextUpdatePromise();
 
