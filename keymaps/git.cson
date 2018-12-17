@@ -76,6 +76,13 @@
   'ctrl-right': 'github:surface'
 
 '.github-FilePatchView atom-text-editor:not([mini])':
+  # Only support unprefixed file patch keybindings until MultiFilePatch is
+  # editable
+  '/': 'github:toggle-patch-selection-mode'
+  'backspace': 'github:discard-selected-lines'
+  'enter': 'core:confirm'
+  'right': 'github:surface'
+  'o': 'github:jump-to-file'
 '.platform-darwin .github-FilePatchView atom-text-editor:not([mini])':
   'cmd-/': 'github:toggle-patch-selection-mode'
   'cmd-backspace': 'github:discard-selected-lines'
