@@ -42,11 +42,11 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    color: @text-color-subtle;
+    color: @text-color-highlight;
 
     &:hover,
     &:focus {
-      color: @text-color-highlight;
+      color: mix(@text-color-highlight, @text-color-subtle);
     }
   }
 
