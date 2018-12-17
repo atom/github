@@ -428,7 +428,7 @@ describe('RootController', function() {
       resolveOpenIssueish();
       await promise;
 
-      const uri = IssueishDetailItem.buildURI('https://api.github.com', repoOwner, repoName, issueishNumber);
+      const uri = IssueishDetailItem.buildURI('github.com', repoOwner, repoName, issueishNumber);
 
       assert.isTrue(openIssueishDetails.calledWith(uri));
 
