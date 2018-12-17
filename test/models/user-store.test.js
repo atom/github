@@ -365,7 +365,7 @@ describe('UserStore', function() {
     ]);
   });
 
-  describe.only('getToken', function() {
+  describe('getToken', function() {
     let repository, workdirPath;
     beforeEach(async function() {
       workdirPath = await cloneRepository('multiple-commits');
