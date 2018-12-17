@@ -55,6 +55,7 @@
   'ctrl-enter': 'github:commit'
 
 '.github-CommitView-commitPreview':
+  'left': 'github-dive'
   'enter': 'native!'
 '.platform-darwin .github-CommitView-commitPreview':
   'cmd-left': 'github:dive'
