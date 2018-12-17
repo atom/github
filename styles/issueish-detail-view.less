@@ -49,6 +49,7 @@
   &-headerRow {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     margin: 2px 0;
     &.is-fullwidth {
       flex: 1 1 100%;
@@ -81,7 +82,6 @@
   }
 
   &-headerLink {
-    margin-left: @component-padding;
     color: @text-color-subtle;
   }
 
@@ -99,6 +99,7 @@
 
   &-headerRefreshButton {
     display: inline-block;
+    margin-right: @component-padding;
     color: @text-color-subtle;
     cursor: pointer;
 
