@@ -41,12 +41,18 @@
   &-headerColumn {
     &.is-flexible {
       flex: 1;
+      display: flex;
+      flex-wrap: wrap;
     }
   }
 
   &-headerRow {
     display: flex;
     align-items: center;
+    margin: 2px 0;
+    &.is-fullwidth {
+      flex: 1 1 100%;
+    }
   }
 
   // Avatar ------------------------
@@ -57,7 +63,7 @@
   }
 
   &-title {
-    margin: 0 0 .25em 0;
+    margin: 0;
     font-size: 1.25em;
     font-weight: 500;
     line-height: 1.3;
