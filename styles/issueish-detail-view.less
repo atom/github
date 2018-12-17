@@ -150,26 +150,34 @@
     padding: @component-padding/2 @component-padding*1.5;
     text-align: center;
     font-weight: 600;
-    color: @text-color-subtle;
+    color: mix(@text-color, @app-background-color, 75%);
     cursor: default;
+  }
 
-    &.react-tabs__tab--selected {
-      color: @text-color-selected;
-      box-shadow: 0 1px 0 @button-background-color-selected;
+  &-tab-icon {
+    color: mix(@text-color, @app-background-color, 33%);
+    vertical-align: middle;
+    &:before {
+      margin-right: .4em;
     }
   }
 
   &-tab-count {
-    background-color: @text-color-subtle;
-    border-radius: 2px;
-    padding: 0 2px;
-    margin-left: 5px;
+    display: inline-block;
+    background-color: mix(@text-color-subtle, @app-background-color, 20%);
+    border-radius: @component-border-radius;
+    padding: 0 .25em;
+    margin-left: @component-padding/2;
   }
 
-  &-tab-icon {
-    vertical-align: middle;
-    &:before {
-      margin-right: .4em;
+
+  // Selected tab
+  &-tab.react-tabs__tab--selected {
+    color: @text-color-selected;
+    box-shadow: 0 1px 0 @button-background-color-selected;
+
+    .github-IssueishDetailView-tab-icon {
+      color: @text-color;
     }
   }
 
