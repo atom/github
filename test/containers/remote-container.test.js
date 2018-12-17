@@ -34,7 +34,6 @@ describe('RemoteContainer', function() {
     return (
       <RemoteContainer
         loginModel={model}
-
         endpoint={getEndpoint('github.com')}
 
         remoteOperationObserver={nullOperationStateObserver}
