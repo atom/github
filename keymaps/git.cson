@@ -27,7 +27,6 @@
   'shift-tab': 'core:focus-previous'
   'o': 'github:jump-to-file'
   'left': 'core:move-left'
-  'enter': 'core:move-left'
 '.platform-darwin .github-StagingView':
   'cmd-left': 'core:move-left'
 '.platform-linux .github-StagingView, .platform-win32 .github-StagingView':
