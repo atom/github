@@ -370,7 +370,7 @@ describe('UserStore', function() {
     beforeEach(async function() {
       workdirPath = await cloneRepository('multiple-commits');
       repository = await buildRepository(workdirPath);
-      })
+    });
     it('returns null if loginModel is falsy', async function() {
       store = new UserStore({repository, login, config});
       const token = await store.getToken(undefined, 'https://api.github.com');
@@ -442,7 +442,7 @@ describe('UserStore', function() {
       await assert.async.strictEqual(store.loadUsers.callCount, 2);
       await store.loadUsers.returnValues[1];
 
-      await assert.async.strictEqual(store.getToken.callCount, 1)
+      await assert.async.strictEqual(store.getToken.callCount, 1);
 
       assert.deepEqual(store.getUsers(), [
         new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
