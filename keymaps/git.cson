@@ -55,9 +55,13 @@
   'ctrl-enter': 'github:commit'
 
 '.github-CommitView-commitPreview':
-  'cmd-left': 'github:dive'
-  'ctrl-left': 'github:dive'
   'enter': 'native!'
+'.platform-darwin .github-CommitView-commitPreview':
+  'cmd-left': 'github:dive'
+'.platform-win32 .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
+'.platform-linux .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
 
 '.github-RecentCommits':
   'left': 'github:dive'
