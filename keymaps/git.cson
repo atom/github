@@ -17,8 +17,9 @@
   'alt-m enter': 'github:resolve-as-current'
   'alt-m r': 'github:revert-current'
 
-'.github-Git':
+'.platform-darwin .github-Git':
   'cmd-enter': 'github:commit'
+'.platform-win32 .github-Git, .platform-linux .github-Git':
   'ctrl-enter': 'github:commit'
 
 '.github-StagingView':
