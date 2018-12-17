@@ -60,6 +60,7 @@
   'enter': 'native!'
 
 '.github-RecentCommits':
+  'left': 'github:dive'
   'enter': 'github:dive'
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
