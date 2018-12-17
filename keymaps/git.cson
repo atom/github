@@ -68,13 +68,6 @@
 '.platform-win32 .github-RecentCommits, .platform-linux .github-RecentCommits':
   'ctrl-left': 'github:dive'
 
-'.platform-darwin .github-CommitDetailView':
-  'cmd-right': 'github:surface'
-'.platform-win32 .github-CommitDetailView':
-  'ctrl-right': 'github:surface'
-'.platform-linux .github-CommitDetailView':
-  'ctrl-right': 'github:surface'
-
 '.github-FilePatchView atom-text-editor:not([mini])':
   # Only support unprefixed file patch keybindings until MultiFilePatch is
   # editable
