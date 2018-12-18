@@ -1,17 +1,14 @@
-import {autobind} from '../lib/helpers';
 import AsyncQueue from '../lib/async-queue';
 
 class Task {
   constructor(name, error) {
-    autobind(this, 'run', 'finish');
-
     this.name = name;
     this.error = error;
     this.started = false;
     this.finished = false;
   }
 
-  run() {
+  run = () => {
     this.started = true;
     this.finished = false;
     return new Promise((resolve, reject) => {
@@ -20,7 +17,7 @@ class Task {
     });
   }
 
-  finish() {
+  finish = () => {
     this.finished = true;
     if (this.error) {
       this.reject(new Error(this.name));
