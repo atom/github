@@ -119,3 +119,14 @@ atom-dock.right .github-IssueishDetailView {
   }
 
 }
+
+
+// Commit Detail (in left/right dock) ----------------------------------------------
+
+atom-dock.left .github-CommitDetailView,
+atom-dock.right .github-CommitDetailView {
+  &-header { background-color: @tool-panel-background-color; }
+  &-commit { padding: @component-padding @component-padding 0 @component-padding; }
+  &-meta { margin-bottom: @component-padding; }
+  &-moreText { padding: @component-padding 0; }
+}
