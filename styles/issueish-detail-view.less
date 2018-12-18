@@ -119,9 +119,6 @@
     }
   }
 
-
-
-
   &-avatarImage {
     width: 40px;
     height: 40px;
@@ -238,6 +235,18 @@
   // Commits
   .github-PrCommitsView-commitWrapper {
     padding: @component-padding*2;
+  }
+
+
+  // Issue Body ------------------------
+
+  &-issueBody {
+    flex: 1;
+    overflow: auto;
+
+    & > .github-DotComMarkdownHtml {
+      padding: @component-padding*2;
+    }
   }
 
 }
