@@ -10,8 +10,6 @@ import {getTempDir} from '../../lib/helpers';
 import Repository from '../../lib/models/repository';
 import StatusBarTileController from '../../lib/controllers/status-bar-tile-controller';
 import BranchView from '../../lib/views/branch-view';
-import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
-import GithubTileView from '../../lib/views/github-tile-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
@@ -707,7 +705,7 @@ describe('StatusBarTileController', function() {
 
       const wrapper = await mountAndLoad(buildApp({repository, toggleGithubTab}));
 
-      wrapper.find(GithubTileView).simulate('click');
+      wrapper.find('.github-StatusBarTile').simulate('click');
       assert(toggleGithubTab.calledOnce);
     });
   });
@@ -722,7 +720,7 @@ describe('StatusBarTileController', function() {
 
       const wrapper = await mountAndLoad(buildApp({repository, toggleGitTab}));
 
-      wrapper.find(ChangedFilesCountView).simulate('click');
+      wrapper.find('.github-ChangedFilesCount').simulate('click');
       assert(toggleGitTab.calledOnce);
     });
   });
