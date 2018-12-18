@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import GithubTileView, {toolTipMessage} from '../../lib/views/github-tile-view';
+import GithubTileView, {tooltipMessage} from '../../lib/views/github-tile-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('GithubTileView', function() {
@@ -23,7 +23,7 @@ describe('GithubTileView', function() {
 
   it('renders tooltip', function() {
     const tooltip = wrapper.find('Tooltip');
-    assert.isTrue(tooltip.props().title.includes(toolTipMessage));
+    assert.isTrue(tooltip.props().title.includes(tooltipMessage));
   });
 
 
