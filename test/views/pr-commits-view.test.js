@@ -82,8 +82,8 @@ describe('PrCommitsView', function() {
 
     it('calls relay.loadMore when load more button is clicked', function() {
       const commitSpecs = [commitSpec, commitSpec];
-      const loadMoreStub = sinon.stub(PrCommitsView.prototype, 'loadMore');
-      const wrapper = shallow(buildApp({relayHasMore: () => true, commitSpecs}));
+      const loadMoreStub = sinon.stub().returns(true);
+      const wrapper = shallow(buildApp({relayHasMore: () => true, relayLoadMore: loadMoreStub, commitSpecs}));
       assert.strictEqual(loadMoreStub.callCount, 0);
       wrapper.find('.github-PrCommitsView-load-more-button').simulate('click');
       assert.strictEqual(loadMoreStub.callCount, 1);
