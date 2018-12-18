@@ -121,6 +121,13 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<PrCommitView>`](/lib/views/pr-commit-view.js)
 > > >
 > > > Enumerate the commits associated with a pull request.
+> >
+> > > [`<PullRequestChangedFilesContainer>`](/lib/containers/pr-changed-files-container.js)
+> > >
+> > > Show all the changes, separated by files, introduced in a pull request.
+> > >
+> > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 >
 > > [`<InitDialog>`](/lib/views/init-dialog.js)
 > > [`<CloneDialog>`](/lib/views/clone-dialog.js)

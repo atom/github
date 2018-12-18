@@ -6,6 +6,7 @@ import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
 describe('FilePatchHeaderView', function() {
   const relPath = path.join('dir', 'a.txt');
@@ -184,5 +185,11 @@ describe('FilePatchHeaderView', function() {
       const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
       assert.isFalse(wrapper.find('.btn-group').exists());
     });
+
+    it('does not render buttons when in an IssueishDetailItem', function() {
+      const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
+      assert.isFalse(wrapper.find('.btn-group').exists());
+    });
+
   });
 });

@@ -4,6 +4,7 @@ import {shallow, mount} from 'enzyme';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Search, {nullSearch} from '../../lib/models/search';
+import {getEndpoint} from '../../lib/models/endpoint';
 import IssueishSearchContainer from '../../lib/containers/issueish-search-container';
 import {ManualStateObserver} from '../helpers';
 
@@ -18,7 +19,7 @@ describe('IssueishSearchContainer', function() {
     return (
       <IssueishSearchContainer
         token="1234"
-        host="https://api.github.com/"
+        endpoint={getEndpoint('github.com')}
         search={new Search('default', 'type:pr')}
         remoteOperationObserver={observer}
 

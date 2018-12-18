@@ -14,8 +14,6 @@ describe('PullRequestDetailView', function() {
   }
 
   it('renders pull request information', function() {
-    const commitCount = 11;
-    const fileCount = 22;
     const baseRefName = 'master';
     const headRefName = 'tt/heck-yes';
     const wrapper = shallow(buildApp({
@@ -31,8 +29,6 @@ describe('PullRequestDetailView', function() {
       pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
       issueishNumber: 100,
       pullRequestState: 'MERGED',
-      pullRequestCommitCount: commitCount,
-      pullRequestChangedFileCount: fileCount,
       pullRequestReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
     }));
 
@@ -64,21 +60,20 @@ describe('PullRequestDetailView', function() {
     assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
     assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
 
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-commitCount').text(), `${commitCount} commits`);
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-fileCount').text(), `${fileCount} changed files`);
-
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
 
   it('renders tabs', function() {
-    const wrapper = shallow(buildApp({}));
+    const pullRequestCommitCount = 11;
+    const pullRequestChangedFileCount = 22;
+    const wrapper = shallow(buildApp({pullRequestCommitCount, pullRequestChangedFileCount}));
 
     assert.lengthOf(wrapper.find(Tabs), 1);
     assert.lengthOf(wrapper.find(TabList), 1);
 
     const tabs = wrapper.find(Tab).getElements();
-    assert.lengthOf(tabs, 3);
+    assert.lengthOf(tabs, 4);
 
     const tab0Children = tabs[0].props.children;
     assert.deepEqual(tab0Children[0].props, {icon: 'info', className: 'github-IssueishDetailView-tab-icon'});
@@ -92,7 +87,16 @@ describe('PullRequestDetailView', function() {
     assert.deepEqual(tab2Children[0].props, {icon: 'git-commit', className: 'github-IssueishDetailView-tab-icon'});
     assert.deepEqual(tab2Children[1], 'Commits');
 
-    assert.lengthOf(wrapper.find(TabPanel), 3);
+    const tab3Children = tabs[3].props.children;
+    assert.deepEqual(tab3Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab3Children[1], 'Files');
+
+    const tabCounts = wrapper.find('.github-IssueishDetailView-tab-count');
+    assert.lengthOf(tabCounts, 2);
+    assert.strictEqual(tabCounts.at(0).text(), `${pullRequestCommitCount}`);
+    assert.strictEqual(tabCounts.at(1).text(), `${pullRequestChangedFileCount}`);
+
+    assert.lengthOf(wrapper.find(TabPanel), 4);
   });
 
   it('tells its tabs when the pull request is currently checked out', function() {
@@ -239,15 +243,17 @@ describe('PullRequestDetailView', function() {
     });
   });
 
-  describe('clicking link to view issueish link', function() {
-    it('records an event', function() {
+  describe('metrics', function() {
+    beforeEach(function() {
+      sinon.stub(reporterProxy, 'addEvent');
+    });
+
+    it('records clicking the link to view an issueish', function() {
       const wrapper = shallow(buildApp({
         repositoryName: 'repo',
         ownerLogin: 'user0',
         issueishNumber: 100,
       }));
-
-      sinon.stub(reporterProxy, 'addEvent');
 
       const link = wrapper.find('a.github-IssueishDetailView-headerLink');
       assert.strictEqual(link.text(), 'user0/repo#100');
@@ -255,6 +261,56 @@ describe('PullRequestDetailView', function() {
       link.simulate('click');
 
       assert.isTrue(reporterProxy.addEvent.calledWith('open-pull-request-in-browser', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    function findTabIndex(wrapper, tabText) {
+      let finalIndex;
+      let tempIndex = 0;
+      wrapper.find('Tab').forEach(t => {
+        t.children().forEach(child => {
+          if (child.text() === tabText) {
+            finalIndex = tempIndex;
+          }
+        });
+        tempIndex++;
+      });
+      return finalIndex;
+    }
+
+    it('records opening the Overview tab', function() {
+      const wrapper = shallow(buildApp());
+      const index = findTabIndex(wrapper, 'Overview');
+
+      wrapper.find('Tabs').prop('onSelect')(index);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-overview', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the Build Status tab', function() {
+      const wrapper = shallow(buildApp());
+      const index = findTabIndex(wrapper, 'Build Status');
+
+      wrapper.find('Tabs').prop('onSelect')(index);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-build-status', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the Commits tab', function() {
+      const wrapper = shallow(buildApp());
+      const index = findTabIndex(wrapper, 'Commits');
+
+      wrapper.find('Tabs').prop('onSelect')(index);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-commits', {package: 'github', component: 'BarePullRequestDetailView'}));
+    });
+
+    it('records opening the "Files Changed" tab', function() {
+      const wrapper = shallow(buildApp());
+      const index = findTabIndex(wrapper, 'Files');
+
+      wrapper.find('Tabs').prop('onSelect')(index);
+
+      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-files-changed', {package: 'github', component: 'BarePullRequestDetailView'}));
     });
   });
 });
