@@ -75,7 +75,6 @@ describe('PullRequestChangedFilesContainer', function() {
     it('builds multifilepatch without the a/ and b/ prefixes in file paths', function() {
       const wrapper = shallow(buildApp());
       const {filePatches} = wrapper.instance().buildPatch(rawDiffWithPathPrefix);
-      console.log(filePatches)
       assert.notMatch(filePatches[0].newFile.path, /^[a|b]\//);
       assert.notMatch(filePatches[0].oldFile.path, /^[a|b]\//);
     });
