@@ -1,40 +1,48 @@
-<!---
-For community contributors -- Please fill out Part 1 of the following template. This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. Sections in Part 2 are not mandatory to get the conversation started, but will help our team understand your vision better and allow us to give better feedback.
---->
-
-**_Part 1 - Required information_**
-
-# Feature title
-
-## :tipping_hand_woman: Status
-
-Proposed
+# Editable Diff
 
 ## :memo: Summary
 
-One paragraph explanation of the feature.
+Inline editing within a diff view.
 
 ## :checkered_flag: Motivation
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
+- is a part of the bigger PR review workflow we want to implement
+- saves user the trouble of needing to toggle to an editor and back again when you notice typos, console.log() statements, or .only() tests when reviewing unstaged changes.
 
 ## 🤯 Explanation
 
-Explain the proposal as if it was already implemented in the GitHub package and you were describing it to an Atom user. That generally means:
+- what is editable?
+    - staged/unstaged?
+    - deleted lines?
+    - *should be only unstaged diff and only on added lines*
+- how do we indicate which diff is editable?
+    - VS code uses tooltip upon user trying to type something (but typing cursor thing still shows)
+- at what point do we write the changes to disk?
+- how much of the diff should be editable at a time?
+    - one hunk at a time
 
-- Introducing new named concepts.
-- Explaining the feature largely in terms of examples.
-- Explaining any changes to existing workflows.
-- Design mock-ups or diagrams depicting any new UI that will be introduced.
-
-
-**_Part 2 - Additional information_**
 
 ## :anchor: Drawbacks
 
-Why should we *not* do this?
+- the diff tool in Atom is a fundamental and also old component of the package, so changing the behaviour and UI of such carries a relatively higher risk.
+- no prior art to editable diffs in unified diff view (as opposed to split view discussed below.)
 
 ## :thinking: Rationale and alternatives
+
+All of the prior arts I could find on editable diffs implement this feature with the use of "split screen diff".
+
+This is a gif of how it works in VS code, but other diff and/or merge tools have similar implementations:
+ - split screen with one side editable (the copy on disk) and the other side readonly
+ - both sides show unmodified lines
+ - readonly side shows deleted lines
+ - editable side shows added/modified lines
+ - use grey blocks to reconcile the line differences between the two sides so they line up properly
+
+##### Pros:
+ -
+
+##### Cons:
+
 
 - Why is this approach the best in the space of possible approaches?
 - What other approaches have been considered and what is the rationale for not choosing them?
