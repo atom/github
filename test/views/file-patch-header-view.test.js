@@ -60,6 +60,13 @@ describe('FilePatchHeaderView', function() {
         assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `Staged Changes for ${relPath}`);
       });
     });
+
+    it('renders title for a renamed file as oldPath → newPath', function() {
+      const oldPath = path.join('dir', 'a.txt');
+      const newPath = path.join('dir', 'b.txt');
+      const wrapper = shallow(buildApp({relPath: oldPath, newPath}));
+      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `${oldPath} → ${newPath}`);
+    });
   });
 
   describe('the button group', function() {
