@@ -42,6 +42,7 @@
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     font-family: system-ui;
+    font-size: @font-size;
     background-color: @header-bg-color;
     cursor: default;
 
@@ -248,7 +249,6 @@
   // Readonly editor
 
   atom-text-editor[readonly] {
-    font-size: @font-size; // Use font-size form UI themes and not the editor config
     .cursors {
       display: none;
     }
