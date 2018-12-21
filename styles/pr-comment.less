@@ -1,0 +1,36 @@
+@import 'variables';
+
+@avatar-size: 16px;
+
+.github-PrComment {
+  font-family: @font-family;
+  font-size: @font-size;
+
+  &-wrapper {
+    max-width: 60em;
+    padding-right: @component-padding*2;
+    padding-bottom: @component-padding;
+  }
+
+  &-header {
+    padding: @component-padding 0 @component-padding/2 0;
+    color: @text-color-subtle;
+  }
+
+  &-avatar {
+    margin-right: 4px;
+    height: @avatar-size;
+    width: @avatar-size;
+    border-radius: @component-border-radius;
+  }
+
+  &-timeAgo {
+    color: inherit;
+  }
+
+  &-body {
+    margin-left: @avatar-size + 4px; // avatar + margin
+    font-size: 1.15em;
+  }
+
+}
