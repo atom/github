@@ -64,6 +64,17 @@
     margin-right: @component-padding;
   }
 
+  &-collapseButton {
+    background: transparent;
+    border: none;
+    // dont' judge me.  flexbox seemed like overkill, ok?
+    float: right;
+  }
+
+  &-collapseButtonIcon {
+    position: absolute;
+  }
+
   &-container {
     flex: 1;
     display: flex;
