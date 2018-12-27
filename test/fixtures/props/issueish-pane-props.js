@@ -27,6 +27,15 @@ export function issueishDetailContainerProps(overrides = {}) {
     switchToIssueish: () => {},
     onTitleChange: () => {},
 
+    workspace: {},
+    commands: {},
+    keymaps: {},
+    tooltips: {},
+    config: {},
+    destroy: () => {},
+
+    itemType: IssueishDetailItem,
+
     ...overrides,
   };
 }
