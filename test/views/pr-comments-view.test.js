@@ -3,9 +3,9 @@ import {shallow} from 'enzyme';
 
 import {multiFilePatchBuilder} from '../builder/patch';
 import {pullRequestBuilder} from '../builder/pr';
-import PrCommentsView from '../../lib/views/pr-comments-view';
+import PullRequestCommentsView  from '../../lib/views/pr-comments-view';
 
-describe('PrCommentsView', function() {
+describe('PullRequestCommentsView', function() {
   it('adjusts the position for comments after hunk headers', function() {
     const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
@@ -31,7 +31,7 @@ describe('PrCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PrCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
+    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
 
     assert.deepEqual(wrapper.find('Marker').at(0).prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
     assert.deepEqual(wrapper.find('Marker').at(1).prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
@@ -56,7 +56,7 @@ describe('PrCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PrCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
+    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
 
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 1);
