@@ -30,6 +30,8 @@ describe('IssueishDetailContainer', function() {
         timelineCursor: null,
         commitCount: 100,
         commitCursor: null,
+        commentCount: 100,
+        commentCursor: null,
       },
     }, {
       repository: {
