@@ -3,7 +3,7 @@ import {shallow} from 'enzyme';
 
 import {multiFilePatchBuilder} from '../builder/patch';
 import {pullRequestBuilder} from '../builder/pr';
-import PullRequestCommentsView  from '../../lib/views/pr-comments-view';
+import PullRequestCommentsView, {PullRequestCommentView} from '../../lib/views/pr-comments-view';
 
 describe('PullRequestCommentsView', function() {
   it('adjusts the position for comments after hunk headers', function() {
@@ -61,5 +61,59 @@ describe('PullRequestCommentsView', function() {
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 1);
     assert.strictEqual(comments.at(0).prop('comment').body, 'one');
+  });
+});
+
+describe('PullRequestCommentView', function() {
+  const avatarUrl = 'https://avatars3.githubusercontent.com/u/3781742?s=40&v=4';
+  const login = 'annthurium';
+  const commentUrl = 'https://github.com/kuychaco/test-repo/pull/4#discussion_r244214873';
+  const createdAt = '2018-12-27T17:51:17Z';
+  const bodyHTML = '<div> yo yo </div>';
+  const switchToIssueish = () => {};
+
+  function buildApp(overrideProps = {}, opts = {}) {
+    const props = {
+      comment: {
+        bodyHTML,
+        url: commentUrl,
+        createdAt,
+        author: {
+          avatarUrl,
+          login,
+        },
+        ...overrideProps,
+      },
+      switchToIssueish,
+      ...opts,
+    };
+
+    return (
+      <PullRequestCommentView {...props} />
+    );
+  }
+  it('renders the PullRequestCommentReview information', function() {
+    const wrapper = shallow(buildApp());
+    const avatar = wrapper.find('.github-PrComment-avatar');
+
+    assert.strictEqual(avatar.getElement('src').props.src, avatarUrl);
+    assert.strictEqual(avatar.getElement('alt').props.alt, login);
+
+    assert.isTrue(wrapper.text().includes(`${login} commented`));
+
+    const a = wrapper.find('.github-PrComment-timeAgo');
+    assert.strictEqual(a.getElement('href').props.href, commentUrl);
+
+    const timeAgo = wrapper.find('Timeago');
+    assert.strictEqual(timeAgo.prop('time'), createdAt);
+
+    const githubDotcomMarkdown = wrapper.find('GithubDotcomMarkdown');
+    assert.strictEqual(githubDotcomMarkdown.prop('html'), bodyHTML);
+    assert.strictEqual(githubDotcomMarkdown.prop('switchToIssueish'), switchToIssueish);
+  });
+
+  it('contains the text `someone commented` for null authors', function() {
+    const wrapper = shallow(buildApp({author: null}));
+    assert.isTrue(wrapper.text().includes('someone commented'));
   });
 });
