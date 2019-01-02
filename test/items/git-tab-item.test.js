@@ -61,6 +61,7 @@ describe('GitTabItem', function() {
     const focusMethods = [
       'focusAndSelectStagingItem',
       'focusAndSelectCommitPreviewButton',
+      'focusAndSelectRecentCommit',
     ];
 
     const spies = focusMethods.reduce((map, focusMethod) => {

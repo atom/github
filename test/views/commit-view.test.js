@@ -10,6 +10,8 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import ObserveModel from '../../lib/views/observe-model';
 import UserStore from '../../lib/models/user-store';
 import CommitView from '../../lib/views/commit-view';
+import RecentCommitsView from '../../lib/views/recent-commits-view';
+import StagingView from '../../lib/views/staging-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitView', function() {
@@ -347,176 +349,176 @@ describe('CommitView', function() {
     assert.isFalse(wrapper.instance().hasFocus());
   });
 
-  it('detects when the editor has focus', function() {
-    const wrapper = mount(app);
-
-    const editorNode = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
-    sinon.stub(editorNode, 'contains').returns(true);
-    assert.isTrue(wrapper.instance().hasFocusEditor());
-
-    editorNode.contains.returns(false);
-    assert.isFalse(wrapper.instance().hasFocusEditor());
-
-    editorNode.contains.returns(true);
-    wrapper.instance().refEditorComponent.setter(null);
-    assert.isFalse(wrapper.instance().hasFocusEditor());
-  });
-
   describe('advancing focus', function() {
-    let wrapper, instance, event;
+    let wrapper, instance;
 
     beforeEach(function() {
       wrapper = mount(app);
       instance = wrapper.instance();
-      event = {stopPropagation: sinon.spy()};
-
-      sinon.spy(instance, 'setFocus');
     });
 
-    it('does nothing and returns false if the focus is not in the commit view', function() {
-      sinon.stub(instance, 'getFocus').returns(null);
-      assert.isFalse(instance.advanceFocus(event));
-      assert.isFalse(instance.setFocus.called);
-      assert.isFalse(event.stopPropagation.called);
+    it('returns null if the focus is not in the commit view', async function() {
+      assert.isNull(await instance.advanceFocusFrom(StagingView.focus.STAGING));
     });
 
-    it('moves focus to the commit editor if the commit preview button is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_PREVIEW_BUTTON);
-
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the commit editor if the commit preview button is focused', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COMMIT_PREVIEW_BUTTON),
+        CommitView.focus.EDITOR,
+      );
     });
 
-    it('inserts a tab if the commit editor is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.EDITOR);
-
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isFalse(event.stopPropagation.called);
+    it('moves focus to the RecentCommitsView if the commit editor is focused', async function() {
+      wrapper.setProps({isCommitting: true});
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.EDITOR),
+        RecentCommitsView.firstFocus,
+      );
     });
 
-    it('moves focus to the commit button if the coauthor form is focused and no merge is in progress', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
-
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_BUTTON));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the commit button if the commit editor is focused and the button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.EDITOR),
+        CommitView.focus.COMMIT_BUTTON,
+      );
     });
 
-    it('moves focus to the abort merge button if the coauthor form is focused and a merge is in progress', function() {
+    it('moves focus to the coauthor input if the commit editor is focused and the coauthor input is open', async function() {
+      wrapper.setState({showCoAuthorInput: true});
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.EDITOR),
+        CommitView.focus.COAUTHOR_INPUT,
+      );
+    });
+
+    it('moves focus to the abort merge button if the commit editor is focused and a merge is in progress', async function() {
       wrapper.setProps({isMerging: true});
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
-
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.ABORT_MERGE_BUTTON));
-      assert.isTrue(event.stopPropagation.called);
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.EDITOR),
+        CommitView.focus.ABORT_MERGE_BUTTON,
+      );
     });
 
-    it('moves focus to the commit button if the abort merge button is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
-
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_BUTTON));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the RecentCommitsView if the coauthor input is focused and no merge is in progress', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COAUTHOR_INPUT),
+        RecentCommitsView.firstFocus,
+      );
     });
 
-    it('does nothing and returns true if the commit button is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
+    it('moves focus to the commit button if the coauthor input is focused, no merge is in progress, and the button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COAUTHOR_INPUT),
+        CommitView.focus.COMMIT_BUTTON,
+      );
+    });
 
-      assert.isTrue(instance.advanceFocus(event));
-      assert.isFalse(instance.setFocus.called);
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the abort merge button if the coauthor form is focused and a merge is in progress', async function() {
+      wrapper.setProps({isMerging: true});
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COAUTHOR_INPUT),
+        CommitView.focus.ABORT_MERGE_BUTTON,
+      );
+    });
+
+    it('moves focus to the RecentCommitsView if the abort merge button is focused', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
+        RecentCommitsView.firstFocus,
+      );
+    });
+
+    it('moves focus to the commit button if the abort merge button is focused and the commit button is enabled', async function() {
+      sinon.stub(instance, 'commitIsEnabled').returns(true);
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
+        CommitView.focus.COMMIT_BUTTON,
+      );
+    });
+
+    it('moves focus to the RecentCommitsView if the commit button is focused', async function() {
+      assert.strictEqual(
+        await instance.advanceFocusFrom(CommitView.focus.COMMIT_BUTTON),
+        RecentCommitsView.firstFocus,
+      );
     });
   });
 
   describe('retreating focus', function() {
-    let wrapper, instance, event;
+    let wrapper, instance;
 
     beforeEach(function() {
       wrapper = mount(app);
       instance = wrapper.instance();
-      event = {stopPropagation: sinon.spy()};
-
-      sinon.spy(instance, 'setFocus');
     });
 
-    it('does nothing and returns false if the focus is not in the commit view', function() {
-      sinon.stub(instance, 'getFocus').returns(null);
-
-      assert.isFalse(instance.retreatFocus(event));
-      assert.isFalse(instance.setFocus.called);
-      assert.isFalse(event.stopPropagation.called);
+    it('returns null if the focus is not in the commit view', async function() {
+      assert.isNull(await instance.retreatFocusFrom(RecentCommitsView.RECENT_COMMIT));
     });
 
-    it('moves focus to the abort merge button if the commit button is focused and a merge is in progress', function() {
+    it('moves focus to the abort merge button if the commit button is focused and a merge is in progress', async function() {
       wrapper.setProps({isMerging: true});
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.ABORT_MERGE_BUTTON));
-      assert.isTrue(event.stopPropagation.called);
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.COMMIT_BUTTON),
+        CommitView.focus.ABORT_MERGE_BUTTON,
+      );
     });
 
-    it('moves focus to the editor if the commit button is focused and no merge is underway', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the editor if the commit button is focused and no merge is underway', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.COMMIT_BUTTON),
+        CommitView.focus.EDITOR,
+      );
     });
 
-    it('moves focus to the co-author form if it is visible, the commit button is focused, and no merge', function() {
+    it('moves focus to the co-author input if it is visible, the commit button is focused, and no merge', async function() {
       wrapper.setState({showCoAuthorInput: true});
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_BUTTON);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COAUTHOR_INPUT));
-      assert.isTrue(event.stopPropagation.called);
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.COMMIT_BUTTON),
+        CommitView.focus.COAUTHOR_INPUT,
+      );
     });
 
-    it('moves focus to the co-author form if it is visible and the abort merge button is in focus', function() {
+    it('moves focus to the co-author input if it is visible and the abort merge button is in focus', async function() {
       wrapper.setState({showCoAuthorInput: true});
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COAUTHOR_INPUT));
-      assert.isTrue(event.stopPropagation.called);
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
+        CommitView.focus.COAUTHOR_INPUT,
+      );
     });
 
-    it('moves focus to the commit editor if the abort merge button is in focus', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.ABORT_MERGE_BUTTON);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the commit editor if the abort merge button is in focus', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.ABORT_MERGE_BUTTON),
+        CommitView.focus.EDITOR,
+      );
     });
 
-    it('moves focus to the commit editor if the co-author form is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COAUTHOR_INPUT);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.EDITOR));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the commit editor if the co-author form is focused', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.COAUTHOR_INPUT),
+        CommitView.focus.EDITOR,
+      );
     });
 
-    it('moves focus to the commit preview button if the commit editor is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.EDITOR);
-
-      assert.isTrue(instance.retreatFocus(event));
-      assert.isTrue(instance.setFocus.calledWith(CommitView.focus.COMMIT_PREVIEW_BUTTON));
-      assert.isTrue(event.stopPropagation.called);
+    it('moves focus to the commit preview button if the commit editor is focused', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.EDITOR),
+        CommitView.focus.COMMIT_PREVIEW_BUTTON,
+      );
     });
 
-    it('does nothing and returns false if the commit preview button is focused', function() {
-      sinon.stub(instance, 'getFocus').returns(CommitView.focus.COMMIT_PREVIEW_BUTTON);
-
-      assert.isFalse(instance.retreatFocus(event));
-      assert.isFalse(instance.setFocus.called);
-      assert.isFalse(event.stopPropagation.called);
+    it('moves focus to the StagingView if the commit preview button is focused', async function() {
+      assert.strictEqual(
+        await instance.retreatFocusFrom(CommitView.focus.COMMIT_PREVIEW_BUTTON),
+        StagingView.lastFocus,
+      );
     });
   });
 
-  it('remembers the current focus', function() {
+  it('gets the current focus', function() {
     const wrapper = mount(React.cloneElement(app, {isMerging: true}));
     wrapper.instance().toggleCoAuthorInput();
     wrapper.update();
@@ -533,10 +535,10 @@ describe('CommitView', function() {
       if (subselector) {
         target = target.querySelector(subselector);
       }
-      assert.strictEqual(wrapper.instance().rememberFocus({target}), focus);
+      assert.strictEqual(wrapper.instance().getFocus(target), focus);
     }
 
-    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+    assert.isNull(wrapper.instance().getFocus(document.body));
 
     const holders = [
       'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
@@ -545,7 +547,7 @@ describe('CommitView', function() {
     for (const holder of holders) {
       holder.setter(null);
     }
-    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+    assert.isNull(wrapper.instance().getFocus({target: document.body}));
   });
 
   describe('restoring focus', function() {
@@ -565,6 +567,21 @@ describe('CommitView', function() {
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
       assert.isTrue(element.focus.called);
+    });
+
+    it('to the editor when a template is present', function() {
+      messageBuffer.setText('# Template text here');
+
+      const wrapper = mount(app);
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
+      assert.isTrue(element.focus.called);
+      assert.deepEqual(
+        element.getModel().getCursorBufferPositions().map(p => p.serialize()),
+        [[0, 0]],
+      );
     });
 
     it('to the abort merge button', function() {
@@ -591,6 +608,42 @@ describe('CommitView', function() {
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
       assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the commit button", function() {
+      messageBuffer.setText('non-empty');
+      const wrapper = mount(React.cloneElement(app, {stagedChangesExist: true}));
+      sinon.spy(wrapper.find('.github-CommitView-commit').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-commit').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the abort merge button", function() {
+      const wrapper = mount(React.cloneElement(app, {isMerging: true}));
+      sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the coauthor input", function() {
+      const wrapper = mount(app);
+      wrapper.instance().toggleCoAuthorInput();
+
+      sinon.spy(wrapper.update().find('.github-CommitView-coAuthorEditor input').getDOMNode(), 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+    });
+
+    it("to the last element when it's the editor", function() {
+      const wrapper = mount(app);
+      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      sinon.spy(element, 'focus');
+
+      assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
+      assert.isTrue(element.focus.called);
     });
 
     it('with an unrecognized symbol', function() {

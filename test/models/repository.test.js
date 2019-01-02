@@ -3,9 +3,10 @@ import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
 import compareSets from 'compare-sets';
-import isEqual from 'lodash.isequal';
+import isEqualWith from 'lodash.isequalwith';
 
 import Repository from '../../lib/models/repository';
+import CompositeGitStrategy from '../../lib/composite-git-strategy';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import Author from '../../lib/models/author';
@@ -64,7 +65,7 @@ describe('Repository', function() {
       for (const method of [
         'isLoadingGuess', 'isAbsentGuess', 'isAbsent', 'isLoading', 'isEmpty', 'isPresent', 'isTooLarge',
         'isUndetermined', 'showGitTabInit', 'showGitTabInitInProgress', 'showGitTabLoading', 'showStatusBarTiles',
-        'hasDiscardHistory', 'isMerging', 'isRebasing',
+        'hasDiscardHistory', 'isMerging', 'isRebasing', 'isCommitPushed',
       ]) {
         assert.isFalse(await repository[method]());
       }
@@ -136,6 +137,25 @@ describe('Repository', function() {
     });
   });
 
+  it('accesses an OperationStates model', async function() {
+    const repository = new Repository(await cloneRepository());
+    await repository.getLoadPromise();
+
+    const os = repository.getOperationStates();
+    assert.isFalse(os.isPushInProgress());
+    assert.isFalse(os.isPullInProgress());
+    assert.isFalse(os.isFetchInProgress());
+    assert.isFalse(os.isCommitInProgress());
+    assert.isFalse(os.isCheckoutInProgress());
+  });
+
+  it('shows status bar tiles once present', async function() {
+    const repository = new Repository(await cloneRepository());
+    assert.isFalse(repository.showStatusBarTiles());
+    await repository.getLoadPromise();
+    assert.isTrue(repository.showStatusBarTiles());
+  });
+
   describe('getGitDirectoryPath', function() {
     it('returns the correct git directory path', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -173,6 +193,14 @@ describe('Repository', function() {
       assert.isTrue(repo.isPresent());
       assert.equal(repo.getWorkingDirectoryPath(), soonToBeRepositoryPath);
     });
+
+    it('fails with an error when a repository is already present', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await assert.isRejected(repository.init());
+    });
   });
 
   describe('clone', function() {
@@ -197,6 +225,16 @@ describe('Repository', function() {
       await repo.clone(upstreamPath, destDir);
       assert.isTrue(repo.isPresent());
       assert.equal(repo.getWorkingDirectoryPath(), destDir);
+    });
+
+    it('fails with an error when a repository is already present', async function() {
+      const upstream = await cloneRepository();
+
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await assert.isRejected(repository.clone(upstream));
     });
   });
 
@@ -728,6 +766,24 @@ describe('Repository', function() {
         await assert.isRejected(repo.commit('Commit yo!'));
         assert.isFalse(reporterProxy.addEvent.called);
       });
+    });
+  });
+
+  describe('getCommit(sha)', function() {
+    it('returns the commit information for the provided sha', async function() {
+      const workingDirPath = await cloneRepository('multiple-commits');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      const commit = await repo.getCommit('18920c900bfa6e4844853e7e246607a31c3e2e8c');
+
+      assert.isTrue(commit.isPresent());
+      assert.strictEqual(commit.getSha(), '18920c900bfa6e4844853e7e246607a31c3e2e8c');
+      assert.strictEqual(commit.getAuthorEmail(), 'kuychaco@github.com');
+      assert.strictEqual(commit.getAuthorDate(), 1471113642);
+      assert.lengthOf(commit.getCoAuthors(), 0);
+      assert.strictEqual(commit.getMessageSubject(), 'second commit');
+      assert.strictEqual(commit.getMessageBody(), '');
     });
   });
 
@@ -1310,6 +1366,20 @@ describe('Repository', function() {
       });
     });
 
+    it('checks out one side or another', async function() {
+      const workingDirPath = await cloneRepository('merge-conflict');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await assert.isRejected(repo.git.merge('origin/branch'));
+
+      repo.refresh();
+      assert.isTrue(await repo.pathHasMergeMarkers('modified-on-both-ours.txt'));
+
+      await repo.checkoutSide('ours', ['modified-on-both-ours.txt']);
+
+      assert.isFalse(await repo.pathHasMergeMarkers('modified-on-both-ours.txt'));
+    });
+
     describe('abortMerge()', function() {
       describe('when the working directory is clean', function() {
         it('resets the index and the working directory to match HEAD', async function() {
@@ -1624,11 +1694,15 @@ describe('Repository', function() {
         return new Set(
           syncResults
             .filter(({aSync, bSync}) => {
-              if (aSync && aSync.isEqual) {
-                return !aSync.isEqual(bSync);
-              } else {
-                return !isEqual(aSync, bSync);
-              }
+              // Recursively compare synchronous results. If an "isEqual" method is defined on any model, defer to
+              // its definition of equality.
+              return !isEqualWith(aSync, bSync, (a, b) => {
+                if (a && a.isEqual) {
+                  return a.isEqual(b);
+                }
+
+                return undefined;
+              });
             })
             .map(({key}) => key),
         );
@@ -2152,11 +2226,66 @@ describe('Repository', function() {
     });
   });
 
-  describe('updating commit message', function() {
+  describe('commit message', function() {
     let sub;
 
     afterEach(function() {
       sub && sub.dispose();
+    });
+
+    describe('initial state', function() {
+      let workdir;
+
+      beforeEach(async function() {
+        workdir = await cloneRepository();
+      });
+
+      it('is initialized to the merge message if one is present', async function() {
+        await fs.writeFile(path.join(workdir, '.git/MERGE_MSG'), 'sup', {encoding: 'utf8'});
+
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+
+        await assert.async.strictEqual(repository.getCommitMessage(), 'sup');
+      });
+
+      it('is initialized to the commit message template if one is present', async function() {
+        await fs.writeFile(path.join(workdir, 'template'), 'hai', {encoding: 'utf8'});
+        await CompositeGitStrategy.create(workdir).setConfig('commit.template', path.join(workdir, 'template'));
+
+        const repository = new Repository(workdir);
+        await repository.getLoadPromise();
+        await new Promise(resolve => {
+          sub = repository.onDidUpdate(() => {
+            sub.dispose();
+            resolve();
+          });
+        });
+
+        await assert.async.strictEqual(repository.getCommitMessage(), 'hai');
+      });
+    });
+
+    describe('update broadcast', function() {
+      it('broadcasts an update when set', async function() {
+        const repository = new Repository(await cloneRepository());
+        await repository.getLoadPromise();
+        const didUpdate = sinon.spy();
+        sub = repository.onDidUpdate(didUpdate);
+
+        repository.setCommitMessage('new message');
+        assert.isTrue(didUpdate.called);
+      });
+
+      it('may suppress the update when set', async function() {
+        const repository = new Repository(await cloneRepository());
+        await repository.getLoadPromise();
+        const didUpdate = sinon.spy();
+        sub = repository.onDidUpdate(didUpdate);
+
+        repository.setCommitMessage('quietly now', {suppressUpdate: true});
+        assert.isFalse(didUpdate.called);
+      });
     });
 
     describe('updateCommitMessageAfterFileSystemChange', function() {
@@ -2191,6 +2320,31 @@ describe('Repository', function() {
         );
         await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
       });
+
+      it('leaves the commit message alone if the template content did not change', async function() {
+        const {repository, observer, subscriptions} = await wireUpObserver();
+        sub = subscriptions;
+        await observer.start();
+
+        const templateOnePath = path.join(repository.getWorkingDirectoryPath(), 'the-template-0.txt');
+        const templateTwoPath = path.join(repository.getWorkingDirectoryPath(), 'the-template-1.txt');
+        const templateContent = 'the same';
+
+        await Promise.all(
+          [templateOnePath, templateTwoPath].map(p => fs.writeFile(p, templateContent, {encoding: 'utf8'})),
+        );
+
+        await repository.git.setConfig('commit.template', templateOnePath);
+        await expectEvents(repository, path.join('.git', 'config'));
+        await assert.async.strictEqual(repository.getCommitMessage(), 'the same');
+
+        repository.setCommitMessage('different');
+
+        await repository.git.setConfig('commit.template', templateTwoPath);
+        await expectEvents(repository, path.join('.git', 'config'));
+        assert.strictEqual(repository.getCommitMessage(), 'different');
+      });
+
       it('updates commit message to empty string if commit.template is unset', async function() {
         const {repository, observer, subscriptions} = await wireUpObserver();
         sub = subscriptions;

@@ -221,6 +221,15 @@ describe('GitTabController', function() {
     assert.isTrue(focusMethod.called);
   });
 
+  it('imperatively selects the recent commit', async function() {
+    const repository = await buildRepository(await cloneRepository('three-files'));
+    const wrapper = mount(await buildApp(repository));
+
+    const focusMethod = sinon.spy(wrapper.find('GitTabView').instance(), 'focusAndSelectRecentCommit');
+    wrapper.instance().focusAndSelectRecentCommit();
+    assert.isTrue(focusMethod.called);
+  });
+
   describe('focus management', function() {
     it('remembers the last focus reported by the view', async function() {
       const repository = await buildRepository(await cloneRepository());

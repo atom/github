@@ -17,8 +17,9 @@
   'alt-m enter': 'github:resolve-as-current'
   'alt-m r': 'github:revert-current'
 
-'.github-Git':
+'.platform-darwin .github-Git':
   'cmd-enter': 'github:commit'
+'.platform-win32 .github-Git, .platform-linux .github-Git':
   'ctrl-enter': 'github:commit'
 
 '.github-StagingView':
@@ -26,36 +27,79 @@
   'shift-tab': 'core:focus-previous'
   'o': 'github:jump-to-file'
   'left': 'core:move-left'
+'.platform-darwin .github-StagingView':
   'cmd-left': 'core:move-left'
+'.platform-linux .github-StagingView, .platform-win32 .github-StagingView':
+  'ctrl-left': 'core-move-left'
 
 '.github-CommitView button':
   'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
-'.github-StagingView.unstaged-changes-focused':
+'.platform-darwin .github-StagingView.unstaged-changes-focused':
   'cmd-backspace': 'github:discard-changes-in-selected-files'
+'.platform-linux .github-StagingView.unstaged-changes-focused':
+  'ctrl-backspace': 'github:discard-changes-in-selected-files'
+'.platform-win32 .github-StagingView.unstaged-changes-focused':
+  # Repeated to avoid line length
   'ctrl-backspace': 'github:discard-changes-in-selected-files'
 
 '.github-CommitView-editor atom-text-editor:not([mini])':
-  'cmd-enter': 'github:commit'
-  'ctrl-enter': 'github:commit'
+  'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
+'.platform-darwin .github-CommitView-editor atom-text-editor:not([mini])':
+  'cmd-enter': 'github:commit'
+'.platform-win32 .github-CommitView-editor atom-text-editor:not([mini])':
+  'ctrl-enter': 'github:commit'
+'.platform-linux .github-CommitView-editor atom-text-editor:not([mini])':
+  # Repeated to avoid line length
+  'ctrl-enter': 'github:commit'
 
 '.github-CommitView-commitPreview':
-  'cmd-left': 'github:dive'
-  'ctrl-left': 'github:dive'
+  'left': 'github-dive'
   'enter': 'native!'
+'.platform-darwin .github-CommitView-commitPreview':
+  'cmd-left': 'github:dive'
+'.platform-win32 .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
+'.platform-linux .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
+
+'.github-RecentCommits':
+  'left': 'github:dive'
+  'enter': 'github:dive'
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+'.platform-darwin .github-RecentCommits':
+  'cmd-left': 'github:dive'
+'.platform-win32 .github-RecentCommits, .platform-linux .github-RecentCommits':
+  'ctrl-left': 'github:dive'
 
 '.github-FilePatchView atom-text-editor:not([mini])':
+  # Only support unprefixed file patch keybindings until MultiFilePatch is
+  # editable
+  '/': 'github:toggle-patch-selection-mode'
+  'backspace': 'github:discard-selected-lines'
+  'enter': 'core:confirm'
+  'right': 'github:surface'
+  'o': 'github:jump-to-file'
+'.platform-darwin .github-FilePatchView atom-text-editor:not([mini])':
   'cmd-/': 'github:toggle-patch-selection-mode'
-  'ctrl-/': 'github:toggle-patch-selection-mode'
   'cmd-backspace': 'github:discard-selected-lines'
-  'ctrl-backspace': 'github:discard-selected-lines'
   'cmd-enter': 'core:confirm'
-  'ctrl-enter': 'core:confirm'
   'cmd-right': 'github:surface'
-  'ctrl-right': 'github:surface'
   'cmd-o': 'github:jump-to-file'
+'.platform-win32 .github-FilePatchView atom-text-editor:not([mini])':
+  'ctrl-/': 'github:toggle-patch-selection-mode'
+  'ctrl-backspace': 'github:discard-selected-lines'
+  'ctrl-enter': 'core:confirm'
+  'ctrl-right': 'github:surface'
+  'ctrl-o': 'github:jump-to-file'
+'.platform-linux .github-FilePatchView atom-text-editor:not([mini])':
+  'ctrl-/': 'github:toggle-patch-selection-mode'
+  'ctrl-backspace': 'github:discard-selected-lines'
+  'ctrl-enter': 'core:confirm'
+  'ctrl-right': 'github:surface'
   'ctrl-o': 'github:jump-to-file'
 
 '.github-FilePatchView--hunkMode atom-text-editor:not([mini])':

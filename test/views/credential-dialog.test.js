@@ -85,4 +85,30 @@ describe('CredentialDialog', function() {
       assert.isFalse(wrapper.find('.github-CredentialDialog-remember').exists());
     });
   });
+
+  it('calls the cancel callback', function() {
+    wrapper = mount(app);
+    wrapper.find('.github-CancelButton').simulate('click');
+    assert.isTrue(didCancel.called);
+  });
+
+  describe('show password', function() {
+    it('sets the passwords input type to "text" on the first click', function() {
+      wrapper = mount(app);
+
+      wrapper.find('.github-DialogLabelButton').simulate('click');
+
+      const passwordInput = wrapper.find('.github-CredentialDialog-Password');
+      assert.equal(passwordInput.prop('type'), 'text');
+    });
+
+    it('sets the passwords input type back to "password" on the second click', function() {
+      wrapper = mount(app);
+
+      wrapper.find('.github-DialogLabelButton').simulate('click').simulate('click');
+
+      const passwordInput = wrapper.find('.github-CredentialDialog-Password');
+      assert.equal(passwordInput.prop('type'), 'password');
+    });
+  });
 });

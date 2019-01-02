@@ -6,6 +6,12 @@
 
 .github-DotComMarkdownHtml {
 
+  font-size: 1.15em;
+  line-height: 1.5;
+
+  & > *:first-child {
+    margin-top: 0;
+  }
   & > *:last-child {
     margin-bottom: 0;
   }
@@ -86,6 +92,7 @@
   }
 
   .task-list-item {
+    position: relative;
     // indent task lists
     list-style: none;
     .task-list-item-checkbox {

@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import FilePatchMetaView from '../../lib/views/file-patch-meta-view';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
 
 describe('FilePatchMetaView', function() {
   let atomEnv;
@@ -49,5 +50,11 @@ describe('FilePatchMetaView', function() {
   it('renders child elements as details', function() {
     const wrapper = shallow(buildApp({}, <div className="child" />));
     assert.isTrue(wrapper.find('.github-FilePatchView-metaDetails .child').exists());
+  });
+
+  it('omits controls when rendered in a CommitDetailItem', function() {
+    const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
+    assert.isTrue(wrapper.find('.github-FilePatchView-metaDetails').exists());
+    assert.isFalse(wrapper.find('.github-FilePatchView-metaControls').exists());
   });
 });

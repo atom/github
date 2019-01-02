@@ -9,6 +9,7 @@ import RemoteSet from '../../lib/models/remote-set';
 import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
+import {getEndpoint} from '../../lib/models/endpoint';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -33,7 +34,7 @@ describe('IssueishSearchesController', function() {
     return (
       <IssueishSearchesController
         token="1234"
-        host="https://api.github.com"
+        endpoint={getEndpoint('github.com')}
         repository={createRepositoryResult()}
 
         remoteOperationObserver={nullOperationStateObserver}
@@ -58,7 +59,7 @@ describe('IssueishSearchesController', function() {
 
     const p = {
       token: '4321',
-      host: 'https://mygithub.com',
+      endpoint: getEndpoint('mygithub.com'),
       repository: createRepositoryResult(),
       remote: origin,
       remotes: new RemoteSet([origin]),
@@ -84,7 +85,7 @@ describe('IssueishSearchesController', function() {
       const list = wrapper.find('IssueishSearchContainer').filterWhere(w => w.prop('search') === search);
       assert.isTrue(list.exists());
       assert.strictEqual(list.prop('token'), '1234');
-      assert.strictEqual(list.prop('host'), 'https://api.github.com');
+      assert.strictEqual(list.prop('endpoint').getHost(), 'github.com');
     }
   });
 
@@ -100,7 +101,7 @@ describe('IssueishSearchesController', function() {
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
       atomEnv.workspace.open.calledWith(
-        `atom-github://issueish/https%3A%2F%2Fapi.github.com/atom/github/123?workdir=${encodeURIComponent(__dirname)}`,
+        `atom-github://issueish/github.com/atom/github/123?workdir=${encodeURIComponent(__dirname)}`,
         {pending: true, searchAllPanes: true},
       ),
     );

@@ -27,7 +27,7 @@ describe('CommitController', function() {
     confirm = sinon.stub(atomEnvironment, 'confirm');
 
     lastCommit = new Commit({sha: 'a1e23fd45', message: 'last commit message'});
-    const noop = () => {};
+    const noop = () => { };
     const store = new UserStore({config});
 
     // Ensure the Workspace doesn't mangle atom-github://... URIs.
@@ -414,36 +414,31 @@ describe('CommitController', function() {
       assert.isFalse(viewHolder.isEmpty());
       const view = viewHolder.get();
 
-      sinon.spy(view, 'rememberFocus');
+      sinon.spy(view, 'getFocus');
       sinon.spy(view, 'setFocus');
-      sinon.spy(view, 'advanceFocus');
-      sinon.spy(view, 'retreatFocus');
-      sinon.spy(view, 'hasFocusAtBeginning');
+      sinon.spy(view, 'advanceFocusFrom');
+      sinon.spy(view, 'retreatFocusFrom');
 
       const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
-      wrapper.instance().rememberFocus({target: element});
-      assert.isTrue(view.rememberFocus.called);
+      wrapper.instance().getFocus(element);
+      assert.isTrue(view.getFocus.called);
 
       wrapper.instance().setFocus(CommitController.focus.EDITOR);
       assert.isTrue(view.setFocus.called);
 
-      wrapper.instance().advanceFocus({stopPropagation() {}});
-      assert.isTrue(view.advanceFocus.called);
+      wrapper.instance().advanceFocusFrom({});
+      assert.isTrue(view.advanceFocusFrom.called);
 
-      wrapper.instance().retreatFocus({stopPropagation() {}});
-      assert.isTrue(view.retreatFocus.called);
-
-      wrapper.instance().hasFocusAtBeginning();
-      assert.isTrue(view.hasFocusAtBeginning.called);
+      wrapper.instance().retreatFocusFrom({});
+      assert.isTrue(view.retreatFocusFrom.called);
     });
 
     it('no-ops focus management methods when the view ref is unassigned', function() {
       const wrapper = shallow(app);
       assert.isTrue(wrapper.instance().refCommitView.isEmpty());
 
-      assert.isNull(wrapper.instance().rememberFocus({}));
+      assert.isNull(wrapper.instance().getFocus(document.body));
       assert.isFalse(wrapper.instance().setFocus(CommitController.focus.EDITOR));
-      assert.isFalse(wrapper.instance().hasFocusAtBeginning());
     });
   });
 

@@ -87,6 +87,23 @@
     color: @text-color-subtle;
   }
 
+  &:hover {
+    color: @text-color-highlight;
+    background: @background-color-highlight;
+  }
+
+  &.is-selected {
+    // is selected
+    color: @text-color-selected;
+    background: @background-color-selected;
+
+    // also has focus
+    .github-RecentCommits:focus & {
+      color: contrast(@button-background-color-selected);
+      background: @button-background-color-selected;
+    }
+  }
+
 }
 
 

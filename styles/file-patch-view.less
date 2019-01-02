@@ -24,19 +24,11 @@
   }
 
   .github-FilePatchView-controlBlock {
-    padding: @component-padding*2 @component-padding @component-padding 0;
+    padding: @component-padding*4 @component-padding @component-padding 0;
     background-color: @syntax-background-color;
 
     & + .github-FilePatchView-controlBlock {
       padding-top: 0;
-    }
-  }
-
-  // Editor overrides
-
-  atom-text-editor {
-    .selection .region {
-      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
     }
   }
 
@@ -220,11 +212,6 @@
       min-width: 6ch; // Fit up to 4 characters (+1 padding on each side)
       opacity: 1;
       padding: 0 1ch 0 0;
-
-      &.github-FilePatchView-line--selected {
-        color: contrast(@button-background-color-selected);
-        background: @button-background-color-selected;
-      }
     }
 
     &.icons .line-number {
@@ -249,11 +236,6 @@
       &.github-FilePatchView-line--nonewline:before {
         content: @no-newline;
       }
-
-      &.github-FilePatchView-line--selected {
-        color: contrast(@button-background-color-selected);
-        background: @button-background-color-selected;
-      }
     }
   }
 
@@ -266,8 +248,52 @@
   // Readonly editor
 
   atom-text-editor[readonly] {
+    font-size: @font-size; // Use font-size form UI themes and not the editor config
     .cursors {
       display: none;
+    }
+  }
+}
+
+
+// States
+
+// Selected
+.github-FilePatchView {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number {
+      &.github-FilePatchView-line--selected {
+        color: @text-color-selected;
+        background: @background-color-selected;
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: transparent;
+    }
+  }
+}
+
+// Selected + focused
+.github-FilePatchView:focus-within {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number {
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
     }
   }
 }

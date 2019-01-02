@@ -2,6 +2,7 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import StagingView from '../../lib/views/staging-view';
+import CommitView from '../../lib/views/commit-view';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -20,9 +21,9 @@ describe('StagingView', function() {
     notificationManager = atomEnv.notifications;
 
     sinon.stub(workspace, 'open');
-    sinon.stub(workspace, 'paneForItem').returns({activateItem: () => {}});
+    sinon.stub(workspace, 'paneForItem').returns({activateItem: () => { }});
 
-    const noop = () => {};
+    const noop = () => { };
 
     app = (
       <StagingView
@@ -548,10 +549,12 @@ describe('StagingView', function() {
     //   getStagingStatus() { return 'unstaged'; },
     // };
 
-    wrapper.setProps({unstagedChanges: [
-      {filePath: 'a.txt', status: 'modified'},
-      {filePath: 'b.txt', status: 'deleted'},
-    ]});
+    wrapper.setProps({
+      unstagedChanges: [
+        {filePath: 'a.txt', status: 'modified'},
+        {filePath: 'b.txt', status: 'deleted'},
+      ],
+    });
     selectedItems = wrapper.instance().getSelectedItems();
     assert.lengthOf(selectedItems, 1);
   });
@@ -579,7 +582,7 @@ describe('StagingView', function() {
         unstagedChanges,
       }));
 
-      await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
+      await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[1]);
       wrapper.instance().mouseup();
@@ -628,7 +631,7 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", async function() {
-      wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, stagedChanges[1]);
+      wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, stagedChanges[1]);
       wrapper.instance().mouseup();
       assertSelected(['staged-2.txt']);
 
@@ -725,11 +728,11 @@ describe('StagingView', function() {
       unstagedChanges,
     }));
 
-    await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
+    await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[0]);
     wrapper.instance().mouseup();
     assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[0]]));
 
-    await wrapper.instance().mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[2]);
+    await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[2]);
     assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[2]]));
   });
 
@@ -749,7 +752,7 @@ describe('StagingView', function() {
         sinon.spy(wrapper.state('selection'), 'addOrSubtractSelection');
         sinon.spy(wrapper.state('selection'), 'selectItem');
 
-        await wrapper.instance().mousedownOnItem({button: 0, ctrlKey: true, persist: () => {}}, unstagedChanges[0]);
+        await wrapper.instance().mousedownOnItem({button: 0, ctrlKey: true, persist: () => { }}, unstagedChanges[0]);
         assert.isFalse(wrapper.state('selection').addOrSubtractSelection.called);
         assert.isFalse(wrapper.state('selection').selectItem.called);
         assert.isFalse(wrapper.instance().mouseSelectionInProgress);
@@ -757,49 +760,90 @@ describe('StagingView', function() {
     });
   }
 
-  it('remembers the current focus', function() {
-    const wrapper = mount(app);
-    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+  describe('focus management', function() {
+    let wrapper, instance;
 
-    assert.strictEqual(wrapper.instance().rememberFocus({target: rootElement}), StagingView.focus.STAGING);
-    assert.isNull(wrapper.instance().rememberFocus({target: document.body}));
+    beforeEach(function() {
+      const unstagedChanges = [
+        {filePath: 'unstaged-1.txt', status: 'modified'},
+        {filePath: 'unstaged-2.txt', status: 'modified'},
+        {filePath: 'unstaged-3.txt', status: 'modified'},
+      ];
+      const mergeConflicts = [
+        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
+        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+      ];
+      const stagedChanges = [
+        {filePath: 'staged-1.txt', status: 'staged'},
+        {filePath: 'staged-2.txt', status: 'staged'},
+      ];
 
-    wrapper.instance().refRoot.setter(null);
-    assert.isNull(wrapper.instance().rememberFocus({target: rootElement}));
-  });
+      wrapper = mount(React.cloneElement(app, {
+        unstagedChanges, stagedChanges, mergeConflicts,
+      }));
+      instance = wrapper.instance();
+    });
 
-  it('sets a new focus', function() {
-    const wrapper = mount(app);
-    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+    it('gets the current focus', function() {
+      const rootElement = wrapper.find('.github-StagingView').getDOMNode();
 
-    sinon.stub(rootElement, 'focus');
+      assert.strictEqual(instance.getFocus(rootElement), StagingView.focus.STAGING);
+      assert.isNull(instance.getFocus(document.body));
 
-    assert.isFalse(wrapper.instance().setFocus(Symbol('nope')));
-    assert.isFalse(rootElement.focus.called);
+      instance.refRoot.setter(null);
+      assert.isNull(instance.getFocus(rootElement));
+    });
 
-    assert.isTrue(wrapper.instance().setFocus(StagingView.focus.STAGING));
-    assert.isTrue(rootElement.focus.called);
+    it('sets a new focus', function() {
+      const rootElement = wrapper.find('.github-StagingView').getDOMNode();
 
-    wrapper.instance().refRoot.setter(null);
-    rootElement.focus.resetHistory();
-    assert.isTrue(wrapper.instance().setFocus(StagingView.focus.STAGING));
-    assert.isFalse(rootElement.focus.called);
-  });
+      sinon.stub(rootElement, 'focus');
 
-  it('detects when the component does have focus', function() {
-    const wrapper = mount(app);
-    const rootElement = wrapper.find('.github-StagingView').getDOMNode();
-    sinon.stub(rootElement, 'contains');
+      assert.isFalse(instance.setFocus(Symbol('nope')));
+      assert.isFalse(rootElement.focus.called);
 
-    rootElement.contains.returns(true);
-    assert.isTrue(wrapper.instance().hasFocus());
+      assert.isTrue(instance.setFocus(StagingView.focus.STAGING));
+      assert.isTrue(rootElement.focus.called);
 
-    rootElement.contains.returns(false);
-    assert.isFalse(wrapper.instance().hasFocus());
+      instance.refRoot.setter(null);
+      rootElement.focus.resetHistory();
+      assert.isTrue(instance.setFocus(StagingView.focus.STAGING));
+      assert.isFalse(rootElement.focus.called);
+    });
 
-    rootElement.contains.returns(true);
-    wrapper.instance().refRoot.setter(null);
-    assert.isFalse(wrapper.instance().hasFocus());
+    it('keeps focus on this component if a non-last list is focused', async function() {
+      sinon.spy(instance, 'activateNextList');
+      assert.strictEqual(
+        await instance.advanceFocusFrom(StagingView.focus.STAGING),
+        StagingView.focus.STAGING,
+      );
+      assert.isTrue(await instance.activateNextList.lastCall.returnValue);
+    });
+
+    it('moves focus to the CommitView if the last list was focused', async function() {
+      await instance.activateLastList();
+      sinon.spy(instance, 'activateNextList');
+      assert.strictEqual(
+        await instance.advanceFocusFrom(StagingView.focus.STAGING),
+        CommitView.firstFocus,
+      );
+      assert.isFalse(await instance.activateNextList.lastCall.returnValue);
+    });
+
+    it('detects when the component does have focus', function() {
+      const rootElement = wrapper.find('.github-StagingView').getDOMNode();
+      sinon.stub(rootElement, 'contains');
+
+      rootElement.contains.returns(true);
+      assert.isTrue(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(false);
+      assert.isFalse(wrapper.instance().hasFocus());
+
+      rootElement.contains.returns(true);
+      wrapper.instance().refRoot.setter(null);
+      assert.isFalse(wrapper.instance().hasFocus());
+    });
   });
 
   describe('discardAll()', function() {

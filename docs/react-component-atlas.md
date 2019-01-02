@@ -80,7 +80,17 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
 > > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
 > >
-> > The workspace-center pane that appears when looking at _all_ the staged changes that will be going into the next commit.
+> > The workspace-center pane item that appears when looking at _all_ the staged changes that will be going into the next commit.
+> >
+> > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
+>
+> > [`<CommitDetailItem>`](/lib/items/issueish-detail-item.js)
+> > [`<CommitDetailContainer>`](/lib/containers/commit-detail-container.js)
+> > [`<CommitDetailController>`](/lib/controllers/commit-detail-controller.js)
+> > [`<CommitDetailView>`](/lib/views/commit-detail-controller.js)
+> >
+> > The workspace-center pane item that appears when looking at all the changes associated with a single commit that already exists in the current branch.
 > >
 > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
@@ -88,7 +98,8 @@ This is a high-level overview of the structure of the React component tree that 
 > > [`<IssueishDetailItem>`](/lib/items/issueish-detail-item.js)
 > > [`<IssueishDetailContainer>`](/lib/containers/issueish-detail-container.js)
 > > [`<IssueishDetailController>`](/lib/controllers/issueish-detail-controller.js)
-> > [`<IssueishDetailView>`](/lib/controllers/issueish-detail-controller.js)
+> > [`<IssueDetailView>`](/lib/views/issue-detail-view.js)
+> > [`<PullRequestDetailView>`](/lib/views/pr-detail-view.js)
 > >
 > > The workspace-center pane that displays information about a pull request or issue ("issueish", collectively) from github.com.
 > >
@@ -110,6 +121,13 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<PrCommitView>`](/lib/views/pr-commit-view.js)
 > > >
 > > > Enumerate the commits associated with a pull request.
+> >
+> > > [`<PullRequestChangedFilesContainer>`](/lib/containers/pr-changed-files-container.js)
+> > >
+> > > Show all the changes, separated by files, introduced in a pull request.
+> > >
+> > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
+> > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 >
 > > [`<InitDialog>`](/lib/views/init-dialog.js)
 > > [`<CloneDialog>`](/lib/views/clone-dialog.js)

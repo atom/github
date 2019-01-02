@@ -11,7 +11,8 @@ const commitSpec = {
     date: '2018-05-16T21:54:24.500Z',
   },
   messageHeadline: 'This one weird trick for getting to the moon will blow your mind 🚀',
-  abbreviatedOid: 'bad1dea',
+  shortSha: 'bad1dea',
+  sha: 'bad1deaea3d816383721478fc631b5edd0c2b370',
   url: 'https://github.com/atom/github/pull/1684/commits/bad1deaea3d816383721478fc631b5edd0c2b370',
 };
 
