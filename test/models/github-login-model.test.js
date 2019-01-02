@@ -67,5 +67,35 @@ describe('GithubLoginModel', function() {
       assert.strictEqual(await loginModel.getToken('https://api.github.com'), '1234');
       assert.strictEqual(loginModel.getScopes.callCount, 1);
     });
+
+    it('caches tokens that failed to authenticate correctly', async function() {
+      sinon.stub(loginModel, 'getScopes').resolves(GithubLoginModel.UNAUTHORIZED);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(loginModel.getScopes.callCount, 1);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(loginModel.getScopes.callCount, 1);
+    });
+
+    it('caches tokens that had insufficient scopes', async function() {
+      sinon.stub(loginModel, 'getScopes').resolves(['repo', 'read:org']);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), INSUFFICIENT);
+      assert.strictEqual(loginModel.getScopes.callCount, 1);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), INSUFFICIENT);
+      assert.strictEqual(loginModel.getScopes.callCount, 1);
+    });
+
+    it('does not cache network errors', async function() {
+      sinon.stub(loginModel, 'getScopes').rejects(new Error('You unplugged your ethernet cable'));
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(loginModel.getScopes.callCount, 1);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(loginModel.getScopes.callCount, 2);
+    });
   });
 });
