@@ -2,18 +2,21 @@
 
 @avatar-size: 16px;
 
+
+.github-PrCommentThread {
+  padding: @component-padding/2 0;
+  border-bottom: 1px solid @base-border-color;
+}
+
+
 .github-PrComment {
+  max-width: 60em;
+  margin: @component-padding 0;
+  padding-right: @component-padding*2;
   font-family: @font-family;
   font-size: @font-size;
 
-  &-wrapper {
-    max-width: 60em;
-    padding-right: @component-padding*2;
-    padding-bottom: @component-padding;
-  }
-
   &-header {
-    padding: @component-padding 0 @component-padding/2 0;
     color: @text-color-subtle;
   }
 
