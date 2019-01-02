@@ -3,7 +3,6 @@
 
 .github-CommitView {
   padding: @component-padding;
-  border-top: 1px solid @base-border-color;
   flex: 0 0 auto;
 
   &-editor {
@@ -82,7 +81,10 @@
   &-buttonWrapper {
     align-items: center;
     display: flex;
-    margin-bottom: 10px;
+    margin: 0 -@component-padding @component-padding -@component-padding;
+    padding: @component-padding;
+    padding-top: 0;
+    border-bottom: 1px solid @base-border-color;
   }
 
   &-coAuthorEditor {
