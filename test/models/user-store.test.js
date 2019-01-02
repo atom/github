@@ -38,6 +38,7 @@ describe('UserStore', function() {
     const opts = {
       owner: 'me',
       name: 'stuff',
+      repositoryFound: true,
       ...options,
     };
 
@@ -50,7 +51,7 @@ describe('UserStore', function() {
         name: 'GetMentionableUsers',
         variables: {owner: opts.owner, name: opts.name, first: 100, after: lastCursor},
       }, {
-        repository: {
+        repository: !opts.repositoryFound ? null : {
           mentionableUsers: {
             nodes: page,
             pageInfo: {
@@ -171,6 +172,27 @@ describe('UserStore', function() {
       new Author('annthurium@github.com', 'Tilde Ann Thurium', 'annthurium'),
       new Author('zzz@github.com', 'Zzzzz', 'zzz'),
     ]);
+  });
+
+  it('skips GitHub remotes that no longer exist', async function() {
+    await login.setToken('https://api.github.com', '1234');
+
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+    const [{resolve, promise}] = expectPagedRelayQueries({repositoryFound: false}, []);
+
+    store = new UserStore({repository, login, config});
+    await nextUpdatePromise();
+
+    resolve();
+    // nextUpdatePromise will not fire because the update is empty
+    await promise;
+
+    assert.deepEqual(store.getUsers(), []);
   });
 
   it('infers no-reply emails for users without a public email address', async function() {
@@ -406,8 +428,8 @@ describe('UserStore', function() {
       const actualToken = await store.getToken(loginModel, 'https://api.github.com');
       assert.strictEqual(expectedToken, actualToken);
     });
-
   });
+
   describe('loadMentionableUsers', function() {
     it('returns undefined if token is null', async function() {
       const workdirPath = await cloneRepository('multiple-commits');
