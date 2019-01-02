@@ -8,6 +8,7 @@ class CommentBuilder {
     this._url = 'https://github.com/atom/github/pull/1829/files#r242224689';
     this._createdAt = 0;
     this._body = 'Lorem ipsum dolor sit amet, te urbanitas appellantur est.';
+    this._replyTo = null;
   }
 
   id(i) {
@@ -50,6 +51,11 @@ class CommentBuilder {
     return this;
   }
 
+  replyTo(replyToId) {
+    this._replyTo = replyToId;
+    return this;
+  }
+
   build() {
     return {
       id: this._id,
@@ -62,6 +68,7 @@ class CommentBuilder {
       position: this._position,
       createdAt: this._createdAt,
       url: this._url,
+      replyTo: this._replyTo,
     };
   }
 }
@@ -115,8 +122,24 @@ class PullRequestBuilder {
   }
 
   build() {
+    const commentThreads = {};
+    this._reviews.forEach(review => {
+      review.comments.nodes.forEach(comment => {
+        if (comment.replyTo && commentThreads[comment.replyTo]) {
+          commentThreads[comment.replyTo].push(comment);
+        } else {
+          commentThreads[comment.id] = [comment];
+        }
+      });
+    });
     return {
       reviews: {nodes: this._reviews},
+      commentThreads: Object.keys(commentThreads).map(rootCommentId => {
+        return {
+          rootCommentId,
+          comments: commentThreads[rootCommentId],
+        };
+      }),
     };
   }
 }

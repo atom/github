@@ -31,12 +31,13 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
+    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} commentThreads={pr.commentThreads} />);
 
     assert.deepEqual(wrapper.find('Marker').at(0).prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
     assert.deepEqual(wrapper.find('Marker').at(1).prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
     assert.deepEqual(wrapper.find('Marker').at(2).prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
   });
+
   it('does not render comment if position is null', function() {
     const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
@@ -56,7 +57,7 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} />);
+    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} commentThreads={pr.commentThreads} />);
 
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 1);
