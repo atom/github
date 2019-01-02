@@ -3,7 +3,7 @@ import {shallow} from 'enzyme';
 
 import {multiFilePatchBuilder} from '../builder/patch';
 import {pullRequestBuilder} from '../builder/pr';
-import PullRequestCommentsView, {PullRequestCommentView} from '../../lib/views/pr-comments-view';
+import PullRequestCommentsView, {PullRequestCommentView} from '../../lib/views/pr-review-comments-view';
 
 describe('PullRequestCommentsView', function() {
   it('adjusts the position for comments after hunk headers', function() {
