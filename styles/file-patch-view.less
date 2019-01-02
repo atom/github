@@ -36,9 +36,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: @component-padding*2;
     padding: @component-padding/2;
-    padding-left: @component-padding;
+    padding-left: 0;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     font-family: @font-family;
@@ -65,14 +64,16 @@
   }
 
   &-collapseButton {
+    padding: 0 @component-padding/2;
     background: transparent;
     border: none;
-    // dont' judge me.  flexbox seemed like overkill, ok?
-    float: right;
   }
 
   &-collapseButtonIcon {
-    position: absolute;
+    &:before {
+      text-align: center;
+      margin-right: 0;
+    }
   }
 
   &-container {
