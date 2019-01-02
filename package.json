@@ -83,7 +83,7 @@
     "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
-    "electron-link": "0.2.2",
+    "electron-link": "0.3.2",
     "electron-mksnapshot": "3.0.0-beta.1",
     "enzyme": "3.8.0",
     "enzyme-adapter-react-16": "1.7.1",
