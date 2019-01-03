@@ -8,7 +8,7 @@ Inline editing within a diff view (i.e. `MultiFilePatchView`).
 
 This can save user the trouble of needing to toggle to an editor and back again when they notice typos, `console.log()` statements, or `.only()` in tests when reviewing changes right before committing.
 
-This also serves as a building block of the bigger PR review workflow we want to eventually implement.
+This also serves as a building block of the bigger [PR review workflow](https://github.com/atom/github/blob/master/docs/feature-requests/003-pull-request-review.md) we want to eventually implement.
 
 ## 🤯 Explanation
 
@@ -39,31 +39,31 @@ Upon exiting editable state, the changes should be immediately written to the co
 
 Currently we use diff view in several places; which ones of them are editable?
   - Unstaged Changes: *editable*
-  - Staged Changes: *editable* but with unresolved questions
-  - All staged changes (aka Commit Preview): *editable* but with unresolved questions
+  - Staged Changes: *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+  - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
   - Commit Detail Item: *NOT editable*
-  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with unresolved questions
+  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
 
 
 ## :anchor: Drawbacks
 
 The diff tool in Atom is a fundamental component of the github package, so changing the behaviour and UI of such carries a relatively higher risk.
 
-In my research, I have found no prior art of editable diffs in *unified diff view*; in contrast, there are abundant examples of editable diffs in *split diff view* (see section below). And I think there's a reason this hasn't been done before -- making unified diff view editable could make the UI jarring and unapproachable. Some specific examples:
+In my research, I have found no prior art of editable diffs in *unified diff view*; in contrast, there are abundant examples of editable diffs in *split diff view* (see section below). And I think there's a reason this hasn't been done before -- making unified diff view editable could make the UI jarring and unapproachable, since there are considerable visual differences between old (before editing) file patch and new (after editing) file patch, and the editable state sits somewhere between the two. **The biggest UX challenge here is to elegantly transition from old file patch -> editable state -> new file patch.**
+
+Some specific examples:
 
 - editing a previously unchanged line will result in the new file patch being longer, since we now have an newly "deleted" line.
 
-| before | after |
+| old file patch | new file patch |
 | --- | --- |
 |<img width="400" alt="screen shot 2019-01-03 at 19 04 58" src="https://user-images.githubusercontent.com/6842965/50657128-cddf0680-0f95-11e9-86a2-7e765f332fe0.png">|<img width="400" alt="screen shot 2019-01-03 at 19 05 41" src="https://user-images.githubusercontent.com/6842965/50657127-cddf0680-0f95-11e9-8915-13692915ca89.png">|
 
 - editing end of a hunk might result in two hunks being joint into one (and vice versa where a hunk might get split into two).
 
-| before | after |
+| old file patch | new file patch |
 | --- | --- |
 |<img width="700" alt="screen shot 2019-01-03 at 19 19 32" src="https://user-images.githubusercontent.com/6842965/50657126-cd467000-0f95-11e9-9378-de70aa6753f5.png">|<img width="700" alt="screen shot 2019-01-03 at 19 20 23" src="https://user-images.githubusercontent.com/6842965/50657125-cd467000-0f95-11e9-8cd4-146fea7cd2ed.png">|
-
-**The biggest UX challenge here is to elegantly transition from old file patch -> editable state -> new file patch.**
 
 
 ## :thinking: Rationale and alternatives
@@ -94,7 +94,7 @@ Despite the editable split diff view being the more conventional and relatively 
 
 - Currently, if a user make changed to a staged file, the new changes show up in Unstaged Changes, but are not applied to the already staged file. If we allow staged file to be edited, should the new changes apply to both file on disk as well as the staged entry?
 
-- The PR comments we are implementing in #1856 already add consierable complexity to the diff view. Should the comments be visible when the diff is in editable state?
+- The PR comments we are implementing in [#1856](https://github.com/atom/github/pull/1856) already add consierable complexity to the diff view. Should the comments be visible when the diff is in editable state?
 
 ## :warning: Out of Scope
 
