@@ -5,6 +5,7 @@ import {
   InMemoryStrategy,
   UNAUTHENTICATED,
   INSUFFICIENT,
+  UNAUTHORIZED,
 } from '../../lib/shared/keytar-strategy';
 
 describe('GithubLoginModel', function() {
@@ -69,7 +70,7 @@ describe('GithubLoginModel', function() {
     });
 
     it('caches tokens that failed to authenticate correctly', async function() {
-      sinon.stub(loginModel, 'getScopes').resolves(GithubLoginModel.UNAUTHORIZED);
+      sinon.stub(loginModel, 'getScopes').resolves(UNAUTHORIZED);
 
       assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
       assert.strictEqual(loginModel.getScopes.callCount, 1);
