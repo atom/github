@@ -70,6 +70,7 @@ In my research, I have found no prior art of editable diffs in *unified diff vie
 
 All of the prior arts I could find on editable diffs implement this feature with the use of "split screen diff".
 
+![kapture 2019-01-03 at 20 35 29](https://user-images.githubusercontent.com/6842965/50657589-37134980-0f97-11e9-96cc-41cb1eda6546.gif)
 This is a gif of how it works in VS code, but other diff and/or merge tools have similar implementations:
  - split screen with one side editable (the file on disk) and the other side readonly
  - both sides show unmodified lines
