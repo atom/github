@@ -6,8 +6,9 @@ Inline editing within a diff view (i.e. `MultiFilePatchView`).
 
 ## :checkered_flag: Motivation
 
-- saves user the trouble of needing to toggle to an editor and back again when you notice typos, `console.log()` statements, or `.only()` in tests when reviewing changes right before committing.
-- is a part of the bigger PR review workflow we want to implement
+This can save user the trouble of needing to toggle to an editor and back again when they notice typos, `console.log()` statements, or `.only()` in tests when reviewing changes right before committing.
+
+This also serves as a building block of the bigger PR review workflow we want to eventually implement.
 
 ## 🤯 Explanation
 
@@ -22,7 +23,7 @@ On any given diff view, a user can get a diff hunk into an __editable state__ by
 
 #### 2. Within an editable state
 - Only one hunk is editable at a time
-- Visually, it should be very clear when a hunk is in editable state. Maybe put the whole block in a box.
+- Visually, it should be very clear when a hunk is in editable state. Maybe put the whole block in a box? :thinking:
 - The editable state behaves almost like it's a normal editor, except that the green background of added lines and red background of deleted lines will be kept.
 - A deleted line will still be visible within the editable state, but it __should not be editable__. That should be communicated to user in a very clear visual manner. When navigating with keyboard, deleted lines should be skipped as if they don't exist.
 
@@ -82,8 +83,9 @@ Despite the editable split diff view being the more conventional and relatively 
 
 ## :question: Unresolved questions
 
-- What unresolved questions do you expect to resolve through the Feature Request process before this gets merged?
-- What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
+- Currently, if a user make changed to a staged file, the new changes show up in Unstaged Changes, but are not applied to the already staged file. If we allow staged file to be edited, should the new changes apply to both file on disk as well as the staged entry?
+
+- The PR comments we are implementing in #1856 already add consierable complexity to the diff view. Should the comments be visible when the diff is in editable state?
 
 ## :warning: Out of Scope
 
