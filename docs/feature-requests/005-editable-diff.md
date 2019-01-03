@@ -53,7 +53,15 @@ In my research, I have found no prior art of editable diffs in *unified diff vie
 
 - editing a previously unchanged line will result in the new file patch being longer, since we now have an newly "deleted" line.
 
+| before | after |
+| --- | --- |
+|<img width="400" alt="screen shot 2019-01-03 at 19 04 58" src="https://user-images.githubusercontent.com/6842965/50657128-cddf0680-0f95-11e9-86a2-7e765f332fe0.png">|<img width="400" alt="screen shot 2019-01-03 at 19 05 41" src="https://user-images.githubusercontent.com/6842965/50657127-cddf0680-0f95-11e9-8915-13692915ca89.png">|
+
 - editing end of a hunk might result in two hunks being joint into one (and vice versa where a hunk might get split into two).
+
+| before | after |
+| --- | --- |
+|<img width="700" alt="screen shot 2019-01-03 at 19 19 32" src="https://user-images.githubusercontent.com/6842965/50657126-cd467000-0f95-11e9-9378-de70aa6753f5.png">|<img width="700" alt="screen shot 2019-01-03 at 19 20 23" src="https://user-images.githubusercontent.com/6842965/50657125-cd467000-0f95-11e9-8cd4-146fea7cd2ed.png">|
 
 **The biggest UX challenge here is to elegantly transition from old file patch -> editable state -> new file patch.**
 
