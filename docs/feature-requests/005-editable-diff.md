@@ -16,24 +16,30 @@ The flow of using editable diff is as followed:
 
 #### 1. Entry point of editable state
 On any given diff view, a user can get a diff hunk into an __editable state__ by:
-1. double-clicking on any line within a hunk
-2. clicking on a new "edit hunk" button on hunk header
-3. if the hunk is selected, pressing specific keys (exact key binding TBD)
-4. "edit" from context menu
+  - double-clicking on any line within a hunk
+  - clicking on a new "edit hunk" button on hunk header
+  - if the hunk is selected, pressing specific keys (exact key binding TBD)
+  - "edit" from context menu
+  - if already in editable state in a previous hunk, navigating with keyboard can exit previous hunk's editable state and enter editable state of the next hunk.
+
 
 #### 2. Within an editable state
-- Only one hunk is editable at a time
-- Visually, it should be very clear when a hunk is in editable state. Maybe put the whole block in a box? :thinking:
-- The editable state behaves almost like it's a normal editor, except that the green background of added lines and red background of deleted lines will be kept.
-- A deleted line will still be visible within the editable state, but it __should not be editable__. That should be communicated to user in a very clear visual manner. When navigating with keyboard, deleted lines should be skipped as if they don't exist.
+  - Only one hunk is editable at a time
+  - Visually, it should be very clear when a hunk is in editable state. In addition to a blinking caret, maybe we can put the whole block in a box or fade out the rest of the diff? :thinking:
+  - The editable state behaves almost like it's a normal editor, except that the green background of added lines and red background of deleted lines will be kept.
+  - A deleted line will still be visible within the editable state, but it _is not editable_. That should be communicated to user in a very clear visual manner:
+    - The cursor for hovering over deleted lines should show up as arrow as opposed to text cursor.
+    - When navigating with keyboard, deleted lines should be skipped as if they don't exist.
+    - When dragging cursor to highlight a block of text, deleted lines should not get highlighted.
 
 #### 3. Exiting editable state:
+Upon exiting editable state, the changes should be immediately saved to the corresponding file on disk. And the diff view would re-render with the new file patch, and scroll position should remain unchanged.
+
 A user can exit the editable state by:
   - clicking outside of the editable area
   - pressing `esc` or `cmd-s`
   - performing actions such as stage/unstage, jump to file, etc.
 
-Upon exiting editable state, the changes should be immediately written to the corresponding file on disk. And the diff view would re-render with the new file patch, and scroll position should remain unchanged.
 
 #### What is editable?
 
@@ -47,9 +53,9 @@ Currently we use diff view in several places; which ones of them are editable?
 
 ## :anchor: Drawbacks
 
-The diff tool in Atom is a fundamental component of the github package, so changing the behaviour and UI of such carries a relatively higher risk.
+The diff tool in Atom is a fundamental component of the GitHub package, so changing the behaviour and UI of such carries a relatively higher risk.
 
-In my research, I have found no prior art of editable diffs in *unified diff view*; in contrast, there are abundant examples of editable diffs in *split diff view* (see section below). And I think there's a reason this hasn't been done before -- making unified diff view editable could make the UI jarring and unapproachable, since there are considerable visual differences between old (before editing) file patch and new (after editing) file patch, and the editable state sits somewhere between the two. **The biggest UX challenge here is to elegantly transition from old file patch -> editable state -> new file patch.**
+In my research, I have found no prior art of editable diffs in *unified diff view*; in contrast, there are abundant examples of editable diffs in *split diff view* (see section below). And I think there's a reason this hasn't been done before -- making unified diff view editable could make the UI jarring and unapproachable, since there are considerable visual differences between old (before editing) file patch and new (after editing) file patch, and the editable state sits somewhere between the two. **The challenge here is to elegantly transition from old file patch -> editable state -> new file patch.**
 
 Some specific examples:
 
