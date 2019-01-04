@@ -12,6 +12,15 @@ This also serves as a building block of the bigger [PR review workflow](https://
 
 ## 🤯 Explanation
 
+#### What is editable?
+
+Currently we use diff view in several places; which ones of them are editable?
+  - Unstaged Changes: *editable*
+  - Staged Changes: *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+  - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+  - Commit Detail Item: *NOT editable*
+  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+
 #### 1. Entry point of editable state
 
 - By default, a diff view is editable (with some [exceptions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#what-is-editable)). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
@@ -38,16 +47,6 @@ This also serves as a building block of the bigger [PR review workflow](https://
 
 - Upon saving, the diff view will re-render with the new file patch, and scroll position will remain unchanged.
 - Some visual jumps might result as the new file patch is shown (see [examples](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
-
-
-#### What is editable?
-
-Currently we use diff view in several places; which ones of them are editable?
-  - Unstaged Changes: *editable*
-  - Staged Changes: *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
-  - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
-  - Commit Detail Item: *NOT editable*
-  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
 
 
 ## :anchor: Drawbacks
