@@ -6,44 +6,46 @@ Inline editing within a diff view (i.e. `MultiFilePatchView`).
 
 ## :checkered_flag: Motivation
 
-This can save user the trouble of needing to toggle to an editor and back again when they notice typos, `console.log()` statements, or `.only()` in tests when reviewing changes right before committing.
+This can save users the trouble of needing to toggle to an editor and back again when they notice typos, `console.log()` statements, or `.only()` in tests when reviewing changes right before committing.
 
 This also serves as a building block of the bigger [PR review workflow](https://github.com/atom/github/blob/master/docs/feature-requests/003-pull-request-review.md) we want to eventually implement.
 
 ## 🤯 Explanation
 
-#### What is editable?
+### What is editable?
 
-Currently we use diff view in several places; which ones of them are editable?
+Currently, we use diff view in several places; which ones of them are editable?
   - Unstaged Changes: *editable*
   - Staged Changes: *editable* but with [unresolved questions](#question-unresolved-questions)
   - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](#question-unresolved-questions)
   - Commit Detail Item: *NOT editable*
   - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](#question-unresolved-questions)
 
-#### 1. Entry point of editable state
+### Workflow of editing a diff
+
+#### 1. The entry point of editable state
 
 - By default, a diff view is editable (with some [exceptions](#what-is-editable) listed above). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
-- If a diff is readonly, there will be a visual indicator of such:
-<img width="450" alt="editable vs readonly diff" src="https://user-images.githubusercontent.com/378023/47252025-44c93080-d478-11e8-8bb4-2ae532e38ad5.gif">
+- If a diff is read-only, there will be a visual indicator of such:
+<img width="450" alt="editable vs read-only diff" src="https://user-images.githubusercontent.com/378023/47252025-44c93080-d478-11e8-8bb4-2ae532e38ad5.gif">
 
 
 #### 2. Within an editable state
 - The editable state behaves almost like a normal editor, except that the green background of added lines and red background of deleted lines will be kept.
-- Behaviours such as stage/unstage hunk and selected line will remain the same, since the line being actively edited will still be considered as "selected", hence show up as highlighted.
-- A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to user in a very clear visual manner:
-  - The cursor for hovering over deleted lines will show up as arrow as opposed to text cursor.
+- Behaviours such as stage/unstage hunk and selected line will remain the same, since the line that is being actively edited will still be considered as "selected", hence show up as highlighted.
+- A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to users in a very clear visual manner:
+  - The cursor for hovering over deleted lines will show up as an arrow as opposed to a text cursor.
   - Deleted lines can still be selected (via mouse or keyboard) but no caret will be visible; basically same as current behaviour.
-- As a user make edits in a diff view, the file name will have some visual cue indicating there's unsaved modification, akin to when a regular atom editor has unsaved changes.
-- For multiple file diff views, the unsaved modification indicator will be on a per-file basis. In the following example, `src/fish.txt` has unsaved modification but `something` does not:
+- As a user makes edits in a diff view, the file name will have some visual cue indicating there are unsaved modifications, akin to when a regular atom editor has unsaved changes.
+  - For multiple file diff views, the unsaved modification indicator will be on a per-file basis. In the following example, `src/fish.txt` has unsaved modification but `something` does not:
 <img width="400" alt="unsaved modification indicator" src="https://user-images.githubusercontent.com/6842965/50688975-2363f380-1028-11e9-838d-82a1b6310c84.png">
-- When attempting to close a diff with unsaved modification, user will be prompted with "are you sure", etc -- same behaviour as an unsaved Atom editor
+- When attempting to close a diff with unsaved modification, users will be prompted with "are you sure", etc -- same behaviour as an unsaved Atom editor
 
 
 #### 3. Save (i.e. write modification to disk)
 
-- No edits within the diff view will be written to disk until user explicitly saves (`cmd-s`) the modified diff.
-  - For multple file diff view, one "save" action will save _all modifications across the different files within that diff view_.
+- No edits within the diff view will be written to disk until the user explicitly saves (`cmd-s`) the modified diff.
+  - For multiple file diff view, one "save" action will save _all modifications across the different files within that diff view_.
 
 - Upon saving, the diff view will re-render with the new file patch, and scroll position will remain unchanged.
 - Some visual jumps might result as the new file patch is shown (see [examples](#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
@@ -57,7 +59,7 @@ In my research, I have found no prior art of editable diffs in *unified diff vie
 
 ##### Some specific examples:
 
-- editing a previously unchanged line will result in the new file patch being longer, since we now have an newly "deleted" line.
+- editing a previously unchanged line will result in the new file patch being longer since we now have a newly "deleted" line.
 
 | old file patch | new file patch |
 | --- | --- |
@@ -82,36 +84,36 @@ A first iteration was considered where by default, a diff view is read-only, and
 
 The flow of using editable diff is as followed:
 
-#### 1. Entry point of editable state
+#### 1. The entry point of editable state
 On any given diff view, a user can get a diff hunk into an __editable state__ by:
   - double-clicking on any line within a hunk
   - clicking on a new "edit hunk" button on hunk header
   - if the hunk is selected, pressing specific keys (exact key binding TBD)
-  - "edit" from context menu
-  - if already in editable state in a previous hunk, navigating with keyboard can exit previous hunk's editable state and enter editable state of the next hunk.
+  - "edit" from the context menu
+  - if already in the editable state in a previous hunk, navigating with the keyboard can exit previous hunk's editable state and enter the editable state of the next hunk.
 
 
 #### 2. Within an editable state
   - Only one hunk is editable at a time
-  - Visually, it will be very clear when a hunk is in editable state. In addition to a blinking caret, maybe we can put the whole block in a box or fade out the rest of the diff? :thinking:
+  - Visually, it will be very clear when a hunk is in the editable state. In addition to a blinking caret, maybe we can put the whole block in a box or fade out the rest of the diff? :thinking:
   - The editable state behaves almost like it's a normal editor, except that the green background of added lines and red background of deleted lines will be kept.
-  - A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to user in a very clear visual manner:
-    - The cursor for hovering over deleted lines will show up as arrow as opposed to text cursor.
-    - When navigating with keyboard, deleted lines will be skipped as if they don't exist.
-    - When dragging cursor to highlight a block of text, deleted lines will not get highlighted.
+  - A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to users in a very clear visual manner:
+    - The cursor for hovering over deleted lines will show up as an arrow as opposed to text cursor.
+    - When navigating with the keyboard, deleted lines will be skipped as if they don't exist.
+    - When dragging the cursor to highlight a block of text, deleted lines will not get highlighted.
 
 #### 3. Exiting editable state:
 Upon exiting editable state, the changes will be immediately saved to the corresponding file on disk. And the diff view would re-render with the new file patch, and scroll position will remain unchanged.
 
 A user can exit the editable state by:
   - clicking outside of the editable area
-  - pressing `esc` or `cmd-s`
+  - pressing `ESC` or `cmd-s`
   - performing actions such as stage/unstage, jump to file, etc.
 
 </details>
 
 ##### Rationale for not going this route:
-- Having to explicitly toggle into an editable state is similar to behaviour seen in dotcom, but this goes against our editor-first approach. It's called an _editor_ for a reason afterall -- things are expected to be editable.
+- Having to explicitly toggle into an editable state is similar to behaviour seen in dotcom, but this goes against our editor-first approach. It's called an _editor_ for a reason after all -- things are expected to be editable.
 - Since [the majority of the existing diff view usage will be editable](#what-is-editable), it makes sense to default to the editable state, and only communicate to users when it's an exception (i.e. read-only).
 
 
@@ -122,7 +124,7 @@ All of the prior arts I could find on editable diffs implement this feature with
 ![kapture 2019-01-03 at 20 35 29](https://user-images.githubusercontent.com/6842965/50657589-37134980-0f97-11e9-96cc-41cb1eda6546.gif)
 
 This is a gif of how it works in VS code, but other diff and/or merge tools have similar implementations:
- - split screen with one side editable (the file on disk) and the other side readonly
+ - split screen with one side editable (the file on disk) and the other side read-only
  - both sides show unmodified lines
  - readonly side shows deleted lines
  - editable side shows added/modified lines
@@ -135,7 +137,7 @@ This is a gif of how it works in VS code, but other diff and/or merge tools have
 
 ##### Cons:
  - soft-wrap mostly doesn't work well with this view
- - split view takes up a lot of screen real estate
+ - the split view takes up a lot of screen real estate
 
 ##### Rationale for not going this route:
 Despite the editable split diff view being the more conventional and relatively easier approach, it diverges way too much from our existing unified diff view,  and hence would not be a good direction for us.
@@ -143,9 +145,9 @@ Despite the editable split diff view being the more conventional and relatively 
 
 ## :question: Unresolved questions
 
-- Currently, if a user make changed to a staged file, the new changes show up in Unstaged Changes, but are not applied to the already staged file. If we allow staged file to be edited, should the new changes apply to both file on disk as well as the staged entry?
+- Currently, if a user makes changed to a staged file, the new changes show up in Unstaged Changes, but are not applied to the already staged file. If we allow a staged file to be edited, should the new changes apply to both file on disk as well as the staged entry?
 
-- The PR comments we are implementing in [#1856](https://github.com/atom/github/pull/1856) already add consierable complexity to the diff view. Should the comments be visible when the diff is in editable state?
+- The PR comments we are implementing in [#1856](https://github.com/atom/github/pull/1856) already add considerable complexity to the diff view. Should the comments be visible when the diff is in an editable state?
 
 - When modifying a diff, should actions such as stage/unstage, jump to file, etc. trigger a "save"?
 
