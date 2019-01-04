@@ -16,14 +16,14 @@ This also serves as a building block of the bigger [PR review workflow](https://
 
 Currently we use diff view in several places; which ones of them are editable?
   - Unstaged Changes: *editable*
-  - Staged Changes: *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
-  - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+  - Staged Changes: *editable* but with [unresolved questions](#question-unresolved-questions)
+  - All staged changes (aka Commit Preview): *editable* but with [unresolved questions](#question-unresolved-questions)
   - Commit Detail Item: *NOT editable*
-  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#question-unresolved-questions)
+  - Changed File Tab in PR: *editable **only** if it's a checked out PR*, also with [unresolved questions](#question-unresolved-questions)
 
 #### 1. Entry point of editable state
 
-- By default, a diff view is editable (with some [exceptions](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#what-is-editable)). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
+- By default, a diff view is editable (with some [exceptions](#what-is-editable) listed above). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
 - If a diff is readonly, there will be a visual indicator of such:
 <img width="450" alt="editable vs readonly diff" src="https://user-images.githubusercontent.com/378023/47252025-44c93080-d478-11e8-8bb4-2ae532e38ad5.gif">
 
@@ -46,7 +46,7 @@ Currently we use diff view in several places; which ones of them are editable?
   - For multple file diff view, one "save" action will save _all modifications across the different files within that diff view_.
 
 - Upon saving, the diff view will re-render with the new file patch, and scroll position will remain unchanged.
-- Some visual jumps might result as the new file patch is shown (see [examples](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
+- Some visual jumps might result as the new file patch is shown (see [examples](#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
 
 
 ## :anchor: Drawbacks
@@ -112,7 +112,7 @@ A user can exit the editable state by:
 
 ##### Rationale for not going this route:
 - Having to explicitly toggle into an editable state is similar to behaviour seen in dotcom, but this goes against our editor-first approach. It's called an _editor_ for a reason afterall -- things are expected to be editable.
-- Since [the majority of the existing diff view usage will be editable](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#what-is-editable), it makes sense to default to the editable state, and only communicate to users when it's an exception (i.e. read-only).
+- Since [the majority of the existing diff view usage will be editable](#what-is-editable), it makes sense to default to the editable state, and only communicate to users when it's an exception (i.e. read-only).
 
 
 ### Editable Split Diff
