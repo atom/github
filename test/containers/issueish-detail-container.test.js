@@ -5,6 +5,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {issueishDetailContainerProps} from '../fixtures/props/issueish-pane-props';
 import {createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
+import {PAGE_SIZE} from '../../lib/helpers';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 import IssueishDetailContainer from '../../lib/containers/issueish-detail-container';
@@ -26,12 +27,14 @@ describe('IssueishDetailContainer', function() {
         repoOwner: 'owner',
         repoName: 'repo',
         issueishNumber: 1,
-        timelineCount: 100,
+        timelineCount: PAGE_SIZE,
         timelineCursor: null,
-        commitCount: 100,
+        commitCount: PAGE_SIZE,
         commitCursor: null,
-        commentCount: 100,
+        commentCount: PAGE_SIZE,
         commentCursor: null,
+        reviewCount: PAGE_SIZE,
+        reviewCursor: null,
       },
     }, {
       repository: {
