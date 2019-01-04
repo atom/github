@@ -204,5 +204,11 @@
     "FilePatchControllerStub": "createFilePatchControllerStub",
     "CommitPreviewStub": "createCommitPreviewStub",
     "CommitDetailStub": "createCommitDetailStub"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "electron-link",
+      "electron-mksnapshot"
+    ]
   }
 }
