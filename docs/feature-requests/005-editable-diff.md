@@ -25,19 +25,19 @@ This also serves as a building block of the bigger [PR review workflow](https://
 - A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to user in a very clear visual manner:
   - The cursor for hovering over deleted lines will show up as arrow as opposed to text cursor.
   - Deleted lines can still be selected (via mouse or keyboard) but no caret will be visible; basically same as current behaviour.
+- As a user make edits in a diff view, the file name will have some visual cue indicating there's unsaved modification, akin to when a regular atom editor has unsaved changes.
+- For multiple file diff views, the unsaved modification indicator will be on a per-file basis. In the following example, `src/fish.txt` has unsaved modification but `something` does not:
+<img width="400" alt="unsaved modification indicator" src="https://user-images.githubusercontent.com/6842965/50688975-2363f380-1028-11e9-838d-82a1b6310c84.png">
+- When attempting to close a diff with unsaved modification, user will be prompted with "are you sure", etc -- same behaviour as an unsaved Atom editor
 
 
 #### 3. Save (i.e. write modification to disk)
 
-- As a user make edits in a diff view, the file name will have some visual cue indicating there's unsaved modification, akin to when a regular atom editor has unsaved changes.
-  - For multiple file diff views, the unsaved modification indicator will be on a per-file basis. In the following example, `src/fish.txt` has unsaved modification but `something` does not:
-  <img width="400" alt="unsaved modification indicator" src="https://user-images.githubusercontent.com/6842965/50688975-2363f380-1028-11e9-838d-82a1b6310c84.png">
-
-
 - No edits within the diff view will be written to disk until user explicitly saves (`cmd-s`) the modified diff.
   - For multple file diff view, one "save" action will save _all modifications across the different files within that diff view_.
 
-- Upon saving, the diff view will re-render with the new file patch, and scroll position will remain unchanged. Some visual "jumps" might result as the new file patch is shown (see [examples](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
+- Upon saving, the diff view will re-render with the new file patch, and scroll position will remain unchanged.
+- Some visual jumps might result as the new file patch is shown (see [examples](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#some-specific-examples)), but that won't be too jarring since the save action is so explicit.
 
 
 #### What is editable?
@@ -73,36 +73,13 @@ In my research, I have found no prior art of editable diffs in *unified diff vie
 
 ## :thinking: Rationale and alternatives
 
+### Default to read-only state
 
-### Editable Split Diff
-
-All of the prior arts I could find on editable diffs implement this feature with the use of "split screen diff".
-
-![kapture 2019-01-03 at 20 35 29](https://user-images.githubusercontent.com/6842965/50657589-37134980-0f97-11e9-96cc-41cb1eda6546.gif)
-This is a gif of how it works in VS code, but other diff and/or merge tools have similar implementations:
- - split screen with one side editable (the file on disk) and the other side readonly
- - both sides show unmodified lines
- - readonly side shows deleted lines
- - editable side shows added/modified lines
- - use grey/void blocks to reconcile the line differences between the two sides so they line up properly
-
-##### Pros:
- - it's easy to understand that one side is editable, and the other is not.
- - adding and deleting lines are not jarring
- - able to avoid the hunk separating/joining issue (mentioned above in Drawbacks section)
-
-##### Cons:
- - soft-wrap mostly doesn't work well with this view
- - split view takes up a lot of screen real estate
-
-##### Rationale for not going this route:
-Despite the editable split diff view being the more conventional and relatively easier approach, it diverges way too much from our existing unified diff view,  and hence would not be a good direction for us.
-
-### First iteration
+A first iteration was considered where by default, a diff view is read-only, and users would have to explicitly toggle in and out of an editable state.
 
 <details>
 
-<summary>iteration 1 (by default, a diff view is not editable)</summary>
+<summary>More details of the workflow considered in iteration 1</summary>
 
 The flow of using editable diff is as followed:
 
@@ -133,6 +110,36 @@ A user can exit the editable state by:
   - performing actions such as stage/unstage, jump to file, etc.
 
 </details>
+
+##### Rationale for not going this route:
+- Having to explicitly toggle into an editable state is similar to behaviour seen in dotcom, but this goes against our editor-first approach. It's called an _editor_ for a reason afterall -- things are expected to be editable.
+- Since [the majority of the existing diff view usage will be editable](https://github.com/atom/github/blob/vy/proposal-editable-diff/docs/feature-requests/005-editable-diff.md#what-is-editable), it makes sense to default to the editable state, and only communicate to users when it's an exception (i.e. read-only).
+
+
+### Editable Split Diff
+
+All of the prior arts I could find on editable diffs implement this feature with the use of "split screen diff".
+
+![kapture 2019-01-03 at 20 35 29](https://user-images.githubusercontent.com/6842965/50657589-37134980-0f97-11e9-96cc-41cb1eda6546.gif)
+
+This is a gif of how it works in VS code, but other diff and/or merge tools have similar implementations:
+ - split screen with one side editable (the file on disk) and the other side readonly
+ - both sides show unmodified lines
+ - readonly side shows deleted lines
+ - editable side shows added/modified lines
+ - use grey/void blocks to reconcile the line differences between the two sides so they line up properly
+
+##### Pros:
+ - it's easy to understand that one side is editable, and the other is not.
+ - adding and deleting lines are not jarring
+ - able to avoid the hunk separating/joining issue (mentioned above in Drawbacks section)
+
+##### Cons:
+ - soft-wrap mostly doesn't work well with this view
+ - split view takes up a lot of screen real estate
+
+##### Rationale for not going this route:
+Despite the editable split diff view being the more conventional and relatively easier approach, it diverges way too much from our existing unified diff view,  and hence would not be a good direction for us.
 
 
 ## :question: Unresolved questions
