@@ -89,7 +89,7 @@ describe('PullRequestReviewCommentsContainer', function() {
 
 
   describe('attemptToLoadMoreComments', function() {
-    it('does not call loadMore if hasMore prop is falsy', function() {
+    it('does not call loadMore if hasMore is false', function() {
     });
 
     it('calls loadMore immediately if not already loading more', function() {
