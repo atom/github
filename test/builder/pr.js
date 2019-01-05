@@ -134,7 +134,7 @@ class PullRequestBuilder {
     });
     return {
       reviews: {nodes: this._reviews},
-      commentThreads: Object.keys(commentThreads).reverse().map(rootCommentId => {
+      commentThreads: Object.keys(commentThreads).map(rootCommentId => {
         return {
           rootCommentId,
           comments: commentThreads[rootCommentId],
