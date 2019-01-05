@@ -30,6 +30,7 @@ describe('PullRequestReviewCommentsContainer', function() {
     };
     return <BarePullRequestReviewCommentsContainer {...props} />;
   }
+
   it('collects the comments after component has been mounted', function() {
     const collectCommentsStub = sinon.stub();
     shallow(buildApp({}, {collectComments: collectCommentsStub}));
@@ -48,7 +49,6 @@ describe('PullRequestReviewCommentsContainer', function() {
     wrapper.instance().componentDidMount();
     assert.strictEqual(wrapper.instance()._attemptToLoadMoreComments.callCount, 1);
   });
-
 
   describe('loadMoreComments', function() {
     it('calls this.props.relay.loadMore with correct args', function() {
@@ -79,23 +79,18 @@ describe('PullRequestReviewCommentsContainer', function() {
       assert.deepEqual(args.comments, {edges: ['this kiki is marvelous']});
       assert.isFalse(args.hasMore);
     });
-
-    it('handles errors', function() {
-
-    });
-
-
   });
-
 
   describe('attemptToLoadMoreComments', function() {
     let clock;
     beforeEach(function() {
       clock = sinon.useFakeTimers();
     });
+
     afterEach(function() {
       clock = sinon.restore();
     });
+
     it('does not call loadMore if hasMore is false', function() {
       const relayLoadMoreStub = sinon.stub();
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
