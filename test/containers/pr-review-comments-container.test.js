@@ -6,6 +6,12 @@ import {PAGE_SIZE, PAGINATION_WAIT_TIME_MS} from '../../lib/helpers';
 import {BarePullRequestReviewCommentsContainer} from '../../lib/containers/pr-review-comments-container';
 
 describe('PullRequestReviewCommentsContainer', function() {
+  const review = {
+    id: '123',
+    submittedAt: '2018-12-27T20:40:55Z',
+    comments: {edges: ['this kiki is marvelous']},
+  };
+
   function buildApp(opts, overrideProps = {}) {
     const o = {
       relayHasMore: () => { return false; },
@@ -21,11 +27,7 @@ describe('PullRequestReviewCommentsContainer', function() {
         isLoading: o.relayIsLoading,
       },
       collectComments: () => {},
-      review: {
-        id: '123',
-        submittedAt: '2018-12-27T20:40:55Z',
-        comments: {edges: ['this kiki is marvelous']},
-      },
+      review,
       ...overrideProps,
     };
     return <BarePullRequestReviewCommentsContainer {...props} />;
@@ -35,12 +37,14 @@ describe('PullRequestReviewCommentsContainer', function() {
     const collectCommentsStub = sinon.stub();
     shallow(buildApp({}, {collectComments: collectCommentsStub}));
     assert.strictEqual(collectCommentsStub.callCount, 1);
-    const args = collectCommentsStub.lastCall.args[0];
 
-    assert.strictEqual(args.reviewId, '123');
-    assert.strictEqual(args.submittedAt, '2018-12-27T20:40:55Z');
-    assert.deepEqual(args.comments, {edges: ['this kiki is marvelous']});
-    assert.isFalse(args.hasMore);
+    const {submittedAt, comments, id} = review;
+    assert.deepEqual(collectCommentsStub.lastCall.args[0], {
+      reviewId: id,
+      submittedAt,
+      comments,
+      fetchingMoreComments: false,
+    });
   });
 
   it('attempts to load comments after component has been mounted', function() {
@@ -56,28 +60,29 @@ describe('PullRequestReviewCommentsContainer', function() {
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
       wrapper.instance()._loadMoreComments();
 
-      const args = relayLoadMoreStub.lastCall.args;
-      assert.strictEqual(args[0], PAGE_SIZE);
-      assert.strictEqual(args[1], wrapper.instance().onDidLoadMore);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
     });
   });
 
-  describe('onDidLoadMore', function() {
+  describe('handleComments', function() {
     it('collects comments and attempts to load more comments', function() {
       const collectCommentsStub = sinon.stub();
       const wrapper = shallow(buildApp({}, {collectComments: collectCommentsStub}));
       // collect comments is called when mounted, we don't care about that in this test so reset the count
       collectCommentsStub.reset();
       sinon.stub(wrapper.instance(), '_attemptToLoadMoreComments');
-      wrapper.instance().onDidLoadMore();
+      wrapper.instance().handleComments();
 
       assert.strictEqual(collectCommentsStub.callCount, 1);
       const args = collectCommentsStub.lastCall.args[0];
 
-      assert.strictEqual(args.reviewId, '123');
-      assert.strictEqual(args.submittedAt, '2018-12-27T20:40:55Z');
-      assert.deepEqual(args.comments, {edges: ['this kiki is marvelous']});
-      assert.isFalse(args.hasMore);
+      const {submittedAt, comments, id} = review;
+      assert.deepEqual(collectCommentsStub.lastCall.args[0], {
+        reviewId: id,
+        submittedAt,
+        comments,
+        fetchingMoreComments: false,
+      });
     });
   });
 
@@ -108,9 +113,7 @@ describe('PullRequestReviewCommentsContainer', function() {
 
       wrapper.instance()._attemptToLoadMoreComments();
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      const args = relayLoadMoreStub.lastCall.args;
-      assert.strictEqual(args[0], PAGE_SIZE);
-      assert.strictEqual(args[1], wrapper.instance().onDidLoadMore);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
     });
 
     it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
@@ -128,9 +131,7 @@ describe('PullRequestReviewCommentsContainer', function() {
 
       clock.tick(PAGINATION_WAIT_TIME_MS);
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      const args = relayLoadMoreStub.lastCall.args;
-      assert.strictEqual(args[0], PAGE_SIZE);
-      assert.strictEqual(args[1], wrapper.instance().onDidLoadMore);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
     });
   });
 });
