@@ -73,7 +73,7 @@ describe('PullRequestCommentView', function() {
   const bodyHTML = '<div> yo yo </div>';
   const switchToIssueish = () => {};
 
-  function buildApp(overrideProps = {}, opts = {}) {
+  function buildApp(commentOverrideProps = {}, opts = {}) {
     const props = {
       comment: {
         bodyHTML,
@@ -83,7 +83,7 @@ describe('PullRequestCommentView', function() {
           avatarUrl,
           login,
         },
-        ...overrideProps,
+        ...commentOverrideProps,
       },
       switchToIssueish,
       ...opts,
@@ -93,6 +93,7 @@ describe('PullRequestCommentView', function() {
       <PullRequestCommentView {...props} />
     );
   }
+
   it('renders the PullRequestCommentReview information', function() {
     const wrapper = shallow(buildApp());
     const avatar = wrapper.find('.github-PrComment-avatar');
