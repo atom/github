@@ -27,7 +27,7 @@ describe('PullRequestCommentsView', function() {
       .addReview(r => {
         r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
         r.addComment(c => c.id(1).path('file0.txt').position(15).body('three'));
-        r.addComment(c => c.id(1).path('file1.txt').position(7).body('three'));
+        r.addComment(c => c.id(2).path('file1.txt').position(7).body('three'));
       })
       .build();
 
