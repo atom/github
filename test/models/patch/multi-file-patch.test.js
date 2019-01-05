@@ -710,7 +710,7 @@ describe('MultiFilePatch', function() {
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file.txt'));
           fp.addHunk(h => {
-            h.unchanged('1 (0)').added('2 (1)', '3 (2)').deleted('4 (3)', '5 (4)', '6 (5)').unchanged('7 (6)');
+            h.unchanged('0 (1)').added('1 (2)', '2 (3)').deleted('3 (4)', '4 (5)', '5 (6)').unchanged('6 (7)');
           });
         })
         .build();
