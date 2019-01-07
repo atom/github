@@ -101,7 +101,7 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    store = new UserStore({repository, login, config});
+    store = new UserStore({repository, config});
     sinon.stub(store, 'loadMentionableUsers').returns(undefined);
 
     await store.loadUsers();
