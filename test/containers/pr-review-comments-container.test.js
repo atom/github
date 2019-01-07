@@ -74,7 +74,6 @@ describe('PullRequestReviewCommentsContainer', function() {
       wrapper.instance().handleComments();
 
       assert.strictEqual(collectCommentsStub.callCount, 1);
-      const args = collectCommentsStub.lastCall.args[0];
 
       const {submittedAt, comments, id} = review;
       assert.deepEqual(collectCommentsStub.lastCall.args[0], {
