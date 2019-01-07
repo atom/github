@@ -26,8 +26,9 @@ Currently, we use diff view in several places; which ones of them are editable?
 #### 1. The entry point of editable state
 
 - By default, a diff view is editable (with some [exceptions](#what-is-editable) listed above). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
-- If a diff is read-only, there will be a visual indicator of such:
-<img width="450" alt="editable vs read-only diff" src="https://user-images.githubusercontent.com/378023/47252025-44c93080-d478-11e8-8bb4-2ae532e38ad5.gif">
+  ![editable](https://user-images.githubusercontent.com/378023/50758847-b27e3f00-12a6-11e9-8c2e-6c0bf085fdbd.gif)
+- If a diff is read-only, there will be no caret. The mouse cursor shows as "default" arrow. Selecting still works.
+  ![non-editable](https://user-images.githubusercontent.com/378023/50758848-b27e3f00-12a6-11e9-996c-8a458196e070.gif)
 
 
 #### 2. Within an editable state
