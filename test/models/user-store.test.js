@@ -97,6 +97,21 @@ describe('UserStore', function() {
     assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
   });
 
+  it('falls back to local git users and committers if laodMentionableUsers cannot load any user for whatever reason', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    store = new UserStore({repository, login, config});
+    sinon.stub(store, 'loadMentionableUsers').returns(undefined);
+
+    await store.loadUsers();
+    await nextUpdatePromise();
+
+    assert.deepEqual(store.getUsers(), [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+    ]);
+  });
+
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
     await login.setToken('https://api.github.com', '1234');
 
