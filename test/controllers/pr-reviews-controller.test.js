@@ -220,5 +220,22 @@ describe('PullRequestReviewsController', function() {
       assert.strictEqual(threadedComments[1].body, 'reply to OG comment');
     });
 
+    it('comments with a replyTo id that does not point to an existing comment are threaded separately', function() {
+      const outdatedCommentId = 1;
+      const replyToOutdatedCommentId = 2;
+      const review = reviewBuilder()
+        .id(2)
+        .submittedAt('2018-12-28T20:40:55Z')
+        .addComment(c =>  c.id(replyToOutdatedCommentId).path('file0.txt').replyTo(outdatedCommentId).body('reply to outdated comment'))
+        .build();
+
+      const wrapper = shallow(buildApp({reviewSpecs: [review]}));
+      wrapper.instance().collectComments({reviewId: review.id, submittedAt: review.submittedAt, comments: review.comments, fetchingMoreComments: false});
+
+      const comments = wrapper.instance().state[replyToOutdatedCommentId];
+      assert.lengthOf(comments, 1);
+      assert.strictEqual(comments[0].body, 'reply to outdated comment');
+    });
+
   });
 });
