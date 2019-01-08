@@ -4,7 +4,7 @@ import {reviewBuilder} from '../builder/pr';
 
 import PullRequestReviewsController from '../../lib/controllers/pr-reviews-controller';
 
-import {PAGE_SIZE} from '../../lib/helpers';
+import {PAGE_SIZE, PAGINATION_WAIT_TIME_MS} from '../../lib/helpers';
 
 describe('PullRequestReviewsController', function() {
   function buildApp(opts, overrideProps = {}) {
@@ -104,6 +104,55 @@ describe('PullRequestReviewsController', function() {
       ], fetchingMoreComments: false};
       wrapper.instance().collectComments(args);
       assert.strictEqual(groupCommentsStub.callCount, 1);
+    });
+  });
+
+  describe('attemptToLoadMoreReviews', function() {
+    let clock;
+    beforeEach(function() {
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function() {
+      clock = sinon.restore();
+    });
+
+    it('does not call loadMore if hasMore is false', function() {
+      const relayLoadMoreStub = sinon.stub();
+      const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
+      relayLoadMoreStub.reset();
+
+      wrapper.instance()._attemptToLoadMoreReviews();
+      assert.strictEqual(relayLoadMoreStub.callCount, 0);
+    });
+
+    it('calls loadMore immediately if hasMore is true and isLoading is false', function() {
+      const relayLoadMoreStub = sinon.stub();
+      const relayHasMore = () => { return true; };
+      const wrapper = shallow(buildApp({relayHasMore, relayLoadMore: relayLoadMoreStub}));
+      relayLoadMoreStub.reset();
+
+      wrapper.instance()._attemptToLoadMoreReviews();
+      assert.strictEqual(relayLoadMoreStub.callCount, 1);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+    });
+
+    it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
+      const relayLoadMoreStub = sinon.stub();
+      const relayHasMore = () => { return true; };
+      const relayIsLoading = () => { return true; };
+      const wrapper = shallow(buildApp({relayHasMore, relayIsLoading, relayLoadMore: relayLoadMoreStub}));
+      // advancing the timer and resetting the stub to clear the initial calls of
+      // _attemptToLoadMoreReviews when the component is initially mounted.
+      clock.tick(PAGINATION_WAIT_TIME_MS);
+      relayLoadMoreStub.reset();
+
+      wrapper.instance()._attemptToLoadMoreReviews();
+      assert.strictEqual(relayLoadMoreStub.callCount, 0);
+
+      clock.tick(PAGINATION_WAIT_TIME_MS);
+      assert.strictEqual(relayLoadMoreStub.callCount, 1);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
     });
   });
 
