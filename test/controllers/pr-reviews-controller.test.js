@@ -4,6 +4,8 @@ import {reviewBuilder} from '../builder/pr';
 
 import PullRequestReviewsController from '../../lib/controllers/pr-reviews-controller';
 
+import {PAGE_SIZE} from '../../lib/helpers';
+
 describe('PullRequestReviewsController', function() {
   function buildApp(opts, overrideProps = {}) {
     const o = {
@@ -105,31 +107,69 @@ describe('PullRequestReviewsController', function() {
     });
   });
 
+  describe('_loadMoreReviews', function() {
+    it('calls this.props.relay.loadMore with correct args', function() {
+      const relayLoadMoreStub = sinon.stub();
+      const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
+      wrapper.instance()._loadMoreReviews();
 
-  it('groups the comments into threads once all the data has been fetched', function() {
-    const review1 = reviewBuilder()
-      .id(0)
-      .submittedAt('2018-12-27T20:40:55Z')
-      .addComment(c => c.id(1).path('file0.txt').body('OG comment'))
-      .build();
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+    });
+  });
 
-    const review2 = reviewBuilder()
-      .id(1)
-      .submittedAt('2018-12-28T20:40:55Z')
-      .addComment(c => c.id(2).path('file0.txt').replyTo(1).body('reply to OG comment'))
-      .build();
+  describe('grouping and ordering comments', function() {
+    it('groups the comments into threads based on replyId', function() {
+      const review1 = reviewBuilder()
+        .id(0)
+        .submittedAt('2018-12-27T20:40:55Z')
+        .addComment(c => c.id(1).path('file0.txt').body('OG comment'))
+        .build();
 
-    const reviewSpecs = [review1, review2];
+      const review2 = reviewBuilder()
+        .id(1)
+        .submittedAt('2018-12-28T20:40:55Z')
+        .addComment(c => c.id(2).path('file0.txt').replyTo(1).body('reply to OG comment'))
+        .build();
 
-    const wrapper = shallow(buildApp({reviewSpecs}));
+      const reviewSpecs = [review1, review2];
 
-    // adding this manually to reviewsById because the last time you call collectComments
-    wrapper.instance().reviewsById.set(review1.id, {submittedAt: review1.submittedAt, comments: review1.comments, fetchingMoreComments: false});
+      const wrapper = shallow(buildApp({reviewSpecs}));
 
-    wrapper.instance().collectComments({reviewId: review2.id, submittedAt: review2.submittedAt, comments: review2.comments, fetchingMoreComments: false});
-    const threadedComments = wrapper.instance().state[1];
-    assert.lengthOf(threadedComments, 2);
-    assert.strictEqual(threadedComments[0].body, 'OG comment');
-    assert.strictEqual(threadedComments[1].body, 'reply to OG comment');
+      // adding this manually to reviewsById because the last time you call collectComments it groups them, and we don't want to do that just yet.
+      wrapper.instance().reviewsById.set(review1.id, {submittedAt: review1.submittedAt, comments: review1.comments, fetchingMoreComments: false});
+
+      wrapper.instance().collectComments({reviewId: review2.id, submittedAt: review2.submittedAt, comments: review2.comments, fetchingMoreComments: false});
+      const threadedComments = wrapper.instance().state[1];
+      assert.lengthOf(threadedComments, 2);
+      assert.strictEqual(threadedComments[0].body, 'OG comment');
+      assert.strictEqual(threadedComments[1].body, 'reply to OG comment');
+    });
+    it('sorts replies based on date', function() {
+      const review1 = reviewBuilder()
+        .id(0)
+        .submittedAt('2018-12-27T20:40:55Z')
+        .addComment(c => c.id(1).path('file0.txt').body('OG comment'))
+        .build();
+
+      const review2 = reviewBuilder()
+        .id(1)
+        .submittedAt('2018-12-28T20:40:55Z')
+        .addComment(c => c.id(2).path('file0.txt').replyTo(1).body('reply to OG comment'))
+        .build();
+
+      const reviewSpecs = [review1, review2];
+
+      const wrapper = shallow(buildApp({reviewSpecs}));
+
+      // adding this manually to reviewsById because the last time you call collectComments it groups them, and we don't want to do that just yet.
+      wrapper.instance().reviewsById.set(review1.id, {submittedAt: review1.submittedAt, comments: review1.comments, fetchingMoreComments: false});
+
+      wrapper.instance().collectComments({reviewId: review2.id, submittedAt: review2.submittedAt, comments: review2.comments, fetchingMoreComments: false});
+      const threadedComments = wrapper.instance().state[1];
+      assert.lengthOf(threadedComments, 2);
+      assert.strictEqual(threadedComments[0].body, 'OG comment');
+      assert.strictEqual(threadedComments[1].body, 'reply to OG comment');
+    });
+
   });
 });

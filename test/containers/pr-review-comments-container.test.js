@@ -54,7 +54,7 @@ describe('PullRequestReviewCommentsContainer', function() {
     assert.strictEqual(wrapper.instance()._attemptToLoadMoreComments.callCount, 1);
   });
 
-  describe('loadMoreComments', function() {
+  describe('_loadMoreComments', function() {
     it('calls this.props.relay.loadMore with correct args', function() {
       const relayLoadMoreStub = sinon.stub();
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
