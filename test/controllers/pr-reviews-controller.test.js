@@ -168,16 +168,17 @@ describe('PullRequestReviewsController', function() {
 
   describe('grouping and ordering comments', function() {
     it('groups the comments into threads based on replyId', function() {
+      const originalCommentId = 1;
       const review1 = reviewBuilder()
         .id(0)
         .submittedAt('2018-12-27T20:40:55Z')
-        .addComment(c => c.id(1).path('file0.txt').body('OG comment'))
+        .addComment(c => c.id(originalCommentId).path('file0.txt').body('OG comment'))
         .build();
 
       const review2 = reviewBuilder()
         .id(1)
         .submittedAt('2018-12-28T20:40:55Z')
-        .addComment(c => c.id(2).path('file0.txt').replyTo(1).body('reply to OG comment'))
+        .addComment(c => c.id(2).path('file0.txt').replyTo(originalCommentId).body('reply to OG comment'))
         .build();
 
       const reviewSpecs = [review1, review2];
