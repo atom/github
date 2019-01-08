@@ -97,7 +97,7 @@ describe('UserStore', function() {
     assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
   });
 
-  it('falls back to local git users and committers if laodMentionableUsers cannot load any user for whatever reason', async function() {
+  it('falls back to local git users and committers if loadMentionableUsers cannot load any user for whatever reason', async function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
