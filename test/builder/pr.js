@@ -108,6 +108,7 @@ class ReviewBuilder {
     });
     return {
       id: this._id,
+      submittedAt: this._submittedAt,
       comments: {edges: comments},
     };
   }
