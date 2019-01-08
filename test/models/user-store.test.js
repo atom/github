@@ -97,6 +97,21 @@ describe('UserStore', function() {
     assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
   });
 
+  it('falls back to local git users and committers if loadMentionableUsers cannot load any user for whatever reason', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    store = new UserStore({repository, config});
+    sinon.stub(store, 'loadMentionableUsers').returns(undefined);
+
+    await store.loadUsers();
+    await nextUpdatePromise();
+
+    assert.deepEqual(store.getUsers(), [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+    ]);
+  });
+
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
     await login.setToken('https://api.github.com', '1234');
 
@@ -223,12 +238,12 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     store = new UserStore({repository, config});
-    await assert.async.lengthOf(store.getUsers(), 1);
-
     sinon.spy(store, 'addUsers');
+    await assert.async.lengthOf(store.getUsers(), 1);
+    await assert.async.equal(store.addUsers.callCount, 1);
+
     // make a commit with FAKE_USER as committer
     await repository.commit('made a new commit', {allowEmpty: true});
-    await assert.async.equal(store.addUsers.callCount, 1);
 
     // verify that FAKE_USER is in commit history
     const lastCommit = await repository.getLastCommit();
