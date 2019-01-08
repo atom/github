@@ -52,7 +52,7 @@ class CommentBuilder {
   }
 
   replyTo(replyToId) {
-    this._replyTo = replyToId;
+    this._replyTo = {id: replyToId};
     return this;
   }
 
@@ -78,10 +78,16 @@ class ReviewBuilder {
     this.nextCommentID = 0;
     this._id = 0;
     this._comments = [];
+    this._submittedAt = '2018-12-28T20:40:55Z';
   }
 
   id(i) {
     this._id = i;
+    return this;
+  }
+
+  submittedAt(timestamp) {
+    this._submittedAt = timestamp;
     return this;
   }
 
@@ -97,9 +103,12 @@ class ReviewBuilder {
   }
 
   build() {
+    const comments = this._comments.map(comment => {
+      return {node: comment};
+    });
     return {
       id: this._id,
-      comments: {nodes: this._comments},
+      comments: {edges: comments},
     };
   }
 }
@@ -124,9 +133,9 @@ class PullRequestBuilder {
   build() {
     const commentThreads = {};
     this._reviews.forEach(review => {
-      review.comments.nodes.forEach(comment => {
-        if (comment.replyTo && commentThreads[comment.replyTo]) {
-          commentThreads[comment.replyTo].push(comment);
+      review.comments.edges.forEach(({node: comment})  => {
+        if (comment.replyTo && comment.replyTo.id && commentThreads[comment.replyTo.id]) {
+          commentThreads[comment.replyTo.id].push(comment);
         } else {
           commentThreads[comment.id] = [comment];
         }
