@@ -64,7 +64,9 @@ describe('PullRequestReviewsController', function() {
     const wrapper = shallow(buildApp({reviewSpecs}));
     const containers = wrapper.find('Relay(BarePullRequestReviewCommentsContainer)');
     assert.strictEqual(containers.length, 2);
-    // should I assert on props here?
+
+    assert.strictEqual(containers.at(0).prop('review').id, review1.id);
+    assert.strictEqual(containers.at(1).prop('review').id, review2.id);
   });
 
   it('renders a PullRequestReviewCommentsView and passes props through', function() {
@@ -78,8 +80,6 @@ describe('PullRequestReviewsController', function() {
     assert.strictEqual(view.length, 1);
 
     assert.strictEqual(wrapper.instance().props.passThroughProp, view.prop('passThroughProp'));
-
-    // should I assert on the commentThreads prop?
   });
 
   describe('collectComments', function() {
