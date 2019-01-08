@@ -133,7 +133,7 @@ class PullRequestBuilder {
   build() {
     const commentThreads = {};
     this._reviews.forEach(review => {
-      review.comments.edges.forEach(({node: comment})  => {
+      review.comments.edges.forEach(({node: comment}) => {
         if (comment.replyTo && comment.replyTo.id && commentThreads[comment.replyTo.id]) {
           commentThreads[comment.replyTo.id].push(comment);
         } else {
