@@ -220,7 +220,7 @@ describe('PullRequestReviewsController', function() {
 
       const wrapper = shallow(buildApp({reviewSpecs: [review1, review2, review3]}));
 
-      // adding this manually to reviewsById because the last time you call collectComments it groups them, and we don't want to do that just yet.
+      // adding these manually to reviewsById because the last time you call collectComments it groups them, and we don't want to do that just yet.
       wrapper.instance().reviewsById.set(review2.id, {submittedAt: review2.submittedAt, comments: review2.comments, fetchingMoreComments: false});
       wrapper.instance().reviewsById.set(review1.id, {submittedAt: review1.submittedAt, comments: review1.comments, fetchingMoreComments: false});
 
@@ -232,7 +232,6 @@ describe('PullRequestReviewsController', function() {
       assert.strictEqual(threadedComments[1].body, 'first reply to OG comment');
       assert.strictEqual(threadedComments[2].body, 'second reply to OG comment');
     });
-
 
     it('comments with a replyTo id that does not point to an existing comment are threaded separately', function() {
       const outdatedCommentId = 1;
@@ -250,6 +249,5 @@ describe('PullRequestReviewsController', function() {
       assert.lengthOf(comments, 1);
       assert.strictEqual(comments[0].body, 'reply to outdated comment');
     });
-
   });
 });
