@@ -67,7 +67,7 @@ Clicking on the "Files Changed" tab displays the full, multi-file diff associate
 
 Clicking on the "Expand review summaries" control in the filter bar reveals an inline panel that displays the summary of each review created on this pull request, including the review's author, the review's current state, its summary comment, and a progress bar showing how many of the review comments associated with this review have been marked as resolved.
 
-> TODO: Illustrate the "review summary" list panel
+![review summary list panel](https://user-images.githubusercontent.com/17565/50930369-e172ed00-142d-11e9-8ae4-00106dde80f5.png)
 
 Clicking the checkbox within each review summary block hides or reveals the review summary comments associated with that review in diff on this tab. Clicking the "Collapse review summaries" control conceals the review summary panel again.
 
