@@ -27,7 +27,7 @@ Currently, we use diff view in several places; which ones of them are editable?
 
 - By default, a diff view is editable (with some [exceptions](#what-is-editable) listed above). By clicking into any diff, a blinking caret will appear to signify users they can start editing.
   ![editable](https://user-images.githubusercontent.com/378023/50885378-e71e0200-1430-11e9-98ca-6cab06b26bb4.gif)
-- If a diff is read-only, there will be no caret. The mouse cursor shows as "default" arrow. Selecting still works.
+- If a diff is read-only, the caret is not visible. Selecting still works.
   ![non-editable](https://user-images.githubusercontent.com/378023/50885379-e71e0200-1430-11e9-8f8a-47e86bcb8090.gif)
 
 #### 2. Within an editable state
@@ -36,7 +36,6 @@ Currently, we use diff view in several places; which ones of them are editable?
 - A deleted line will still be visible within the editable state, but it _is not editable_. That will be communicated to users in a very clear visual manner:
   - The cursor for hovering over deleted lines will show up as an arrow as opposed to a text cursor.
   - Deleted lines can still be selected (via mouse or keyboard) but no caret will be visible; basically same as current behaviour.
-  ![deleted](https://user-images.githubusercontent.com/378023/50759911-b3fd3680-12a9-11e9-8332-abf211e0743c.gif)
 - As a user makes edits in a diff view, the file name will have some visual cue indicating there are unsaved modifications, akin to when a regular atom editor has unsaved changes.
   - For multiple file diff views, the unsaved modification indicator will be on a per-file basis. In the following example, `src/fish.txt` has unsaved modification but `something` does not:
 <img width="400" alt="unsaved modification indicator" src="https://user-images.githubusercontent.com/6842965/50688975-2363f380-1028-11e9-838d-82a1b6310c84.png">
