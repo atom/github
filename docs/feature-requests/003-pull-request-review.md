@@ -130,7 +130,7 @@ This item is opened in the workspace's right dock when the user:
 
 It shows a scrollable view of all of the reviews and comments associated with a specific pull request,
 
-> TODO: Illustration for the PullRequestReviewsItem
+![pull request reviews item](https://user-images.githubusercontent.com/17565/50931285-213ad400-1430-11e9-8dd2-bd0cc98216fa.png)
 
 Reviews are sorted by "urgency," showing reviews that still need to be addressed at the top. Within each group, sorting is done by "newest first".
 
