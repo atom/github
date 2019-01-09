@@ -53,7 +53,6 @@
     "dugite": "^1.81.0",
     "event-kit": "2.5.3",
     "fs-extra": "4.0.3",
-    "graphql": "0.13.2",
     "keytar": "4.3.0",
     "lodash.memoize": "4.1.2",
     "moment": "2.23.0",
