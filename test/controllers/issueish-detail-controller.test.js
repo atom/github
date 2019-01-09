@@ -105,29 +105,29 @@ describe('IssueishDetailController', function() {
     });
     it('is disabled if the repository is loading or absent', function() {
       const wrapper = shallow(buildApp({}, {isAbsent: true}));
-      const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op.isEnabled());
       assert.strictEqual(op.getMessage(), 'No repository found');
 
       wrapper.setProps({isAbsent: false, isLoading: true});
-      const op1 = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op1 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op1.isEnabled());
       assert.strictEqual(op1.getMessage(), 'Loading');
 
       wrapper.setProps({isAbsent: false, isLoading: false, isPresent: false});
-      const op2 = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op2 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op2.isEnabled());
       assert.strictEqual(op2.getMessage(), 'No repository found');
     });
 
     it('is disabled if the local repository is merging or rebasing', function() {
       const wrapper = shallow(buildApp({}, {isMerging: true}));
-      const op0 = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op0 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op0.isEnabled());
       assert.strictEqual(op0.getMessage(), 'Merge in progress');
 
       wrapper.setProps({isMerging: false, isRebasing: true});
-      const op1 = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op1 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op1.isEnabled());
       assert.strictEqual(op1.getMessage(), 'Rebase in progress');
     });
@@ -135,7 +135,7 @@ describe('IssueishDetailController', function() {
       const props = issueishDetailControllerProps({}, {});
       props.repository.pullRequest.headRepository = null;
       const wrapper = shallow(buildApp({}, {...props}));
-      const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op.isEnabled());
       assert.strictEqual(op.getMessage(), 'Pull request head repository does not exist');
     });
@@ -159,7 +159,7 @@ describe('IssueishDetailController', function() {
         remotes,
       }));
 
-      const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op.isEnabled());
       assert.strictEqual(op.getMessage(), 'Current');
     });
@@ -185,7 +185,7 @@ describe('IssueishDetailController', function() {
         remotes,
       }));
 
-      const op = wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp');
+      const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
       assert.isFalse(op.isEnabled());
       assert.strictEqual(op.getMessage(), 'Current');
     });
@@ -217,7 +217,7 @@ describe('IssueishDetailController', function() {
       }));
 
       sinon.spy(reporterProxy, 'incrementCounter');
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp').run();
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
 
       assert.isTrue(addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
       assert.isTrue(fetch.calledWith('refs/heads/feature', {remoteName: 'ccc'}));
@@ -255,7 +255,7 @@ describe('IssueishDetailController', function() {
       }));
 
       sinon.spy(reporterProxy, 'incrementCounter');
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp').run();
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
 
       assert.isTrue(fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
       assert.isTrue(checkout.calledWith('pr-789/ccc/clever-name', {
@@ -298,7 +298,7 @@ describe('IssueishDetailController', function() {
       }));
 
       sinon.spy(reporterProxy, 'incrementCounter');
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp').run();
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
 
       assert.isTrue(checkout.calledWith('existing'));
       assert.isTrue(pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
@@ -310,7 +310,7 @@ describe('IssueishDetailController', function() {
       const wrapper = shallow(buildApp({}, {addRemote}));
 
       // Should not throw
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp').run();
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
       assert.isTrue(addRemote.called);
     });
 
@@ -319,7 +319,7 @@ describe('IssueishDetailController', function() {
       const wrapper = shallow(buildApp({}, {addRemote}));
 
       await assert.isRejected(
-        wrapper.find('Relay(BarePullRequestDetailView)').prop('checkoutOp').run(),
+        wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run(),
         /not handled by the pipeline/,
       );
       assert.isTrue(addRemote.called);
@@ -329,7 +329,7 @@ describe('IssueishDetailController', function() {
   describe('openCommit', function() {
     it('opens a CommitDetailItem in the workspace', async function() {
       const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('openCommit')({sha: '1234'});
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
@@ -341,7 +341,7 @@ describe('IssueishDetailController', function() {
       sinon.stub(reporterProxy, 'addEvent');
 
       const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
-      await wrapper.find('Relay(BarePullRequestDetailView)').prop('openCommit')({sha: '1234'});
+      await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('openCommit')({sha: '1234'});
 
       assert.isTrue(
         reporterProxy.addEvent.calledWith(

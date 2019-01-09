@@ -42,7 +42,7 @@ describe('PullRequestDetailView', function() {
 
     assert.isTrue(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
 
-    assert.isDefined(wrapper.find('Relay(BarePrStatusesView)[displayType="check"]').prop('pullRequest'));
+    assert.isDefined(wrapper.find('ForwardRef(Relay(BarePrStatusesView))[displayType="check"]').prop('pullRequest'));
 
     const avatarLink = wrapper.find('.github-IssueishDetailView-avatar');
     assert.strictEqual(avatarLink.prop('href'), 'https://github.com/author0');
@@ -56,9 +56,9 @@ describe('PullRequestDetailView', function() {
 
     assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
 
-    assert.notOk(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
-    assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
-    assert.isNotNull(wrapper.find('Relay(BarePrStatusesView)[displayType="full"]').prop('pullRequest'));
+    assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
+    assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
+    assert.isNotNull(wrapper.find('ForwardRef(Relay(BarePrStatusesView))[displayType="full"]').prop('pullRequest'));
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
@@ -104,28 +104,29 @@ describe('PullRequestDetailView', function() {
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
     }));
 
-    assert.isTrue(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
-    assert.isTrue(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isTrue(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
   });
 
   it('tells its tabs when the pull request is not checked out', function() {
     const checkoutOp = new EnableableOperation(() => {});
 
     const wrapper = shallow(buildApp({}, {checkoutOp}));
-    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
-    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.HIDDEN, 'message')});
-    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
-    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.DISABLED, 'message')});
-    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
-    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.BUSY, 'message')});
-    assert.isFalse(wrapper.find('Relay(IssueishTimelineView)').prop('onBranch'));
-    assert.isFalse(wrapper.find('Relay(PrCommitsView)').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
+    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
   });
 
   it('renders pull request information for cross repository PR', function() {

@@ -71,7 +71,7 @@ describe('IssueishTimelineView', function() {
       ],
     }));
 
-    const commitGroup0 = wrapper.find('Relay(BareCommitsView)').filterWhere(c => c.prop('nodes').length === 2);
+    const commitGroup0 = wrapper.find('ForwardRef(Relay(BareCommitsView))').filterWhere(c => c.prop('nodes').length === 2);
     assert.deepEqual(commitGroup0.prop('nodes').map(n => n.id), [0, 1]);
 
     const commentGroup0 = wrapper.find('Grouped(Relay(BareIssueCommentView))').filterWhere(c => c.prop('nodes').length === 1);
@@ -80,7 +80,7 @@ describe('IssueishTimelineView', function() {
     const mergedGroup = wrapper.find('Grouped(Relay(BareMergedEventView))').filterWhere(c => c.prop('nodes').length === 1);
     assert.deepEqual(mergedGroup.prop('nodes').map(n => n.id), [3]);
 
-    const commitGroup1 = wrapper.find('Relay(BareCommitsView)').filterWhere(c => c.prop('nodes').length === 4);
+    const commitGroup1 = wrapper.find('ForwardRef(Relay(BareCommitsView))').filterWhere(c => c.prop('nodes').length === 4);
     assert.deepEqual(commitGroup1.prop('nodes').map(n => n.id), [4, 5, 6, 7]);
 
     const commentGroup1 = wrapper.find('Grouped(Relay(BareIssueCommentView))').filterWhere(c => c.prop('nodes').length === 2);
