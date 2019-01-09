@@ -90,7 +90,7 @@
     "eslint": "5.12.0",
     "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "6.1.2",
-    "globby": "8.0.1",
+    "globby": "8.0.2",
     "hock": "1.3.3",
     "lodash.isequalwith": "4.4.0",
     "mkdirp": "0.5.1",
