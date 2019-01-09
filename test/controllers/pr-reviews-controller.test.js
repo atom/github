@@ -250,6 +250,18 @@ describe('PullRequestReviewsController', function() {
       assert.strictEqual(comments[0].body, 'reply to outdated comment');
     });
   });
+
+  describe('handleError', function() {
+    it('attempts to load more reviews', function() {
+      const wrapper = shallow(buildApp());
+
+      const loadMoreStub = sinon.stub(wrapper.instance(), '_attemptToLoadMoreReviews');
+      wrapper.instance().handleError();
+
+      assert.strictEqual(loadMoreStub.callCount, 1);
+    });
+  });
+
   describe('compareReviewsByDate', function() {
     let wrapper;
     const reviewA = reviewBuilder().submittedAt('2018-12-28T20:40:55Z').build();
