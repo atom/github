@@ -774,7 +774,7 @@ describe('Repository', function() {
 
         sinon.spy(repo, 'didCommit');
         await repo.commit('Regular commit', {allowEmpty: true});
-        const lastCommitSha = await repo.git.exec(['rev-parse', 'HEAD']);
+        const lastCommitSha = (await repo.git.exec(['rev-parse', 'HEAD'])).trim();
         assert.isTrue(repo.didCommit.calledWith(lastCommitSha));
       });
     });
