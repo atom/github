@@ -26,7 +26,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 ![center pane](https://user-images.githubusercontent.com/378023/46985265-75c9fe00-d124-11e8-9b34-572cd1aaf701.png)
 
 * Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
-
+* Clicking the "Reviews" label or progress bar opens a `PullRequestReviewsItem` in the right dock.
 
 ### PullRequestDetailItem
 
@@ -38,13 +38,14 @@ At the top of each `PullRequestDetailItem` is a summary about the pull request, 
 
 - Overview
 - Files (**new**)
-- Reviews (**new**)
 - Commits
 - Build Status
 
-Below the tabs is a "tools bar" for controls to toggle review comments or collapse files.
+Below the tabs is a "tools bar" with controls to toggle review comments or collapse files.
 
 #### Footer
+
+> TODO: Add "open" button
 
 ![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
 
@@ -54,6 +55,7 @@ Overview | Commits | Build Status
 --- | --- | ---
 ![overview](https://user-images.githubusercontent.com/378023/46535907-ca30da80-c8e7-11e8-9401-2b8660d56c25.png) | ![commits](https://user-images.githubusercontent.com/378023/46535908-ca30da80-c8e7-11e8-87ca-01637f2554b6.png) | ![build status](https://user-images.githubusercontent.com/378023/46535909-cac97100-c8e7-11e8-8813-47fdaa3ece57.png)
 
+When the pull request is checked out, an "open" button is shown in the review footer. Clicking "open" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
 
 ### Files (tab)
 
@@ -69,26 +71,6 @@ Uncollapsed (default) | Collapsed
 ![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png) | ![collapsed files](https://user-images.githubusercontent.com/378023/46931273-7069a680-d085-11e8-9ea7-c96a1772fe27.png)
 
 * For large diffs, the files can be collapsed to get a better overview.
-
-
-### Reviews (tab)
-
-Clicking on the "Reviews" tab shows all reviews of a pull request. This is akin to the review summaries that appear on the "Conversation" tab on dotcom. In addition, each review also includes review comments and their diff.
-
-![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png)
-
-Uncollapsed (default) | Collapsed
---- | ---
-![reviews](https://user-images.githubusercontent.com/378023/46535563-c81a4c00-c8e6-11e8-9c0b-6ea575556101.png) | ![collapsed reviews](https://user-images.githubusercontent.com/378023/46926357-62a72780-d06b-11e8-9344-23389d1c727c.png)
-
-* Comments can be collapsed to get a better overview.
-* Reviews get sorted by "urgency". Showing reviews that still need to get adressed at the top:
-  1. "recommended" changes
-  2. "commented" changes
-  3. "no review" (when a reviewer only leaves review comments, but no summary)
-  4. "approved" changes
-  5. "previous" reviews (when a reviewer made an earlier review and it's now out-dated)
-* Within each group, sorting is done by "newest first".
 
 #### Create a new review
 
@@ -131,7 +113,39 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 * Review comments can be resolved by clicking on the "Resolve conversation" buttons.
 * If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
-#### Context and navigation
+### PullRequestReviewsItem
+
+This item is opened in the workspace's right dock when the user:
+
+* Clicks the review progress bar in the GitHub tab.
+* Clicks the "open" button on the review summary footer of a `PullRequestDetailItem`.
+* Clicks the "<>" button on a review comment in the "Files" tab of a `PullRequestDetailItem`.
+
+It shows a scrollable view of all of the reviews and comments associated with a specific pull request,
+
+> TODO: Illustration for the PullRequestReviewsItem
+
+Reviews are sorted by "urgency," showing reviews that still need to be addressed at the top. Within each group, sorting is done by "newest first".
+
+1. "recommended" changes
+2. "commented" changes
+3. "no review" (when a reviewer only leaves review comments, but no summary)
+4. "approved" changes
+5. "previous" reviews (when a reviewer made an earlier review and it's now out-dated)
+
+Clicking on a review summary comment expands or collapses the associated review comments.
+
+Clicking on a review comment opens a `TextEditor` on the corresponding position of the file under review. The clicked review comment is highlighted as the "current" one.
+
+#### Within an open TextEditor
+
+If an open `TextEditor` corresponds to a file that has one or more review comments in an open `PullRequestReviewsItem`, gutter and line decorations are added to the lines that match those review comment positions. The "current" one is styled differently to stand out.
+
+> TODO: Illustrate the "review comment here" gutter and line decorations
+
+Clicking on the gutter icon reveals the `PullRequestReviewsItem` and highlights that review comment as the "current" one, scrolling to it and expanding its review if necessary.
+
+### Context and navigation
 
 Review comments are shown in 3 different places. The comments themselves have the same functionality, but allow the comment to be seen in a different context, depending on different use cases. For example "reviewing a pull request", "addressing feedback", "editing the entire file".
 
@@ -145,7 +159,7 @@ In order to navigate between comments or switch context, each comment has the fo
 
 * Clicking on the `<>` button in a review comment shows the comment in the entire file. If possible, the scroll-position is retained. This allows to quickly get more context about the code.
   * If the current pull request is not checked out, the `<>` button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
-* Clicking on the "sandwich" button shows the comment under the "Reviews" tab.
+* Clicking on the "sandwich" button shows the comment in the corresponding `PullRequestReviewsItem`.
 * Clicking on the "file-+" button (not shown in above screenshot) shows the comment under the "Files" tab.
 * The up and down arrow buttons navigate to the next and previous unresolved review comments.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
