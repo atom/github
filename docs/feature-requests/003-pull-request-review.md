@@ -61,16 +61,23 @@ When the pull request is checked out, an "open" button is shown in the review fo
 
 Clicking on the "Files Changed" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
 
+> TODO: Change "Show review comments" checkbox to an expand/collapse review summaries control
+
 ![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png)
 
-* Diffs are editable.
-* Editing the diff is _only_ possible if the pull request branch is checked out and the local branch history has not diverged from the remote branch history.
+Clicking on the "Expand review summaries" control in the filter bar reveals an inline panel that displays the summary of each review created on this pull request, including the review's author, the review's current state, its summary comment, and a progress bar showing how many of the review comments associated with this review have been marked as resolved.
+
+> TODO: Illustrate the "review summary" list panel
+
+Clicking the checkbox within each review summary block hides or reveals the review summary comments associated with that review in diff on this tab. Clicking the "Collapse review summaries" control conceals the review summary panel again.
+
+Beneath the review summary panel is the pull request's combined diff. Diffs are editable, but _only_ if the pull request branch is checked out and the local branch history has not diverged incompatibly from the remote branch history.
+
+For large diffs, the files can be collapsed to get a better overview.
 
 Uncollapsed (default) | Collapsed
 --- | ---
 ![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png) | ![collapsed files](https://user-images.githubusercontent.com/378023/46931273-7069a680-d085-11e8-9ea7-c96a1772fe27.png)
-
-* For large diffs, the files can be collapsed to get a better overview.
 
 #### Create a new review
 
