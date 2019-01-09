@@ -250,4 +250,23 @@ describe('PullRequestReviewsController', function() {
       assert.strictEqual(comments[0].body, 'reply to outdated comment');
     });
   });
+  describe('compareReviewsByDate', function() {
+    let wrapper;
+    const reviewA = reviewBuilder().submittedAt('2018-12-28T20:40:55Z').build();
+    const reviewB = reviewBuilder().submittedAt('2018-12-27T20:40:55Z').build();
+
+    beforeEach(function() {
+      wrapper = shallow(buildApp());
+    });
+
+    it('returns 1 if reviewA is older', function() {
+      assert.strictEqual(wrapper.instance().compareReviewsByDate(reviewA, reviewB), 1);
+    });
+    it('return -1 if reviewB is older', function() {
+      assert.strictEqual(wrapper.instance().compareReviewsByDate(reviewB, reviewA), -1);
+    });
+    it('returns 0 if reviews have the same date', function() {
+      assert.strictEqual(wrapper.instance().compareReviewsByDate(reviewA, reviewA), 0);
+    });
+  });
 });
