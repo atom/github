@@ -57,9 +57,9 @@ Overview | Commits | Build Status
 
 When the pull request is checked out, an "open" button is shown in the review footer. Clicking "open" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
 
-### Files (tab)
+### Files Changed (tab)
 
-Clicking on the "Files" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
+Clicking on the "Files Changed" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
 
 ![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png)
 
@@ -119,7 +119,7 @@ This item is opened in the workspace's right dock when the user:
 
 * Clicks the review progress bar in the GitHub tab.
 * Clicks the "open" button on the review summary footer of a `PullRequestDetailItem`.
-* Clicks the "<>" button on a review comment in the "Files" tab of a `PullRequestDetailItem`.
+* Clicks the "<>" button on a review comment in the "Files Changed" tab of a `PullRequestDetailItem`.
 
 It shows a scrollable view of all of the reviews and comments associated with a specific pull request,
 
@@ -160,7 +160,7 @@ In order to navigate between comments or switch context, each comment has the fo
 * Clicking on the `<>` button in a review comment shows the comment in the entire file. If possible, the scroll-position is retained. This allows to quickly get more context about the code.
   * If the current pull request is not checked out, the `<>` button is disabled, and a tooltip prompts the user to check out the pull request to edit the source.
 * Clicking on the "sandwich" button shows the comment in the corresponding `PullRequestReviewsItem`.
-* Clicking on the "file-+" button (not shown in above screenshot) shows the comment under the "Files" tab.
+* Clicking on the "file-+" button (not shown in above screenshot) shows the comment under the "Files Changed" tab.
 * The up and down arrow buttons navigate to the next and previous unresolved review comments.
 * Reaction emoji may be added to each comment with the "emoji" button. Existing emoji reaction tallies are included beneath each comment.
 
