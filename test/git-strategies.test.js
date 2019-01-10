@@ -609,6 +609,42 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.isDefined(diffOutput);
       });
 
+      it('rejects if an unexpected number of diffs is returned', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').resolves(dedent`
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+        `);
+
+        await assert.isRejected(git.getDiffsForFilePath('aaa.txt'), /Expected between 0 and 2 diffs/);
+      });
+
       describe('when the file is unstaged', function() {
         it('returns a diff comparing the working directory copy of the file and the version on the index', async function() {
           const workingDirPath = await cloneRepository('three-files');
