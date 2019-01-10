@@ -1302,6 +1302,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('checkoutSide', function() {
+      it('is a no-op when no paths are provided', async function() {
+        const workdir = await cloneRepository();
+        const git = await createTestStrategy(workdir);
+        sinon.spy(git, 'exec');
+
+        await git.checkoutSide('ours', []);
+        assert.isFalse(git.exec.called);
+      });
+    });
+
     // Only needs to be tested on strategies that actually implement gpgExec
     describe('GPG signing', function() {
       let git;
