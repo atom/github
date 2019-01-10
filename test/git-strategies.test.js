@@ -8,7 +8,7 @@ import hock from 'hock';
 import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
@@ -119,8 +119,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
-    if (process.platform === 'win32') {
-      describe('getStatusBundle()', function() {
+
+    describe('getStatusBundle()', function() {
+      if (process.platform === 'win32') {
         it('normalizes the path separator on Windows', async function() {
           const workingDir = await cloneRepository('three-files');
           const git = createTestStrategy(workingDir);
@@ -135,8 +136,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const changedPaths = changedEntries.map(entry => entry.filePath);
           assert.deepEqual(changedPaths, [relPathA, relPathB]);
         });
+      }
+
+      it('throws a LargeRepoError when the status output is too large', async function() {
+        const workingDir = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDir);
+
+        sinon.stub(git, 'exec').resolves({length: 1024 * 1024 * 10 + 1});
+
+        await assert.isRejected(git.getStatusBundle(), LargeRepoError);
       });
-    }
+    });
 
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
