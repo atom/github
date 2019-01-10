@@ -29,6 +29,48 @@ import * as reporterProxy from '../lib/reporter-proxy';
   };
 
   describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
+    describe('exec', function() {
+      let git, incrementCounterStub;
+
+      beforeEach(async function() {
+        const workingDir = await cloneRepository();
+        git = createTestStrategy(workingDir);
+        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+      });
+
+      describe('when the WorkerManager is not ready or disabled', function() {
+        beforeEach(function() {
+          sinon.stub(WorkerManager.getInstance(), 'isReady').returns(false);
+        });
+
+        it('kills the git process when cancel is triggered by the prompt server', async function() {
+          const promptStub = sinon.stub().rejects();
+          git.setPromptCallback(promptStub);
+
+          const stdin = dedent`
+            host=noway.com
+            username=me
+
+          `;
+          await git.exec(['credential', 'fill'], {useGitPromptServer: true, stdin});
+
+          assert.isTrue(promptStub.called);
+        });
+      });
+
+      it('does not call incrementCounter when git command is on the ignore list', async function() {
+        await git.exec(['status']);
+        assert.equal(incrementCounterStub.callCount, 0);
+      });
+
+      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
+        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
+
+        assert.equal(incrementCounterStub.callCount, 1);
+        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
+      });
+    });
+
     // https://github.com/atom/github/issues/1051
     // https://github.com/atom/github/issues/898
     it('passes all environment variables to spawned git process', async function() {
@@ -1534,24 +1576,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
       });
     });
-    describe('exec', function() {
-      let workingDirPath, git, incrementCounterStub;
-      beforeEach(async function() {
-        workingDirPath = await cloneRepository('three-files');
-        git = createTestStrategy(workingDirPath);
-        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
-      });
-      it('does not call incrementCounter when git command is on the ignore list', async function() {
-        await git.exec(['status']);
-        assert.equal(incrementCounterStub.callCount, 0);
-      });
-      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
-        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
 
-        assert.equal(incrementCounterStub.callCount, 1);
-        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
-      });
-    });
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
         if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
