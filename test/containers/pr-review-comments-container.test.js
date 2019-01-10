@@ -60,18 +60,18 @@ describe('PullRequestReviewCommentsContainer', function() {
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
       wrapper.instance()._loadMoreComments();
 
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
     });
   });
 
-  describe('handleComments', function() {
+  describe('accumulateComments', function() {
     it('collects comments and attempts to load more comments', function() {
       const collectCommentsStub = sinon.stub();
       const wrapper = shallow(buildApp({}, {collectComments: collectCommentsStub}));
       // collect comments is called when mounted, we don't care about that in this test so reset the count
       collectCommentsStub.reset();
       sinon.stub(wrapper.instance(), '_attemptToLoadMoreComments');
-      wrapper.instance().handleComments();
+      wrapper.instance().accumulateComments();
 
       assert.strictEqual(collectCommentsStub.callCount, 1);
 
@@ -112,7 +112,7 @@ describe('PullRequestReviewCommentsContainer', function() {
 
       wrapper.instance()._attemptToLoadMoreComments();
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
     });
 
     it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
@@ -130,7 +130,7 @@ describe('PullRequestReviewCommentsContainer', function() {
 
       clock.tick(PAGINATION_WAIT_TIME_MS);
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
     });
   });
 });

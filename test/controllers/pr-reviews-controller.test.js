@@ -125,7 +125,7 @@ describe('PullRequestReviewsController', function() {
 
       wrapper.instance()._attemptToLoadMoreReviews();
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateReviews]);
     });
 
     it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
@@ -144,7 +144,7 @@ describe('PullRequestReviewsController', function() {
 
       clock.tick(PAGINATION_WAIT_TIME_MS);
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateReviews]);
       sinon.restore();
     });
   });
@@ -155,7 +155,7 @@ describe('PullRequestReviewsController', function() {
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
       wrapper.instance()._loadMoreReviews();
 
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateReviews]);
     });
   });
 
@@ -244,12 +244,12 @@ describe('PullRequestReviewsController', function() {
     });
   });
 
-  describe('handleError', function() {
+  describe('accumulateReviews', function() {
     it('attempts to load more reviews', function() {
       const wrapper = shallow(buildApp());
 
       const loadMoreStub = sinon.stub(wrapper.instance(), '_attemptToLoadMoreReviews');
-      wrapper.instance().handleError();
+      wrapper.instance().accumulateReviews();
 
       assert.strictEqual(loadMoreStub.callCount, 1);
     });
