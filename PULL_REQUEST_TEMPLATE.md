@@ -13,6 +13,10 @@ We must be able to understand the design of your change from this description. I
 
 -->
 
+### Screenshot/Gif
+
+<!-- If the changes are visual add a screenshot or record a Gif. This doesn't have to be updated during implementation, but after a PR is merged, a final screenshot/gif should be added. It might get used for blog posts, documentation etc. Write "N/A" if not applicable. -->
+
 ### Alternate Designs
 
 <!-- Explain what other alternates were considered and why the proposed version was selected -->
