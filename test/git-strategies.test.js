@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import http from 'http';
+import os from 'os';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
@@ -128,11 +129,15 @@ import * as reporterProxy from '../lib/reporter-proxy';
     });
 
     describe('fetchCommitMessageTemplate', function() {
-      it('gets commit message from template', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        const templateText = 'some commit message';
+      let git, workingDirPath, templateText;
 
+      beforeEach(async function() {
+        workingDirPath = await cloneRepository('three-files');
+        git = createTestStrategy(workingDirPath);
+        templateText = 'some commit message';
+      });
+
+      it('gets commit message from template', async function() {
         const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
         await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
 
@@ -141,23 +146,43 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('if config is not set return null', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
         assert.isNotOk(await git.getConfig('commit.template')); // falsy value of null or ''
         assert.isNull(await git.fetchCommitMessageTemplate());
       });
 
       it('if config is set but file does not exist throw an error', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
         const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
         await git.setConfig('commit.template', nonExistentCommitTemplatePath);
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
           `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
         );
+      });
+
+      it('replaces ~ with your home directory', async function() {
+        await git.setConfig('commit.template', '~/does-not-exist.txt');
+        await assert.isRejected(
+          git.fetchCommitMessageTemplate(),
+          `Invalid commit template path set in Git config: ${path.join(os.homedir(), 'does-not-exist.txt')}`,
+        );
+      });
+
+      it("replaces ~user with user's home directory", async function() {
+        const expectedFullPath = path.join(path.dirname(os.homedir()), 'nope/does-not-exist.txt');
+        await git.setConfig('commit.template', '~nope/does-not-exist.txt');
+        await assert.isRejected(
+          git.fetchCommitMessageTemplate(),
+          `Invalid commit template path set in Git config: ${expectedFullPath}`,
+        );
+      });
+
+      it('interprets relative paths local to the working directory', async function() {
+        const subDir = path.join(workingDirPath, 'abc/def/ghi');
+        const subPath = path.join(subDir, 'template.txt');
+        await fs.mkdirs(subDir);
+        await fs.writeFile(subPath, templateText, {encoding: 'utf8'});
+        await git.setConfig('commit.template', path.join('abc/def/ghi/template.txt'));
+        assert.strictEqual(await git.fetchCommitMessageTemplate(), templateText);
       });
     });
 
