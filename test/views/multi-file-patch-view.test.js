@@ -137,7 +137,7 @@ describe('MultiFilePatchView', function() {
 
   it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
     const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
-    assert.lengthOf(wrapper.find('Relay(PullRequestReviewsController)'), 1);
+    assert.lengthOf(wrapper.find('ForwardRef(Relay(PullRequestReviewsController))'), 1);
   });
 
   it('renders the file patch within an editor', function() {

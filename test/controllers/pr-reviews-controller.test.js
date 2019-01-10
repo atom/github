@@ -64,7 +64,7 @@ describe('PullRequestReviewsController', function() {
 
     const reviewSpecs = [review1, review2];
     const wrapper = shallow(buildApp({reviewSpecs}));
-    const containers = wrapper.find('Relay(BarePullRequestReviewCommentsContainer)');
+    const containers = wrapper.find('ForwardRef(Relay(BarePullRequestReviewCommentsContainer))');
     assert.strictEqual(containers.length, 2);
 
     assert.strictEqual(containers.at(0).prop('review').id, review1.id);
