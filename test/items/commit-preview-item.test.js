@@ -96,8 +96,8 @@ describe('CommitPreviewItem', function() {
     const wrapper = mount(buildPaneApp());
     const item = await open(wrapper);
 
-    assert.strictEqual(item.getTitle(), 'Commit preview');
-    assert.strictEqual(item.getIconName(), 'git-commit');
+    assert.strictEqual(item.getTitle(), 'Staged Changes');
+    assert.strictEqual(item.getIconName(), 'tasklist');
   });
 
   it('terminates pending state', async function() {
