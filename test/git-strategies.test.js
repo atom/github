@@ -503,6 +503,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const authors = await git.getAuthors({max: 1});
         assert.deepEqual(authors, []);
       });
+
+      it('propagates other git errors', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('oh no'));
+
+        await assert.isRejected(git.getAuthors(), /oh no/);
+      });
     });
 
     describe('diffFileStatus', function() {
@@ -1059,6 +1067,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
         assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
       });
+
+      it('propagates unexpected git errors', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('AHHHH'));
+
+        await assert.isRejected(git.getConfig('some.key'), /AHHHH/);
+      });
     });
 
     describe('commit(message, options)', function() {
@@ -1447,6 +1463,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const contents = await git.exec(['cat-file', '-p', sha]);
         assert.equal(contents, 'foo\n');
       });
+
+      it('propagates unexpected git errors from hash-object', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('shiiiit'));
+
+        await assert.isRejected(git.createBlob({filePath: 'a.txt'}), /shiiiit/);
+      });
     });
 
     describe('expandBlobToFile(absFilePath, sha)', function() {
@@ -1541,6 +1565,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const contents = fs.readFileSync(withConflictPath, 'utf8');
           assert.isTrue(contents.includes('<<<<<<<'));
           assert.isTrue(contents.includes('>>>>>>>'));
+        });
+
+        it('propagates unexpected git errors', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          sinon.stub(git, 'exec').rejects(new Error('ouch'));
+
+          await assert.isRejected(git.mergeFile('a.txt', 'b.txt', 'c.txt', 'result.txt'), /ouch/);
         });
       });
 
