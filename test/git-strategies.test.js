@@ -971,6 +971,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
           assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
         });
       });
+
+      it('fails when an invalid type is passed', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        assert.throws(() => git.reset('scrambled'), /Invalid type scrambled/);
+      });
     });
 
     describe('deleteRef()', function() {
@@ -1506,6 +1512,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
         sinon.stub(git, 'exec').rejects(new Error('shiiiit'));
 
         await assert.isRejected(git.createBlob({filePath: 'a.txt'}), /shiiiit/);
+      });
+
+      it('rejects if neither file path or stdin are provided', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        await assert.isRejected(git.createBlob(), /Must supply file path or stdin/);
       });
     });
 
