@@ -1198,6 +1198,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
           assert.strictEqual(amendedCommit.messageSubject, 'first');
           assert.strictEqual(amendedCommit.messageBody, 'second\n\nthird');
         });
+
+        it('attempts to amend an unborn commit', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          await assert.isRejected(git.commit('', {amend: true, allowEmpty: true}), /You have nothing to amend/);
+        });
       });
     });
 
