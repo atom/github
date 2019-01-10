@@ -59,6 +59,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
       });
 
+      it('rejects if the process fails to spawn for an unexpected reason', async function() {
+        sinon.stub(git, 'executeGitCommand').returns({promise: Promise.reject(new Error('wat'))});
+        await assert.isRejected(git.exec(['version']), /wat/);
+      });
+
       it('does not call incrementCounter when git command is on the ignore list', async function() {
         await git.exec(['status']);
         assert.equal(incrementCounterStub.callCount, 0);
