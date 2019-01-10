@@ -108,15 +108,6 @@ describe('PullRequestReviewsController', function() {
   });
 
   describe('attemptToLoadMoreReviews', function() {
-    let clock;
-    beforeEach(function() {
-      clock = sinon.useFakeTimers();
-    });
-
-    afterEach(function() {
-      clock = sinon.restore();
-    });
-
     it('does not call loadMore if hasMore is false', function() {
       const relayLoadMoreStub = sinon.stub();
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
@@ -138,6 +129,7 @@ describe('PullRequestReviewsController', function() {
     });
 
     it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
+      const clock = sinon.useFakeTimers();
       const relayLoadMoreStub = sinon.stub();
       const relayHasMore = () => { return true; };
       const relayIsLoading = () => { return true; };
@@ -153,6 +145,7 @@ describe('PullRequestReviewsController', function() {
       clock.tick(PAGINATION_WAIT_TIME_MS);
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
       assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().handleError]);
+      sinon.restore();
     });
   });
 
