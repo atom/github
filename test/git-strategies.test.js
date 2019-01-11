@@ -1036,7 +1036,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             'and things',
           ].join('\n'));
         });
-        it('ignores verbatim flag if commit template is used', async function() {
+        it('strips commented lines if commit template is used', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const templateText = '# this line should be stripped';
