@@ -275,25 +275,31 @@ describe('MultiFilePatch', function() {
   it('adopts a buffer from a previous patch', function() {
     const {multiFilePatch: lastMultiPatch, buffer: lastBuffer, layers: lastLayers} = multiFilePatchBuilder()
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('A0.txt'));
         fp.addHunk(h => h.unchanged('a0').added('a1').deleted('a2').unchanged('a3'));
       })
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('A1.txt'));
         fp.addHunk(h => h.unchanged('a4').deleted('a5').unchanged('a6'));
         fp.addHunk(h => h.unchanged('a7').added('a8').unchanged('a9'));
       })
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('A2.txt'));
         fp.addHunk(h => h.oldRow(99).deleted('7').noNewline());
       })
       .build();
 
     const {multiFilePatch: nextMultiPatch, buffer: nextBuffer, layers: nextLayers} = multiFilePatchBuilder()
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('B0.txt'));
         fp.addHunk(h => h.unchanged('b0', 'b1').added('b2').unchanged('b3', 'b4'));
       })
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('B1.txt'));
         fp.addHunk(h => h.unchanged('b5', 'b6').added('b7'));
       })
       .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('B2.txt'));
         fp.addHunk(h => h.unchanged('b8', 'b9').deleted('b10').unchanged('b11'));
         fp.addHunk(h => h.oldRow(99).deleted('b12').noNewline());
       })
@@ -352,6 +358,9 @@ describe('MultiFilePatch', function() {
     assertMarkedLayerRanges(lastLayers.noNewline, [
       [[13, 0], [13, 26]],
     ]);
+
+    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B0.txt', 1), 0);
+    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B2.txt', 5), 12);
   });
 
   describe('derived patch generation', function() {
@@ -692,6 +701,79 @@ describe('MultiFilePatch', function() {
 
     it('with buffer positions belonging to multiple patches', function() {
       assert.isTrue(multiFilePatch.spansMultipleFiles([6, 10]));
+    });
+  });
+
+  describe('diff position translation', function() {
+    it('offsets rows in the first hunk by the first hunk header', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => {
+            h.unchanged('0 (1)').added('1 (2)', '2 (3)').deleted('3 (4)', '4 (5)', '5 (6)').unchanged('6 (7)');
+          });
+        })
+        .build();
+
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 1), 0);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 7), 6);
+    });
+
+    it('offsets rows by the number of hunks before the diff row', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0 (1)').added('1 (2)', '2 (3)').deleted('3 (4)').unchanged('4 (5)'));
+          fp.addHunk(h => h.unchanged('5 (7)').added('6 (8)', '7 (9)', '8 (10)').unchanged('9 (11)'));
+          fp.addHunk(h => h.unchanged('10 (13)').deleted('11 (14)').unchanged('12 (15)'));
+        })
+        .build();
+
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 7), 5);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 11), 9);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 13), 10);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('file.txt', 15), 12);
+    });
+
+    it('resets the offset at the start of each file patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.unchanged('0 (1)').added('1 (2)', '2 (3)').unchanged('3 (4)')); // Offset +1
+          fp.addHunk(h => h.unchanged('4 (6)').deleted('5 (7)', '6 (8)', '7 (9)').unchanged('8 (10)')); // Offset +2
+          fp.addHunk(h => h.unchanged('9 (12)').deleted('10 (13)').unchanged('11 (14)')); // Offset +3
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.unchanged('12 (1)').added('13 (2)').unchanged('14 (3)')); // Offset +1
+          fp.addHunk(h => h.unchanged('15 (5)').deleted('16 (6)', '17 (7)', '18 (8)').unchanged('19 (9)')); // Offset +2
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('2.txt'));
+          fp.addHunk(h => h.unchanged('20 (1)').added('21 (2)', '22 (3)', '23 (4)', '24 (5)').unchanged('25 (6)')); // Offset +1
+          fp.addHunk(h => h.unchanged('26 (8)').deleted('27 (9)', '28 (10)').unchanged('29 (11)')); // Offset +2
+          fp.addHunk(h => h.unchanged('30 (13)').added('31 (14)').unchanged('32 (15)')); // Offset +3
+        })
+        .build();
+
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 1), 0);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 4), 3);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 6), 4);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 10), 8);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 12), 9);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('0.txt', 14), 11);
+
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 1), 12);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 3), 14);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 5), 15);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 9), 19);
+
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 1), 20);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 6), 25);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 8), 26);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 11), 29);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 13), 30);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 15), 32);
     });
   });
 });

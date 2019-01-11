@@ -124,6 +124,13 @@ This is a high-level overview of the structure of the React component tree that 
 > >
 > > > [`<PullRequestChangedFilesContainer>`](/lib/containers/pr-changed-files-container.js)
 > > >
+> > > Fetch all reviews and comments for a pull request, group comments, and render them.
+> > > [`<PullRequestReviewsContainer>`](/lib/containers/pr-reviews-container.js)
+> > > [`<PullRequestReviewCommentsContainer>`](/lib/containers/pr-review-comments-container.js)
+> > > [`<PullRequestReviewsController>`](lib/controllers/pr-reviews-controller.js)
+> > > [`<PullRequestCommentsView>`](lib/views/pr-review-comments-view.js)
+> > > [`<PullRequestCommentView>`](lib/views/pr-review-comments-view.js)
+> > >
 > > > Show all the changes, separated by files, introduced in a pull request.
 > > >
 > > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)

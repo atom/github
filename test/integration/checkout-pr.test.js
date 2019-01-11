@@ -2,6 +2,7 @@ import hock from 'hock';
 import http from 'http';
 
 import {setup, teardown} from './helpers';
+import {PAGE_SIZE} from '../../lib/helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
@@ -136,10 +137,14 @@ describe('integration: check out a pull request', function() {
         repoOwner: 'owner',
         repoName: 'repo',
         issueishNumber: 1,
-        timelineCount: 100,
+        timelineCount: PAGE_SIZE,
         timelineCursor: null,
-        commitCount: 100,
+        commitCount: PAGE_SIZE,
         commitCursor: null,
+        reviewCount: PAGE_SIZE,
+        reviewCursor: null,
+        commentCount: PAGE_SIZE,
+        commentCursor: null,
       },
     }, result);
   }
