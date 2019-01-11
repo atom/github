@@ -165,7 +165,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('replaces ~ with your home directory', async function() {
-        await git.setConfig('commit.template', `~${path.sep}does-not-exist.txt`);
+        // Fun fact: even on Windows, git does not accept "~\does-not-exist.txt"
+        await git.setConfig('commit.template', '~/does-not-exist.txt');
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
           `Invalid commit template path set in Git config: ${path.join(os.homedir(), 'does-not-exist.txt')}`,
@@ -174,7 +175,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
       it("replaces ~user with user's home directory", async function() {
         const expectedFullPath = path.join(path.dirname(os.homedir()), 'nope/does-not-exist.txt');
-        await git.setConfig('commit.template', `~nope${path.sep}does-not-exist.txt`);
+        await git.setConfig('commit.template', '~nope/does-not-exist.txt');
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
           `Invalid commit template path set in Git config: ${expectedFullPath}`,
