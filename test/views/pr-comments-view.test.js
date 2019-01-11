@@ -118,4 +118,10 @@ describe('PullRequestCommentView', function() {
     const wrapper = shallow(buildApp({author: null}));
     assert.isTrue(wrapper.text().includes('someone commented'));
   });
+
+  it('hides minimized comment', function() {
+    const wrapper = shallow(buildApp({isMinimized: true}));
+    assert.isTrue(wrapper.find('.github-PrComment-hidden').exists());
+    assert.isFalse(wrapper.find('.github-PrComment-header').exists());
+  });
 });
