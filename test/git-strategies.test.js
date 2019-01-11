@@ -1186,6 +1186,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'fetchCommitMessageTemplate').returns(null);
       });
 
       const operations = [
