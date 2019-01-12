@@ -7,7 +7,7 @@ class CommitBuilder {
   constructor() {
     this._sha = '0123456789abcdefghij0123456789abcdefghij';
     this._authorEmail = 'default@email.com';
-    this._authorName = 'Tilde Ann Thurium'
+    this._authorName = 'Tilde Ann Thurium';
     this._authorDate = moment('2018-11-28T12:00:00', moment.ISO_8601).unix();
     this._coAuthors = [];
     this._messageSubject = 'subject';
@@ -62,7 +62,7 @@ class CommitBuilder {
     const commit = new Commit({
       sha: this._sha,
       authorEmail: this._authorEmail,
-      authorName: thus._authorName,
+      authorName: this._authorName,
       authorDate: this._authorDate,
       coAuthors: this._coAuthors,
       messageSubject: this._messageSubject,
