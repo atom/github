@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import http from 'http';
+import os from 'os';
 
 import mkdirp from 'mkdirp';
 import dedent from 'dedent-js';
@@ -8,7 +9,7 @@ import hock from 'hock';
 import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
@@ -29,6 +30,53 @@ import * as reporterProxy from '../lib/reporter-proxy';
   };
 
   describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
+    describe('exec', function() {
+      let git, incrementCounterStub;
+
+      beforeEach(async function() {
+        const workingDir = await cloneRepository();
+        git = createTestStrategy(workingDir);
+        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
+      });
+
+      describe('when the WorkerManager is not ready or disabled', function() {
+        beforeEach(function() {
+          sinon.stub(WorkerManager.getInstance(), 'isReady').returns(false);
+        });
+
+        it('kills the git process when cancel is triggered by the prompt server', async function() {
+          const promptStub = sinon.stub().rejects();
+          git.setPromptCallback(promptStub);
+
+          const stdin = dedent`
+            host=noway.com
+            username=me
+
+          `;
+          await git.exec(['credential', 'fill'], {useGitPromptServer: true, stdin});
+
+          assert.isTrue(promptStub.called);
+        });
+      });
+
+      it('rejects if the process fails to spawn for an unexpected reason', async function() {
+        sinon.stub(git, 'executeGitCommand').returns({promise: Promise.reject(new Error('wat'))});
+        await assert.isRejected(git.exec(['version']), /wat/);
+      });
+
+      it('does not call incrementCounter when git command is on the ignore list', async function() {
+        await git.exec(['status']);
+        assert.equal(incrementCounterStub.callCount, 0);
+      });
+
+      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
+        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
+
+        assert.equal(incrementCounterStub.callCount, 1);
+        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
+      });
+    });
+
     // https://github.com/atom/github/issues/1051
     // https://github.com/atom/github/issues/898
     it('passes all environment variables to spawned git process', async function() {
@@ -86,11 +134,15 @@ import * as reporterProxy from '../lib/reporter-proxy';
     });
 
     describe('fetchCommitMessageTemplate', function() {
-      it('gets commit message from template', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-        const templateText = 'some commit message';
+      let git, workingDirPath, templateText;
 
+      beforeEach(async function() {
+        workingDirPath = await cloneRepository('three-files');
+        git = createTestStrategy(workingDirPath);
+        templateText = 'some commit message';
+      });
+
+      it('gets commit message from template', async function() {
         const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
         await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
 
@@ -99,17 +151,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('if config is not set return null', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
         assert.isNotOk(await git.getConfig('commit.template')); // falsy value of null or ''
         assert.isNull(await git.fetchCommitMessageTemplate());
       });
 
       it('if config is set but file does not exist throw an error', async function() {
-        const workingDirPath = await cloneRepository('three-files');
-        const git = createTestStrategy(workingDirPath);
-
         const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
         await git.setConfig('commit.template', nonExistentCommitTemplatePath);
         await assert.isRejected(
@@ -117,10 +163,38 @@ import * as reporterProxy from '../lib/reporter-proxy';
           `Invalid commit template path set in Git config: ${nonExistentCommitTemplatePath}`,
         );
       });
+
+      it('replaces ~ with your home directory', async function() {
+        // Fun fact: even on Windows, git does not accept "~\does-not-exist.txt"
+        await git.setConfig('commit.template', '~/does-not-exist.txt');
+        await assert.isRejected(
+          git.fetchCommitMessageTemplate(),
+          `Invalid commit template path set in Git config: ${path.join(os.homedir(), 'does-not-exist.txt')}`,
+        );
+      });
+
+      it("replaces ~user with user's home directory", async function() {
+        const expectedFullPath = path.join(path.dirname(os.homedir()), 'nope/does-not-exist.txt');
+        await git.setConfig('commit.template', '~nope/does-not-exist.txt');
+        await assert.isRejected(
+          git.fetchCommitMessageTemplate(),
+          `Invalid commit template path set in Git config: ${expectedFullPath}`,
+        );
+      });
+
+      it('interprets relative paths local to the working directory', async function() {
+        const subDir = path.join(workingDirPath, 'abc/def/ghi');
+        const subPath = path.join(subDir, 'template.txt');
+        await fs.mkdirs(subDir);
+        await fs.writeFile(subPath, templateText, {encoding: 'utf8'});
+        await git.setConfig('commit.template', path.join('abc/def/ghi/template.txt'));
+        assert.strictEqual(await git.fetchCommitMessageTemplate(), templateText);
+      });
     });
 
-    if (process.platform === 'win32') {
-      describe('getStatusBundle()', function() {
+
+    describe('getStatusBundle()', function() {
+      if (process.platform === 'win32') {
         it('normalizes the path separator on Windows', async function() {
           const workingDir = await cloneRepository('three-files');
           const git = createTestStrategy(workingDir);
@@ -135,8 +209,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const changedPaths = changedEntries.map(entry => entry.filePath);
           assert.deepEqual(changedPaths, [relPathA, relPathB]);
         });
+      }
+
+      it('throws a LargeRepoError when the status output is too large', async function() {
+        const workingDir = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDir);
+
+        sinon.stub(git, 'exec').resolves({length: 1024 * 1024 * 10 + 1});
+
+        await assert.isRejected(git.getStatusBundle(), LargeRepoError);
       });
-    }
+    });
 
     describe('getHeadCommit()', function() {
       it('gets the SHA and message of the most recent commit', async function() {
@@ -429,6 +512,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const authors = await git.getAuthors({max: 1});
         assert.deepEqual(authors, []);
       });
+
+      it('propagates other git errors', async function() {
+        const workingDirPath = await cloneRepository('multiple-commits');
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('oh no'));
+
+        await assert.isRejected(git.getAuthors(), /oh no/);
+      });
     });
 
     describe('diffFileStatus', function() {
@@ -525,6 +616,42 @@ import * as reporterProxy from '../lib/reporter-proxy';
         delete process.env.GIT_EXTERNAL_DIFF;
 
         assert.isDefined(diffOutput);
+      });
+
+      it('rejects if an unexpected number of diffs is returned', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').resolves(dedent`
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+          diff --git aaa.txt aaa.txt
+          index df565d30..244a7225 100644
+          --- aaa.txt
+          +++ aaa.txt
+          @@ -100,3 +100,3 @@
+           000
+          -001
+          +002
+           003
+        `);
+
+        await assert.isRejected(git.getDiffsForFilePath('aaa.txt'), /Expected between 0 and 2 diffs/);
       });
 
       describe('when the file is unstaged', function() {
@@ -853,6 +980,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
           assert.deepEqual(stagedChange.hunks[0].lines, [' foo', '+bar']);
         });
       });
+
+      it('fails when an invalid type is passed', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        assert.throws(() => git.reset('scrambled'), /Invalid type scrambled/);
+      });
     });
 
     describe('deleteRef()', function() {
@@ -985,6 +1118,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
         assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
       });
+
+      it('propagates unexpected git errors', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('AHHHH'));
+
+        await assert.isRejected(git.getConfig('some.key'), /AHHHH/);
+      });
     });
 
     describe('commit(message, options)', function() {
@@ -1039,6 +1180,24 @@ import * as reporterProxy from '../lib/reporter-proxy';
             'and things',
           ].join('\n'));
         });
+        it('strips commented lines if commit template is used', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          const templateText = '# this line should be stripped';
+
+          const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
+          await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+
+          await git.setConfig('commit.template', commitMsgTemplatePath);
+          await git.setConfig('commit.cleanup', 'default');
+          const commitMessage = ['this line should not be stripped', '', 'neither should this one', templateText].join('\n');
+          await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.strictEqual(lastCommit.messageSubject, 'this line should not be stripped');
+          //  message body should not contain the template text
+          assert.strictEqual(lastCommit.messageBody, 'neither should this one');
+        });
       });
 
       describe('when amend option is true', function() {
@@ -1065,6 +1224,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const amendedCommit = await git.getHeadCommit();
           assert.strictEqual(amendedCommit.messageSubject, 'first');
           assert.strictEqual(amendedCommit.messageBody, 'second\n\nthird');
+        });
+
+        it('attempts to amend an unborn commit', async function() {
+          const workingDirPath = await initRepository();
+          const git = createTestStrategy(workingDirPath);
+
+          await assert.isRejected(git.commit('', {amend: true, allowEmpty: true}), /You have nothing to amend/);
         });
       });
     });
@@ -1163,6 +1329,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('checkoutSide', function() {
+      it('is a no-op when no paths are provided', async function() {
+        const workdir = await cloneRepository();
+        const git = await createTestStrategy(workdir);
+        sinon.spy(git, 'exec');
+
+        await git.checkoutSide('ours', []);
+        assert.isFalse(git.exec.called);
+      });
+    });
+
     // Only needs to be tested on strategies that actually implement gpgExec
     describe('GPG signing', function() {
       let git;
@@ -1171,6 +1348,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'fetchCommitMessageTemplate').returns(null);
       });
 
       const operations = [
@@ -1373,6 +1551,20 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const contents = await git.exec(['cat-file', '-p', sha]);
         assert.equal(contents, 'foo\n');
       });
+
+      it('propagates unexpected git errors from hash-object', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'exec').rejects(new Error('shiiiit'));
+
+        await assert.isRejected(git.createBlob({filePath: 'a.txt'}), /shiiiit/);
+      });
+
+      it('rejects if neither file path or stdin are provided', async function() {
+        const workingDirPath = await cloneRepository();
+        const git = createTestStrategy(workingDirPath);
+        await assert.isRejected(git.createBlob(), /Must supply file path or stdin/);
+      });
     });
 
     describe('expandBlobToFile(absFilePath, sha)', function() {
@@ -1468,6 +1660,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
           assert.isTrue(contents.includes('<<<<<<<'));
           assert.isTrue(contents.includes('>>>>>>>'));
         });
+
+        it('propagates unexpected git errors', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          sinon.stub(git, 'exec').rejects(new Error('ouch'));
+
+          await assert.isRejected(git.mergeFile('a.txt', 'b.txt', 'c.txt', 'result.txt'), /ouch/);
+        });
       });
 
       describe('updateIndex(filePath, commonBaseSha, oursSha, theirsSha)', function() {
@@ -1527,24 +1727,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
       });
     });
-    describe('exec', function() {
-      let workingDirPath, git, incrementCounterStub;
-      beforeEach(async function() {
-        workingDirPath = await cloneRepository('three-files');
-        git = createTestStrategy(workingDirPath);
-        incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
-      });
-      it('does not call incrementCounter when git command is on the ignore list', async function() {
-        await git.exec(['status']);
-        assert.equal(incrementCounterStub.callCount, 0);
-      });
-      it('does call incrementCounter when git command is NOT on the ignore list', async function() {
-        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
 
-        assert.equal(incrementCounterStub.callCount, 1);
-        assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
-      });
-    });
     describe('executeGitCommand', function() {
       it('shells out in process until WorkerManager instance is ready', async function() {
         if (process.env.ATOM_GITHUB_INLINE_GIT_EXEC) {
