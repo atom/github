@@ -178,6 +178,13 @@ describe('Commit', function() {
       assert.isFalse(a.isEqual(b));
     });
 
+    it('returns false if author differs', function() {
+      const a = commitBuilder().authorName('Tilde Ann Thurium').build();
+
+      const b = commitBuilder().authorName('Vanessa Yuen').build();
+      assert.isFalse(a.isEqual(b));
+    });
+
     it('returns false if a co-author differs', function() {
       const a = commitBuilder().addCoAuthor('me', 'me@email.com').build();
 
