@@ -146,6 +146,12 @@ describe('Commit', function() {
     });
   });
 
+  it('returns the author name', function() {
+   const authorName = 'Tilde Ann Thurium';
+   const commit = commitBuilder().authorName(authorName).build();
+   assert.strictEqual(commit.getAuthorName(), authorName)
+  });
+
   describe('isEqual()', function() {
     it('returns true when commits are identical', function() {
       const a = commitBuilder()
