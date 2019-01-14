@@ -75,7 +75,7 @@ describe('CommitDetailView', function() {
     assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'body');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-sha').text(), '420');
-    // assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), '420');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), 'https://github.com/atom/github/commit/420');
     assert.strictEqual(
       wrapper.find('img.github-RecentCommit-avatar').prop('src'),
       'https://avatars.githubusercontent.com/u/e?email=very%40nice.com&s=32',
