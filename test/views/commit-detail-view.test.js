@@ -62,6 +62,7 @@ describe('CommitDetailView', function() {
     const commit = commitBuilder()
       .sha('420')
       .authorEmail('very@nice.com')
+      .authorName('Forthe Win')
       .authorDate(moment().subtract(2, 'days').unix())
       .messageSubject('subject')
       .messageBody('body')
@@ -69,6 +70,7 @@ describe('CommitDetailView', function() {
       .build();
     const wrapper = shallow(buildApp({commit}));
 
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-authorName').text(), 'Forthe Win');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-title').text(), 'subject');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'body');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
