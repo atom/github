@@ -1177,6 +1177,24 @@ import * as reporterProxy from '../lib/reporter-proxy';
             'and things',
           ].join('\n'));
         });
+        it('strips commented lines if commit template is used', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          const templateText = '# this line should be stripped';
+
+          const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
+          await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+
+          await git.setConfig('commit.template', commitMsgTemplatePath);
+          await git.setConfig('commit.cleanup', 'default');
+          const commitMessage = ['this line should not be stripped', '', 'neither should this one', templateText].join('\n');
+          await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.strictEqual(lastCommit.messageSubject, 'this line should not be stripped');
+          //  message body should not contain the template text
+          assert.strictEqual(lastCommit.messageBody, 'neither should this one');
+        });
       });
 
       describe('when amend option is true', function() {
@@ -1327,6 +1345,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'fetchCommitMessageTemplate').returns(null);
       });
 
       const operations = [
