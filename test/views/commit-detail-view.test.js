@@ -10,7 +10,7 @@ import Remote, {nullRemote} from '../../lib/models/remote';
 import {cloneRepository, buildRepository} from '../helpers';
 import {commitBuilder} from '../builder/commit';
 
-describe('CommitDetailView', function() {
+describe.only('CommitDetailView', function() {
   let repository, atomEnv;
 
   beforeEach(async function() {
@@ -70,10 +70,9 @@ describe('CommitDetailView', function() {
       .build();
     const wrapper = shallow(buildApp({commit}));
 
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-authorName').text(), 'Forthe Win');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-title').text(), 'subject');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'body');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'very@nice.com committed 2 days ago');
+    assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'Forthe Win committed 2 days ago');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-sha').text(), '420');
     assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), 'https://github.com/atom/github/commit/420');
     assert.strictEqual(
@@ -162,33 +161,34 @@ describe('CommitDetailView', function() {
     describe('when there are no co-authors', function() {
       it('returns only the author', function() {
         const commit = commitBuilder()
-          .authorEmail('blaze@it.com')
+          .authorName('Steven Universe')
+          .authorEmail('steven@universe.com')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com');
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Steven Universe');
       });
     });
 
     describe('when there is one co-author', function() {
       it('returns author and the co-author', function() {
         const commit = commitBuilder()
-          .authorEmail('blaze@it.com')
-          .addCoAuthor('two', 'two@coauthor.com')
+          .authorName('Ruby')
+          .addCoAuthor('Sapphire', 'sapphire@thecrystalgems.party')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com and two@coauthor.com');
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Ruby and Sapphire');
       });
     });
 
     describe('when there is more than one co-author', function() {
       it('returns the author and number of co-authors', function() {
         const commit = commitBuilder()
-          .authorEmail('blaze@it.com')
-          .addCoAuthor('two', 'two@coauthor.com')
-          .addCoAuthor('three', 'three@coauthor.com')
+          .authorName('Amethyst')
+          .addCoAuthor('Peridot', 'peri@youclods.horse')
+          .addCoAuthor('Pearl', 'p@pinkhair.club')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'blaze@it.com and 2 others');
+        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Amethyst and 2 others');
       });
     });
   });
