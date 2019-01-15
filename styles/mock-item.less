@@ -1,0 +1,205 @@
+@import "variables";
+
+@avatar-size: 16px;
+@font-size-body: 1.125em;
+
+// Reviews as its own pane/panel
+
+// Reviews  ----------------------------------------------
+
+.github-Reviews {
+  flex: 1;
+  padding: @component-padding;
+  overflow-y: auto;
+
+  &-header {
+    display: flex;
+    padding-bottom: @component-padding;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-title {
+    flex: 1;
+    font-size: 1.4em;
+    margin: 0;
+  }
+
+  &-count {
+    color: @text-color-subtle;
+  }
+
+  &-countNr {
+    color: @text-color-highlight;
+  }
+
+  &-progessBar {
+    width: 5em;
+    margin-left: @component-padding;
+  }
+}
+
+
+// Review ----------------------------------------------
+
+.github-Review {
+  margin-top: @component-padding*2;
+  font-size: @font-size-body;
+  &-icon  {
+    vertical-align: -3px;
+    &.icon-check {
+      color: @text-color-success;
+    }
+    &.icon-alert {
+      color: @text-color-warning;
+    }
+    &.icon-comment {
+      color: @text-color-subtle;
+    }
+  }
+
+  &-avatar {
+    margin-right: .5em;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  &-type {
+    color: @text-color-subtle;
+  }
+
+  &-summary {
+    position: relative;
+    margin-top: @component-padding/2;
+    padding: @component-padding;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @base-background-color;
+
+    &:before {
+      content: "";
+      position: absolute;
+      top: -@component-padding/2;
+      left: 23px; // magic
+      width: @component-padding;
+      height: @component-padding;
+      border-top: inherit;
+      border-left: inherit;
+      background-color: inherit;
+      transform: rotate(45deg);
+    }
+
+    &.is-approved {
+      border-color: fade(@text-color-success, 40%);
+      background-color: mix(@background-color-success, @base-background-color, 12%);
+    }
+    &.is-requesting-changes {
+      border-color: fade(@text-color-warning, 40%);
+      background-color: mix(@background-color-warning, @base-background-color, 10%);
+    }
+  }
+
+  &-thread {
+    position: relative;
+    margin-top: @component-padding/2;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: mix(@base-background-color, @tool-panel-background-color, 33%);
+
+    &[open] {
+      background-color: @base-background-color;
+    }
+
+    .github-Review-avatar {
+      position: absolute;
+      left: @component-padding;
+    }
+  }
+
+  &-threadHeader {
+    display: flex;
+    align-items: center;
+    padding: @component-padding;
+    cursor: pointer;
+  }
+
+  &-path {
+    color: @text-color-subtle;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  &-file {
+    color: @text-color;
+    margin-right: @component-padding/2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  &-line {
+    color: @text-color-subtle;
+    margin-right: @component-padding*2;
+  }
+
+  &-checkbox {
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  &-comments {
+    padding: @component-padding;
+    padding-left: @component-padding + @avatar-size + 5px; // space for avatar
+    padding-top: 0; // added by commet
+    border-top: 1px solid @base-border-color;
+  }
+
+  &-comment  {
+    margin-top: @component-padding;
+  }
+
+  &-commentText  {
+    margin-right: .5em;
+  }
+
+  &-timeAgo {
+    font-size: .9em;
+    color: @text-color-subtle;
+  }
+
+  &-reply {
+    display: flex;
+    align-items: flex-start;
+    margin-top: @component-padding;
+  }
+
+  &-replyInput {
+    flex: 1;
+    width: auto;
+    height: 2.125em;
+    min-height: 2.125em;
+    resize: vertical;
+  }
+
+  &-button {
+    margin-left: @component-padding;
+    &.btn.icon {
+      &:before {
+        font-size: 14px;
+      }
+    }
+  }
+
+  &-commentButton {
+    display: none;
+  }
+
+  &-replyInput:focus {
+    & + .github-Review-commentButton {
+     display: block;
+    }
+  }
+}
