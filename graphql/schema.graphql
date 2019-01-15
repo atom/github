@@ -17,12 +17,11 @@ type AcceptTopicSuggestionPayload {
 
   """
   The accepted topic.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   topic: Topic!
 }
@@ -66,34 +65,31 @@ type AddCommentPayload {
 
   """
   The edge from the subject's comment connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from `IssueCommentEdge!` to `IssueCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   commentEdge: IssueCommentEdge!
 
   """
   The subject
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Node!` to `Node`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   subject: Node!
 
   """
   The edge from the subject's timeline connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `timelineEdge` will change from `IssueTimelineItemEdge!` to `IssueTimelineItemEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   timelineEdge: IssueTimelineItemEdge!
 }
@@ -134,12 +130,11 @@ input AddProjectCardInput {
 type AddProjectCardPayload {
   """
   The edge from the ProjectColumn's card connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   cardEdge: ProjectCardEdge!
 
@@ -148,12 +143,11 @@ type AddProjectCardPayload {
 
   """
   The ProjectColumn
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectColumn` will change from `Project!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   projectColumn: Project!
 }
@@ -177,23 +171,21 @@ type AddProjectColumnPayload {
 
   """
   The edge from the project's column connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   columnEdge: ProjectColumnEdge!
 
   """
   The project
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   project: Project!
 }
@@ -229,24 +221,22 @@ type AddPullRequestReviewCommentPayload {
 
   """
   The newly created comment.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `comment` will change from `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   comment: PullRequestReviewComment!
 
   """
   The edge from the review's comment connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `commentEdge` will change from
   `PullRequestReviewCommentEdge!` to `PullRequestReviewCommentEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   commentEdge: PullRequestReviewCommentEdge!
 }
@@ -279,23 +269,21 @@ type AddPullRequestReviewPayload {
 
   """
   The newly created pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReview: PullRequestReview!
 
   """
   The edge from the pull request's review connection.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reviewEdge` will change from `PullRequestReviewEdge!` to `PullRequestReviewEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   reviewEdge: PullRequestReviewEdge!
 }
@@ -319,23 +307,21 @@ type AddReactionPayload {
 
   """
   The reaction object.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   subject: Reactable!
 }
@@ -356,12 +342,11 @@ type AddStarPayload {
 
   """
   The starrable.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   starrable: Starrable!
 }
@@ -1380,6 +1365,7 @@ type CommitEdge {
 
 """The connection type for Commit."""
 type CommitHistoryConnection {
+  """A list of edges."""
   edges: [CommitEdge]
 
   """A list of nodes."""
@@ -1418,6 +1404,30 @@ type ContentReference {
 
   """The reference of the content reference."""
   reference: String!
+}
+
+"""
+Represents a contribution a user made on GitHub, such as opening an issue.
+"""
+interface Contribution {
+  """
+  Whether this contribution is associated with a record you do not have access to. For
+  example, your own 'first issue' contribution may have been made on a repository you can no
+  longer access.
+  """
+  isRestricted: Boolean!
+
+  """When this contribution was made."""
+  occurredAt: DateTime!
+
+  """The HTTP path for this contribution."""
+  resourcePath: URI!
+
+  """The HTTP URL for this contribution."""
+  url: URI!
+
+  """The user who made this contribution."""
+  user: User!
 }
 
 """A calendar of contributions made on GitHub by a user."""
@@ -1492,10 +1502,7 @@ type ContributionsCollection {
   """A calendar of this user's contributions on GitHub."""
   contributionCalendar: ContributionCalendar!
 
-  """
-  Determine if this collection's time span ends in the current month.
-  
-  """
+  """Determine if this collection's time span ends in the current month."""
   doesEndInCurrentMonth: Boolean!
 
   """
@@ -1506,6 +1513,11 @@ type ContributionsCollection {
 
   """The ending date and time of this collection."""
   endedAt: DateTime!
+
+  """
+  Does the user have any more activity in the timeline that occurred prior to the collection's time range?
+  """
+  hasActivityInThePast: Boolean!
 
   """Determine if there are any contributions in this collection."""
   hasAnyContributions: Boolean!
@@ -1521,6 +1533,17 @@ type ContributionsCollection {
   isSingleDay: Boolean!
 
   """
+  When the user signed up for GitHub. This will be null if that sign up date
+  falls outside the collection's time range and ignoreTimeRange is false.
+  """
+  joinedGitHubContribution(
+    """
+    If true, the contribution will be returned even if the user signed up outside of the collection's time range.
+    """
+    ignoreTimeRange: Boolean = false
+  ): JoinedGitHubContribution
+
+  """
   The date of the most recent restricted contribution the user made in this time
   period. Can only be non-null when the user has enabled private contribution counts.
   """
@@ -1529,9 +1552,26 @@ type ContributionsCollection {
   """
   When this collection's time range does not include any activity from the user, use this
   to get a different collection from an earlier time range that does have activity.
-  
   """
   mostRecentCollectionWithActivity: ContributionsCollection
+
+  """
+  Returns a different contributions collection from an earlier time range than this one
+  that does not have any contributions.
+  """
+  mostRecentCollectionWithoutActivity: ContributionsCollection
+
+  """
+  The issue the user opened on GitHub that received the most comments in the specified
+  time frame.
+  """
+  popularIssueContribution: CreatedIssueContribution
+
+  """
+  The pull request the user opened on GitHub that received the most comments in the
+  specified time frame.
+  """
+  popularPullRequestContribution: CreatedPullRequestContribution
 
   """
   A count of contributions made by the user that the viewer cannot access. Only
@@ -1708,6 +1748,108 @@ input CreateContentAttachmentInput {
   clientMutationId: String
 }
 
+"""
+Represents the contribution a user made on GitHub by opening an issue.
+"""
+type CreatedIssueContribution implements Contribution {
+  """
+  Whether this contribution is associated with a record you do not have access to. For
+  example, your own 'first issue' contribution may have been made on a repository you can no
+  longer access.
+  """
+  isRestricted: Boolean!
+
+  """The issue that was opened."""
+  issue: Issue!
+
+  """When this contribution was made."""
+  occurredAt: DateTime!
+
+  """The HTTP path for this contribution."""
+  resourcePath: URI!
+
+  """The HTTP URL for this contribution."""
+  url: URI!
+
+  """The user who made this contribution."""
+  user: User!
+}
+
+"""The connection type for CreatedIssueContribution."""
+type CreatedIssueContributionConnection {
+  """A list of edges."""
+  edges: [CreatedIssueContributionEdge]
+
+  """A list of nodes."""
+  nodes: [CreatedIssueContribution]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type CreatedIssueContributionEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: CreatedIssueContribution
+}
+
+"""
+Represents the contribution a user made on GitHub by opening a pull request.
+"""
+type CreatedPullRequestContribution implements Contribution {
+  """
+  Whether this contribution is associated with a record you do not have access to. For
+  example, your own 'first issue' contribution may have been made on a repository you can no
+  longer access.
+  """
+  isRestricted: Boolean!
+
+  """When this contribution was made."""
+  occurredAt: DateTime!
+
+  """The pull request that was opened."""
+  pullRequest: PullRequest!
+
+  """The HTTP path for this contribution."""
+  resourcePath: URI!
+
+  """The HTTP URL for this contribution."""
+  url: URI!
+
+  """The user who made this contribution."""
+  user: User!
+}
+
+"""The connection type for CreatedPullRequestContribution."""
+type CreatedPullRequestContributionConnection {
+  """A list of edges."""
+  edges: [CreatedPullRequestContributionEdge]
+
+  """A list of nodes."""
+  nodes: [CreatedPullRequestContribution]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type CreatedPullRequestContributionEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: CreatedPullRequestContribution
+}
+
 """Autogenerated input type of CreateProject"""
 input CreateProjectInput {
   """The owner ID to create the project under."""
@@ -1730,12 +1872,11 @@ type CreateProjectPayload {
 
   """
   The new project.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   project: Project!
 }
@@ -1799,12 +1940,11 @@ type DeclineTopicSuggestionPayload {
 
   """
   The declined topic.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `topic` will change from `Topic!` to `Topic`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   topic: Topic!
 }
@@ -1861,23 +2001,21 @@ type DeleteProjectCardPayload {
 
   """
   The column the deleted card was in.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `column` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   column: ProjectColumn!
 
   """
   The deleted card ID.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedCardId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   deletedCardId: ID!
 }
@@ -1898,23 +2036,21 @@ type DeleteProjectColumnPayload {
 
   """
   The deleted column ID.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `deletedColumnId` will change from `ID!` to `ID`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   deletedColumnId: ID!
 
   """
   The project the deleted column was in.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   project: Project!
 }
@@ -1935,12 +2071,11 @@ type DeleteProjectPayload {
 
   """
   The repository or organization the project was removed from.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `owner` will change from `ProjectOwner!` to `ProjectOwner`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   owner: ProjectOwner!
 }
@@ -1961,12 +2096,11 @@ type DeletePullRequestReviewPayload {
 
   """
   The deleted pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -2278,12 +2412,11 @@ type DismissPullRequestReviewPayload {
 
   """
   The dismissed pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -3207,7 +3340,6 @@ type IssueComment implements Node & Comment & Deletable & Updatable & UpdatableC
   """
   Returns the pull request associated with the comment, if this comment was made on a
   pull request.
-  
   """
   pullRequest: PullRequest
 
@@ -3413,7 +3545,7 @@ type IssueTimelineItemEdge {
 }
 
 """An item in an issue timeline"""
-union IssueTimelineItems = IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnsubscribedEvent
+union IssueTimelineItems = IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | PinnedEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnpinnedEvent | UnsubscribedEvent
 
 """An edge in a connection."""
 type IssueTimelineItemsEdge {
@@ -3473,6 +3605,9 @@ enum IssueTimelineItemsItemType {
   """
   MOVED_COLUMNS_IN_PROJECT_EVENT
 
+  """Represents a 'pinned' event on a given issue or pull request."""
+  PINNED_EVENT
+
   """Represents a 'referenced' event on a given `ReferencedSubject`."""
   REFERENCED_EVENT
 
@@ -3502,8 +3637,33 @@ enum IssueTimelineItemsItemType {
   """Represents an 'unlocked' event on a given issue or pull request."""
   UNLOCKED_EVENT
 
+  """Represents an 'unpinned' event on a given issue or pull request."""
+  UNPINNED_EVENT
+
   """Represents an 'unsubscribed' event on a given `Subscribable`."""
   UNSUBSCRIBED_EVENT
+}
+
+"""Represents a user signing up for a GitHub account."""
+type JoinedGitHubContribution implements Contribution {
+  """
+  Whether this contribution is associated with a record you do not have access to. For
+  example, your own 'first issue' contribution may have been made on a repository you can no
+  longer access.
+  """
+  isRestricted: Boolean!
+
+  """When this contribution was made."""
+  occurredAt: DateTime!
+
+  """The HTTP path for this contribution."""
+  resourcePath: URI!
+
+  """The HTTP URL for this contribution."""
+  url: URI!
+
+  """The user who made this contribution."""
+  user: User!
 }
 
 """
@@ -3775,6 +3935,53 @@ type LicenseRule {
   label: String!
 }
 
+type LocalBranch implements LocalRef & Node {
+  repositoryPath: String!
+  name: String!
+  ref: String!
+  commit: String!
+  upstream: LocalRemote
+  id: ID!
+  pullRequest: PullRequest
+}
+
+type LocalFile {
+  repositoryPath: String!
+  path: String!
+}
+
+type LocalGitRef implements LocalRef {
+  repositoryPath: String!
+  name: String!
+  ref: String!
+  commit: String!
+}
+
+interface LocalRef {
+  repositoryPath: String!
+  name: String!
+  ref: String!
+  commit: String!
+}
+
+type LocalRemote implements Node {
+  repositoryPath: String!
+  name: String!
+  url: String!
+  fetch: String
+  id: ID!
+  hub: Repository
+}
+
+type LocalRepository {
+  path: String!
+  refs(refPrefix: String): [LocalRef]
+  branches(namePrefix: String): [LocalBranch]
+  remotes: [LocalRemote]
+  files(pattern: String): [LocalFile]
+  id: ID!
+}
+
 """An object that can be locked."""
 interface Lockable {
   """Reason that the conversation was locked."""
@@ -4026,7 +4233,6 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer edit the primary and secondary category of this
   Marketplace listing.
-  
   """
   viewerCanEditCategories: Boolean!
 
@@ -4036,40 +4242,34 @@ type MarketplaceListing implements Node {
   """
   Can the current viewer return this Marketplace listing to draft state
   so it becomes editable again.
-  
   """
   viewerCanRedraft: Boolean!
 
   """
   Can the current viewer reject this Marketplace listing by returning it to
   an editable draft state or rejecting it entirely.
-  
   """
   viewerCanReject: Boolean!
 
   """
   Can the current viewer request this listing be reviewed for display in
   the Marketplace.
-  
   """
   viewerCanRequestApproval: Boolean!
 
   """
   Indicates whether the current user has an active subscription to this Marketplace listing.
-  
   """
   viewerHasPurchased: Boolean!
 
   """
   Indicates if the current user has purchased a subscription to this Marketplace listing
   for all of the organizations the user owns.
-  
   """
   viewerHasPurchasedForAllOrganizations: Boolean!
 
   """
   Does the current viewer role allow them to administer this Marketplace listing.
-  
   """
   viewerIsListingAdmin: Boolean!
 }
@@ -4129,7 +4329,7 @@ type MergedEvent implements Node & UniformResourceLocatable {
   actor: Actor
 
   """Identifies the commit associated with the `merge` event."""
-  commit: Commit
+  commit: Commit!
 
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
@@ -4384,12 +4584,11 @@ input MoveProjectCardInput {
 type MoveProjectCardPayload {
   """
   The new edge of the moved card.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `cardEdge` will change from `ProjectCardEdge!` to `ProjectCardEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   cardEdge: ProjectCardEdge!
 
@@ -4418,17 +4617,15 @@ type MoveProjectColumnPayload {
 
   """
   The new edge of the moved column.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `columnEdge` will change from `ProjectColumnEdge!` to `ProjectColumnEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   columnEdge: ProjectColumnEdge!
 }
 
-"""The root query for implementing GraphQL mutations."""
 type Mutation {
   """Applies a suggested topic to the repository."""
   acceptTopicSuggestion(input: AcceptTopicSuggestionInput!): AcceptTopicSuggestionPayload
@@ -5059,6 +5256,28 @@ type PageInfo {
   startCursor: String
 }
 
+"""Autogenerated input type of PinIssue"""
+input PinIssueInput {
+  """The ID of the issue to be pinned"""
+  issueId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Represents a 'pinned' event on a given issue or pull request."""
+type PinnedEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  id: ID!
+
+  """Identifies the issue associated with the event."""
+  issue: Issue!
+}
+
 """
 Projects manage issues, pull requests and notes within a project owner.
 """
@@ -5162,7 +5381,6 @@ type ProjectCard implements Node {
   project column at a time. The column field will be null if the card is created
   in a pending state and has yet to be associated with a column. Once cards are
   associated with a column, they will not become pending in the future.
-  
   """
   column: ProjectColumn
 
@@ -5997,6 +6215,7 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
   Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   """
   viewerSubscription: SubscriptionState
+  rawDiff: String!
 }
 
 """Represents a Git commit part of a pull request."""
@@ -6554,7 +6773,7 @@ type PullRequestTimelineItemEdge {
 }
 
 """An item in a pull request timeline"""
-union PullRequestTimelineItems = PullRequestCommit | PullRequestReview | PullRequestReviewThread | BaseRefChangedEvent | BaseRefForcePushedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | HeadRefDeletedEvent | HeadRefForcePushedEvent | HeadRefRestoredEvent | MergedEvent | ReviewDismissedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnsubscribedEvent
+union PullRequestTimelineItems = PullRequestCommit | PullRequestReview | PullRequestReviewThread | BaseRefChangedEvent | BaseRefForcePushedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | HeadRefDeletedEvent | HeadRefForcePushedEvent | HeadRefRestoredEvent | MergedEvent | ReviewDismissedEvent | ReviewRequestedEvent | ReviewRequestRemovedEvent | IssueComment | CrossReferencedEvent | AddedToProjectEvent | AssignedEvent | ClosedEvent | CommentDeletedEvent | ConvertedNoteToIssueEvent | DemilestonedEvent | LabeledEvent | LockedEvent | MentionedEvent | MilestonedEvent | MovedColumnsInProjectEvent | PinnedEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnpinnedEvent | UnsubscribedEvent
 
 """An edge in a connection."""
 type PullRequestTimelineItemsEdge {
@@ -6670,6 +6889,9 @@ enum PullRequestTimelineItemsItemType {
   """
   MOVED_COLUMNS_IN_PROJECT_EVENT
 
+  """Represents a 'pinned' event on a given issue or pull request."""
+  PINNED_EVENT
+
   """Represents a 'referenced' event on a given `ReferencedSubject`."""
   REFERENCED_EVENT
 
@@ -6698,6 +6920,9 @@ enum PullRequestTimelineItemsItemType {
 
   """Represents an 'unlocked' event on a given issue or pull request."""
   UNLOCKED_EVENT
+
+  """Represents an 'unpinned' event on a given issue or pull request."""
+  UNPINNED_EVENT
 
   """Represents an 'unsubscribed' event on a given `Subscribable`."""
   UNSUBSCRIBED_EVENT
@@ -6747,7 +6972,6 @@ type PushAllowanceEdge {
   node: PushAllowance
 }
 
-"""The query root of GitHub's GraphQL interface."""
 type Query {
   """Look up a code of conduct by its key"""
   codeOfConduct(
@@ -6823,7 +7047,6 @@ type Query {
     """
     Select listings to which user has admin access. If omitted, listings visible to the
     viewer are returned.
-    
     """
     viewerCanAdmin: Boolean
 
@@ -6836,7 +7059,6 @@ type Query {
     """
     Select listings visible to the viewer even if they are not approved. If omitted or
     false, only approved listings will be returned.
-    
     """
     allStates: Boolean
 
@@ -6948,6 +7170,7 @@ type Query {
 
   """The currently authenticated user."""
   viewer: User!
+  localRepository(path: String!): LocalRepository
 }
 
 """Represents the client's rate limit."""
@@ -7487,12 +7710,11 @@ type RemoveOutsideCollaboratorPayload {
 
   """
   The user that was removed as an outside collaborator.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `removedUser` will change from `User!` to `User`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   removedUser: User!
 }
@@ -7516,23 +7738,21 @@ type RemoveReactionPayload {
 
   """
   The reaction object.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `reaction` will change from `Reaction!` to `Reaction`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   reaction: Reaction!
 
   """
   The reactable subject.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subject` will change from `Reactable!` to `Reactable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   subject: Reactable!
 }
@@ -7553,12 +7773,11 @@ type RemoveStarPayload {
 
   """
   The starrable.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `starrable` will change from `Starrable!` to `Starrable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   starrable: Starrable!
 }
@@ -8754,23 +8973,21 @@ type RequestReviewsPayload {
 
   """
   The pull request that is getting requests.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequest` will change from `PullRequest!` to `PullRequest`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequest: PullRequest!
 
   """
   The edge from the pull request to the requested reviewers.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `requestedReviewersEdge` will change from `UserEdge!` to `UserEdge`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   requestedReviewersEdge: UserEdge!
 }
@@ -9204,12 +9421,11 @@ type SubmitPullRequestReviewPayload {
 
   """
   The submitted pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -9727,7 +9943,6 @@ type Topic implements Node & Starrable {
   """
   A list of related topics, including aliases of this topic, sorted with the most relevant
   first.
-  
   """
   relatedTopics: [Topic!]!
 
@@ -9969,6 +10184,28 @@ input UnminimizeCommentInput {
   clientMutationId: String
 }
 
+"""Autogenerated input type of UnpinIssue"""
+input UnpinIssueInput {
+  """The ID of the issue to be unpinned"""
+  issueId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Represents an 'unpinned' event on a given issue or pull request."""
+type UnpinnedEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  id: ID!
+
+  """Identifies the issue associated with the event."""
+  issue: Issue!
+}
+
 """Autogenerated input type of UnresolveReviewThread"""
 input UnresolveReviewThreadInput {
   """The ID of the thread to unresolve"""
@@ -10091,12 +10328,11 @@ type UpdateProjectCardPayload {
 
   """
   The updated ProjectCard.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectCard` will change from `ProjectCard!` to `ProjectCard`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   projectCard: ProjectCard!
 }
@@ -10120,12 +10356,11 @@ type UpdateProjectColumnPayload {
 
   """
   The updated project column.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `projectColumn` will change from `ProjectColumn!` to `ProjectColumn`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   projectColumn: ProjectColumn!
 }
@@ -10158,12 +10393,11 @@ type UpdateProjectPayload {
 
   """
   The updated project.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `project` will change from `Project!` to `Project`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   project: Project!
 }
@@ -10187,13 +10421,12 @@ type UpdatePullRequestReviewCommentPayload {
 
   """
   The updated comment.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReviewComment` will change from
   `PullRequestReviewComment!` to `PullRequestReviewComment`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReviewComment: PullRequestReviewComment!
 }
@@ -10217,12 +10450,11 @@ type UpdatePullRequestReviewPayload {
 
   """
   The updated pull request review.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `pullRequestReview` will change from `PullRequestReview!` to `PullRequestReview`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   pullRequestReview: PullRequestReview!
 }
@@ -10246,12 +10478,11 @@ type UpdateSubscriptionPayload {
 
   """
   The input subscribable entity.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `subscribable` will change from `Subscribable!` to `Subscribable`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   subscribable: Subscribable!
 }
@@ -10278,12 +10509,11 @@ type UpdateTopicsPayload {
 
   """
   The updated repository.
-  
+
   **Upcoming Change on 2019-01-01 UTC**
   **Description:** Type for `repository` will change from `Repository!` to `Repository`.
   **Reason:** In preparation for an upcoming change to the way we report
   mutation errors, non-nullable payload fields are becoming nullable.
-  
   """
   repository: Repository!
 }
