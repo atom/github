@@ -10,7 +10,7 @@ import Remote, {nullRemote} from '../../lib/models/remote';
 import {cloneRepository, buildRepository} from '../helpers';
 import {commitBuilder} from '../builder/commit';
 
-describe.only('CommitDetailView', function() {
+describe('CommitDetailView', function() {
   let repository, atomEnv;
 
   beforeEach(async function() {
