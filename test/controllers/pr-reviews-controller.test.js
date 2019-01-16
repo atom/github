@@ -43,6 +43,7 @@ describe('PullRequestReviewsController', function() {
 
       switchToIssueish: () => {},
       getBufferRowForDiffPosition: () => {},
+      doesPatchExceedLargeDiffThreshold: () => {},
       pullRequest: {reviews},
       ...overrideProps,
     };
