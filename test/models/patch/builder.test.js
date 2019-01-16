@@ -1,4 +1,5 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
+import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
@@ -797,6 +798,91 @@ describe('buildFilePatch', function() {
 
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
       assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
+    });
+  });
+
+  describe('with a large diff', function() {
+    it('creates a DelayedPatch when the diff is "too large"', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 1, newStartLine: 1, newLineCount: 2,
+              lines: [' line-4', '+line-5'],
+            },
+          ],
+        },
+      ], {largeDiffThreshold: 3});
+
+      assert.lengthOf(mfp.getFilePatches(), 2);
+      const [fp0, fp1] = mfp.getFilePatches();
+
+      assert.strictEqual(fp0.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp0.getOldPath(), 'first');
+      assert.strictEqual(fp0.getNewPath(), 'first');
+      assert.deepEqual(fp0.getStartRange().serialize(), [[0, 0], [0, 0]]);
+      assertInFilePatch(fp0).hunks();
+
+      assert.strictEqual(fp1.getRenderStatus(), EXPANDED);
+      assert.strictEqual(fp1.getOldPath(), 'second');
+      assert.strictEqual(fp1.getNewPath(), 'second');
+      assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [1, 6]]);
+      assertInFilePatch(fp1, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 1, header: '@@ -1,1 +1,2 @@', regions: [
+            {kind: 'unchanged', string: ' line-4\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-5\n', range: [[1, 0], [1, 6]]},
+          ],
+        },
+      );
+    });
+
+    it('re-parse a DelayedPatch as a Patch', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+      ], {largeDiffThreshold: 3});
+
+      assert.lengthOf(mfp.getFilePatches(), 1);
+      const [fp] = mfp.getFilePatches();
+
+      assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp.getOldPath(), 'first');
+      assert.strictEqual(fp.getNewPath(), 'first');
+      assert.deepEqual(fp.getStartRange().serialize(), [[0, 0], [0, 0]]);
+      assertInFilePatch(fp).hunks();
+
+      fp.triggerDelayedRender();
+
+      assert.strictEqual(fp.getRenderStatus(), EXPANDED);
+      assert.deepEqual(fp.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
+      assertInFilePatch(fp, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,3 +1,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
     });
   });
 
