@@ -884,6 +884,105 @@ describe('buildFilePatch', function() {
         },
       );
     });
+
+    it('does not interfere with markers from surrounding patches when expanded', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+        {
+          oldPath: 'big', oldMode: '100644', newPath: 'big', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 4,
+              lines: [' line-0', '+line-1', '+line-2', '-line-3', ' line-4'],
+            },
+          ],
+        },
+        {
+          oldPath: 'last', oldMode: '100644', newPath: 'last', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        }
+      ], {largeDiffThreshold: 4});
+
+      assert.lengthOf(mfp.getFilePatches(), 3);
+      const [fp0, fp1, fp2] = mfp.getFilePatches();
+      assert.strictEqual(fp0.getRenderStatus(), EXPANDED);
+      assertInFilePatch(fp0, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,3 +1,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
+
+      assert.strictEqual(fp1.getRenderStatus(), TOO_LARGE);
+      assertInFilePatch(fp1, mfp.getBuffer()).hunks();
+
+      assert.strictEqual(fp2.getRenderStatus(), EXPANDED);
+      assertInFilePatch(fp2, mfp.getBuffer()).hunks(
+        {
+          startRow: 4, endRow: 7, header: '@@ -1,3 +1,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[4, 0], [4, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[5, 0], [5, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[6, 0], [6, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[7, 0], [7, 6]]},
+          ],
+        },
+      );
+
+      fp1.triggerDelayedRender();
+
+      assert.strictEqual(fp0.getRenderStatus(), EXPANDED);
+      assertInFilePatch(fp0, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,3 +1,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
+
+      assert.strictEqual(fp1.getRenderStatus(), EXPANDED);
+      assertInFilePatch(fp1, mfp.getBuffer()).hunks(
+        {
+          startRow: 4, endRow: 8, header: '@@ -1,3 +1,4 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[4, 0], [4, 6]]},
+            {kind: 'addition', string: '+line-1\n+line-2\n', range: [[5, 0], [6, 6]]},
+            {kind: 'deletion', string: '-line-3\n', range: [[7, 0], [7, 6]]},
+            {kind: 'unchanged', string: ' line-4\n', range: [[8, 0], [8, 6]]},
+          ],
+        },
+      );
+
+      assert.strictEqual(fp2.getRenderStatus(), EXPANDED);
+      assertInFilePatch(fp2, mfp.getBuffer()).hunks(
+        {
+          startRow: 9, endRow: 12, header: '@@ -1,3 +1,3 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[9, 0], [9, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[10, 0], [10, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[11, 0], [11, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[12, 0], [12, 6]]},
+          ],
+        },
+      );
+    });
   });
 
   it('throws an error with an unexpected number of diffs', function() {
