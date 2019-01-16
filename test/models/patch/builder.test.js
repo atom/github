@@ -983,6 +983,38 @@ describe('buildFilePatch', function() {
         },
       );
     });
+
+    it('does not create a DelayedPatch when the patch has been explicitly expanded', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'big/file.txt', oldMode: '100644', newPath: 'big/file.txt', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+      ], {largeDiffThreshold: 3, renderStatusOverrides: {'big/file.txt': EXPANDED}});
+
+      assert.lengthOf(mfp.getFilePatches(), 1);
+      const [fp] = mfp.getFilePatches();
+
+      assert.strictEqual(fp.getRenderStatus(), EXPANDED);
+      assert.strictEqual(fp.getOldPath(), 'big/file.txt');
+      assert.strictEqual(fp.getNewPath(), 'big/file.txt');
+      assert.deepEqual(fp.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
+      assertInFilePatch(fp, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3, header: '@@ -1,1 +1,2 @@', regions: [
+            {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
+            {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
+            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
+    });
   });
 
   it('throws an error with an unexpected number of diffs', function() {
