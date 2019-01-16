@@ -122,6 +122,11 @@ class FilePatchBuilder {
     return this;
   }
 
+  renderStatus(...args) {
+    this.patchBuilder.renderStatus(...args);
+    return this;
+  }
+
   empty() {
     this.patchBuilder.empty();
     return this;
@@ -175,12 +180,18 @@ class PatchBuilder {
   constructor(layeredBuffer = null) {
     this.layeredBuffer = layeredBuffer;
 
+    this._renderStatus = undefined;
     this._status = 'modified';
     this.hunks = [];
 
     this.patchStart = this.layeredBuffer.getInsertionPoint();
     this.drift = 0;
     this.explicitlyEmpty = false;
+  }
+
+  renderStatus(status) {
+    this._renderStatus = status;
+    return this;
   }
 
   status(st) {
@@ -221,7 +232,7 @@ class PatchBuilder {
     const marker = this.layeredBuffer.markFrom('patch', this.patchStart);
 
     return this.layeredBuffer.wrapReturn({
-      patch: new Patch({status: this._status, hunks: this.hunks, marker}),
+      patch: new Patch({status: this._status, hunks: this.hunks, marker, renderStatus: this._renderStatus}),
     });
   }
 }

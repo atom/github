@@ -1,11 +1,12 @@
-import {TextBuffer} from 'atom';
+import {TextBuffer, Point} from 'atom';
 
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
-import Patch from '../../../lib/models/patch/patch';
+import Patch, {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
+import {filePatchBuilder, patchBuilder} from '../../builder/patch';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
@@ -668,6 +669,76 @@ describe('FilePatch', function() {
     assert.isFalse(nullFilePatch.buildStagePatchForLines(new Set([0])).isPresent());
     assert.isFalse(nullFilePatch.buildUnstagePatchForLines(new Set([0])).isPresent());
     assert.strictEqual(nullFilePatch.toStringIn(new TextBuffer()), '');
+  });
+
+  describe('render status changes', function() {
+    let sub;
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    it('announces a delayed render to subscribers', function() {
+      const {patch: expandedPatch} = patchBuilder().build();
+
+      const filePatch = FilePatch.createDelayedFilePatch(
+        new File({path: 'file-0.txt', mode: '100644'}),
+        new File({path: 'file-1.txt', mode: '100644'}),
+        new Point(0, 0),
+        TOO_LARGE,
+        () => expandedPatch,
+      );
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.strictEqual(TOO_LARGE, filePatch.getRenderStatus());
+      assert.notStrictEqual(filePatch.getPatch(), expandedPatch);
+      filePatch.triggerDelayedRender();
+
+      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
+      assert.strictEqual(filePatch.getPatch(), expandedPatch);
+      assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('announces the collapse of an expanded patch', function() {
+      const {filePatch} = filePatchBuilder().build();
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
+      filePatch.triggerCollapse();
+
+      assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
+      assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('announces the expansion of a collapsed patch', function() {
+      const {filePatch} = filePatchBuilder().renderStatus(COLLAPSED).build();
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
+      filePatch.triggerExpand();
+
+      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
+      assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('does not announce non-changes', function() {
+      const {filePatch} = filePatchBuilder().build();
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      filePatch.triggerDelayedRender();
+      assert.isFalse(callback.called);
+
+      filePatch.triggerExpand();
+      assert.isFalse(callback.called);
+    });
   });
 });
 
