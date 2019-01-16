@@ -913,7 +913,7 @@ describe('buildFilePatch', function() {
               lines: [' line-0', '+line-1', '-line-2', ' line-3'],
             },
           ],
-        }
+        },
       ], {largeDiffThreshold: 4});
 
       assert.lengthOf(mfp.getFilePatches(), 3);
