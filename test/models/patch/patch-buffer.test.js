@@ -12,7 +12,7 @@ describe('PatchBuffer', function() {
 
   it('has simple accessors', function() {
     assert.strictEqual(patchBuffer.getBuffer().getText(), TEXT);
-    assert.deepEqual(patchBuffer.getInsertionPoint().serialize(), [9, 4]);
+    assert.deepEqual(patchBuffer.getInsertionPoint().serialize(), [10, 0]);
   });
 
   it('creates and finds markers on specified layers', function() {
@@ -35,7 +35,7 @@ describe('PatchBuffer', function() {
 
   describe('deferred-marking modifications', function() {
     it('performs multiple modifications and only creates markers at the end', function() {
-      const modifier = patchBuffer.createModifier();
+      const modifier = patchBuffer.createModifierAtEnd();
       const cb0 = sinon.spy();
       const cb1 = sinon.spy();
 
@@ -67,6 +67,65 @@ describe('PatchBuffer', function() {
       assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 1);
       const [marker1] = patchBuffer.findMarkers('hunk', {});
       assert.isTrue(cb1.calledWith(marker1));
+    });
+
+    it('inserts into the middle of an existing buffer', function() {
+      const modifier = patchBuffer.createModifierAt([4, 2]);
+      const callback = sinon.spy();
+
+      modifier.append('aa\nbbbb\n');
+      modifier.appendMarked('-patch-\n-patch-\n', 'patch', {callback});
+      modifier.appendMarked('-hunk-\ndd', 'hunk', {});
+
+      assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
+        0000
+        0001
+        0002
+        0003
+        00aa
+        bbbb
+        -patch-
+        -patch-
+        -hunk-
+        dd04
+        0005
+        0006
+        0007
+        0008
+        0009
+
+      `);
+
+      assert.lengthOf(patchBuffer.findMarkers('patch', {}), 0);
+      assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
+      assert.isFalse(callback.called);
+
+      modifier.apply();
+
+      assert.lengthOf(patchBuffer.findMarkers('patch', {}), 1);
+      const [marker] = patchBuffer.findMarkers('patch', {});
+      assert.isTrue(callback.calledWith(marker));
+    });
+
+    it('preserves markers that should be before or after the modification region', function() {
+      const before0 = patchBuffer.markRange('patch', [[1, 0], [4, 0]]);
+      const before1 = patchBuffer.markPosition('hunk', [4, 0]);
+      const after0 = patchBuffer.markPosition('patch', [4, 0]);
+
+      const modifier = patchBuffer.createModifierAt([4, 0]);
+      modifier.keepBefore([before0, before1]);
+      modifier.keepAfter([after0]);
+
+      let marker = null;
+      const callback = m => { marker = m; };
+      modifier.appendMarked('A\nB\nC\nD\nE\n', 'addition', {callback});
+
+      modifier.apply();
+
+      assert.deepEqual(before0.getRange().serialize(), [[1, 0], [4, 0]]);
+      assert.deepEqual(before1.getRange().serialize(), [[4, 0], [4, 0]]);
+      assert.deepEqual(marker.getRange().serialize(), [[4, 0], [9, 0]]);
+      assert.deepEqual(after0.getRange().serialize(), [[9, 0], [9, 0]]);
     });
   });
 });
