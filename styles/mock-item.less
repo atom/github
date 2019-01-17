@@ -203,3 +203,57 @@
     }
   }
 }
+
+
+// Reviews in "Files tab" ----------------------------------------------
+
+.github-IssueishDetailView-filesChanged {
+
+  .github-Reviews {
+
+    padding: 0;
+    background-color: mix(@app-background-color, @base-background-color);
+
+    &-header {
+      padding: @component-padding;
+      cursor: default;
+      &::-webkit-details-marker {
+        margin-top: 2px;
+      }
+    }
+
+    &-title {
+      font-size: 1.1em;
+    }
+  }
+
+  .github-Review {
+    margin: 0;
+    padding: @component-padding*2;
+    border-bottom: 1px solid @base-border-color;
+
+    &-threads {
+      padding-left: @component-padding*2;
+    }
+
+    &-threadsHeader {
+      display: flex;
+      align-items: center;
+      padding: @component-padding 0 @component-padding/2 0;
+      cursor: default;
+
+      .github-Reviews-progress {
+        font-size: .9em;
+        margin-left: auto;
+      }
+    }
+
+    &-threadsHeaderTitle {
+      font-size: 1em;
+      margin-right: @component-padding;
+    }
+
+
+  }
+
+}
