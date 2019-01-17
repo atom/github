@@ -1,0 +1,43 @@
+@import 'variables';
+
+.github-PrDetailView {
+
+  // Footer ------------------------
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    padding: @component-padding;
+    border-top: 1px solid @base-border-color;
+    background-color: @app-background-color;
+  }
+
+  &-footerTitle {
+    font-size: 1.4em;
+    margin: 0 @component-padding*2 0 0;
+  }
+
+  &-openReviewsButton,
+  &-reviewChangesButton {
+    margin-left: @component-padding;
+  }
+
+}
+
+
+.github-PrDetailViewReviews {
+  margin-right: auto;
+
+  &-count {
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+  }
+
+  &-countNr {
+    color: @text-color-highlight;
+  }
+
+  &-progessBar {
+    margin-right: @component-padding;
+  }
+}
