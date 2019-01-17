@@ -172,6 +172,61 @@ describe('PatchBuffer', function() {
       assert.deepEqual(marker.getRange().serialize(), [[4, 0], [9, 0]]);
       assert.deepEqual(after0.getRange().serialize(), [[9, 0], [9, 0]]);
     });
+
+    it('appends another PatchBuffer at its insertion point', function() {
+      const subPatchBuffer = new PatchBuffer();
+      subPatchBuffer.getBuffer().setText(dedent`
+        aaaa
+        bbbb
+        cc
+      `);
+
+      subPatchBuffer.markPosition('patch', [0, 0]);
+      subPatchBuffer.markRange('hunk', [[0, 0], [1, 4]]);
+      subPatchBuffer.markRange('addition', [[1, 2], [2, 2]]);
+
+      const mBefore = patchBuffer.markRange('deletion', [[0, 0], [2, 0]]);
+      const mAfter = patchBuffer.markRange('deletion', [[7, 0], [7, 4]]);
+
+      patchBuffer
+        .createModifierAt([3, 2])
+        .appendPatchBuffer(subPatchBuffer)
+        .apply();
+
+      assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
+        0000
+        0001
+        0002
+        00aaaa
+        bbbb
+        cc03
+        0004
+        0005
+        0006
+        0007
+        0008
+        0009
+
+      `);
+
+      assert.deepEqual(mBefore.getRange().serialize(), [[0, 0], [2, 0]]);
+      assert.deepEqual(mAfter.getRange().serialize(), [[9, 0], [9, 4]]);
+
+      assert.deepEqual(
+        patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[3, 2], [3, 2]]],
+      );
+
+      assert.deepEqual(
+        patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+        [[[3, 2], [4, 4]]],
+      );
+
+      assert.deepEqual(
+        patchBuffer.findMarkers('addition', {}).map(m => m.getRange().serialize()),
+        [[[4, 2], [5, 2]]],
+      );
+    });
   });
 });
 
