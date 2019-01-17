@@ -6,13 +6,19 @@ class CommentBuilder {
     this._authorLogin = 'someone';
     this._authorAvatarUrl = 'https://avatars3.githubusercontent.com/u/17565?s=32&v=4';
     this._url = 'https://github.com/atom/github/pull/1829/files#r242224689';
-    this._createdAt = 0;
+    this._createdAt = '2018-12-27T17:51:17Z';
     this._body = 'Lorem ipsum dolor sit amet, te urbanitas appellantur est.';
     this._replyTo = null;
+    this._isMinimized = false;
   }
 
   id(i) {
     this._id = i;
+    return this;
+  }
+
+  minmized(m) {
+    this._isMinimized = m;
     return this;
   }
 
@@ -69,6 +75,7 @@ class CommentBuilder {
       createdAt: this._createdAt,
       url: this._url,
       replyTo: this._replyTo,
+      isMinimized: this._isMinimized,
     };
   }
 }
