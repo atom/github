@@ -885,7 +885,7 @@ describe('buildFilePatch', function() {
       );
     });
 
-    it('does not interfere with markers from surrounding patches when expanded', function() {
+    it('does not interfere with markers from surrounding visible patches when expanded', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
@@ -984,7 +984,7 @@ describe('buildFilePatch', function() {
       );
     });
 
-    it('preserves patch markers when a delayed patch is expanded', function() {
+    it('does not interfere with markers from surrounding non-visible patches when expanded', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',

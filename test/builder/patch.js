@@ -1,6 +1,6 @@
 // Builders for classes related to MultiFilePatches.
 
-import {TextBuffer} from 'atom';
+import LayeredBuffer from '../../lib/models/patch/layered-buffer';
 import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
 import FilePatch from '../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../lib/models/patch/file';
@@ -8,49 +8,29 @@ import Patch from '../../lib/models/patch/patch';
 import Hunk from '../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
 
-class LayeredBuffer {
-  constructor() {
-    this.buffer = new TextBuffer();
-    this.layers = ['patch', 'hunk', 'unchanged', 'addition', 'deletion', 'noNewline'].reduce((layers, name) => {
-      layers[name] = this.buffer.addMarkerLayer();
-      return layers;
-    }, {});
-  }
+function appendMarked(layeredBuffer, layerName, lines) {
+  const startPosition = layeredBuffer.getInsertionPoint();
+  layeredBuffer.getBuffer().append(lines.join('\n'));
+  const marker = layeredBuffer.markRange(
+    layerName,
+    [startPosition, layeredBuffer.getInsertionPoint()],
+    {invalidate: 'never', exclusive: false},
+  );
+  layeredBuffer.getBuffer().append('\n');
+  return marker;
+}
 
-  getInsertionPoint() {
-    return this.buffer.getEndPosition();
-  }
+function markFrom(layeredBuffer, layerName, startPosition) {
+  const endPosition = layeredBuffer.getInsertionPoint().translate([-1, Infinity]);
+  return layeredBuffer.markRange(
+    layerName,
+    [startPosition, endPosition],
+    {invalidate: 'never', exclusive: false},
+  );
+}
 
-  getLayer(markerLayerName) {
-    const layer = this.layers[markerLayerName];
-    if (!layer) {
-      throw new Error(`invalid marker layer name: ${markerLayerName}`);
-    }
-    return layer;
-  }
-
-  appendMarked(markerLayerName, lines) {
-    const startPosition = this.buffer.getEndPosition();
-    const layer = this.getLayer(markerLayerName);
-    this.buffer.append(lines.join('\n'));
-    const marker = layer.markRange([startPosition, this.buffer.getEndPosition()], {exclusive: true});
-    this.buffer.append('\n');
-    return marker;
-  }
-
-  markFrom(markerLayerName, startPosition) {
-    const endPosition = this.buffer.getEndPosition().translate([-1, Infinity]);
-    const layer = this.getLayer(markerLayerName);
-    return layer.markRange([startPosition, endPosition], {exclusive: true});
-  }
-
-  wrapReturn(object) {
-    return {
-      buffer: this.buffer,
-      layers: this.layers,
-      ...object,
-    };
-  }
+function wrapReturn(layeredBuffer, object) {
+  return {buffer: layeredBuffer.getBuffer(), layers: layeredBuffer.getLayers(), ...object};
 }
 
 class MultiFilePatchBuilder {
@@ -68,10 +48,9 @@ class MultiFilePatchBuilder {
   }
 
   build() {
-    return this.layeredBuffer.wrapReturn({
+    return wrapReturn(this.layeredBuffer, {
       multiFilePatch: new MultiFilePatch({
-        buffer: this.layeredBuffer.buffer,
-        layers: this.layeredBuffer.layers,
+        layeredBuffer: this.layeredBuffer,
         filePatches: this.filePatches,
       }),
     });
@@ -229,9 +208,9 @@ class PatchBuilder {
       }
     }
 
-    const marker = this.layeredBuffer.markFrom('patch', this.patchStart);
+    const marker = markFrom(this.layeredBuffer, 'patch', this.patchStart);
 
-    return this.layeredBuffer.wrapReturn({
+    return wrapReturn(this.layeredBuffer, {
       patch: new Patch({status: this._status, hunks: this.hunks, marker, renderStatus: this._renderStatus}),
     });
   }
@@ -259,22 +238,22 @@ class HunkBuilder {
   }
 
   unchanged(...lines) {
-    this.regions.push(new Unchanged(this.layeredBuffer.appendMarked('unchanged', lines)));
+    this.regions.push(new Unchanged(appendMarked(this.layeredBuffer, 'unchanged', lines)));
     return this;
   }
 
   added(...lines) {
-    this.regions.push(new Addition(this.layeredBuffer.appendMarked('addition', lines)));
+    this.regions.push(new Addition(appendMarked(this.layeredBuffer, 'addition', lines)));
     return this;
   }
 
   deleted(...lines) {
-    this.regions.push(new Deletion(this.layeredBuffer.appendMarked('deletion', lines)));
+    this.regions.push(new Deletion(appendMarked(this.layeredBuffer, 'deletion', lines)));
     return this;
   }
 
   noNewline() {
-    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked('noNewline', [' No newline at end of file'])));
+    this.regions.push(new NoNewline(appendMarked(this.layeredBuffer, 'nonewline', [' No newline at end of file'])));
     return this;
   }
 
@@ -303,9 +282,9 @@ class HunkBuilder {
       }), 0);
     }
 
-    const marker = this.layeredBuffer.markFrom('hunk', this.hunkStartPoint);
+    const marker = markFrom(this.layeredBuffer, 'hunk', this.hunkStartPoint);
 
-    return this.layeredBuffer.wrapReturn({
+    return wrapReturn(this.layeredBuffer, {
       hunk: new Hunk({
         oldStartRow: this.oldStartRow,
         oldRowCount: this.oldRowCount,
