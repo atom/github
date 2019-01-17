@@ -55,15 +55,15 @@ When the pull request is checked out, an "open" button is shown in the review fo
 
 Clicking on the "Files Changed" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
 
-> TODO: Change "Show review comments" checkbox to an expand/collapse review summaries control
-
-![files](https://user-images.githubusercontent.com/378023/46536560-d3bb4200-c8e9-11e8-9764-dca0b84245cf.png)
+![files](https://user-images.githubusercontent.com/378023/51305826-43ab9d80-1a7f-11e9-8b41-42bc4812d214.png)
 
 Clicking on the "Expand review summaries" control in the filter bar reveals an inline panel that displays the summary of each review created on this pull request, including the review's author, the review's current state, its summary comment, and a progress bar showing how many of the review comments associated with this review have been marked as resolved.
 
-![review summary list panel](https://user-images.githubusercontent.com/17565/50930369-e172ed00-142d-11e9-8ae4-00106dde80f5.png)
+![review summary list panel](https://user-images.githubusercontent.com/378023/51305827-43ab9d80-1a7f-11e9-90be-902e541b805f.png)
 
-Clicking the checkbox within each review summary block hides or reveals the review summary comments associated with that review in diff on this tab. Clicking the "Collapse review summaries" control conceals the review summary panel again.
+Clicking on "Comments" within each review summary block hides or reveals the review summary comments associated with that review in diff on this tab. Clicking the "Collapse review summaries" control conceals the review summary panel again.
+
+![review summary list panel with comments](https://user-images.githubusercontent.com/378023/51306485-ca14af00-1a80-11e9-8e52-bb4d55928736.png)
 
 Beneath the review summary panel is the pull request's combined diff. Diffs are editable, but _only_ if the pull request branch is checked out and the local branch history has not diverged incompatibly from the remote branch history.
 
