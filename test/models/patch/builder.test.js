@@ -984,6 +984,50 @@ describe('buildFilePatch', function() {
       );
     });
 
+    it('preserves patch markers when a delayed patch is expanded', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+        {
+          oldPath: 'second', oldMode: '100644', newPath: 'second', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+        {
+          oldPath: 'third', oldMode: '100644', newPath: 'third', newMode: '100644', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 3, newStartLine: 1, newLineCount: 3,
+              lines: [' line-0', '+line-1', '-line-2', ' line-3'],
+            },
+          ],
+        },
+      ], {largeDiffThreshold: 3});
+
+      assert.lengthOf(mfp.getFilePatches(), 3);
+      const [fp0, fp1, fp2] = mfp.getFilePatches();
+      assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+      assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+      assert.deepEqual(fp2.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+
+      fp1.triggerDelayedRender();
+
+      assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+      assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
+      assert.deepEqual(fp2.getMarker().getRange().serialize(), [[4, 0], [4, 0]]);
+    });
+
     it('does not create a DelayedPatch when the patch has been explicitly expanded', function() {
       const mfp = buildMultiFilePatch([
         {
