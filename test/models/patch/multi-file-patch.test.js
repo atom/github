@@ -3,6 +3,7 @@ import dedent from 'dedent-js';
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
 import {TOO_LARGE} from '../../../lib/models/patch/patch';
+import {DEFAULT_OPTIONS} from '../../../lib/models/patch/builder.js';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 
 import {assertInFilePatch} from '../../helpers';
@@ -709,6 +710,7 @@ describe('MultiFilePatch', function() {
 
   describe('isPatchTooLargeOrCollapsed', function() {
     let multiFilePatch;
+    const {largeDiffThreshold} = DEFAULT_OPTIONS;
     beforeEach(function() {
       multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
