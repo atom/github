@@ -32,7 +32,7 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 
 #### Header
 
-![header](https://user-images.githubusercontent.com/378023/46536358-3829d180-c8e9-11e8-9167-3d1003ab566b.png)
+![header](https://user-images.githubusercontent.com/378023/51305325-e400c280-1a7d-11e9-9b4e-b9cf2d326dd5.png)
 
 At the top of each `PullRequestDetailItem` is a summary about the pull request, followed by the tabs to switch between different sub-views.
 
@@ -45,15 +45,9 @@ Below the tabs is a "tools bar" with controls to toggle review comments or colla
 
 #### Footer
 
-> TODO: Add "open" button
+![reviews panel](https://user-images.githubusercontent.com/378023/51305353-f2e77500-1a7d-11e9-96f0-da879d49da3a.png)
 
-![reviews panel](https://user-images.githubusercontent.com/378023/46536010-17ad4780-c8e8-11e8-8338-338bb592efc5.png)
-
-A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review. This panel is persistent throughout all sub-views. It allows creating new reviews no matter where you are. Below examples with the existing sub-views:
-
-Overview | Commits | Build Status
---- | --- | ---
-![overview](https://user-images.githubusercontent.com/378023/46535907-ca30da80-c8e7-11e8-9401-2b8660d56c25.png) | ![commits](https://user-images.githubusercontent.com/378023/46535908-ca30da80-c8e7-11e8-87ca-01637f2554b6.png) | ![build status](https://user-images.githubusercontent.com/378023/46535909-cac97100-c8e7-11e8-8813-47fdaa3ece57.png)
+A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review. This panel is persistent throughout all sub-views. It allows creating new reviews no matter where you are.
 
 When the pull request is checked out, an "open" button is shown in the review footer. Clicking "open" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
 
