@@ -23,10 +23,10 @@ Peer review is also a critical part of the path to acceptance for pull requests 
 * Review progress is indicated for open pull requests listed in the GitHub panel.
 * The pull request corresponding to the checked out branch gets special treatment in its own section at the top of the list.
 
-![center pane](https://user-images.githubusercontent.com/378023/46985265-75c9fe00-d124-11e8-9b34-572cd1aaf701.png)
+![center pane](https://user-images.githubusercontent.com/378023/51305096-45746180-1a7d-11e9-801b-37b3ab0c862a.png)
 
 * Clicking a pull request in the list opens a `PullRequestDetailItem` in the workspace center.
-* Clicking the "Reviews" label or progress bar opens a `PullRequestReviewsItem` in the right dock.
+* Clicking the progress bar opens a `PullRequestReviewsItem` in the left dock.
 
 ### PullRequestDetailItem
 
