@@ -2,8 +2,11 @@ import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
+import {TOO_LARGE} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
+
 import {assertInFilePatch} from '../../helpers';
+
 
 describe('MultiFilePatch', function() {
   it('creates an empty patch when constructed with no arguments', function() {
@@ -703,6 +706,41 @@ describe('MultiFilePatch', function() {
       assert.isTrue(multiFilePatch.spansMultipleFiles([6, 10]));
     });
   });
+
+  describe('isPatchTooLargeOrCollapsed', function() {
+    let multiFilePatch;
+    beforeEach(function() {
+      multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          // do we even give a shit about the hunks here?
+          fp.addHunk(h => h.unchanged('0').added('1').deleted('2', '3').unchanged('4'));
+          fp.addHunk(h => h.unchanged('5').added('6').unchanged('7'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-1'));
+          fp.addHunk(h => h.unchanged('8').deleted('9', '10').unchanged('11'));
+        })
+        .build()
+        .multiFilePatch;
+    });
+    it('returns true if patch exceeds large diff threshold', function() {
+      // todo: what is the best way to use the patch builder to build at patch that
+      // exceeds the large diff threshold?
+    });
+
+    it('returns true if patch is collapsed', function() {
+    });
+
+    it('returns false if patch does not exceed large diff threshold and is not collapsed', function() {
+      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('file-1'));
+    });
+
+    it('returns null if patch does not exist', function() {
+      assert.isNull(multiFilePatch.isPatchTooLargeOrCollapsed('invalid-file-path'));
+    });
+  });
+
 
   describe('diff position translation', function() {
     it('offsets rows in the first hunk by the first hunk header', function() {
