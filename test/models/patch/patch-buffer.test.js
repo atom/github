@@ -34,14 +34,14 @@ describe('PatchBuffer', function() {
   });
 
   it('extracts a subset of the buffer and layers as a new LayeredBuffer', function() {
-    patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
-    patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
-    patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
-    patchBuffer.markRange('patch', [[6, 0], [7, 1]]); // within
-    patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
-    patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
+    const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
+    const m1 = patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
+    const m2 = patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
+    const m3 = patchBuffer.markRange('patch', [[6, 0], [7, 1]]); // within
+    const m4 = patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
+    const m5 = patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
 
-    const subPatchBuffer = patchBuffer.extractPatchBuffer([[4, 2], [7, 1]]);
+    const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[4, 2], [7, 1]]);
 
     assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
       0000
@@ -61,6 +61,17 @@ describe('PatchBuffer', function() {
       patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
       [[[2, 0], [4, 2]], [[4, 2], [6, 0]]],
     );
+    assert.deepEqual(m0.getRange().serialize(), [[1, 0], [3, 0]]);
+    assert.deepEqual(m1.getRange().serialize(), [[2, 0], [4, 2]]);
+    assert.isTrue(m2.isDestroyed());
+    assert.isTrue(m3.isDestroyed());
+    assert.deepEqual(m4.getRange().serialize(), [[4, 2], [6, 0]]);
+    assert.deepEqual(m5.getRange().serialize(), [[5, 0], [7, 0]]);
+
+    assert.isFalse(markerMap.has(m0));
+    assert.isFalse(markerMap.has(m1));
+    assert.isFalse(markerMap.has(m4));
+    assert.isFalse(markerMap.has(m5));
 
     assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
       04
@@ -76,6 +87,8 @@ describe('PatchBuffer', function() {
       subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
       [[[2, 0], [3, 1]]],
     );
+    assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[0, 0], [1, 0]]);
+    assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
   });
 
   describe('deferred-marking modifications', function() {
@@ -181,16 +194,17 @@ describe('PatchBuffer', function() {
         cc
       `);
 
-      subPatchBuffer.markPosition('patch', [0, 0]);
-      subPatchBuffer.markRange('hunk', [[0, 0], [1, 4]]);
-      subPatchBuffer.markRange('addition', [[1, 2], [2, 2]]);
+      const m0 = subPatchBuffer.markPosition('patch', [0, 0]);
+      const m1 = subPatchBuffer.markRange('hunk', [[0, 0], [1, 4]]);
+      const m2 = subPatchBuffer.markRange('addition', [[1, 2], [2, 2]]);
 
       const mBefore = patchBuffer.markRange('deletion', [[0, 0], [2, 0]]);
       const mAfter = patchBuffer.markRange('deletion', [[7, 0], [7, 4]]);
 
+      let markerMap;
       patchBuffer
         .createInserterAt([3, 2])
-        .insertPatchBuffer(subPatchBuffer)
+        .insertPatchBuffer(subPatchBuffer, {callback: m => { markerMap = m; }})
         .apply();
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
@@ -211,21 +225,25 @@ describe('PatchBuffer', function() {
 
       assert.deepEqual(mBefore.getRange().serialize(), [[0, 0], [2, 0]]);
       assert.deepEqual(mAfter.getRange().serialize(), [[9, 0], [9, 4]]);
+      assert.isFalse(markerMap.has(mBefore));
+      assert.isFalse(markerMap.has(mAfter));
 
       assert.deepEqual(
         patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
         [[[3, 2], [3, 2]]],
       );
-
       assert.deepEqual(
         patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
         [[[3, 2], [4, 4]]],
       );
-
       assert.deepEqual(
         patchBuffer.findMarkers('addition', {}).map(m => m.getRange().serialize()),
         [[[4, 2], [5, 2]]],
       );
+
+      assert.deepEqual(markerMap.get(m0).getRange().serialize(), [[3, 2], [3, 2]]);
+      assert.deepEqual(markerMap.get(m1).getRange().serialize(), [[3, 2], [4, 4]]);
+      assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[4, 2], [5, 2]]);
     });
   });
 });
