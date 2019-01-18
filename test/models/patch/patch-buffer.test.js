@@ -41,7 +41,7 @@ describe('PatchBuffer', function() {
     patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
     patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
 
-    const subPatchBuffer = patchBuffer.extract([[4, 2], [7, 1]]);
+    const subPatchBuffer = patchBuffer.extractPatchBuffer([[4, 2], [7, 1]]);
 
     assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
       0000
@@ -80,14 +80,14 @@ describe('PatchBuffer', function() {
 
   describe('deferred-marking modifications', function() {
     it('performs multiple modifications and only creates markers at the end', function() {
-      const modifier = patchBuffer.createModifierAtEnd();
+      const inserter = patchBuffer.createInserterAtEnd();
       const cb0 = sinon.spy();
       const cb1 = sinon.spy();
 
-      modifier.append('0010\n');
-      modifier.appendMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
-      modifier.append('0012\n');
-      modifier.appendMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
+      inserter.append('0010\n');
+      inserter.appendMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
+      inserter.append('0012\n');
+      inserter.appendMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         ${TEXT}0010
@@ -103,7 +103,7 @@ describe('PatchBuffer', function() {
       assert.lengthOf(patchBuffer.findMarkers('patch', {}), 0);
       assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
 
-      modifier.apply();
+      inserter.apply();
 
       assert.lengthOf(patchBuffer.findMarkers('patch', {}), 1);
       const [marker0] = patchBuffer.findMarkers('patch', {});
@@ -115,12 +115,12 @@ describe('PatchBuffer', function() {
     });
 
     it('inserts into the middle of an existing buffer', function() {
-      const modifier = patchBuffer.createModifierAt([4, 2]);
+      const inserter = patchBuffer.createInserterAt([4, 2]);
       const callback = sinon.spy();
 
-      modifier.append('aa\nbbbb\n');
-      modifier.appendMarked('-patch-\n-patch-\n', 'patch', {callback});
-      modifier.appendMarked('-hunk-\ndd', 'hunk', {});
+      inserter.append('aa\nbbbb\n');
+      inserter.appendMarked('-patch-\n-patch-\n', 'patch', {callback});
+      inserter.appendMarked('-hunk-\ndd', 'hunk', {});
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         0000
@@ -145,7 +145,7 @@ describe('PatchBuffer', function() {
       assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
       assert.isFalse(callback.called);
 
-      modifier.apply();
+      inserter.apply();
 
       assert.lengthOf(patchBuffer.findMarkers('patch', {}), 1);
       const [marker] = patchBuffer.findMarkers('patch', {});
@@ -157,15 +157,15 @@ describe('PatchBuffer', function() {
       const before1 = patchBuffer.markPosition('hunk', [4, 0]);
       const after0 = patchBuffer.markPosition('patch', [4, 0]);
 
-      const modifier = patchBuffer.createModifierAt([4, 0]);
-      modifier.keepBefore([before0, before1]);
-      modifier.keepAfter([after0]);
+      const inserter = patchBuffer.createInserterAt([4, 0]);
+      inserter.keepBefore([before0, before1]);
+      inserter.keepAfter([after0]);
 
       let marker = null;
       const callback = m => { marker = m; };
-      modifier.appendMarked('A\nB\nC\nD\nE\n', 'addition', {callback});
+      inserter.appendMarked('A\nB\nC\nD\nE\n', 'addition', {callback});
 
-      modifier.apply();
+      inserter.apply();
 
       assert.deepEqual(before0.getRange().serialize(), [[1, 0], [4, 0]]);
       assert.deepEqual(before1.getRange().serialize(), [[4, 0], [4, 0]]);
@@ -189,7 +189,7 @@ describe('PatchBuffer', function() {
       const mAfter = patchBuffer.markRange('deletion', [[7, 0], [7, 4]]);
 
       patchBuffer
-        .createModifierAt([3, 2])
+        .createInserterAt([3, 2])
         .appendPatchBuffer(subPatchBuffer)
         .apply();
 
