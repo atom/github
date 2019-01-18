@@ -142,7 +142,7 @@ Clicking on a review comment opens a `TextEditor` on the corresponding position 
 
 If an open `TextEditor` corresponds to a file that has one or more review comments in an open `PullRequestReviewsItem`, gutter and line decorations are added to the lines that match those review comment positions. The "current" one is styled differently to stand out.
 
-> TODO: Illustrate the "review comment here" gutter and line decorations
+![inline diff](https://user-images.githubusercontent.com/378023/51360052-68e6ed00-1b0d-11e9-852e-a51cff4d479e.png)
 
 Clicking on the gutter icon reveals the `PullRequestReviewsItem` and highlights that review comment as the "current" one, scrolling to it and expanding its review if necessary.
 
