@@ -96,11 +96,14 @@ describe('PatchBuffer', function() {
       const inserter = patchBuffer.createInserterAtEnd();
       const cb0 = sinon.spy();
       const cb1 = sinon.spy();
+      const cb2 = sinon.spy();
 
-      inserter.insert('0010\n');
-      inserter.insertMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
-      inserter.insert('0012\n');
-      inserter.insertMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
+      inserter.markWhile('addition', () => {
+        inserter.insert('0010\n');
+        inserter.insertMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
+        inserter.insert('0012\n');
+        inserter.insertMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
+      }, {invalidate: 'never', callback: cb2});
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         ${TEXT}0010
@@ -113,6 +116,8 @@ describe('PatchBuffer', function() {
 
       assert.isFalse(cb0.called);
       assert.isFalse(cb1.called);
+      assert.isFalse(cb2.called);
+      assert.lengthOf(patchBuffer.findMarkers('addition', {}), 0);
       assert.lengthOf(patchBuffer.findMarkers('patch', {}), 0);
       assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
 
@@ -125,6 +130,10 @@ describe('PatchBuffer', function() {
       assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 1);
       const [marker1] = patchBuffer.findMarkers('hunk', {});
       assert.isTrue(cb1.calledWith(marker1));
+
+      assert.lengthOf(patchBuffer.findMarkers('addition', {}), 1);
+      const [marker2] = patchBuffer.findMarkers('addition', {});
+      assert.isTrue(cb2.calledWith(marker2));
     });
 
     it('inserts into the middle of an existing buffer', function() {
