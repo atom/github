@@ -84,10 +84,10 @@ describe('PatchBuffer', function() {
       const cb0 = sinon.spy();
       const cb1 = sinon.spy();
 
-      inserter.append('0010\n');
-      inserter.appendMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
-      inserter.append('0012\n');
-      inserter.appendMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
+      inserter.insert('0010\n');
+      inserter.insertMarked('0011\n', 'patch', {invalidate: 'never', callback: cb0});
+      inserter.insert('0012\n');
+      inserter.insertMarked('0013\n0014\n', 'hunk', {invalidate: 'surround', callback: cb1});
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         ${TEXT}0010
@@ -118,9 +118,9 @@ describe('PatchBuffer', function() {
       const inserter = patchBuffer.createInserterAt([4, 2]);
       const callback = sinon.spy();
 
-      inserter.append('aa\nbbbb\n');
-      inserter.appendMarked('-patch-\n-patch-\n', 'patch', {callback});
-      inserter.appendMarked('-hunk-\ndd', 'hunk', {});
+      inserter.insert('aa\nbbbb\n');
+      inserter.insertMarked('-patch-\n-patch-\n', 'patch', {callback});
+      inserter.insertMarked('-hunk-\ndd', 'hunk', {});
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         0000
@@ -163,7 +163,7 @@ describe('PatchBuffer', function() {
 
       let marker = null;
       const callback = m => { marker = m; };
-      inserter.appendMarked('A\nB\nC\nD\nE\n', 'addition', {callback});
+      inserter.insertMarked('A\nB\nC\nD\nE\n', 'addition', {callback});
 
       inserter.apply();
 
@@ -190,7 +190,7 @@ describe('PatchBuffer', function() {
 
       patchBuffer
         .createInserterAt([3, 2])
-        .appendPatchBuffer(subPatchBuffer)
+        .insertPatchBuffer(subPatchBuffer)
         .apply();
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
