@@ -3,7 +3,72 @@
 @avatar-size: 16px;
 @font-size-body: 1.125em;
 
-// Reviews as its own pane/panel
+// PR ------------------------------------
+
+.github-Pr {
+  flex: 1;
+  overflow-x: auto;
+}
+
+// Overview  ----------------------------------------------
+
+.github-Overview {
+  padding: @component-padding;
+}
+
+// Conversation  ----------------------------------------------
+
+.github-Conversation {
+  .github-DotComMarkdownHtml {
+    padding: @component-padding;
+    font-size: .95em;
+  }
+  .github-PrTimeline .timeline-item {
+    padding: 0;
+    .info-row {
+      margin: 0;
+      padding: @component-padding 0 0 @component-padding;
+    }
+  }
+}
+
+// Changes  ----------------------------------------------
+
+.github-Changes {
+  padding: @component-padding/2 0;
+  &-item {
+    padding: @component-padding/2.5 @component-padding;
+    &:hover {
+      background-color: @background-color-highlight;
+    }
+    &:nth-child(3) {
+      border-top: 1px solid @base-border-color;
+    }
+  }
+  &-path {
+    color: @text-color-subtle;
+  }
+  &-file {
+    color: @text-color-highlight;
+  }
+}
+
+// Build Status  ----------------------------------------------
+
+.github-Pr .github-PrStatuses {
+  &-header {
+    border: none;
+  }
+  &-list-item {
+    border: none;
+    border-top: 1px solid @base-border-color;
+  }
+  &--success:before {
+    margin-right: 0;
+    width: auto;
+  }
+}
+
 
 // Reviews  ----------------------------------------------
 
@@ -37,9 +102,6 @@
     margin-left: @component-padding;
   }
 }
-
-
-// Review ----------------------------------------------
 
 .github-Review {
   margin-top: @component-padding*2;

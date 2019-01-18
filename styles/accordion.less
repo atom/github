@@ -5,6 +5,8 @@
   user-select: none;
 
   &-header {
+    display: flex;
+    align-items: center;
     font-weight: 600;
     color: @text-color-subtle;
     padding: @component-padding/2;
@@ -13,6 +15,15 @@
     &::-webkit-details-marker {
       color: @text-color-subtle;
     }
+  }
+
+  &-headerTitle {
+    margin-right: auto;
+  }
+
+  &-headerControls {
+    margin-left: @component-padding;
+    padding-right: @component-padding/2;
   }
 
   &-content {
