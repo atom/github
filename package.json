@@ -47,6 +47,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-react": "6.24.1",
+    "bintrees": "1.0.2",
     "bytes": "^3.0.0",
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",

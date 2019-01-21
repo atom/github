@@ -12,10 +12,10 @@ const rawDiff = dedent`
    line3
 `;
 const rawDiffWithPathPrefix = dedent`
-  diff --git a/badpath.txt b/badpath.txt
+  diff --git a/bad/path.txt b/bad/path.txt
   index af607bb..cfac420 100644
-  --- a/badpath.txt
-  +++ b/badpath.txt
+  --- a/bad/path.txt
+  +++ b/bad/path.txt
   @@ -1,2 +1,3 @@
     line0
   -line1

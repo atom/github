@@ -1,0 +1,61 @@
+@import 'variables';
+
+@avatar-size: 16px;
+@avatar-spacing: 6px;
+
+
+.github-PrCommentThread {
+  padding: @component-padding 0;
+}
+
+
+.github-PrComment {
+  max-width: 60em;
+  padding: @component-padding;
+  font-family: @font-family;
+  font-size: @font-size;
+  border: 1px solid @base-border-color;
+
+  &:first-child {
+    border-top-left-radius: @component-border-radius;
+    border-top-right-radius: @component-border-radius;
+  }
+  &:last-child {
+    border-bottom-left-radius: @component-border-radius;
+    border-bottom-right-radius: @component-border-radius;
+  }
+
+  & + .github-PrComment {
+    border-top: none;
+  }
+
+  &-header {
+    color: @text-color-subtle;
+    line-height: @avatar-size;
+  }
+
+  &-avatar {
+    margin-right: @avatar-spacing;
+    height: @avatar-size;
+    width: @avatar-size;
+    border-radius: @component-border-radius;
+    vertical-align: top;
+  }
+
+  &-timeAgo {
+    color: inherit;
+  }
+
+  &-body {
+    margin-left: @avatar-size + @avatar-spacing; // avatar + margin
+  }
+
+  &-hidden {
+    font-size: 14px;
+  }
+
+  &-icon {
+    vertical-align: middle;
+  }
+
+}
