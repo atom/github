@@ -740,7 +740,7 @@ describe('buildFilePatch', function() {
       assert.strictEqual(fp3.getNewPath(), 'third');
       assertInFilePatch(fp3, buffer).hunks({
         startRow: 7, endRow: 9, header: '@@ -1,3 +1,0 @@', regions: [
-          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n', range: [[7, 0], [9, 6]]},
+          {kind: 'deletion', string: '-line-0\n-line-1\n-line-2', range: [[7, 0], [9, 6]]},
         ],
       });
     });
@@ -794,7 +794,7 @@ describe('buildFilePatch', function() {
 
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
       assert.deepEqual(mp.getFilePatches()[1].getHunks(), []);
-      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [7, 0]]);
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[6, 6], [6, 6]]);
 
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
       assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
