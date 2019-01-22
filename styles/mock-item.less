@@ -205,8 +205,11 @@
 }
 
 .github-Review {
-  margin-top: @component-padding*2;
-  font-size: @font-size-body;
+
+  & + & {
+    margin-top: @component-padding*3;
+  }
+
   &-icon  {
     vertical-align: -3px;
     &.icon-check {
@@ -234,8 +237,9 @@
 
   &-summary {
     position: relative;
-    margin-top: @component-padding/2;
+    margin-top: @component-padding;
     padding: @component-padding;
+    font-size: @font-size-body;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     background-color: @base-background-color;
@@ -266,12 +270,9 @@
   &-thread {
     position: relative;
     margin-top: @component-padding/2;
-    border: 1px solid @base-border-color;
-    border-radius: @component-border-radius;
-    background-color: mix(@base-background-color, @tool-panel-background-color, 33%);
 
-    &[open] {
-      background-color: @base-background-color;
+    &:first-of-type {
+      margin-top: @component-padding;
     }
 
     .github-Review-avatar {
@@ -283,8 +284,20 @@
   &-threadHeader {
     display: flex;
     align-items: center;
-    padding: @component-padding;
+    padding: 0 @component-padding;
     cursor: pointer;
+
+    .is-resolved & {
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+  }
+
+  &-resolvedIcon:before {
+    font-size: 12px;
+    width: 13px;
+    margin-right: 0;
   }
 
   &-path {
@@ -307,21 +320,19 @@
     margin-right: @component-padding*2;
   }
 
-  &-checkbox {
-    flex: 1;
-    text-align: right;
-    white-space: nowrap;
-  }
-
   &-comments {
+    margin: @component-padding/2 0 @component-padding*1.5 0;
     padding: @component-padding;
     padding-left: @component-padding + @avatar-size + 5px; // space for avatar
     padding-top: 0; // added by commet
-    border-top: 1px solid @base-border-color;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: mix(@base-background-color, @tool-panel-background-color, 33%);
   }
 
   &-comment  {
     margin-top: @component-padding;
+    font-size: @font-size-body;
   }
 
   &-commentText  {
@@ -335,7 +346,6 @@
 
   &-reply {
     display: flex;
-    align-items: flex-start;
     margin-top: @component-padding;
   }
 
@@ -347,6 +357,18 @@
     resize: vertical;
   }
 
+  &-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: @component-padding;
+  }
+
+  &-infoText {
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+  }
+
   &-button {
     margin-left: @component-padding;
     &.btn.icon {
@@ -356,13 +378,4 @@
     }
   }
 
-  &-commentButton {
-    display: none;
-  }
-
-  &-replyInput:focus {
-    & + .github-Review-commentButton {
-     display: block;
-    }
-  }
 }
