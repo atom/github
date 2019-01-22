@@ -79,7 +79,7 @@ describe('buildFilePatch', function() {
 
       const bufferText =
         'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\nline-7\nline-8\nline-9\nline-10\n' +
-        'line-11\nline-12\nline-13\nline-14\nline-15\nline-16\nline-17\nline-18\n';
+        'line-11\nline-12\nline-13\nline-14\nline-15\nline-16\nline-17\nline-18';
       assert.strictEqual(buffer.getText(), bufferText);
 
       assertInPatch(p, buffer).hunks(
@@ -113,7 +113,7 @@ describe('buildFilePatch', function() {
             {kind: 'unchanged', string: ' line-13\n', range: [[13, 0], [13, 7]]},
             {kind: 'deletion', string: '-line-14\n-line-15\n', range: [[14, 0], [15, 7]]},
             {kind: 'addition', string: '+line-16\n+line-17\n', range: [[16, 0], [17, 7]]},
-            {kind: 'unchanged', string: ' line-18\n', range: [[18, 0], [18, 7]]},
+            {kind: 'unchanged', string: ' line-18', range: [[18, 0], [18, 7]]},
           ],
         },
       );
@@ -229,7 +229,7 @@ describe('buildFilePatch', function() {
       assert.isFalse(p.getNewFile().isPresent());
       assert.strictEqual(p.getPatch().getStatus(), 'deleted');
 
-      const bufferText = 'line-0\nline-1\nline-2\nline-3\n\n';
+      const bufferText = 'line-0\nline-1\nline-2\nline-3\n';
       assert.strictEqual(buffer.getText(), bufferText);
 
       assertInPatch(p, buffer).hunks(
@@ -238,7 +238,7 @@ describe('buildFilePatch', function() {
           endRow: 4,
           header: '@@ -1,5 +0,0 @@',
           regions: [
-            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n-\n', range: [[0, 0], [4, 0]]},
+            {kind: 'deletion', string: '-line-0\n-line-1\n-line-2\n-line-3\n-', range: [[0, 0], [4, 0]]},
           ],
         },
       );
@@ -276,7 +276,7 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewMode(), '100755');
       assert.strictEqual(p.getPatch().getStatus(), 'added');
 
-      const bufferText = 'line-0\nline-1\nline-2\n';
+      const bufferText = 'line-0\nline-1\nline-2';
       assert.strictEqual(buffer.getText(), bufferText);
 
       assertInPatch(p, buffer).hunks(
@@ -285,7 +285,7 @@ describe('buildFilePatch', function() {
           endRow: 2,
           header: '@@ -0,0 +1,3 @@',
           regions: [
-            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[0, 0], [2, 6]]},
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2', range: [[0, 0], [2, 6]]},
           ],
         },
       );
@@ -319,7 +319,7 @@ describe('buildFilePatch', function() {
       assert.lengthOf(multiFilePatch.getFilePatches(), 1);
       const [p] = multiFilePatch.getFilePatches();
       const buffer = multiFilePatch.getBuffer();
-      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n No newline at end of file\n');
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n No newline at end of file');
 
       assertInPatch(p, buffer).hunks({
         startRow: 0,
@@ -328,7 +328,7 @@ describe('buildFilePatch', function() {
         regions: [
           {kind: 'addition', string: '+line-0\n', range: [[0, 0], [0, 6]]},
           {kind: 'deletion', string: '-line-1\n', range: [[1, 0], [1, 6]]},
-          {kind: 'nonewline', string: '\\ No newline at end of file\n', range: [[2, 0], [2, 26]]},
+          {kind: 'nonewline', string: '\\ No newline at end of file', range: [[2, 0], [2, 26]]},
         ],
       });
     });
@@ -383,13 +383,13 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1');
       assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
         regions: [
-          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
+          {kind: 'addition', string: '+line-0\n+line-1', range: [[0, 0], [1, 6]]},
         ],
       });
     });
@@ -442,13 +442,13 @@ describe('buildFilePatch', function() {
       assert.isNull(p.getNewSymlink());
       assert.strictEqual(p.getStatus(), 'added');
 
-      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1');
       assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,2 +0,0 @@',
         regions: [
-          {kind: 'deletion', string: '-line-0\n-line-1\n', range: [[0, 0], [1, 6]]},
+          {kind: 'deletion', string: '-line-0\n-line-1', range: [[0, 0], [1, 6]]},
         ],
       });
     });
@@ -500,13 +500,13 @@ describe('buildFilePatch', function() {
       assert.strictEqual(p.getNewSymlink(), 'the-destination');
       assert.strictEqual(p.getStatus(), 'deleted');
 
-      assert.strictEqual(buffer.getText(), 'line-0\nline-1\n');
+      assert.strictEqual(buffer.getText(), 'line-0\nline-1');
       assertInPatch(p, buffer).hunks({
         startRow: 0,
         endRow: 1,
         header: '@@ -0,0 +0,2 @@',
         regions: [
-          {kind: 'addition', string: '+line-0\n+line-1\n', range: [[0, 0], [1, 6]]},
+          {kind: 'addition', string: '+line-0\n+line-1', range: [[0, 0], [1, 6]]},
         ],
       });
     });
@@ -599,7 +599,7 @@ describe('buildFilePatch', function() {
         mp.getBuffer().getText(),
         'line-0\nline-1\nline-2\nline-3\nline-4\nline-5\nline-6\n' +
         'line-5\nline-6\nline-7\nline-8\n' +
-        'line-0\nline-1\nline-2\n',
+        'line-0\nline-1\nline-2',
       );
 
       assert.strictEqual(mp.getFilePatches()[0].getOldPath(), 'first');
@@ -637,7 +637,7 @@ describe('buildFilePatch', function() {
       assertInFilePatch(mp.getFilePatches()[2], buffer).hunks(
         {
           startRow: 11, endRow: 13, header: '@@ -1,0 +1,3 @@', regions: [
-            {kind: 'addition', string: '+line-0\n+line-1\n+line-2\n', range: [[11, 0], [13, 6]]},
+            {kind: 'addition', string: '+line-0\n+line-1\n+line-2', range: [[11, 0], [13, 6]]},
           ],
         },
       );
