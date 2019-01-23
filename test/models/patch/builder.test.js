@@ -869,7 +869,7 @@ describe('buildFilePatch', function() {
       assert.deepEqual(fp.getStartRange().serialize(), [[0, 0], [0, 0]]);
       assertInFilePatch(fp).hunks();
 
-      fp.triggerDelayedRender();
+      mfp.expandFilePatch(fp);
 
       assert.strictEqual(fp.getRenderStatus(), EXPANDED);
       assert.deepEqual(fp.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
@@ -945,7 +945,7 @@ describe('buildFilePatch', function() {
         },
       );
 
-      fp1.triggerDelayedRender();
+      mfp.expandFilePatch(fp1);
 
       assert.strictEqual(fp0.getRenderStatus(), EXPANDED);
       assertInFilePatch(fp0, mfp.getBuffer()).hunks(
@@ -1021,7 +1021,7 @@ describe('buildFilePatch', function() {
       assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
       assert.deepEqual(fp2.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
 
-      fp1.triggerDelayedRender();
+      mfp.expandFilePatch(fp1);
 
       assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
       assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
