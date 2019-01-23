@@ -841,7 +841,7 @@ describe('buildFilePatch', function() {
         {
           startRow: 0, endRow: 1, header: '@@ -1,1 +1,2 @@', regions: [
             {kind: 'unchanged', string: ' line-4\n', range: [[0, 0], [0, 6]]},
-            {kind: 'addition', string: '+line-5\n', range: [[1, 0], [1, 6]]},
+            {kind: 'addition', string: '+line-5', range: [[1, 0], [1, 6]]},
           ],
         },
       );
@@ -879,7 +879,7 @@ describe('buildFilePatch', function() {
             {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
             {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
-            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+            {kind: 'unchanged', string: ' line-3', range: [[3, 0], [3, 6]]},
           ],
         },
       );
@@ -940,7 +940,7 @@ describe('buildFilePatch', function() {
             {kind: 'unchanged', string: ' line-0\n', range: [[4, 0], [4, 6]]},
             {kind: 'addition', string: '+line-1\n', range: [[5, 0], [5, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[6, 0], [6, 6]]},
-            {kind: 'unchanged', string: ' line-3\n', range: [[7, 0], [7, 6]]},
+            {kind: 'unchanged', string: ' line-3', range: [[7, 0], [7, 6]]},
           ],
         },
       );
@@ -978,7 +978,7 @@ describe('buildFilePatch', function() {
             {kind: 'unchanged', string: ' line-0\n', range: [[9, 0], [9, 6]]},
             {kind: 'addition', string: '+line-1\n', range: [[10, 0], [10, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[11, 0], [11, 6]]},
-            {kind: 'unchanged', string: ' line-3\n', range: [[12, 0], [12, 6]]},
+            {kind: 'unchanged', string: ' line-3', range: [[12, 0], [12, 6]]},
           ],
         },
       );
@@ -1054,7 +1054,7 @@ describe('buildFilePatch', function() {
             {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
             {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
-            {kind: 'unchanged', string: ' line-3\n', range: [[3, 0], [3, 6]]},
+            {kind: 'unchanged', string: ' line-3', range: [[3, 0], [3, 6]]},
           ],
         },
       );
