@@ -1,93 +1,74 @@
 // Builders for classes related to MultiFilePatches.
 
-import PatchBuffer from '../../lib/models/patch/patch-buffer';
-import MultiFilePatch from '../../lib/models/patch/multi-file-patch';
-import FilePatch from '../../lib/models/patch/file-patch';
-import File, {nullFile} from '../../lib/models/patch/file';
-import Patch from '../../lib/models/patch/patch';
-import Hunk from '../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
-
-function appendMarked(patchBuffer, layerName, lines) {
-  const startPosition = patchBuffer.getInsertionPoint();
-  patchBuffer.getBuffer().append(lines.join('\n'));
-  const marker = patchBuffer.markRange(
-    layerName,
-    [startPosition, patchBuffer.getInsertionPoint()],
-    {invalidate: 'never', exclusive: false},
-  );
-  patchBuffer.getBuffer().append('\n');
-  return marker;
-}
-
-function markFrom(patchBuffer, layerName, startPosition) {
-  const endPosition = patchBuffer.getInsertionPoint().translate([-1, Infinity]);
-  return patchBuffer.markRange(
-    layerName,
-    [startPosition, endPosition],
-    {invalidate: 'never', exclusive: false},
-  );
-}
-
-function wrapReturn(patchBuffer, object) {
-  return {buffer: patchBuffer.getBuffer(), layers: patchBuffer.getLayers(), ...object};
-}
+import {buildMultiFilePatch} from '../../lib/models/patch/builder';
+import File from '../../lib/models/patch/file';
 
 class MultiFilePatchBuilder {
-  constructor(patchBuffer = null) {
-    this.patchBuffer = patchBuffer;
-
-    this.filePatches = [];
+  constructor() {
+    this.rawFilePatches = [];
   }
 
   addFilePatch(block = () => {}) {
-    const filePatch = new FilePatchBuilder(this.patchBuffer);
+    const filePatch = new FilePatchBuilder();
     block(filePatch);
-    this.filePatches.push(filePatch.build().filePatch);
+    this.rawFilePatches.push(filePatch.build().raw);
     return this;
   }
 
-  build() {
-    return wrapReturn(this.patchBuffer, {
-      multiFilePatch: new MultiFilePatch({
-        patchBuffer: this.patchBuffer,
-        filePatches: this.filePatches,
-      }),
-    });
+  build(opts = {}) {
+    const raw = this.rawFilePatches;
+    const multiFilePatch = buildMultiFilePatch(raw, opts);
+    return {raw, multiFilePatch};
   }
 }
 
 class FilePatchBuilder {
-  constructor(patchBuffer = null) {
-    this.patchBuffer = patchBuffer;
+  constructor() {
+    this._oldPath = 'file';
+    this._oldMode = File.modes.NORMAL;
+    this._oldSymlink = null;
+    this._newPath = null;
+    this._newMode = null;
+    this._newSymlink = null;
 
-    this.oldFile = new File({path: 'file', mode: File.modes.NORMAL});
-    this.newFile = null;
-
-    this.patchBuilder = new PatchBuilder(this.patchBuffer);
+    this.patchBuilder = new PatchBuilder();
   }
 
   setOldFile(block) {
     const file = new FileBuilder();
     block(file);
-    this.oldFile = file.build().file;
+    const rawFile = file.build();
+    this._oldPath = rawFile.path;
+    this._oldMode = rawFile.mode;
+    if (rawFile.symlink) {
+      this._oldSymlink = rawFile.symlink;
+    }
     return this;
   }
 
   nullOldFile() {
-    this.oldFile = nullFile;
+    this._oldPath = null;
+    this._oldMode = null;
+    this._oldSymlink = null;
     return this;
   }
 
   setNewFile(block) {
     const file = new FileBuilder();
     block(file);
-    this.newFile = file.build().file;
+    const rawFile = file.build();
+    this._newPath = rawFile.path;
+    this._newMode = rawFile.mode;
+    if (rawFile.symlink) {
+      this._newSymlink = rawFile.symlink;
+    }
     return this;
   }
 
   nullNewFile() {
-    this.newFile = nullFile;
+    this._newPath = null;
+    this._newMode = null;
+    this._newSymlink = null;
     return this;
   }
 
@@ -101,26 +82,54 @@ class FilePatchBuilder {
     return this;
   }
 
-  renderStatus(...args) {
-    this.patchBuilder.renderStatus(...args);
-    return this;
-  }
-
   empty() {
     this.patchBuilder.empty();
     return this;
   }
 
-  build() {
-    const {patch} = this.patchBuilder.build();
+  build(opts = {}) {
+    const {raw: rawPatch} = this.patchBuilder.build();
 
-    if (this.newFile === null) {
-      this.newFile = this.oldFile.clone();
+    if (this._newPath === null) {
+      this._newPath = this._oldPath;
     }
 
-    return this.patchBuffer.wrapReturn({
-      filePatch: new FilePatch(this.oldFile, this.newFile, patch),
-    });
+    if (this._newMode === null) {
+      this._newMode = this._oldMode;
+    }
+
+    if (this._oldSymlink !== null || this._newSymlink !== null) {
+      if (rawPatch.hunks.length > 0) {
+        throw new Error('Cannot have both a symlink target and hunk content');
+      }
+
+      const lines = [];
+      if (this._oldSymlink !== null) {
+        lines.push(` ${this._oldSymlink}`);
+      }
+      if (this._oldSymlink !== null && this._newSymlink !== null) {
+        lines.push(' --');
+      }
+      if (this._newSymlink !== null) {
+        lines.push(` ${this._newSymlink}`);
+      }
+    }
+
+    const raw = {
+      oldPath: this._oldPath,
+      oldMode: this._oldMode,
+      newPath: this._newPath,
+      newMode: this._newMode,
+      ...rawPatch,
+    };
+
+    const mfp = buildMultiFilePatch([raw], opts);
+    const [filePatch] = mfp.getFilePatches();
+
+    return {
+      raw,
+      filePatch,
+    };
   }
 }
 
@@ -142,35 +151,25 @@ class FileBuilder {
   }
 
   executable() {
-    return this.mode('100755');
+    return this.mode(File.modes.EXECUTABLE);
   }
 
   symlinkTo(destinationPath) {
     this._symlink = destinationPath;
-    return this.mode('120000');
+    return this.mode(File.modes.SYMLINK);
   }
 
   build() {
-    return {file: new File({path: this._path, mode: this._mode, symlink: this._symlink})};
+    return {path: this._path, mode: this._mode, symlink: this._symlink};
   }
 }
 
 class PatchBuilder {
-  constructor(patchBuffer = null) {
-    this.patchBuffer = patchBuffer;
-
-    this._renderStatus = undefined;
+  constructor() {
     this._status = 'modified';
-    this.hunks = [];
-
-    this.patchStart = this.patchBuffer.getInsertionPoint();
+    this.rawHunks = [];
     this.drift = 0;
     this.explicitlyEmpty = false;
-  }
-
-  renderStatus(status) {
-    this._renderStatus = status;
-    return this;
   }
 
   status(st) {
@@ -183,10 +182,10 @@ class PatchBuilder {
   }
 
   addHunk(block = () => {}) {
-    const builder = new HunkBuilder(this.patchBuffer, this.drift);
+    const builder = new HunkBuilder(this.drift);
     block(builder);
-    const {hunk, drift} = builder.build();
-    this.hunks.push(hunk);
+    const {raw, drift} = builder.build();
+    this.rawHunks.push(raw);
     this.drift = drift;
     return this;
   }
@@ -197,7 +196,7 @@ class PatchBuilder {
   }
 
   build() {
-    if (this.hunks.length === 0 && !this.explicitlyEmpty) {
+    if (this.rawHunks.length === 0 && !this.explicitlyEmpty) {
       if (this._status === 'modified') {
         this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
         this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
@@ -208,17 +207,27 @@ class PatchBuilder {
       }
     }
 
-    const marker = markFrom(this.patchBuffer, 'patch', this.patchStart);
+    const raw = {
+      status: this._status,
+      hunks: this.rawHunks,
+    };
 
-    return wrapReturn(this.patchBuffer, {
-      patch: new Patch({status: this._status, hunks: this.hunks, marker, renderStatus: this._renderStatus}),
-    });
+    const mfp = buildMultiFilePatch([{
+      oldPath: 'file',
+      oldMode: File.modes.NORMAL,
+      newPath: 'file',
+      newMode: File.modes.NORMAL,
+      ...raw,
+    }]);
+    const [filePatch] = mfp.getFilePatches();
+    const patch = filePatch.getPatch();
+
+    return {raw, patch};
   }
 }
 
 class HunkBuilder {
-  constructor(patchBuffer = null, drift = 0) {
-    this.patchBuffer = patchBuffer;
+  constructor(drift = 0) {
     this.drift = drift;
 
     this.oldStartRow = 0;
@@ -228,8 +237,7 @@ class HunkBuilder {
 
     this.sectionHeading = "don't care";
 
-    this.hunkStartPoint = this.patchBuffer.getInsertionPoint();
-    this.regions = [];
+    this.lines = [];
   }
 
   oldRow(rowNumber) {
@@ -238,36 +246,38 @@ class HunkBuilder {
   }
 
   unchanged(...lines) {
-    this.regions.push(new Unchanged(appendMarked(this.patchBuffer, 'unchanged', lines)));
+    for (const line of lines) {
+      this.lines.push(` ${line}`);
+    }
     return this;
   }
 
   added(...lines) {
-    this.regions.push(new Addition(appendMarked(this.patchBuffer, 'addition', lines)));
+    for (const line of lines) {
+      this.lines.push(`+${line}`);
+    }
     return this;
   }
 
   deleted(...lines) {
-    this.regions.push(new Deletion(appendMarked(this.patchBuffer, 'deletion', lines)));
+    for (const line of lines) {
+      this.lines.push(`-${line}`);
+    }
     return this;
   }
 
   noNewline() {
-    this.regions.push(new NoNewline(appendMarked(this.patchBuffer, 'nonewline', [' No newline at end of file'])));
+    this.lines.push('\\ No newline at end of file');
     return this;
   }
 
   build() {
-    if (this.regions.length === 0) {
+    if (this.lines.length === 0) {
       this.unchanged('0000').added('0001').deleted('0002').unchanged('0003');
     }
 
     if (this.oldRowCount === null) {
-      this.oldRowCount = this.regions.reduce((count, region) => region.when({
-        unchanged: () => count + region.bufferRowCount(),
-        deletion: () => count + region.bufferRowCount(),
-        default: () => count,
-      }), 0);
+      this.oldRowCount = this.lines.filter(line => /^[ -]/.test(line)).length;
     }
 
     if (this.newStartRow === null) {
@@ -275,42 +285,49 @@ class HunkBuilder {
     }
 
     if (this.newRowCount === null) {
-      this.newRowCount = this.regions.reduce((count, region) => region.when({
-        unchanged: () => count + region.bufferRowCount(),
-        addition: () => count + region.bufferRowCount(),
-        default: () => count,
-      }), 0);
+      this.newRowCount = this.lines.filter(line => /^[ +]/.test(line)).length;
     }
 
-    const marker = markFrom(this.patchBuffer, 'hunk', this.hunkStartPoint);
+    const raw = {
+      oldStartLine: this.oldStartRow,
+      oldLineCount: this.oldRowCount,
+      newStartLine: this.newStartRow,
+      newLineCount: this.newRowCount,
+      heading: this.sectionHeading,
+      lines: this.lines,
+    };
 
-    return wrapReturn(this.patchBuffer, {
-      hunk: new Hunk({
-        oldStartRow: this.oldStartRow,
-        oldRowCount: this.oldRowCount,
-        newStartRow: this.newStartRow,
-        newRowCount: this.newRowCount,
-        sectionHeading: this.sectionHeading,
-        marker,
-        regions: this.regions,
-      }),
+    const mfp = buildMultiFilePatch([{
+      oldPath: 'file',
+      oldMode: File.modes.NORMAL,
+      newPath: 'file',
+      newMode: File.modes.NORMAL,
+      status: 'modified',
+      hunks: [raw],
+    }]);
+    const [fp] = mfp.getFilePatches();
+    const [hunk] = fp.getHunks();
+
+    return {
+      raw,
+      hunk,
       drift: this.drift + this.newRowCount - this.oldRowCount,
-    });
+    };
   }
 }
 
 export function multiFilePatchBuilder() {
-  return new MultiFilePatchBuilder(new PatchBuffer());
+  return new MultiFilePatchBuilder();
 }
 
 export function filePatchBuilder() {
-  return new FilePatchBuilder(new PatchBuffer());
+  return new FilePatchBuilder();
 }
 
 export function patchBuilder() {
-  return new PatchBuilder(new PatchBuffer());
+  return new PatchBuilder();
 }
 
 export function hunkBuilder() {
-  return new HunkBuilder(new PatchBuffer());
+  return new HunkBuilder();
 }
