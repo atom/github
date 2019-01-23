@@ -802,7 +802,7 @@ describe('buildFilePatch', function() {
   });
 
   describe('with a large diff', function() {
-    it('creates a DelayedPatch when the diff is "too large"', function() {
+    it('creates a HiddenPatch when the diff is "too large"', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100755', status: 'modified',
@@ -847,7 +847,7 @@ describe('buildFilePatch', function() {
       );
     });
 
-    it('re-parse a DelayedPatch as a Patch', function() {
+    it('re-parse a HiddenPatch as a Patch', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
@@ -1028,7 +1028,7 @@ describe('buildFilePatch', function() {
       assert.deepEqual(fp2.getMarker().getRange().serialize(), [[4, 0], [4, 0]]);
     });
 
-    it('does not create a DelayedPatch when the patch has been explicitly expanded', function() {
+    it('does not create a HiddenPatch when the patch has been explicitly expanded', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'big/file.txt', oldMode: '100644', newPath: 'big/file.txt', newMode: '100755', status: 'modified',
