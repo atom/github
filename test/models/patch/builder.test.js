@@ -1025,7 +1025,7 @@ describe('buildFilePatch', function() {
 
       assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
       assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
-      assert.deepEqual(fp2.getMarker().getRange().serialize(), [[4, 0], [4, 0]]);
+      assert.deepEqual(fp2.getMarker().getRange().serialize(), [[3, 6], [3, 6]]);
     });
 
     it('does not create a HiddenPatch when the patch has been explicitly expanded', function() {
