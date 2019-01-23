@@ -41,6 +41,7 @@ class FilePatchBuilder {
     this._oldPath = rawFile.path;
     this._oldMode = rawFile.mode;
     if (rawFile.symlink) {
+      this.empty();
       this._oldSymlink = rawFile.symlink;
     }
     return this;
@@ -60,6 +61,7 @@ class FilePatchBuilder {
     this._newPath = rawFile.path;
     this._newMode = rawFile.mode;
     if (rawFile.symlink) {
+      this.empty();
       this._newSymlink = rawFile.symlink;
     }
     return this;
@@ -103,16 +105,18 @@ class FilePatchBuilder {
         throw new Error('Cannot have both a symlink target and hunk content');
       }
 
-      const lines = [];
+      const hb = new HunkBuilder();
       if (this._oldSymlink !== null) {
-        lines.push(` ${this._oldSymlink}`);
+        hb.unchanged(this._oldSymlink);
       }
       if (this._oldSymlink !== null && this._newSymlink !== null) {
-        lines.push(' --');
+        hb.unchanged('--');
       }
       if (this._newSymlink !== null) {
-        lines.push(` ${this._newSymlink}`);
+        hb.unchanged(this._newSymlink);
       }
+
+      rawPatch.hunks = [hb.build().raw];
     }
 
     const raw = {
