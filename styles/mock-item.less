@@ -3,7 +3,173 @@
 @avatar-size: 16px;
 @font-size-body: 1.125em;
 
-// Reviews as its own pane/panel
+// PR ------------------------------------
+
+.github-Pr {
+  flex: 1;
+  overflow-x: auto;
+
+  .github-IssueishDetailView-headerBadge {
+    margin-right: 0;
+  }
+}
+
+// Header  ----------------------------------------------
+
+.github-PrHeader {
+  display: flex;
+  line-height: 2.25;
+  padding: @component-padding/2 @component-padding;
+  padding-left: .2em;
+  border-bottom: 1px solid @base-border-color;
+
+  &-backButton {
+    padding: 0;
+    padding-right: @component-padding;
+    margin-right: @component-padding;
+    line-height: inherit;
+    border: none;
+    border-right: 1px solid @base-border-color;
+    background-color: transparent;
+  }
+
+  &-link {
+    margin-right: auto;
+  }
+
+  &-id {
+    color: @text-color-subtle;
+  }
+
+  &-refreshButton {
+    color: @text-color-subtle;
+    &:before {
+      margin-right: 0;
+    }
+  }
+}
+
+// Overview  ----------------------------------------------
+
+
+
+.github-Overview {
+  padding: @component-padding/2;
+  &-row {
+    display: flex;
+    align-items: center;
+    padding: @component-padding/2;
+  }
+
+  &-label {
+    flex: 1;
+    line-height: 2;
+    color: @text-color-subtle;
+    margin-right: @component-padding;
+    border-bottom: 1px dashed @base-border-color;
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  &-avatar {
+    width: 18px;
+    height: 18px;
+    margin-left: @component-padding/2;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  &-title {
+    font-size: 1.25em;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  &-branchDirection {
+    padding: 0 .25em;
+    color: @text-color-subtle;
+  }
+
+  &-badge {
+    display: inline-block;
+    margin-left: @component-padding/2;
+    padding: 0 .5em;
+    line-height: 1.6em;
+    font-size: .95em;
+    font-weight: 600;
+    border-radius: @component-border-radius;
+    color: white;
+    &:nth-child(2) { color: hsl(0, 0%, 100%); background-color: hsl(280, 80%, 45%); }
+    &:nth-child(3) { color: hsl(43, 100%, 8%); background-color: hsl(43, 90%, 66%); }
+  }
+
+  &-checkoutButton {
+    // margin-left: auto;
+  }
+}
+
+// Conversation  ----------------------------------------------
+
+.github-Conversation {
+  .github-DotComMarkdownHtml {
+    padding: @component-padding;
+    font-size: .95em;
+  }
+  .github-PrTimeline .timeline-item {
+    padding: 0;
+    .info-row {
+      margin: 0;
+      padding: @component-padding 0 0 @component-padding;
+    }
+  }
+}
+
+// Changes  ----------------------------------------------
+
+.github-Changes {
+  padding: @component-padding/2 0;
+  &-item {
+    padding: @component-padding/2.5 @component-padding;
+    &:hover {
+      background-color: @background-color-highlight;
+    }
+    &:nth-child(3) {
+      border-top: 1px solid @base-border-color;
+    }
+  }
+  &-path {
+    color: @text-color-subtle;
+  }
+  &-file {
+    color: @text-color-highlight;
+  }
+}
+
+// Commits  ----------------------------------------------
+
+.github-Commits .github-RecentCommit-avatar {
+  width: 18px;
+  height: 18px;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+// Build Status  ----------------------------------------------
+
+.github-Pr .github-PrStatuses {
+  &-header {
+    border: none;
+  }
+  &-list-item {
+    border: none;
+    border-top: 1px solid @base-border-color;
+  }
+  &--success:before {
+    margin-right: 0;
+    width: auto;
+  }
+}
+
 
 // Reviews  ----------------------------------------------
 
@@ -38,12 +204,21 @@
   }
 }
 
-
-// Review ----------------------------------------------
-
 .github-Review {
-  margin-top: @component-padding*2;
-  font-size: @font-size-body;
+
+  & + & {
+    margin-top: @component-padding*3;
+  }
+
+  &-header {
+    display: flex;
+  }
+
+  .github-Review-headerTimeAgo {
+    margin-left: auto;
+    color: @text-color-subtle;
+  }
+
   &-icon  {
     vertical-align: -3px;
     &.icon-check {
@@ -71,8 +246,9 @@
 
   &-summary {
     position: relative;
-    margin-top: @component-padding/2;
+    margin-top: @component-padding;
     padding: @component-padding;
+    font-size: @font-size-body;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     background-color: @base-background-color;
@@ -103,12 +279,9 @@
   &-thread {
     position: relative;
     margin-top: @component-padding/2;
-    border: 1px solid @base-border-color;
-    border-radius: @component-border-radius;
-    background-color: mix(@base-background-color, @tool-panel-background-color, 33%);
 
-    &[open] {
-      background-color: @base-background-color;
+    &:first-of-type {
+      margin-top: @component-padding;
     }
 
     .github-Review-avatar {
@@ -120,8 +293,20 @@
   &-threadHeader {
     display: flex;
     align-items: center;
-    padding: @component-padding;
+    padding: 0 @component-padding;
     cursor: pointer;
+
+    .is-resolved & {
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+  }
+
+  &-resolvedIcon:before {
+    font-size: 12px;
+    width: 13px;
+    margin-right: 0;
   }
 
   &-path {
@@ -144,21 +329,19 @@
     margin-right: @component-padding*2;
   }
 
-  &-checkbox {
-    flex: 1;
-    text-align: right;
-    white-space: nowrap;
-  }
-
   &-comments {
+    margin: @component-padding/2 0 @component-padding*1.5 0;
     padding: @component-padding;
     padding-left: @component-padding + @avatar-size + 5px; // space for avatar
     padding-top: 0; // added by commet
-    border-top: 1px solid @base-border-color;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: mix(@base-background-color, @tool-panel-background-color, 33%);
   }
 
   &-comment  {
     margin-top: @component-padding;
+    font-size: @font-size-body;
   }
 
   &-commentText  {
@@ -172,7 +355,6 @@
 
   &-reply {
     display: flex;
-    align-items: flex-start;
     margin-top: @component-padding;
   }
 
@@ -184,6 +366,18 @@
     resize: vertical;
   }
 
+  &-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: @component-padding;
+  }
+
+  &-infoText {
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+  }
+
   &-button {
     margin-left: @component-padding;
     &.btn.icon {
@@ -193,67 +387,52 @@
     }
   }
 
-  &-commentButton {
-    display: none;
-  }
-
-  &-replyInput:focus {
-    & + .github-Review-commentButton {
-     display: block;
-    }
-  }
 }
 
 
-// Reviews in "Files tab" ----------------------------------------------
+// Diff only  ----------------------------------------------
 
-.github-IssueishDetailView-filesChanged {
+// This hides the rest of the PR infos
+.github-IssueishDetailView-tablist {
+  display: none;
+}
+.github-IssueishDetailView-header,
+.github-PrDetailView-footer.github-PrDetailView-footer {
+  display: none;
+}
 
-  .github-Reviews {
-
-    padding: 0;
-    background-color: mix(@app-background-color, @base-background-color);
-
-    &-header {
-      padding: @component-padding;
-      cursor: default;
-      &::-webkit-details-marker {
-        margin-top: 2px;
-      }
-    }
-
-    &-title {
-      font-size: 1.1em;
-    }
-  }
-
-  .github-Review {
-    margin: 0;
-    padding: @component-padding*2;
-    border-bottom: 1px solid @base-border-color;
-
-    &-threads {
-      padding-left: @component-padding*2;
-    }
-
-    &-threadsHeader {
-      display: flex;
-      align-items: center;
-      padding: @component-padding 0 @component-padding/2 0;
-      cursor: default;
-
-      .github-Reviews-progress {
-        font-size: .9em;
-        margin-left: auto;
-      }
-    }
-
-    &-threadsHeaderTitle {
-      font-size: 1em;
-      margin-right: @component-padding;
-    }
+.github-FilePatchView-container .line-numbers.old [data-screen-row="38"]::before,
+.github-FilePatchView-container .line-numbers.old [data-screen-row="50"]::before {
+  position: absolute;
+  font-family: 'Octicons Regular';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  text-decoration: none;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  content: "\f02b";
+}
 
 
-  }
+[data-active-item-path="/Users/simurai/github/atom/src/panel-container-element.js"] .line-number[data-screen-row="57"]::before,
+[data-active-item-path="/Users/simurai/github/atom/src/panel-container-element.js"] .line-number[data-screen-row="67"]::before {
+  position: absolute;
+  font-family: 'Octicons Regular';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  text-decoration: none;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  content: "\f02b";
 
+  margin-top: 2px;
+  margin-left: 16px;
 }
