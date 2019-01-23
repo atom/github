@@ -1,11 +1,12 @@
 import {TextBuffer} from 'atom';
 
 import Patch from '../../../lib/models/patch/patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInPatch} from '../../helpers';
 
-describe('Patch', function() {
+describe.only('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
@@ -165,9 +166,7 @@ describe('Patch', function() {
     let stageLayeredBuffer;
 
     beforeEach(function() {
-      const stageBuffer = new TextBuffer();
-      const stageLayers = buildLayers(stageBuffer);
-      stageLayeredBuffer = {buffer: stageBuffer, layers: stageLayers};
+      stageLayeredBuffer = new PatchBuffer();
     });
 
     it('creates a patch that applies selected lines from only the first hunk', function() {
@@ -372,9 +371,7 @@ describe('Patch', function() {
     let unstageLayeredBuffer;
 
     beforeEach(function() {
-      const unstageBuffer = new TextBuffer();
-      const unstageLayers = buildLayers(unstageBuffer);
-      unstageLayeredBuffer = {buffer: unstageBuffer, layers: unstageLayers};
+      unstageLayeredBuffer = new PatchBuffer();
     });
 
     it('creates a patch that updates the index to unapply selected lines from a single hunk', function() {
