@@ -2,16 +2,14 @@ import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
-import {TOO_LARGE} from '../../../lib/models/patch/patch';
 import {DEFAULT_OPTIONS} from '../../../lib/models/patch/builder.js';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 
 import {assertInFilePatch} from '../../helpers';
 
-
 describe('MultiFilePatch', function() {
-  it('creates an empty patch when constructed with no arguments', function() {
-    const empty = new MultiFilePatch({});
+  it('creates an empty patch', function() {
+    const empty = MultiFilePatch.createNull();
     assert.isFalse(empty.anyPresent());
     assert.lengthOf(empty.getFilePatches(), 0);
   });
@@ -52,17 +50,17 @@ describe('MultiFilePatch', function() {
       assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
     });
 
-    it('creates a copy with a new buffer and layer set', function() {
-      const {buffer, layers} = multiFilePatchBuilder().build();
-      const dup = original.clone({buffer, layers});
+    it('creates a copy with a new PatchBuffer', function() {
+      const {multiFilePatch} = multiFilePatchBuilder().build();
+      const dup = original.clone({patchBuffer: multiFilePatch.getLayeredBuffer()});
 
-      assert.strictEqual(dup.getBuffer(), buffer);
-      assert.strictEqual(dup.getPatchLayer(), layers.patch);
-      assert.strictEqual(dup.getHunkLayer(), layers.hunk);
-      assert.strictEqual(dup.getUnchangedLayer(), layers.unchanged);
-      assert.strictEqual(dup.getAdditionLayer(), layers.addition);
-      assert.strictEqual(dup.getDeletionLayer(), layers.deletion);
-      assert.strictEqual(dup.getNoNewlineLayer(), layers.noNewline);
+      assert.strictEqual(dup.getBuffer(), multiFilePatch.getBuffer());
+      assert.strictEqual(dup.getPatchLayer(), multiFilePatch.getPatchLayer());
+      assert.strictEqual(dup.getHunkLayer(), multiFilePatch.getHunkLayer());
+      assert.strictEqual(dup.getUnchangedLayer(), multiFilePatch.getUnchangedLayer());
+      assert.strictEqual(dup.getAdditionLayer(), multiFilePatch.getAdditionLayer());
+      assert.strictEqual(dup.getDeletionLayer(), multiFilePatch.getDeletionLayer());
+      assert.strictEqual(dup.getNoNewlineLayer(), multiFilePatch.getNoNewlineLayer());
       assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
     });
 
@@ -272,12 +270,11 @@ describe('MultiFilePatch', function() {
       +1;1;1
       -1;1;2
        1;1;3
-
     `);
   });
 
   it('adopts a buffer from a previous patch', function() {
-    const {multiFilePatch: lastMultiPatch, buffer: lastBuffer, layers: lastLayers} = multiFilePatchBuilder()
+    const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('A0.txt'));
         fp.addHunk(h => h.unchanged('a0').added('a1').deleted('a2').unchanged('a3'));
@@ -293,7 +290,7 @@ describe('MultiFilePatch', function() {
       })
       .build();
 
-    const {multiFilePatch: nextMultiPatch, buffer: nextBuffer, layers: nextLayers} = multiFilePatchBuilder()
+    const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('B0.txt'));
         fp.addHunk(h => h.unchanged('b0', 'b1').added('b2').unchanged('b3', 'b4'));
@@ -309,20 +306,19 @@ describe('MultiFilePatch', function() {
       })
       .build();
 
-    assert.notStrictEqual(nextBuffer, lastBuffer);
-    assert.notStrictEqual(nextLayers, lastLayers);
+    assert.notStrictEqual(nextMultiPatch.getBuffer(), lastMultiPatch.getBuffer());
 
     nextMultiPatch.adoptBufferFrom(lastMultiPatch);
 
-    assert.strictEqual(nextMultiPatch.getBuffer(), lastBuffer);
-    assert.strictEqual(nextMultiPatch.getPatchLayer(), lastLayers.patch);
-    assert.strictEqual(nextMultiPatch.getHunkLayer(), lastLayers.hunk);
-    assert.strictEqual(nextMultiPatch.getUnchangedLayer(), lastLayers.unchanged);
-    assert.strictEqual(nextMultiPatch.getAdditionLayer(), lastLayers.addition);
-    assert.strictEqual(nextMultiPatch.getDeletionLayer(), lastLayers.deletion);
-    assert.strictEqual(nextMultiPatch.getNoNewlineLayer(), lastLayers.noNewline);
+    assert.strictEqual(nextMultiPatch.getBuffer(), lastMultiPatch.getBuffer());
+    assert.strictEqual(nextMultiPatch.getPatchLayer(), lastMultiPatch.getPatchLayer());
+    assert.strictEqual(nextMultiPatch.getHunkLayer(), lastMultiPatch.getHunkLayer());
+    assert.strictEqual(nextMultiPatch.getUnchangedLayer(), lastMultiPatch.getUnchangedLayer());
+    assert.strictEqual(nextMultiPatch.getAdditionLayer(), lastMultiPatch.getAdditionLayer());
+    assert.strictEqual(nextMultiPatch.getDeletionLayer(), lastMultiPatch.getDeletionLayer());
+    assert.strictEqual(nextMultiPatch.getNoNewlineLayer(), lastMultiPatch.getNoNewlineLayer());
 
-    assert.deepEqual(lastBuffer.getText(), dedent`
+    assert.deepEqual(nextMultiPatch.getBuffer().getText(), dedent`
       b0
       b1
       b2
@@ -337,29 +333,28 @@ describe('MultiFilePatch', function() {
       b11
       b12
        No newline at end of file
-
     `);
 
     const assertMarkedLayerRanges = (layer, ranges) => {
       assert.deepEqual(layer.getMarkers().map(m => m.getRange().serialize()), ranges);
     };
 
-    assertMarkedLayerRanges(lastLayers.patch, [
+    assertMarkedLayerRanges(nextMultiPatch.getPatchLayer(), [
       [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [13, 26]],
     ]);
-    assertMarkedLayerRanges(lastLayers.hunk, [
+    assertMarkedLayerRanges(nextMultiPatch.getHunkLayer(), [
       [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [11, 3]], [[12, 0], [13, 26]],
     ]);
-    assertMarkedLayerRanges(lastLayers.unchanged, [
+    assertMarkedLayerRanges(nextMultiPatch.getUnchangedLayer(), [
       [[0, 0], [1, 2]], [[3, 0], [4, 2]], [[5, 0], [6, 2]], [[8, 0], [9, 2]], [[11, 0], [11, 3]],
     ]);
-    assertMarkedLayerRanges(lastLayers.addition, [
+    assertMarkedLayerRanges(nextMultiPatch.getAdditionLayer(), [
       [[2, 0], [2, 2]], [[7, 0], [7, 2]],
     ]);
-    assertMarkedLayerRanges(lastLayers.deletion, [
+    assertMarkedLayerRanges(nextMultiPatch.getDeletionLayer(), [
       [[10, 0], [10, 3]], [[12, 0], [12, 3]],
     ]);
-    assertMarkedLayerRanges(lastLayers.noNewline, [
+    assertMarkedLayerRanges(nextMultiPatch.getNoNewlineLayer(), [
       [[13, 0], [13, 26]],
     ]);
 
