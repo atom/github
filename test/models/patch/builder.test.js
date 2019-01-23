@@ -1050,7 +1050,7 @@ describe('buildFilePatch', function() {
       assert.deepEqual(fp.getMarker().getRange().serialize(), [[0, 0], [3, 6]]);
       assertInFilePatch(fp, mfp.getBuffer()).hunks(
         {
-          startRow: 0, endRow: 3, header: '@@ -1,1 +1,2 @@', regions: [
+          startRow: 0, endRow: 3, header: '@@ -1,3 +1,3 @@', regions: [
             {kind: 'unchanged', string: ' line-0\n', range: [[0, 0], [0, 6]]},
             {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
