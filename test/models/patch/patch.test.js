@@ -6,7 +6,7 @@ import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInPatch} from '../../helpers';
 
-describe.only('Patch', function() {
+describe('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
