@@ -1034,7 +1034,13 @@ describe('MultiFilePatchView', function() {
 
       const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
+          fp.status('deleted');
           fp.setOldFile(f => f.path('f0').symlinkTo('elsewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
           fp.setNewFile(f => f.path('f0'));
           tenLineHunk(fp);
         })
@@ -1043,12 +1049,25 @@ describe('MultiFilePatchView', function() {
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
-          fp.setNewFile(f => f.path('f2'));
+          fp.status('deleted');
           fp.setOldFile(f => f.path('f2').symlinkTo('somewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('f2'));
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
+          fp.status('deleted');
           fp.setOldFile(f => f.path('f3').symlinkTo('unchanged'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('f3'));
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
