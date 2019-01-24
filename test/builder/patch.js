@@ -3,6 +3,8 @@
 import {buildMultiFilePatch} from '../../lib/models/patch/builder';
 import File from '../../lib/models/patch/file';
 
+const UNSET = Symbol('unset');
+
 class MultiFilePatchBuilder {
   constructor() {
     this.rawFilePatches = [];
@@ -27,8 +29,9 @@ class FilePatchBuilder {
     this._oldPath = 'file';
     this._oldMode = File.modes.NORMAL;
     this._oldSymlink = null;
-    this._newPath = null;
-    this._newMode = null;
+
+    this._newPath = UNSET;
+    this._newMode = UNSET;
     this._newSymlink = null;
 
     this.patchBuilder = new PatchBuilder();
@@ -92,11 +95,11 @@ class FilePatchBuilder {
   build(opts = {}) {
     const {raw: rawPatch} = this.patchBuilder.build();
 
-    if (this._newPath === null) {
+    if (this._newPath === UNSET) {
       this._newPath = this._oldPath;
     }
 
-    if (this._newMode === null) {
+    if (this._newMode === UNSET) {
       this._newMode = this._oldMode;
     }
 
