@@ -99,9 +99,9 @@
     margin-bottom: @component-padding;
     padding: @component-padding;
     font-size: @font-size-body;
-    border: 1px solid @base-border-color;
+    border: 1px solid mix(@text-color-info, @base-border-color, 24%);
     border-radius: @component-border-radius;
-    background-color: @base-background-color;
+    background-color: mix(@background-color-info, @base-background-color, 12%);
 
     &:before {
       content: "";
@@ -114,15 +114,6 @@
       border-left: inherit;
       background-color: inherit;
       transform: rotate(45deg);
-    }
-
-    &.is-approved {
-      border-color: fade(@text-color-success, 40%);
-      background-color: mix(@background-color-success, @base-background-color, 12%);
-    }
-    &.is-requesting-changes {
-      border-color: fade(@text-color-warning, 40%);
-      background-color: mix(@background-color-warning, @base-background-color, 10%);
     }
   }
 
@@ -227,6 +218,7 @@
     }
 
     &::before {
+      content: " ";
       margin-right: .5em;
     }
 
@@ -255,7 +247,6 @@
   &-comments {
     padding: @component-padding;
     padding-left: @component-padding + @avatar-size + 5px; // space for avatar
-    // border-top: 1px solid @base-border-color;
   }
 
   &-comment  {
@@ -287,9 +278,13 @@
 
   &-replyInput {
     width: 100%;
-    height: 3.75em; // two lines
+    height: 2.125em; // one line
     min-height: 2.125em;
     resize: vertical;
+
+    &:focus {
+      height: 3.75em; // two lines
+    }
 
     &:focus + .github-Review-replyButton {
       display: block;
