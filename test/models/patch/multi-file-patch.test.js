@@ -993,11 +993,59 @@ describe('MultiFilePatch', function() {
       });
 
       describe('when all patches are collapsed', function() {
-        it('expands the first file patch');
+        it('expands the first file patch', function() {
+          multiFilePatch.collapseFilePatch(fp0);
+          multiFilePatch.collapseFilePatch(fp1);
+          multiFilePatch.collapseFilePatch(fp2);
+          multiFilePatch.collapseFilePatch(fp3);
 
-        it('expands a non-first file patch');
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
 
-        it('expands the final file patch');
+          multiFilePatch.expandFilePatch(fp0);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+        });
+
+        it('expands a non-first file patch', function() {
+          multiFilePatch.collapseFilePatch(fp0);
+          multiFilePatch.collapseFilePatch(fp1);
+          multiFilePatch.collapseFilePatch(fp2);
+          multiFilePatch.collapseFilePatch(fp3);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp2);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([2]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 0, last: true}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+        });
+
+        it('expands the final file patch', function() {
+          multiFilePatch.collapseFilePatch(fp0);
+          multiFilePatch.collapseFilePatch(fp1);
+          multiFilePatch.collapseFilePatch(fp2);
+          multiFilePatch.collapseFilePatch(fp3);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp3);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([3]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
+        });
       });
 
       it('is deterministic regardless of the order in which collapse and expand operations are performed');
