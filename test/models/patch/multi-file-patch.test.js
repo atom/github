@@ -811,4 +811,76 @@ describe('MultiFilePatch', function() {
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 15), 32);
     });
   });
+
+  describe('collapsing and expanding file patches', function() {
+    it('collapses and expands the first file patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('0-0').added('0-1', '0-2').unchanged('0-3'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('1-0').deleted('1-1', '1-2').unchanged('1-3'));
+        })
+        .build();
+
+      const [fp0, fp1] = multiFilePatch.getFilePatches();
+      multiFilePatch.collapseFilePatch(fp0);
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+        1-0
+        1-1
+        1-2
+        1-3
+      `);
+      assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+      assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3,
+          header: '@@ -1,4 +1,2 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1-0\n', range: [[0, 0], [0, 3]]},
+            {kind: 'deletion', string: '-1-1\n-1-2\n', range: [[1, 0], [2, 3]]},
+            {kind: 'unchanged', string: ' 1-3', range: [[3, 0], [3, 3]]},
+          ],
+        },
+      );
+
+      multiFilePatch.expandFilePatch(fp0);
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+        0-0
+        0-1
+        0-2
+        0-3
+        1-0
+        1-1
+        1-2
+        1-3
+      `);
+      assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 3,
+          header: '@@ -1,2 +1,4 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 0-0\n', range: [[0, 0], [0, 3]]},
+            {kind: 'addition', string: '+0-1\n+0-2\n', range: [[1, 0], [2, 3]]},
+            {kind: 'unchanged', string: ' 0-3\n', range: [[3, 0], [3, 3]]},
+          ],
+        },
+      );
+      assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(
+        {
+          startRow: 4, endRow: 7,
+          header: '@@ -1,4 +1,2 @@',
+          regions: [
+            {kind: 'unchanged', string: ' 1-0\n', range: [[4, 0], [4, 3]]},
+            {kind: 'deletion', string: '-1-1\n-1-2\n', range: [[5, 0], [6, 3]]},
+            {kind: 'unchanged', string: ' 1-3', range: [[7, 0], [7, 3]]},
+          ],
+        },
+      );
+    });
+  });
 });
