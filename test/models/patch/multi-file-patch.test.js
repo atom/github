@@ -882,5 +882,25 @@ describe('MultiFilePatch', function() {
         },
       );
     });
+
+    it('collapses and expands a non-first file patch while all previous patches are collapsed');
+
+    it('collapses and expands a file patch with uncollapsed file patches before it');
+
+    it('collapses and expands a non-final file patch while all following patches are collapsed');
+
+    it('collapses and expands the final file patch');
+
+    it('collapses and expands the only file patch');
+
+    describe('when all patches are collapsed', function() {
+      it('expands the first file patch');
+
+      it('expands a non-first file patch');
+
+      it('expands the final file patch');
+    });
+
+    it('is deterministic regardless of the order in which collapse and expand operations are performed');
   });
 });
