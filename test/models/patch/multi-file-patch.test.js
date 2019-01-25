@@ -893,7 +893,6 @@ describe('MultiFilePatch', function() {
       multiFilePatch.collapseFilePatch(fp2);
 
       assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([3]));
-      console.log(multiFilePatch.getBuffer().getText(), patchTextForIndexes([3]));
       assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
       assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
       assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
@@ -917,8 +916,6 @@ describe('MultiFilePatch', function() {
       // collapse intermediate file
       multiFilePatch.collapseFilePatch(fp1);
 
-      global.buffer2 = multiFilePatch;
-      console.log(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
       assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
       assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
       assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
