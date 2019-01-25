@@ -838,6 +838,22 @@ describe('MultiFilePatch', function() {
 
     describe('when there is a single file patch', function() {
       it('collapses and expands the only file patch', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('0-0').deleted('0-1', '0-2').unchanged('0-3'));
+          })
+          .build();
+
+        const [fp0] = multiFilePatch.getFilePatches();
+
+        multiFilePatch.collapseFilePatch(fp0);
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+
+        multiFilePatch.expandFilePatch(fp0);
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
       });
     });
 
