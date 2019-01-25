@@ -92,7 +92,7 @@ describe('CommitPreviewContainer', function() {
     assert.strictEqual(before.getFilePatches()[0].getRenderStatus(), TOO_LARGE);
     assert.strictEqual(before.getFilePatches()[1].getRenderStatus(), EXPANDED);
 
-    before.getFilePatches()[0].triggerDelayedRender();
+    before.expandFilePatch(before.getFilePatches()[0]);
     repository.refresh();
 
     await assert.async.notStrictEqual(wrapper.update().find('CommitPreviewController').prop('multiFilePatch'), before);

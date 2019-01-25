@@ -107,10 +107,10 @@ describe('ChangedFileContainer', function() {
 
     await assert.async.isTrue(wrapper.update().exists('ChangedFileController'));
     const before = wrapper.find('ChangedFileController').prop('multiFilePatch');
-    assert.strictEqual(before.getFilePatches()[0].getRenderStatus(), TOO_LARGE);
-
-    before.getFilePatches()[0].triggerDelayedRender();
-    assert.strictEqual(before.getFilePatches()[0].getRenderStatus(), EXPANDED);
+    const fp = before.getFilePatches()[0];
+    assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+    before.expandFilePatch(fp);
+    assert.strictEqual(fp.getRenderStatus(), EXPANDED);
 
     repository.refresh();
     await assert.async.notStrictEqual(wrapper.update().find('ChangedFileController').prop('multiFilePatch'), before);
