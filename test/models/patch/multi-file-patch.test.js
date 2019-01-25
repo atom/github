@@ -954,28 +954,6 @@ describe('MultiFilePatch', function() {
       assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
     });
 
-    it('collapses and expands a non-final file patch while all following patches are collapsed', function() {
-      multiFilePatch.collapseFilePatch(fp2);
-      multiFilePatch.collapseFilePatch(fp3);
-
-      multiFilePatch.collapseFilePatch(fp1);
-
-      assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 3]));
-      assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
-      assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
-      assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
-      assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
-
-      multiFilePatch.expandFilePatch(fp2);
-
-      assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2, 3]));
-
-      assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
-      assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
-      assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
-      assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
-    });
-
     it('collapses and expands the final file patch');
 
     it('collapses and expands the only file patch');
