@@ -248,11 +248,4 @@ describe('FilePatchHeaderView', function() {
     });
 
   });
-
-  describe('expand collapse button', function() {
-    it('renders collapse icon when file patch is expanded');
-    it('renders expand icon when file patch is collapsed');
-    it('collapses file patch when collapse icon is clicked');
-    it('expands file patch when expand icon is clicked');
-  })
 });
