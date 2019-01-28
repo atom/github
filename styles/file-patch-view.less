@@ -64,6 +64,22 @@
     margin-right: @component-padding;
   }
 
+  &-message {
+    font-family: @font-family;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  &-showDiffButton {
+    background: transparent;
+    border: none;
+    color: @text-color-highlight;
+    font-size: 18px;
+    &:hover {
+        color: @syntax-text-color
+      }
+  }
+
   &-collapseButton {
     background: transparent;
     border: none;
