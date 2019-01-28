@@ -55,6 +55,20 @@ describe('PullRequestCommentsView', function() {
     assert.deepEqual(wrapper.find('Marker').at(2).prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
   });
 
+  it('does not render comment if patch is too large or collapsed', function() {
+    const {multiFilePatch} = multiFilePatchBuilder().build();
+
+    const pr = pullRequestBuilder()
+      .addReview(r => {
+        r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+      })
+      .build();
+
+    const wrapper = buildApp(multiFilePatch, pr, {isPatchTooLargeOrCollapsed: () => { return true; }});
+    const comments = wrapper.find('PullRequestCommentView');
+    assert.lengthOf(comments, 0);
+  });
+
   it('does not render comment if position is null', function() {
     const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
