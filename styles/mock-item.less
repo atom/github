@@ -17,14 +17,12 @@
 
 .github-Reviews {
   flex: 1;
-  padding: @component-padding;
   overflow-y: auto;
 
   &-header {
     display: flex;
     align-items: center;
-    padding-bottom: @component-padding;
-    margin-bottom: @component-padding;
+    padding: @component-padding;
     border-bottom: 1px solid @base-border-color;
     cursor: default;
   }
@@ -56,9 +54,10 @@
 // Review  ----------------------------------------------
 
 .github-Review {
+  padding: @component-padding*2 @component-padding;
 
   & + & {
-    margin-top: @component-padding*3;
+    border-top: 1px solid @base-border-color;
   }
 
   &-header {
@@ -98,13 +97,12 @@
 
   &-summary {
     position: relative;
-    margin-top: @component-padding;
+    margin-top: @component-padding/2;
     margin-bottom: @component-padding;
-    padding: @component-padding;
+    margin-left: 7px;
+    padding-left: 12px;
     font-size: @font-size-body;
-    border: 1px solid mix(@text-color-info, @base-border-color, 24%);
-    border-radius: @component-border-radius;
-    background-color: mix(@background-color-info, @base-background-color, 12%);
+    border-left: 2px solid @base-border-color;
 
     &:before {
       content: "";
@@ -154,7 +152,7 @@
     border-radius: @component-border-radius;
     background-color: mix(@base-background-color, @tool-panel-background-color, 66%);
 
-    &[open] {
+    &[open]:not(:last-child) {
       margin-bottom: @component-padding;
     }
 
