@@ -1450,4 +1450,9 @@ describe('MultiFilePatchView', function() {
       });
     });
   });
+
+  describe('large diff gate', function() {
+    it('displays diff gate when diff exceeds a certain number of lines');
+    it('loads large diff when show diff button is clicked');
+  });
 });
