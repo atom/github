@@ -3,6 +3,7 @@
 @avatar-size: 16px;
 @font-size-default: @font-size;
 @font-size-body: @font-size + 1px;
+@nav-size: 2.5em;
 
 // PR ------------------------------------
 
@@ -166,8 +167,9 @@
   &-threadHeader {
     display: flex;
     align-items: center;
-    padding: @component-padding;
-    cursor: pointer;
+    padding-left: @component-padding;
+    height: @nav-size;
+    cursor: default;
 
     .is-resolved & {
       &::-webkit-details-marker {
@@ -196,6 +198,36 @@
 
   &-lineNr {
     color: @text-color-subtle;
+    margin-right: @component-padding/2;
+  }
+
+  &-nav {
+    display: none;
+    margin-left: auto;
+    [open] & {
+      display: initial;
+    }
+  }
+  &-navButton {
+    width: @nav-size;
+    height: @nav-size;
+    padding: 0;
+    border: none;
+    border-left: 1px solid @base-border-color;
+    background-color: transparent;
+    cursor: default;
+
+    &:hover {
+      background-color: @background-color-highlight;
+    }
+    &:active {
+      background-color: @background-color-selected;
+    }
+
+    &:before {
+      width: auto;
+      margin-right: 0;
+    }
   }
 
 
