@@ -2,6 +2,8 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import path from 'path';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
+
 import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
@@ -87,14 +89,18 @@ describe('FilePatchHeaderView', function() {
           const iconProps = wrapper.find('.github-FilePatchView-collapseButtonIcon').getElements()[0].props;
           assert.deepEqual(iconProps, {className: 'github-FilePatchView-collapseButtonIcon', icon: 'chevron-right'});
         });
-        it('calls this.props.triggerExpand when clicked', function() {
+        it('calls this.props.triggerExpand and records event when clicked', function() {
           const triggerExpandStub = sinon.stub();
+          const addEventStub = sinon.stub(reporterProxy, 'addEvent');
           const wrapper = shallow(buildApp({isCollapsed: true, triggerExpand: triggerExpandStub}));
 
           assert.isFalse(triggerExpandStub.called);
 
           wrapper.find('.github-FilePatchView-collapseButton').simulate('click');
+
           assert.isTrue(triggerExpandStub.called);
+          assert.strictEqual(addEventStub.callCount, 1);
+          assert.isTrue(addEventStub.calledWith('expand-file-patch', {package: 'github', component: 'FilePatchHeaderView'}));
         });
       });
       describe('when patch is expanded', function() {
@@ -104,14 +110,19 @@ describe('FilePatchHeaderView', function() {
           const iconProps = wrapper.find('.github-FilePatchView-collapseButtonIcon').getElements()[0].props;
           assert.deepEqual(iconProps, {className: 'github-FilePatchView-collapseButtonIcon', icon: 'chevron-down'});
         });
-        it('calls this.props.triggerCollapse when clicked', function() {
+        it('calls this.props.triggerCollapse and records event when clicked', function() {
           const triggerCollapseStub = sinon.stub();
+          const addEventStub = sinon.stub(reporterProxy, 'addEvent');
           const wrapper = shallow(buildApp({isCollapsed: false, triggerCollapse: triggerCollapseStub}));
 
           assert.isFalse(triggerCollapseStub.called);
+          assert.isFalse(addEventStub.called);
 
           wrapper.find('.github-FilePatchView-collapseButton').simulate('click');
+
           assert.isTrue(triggerCollapseStub.called);
+          assert.strictEqual(addEventStub.callCount, 1);
+          assert.isTrue(addEventStub.calledWith('collapse-file-patch', {package: 'github', component: 'FilePatchHeaderView'}));
         });
       });
     });
