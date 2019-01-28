@@ -268,13 +268,9 @@ describe('Patch', function() {
       patch.buildStagePatchForLines(originalBuffer, stageLayeredBuffer, new Set([1, 5, 15, 16, 17, 25]));
 
       const layerRanges = [
-        ['hunk', stageLayeredBuffer.layers.hunk],
-        ['unchanged', stageLayeredBuffer.layers.unchanged],
-        ['addition', stageLayeredBuffer.layers.addition],
-        ['deletion', stageLayeredBuffer.layers.deletion],
-        ['noNewline', stageLayeredBuffer.layers.noNewline],
-      ].reduce((obj, [key, layer]) => {
-        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        Hunk.layerName, Unchanged.layerName, Addition.layerName, Deletion.layerName, NoNewline.layerName,
+      ].reduce((obj, layerName) => {
+        obj[layerName] = stageLayeredBuffer.findMarkers(layerName, {}).map(marker => marker.getRange().serialize());
         return obj;
       }, {});
 
@@ -301,7 +297,7 @@ describe('Patch', function() {
           [[1, 0], [1, 4]],
           [[11, 0], [12, 4]],
         ],
-        noNewline: [
+        nonewline: [
           [[17, 0], [17, 26]],
         ],
       });
@@ -463,13 +459,9 @@ describe('Patch', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
       patch.buildUnstagePatchForLines(originalBuffer, unstageLayeredBuffer, new Set([1, 4, 5, 16, 17, 20, 25]));
       const layerRanges = [
-        ['hunk', unstageLayeredBuffer.layers.hunk],
-        ['unchanged', unstageLayeredBuffer.layers.unchanged],
-        ['addition', unstageLayeredBuffer.layers.addition],
-        ['deletion', unstageLayeredBuffer.layers.deletion],
-        ['noNewline', unstageLayeredBuffer.layers.noNewline],
-      ].reduce((obj, [key, layer]) => {
-        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        Hunk.layerName, Unchanged.layerName, Addition.layerName, Deletion.layerName, NoNewline.layerName,
+      ].reduce((obj, layerName) => {
+        obj[layerName] = unstageLayeredBuffer.findMarkers(layerName, {}).map(marker => marker.getRange().serialize());
         return obj;
       }, {});
 
@@ -500,7 +492,7 @@ describe('Patch', function() {
           [[15, 0], [15, 4]],
           [[18, 0], [18, 4]],
         ],
-        noNewline: [
+        nonewline: [
           [[19, 0], [19, 26]],
         ],
       });
