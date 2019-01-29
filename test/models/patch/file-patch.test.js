@@ -7,7 +7,7 @@ import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
-import {filePatchBuilder, patchBuilder} from '../../builder/patch';
+import {multiFilePatchBuilder} from '../../builder/patch';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
@@ -676,8 +676,8 @@ describe('FilePatch', function() {
     });
 
     it('announces the collapse of an expanded patch', function() {
-      const {filePatch} = filePatchBuilder().build();
-
+      const {multiFilePatch} = multiFilePatchBuilder().addFilePatch().build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
       const callback = sinon.spy();
       sub = filePatch.onDidChangeRenderStatus(callback);
 
@@ -690,33 +690,41 @@ describe('FilePatch', function() {
     });
 
     it('triggerCollapseIn returns false if patch is not visible', function() {
-      const {filePatch} = filePatchBuilder().renderStatus(TOO_LARGE).build();
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(TOO_LARGE);
+        }).build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
       assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer()));
     });
 
     it('announces the expansion of a collapsed patch', function() {
-      const {filePatch} = filePatchBuilder().renderStatus(TOO_LARGE).build();
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(COLLAPSED);
+        }).build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
 
       const callback = sinon.spy();
       sub = filePatch.onDidChangeRenderStatus(callback);
 
-      assert.strictEqual(TOO_LARGE, filePatch.getRenderStatus());
-      filePatch.triggerExpandIn(new PatchBuffer());
+      assert.deepEqual(COLLAPSED, filePatch.getRenderStatus());
+      multiFilePatch.expandFilePatch(filePatch);
 
-      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
+      assert.deepEqual(EXPANDED, filePatch.getRenderStatus());
       assert.isTrue(callback.calledWith(filePatch));
     });
 
     it('does not announce non-changes', function() {
-      const {filePatch} = filePatchBuilder().build();
+      const {multiFilePatch} = multiFilePatchBuilder().addFilePatch().build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
 
       const callback = sinon.spy();
       sub = filePatch.onDidChangeRenderStatus(callback);
 
-      filePatch.triggerDelayedRender();
-      assert.isFalse(callback.called);
+      assert.deepEqual(EXPANDED, filePatch.getRenderStatus());
 
-      filePatch.triggerExpandIn();
+      multiFilePatch.expandFilePatch(filePatch);
       assert.isFalse(callback.called);
     });
   });
