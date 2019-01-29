@@ -173,4 +173,38 @@ describe('ChangedFileItem', function() {
     assert.strictEqual(item.getWorkingDirectory(), '/dir');
     assert.isTrue(item.isFilePatchItem());
   });
+
+  describe('observeEmbeddedTextEditor() to interoperate with find-and-replace', function() {
+    let sub, editor;
+
+    beforeEach(function() {
+      editor = Symbol('editor');
+    });
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    it('calls its callback immediately if an editor is present', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+      assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('calls its callback later if the editor changes', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+
+      wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
+      assert.isTrue(cb.calledWith(editor));
+    });
+  });
 });

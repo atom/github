@@ -227,4 +227,39 @@ describe('IssueishDetailItem', function() {
     item.terminatePendingState();
     assert.strictEqual(handler.callCount, 1);
   });
+
+  describe('observeEmbeddedTextEditor() to interoperate with find-and-replace', function() {
+    let sub, uri, editor;
+
+    beforeEach(function() {
+      editor = Symbol('editor');
+      uri = IssueishDetailItem.buildURI('one.com', 'me', 'code', 400, __dirname);
+    });
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    it('calls its callback immediately if an editor is present', async function() {
+      const wrapper = mount(buildApp());
+      const item = await atomEnv.workspace.open(uri);
+
+      wrapper.update().find('IssueishDetailContainer').prop('refEditor').setter(editor);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+      assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('calls its callback later if the editor changes', async function() {
+      const wrapper = mount(buildApp());
+      const item = await atomEnv.workspace.open(uri);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+
+      wrapper.update().find('IssueishDetailContainer').prop('refEditor').setter(editor);
+      assert.isTrue(cb.calledWith(editor));
+    });
+  });
 });
