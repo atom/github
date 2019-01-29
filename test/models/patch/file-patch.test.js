@@ -3,6 +3,7 @@ import {TextBuffer, Point} from 'atom';
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
 import Patch, {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
@@ -174,9 +175,7 @@ describe('FilePatch', function() {
     let stagedLayeredBuffer;
 
     beforeEach(function() {
-      const buffer = new TextBuffer();
-      const layers = buildLayers(buffer);
-      stagedLayeredBuffer = {buffer, layers};
+      stagedLayeredBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that applies only the selected lines', function() {
@@ -309,9 +308,7 @@ describe('FilePatch', function() {
     let unstageLayeredBuffer;
 
     beforeEach(function() {
-      const buffer = new TextBuffer();
-      const layers = buildLayers(buffer);
-      unstageLayeredBuffer = {buffer, layers};
+      unstageLayeredBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that unstages only the specified lines', function() {
