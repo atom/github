@@ -2,7 +2,7 @@ import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
-import {DEFAULT_OPTIONS} from '../../../lib/models/patch/builder.js';
+import {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 
 import {assertInFilePatch} from '../../helpers';
@@ -703,37 +703,69 @@ describe('MultiFilePatch', function() {
     });
   });
 
-  describe('isPatchTooLargeOrCollapsed', function() {
-    let multiFilePatch;
-    // const {largeDiffThreshold} = DEFAULT_OPTIONS;
-    beforeEach(function() {
-      multiFilePatch = multiFilePatchBuilder()
+  describe.only('isPatchTooLargeOrCollapsed', function() {
+    it('returns true if patch exceeds large diff threshold', function() {
+      const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
-          // do we even give a shit about the hunks here?
-          fp.addHunk(h => h.unchanged('0').added('1').deleted('2', '3').unchanged('4'));
-          fp.addHunk(h => h.unchanged('5').added('6').unchanged('7'));
-        })
-        .addFilePatch(fp => {
-          fp.setOldFile(f => f.path('file-1'));
-          fp.addHunk(h => h.unchanged('8').deleted('9', '10').unchanged('11'));
+          fp.renderStatus(TOO_LARGE);
         })
         .build()
         .multiFilePatch;
-    });
-    it('returns true if patch exceeds large diff threshold', function() {
-      // todo: what is the best way to use the patch builder to build at patch that
-      // exceeds the large diff threshold?
+      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
     });
 
     it('returns true if patch is collapsed', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(COLLAPSED);
+        }).build().multiFilePatch;
+
+      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
     });
 
-    it('returns false if patch does not exceed large diff threshold and is not collapsed', function() {
-      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('file-1'));
+    it('returns false if patch is expanded', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(EXPANDED);
+        })
+        .build()
+        .multiFilePatch;
+
+      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
+    });
+    it('multiFilePatch with multiple hunks returns correct values', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('expanded-file'));
+          fp.renderStatus(EXPANDED);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('too-large-file'));
+          fp.renderStatus(TOO_LARGE);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('collapsed-file'));
+          fp.renderStatus(COLLAPSED);
+        })
+        .build()
+        .multiFilePatch;
+
+      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('expanded-file'));
+      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('too-large-file'));
+      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('collapsed-file'));
     });
 
     it('returns null if patch does not exist', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(EXPANDED);
+        })
+        .build()
+        .multiFilePatch;
       assert.isNull(multiFilePatch.isPatchTooLargeOrCollapsed('invalid-file-path'));
     });
   });
