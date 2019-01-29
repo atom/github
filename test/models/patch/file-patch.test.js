@@ -675,29 +675,6 @@ describe('FilePatch', function() {
       sub && sub.dispose();
     });
 
-    it('announces a delayed render to subscribers', function() {
-      const {patch: expandedPatch} = patchBuilder().build();
-
-      const filePatch = FilePatch.createDelayedFilePatch(
-        new File({path: 'file-0.txt', mode: '100644'}),
-        new File({path: 'file-1.txt', mode: '100644'}),
-        new Point(0, 0),
-        TOO_LARGE,
-        () => expandedPatch,
-      );
-
-      const callback = sinon.spy();
-      sub = filePatch.onDidChangeRenderStatus(callback);
-
-      assert.strictEqual(TOO_LARGE, filePatch.getRenderStatus());
-      assert.notStrictEqual(filePatch.getPatch(), expandedPatch);
-      filePatch.triggerDelayedRender();
-
-      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
-      assert.strictEqual(filePatch.getPatch(), expandedPatch);
-      assert.isTrue(callback.calledWith(filePatch));
-    });
-
     it('announces the collapse of an expanded patch', function() {
       const {filePatch} = filePatchBuilder().build();
 
