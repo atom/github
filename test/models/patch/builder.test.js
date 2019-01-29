@@ -1,5 +1,6 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
+import {multiFilePatchBuilder} from '../../builder/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
 describe('buildFilePatch', function() {
@@ -114,6 +115,32 @@ describe('buildFilePatch', function() {
             {kind: 'deletion', string: '-line-14\n-line-15\n', range: [[14, 0], [15, 7]]},
             {kind: 'addition', string: '+line-16\n+line-17\n', range: [[16, 0], [17, 7]]},
             {kind: 'unchanged', string: ' line-18', range: [[18, 0], [18, 7]]},
+          ],
+        },
+      );
+    });
+
+    it('assembles a patch containing a blank context line', function() {
+      const {raw} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.oldRow(10).unchanged('', '').added('').deleted('', '').added('', '', '').unchanged(''));
+        })
+        .build();
+      const mfp = buildFilePatch(raw, {});
+
+      assert.lengthOf(mfp.getFilePatches(), 1);
+      const [fp] = mfp.getFilePatches();
+
+      assertInFilePatch(fp, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 8, header: '@@ -10,5 +10,7 @@',
+          regions: [
+            {kind: 'unchanged', string: ' \n \n', range: [[0, 0], [1, 0]]},
+            {kind: 'addition', string: '+\n', range: [[2, 0], [2, 0]]},
+            {kind: 'deletion', string: '-\n-\n', range: [[3, 0], [4, 0]]},
+            {kind: 'addition', string: '+\n+\n+\n', range: [[5, 0], [7, 0]]},
+            {kind: 'unchanged', string: ' ', range: [[8, 0], [8, 0]]},
           ],
         },
       );
