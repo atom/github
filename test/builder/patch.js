@@ -246,8 +246,6 @@ class PatchBuilder {
       renderStatus: this._renderStatus,
     };
 
-    const renderStatusOverrides = {file: this._renderStatus};
-
     const mfp = buildMultiFilePatch([{
       oldPath: 'file',
       oldMode: File.modes.NORMAL,
@@ -255,7 +253,7 @@ class PatchBuilder {
       newMode: File.modes.NORMAL,
       ...raw,
     }], {
-      renderStatusOverrides,
+      renderStatusOverrides: {file: this._renderStatus},
       ...opt,
     });
     const [filePatch] = mfp.getFilePatches();

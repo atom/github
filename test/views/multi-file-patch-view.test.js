@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {cloneRepository, buildRepository} from '../helpers';
+import {TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
@@ -1452,7 +1453,33 @@ describe('MultiFilePatchView', function() {
   });
 
   describe('large diff gate', function() {
-    it('displays diff gate when diff exceeds a certain number of lines');
-    it('loads large diff when show diff button is clicked');
+    let wrapper, mfp;
+
+    beforeEach(function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(TOO_LARGE);
+        }).build();
+      mfp = multiFilePatch;
+      wrapper = mount(buildApp({multiFilePatch: mfp}));
+    });
+
+    it('displays diff gate when diff exceeds a certain number of lines', function() {
+      assert.include(
+        wrapper.find('.github-FilePatchView-controlBlock .github-FilePatchView-message').first().text(),
+        'Large diffs are collapsed by default for performance reasons.',
+      );
+      assert.isTrue(wrapper.find('.github-FilePatchView-showDiffButton').exists());
+      assert.isFalse(wrapper.find('.github-HunkHeaderView').exists());
+    });
+
+    it('loads large diff when show diff button is clicked', function() {
+      const expandFilePatch = sinon.spy(mfp, 'expandFilePatch');
+      wrapper.find('.github-FilePatchView-showDiffButton').first().simulate('click');
+      wrapper.update();
+      assert.isTrue(expandFilePatch.calledOnce);
+      assert.isFalse(wrapper.find('.github-FilePatchView-showDiffButton').exists());
+      assert.isTrue(wrapper.find('.github-HunkHeaderView').exists());
+    });
   });
 });
