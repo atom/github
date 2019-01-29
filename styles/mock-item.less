@@ -4,6 +4,8 @@
 @font-size-default: @font-size;
 @font-size-body: @font-size + 1px;
 @nav-size: 2.5em;
+@background-color: mix(@base-background-color, @tool-panel-background-color, 66%);
+
 
 // PR ------------------------------------
 
@@ -19,21 +21,20 @@
   flex: 1;
   overflow-y: auto;
 
+  &-section {
+    border-bottom: 1px solid @base-border-color;
+  }
+
   &-header {
     display: flex;
     align-items: center;
     padding: @component-padding;
-    border-bottom: 1px solid @base-border-color;
     cursor: default;
-  }
-
-  &-container {
-    font-size: @font-size-default;
   }
 
   &-title {
     flex: 1;
-    font-size: 1.25em;
+    font-size: 1.15em;
     margin: 0;
   }
 
@@ -49,24 +50,34 @@
     width: 5em;
     margin-left: @component-padding;
   }
+
+  &-container {
+    font-size: @font-size-default;
+    padding: @component-padding;
+    padding-top: 0;
+
+    &.is-resolved {
+      padding-top: @component-padding;
+      border-top: 1px solid @base-border-color;
+    }
+  }
 }
 
-// Review  ----------------------------------------------
 
-.github-Review {
-  padding: @component-padding*2 @component-padding;
+// Review Summaries ------------------------------------------
+
+.github-ReviewSummary {
+  padding: @component-padding;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius;
+  background-color: @background-color;
 
   & + & {
-    border-top: 1px solid @base-border-color;
+    margin-top: @component-padding;
   }
 
   &-header {
     display: flex;
-  }
-
-  .github-Review-headerTimeAgo {
-    margin-left: auto;
-    color: @text-color-subtle;
   }
 
   &-icon  {
@@ -91,41 +102,56 @@
   }
 
   &-username {
-    margin-right: .5em;
+    margin-right: .3em;
     font-weight: 500;
   }
 
-  &-summary {
-    position: relative;
-    margin-top: @component-padding/2;
-    margin-bottom: @component-padding;
-    margin-left: 7px;
-    padding-left: 12px;
-    font-size: @font-size-body;
-    border-left: 2px solid @base-border-color;
-
-    &:before {
-      content: "";
-      position: absolute;
-      top: -@component-padding/2;
-      left: 23px; // magic
-      width: @component-padding;
-      height: @component-padding;
-      border-top: inherit;
-      border-left: inherit;
-      background-color: inherit;
-      transform: rotate(45deg);
-    }
-  }
-
-  // Header --------------------------------------
-
-  &-header {
+  &-type {
     color: @text-color-subtle;
   }
 
   &-timeAgo {
     margin-left: auto;
+    color: @text-color-subtle;
+  }
+
+  &-comment {
+    position: relative;
+    margin-top: @component-padding/2;
+    margin-left: 7px;
+    padding-left: 12px;
+    font-size: @font-size-body;
+    border-left: 2px solid @base-border-color;
+  }
+}
+
+
+// Review Comments  ----------------------------------------------
+
+.github-Review {
+  position: relative;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius;
+  background-color: @background-color;
+
+  & + & {
+    margin-top: @component-padding;
+  }
+
+  // Header ------------------
+
+  &-reference {
+    display: flex;
+    align-items: center;
+    padding-left: @component-padding;
+    height: @nav-size;
+    cursor: default;
+
+    .is-resolved & {
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
   }
 
   &-resolvedIcon {
@@ -139,40 +165,6 @@
       font-size: 12px;
       width: 13px;
       margin-right: 0;
-    }
-  }
-
-
-  // Thread --------------------------------------
-
-  &-thread {
-    position: relative;
-    margin-top: @component-padding/2;
-    border: 1px solid @base-border-color;
-    border-radius: @component-border-radius;
-    background-color: mix(@base-background-color, @tool-panel-background-color, 66%);
-
-    &[open]:not(:last-child) {
-      margin-bottom: @component-padding;
-    }
-
-    .github-Review-avatar {
-      position: absolute;
-      left: @component-padding;
-    }
-  }
-
-  &-threadHeader {
-    display: flex;
-    align-items: center;
-    padding-left: @component-padding;
-    height: @nav-size;
-    cursor: default;
-
-    .is-resolved & {
-      &::-webkit-details-marker {
-        display: none;
-      }
     }
   }
 
@@ -202,7 +194,7 @@
   &-nav {
     display: none;
     margin-left: auto;
-    [open] & {
+    .github-Review[open] & {
       display: initial;
     }
   }
@@ -229,7 +221,7 @@
   }
 
 
-  // Diff --------------------------------------
+  // Diff ------------------
 
   &-diff {
     padding: 0;
@@ -274,7 +266,8 @@
     margin-right: .5em;
   }
 
-  // Comments --------------------------------------
+
+  // Comments ------------------
 
   &-comments {
     padding: @component-padding;
@@ -285,18 +278,32 @@
     margin-bottom: @component-padding*1.5;
   }
 
-  &-commentHeader {
+  &-header {
     display: flex;
     align-items: center;
     margin-bottom: @component-padding/4;
   }
 
-  &-commentTimeAgo {
+  &-avatar {
+    position: absolute;
+    left: @component-padding;
+    margin-right: .5em;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  &-username {
+    margin-right: .5em;
+    font-weight: 500;
+  }
+
+  &-timeAgo {
     color: @text-color-subtle;
   }
 
-  &-commentText  {
-    margin-right: .5em;
+  &-text  {
     font-size: @font-size-body;
 
     a {
@@ -318,7 +325,7 @@
       height: 3.75em; // two lines
     }
 
-    &:focus + .github-Review-replyButton {
+    &:focus + .github-ReviewComment-replyButton {
       display: block;
     }
   }
@@ -329,8 +336,7 @@
   }
 
 
-  // Footer --------------------------------------
-
+  // Footer ------------------
 
   &-footer {
     display: flex;
