@@ -703,7 +703,7 @@ describe('MultiFilePatch', function() {
     });
   });
 
-  describe.only('isPatchTooLargeOrCollapsed', function() {
+  describe('isPatchTooLargeOrCollapsed', function() {
     it('returns true if patch exceeds large diff threshold', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
