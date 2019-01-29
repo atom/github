@@ -705,7 +705,7 @@ describe('MultiFilePatch', function() {
 
   describe('isPatchTooLargeOrCollapsed', function() {
     let multiFilePatch;
-    const {largeDiffThreshold} = DEFAULT_OPTIONS;
+    // const {largeDiffThreshold} = DEFAULT_OPTIONS;
     beforeEach(function() {
       multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
