@@ -682,10 +682,17 @@ describe('FilePatch', function() {
       sub = filePatch.onDidChangeRenderStatus(callback);
 
       assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
-      filePatch.triggerCollapse();
+
+      filePatch.triggerCollapseIn(new PatchBuffer());
 
       assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
       assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('triggerCollapseIn returns false if patch is not visible', function() {
+      debugger;
+      const {filePatch} = filePatchBuilder().renderStatus(COLLAPSED).build();
+      assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer()));
     });
 
     it('announces the expansion of a collapsed patch', function() {
