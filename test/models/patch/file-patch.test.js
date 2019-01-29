@@ -690,19 +690,18 @@ describe('FilePatch', function() {
     });
 
     it('triggerCollapseIn returns false if patch is not visible', function() {
-      debugger;
-      const {filePatch} = filePatchBuilder().renderStatus(COLLAPSED).build();
+      const {filePatch} = filePatchBuilder().renderStatus(TOO_LARGE).build();
       assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer()));
     });
 
     it('announces the expansion of a collapsed patch', function() {
-      const {filePatch} = filePatchBuilder().renderStatus(COLLAPSED).build();
+      const {filePatch} = filePatchBuilder().renderStatus(TOO_LARGE).build();
 
       const callback = sinon.spy();
       sub = filePatch.onDidChangeRenderStatus(callback);
 
-      assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
-      filePatch.triggerExpand();
+      assert.strictEqual(TOO_LARGE, filePatch.getRenderStatus());
+      filePatch.triggerExpandIn(new PatchBuffer());
 
       assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
       assert.isTrue(callback.calledWith(filePatch));
@@ -717,7 +716,7 @@ describe('FilePatch', function() {
       filePatch.triggerDelayedRender();
       assert.isFalse(callback.called);
 
-      filePatch.triggerExpand();
+      filePatch.triggerExpandIn();
       assert.isFalse(callback.called);
     });
   });
