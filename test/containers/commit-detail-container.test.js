@@ -72,4 +72,16 @@ describe('CommitDetailContainer', function() {
     await assert.async.isTrue(wrapper.update().find('CommitDetailController').exists());
     assert.strictEqual(wrapper.find('CommitDetailController').prop('commit'), commit);
   });
+
+  it('forces update when filepatch changes render status', async function() {
+    await repository.getLoadPromise();
+
+    const wrapper = mount(buildApp());
+    sinon.spy(wrapper.instance(), 'forceUpdate');
+    await assert.async.isTrue(wrapper.update().find('CommitDetailController').exists());
+
+    assert.isFalse(wrapper.instance().forceUpdate.called);
+    wrapper.find('.github-FilePatchView-collapseButton').simulate('click');
+    assert.isTrue(wrapper.instance().forceUpdate.called);
+  });
 });
