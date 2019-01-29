@@ -1,6 +1,7 @@
 // Builders for classes related to MultiFilePatches.
 
 import {buildMultiFilePatch} from '../../lib/models/patch/builder';
+import {EXPANDED} from '../../lib/models/patch/patch';
 import File from '../../lib/models/patch/file';
 
 const UNSET = Symbol('unset');
@@ -8,18 +9,24 @@ const UNSET = Symbol('unset');
 class MultiFilePatchBuilder {
   constructor() {
     this.rawFilePatches = [];
+    this.renderStatusOverrides = {};
   }
 
   addFilePatch(block = () => {}) {
     const filePatch = new FilePatchBuilder();
     block(filePatch);
-    this.rawFilePatches.push(filePatch.build().raw);
+    const {raw, renderStatusOverrides} = filePatch.build();
+    this.rawFilePatches.push(raw);
+    this.renderStatusOverrides = Object.assign(this.renderStatusOverrides, renderStatusOverrides);
     return this;
   }
 
   build(opts = {}) {
     const raw = this.rawFilePatches;
-    const multiFilePatch = buildMultiFilePatch(raw, opts);
+    const multiFilePatch = buildMultiFilePatch(raw, {
+      renderStatusOverrides: this.renderStatusOverrides,
+      ...opts,
+    });
     return {raw, multiFilePatch};
   }
 }
@@ -82,6 +89,11 @@ class FilePatchBuilder {
     return this;
   }
 
+  renderStatus(...args) {
+    this.patchBuilder.renderStatus(...args);
+    return this;
+  }
+
   addHunk(...args) {
     this.patchBuilder.addHunk(...args);
     return this;
@@ -94,6 +106,8 @@ class FilePatchBuilder {
 
   build(opts = {}) {
     const {raw: rawPatch} = this.patchBuilder.build();
+    const renderStatusOverrides = {};
+    renderStatusOverrides[this._oldPath] = rawPatch.renderStatus;
 
     if (this._newPath === UNSET) {
       this._newPath = this._oldPath;
@@ -122,6 +136,11 @@ class FilePatchBuilder {
       rawPatch.hunks = [hb.build().raw];
     }
 
+    const option = {
+      renderStatusOverrides,
+      ...opts,
+    };
+
     const raw = {
       oldPath: this._oldPath,
       oldMode: this._oldMode,
@@ -130,12 +149,13 @@ class FilePatchBuilder {
       ...rawPatch,
     };
 
-    const mfp = buildMultiFilePatch([raw], opts);
+    const mfp = buildMultiFilePatch([raw], option);
     const [filePatch] = mfp.getFilePatches();
 
     return {
       raw,
       filePatch,
+      renderStatusOverrides,
     };
   }
 }
@@ -174,6 +194,7 @@ class FileBuilder {
 class PatchBuilder {
   constructor() {
     this._status = 'modified';
+    this._renderStatus = EXPANDED;
     this.rawHunks = [];
     this.drift = 0;
     this.explicitlyEmpty = false;
@@ -185,6 +206,11 @@ class PatchBuilder {
     }
 
     this._status = st;
+    return this;
+  }
+
+  renderStatus(status) {
+    this._renderStatus = status;
     return this;
   }
 
@@ -202,7 +228,7 @@ class PatchBuilder {
     return this;
   }
 
-  build() {
+  build(opt = {}) {
     if (this.rawHunks.length === 0 && !this.explicitlyEmpty) {
       if (this._status === 'modified') {
         this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
@@ -217,7 +243,10 @@ class PatchBuilder {
     const raw = {
       status: this._status,
       hunks: this.rawHunks,
+      renderStatus: this._renderStatus,
     };
+
+    const renderStatusOverrides = {file: this._renderStatus};
 
     const mfp = buildMultiFilePatch([{
       oldPath: 'file',
@@ -225,7 +254,10 @@ class PatchBuilder {
       newPath: 'file',
       newMode: File.modes.NORMAL,
       ...raw,
-    }]);
+    }], {
+      renderStatusOverrides,
+      ...opt,
+    });
     const [filePatch] = mfp.getFilePatches();
     const patch = filePatch.getPatch();
 
