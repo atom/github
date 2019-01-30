@@ -33,62 +33,115 @@ describe('PatchBuffer', function() {
     assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
   });
 
-  it('extracts a subset of the buffer and layers as a new LayeredBuffer', function() {
-    const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
-    const m1 = patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
-    const m2 = patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
-    const m3 = patchBuffer.markRange('patch', [[6, 0], [7, 1]]); // within
-    const m4 = patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
-    const m5 = patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
+  describe('extractPatchBuffer', function() {
+    it('extracts a subset of the buffer and layers as a new LayeredBuffer', function() {
+      const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
+      const m1 = patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
+      const m2 = patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
+      const m3 = patchBuffer.markRange('patch', [[6, 0], [7, 1]]); // within
+      const m4 = patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
+      const m5 = patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
 
-    const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[4, 2], [7, 1]]);
+      const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[4, 2], [7, 1]]);
 
-    assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
-      0000
-      0001
-      0002
-      0003
-      00007
-      0008
-      0009
+      assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
+        0000
+        0001
+        0002
+        0003
+        00007
+        0008
+        0009
 
-    `);
-    assert.deepEqual(
-      patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
-      [[[1, 0], [3, 0]], [[5, 0], [7, 0]]],
-    );
-    assert.deepEqual(
-      patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
-      [[[2, 0], [4, 2]], [[4, 2], [6, 0]]],
-    );
-    assert.deepEqual(m0.getRange().serialize(), [[1, 0], [3, 0]]);
-    assert.deepEqual(m1.getRange().serialize(), [[2, 0], [4, 2]]);
-    assert.isTrue(m2.isDestroyed());
-    assert.isTrue(m3.isDestroyed());
-    assert.deepEqual(m4.getRange().serialize(), [[4, 2], [6, 0]]);
-    assert.deepEqual(m5.getRange().serialize(), [[5, 0], [7, 0]]);
+      `);
+      assert.deepEqual(
+        patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[1, 0], [3, 0]], [[5, 0], [7, 0]]],
+      );
+      assert.deepEqual(
+        patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [4, 2]], [[4, 2], [6, 0]]],
+      );
+      assert.deepEqual(m0.getRange().serialize(), [[1, 0], [3, 0]]);
+      assert.deepEqual(m1.getRange().serialize(), [[2, 0], [4, 2]]);
+      assert.isTrue(m2.isDestroyed());
+      assert.isTrue(m3.isDestroyed());
+      assert.deepEqual(m4.getRange().serialize(), [[4, 2], [6, 0]]);
+      assert.deepEqual(m5.getRange().serialize(), [[5, 0], [7, 0]]);
 
-    assert.isFalse(markerMap.has(m0));
-    assert.isFalse(markerMap.has(m1));
-    assert.isFalse(markerMap.has(m4));
-    assert.isFalse(markerMap.has(m5));
+      assert.isFalse(markerMap.has(m0));
+      assert.isFalse(markerMap.has(m1));
+      assert.isFalse(markerMap.has(m4));
+      assert.isFalse(markerMap.has(m5));
 
-    assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
-      04
-      0005
-      0006
-      0
-    `);
-    assert.deepEqual(
-      subPatchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
-      [[[0, 0], [1, 0]]],
-    );
-    assert.deepEqual(
-      subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
-      [[[2, 0], [3, 1]]],
-    );
-    assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[0, 0], [1, 0]]);
-    assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
+      assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
+        04
+        0005
+        0006
+        0
+      `);
+      assert.deepEqual(
+        subPatchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+        [[[0, 0], [1, 0]]],
+      );
+      assert.deepEqual(
+        subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [3, 1]]],
+      );
+      assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[0, 0], [1, 0]]);
+      assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
+    });
+
+    it("does not destroy zero-length markers at the extraction range's boundaries", function() {
+      const before0 = patchBuffer.markRange('patch', [[2, 0], [2, 0]]);
+      const before1 = patchBuffer.markRange('patch', [[2, 0], [2, 0]]);
+      const within0 = patchBuffer.markRange('patch', [[2, 0], [2, 1]]);
+      const within1 = patchBuffer.markRange('patch', [[3, 0], [3, 4]]);
+      const after0 = patchBuffer.markRange('patch', [[4, 0], [4, 0]]);
+      const after1 = patchBuffer.markRange('patch', [[4, 0], [4, 0]]);
+
+      const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[2, 0], [4, 0]]);
+
+      assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
+        0000
+        0001
+        0004
+        0005
+        0006
+        0007
+        0008
+        0009
+
+      `);
+      assert.deepEqual(
+        patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [2, 0]], [[2, 0], [2, 0]], [[2, 0], [2, 0]], [[2, 0], [2, 0]]],
+      );
+
+      assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
+        0002
+        0003
+
+      `);
+      assert.deepEqual(
+        subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[0, 0], [0, 1]], [[1, 0], [1, 4]]],
+      );
+
+      assert.isFalse(markerMap.has(before0));
+      assert.isFalse(markerMap.has(before1));
+      assert.isTrue(markerMap.has(within0));
+      assert.isTrue(markerMap.has(within1));
+      assert.isFalse(markerMap.has(after0));
+      assert.isFalse(markerMap.has(after1));
+
+      assert.isFalse(before0.isDestroyed());
+      assert.isFalse(before1.isDestroyed());
+      assert.isTrue(within0.isDestroyed());
+      assert.isTrue(within1.isDestroyed());
+      assert.isFalse(after0.isDestroyed());
+      assert.isFalse(after1.isDestroyed());
+    });
   });
 
   describe('deleteLastNewline', function() {
