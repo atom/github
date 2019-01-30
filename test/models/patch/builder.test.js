@@ -958,6 +958,7 @@ describe('buildFilePatch', function() {
       );
 
       assert.strictEqual(fp1.getRenderStatus(), TOO_LARGE);
+      assert.deepEqual(fp1.getPatch().getMarker().getRange().serialize(), [[4, 0], [4, 0]]);
       assertInFilePatch(fp1, mfp.getBuffer()).hunks();
 
       assert.strictEqual(fp2.getRenderStatus(), EXPANDED);
