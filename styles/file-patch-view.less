@@ -23,12 +23,22 @@
     padding: @component-padding;
   }
 
-  .github-FilePatchView-controlBlock {
-    padding: @component-padding*4 @component-padding @component-padding 0;
+  &-controlBlock {
     background-color: @syntax-background-color;
+    display: flow-root;
+  }
 
-    & + .github-FilePatchView-controlBlock {
-      padding-top: 0;
+  &-controlBlock &-header {
+    margin: @component-padding*4 @component-padding @component-padding 0;
+  }
+
+  &-controlBlock .github-HunkHeaderView {
+    margin: @component-padding @component-padding @component-padding 0;
+  }
+
+  &-controlBlock + &-controlBlock {
+    .github-FilePatchView-header {
+      margin-top: 0;
     }
   }
 
