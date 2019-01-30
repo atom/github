@@ -874,6 +874,55 @@ describe('buildFilePatch', function() {
       );
     });
 
+    it('creates a HiddenPatch from a paired symlink diff', function() {
+      const {raw} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.status('deleted');
+          fp.setOldFile(f => f.path('big').symlinkTo('/somewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('big'));
+          fp.addHunk(h => h.oldRow(1).added('0', '1', '2', '3', '4', '5'));
+        })
+        .addFilePatch(fp => {
+          fp.status('deleted');
+          fp.setOldFile(f => f.path('small'));
+          fp.nullNewFile();
+          fp.addHunk(h => h.oldRow(1).deleted('0', '1'));
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('small').symlinkTo('/elsewhere'));
+        })
+        .build();
+      const mfp = buildMultiFilePatch(raw, {largeDiffThreshold: 3});
+
+      assert.lengthOf(mfp.getFilePatches(), 2);
+      const [fp0, fp1] = mfp.getFilePatches();
+
+      assert.strictEqual(fp0.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp0.getOldPath(), 'big');
+      assert.strictEqual(fp0.getNewPath(), 'big');
+      assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+      assertInFilePatch(fp0, mfp.getBuffer()).hunks();
+
+      assert.strictEqual(fp1.getRenderStatus(), EXPANDED);
+      assert.strictEqual(fp1.getOldPath(), 'small');
+      assert.strictEqual(fp1.getNewPath(), 'small');
+      assert.deepEqual(fp1.getMarker().getRange().serialize(), [[0, 0], [1, 1]]);
+      assertInFilePatch(fp1, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 1, header: '@@ -1,2 +1,0 @@', regions: [
+            {kind: 'deletion', string: '-0\n-1', range: [[0, 0], [1, 1]]},
+          ],
+        },
+      );
+    });
+
     it('re-parse a HiddenPatch as a Patch', function() {
       const mfp = buildMultiFilePatch([
         {
