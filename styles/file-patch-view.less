@@ -34,11 +34,7 @@
 
   &-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding-top: @component-padding*2;
-    padding: @component-padding/2;
-    padding-left: 0;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     font-family: @font-family;
@@ -54,6 +50,10 @@
         margin-right: .5em;
       }
     }
+
+    .btn-group {
+      margin: @component-padding/2;
+    }
   }
 
   &-title {
@@ -61,7 +61,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-right: @component-padding;
+    margin-left: @component-padding;
   }
 
   &-message {
@@ -83,13 +83,17 @@
   &-collapseButton {
     background: transparent;
     border: none;
-    padding: 0 @component-padding/2;
+    padding: @component-padding/1.5;
+
+    & + .github-FilePatchView-title {
+      margin-left: 0; // chevron already has margin
+    }
   }
 
   &-collapseButtonIcon {
     &:before {
-      text-align: center;
       margin-right: 0;
+      vertical-align: -2px;
     }
   }
 
