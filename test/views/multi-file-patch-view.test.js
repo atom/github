@@ -1,8 +1,10 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
+
 import {cloneRepository, buildRepository} from '../helpers';
-import {TOO_LARGE} from '../../lib/models/patch/patch';
+import {EXPANDED, TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
@@ -1473,11 +1475,26 @@ describe('MultiFilePatchView', function() {
       assert.isFalse(wrapper.find('.github-HunkHeaderView').exists());
     });
 
-    it('loads large diff when show diff button is clicked', function() {
+    it('loads large diff and sends event when show diff button is clicked', function() {
+      const addEventStub = sinon.stub(reporterProxy, 'addEvent');
       const expandFilePatch = sinon.spy(mfp, 'expandFilePatch');
+
+      assert.isFalse(addEventStub.called);
       wrapper.find('.github-FilePatchView-showDiffButton').first().simulate('click');
       wrapper.update();
+
+      assert.isTrue(addEventStub.calledOnce);
+      assert.deepEqual(addEventStub.lastCall.args, ['expand-file-patch', {component: 'MultiFilePatchView', package: 'github'}]);
       assert.isTrue(expandFilePatch.calledOnce);
+    });
+
+    it('does not display diff gate if diff size is below large diff threshold', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(EXPANDED);
+        }).build();
+      mfp = multiFilePatch;
+      wrapper = mount(buildApp({multiFilePatch: mfp}));
       assert.isFalse(wrapper.find('.github-FilePatchView-showDiffButton').exists());
       assert.isTrue(wrapper.find('.github-HunkHeaderView').exists());
     });
