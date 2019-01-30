@@ -1025,12 +1025,14 @@ describe('MultiFilePatch', function() {
       });
 
       describe('when all patches are collapsed', function() {
-        it('expands the first file patch', function() {
+        beforeEach(function() {
           multiFilePatch.collapseFilePatch(fp0);
           multiFilePatch.collapseFilePatch(fp1);
           multiFilePatch.collapseFilePatch(fp2);
           multiFilePatch.collapseFilePatch(fp3);
+        });
 
+        it('expands the first file patch', function() {
           assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
 
           multiFilePatch.expandFilePatch(fp0);
@@ -1044,11 +1046,6 @@ describe('MultiFilePatch', function() {
         });
 
         it('expands a non-first file patch', function() {
-          multiFilePatch.collapseFilePatch(fp0);
-          multiFilePatch.collapseFilePatch(fp1);
-          multiFilePatch.collapseFilePatch(fp2);
-          multiFilePatch.collapseFilePatch(fp3);
-
           assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
 
           multiFilePatch.expandFilePatch(fp2);
@@ -1062,11 +1059,6 @@ describe('MultiFilePatch', function() {
         });
 
         it('expands the final file patch', function() {
-          multiFilePatch.collapseFilePatch(fp0);
-          multiFilePatch.collapseFilePatch(fp1);
-          multiFilePatch.collapseFilePatch(fp2);
-          multiFilePatch.collapseFilePatch(fp3);
-
           assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
 
           multiFilePatch.expandFilePatch(fp3);
