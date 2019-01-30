@@ -91,6 +91,36 @@ describe('PatchBuffer', function() {
     assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
   });
 
+  describe('deleteLastNewline', function() {
+    it('is a no-op on an empty buffer', function() {
+      const empty = new PatchBuffer();
+      assert.strictEqual(empty.getBuffer().getText(), '');
+      empty.deleteLastNewline();
+      assert.strictEqual(empty.getBuffer().getText(), '');
+    });
+
+    it('is a no-op if the buffer does not end with a newline', function() {
+      const endsWithoutNL = new PatchBuffer();
+      endsWithoutNL.getBuffer().setText('0\n1\n2\n3');
+      endsWithoutNL.deleteLastNewline();
+      assert.strictEqual(endsWithoutNL.getBuffer().getText(), '0\n1\n2\n3');
+    });
+
+    it('deletes the final newline', function() {
+      const endsWithNL = new PatchBuffer();
+      endsWithNL.getBuffer().setText('0\n1\n2\n3\n');
+      endsWithNL.deleteLastNewline();
+      assert.strictEqual(endsWithNL.getBuffer().getText(), '0\n1\n2\n3');
+    });
+
+    it('deletes at most one trailing newline', function() {
+      const endsWithMultiNL = new PatchBuffer();
+      endsWithMultiNL.getBuffer().setText('0\n1\n2\n3\n\n\n');
+      endsWithMultiNL.deleteLastNewline();
+      assert.strictEqual(endsWithMultiNL.getBuffer().getText(), '0\n1\n2\n3\n\n');
+    });
+  });
+
   describe('deferred-marking modifications', function() {
     it('performs multiple modifications and only creates markers at the end', function() {
       const inserter = patchBuffer.createInserterAtEnd();
