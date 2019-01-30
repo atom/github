@@ -821,7 +821,7 @@ describe('buildFilePatch', function() {
 
       assert.strictEqual(mp.getFilePatches()[1].getOldPath(), 'second');
       assert.deepEqual(mp.getFilePatches()[1].getHunks(), []);
-      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[6, 6], [6, 6]]);
+      assert.deepEqual(mp.getFilePatches()[1].getMarker().getRange().serialize(), [[7, 0], [7, 0]]);
 
       assert.strictEqual(mp.getFilePatches()[2].getOldPath(), 'third');
       assert.deepEqual(mp.getFilePatches()[2].getMarker().getRange().serialize(), [[7, 0], [10, 6]]);
