@@ -37,18 +37,20 @@
     justify-content: center;
     font-size: 1.25em;
     text-align: center;
+    padding: @component-padding * 3;
 
-    p {
-      text-align: center;
-      margin: 10px;
+    > * {
+      margin: @component-padding 0;
+    }
     }
 
     ul {
       list-style: none;
-      padding-left: 1em;
+      padding-left: 0;
     }
 
     button {
+      width: 100%;
       margin-bottom: 10px;
       overflow: hidden;
       text-overflow: ellipsis;
