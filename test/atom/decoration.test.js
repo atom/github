@@ -147,6 +147,20 @@ describe('Decoration', function() {
       assert.isTrue(original.isDestroyed());
       assert.lengthOf(editor.getLineNumberDecorations({class: 'prettier'}), 1);
     });
+
+    it('does not create a decoration when the Marker is not on the TextEditor', async function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      const newEditor = await workspace.open(path.join(__dirname, 'marker.test.js'));
+      wrapper.setProps({editor: newEditor});
+
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 0);
+      assert.lengthOf(newEditor.getLineDecorations({class: 'pretty'}), 0);
+    });
   });
 
   it('destroys its decoration on unmount', function() {
