@@ -1070,6 +1070,62 @@ describe('MultiFilePatch', function() {
           assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
           assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
         });
+
+        it('expands all patches in order', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp0);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp1);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4, last: true}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp2);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8, last: true}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp3);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+        });
+
+        it('expands all patches in reverse order', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp3);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
+
+          multiFilePatch.expandFilePatch(fp2);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 0}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 4, last: true}));
+
+          multiFilePatch.expandFilePatch(fp1);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 0}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 4}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
+
+          multiFilePatch.expandFilePatch(fp0);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+        });
       });
 
       it('is deterministic regardless of the order in which collapse and expand operations are performed');
