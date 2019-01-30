@@ -4,7 +4,7 @@ import {shallow, mount} from 'enzyme';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {EXPANDED, TOO_LARGE} from '../../lib/models/patch/patch';
+import {EXPANDED, COLLAPSED, TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
@@ -86,6 +86,46 @@ describe('MultiFilePatchView', function() {
   it('renders the file header', function() {
     const wrapper = shallow(buildApp());
     assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
+  });
+
+  it('renders a final collapsed file header with position: after', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.renderStatus(COLLAPSED);
+        fp.setOldFile(f => f.path('0.txt'));
+        fp.addHunk(h => h.unchanged('a-0').added('a-1').unchanged('a-2'));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('1.txt'));
+        fp.addHunk(h => h.unchanged('b-0').added('b-1').unchanged('b-2'));
+      })
+      .addFilePatch(fp => {
+        fp.renderStatus(COLLAPSED);
+        fp.setOldFile(f => f.path('2.txt'));
+        fp.addHunk(h => h.unchanged('c-0').added('c-1').unchanged('c-2'));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('3.txt'));
+        fp.addHunk(h => h.unchanged('d-0').added('d-1').unchanged('d-2'));
+      })
+      .addFilePatch(fp => {
+        fp.renderStatus(COLLAPSED);
+        fp.setOldFile(f => f.path('4.txt'));
+        fp.addHunk(h => h.unchanged('e-0').added('e-1').unchanged('e-2'));
+      })
+      .build();
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+
+    function decorationForFileHeader(fileName) {
+      return wrapper.find('Decoration').filterWhere(dw => dw.exists(`FilePatchHeaderView[relPath="${fileName}"]`));
+    }
+
+    assert.strictEqual(decorationForFileHeader('0.txt').prop('position'), 'before');
+    assert.strictEqual(decorationForFileHeader('1.txt').prop('position'), 'before');
+    assert.strictEqual(decorationForFileHeader('2.txt').prop('position'), 'before');
+    assert.strictEqual(decorationForFileHeader('3.txt').prop('position'), 'before');
+    assert.strictEqual(decorationForFileHeader('4.txt').prop('position'), 'after');
   });
 
   it('undoes the last discard from the file header button', function() {
