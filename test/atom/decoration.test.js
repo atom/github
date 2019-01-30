@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Range} from 'atom';
+import path from 'path';
 
 import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
@@ -96,6 +97,55 @@ describe('Decoration', function() {
       const child = args[1].item.getElement().firstElementChild;
       assert.equal(child.className, 'decoration-subtree');
       assert.equal(child.textContent, 'This is a subtree');
+    });
+  });
+
+  describe('when props update', function() {
+    it('creates a new decoration on a different TextEditor and marker', async function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      const newEditor = await workspace.open(path.join(__dirname, 'marker.test.js'));
+      const newMarker = newEditor.markBufferRange([[0, 0], [1, 0]]);
+
+      wrapper.setProps({editor: newEditor, decorable: newMarker});
+
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 0);
+
+      assert.lengthOf(newEditor.getLineDecorations({class: 'pretty'}), 1);
+      const [newDecoration] = newEditor.getLineDecorations({class: 'pretty'});
+      assert.strictEqual(newDecoration.getMarker(), newMarker);
+    });
+
+    it('creates a new decoration on a different Marker', function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      const newMarker = editor.markBufferRange([[1, 0], [3, 0]]);
+      wrapper.setProps({decorable: newMarker});
+
+      assert.isTrue(original.isDestroyed());
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [newDecoration] = editor.getLineDecorations({class: 'pretty'});
+      assert.strictEqual(newDecoration.getMarker(), newMarker);
+    });
+
+    it('destroys and re-creates its decoration', function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      wrapper.setProps({type: 'line-number', className: 'prettier'});
+
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineNumberDecorations({class: 'prettier'}), 1);
     });
   });
 
