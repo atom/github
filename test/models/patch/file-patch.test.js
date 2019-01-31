@@ -41,15 +41,14 @@ describe('FilePatch', function() {
   });
 
   it('returns the starting range of the patch', function() {
-    const {patch} = patchBuilder().status('modified').addHunk(
+    const {patch} = patchBuilder().addHunk(
       h => h.oldRow(2).unchanged('0000').added('0001', '0002'),
     ).build();
     const oldFile = new File({path: 'a.txt', mode: '100644'});
     const newFile = new File({path: 'a.txt', mode: '100644'});
 
     const filePatch = new FilePatch(oldFile, newFile, patch);
-
-    assert.deepEqual(filePatch.getStartRange().serialize(), [[1, 0], [1, 0]]);
+    assert.deepEqual(filePatch.getStartRange().serialize(), [[0, 0], [0, 0]]);
   });
 
   describe('file-level change detection', function() {
