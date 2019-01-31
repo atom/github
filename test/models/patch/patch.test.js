@@ -6,7 +6,7 @@ import {Unchanged, Addition, Deletion} from '../../../lib/models/patch/region';
 import {patchBuilder} from '../../builder/patch';
 import {assertInPatch} from '../../helpers';
 
-describe('Patch', function() {
+describe.only('Patch', function() {
   it('has some standard accessors', function() {
     const buffer = new TextBuffer({text: 'bufferText'});
     const layers = buildLayers(buffer);
@@ -518,27 +518,24 @@ describe('Patch', function() {
     ].join(''));
   });
 
-  it('correctly handles blank lines in added, removed, and unchanged regions', function() {
-    // const buffer = new TextBuffer({text: '\n\n\n\n\n\n'});
-    // const layers = buildLayers(buffer);
-    //
-    // const hunk = new Hunk({
-    //   oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 5,
-    //   sectionHeading: 'only',
-    //   marker: markRange(layers.hunk, 0, 5),
-    //   regions: [
-    //     new Unchanged(markRange(layers.unchanged, 0, 1)),
-    //     new Addition(markRange(layers.addition, 1, 2)),
-    //     new Deletion(markRange(layers.deletion, 3, 4)),
-    //     new Unchanged(markRange(layers.unchanged, 5)),
-    //   ],
-    // });
-    // const marker = markRange(layers.patch, 0, 5);
-    //
-    // const p = new Patch({status: 'modified', hunks: [hunk], marker});
-    const {patch, buffer} = patchBuilder().addHunk(
-      h => h.oldRow(1).unchanged('', '').added('', '').deleted('', '').unchanged(''),
-    ).build();
+  it.only('correctly handles blank lines in added, removed, and unchanged regions', function() {
+    const buffer = new TextBuffer({text: '\n\n\n\n\n\n'});
+    const layers = buildLayers(buffer);
+
+    const hunk = new Hunk({
+      oldStartRow: 1, oldRowCount: 5, newStartRow: 1, newRowCount: 5,
+      sectionHeading: 'only',
+      marker: markRange(layers.hunk, 0, 5),
+      regions: [
+        new Unchanged(markRange(layers.unchanged, 0, 1)),
+        new Addition(markRange(layers.addition, 1, 2)),
+        new Deletion(markRange(layers.deletion, 3, 4)),
+        new Unchanged(markRange(layers.unchanged, 5)),
+      ],
+    });
+    const marker = markRange(layers.patch, 0, 5);
+
+    const patch = new Patch({status: 'modified', hunks: [hunk], marker});
 
     assert.strictEqual(patch.toStringIn(buffer), [
       '@@ -1,5 +1,5 @@\n',
