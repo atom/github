@@ -21,7 +21,9 @@
     color: @text-color-subtle;
   }
 
-  &.no-repository {
+  &.no-repository,
+  &.too-many-changes,
+  &.unsupported-directory {
     display: flex;
     justify-content: center;
     font-size: 1.25em;
@@ -32,10 +34,14 @@
       margin: @component-padding 0;
     }
 
-    .btn.btn-primary {
+    button {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  &.no-repository {
+    justify-content: flex-end;
   }
 
   &-LargeIcon:before {
