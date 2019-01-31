@@ -1155,7 +1155,88 @@ describe('MultiFilePatch', function() {
         });
       });
 
-      it('is deterministic regardless of the order in which collapse and expand operations are performed');
+      it('is deterministic regardless of the order in which collapse and expand operations are performed', function() {
+        this.timeout(60000);
+
+        const patches = multiFilePatch.getFilePatches();
+
+        function expectVisibleAfter(ops, i) {
+          return ops.reduce((visible, op) => (op.index === i ? op.visibleAfter : visible), true);
+        }
+
+        const operations = [];
+        for (let i = 0; i < patches.length; i++) {
+          operations.push({
+            index: i,
+            visibleAfter: false,
+            name: `collapse fp${i}`,
+            canHappenAfter: ops => expectVisibleAfter(ops, i),
+            action: () => multiFilePatch.collapseFilePatch(patches[i]),
+          });
+
+          operations.push({
+            index: i,
+            visibleAfter: true,
+            name: `expand fp${i}`,
+            canHappenAfter: ops => !expectVisibleAfter(ops, i),
+            action: () => multiFilePatch.expandFilePatch(patches[i]),
+          });
+        }
+
+        const operationSequences = [];
+
+        function generateSequencesAfter(prefix) {
+          const possible = operations
+            .filter(op => !prefix.includes(op))
+            .filter(op => op.canHappenAfter(prefix));
+          if (possible.length === 0) {
+            operationSequences.push(prefix);
+          } else {
+            for (const next of possible) {
+              generateSequencesAfter([...prefix, next]);
+            }
+          }
+        }
+        generateSequencesAfter([]);
+
+        for (const sequence of operationSequences) {
+          // Uncomment to see which sequence is causing problems
+          // console.log(sequence.map(op => op.name).join(' -> '));
+
+          // Reset to the all-expanded state
+          multiFilePatch.expandFilePatch(fp0);
+          multiFilePatch.expandFilePatch(fp1);
+          multiFilePatch.expandFilePatch(fp2);
+          multiFilePatch.expandFilePatch(fp3);
+
+          // Perform the operations
+          for (const operation of sequence) {
+            operation.action();
+          }
+
+          // Ensure the TextBuffer and Markers are in the expected states
+          const visibleIndexes = [];
+          for (let i = 0; i < patches.length; i++) {
+            if (patches[i].getRenderStatus().isVisible()) {
+              visibleIndexes.push(i);
+            }
+          }
+          const lastVisibleIndex = Math.max(...visibleIndexes);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes(visibleIndexes));
+
+          let start = 0;
+          for (let i = 0; i < patches.length; i++) {
+            const patchAssertions = assertInFilePatch(patches[i], multiFilePatch.getBuffer());
+            if (patches[i].getRenderStatus().isVisible()) {
+              patchAssertions.hunks(hunk({index: i, start, last: lastVisibleIndex === i}));
+              start += 4;
+            } else {
+              patchAssertions.hunks();
+            }
+          }
+        }
+      });
     });
   });
 });
