@@ -2,8 +2,10 @@ import GithubLoginModel from '../../../lib/models/github-login-model';
 import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import BranchSet from '../../../lib/models/branch-set';
 import RemoteSet from '../../../lib/models/remote-set';
+import {getEndpoint} from '../../../lib/models/endpoint';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import EnableableOperation from '../../../lib/models/enableable-operation';
+import IssueishDetailItem from '../../../lib/items/issueish-detail-item';
 
 export function issueishPaneItemProps(overrides = {}) {
   return {
@@ -15,7 +17,7 @@ export function issueishPaneItemProps(overrides = {}) {
 
 export function issueishDetailContainerProps(overrides = {}) {
   return {
-    host: 'https://api.github.com',
+    endpoint: getEndpoint('github.com'),
     owner: 'owner',
     repo: 'repo',
     issueishNumber: 1,
@@ -24,6 +26,15 @@ export function issueishDetailContainerProps(overrides = {}) {
 
     switchToIssueish: () => {},
     onTitleChange: () => {},
+
+    workspace: {},
+    commands: {},
+    keymaps: {},
+    tooltips: {},
+    config: {},
+    destroy: () => {},
+
+    itemType: IssueishDetailItem,
 
     ...overrides,
   };
@@ -69,6 +80,8 @@ export function issueishDetailControllerProps(opts, overrides = {}) {
     onTitleChange: () => {},
     switchToIssueish: () => {},
 
+    workdirPath: __dirname,
+
     ...overrides,
   };
 }
@@ -93,6 +106,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     pullRequestCommitCount: 0,
     pullRequestChangedFileCount: 0,
     pullRequestCrossRepository: false,
+    pullRequestToken: '1234',
 
     relayRefetch: () => {},
     ...opts,
@@ -152,7 +166,28 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     },
 
     checkoutOp: new EnableableOperation(() => {}),
+
+    // function props
     switchToIssueish: () => {},
+    destroy: () => {},
+    openCommit: () => {},
+
+    // atom env props
+    workspace: {},
+    commands: {},
+    keymaps: {},
+    tooltips: {},
+    config: {},
+
+    localRepository: {},
+    token: o.pullRequestToken,
+    endpoint: {
+      getGraphQLRoot: () => {},
+      getRestRoot: () => {},
+      getRestURI: () => {},
+    },
+
+    itemType: IssueishDetailItem,
 
     ...overrides,
   };

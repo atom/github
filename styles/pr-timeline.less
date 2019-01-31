@@ -3,14 +3,14 @@
 @avatar-size: 20px;
 
 .github-PrTimeline {
-  margin-top: @component-padding * 3;
+  position: relative;
   border-top: 1px solid mix(@text-color, @base-background-color, 15%);
 
   // all items
   .timeline-item {
-    margin: 0 @component-padding * 3;
-    padding: @component-padding*3 0;
-    border-bottom: 1px solid mix(@text-color, @base-background-color, 15%);
+    padding: @component-padding*1.5 @component-padding*2;
+    padding-left:@component-padding * 4.5;
+    border-top: 1px solid mix(@text-color, @base-background-color, 15%);
   }
 
   .emoji,
@@ -26,11 +26,26 @@
     border-radius: @component-border-radius;
   }
 
+  .open-commit-detail-button {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    &:hover,
+    &:focus {
+      color: @text-color-highlight;
+    }
+    &:active {
+      color: @text-color-subtle;
+    }
+  }
+
   .pre-timeline-item-icon {
     position: absolute;
-    margin-left: -25px;
+    margin-left: -@component-padding * 2.5;
+    text-align: center;
     margin-top: 2px;
-    color: @text-color-subtle;
+    color: mix(@text-color, @base-background-color, 33%);
+    border-radius: 20px;
   }
 
   .commits {
@@ -94,7 +109,6 @@
 
     .commit-message-headline {
       display: table-cell;
-      font-size: .9em;
       line-height: @avatar-size + 4px;
       padding: 0 @component-padding/3;
       padding-left: @avatar-size + @component-padding;
@@ -111,13 +125,11 @@
       text-align: right;
       font-family: monospace;
       padding-left: 5px;
-      font-size: .85em;
-      color: @text-color-subtle;
+      color: @text-color-info;
     }
   }
 
   .comment-message-header {
-    font-size: .9em;
     color: @text-color-subtle;
     a {
       color: inherit;
@@ -141,7 +153,6 @@
     }
 
     &-header {
-      font-size: .9em;
       color: @text-color-subtle;
     }
 

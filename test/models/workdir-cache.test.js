@@ -13,6 +13,10 @@ describe('WorkdirCache', function() {
     cache = new WorkdirCache(5);
   });
 
+  it('defaults to 1000 entries', function() {
+    assert.strictEqual((new WorkdirCache()).maxSize, 1000);
+  });
+
   it('finds a workdir that is the given path', async function() {
     const sameDir = await cloneRepository('three-files');
     const workDir = await cache.find(sameDir);
@@ -25,6 +29,14 @@ describe('WorkdirCache', function() {
     const actualDir = await cache.find(givenDir);
 
     assert.equal(actualDir, expectedDir);
+  });
+
+  it('finds a workdir from within the .git directory', async function() {
+    const expectedDir = await cloneRepository('three-files');
+    const givenDir = path.join(expectedDir, '.git/hooks');
+    const actualDir = await cache.find(givenDir);
+
+    assert.strictEqual(actualDir, expectedDir);
   });
 
   it('finds a workdir from a gitdir file', async function() {

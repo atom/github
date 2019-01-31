@@ -78,7 +78,7 @@ describe('CurrentPullRequestContainer', function() {
         repository={createRepositoryResult()}
 
         token="1234"
-        host="https://api.github.com/"
+        endpoint={origin.getEndpoint()}
         remoteOperationObserver={observer}
         remote={origin}
         remotes={remotes}

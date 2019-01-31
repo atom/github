@@ -6,11 +6,9 @@
 @hunk-bg-color-active: mix(@syntax-text-color, @syntax-background-color, 2%);
 
 .github-HunkHeaderView {
-  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-
   display: flex;
   align-items: stretch;
-  font-size: .9em;
+  font-size: @font-size;
   border: 1px solid @base-border-color;
   border-radius: @component-border-radius;
   background-color: @hunk-bg-color;
@@ -68,9 +66,10 @@
   }
 }
 
+// Selected
 .github-HunkHeaderView--isSelected {
-  color: contrast(@button-background-color-selected);
-  background-color: @button-background-color-selected;
+  color: @text-color-selected;
+  background-color: @background-color-selected;
   border-color: transparent;
   .github-HunkHeaderView-title {
     color: inherit;
@@ -78,7 +77,22 @@
   .github-HunkHeaderView-title,
   .github-HunkHeaderView-stageButton,
   .github-HunkHeaderView-discardButton {
-    &:hover  { background-color: lighten(@button-background-color-selected, 4%); }
-    &:active { background-color: darken(@button-background-color-selected, 4%); }
+    &:hover  { background-color: @background-color-highlight; }
+    &:active { background-color: @background-color-selected; }
+  }
+}
+
+
+// Selected + focused
+.github-FilePatchView:focus-within {
+  .github-HunkHeaderView--isSelected {
+    color: contrast(@button-background-color-selected);
+    background-color: @button-background-color-selected;
+    .github-HunkHeaderView-title,
+    .github-HunkHeaderView-stageButton,
+    .github-HunkHeaderView-discardButton {
+      &:hover  { background-color: lighten(@button-background-color-selected, 4%); }
+      &:active { background-color: darken(@button-background-color-selected, 4%); }
+    }
   }
 }
