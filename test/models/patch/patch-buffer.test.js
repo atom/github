@@ -258,9 +258,9 @@ describe('PatchBuffer', function() {
     });
 
     it('preserves markers that should be before or after the modification region', function() {
-      const before0 = patchBuffer.markRange('patch', [[1, 0], [4, 0]]);
-      const before1 = patchBuffer.markPosition('hunk', [4, 0]);
-      const after0 = patchBuffer.markPosition('patch', [4, 0]);
+      const before0 = patchBuffer.markRange('patch', [[1, 0], [4, 0]], {exclusive: true});
+      const before1 = patchBuffer.markRange('hunk', [[4, 0], [4, 0]], {exclusive: true});
+      const after0 = patchBuffer.markPosition('patch', [4, 0], {exclusive: true});
 
       const inserter = patchBuffer.createInserterAt([4, 0]);
       inserter.keepBefore([before0, before1]);
