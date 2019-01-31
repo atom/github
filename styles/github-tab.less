@@ -33,10 +33,6 @@
     > * {
       margin: @component-padding 0;
     }
-
-    .git-logo-path {
-      fill: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
-    }
   }
 
   .github-RemoteSelector {
@@ -51,5 +47,13 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  &-largeGitHubLogo:before {
+    margin-right: 0;
+    width: auto;
+    height: auto;
+    font-size: 6em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
   }
 }
