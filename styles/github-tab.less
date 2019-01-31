@@ -1,3 +1,5 @@
+@import "variables";
+
 .github-StubItem-github,
 .github-GitHub-root {
   flex: 1;
@@ -9,6 +11,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  -webkit-user-select: none;
+  cursor: default;
 
   &-content {
     flex: 1;
@@ -16,26 +20,40 @@
     flex-direction: column;
   }
 
-  &-noRemotes {
-    margin: 10px;
-    font-size: @font-size * 1.25;
+  &-noRemotes,
+  .github-RemoteSelector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 1.25em;
+    text-align: center;
+    padding: @component-padding * 3;
+
+    > * {
+      margin: @component-padding 0;
+    }
   }
 
   .github-RemoteSelector {
-    font-size: @font-size * 1.25;
-
-    p {
-      text-align: center;
-      margin: 10px;
-    }
-
     ul {
       list-style: none;
-      padding-left: 1em;
+      padding-left: 0;
     }
 
     button {
+      width: 100%;
       margin-bottom: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
+
+  &-largeGitHubLogo:before {
+    margin-right: 0;
+    width: auto;
+    height: auto;
+    font-size: 6em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
   }
 }
