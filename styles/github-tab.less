@@ -41,16 +41,16 @@
     ul {
       list-style: none;
       padding-left: 0;
+
+      li:not(:last-child) {
+        margin-bottom: @component-padding;
+      }
     }
 
     button {
       width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    :not(:last-child) {
-      margin-bottom: 10px;
     }
   }
 
