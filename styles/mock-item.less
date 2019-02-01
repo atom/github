@@ -147,6 +147,10 @@
     height: @nav-size;
     cursor: default;
 
+    &::-webkit-details-marker {
+      margin-right: @component-padding/1.5;
+    }
+
     .is-resolved & {
       &::-webkit-details-marker {
         display: none;
@@ -163,7 +167,7 @@
 
     &:before {
       font-size: 12px;
-      width: 13px;
+      width: 15px; // magic to match the triangle
       margin-right: 0;
     }
   }
@@ -189,6 +193,27 @@
   &-lineNr {
     color: @text-color-subtle;
     margin-right: @component-padding/2;
+  }
+
+  &-referenceAvatar {
+    margin-left: auto;
+    margin-right: @component-padding/2;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+
+    .github-Review[open] & {
+      display: none;
+    }
+  }
+
+  &-referenceTimeAgo {
+    color: @text-color-subtle;
+    margin-right: @component-padding/2;
+    .github-Review[open] & {
+      display: none;
+    }
   }
 
   &-nav {
