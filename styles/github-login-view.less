@@ -1,40 +1,47 @@
-.github-GithubLoginView-Container {
-  height: 100%;
-  display: flex;
-}
-
 .github-GithubLoginView {
-  height: 100%;
+  flex: 1;
   display: flex;
+  flex-direction: column;
+  font-size: 1.25em;
 
   .github-GithubLoginView-Subview {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-self: center;
-    align-items: center;
-    padding: 20px;
-
-    > button, > input {
-      margin: @component-padding;
-    }
-  }
-
-  p {
+    justify-content: center;
     text-align: center;
-    font-size: @font-size * 1.25;
-    margin: 0;
+    padding: @component-padding * 3;
 
-    &:first-child {
-      margin-bottom: 20px;
+    > * {
+      margin: @component-padding 0;
     }
 
-    a {
-      color: @text-color-info;
+    h1 {
+      margin-bottom: @component-padding * 3;
     }
-  }
 
-  input[type=text] {
-    width: 100%;
+    button {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    ol {
+      text-align: left;
+      padding: @component-padding 0;
+
+      a {
+        color: @text-color-info;
+      }
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+
+      li:not(:last-child) {
+        margin-bottom: @component-padding;
+      }
+    }
   }
 }

@@ -33,27 +33,35 @@
     > * {
       margin: @component-padding 0;
     }
+
+    h1 {
+      margin-bottom: @component-padding * 3;
+    }
   }
 
   .github-RemoteSelector {
     ul {
       list-style: none;
       padding-left: 0;
+
+      li:not(:last-child) {
+        margin-bottom: @component-padding;
+      }
     }
 
     button {
       width: 100%;
-      margin-bottom: 10px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
   }
 
-  &-largeGitHubLogo:before {
+  &-LargeIcon:before {
     margin-right: 0;
+    margin-bottom: @component-padding * 5;
     width: auto;
     height: auto;
-    font-size: 6em;
+    font-size: 8em;
     color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
   }
 }

@@ -17,31 +17,39 @@
   -webkit-user-select: none;
   cursor: default;
 
-  &.no-repository {
-    padding: @component-padding * 3;
-    text-align: center;
-  }
-
   &.is-loading {
     color: @text-color-subtle;
   }
 
-  &.no-repository {
+  &.no-repository,
+  &.too-many-changes,
+  &.unsupported-directory {
     display: flex;
     justify-content: center;
     font-size: 1.25em;
+    padding: @component-padding * 3;
+    text-align: center;
 
     > * {
       margin: @component-padding 0;
     }
 
-    .git-logo-path {
-      fill: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+    h1 {
+      margin-bottom: @component-padding * 3;
     }
 
-    .btn.btn-primary {
+    button {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  &-LargeIcon:before {
+    margin-right: 0;
+    margin-bottom: @component-padding * 5;
+    width: auto;
+    height: auto;
+    font-size: 8em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
   }
 }
