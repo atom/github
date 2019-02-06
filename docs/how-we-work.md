@@ -146,6 +146,11 @@ At the end of each development sprint:
     1. Begin again by cutting a new pre-release and proceeding through the above steps once again.
   * :white_check_mark: _Otherwise,_ comment in and close the issue, then continue.
 8. _In your atom/github repository:_ run `apm publish minor` to publish the next minor version.
+  * :boom: _If publishing fails,_ before trying to publish again
+    1. Check if a release commit was created (`git log`). If one exists, remove it from the commit history (`git reset --hard <sha-prior-to-commit>`).
+    1. Check if a release tag was created (`git tag`). If one exists, delete it (`git tag -d 0.${MINOR}.0`).
+    1. Address the problem that interfered with publishing.
+    1. Try to publish again with `apm publish minor`.
 9. _In your atom/github repository:_ create a release branch for this minor version with `git checkout -b 0.${MINOR}-releases`. Push it to atom/github.
 9. _In your atom/atom repository:_ update the version of the `"github"` entry beneath `packageDependencies` in `package.json`  to match the published minor version. Run `script/build` to update `package-lock.json` files. Commit and push these changes.
 10. When the CI build for your atom/atom pull request is successful, merge it.
