@@ -131,14 +131,19 @@ The github package ships as a bundled part of Atom, which affects the way that o
 
 At the end of each development sprint:
 
-1. _In your atom/github repository:_ run `apm publish preminor` to create the first prerelease version or `apm publish prerelease` to increment an existing prerelease version. Note the generated version number and ensure that it's correct. If the currently deployed version is `v0.19.2`, the first prerelease should be `v0.20.0-0`; if the existing prerelease is `v0.20.0-0`, the next prerelease should be `v0.20.0-1`.
+1. _In your atom/github repository:_ create a release branch for this minor version with `git checkout -b 0.${MINOR}-releases`. Push it to atom/github.
+1. _In your atom/github repository:_ make sure you're on the release branch, and run `apm publish preminor` to create the first prerelease version or `apm publish prerelease` to increment an existing prerelease version. Note the generated version number and ensure that it's correct. If the currently deployed version is `v0.19.2`, the first prerelease should be `v0.20.0-0`; if the existing prerelease is `v0.20.0-0`, the next prerelease should be `v0.20.0-1`.
 2. _In your atom/atom repository:_ create a new branch and edit `package.json` in its root directory. Change the version of the `"github"` entry beneath `packageDependencies` to match the prerelease you just published. You can ignore the version beneath `dependencies`, the tarball link will get updated during the upcoming build step.
 3. _In your atom/atom repository:_ Run `script/build --install`. This will update Atom's `package-lock.json` files and produce a local development build of Atom with your prerelease version of atom/github bundled.
   * :boom: _If the build fails,_ correct any bugs and begin again at (1) with a new prerelease version.
 4. Run `apm uninstall github` and `apm uninstall --dev github` to ensure that you don't have any [locally installed atom/github versions](/CONTRIBUTING.md#living-on-the-edge) that would override the bundled one.
 6. Create a [QA issue](https://github.com/atom/github/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquality) in the atom/github repository. Its title should be "_prerelease version_ QA Review" and it should have the "quality" label applied. Populate the issue body with a checklist containing the pull requests that were included in this release; these should be the ones in the "Merged" column of the project board. Omit pull requests that don't have verification steps (like renames, refactoring, adding tests or metrics, or dependency upgrades, for example).
 7. Use your `atom-dev` build to verify each and check it off the list.
-  * :boom: _If verification fails,_ note the failure in an issue comment. Close the issue. Correct the failure with more work in the current sprint board, then begin again at (1).
+  * :boom: _If verification fails,_ 
+    1. Note the failure in an issue comment. Close the issue. 
+    1. Correct the failure with more work in the current sprint board. Make changes on master branch.
+    1. Cherry changes from master to release branch.
+    1. Begin again by cutting a new pre-release and proceeding through the above steps once again.
   * :white_check_mark: _Otherwise,_ comment in and close the issue, then continue.
 8. _In your atom/github repository:_ run `apm publish minor` to publish the next minor version.
 9. _In your atom/github repository:_ create a release branch for this minor version with `git checkout -b 0.${MINOR}-releases`. Push it to atom/github.
