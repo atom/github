@@ -298,6 +298,16 @@
   }
 }
 
+// Selected + focused hunkmode
+.github-FilePatchView.github-FilePatchView--hunkMode:focus-within {
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 12%);
+    }
+  }
+}
+
 .gitub-FilePatchHeaderView-basename {
   font-weight: bold;
 }
