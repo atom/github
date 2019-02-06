@@ -152,7 +152,7 @@ At the end of each development sprint:
     1. Address the problem that interfered with publishing.
     1. Try to publish again with `apm publish minor`.
 9. _In your atom/github repository:_ create a release branch for this minor version with `git checkout -b 0.${MINOR}-releases`. Push it to atom/github.
-9. _In your atom/atom repository:_ update the version of the `"github"` entry beneath `packageDependencies` in `package.json`  to match the published minor version. Run `script/build` to update `package-lock.json` files. Commit and push these changes.
+9. _In your atom/atom repository:_ checkout a new branch (`git checkout -b bump-github-${VERSION}`), update the version of the `"github"` entry beneath `packageDependencies` in `package.json`  to match the published minor version. Run `script/build` to update `package-lock.json` files. Commit and push these changes.
 10. When the CI build for your atom/atom pull request is successful, merge it.
 
 Now cherry-pick any suitably minor or low-risk bugfix PRs from this release to the previous one:
