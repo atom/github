@@ -184,20 +184,32 @@
 
   &-line {
     // mixin
-    .hunk-line-mixin(@bg;) {
-      background-color: fade(@bg, 16%);
+    .hunk-line-mixin(@color) {
+      background-color: fade(@color, 15%);
 
       &.line.cursor-line {
-        background-color: fade(@bg, 22%);
+        background-color: fade(@color, 25%);
       }
     }
 
-    &--deleted {
-      .hunk-line-mixin(@background-color-error);
+    // light themes
+    & when (lightness(@syntax-background-color) >= 50) {
+      &--deleted {
+        .hunk-line-mixin( hsl(353, 100%, 55%) ); // close to .com's hsl(353, 100%, 93%)
+      }
+      &--added {
+        .hunk-line-mixin( hsl(133, 100%, 50%) ); // close to .com's hsl(133, 100%, 90%)
+      }
     }
 
-    &--added {
-      .hunk-line-mixin(@background-color-success);
+    // dark themes
+    & when (lightness(@syntax-background-color) < 50) {
+      &--deleted {
+        .hunk-line-mixin( hsl(353, 100%, 65%) ); // close to .com's hsl(353, 100%, 93%)
+      }
+      &--added {
+        .hunk-line-mixin( hsl(133, 40%, 60%) ); // close to .com's hsl(133, 100%, 90%)
+      }
     }
   }
 
@@ -276,7 +288,7 @@
 
   atom-text-editor {
     .selection .region {
-      background-color: transparent;
+      background-color: transparent; // remove default selection
     }
   }
 }
@@ -296,7 +308,7 @@
 
   atom-text-editor {
     .selection .region {
-      background-color: mix(@button-background-color-selected, @syntax-background-color, 24%);
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 25%);
     }
   }
 }
@@ -306,7 +318,7 @@
 
   atom-text-editor {
     .selection .region {
-      background-color: mix(@button-background-color-selected, @syntax-background-color, 12%);
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 8%);
     }
   }
 }
