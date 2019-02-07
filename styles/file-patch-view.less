@@ -216,26 +216,29 @@
     }
 
     &.icons .line-number {
-      .octicon-font();
+      padding: 0;
       opacity: 1;
       width: 2ch;
+      font-family: @font-family;
+      text-align: center;
+      color: mix(@syntax-gutter-text-color, @syntax-text-color);
+      -webkit-font-smoothing: antialiased;
 
       &:before {
         display: inline-block;
-        min-width: 1ch;
-        text-align: center;
+        min-width: 2ch;
       }
 
       &.github-FilePatchView-line--added:before {
-        content: @plus;
+        content: "+";
       }
 
       &.github-FilePatchView-line--deleted:before {
-        content: @dash;
+        content: "-";
       }
 
       &.github-FilePatchView-line--nonewline:before {
-        content: @no-newline;
+        content: @no-newline; // TODO replace icon
       }
     }
   }
