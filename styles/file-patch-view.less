@@ -250,7 +250,10 @@
       }
 
       &.github-FilePatchView-line--nonewline:before {
-        content: @no-newline; // TODO replace icon
+        content: @no-newline;
+        .octicon-font();
+        width: inherit;
+        min-width: auto;
       }
     }
   }
