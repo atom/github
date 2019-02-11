@@ -55,11 +55,11 @@ The GitHub tab has a _context and identity tile_ at its top that displays:
 
 If you haven't configured `user.email` and `user.name`, the Git tab displays the _introduction view_. This view allows you to see and enter your name and email address.
 
-> TODO: introduction view graphic
+![identity](https://user-images.githubusercontent.com/378023/52549612-59f71000-2e17-11e9-84ff-c6c36bf5c015.png)
 
 ### GitHub login view
 
-> TODO: GitHub login view
+![login](https://user-images.githubusercontent.com/378023/52549614-5a8fa680-2e17-11e9-984a-f7eaf20c0f48.png)
 
 **_Part 2 - Additional information_**
 
