@@ -39,7 +39,7 @@ The Git tab has a _context and identity tile_ at its top that displays:
 > Then locating the set of git repositories containing each (if any) using `git rev-parse --show-toplevel` and
 > `git rev-parse --absolute-git-dir`.
 
-> TODO: Git context and identity tile graphic
+![git](https://user-images.githubusercontent.com/378023/52548367-abe86780-2e10-11e9-9dc1-8c4e3c2ad098.png)
 
 ### GitHub context and identity tile
 
@@ -49,7 +49,7 @@ The GitHub tab has a _context and identity tile_ at its top that displays:
 * The path to the currently active git repository, as in the Git context tile.
 * A refresh button. On click, the information displayed in the GitHub tab is re-fetched.
 
-> TODO: GitHub context and identity tile graphic
+![github](https://user-images.githubusercontent.com/378023/52548380-b86cc000-2e10-11e9-9899-110306c2153c.png)
 
 ### Git introduction view
 
