@@ -76,10 +76,10 @@
   },
   "devDependencies": {
     "@smashwilson/atom-mocha-test-runner": "1.4.0",
-    "@smashwilson/codecov": "3.1.1-azure0.0",
     "babel-plugin-istanbul": "5.1.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
+    "codecov": "3.2.0",
     "cross-env": "5.2.0",
     "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
