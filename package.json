@@ -95,7 +95,7 @@
     "hock": "1.3.3",
     "lodash.isequalwith": "4.4.0",
     "mkdirp": "0.5.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.0",
     "mocha-junit-reporter": "1.18.0",
     "mocha-multi-reporters": "^1.1.7",
     "mocha-stress": "1.0.0",
