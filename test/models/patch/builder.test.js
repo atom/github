@@ -1,5 +1,8 @@
+import dedent from 'dedent-js';
+
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import {multiFilePatchBuilder} from '../../builder/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
@@ -1136,6 +1139,50 @@ describe('buildFilePatch', function() {
         },
       );
     });
+  });
+
+  it('uses an existing PatchBuffer if one is provided', function() {
+    const existing = new PatchBuffer();
+    existing
+      .createInserterAtEnd()
+      .insert('aaa\n')
+      .insertMarked('bbb\n', 'patch', {})
+      .insertMarked('ccc\n', 'addition', {})
+      .insert('ddd\n')
+      .apply();
+
+    const {raw} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file.txt'));
+        fp.addHunk(h => h.oldRow(10).unchanged('000').added('111', '222').unchanged('333'));
+      })
+      .build();
+
+    buildFilePatch(raw, {patchBuffer: existing});
+
+    assert.strictEqual(existing.getBuffer().getText(), dedent`
+      000
+      111
+      222
+      333
+    `);
+
+    assert.deepEqual(
+      existing.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+      [[[0, 0], [3, 3]]],
+    );
+    assert.deepEqual(
+      existing.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+      [[[0, 0], [3, 3]]],
+    );
+    assert.deepEqual(
+      existing.findMarkers('unchanged', {}).map(m => m.getRange().serialize()),
+      [[[0, 0], [0, 3]], [[3, 0], [3, 3]]],
+    );
+    assert.deepEqual(
+      existing.findMarkers('addition', {}).map(m => m.getRange().serialize()),
+      [[[1, 0], [2, 3]]],
+    );
   });
 
   it('throws an error with an unexpected number of diffs', function() {
