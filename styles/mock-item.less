@@ -207,35 +207,29 @@
     height: @avatar-size;
     border-radius: @component-border-radius;
     image-rendering: -webkit-optimize-contrast;
-
-    .github-Review[open] & {
-      display: none;
-    }
   }
 
   &-referenceTimeAgo {
     color: @text-color-subtle;
     margin-right: @component-padding/2;
-    .github-Review[open] & {
-      display: none;
-    }
   }
 
   &-nav {
-    display: none;
-    margin-left: auto;
-    .github-Review[open] & {
-      display: initial;
-    }
+    display: flex;
+    border-top: 1px solid @base-border-color;
   }
   &-navButton {
-    width: @nav-size;
+    flex: 1;
     height: @nav-size;
     padding: 0;
     border: none;
-    border-left: 1px solid @base-border-color;
+
     background-color: transparent;
     cursor: default;
+
+    & + & {
+      border-left: 1px solid @base-border-color;
+    }
 
     &:hover {
       background-color: @background-color-highlight;
@@ -246,7 +240,7 @@
 
     &:before {
       width: auto;
-      margin-right: 0;
+      vertical-align: -.1em;
     }
   }
 
