@@ -107,7 +107,12 @@
   }
 
   &-type {
-    color: @text-color-subtle;
+    .is-approving & {
+      color: @text-color-success;
+    }
+    .is-requestingChanges & {
+      color: @text-color-warning;
+    }
   }
 
   &-timeAgo {
