@@ -2186,6 +2186,9 @@ describe('Repository', function() {
       });
 
       it('when checking out a revision', async function() {
+        // Known flake: https://github.com/atom/github/issues/1958
+        this.retries(5);
+
         const {repository, observer, subscriptions} = await wireUpObserver();
         sub = subscriptions;
 
