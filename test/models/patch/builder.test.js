@@ -1,5 +1,3 @@
-import dedent from 'dedent-js';
-
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
 import {multiFilePatchBuilder} from '../../builder/patch';
