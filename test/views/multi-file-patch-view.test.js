@@ -229,10 +229,23 @@ describe('MultiFilePatchView', function() {
 
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
+
+    let willUpdate, didUpdate;
+    const onWillUpdatePatch = cb => {
+      willUpdate = cb;
+      return {dispose: () => {}}
+    }
+    const onDidUpdatePatch = cb => {
+      didUpdate = cb;
+      return {dispose: () => {}}
+    }
+
     const wrapper = mount(buildApp({
       selectedRows: new Set([2]),
       selectionMode: 'line',
       selectedRowsChanged,
+      onWillUpdatePatch,
+      onDidUpdatePatch
     }));
 
     const {multiFilePatch} = multiFilePatchBuilder()
@@ -244,7 +257,9 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    willUpdate();
     wrapper.setProps({multiFilePatch});
+    didUpdate(multiFilePatch);
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
