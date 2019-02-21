@@ -295,12 +295,24 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    let willUpdate, didUpdate;
+    const onWillUpdatePatch = cb => {
+      willUpdate = cb;
+      return {dispose: () => {}}
+    }
+    const onDidUpdatePatch = cb => {
+      didUpdate = cb;
+      return {dispose: () => {}}
+    }
+
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
       multiFilePatch,
       selectedRows: new Set([6, 7, 8]),
       selectionMode: 'hunk',
       selectedRowsChanged,
+      onWillUpdatePatch,
+      onDidUpdatePatch
     }));
 
     const {multiFilePatch: nextMfp} = multiFilePatchBuilder()
@@ -320,7 +332,9 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    willUpdate();
     wrapper.setProps({multiFilePatch: nextMfp});
+    didUpdate(nextMfp);
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
