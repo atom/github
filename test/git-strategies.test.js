@@ -271,6 +271,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.deepEqual(commits[0], {
           sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
           authorEmail: 'kuychaco@github.com',
+          authorName: 'Katrina Uychaco',
           authorDate: 1471113656,
           messageSubject: 'third commit',
           messageBody: '',
@@ -281,6 +282,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
           authorEmail: 'kuychaco@github.com',
+          authorName: 'Katrina Uychaco',
           authorDate: 1471113642,
           messageSubject: 'second commit',
           messageBody: '',
@@ -291,6 +293,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
           authorEmail: 'kuychaco@github.com',
+          authorName: 'Katrina Uychaco',
           authorDate: 1471113625,
           messageSubject: 'first commit',
           messageBody: '',
@@ -1177,6 +1180,24 @@ import * as reporterProxy from '../lib/reporter-proxy';
             'and things',
           ].join('\n'));
         });
+        it('strips commented lines if commit template is used', async function() {
+          const workingDirPath = await cloneRepository('three-files');
+          const git = createTestStrategy(workingDirPath);
+          const templateText = '# this line should be stripped';
+
+          const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
+          await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+
+          await git.setConfig('commit.template', commitMsgTemplatePath);
+          await git.setConfig('commit.cleanup', 'default');
+          const commitMessage = ['this line should not be stripped', '', 'neither should this one', templateText].join('\n');
+          await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
+
+          const lastCommit = await git.getHeadCommit();
+          assert.strictEqual(lastCommit.messageSubject, 'this line should not be stripped');
+          //  message body should not contain the template text
+          assert.strictEqual(lastCommit.messageBody, 'neither should this one');
+        });
       });
 
       describe('when amend option is true', function() {
@@ -1327,6 +1348,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       beforeEach(async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         git = createTestStrategy(workingDirPath);
+        sinon.stub(git, 'fetchCommitMessageTemplate').returns(null);
       });
 
       const operations = [
