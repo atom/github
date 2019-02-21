@@ -4,6 +4,7 @@ import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
 import {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 
 import {assertInFilePatch} from '../../helpers';
 
@@ -273,8 +274,8 @@ describe('MultiFilePatch', function() {
     `);
   });
 
-  it('adopts a buffer from a previous patch', function() {
-    const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+  it('adopts a new buffer', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('A0.txt'));
         fp.addHunk(h => h.unchanged('a0').added('a1').deleted('a2').unchanged('a3'));
@@ -286,52 +287,34 @@ describe('MultiFilePatch', function() {
       })
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('A2.txt'));
-        fp.addHunk(h => h.oldRow(99).deleted('7').noNewline());
+        fp.addHunk(h => h.oldRow(99).deleted('a10').noNewline());
       })
       .build();
 
-    const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B0.txt'));
-        fp.addHunk(h => h.unchanged('b0', 'b1').added('b2').unchanged('b3', 'b4'));
-      })
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B1.txt'));
-        fp.addHunk(h => h.unchanged('b5', 'b6').added('b7'));
-      })
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B2.txt'));
-        fp.addHunk(h => h.unchanged('b8', 'b9').deleted('b10').unchanged('b11'));
-        fp.addHunk(h => h.oldRow(99).deleted('b12').noNewline());
-      })
-      .build();
+    const nextBuffer = new PatchBuffer();
 
-    assert.notStrictEqual(nextMultiPatch.getBuffer(), lastMultiPatch.getBuffer());
+    multiFilePatch.adoptBuffer(nextBuffer);
 
-    nextMultiPatch.adoptBufferFrom(lastMultiPatch);
+    assert.strictEqual(nextBuffer.getBuffer(), multiFilePatch.getBuffer());
+    assert.strictEqual(nextBuffer.getLayer('patch'), multiFilePatch.getPatchLayer());
+    assert.strictEqual(nextBuffer.getLayer('hunk'), multiFilePatch.getHunkLayer());
+    assert.strictEqual(nextBuffer.getLayer('unchanged'), multiFilePatch.getUnchangedLayer());
+    assert.strictEqual(nextBuffer.getLayer('addition'), multiFilePatch.getAdditionLayer());
+    assert.strictEqual(nextBuffer.getLayer('deletion'), multiFilePatch.getDeletionLayer());
+    assert.strictEqual(nextBuffer.getLayer('nonewline'), multiFilePatch.getNoNewlineLayer());
 
-    assert.strictEqual(nextMultiPatch.getBuffer(), lastMultiPatch.getBuffer());
-    assert.strictEqual(nextMultiPatch.getPatchLayer(), lastMultiPatch.getPatchLayer());
-    assert.strictEqual(nextMultiPatch.getHunkLayer(), lastMultiPatch.getHunkLayer());
-    assert.strictEqual(nextMultiPatch.getUnchangedLayer(), lastMultiPatch.getUnchangedLayer());
-    assert.strictEqual(nextMultiPatch.getAdditionLayer(), lastMultiPatch.getAdditionLayer());
-    assert.strictEqual(nextMultiPatch.getDeletionLayer(), lastMultiPatch.getDeletionLayer());
-    assert.strictEqual(nextMultiPatch.getNoNewlineLayer(), lastMultiPatch.getNoNewlineLayer());
-
-    assert.deepEqual(nextMultiPatch.getBuffer().getText(), dedent`
-      b0
-      b1
-      b2
-      b3
-      b4
-      b5
-      b6
-      b7
-      b8
-      b9
-      b10
-      b11
-      b12
+    assert.deepEqual(nextBuffer.getBuffer().getText(), dedent`
+      a0
+      a1
+      a2
+      a3
+      a4
+      a5
+      a6
+      a7
+      a8
+      a9
+      a10
        No newline at end of file
     `);
 
@@ -339,27 +322,27 @@ describe('MultiFilePatch', function() {
       assert.deepEqual(layer.getMarkers().map(m => m.getRange().serialize()), ranges);
     };
 
-    assertMarkedLayerRanges(nextMultiPatch.getPatchLayer(), [
-      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('patch'), [
+      [[0, 0], [3, 2]], [[4, 0], [9, 2]], [[10, 0], [11, 26]],
     ]);
-    assertMarkedLayerRanges(nextMultiPatch.getHunkLayer(), [
-      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [11, 3]], [[12, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('hunk'), [
+      [[0, 0], [3, 2]], [[4, 0], [6, 2]], [[7, 0], [9, 2]], [[10, 0], [11, 26]],
     ]);
-    assertMarkedLayerRanges(nextMultiPatch.getUnchangedLayer(), [
-      [[0, 0], [1, 2]], [[3, 0], [4, 2]], [[5, 0], [6, 2]], [[8, 0], [9, 2]], [[11, 0], [11, 3]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('unchanged'), [
+      [[0, 0], [0, 2]], [[3, 0], [3, 2]], [[4, 0], [4, 2]], [[6, 0], [6, 2]], [[7, 0], [7, 2]], [[9, 0], [9, 2]],
     ]);
-    assertMarkedLayerRanges(nextMultiPatch.getAdditionLayer(), [
-      [[2, 0], [2, 2]], [[7, 0], [7, 2]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('addition'), [
+      [[1, 0], [1, 2]], [[8, 0], [8, 2]],
     ]);
-    assertMarkedLayerRanges(nextMultiPatch.getDeletionLayer(), [
-      [[10, 0], [10, 3]], [[12, 0], [12, 3]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('deletion'), [
+      [[2, 0], [2, 2]], [[5, 0], [5, 2]], [[10, 0], [10, 3]],
     ]);
-    assertMarkedLayerRanges(nextMultiPatch.getNoNewlineLayer(), [
-      [[13, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('nonewline'), [
+      [[11, 0], [11, 26]],
     ]);
 
-    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B0.txt', 1), 0);
-    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B2.txt', 5), 12);
+    assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('A0.txt', 1), 0);
+    assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('A1.txt', 5), 7);
   });
 
   describe('derived patch generation', function() {
