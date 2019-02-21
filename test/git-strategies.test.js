@@ -592,15 +592,15 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        const {diffs} = await git.getDiffsForFilePath('a.txt');
-        assert.deepEqual(diffs, []);
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('ignores merge conflict files', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        const {diffs} = await git.getDiffsForFilePath('added-to-both.txt');
-        assert.deepEqual({diffs}, []);
+        const diffOutput = await git.getDiffsForFilePath('added-to-both.txt');
+        assert.deepEqual(diffOutput, []);
       });
 
       it('bypasses external diff tools', async function() {
@@ -609,10 +609,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
-        const {diffs} = await git.getDiffsForFilePath('a.txt');
+        const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
 
-        assert.isDefined({diffs});
+        assert.isDefined(diffOutput);
       });
 
       it('rejects if an unexpected number of diffs is returned', async function() {
@@ -658,7 +658,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('a.txt')).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -680,7 +680,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             status: 'modified',
           }]);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('c.txt')).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt'), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -698,7 +698,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             status: 'deleted',
           }]);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('d.txt')).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt'), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -726,7 +726,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
           await git.exec(['add', '.']);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('a.txt', {staged: true})).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt', {staged: true}), [{
             oldPath: 'a.txt',
             newPath: 'a.txt',
             oldMode: '100644',
@@ -748,7 +748,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             status: 'modified',
           }]);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('c.txt', {staged: true})).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt', {staged: true}), [{
             oldPath: 'c.txt',
             newPath: null,
             oldMode: '100644',
@@ -766,7 +766,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             status: 'deleted',
           }]);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('d.txt', {staged: true})).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt', {staged: true}), [{
             oldPath: null,
             newPath: 'd.txt',
             oldMode: null,
@@ -791,7 +791,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
 
-          assertDeepPropertyVals((await git.getDiffsForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'})).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), [{
             oldPath: 'file.txt',
             newPath: 'file.txt',
             oldMode: '100644',
@@ -816,7 +816,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          assertDeepPropertyVals((await git.getDiffsForFilePath('new-file.txt')).diffs, [{
+          assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.txt'), [{
             oldPath: null,
             newPath: 'new-file.txt',
             oldMode: null,
@@ -853,7 +853,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
             const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
 
-            assertDeepPropertyVals((await git.getDiffsForFilePath('new-file.bin')).diffs, [{
+            assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
               oldPath: null,
               newPath: 'new-file.bin',
               oldMode: null,
@@ -970,7 +970,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const commitAfterReset = await git.getCommit('HEAD');
           assert.strictEqual(commitAfterReset.sha, parentCommit.sha);
 
-          const {diffs: stagedChanges} = await git.getDiffsForFilePath('a.txt', {staged: true});
+          const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
           assert.lengthOf(stagedChanges, 1);
           const stagedChange = stagedChanges[0];
           assert.strictEqual(stagedChange.newPath, 'a.txt');
@@ -1002,7 +1002,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const after = await git.getCommit('HEAD');
         assert.isTrue(after.unbornRef);
 
-        const {diffs: stagedChanges} = await git.getDiffsForFilePath('a.txt', {staged: true});
+        const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
         assert.lengthOf(stagedChanges, 1);
         const stagedChange = stagedChanges[0];
         assert.strictEqual(stagedChange.newPath, 'a.txt');
