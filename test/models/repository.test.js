@@ -393,8 +393,7 @@ describe('Repository', function() {
         @@ -0,0 +1,3 @@
         +qux
         +foo
-        +bar
-
+        +bar\n
       `);
 
       // Unstage symlink change, leaving deleted file staged
@@ -415,8 +414,7 @@ describe('Repository', function() {
         -foo
         -bar
         -baz
-        -
-
+        -\n
       `);
     });
 
