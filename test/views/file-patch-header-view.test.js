@@ -193,14 +193,6 @@ describe('FilePatchHeaderView', function() {
       it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
     });
 
-    describe('when the patch contains no hunks', function() {
-      const props = {hasHunks: false};
-
-      it('includes a toggle to staged button when unstaged', createUnstagedPatchToggleTest(props));
-
-      it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
-    });
-
     describe('the jump-to-file button', function() {
       it('calls the jump to file file action prop', function() {
         const openFile = sinon.stub();
