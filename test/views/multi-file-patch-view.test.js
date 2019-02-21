@@ -233,19 +233,19 @@ describe('MultiFilePatchView', function() {
     let willUpdate, didUpdate;
     const onWillUpdatePatch = cb => {
       willUpdate = cb;
-      return {dispose: () => {}}
-    }
+      return {dispose: () => {}};
+    };
     const onDidUpdatePatch = cb => {
       didUpdate = cb;
-      return {dispose: () => {}}
-    }
+      return {dispose: () => {}};
+    };
 
     const wrapper = mount(buildApp({
       selectedRows: new Set([2]),
       selectionMode: 'line',
       selectedRowsChanged,
       onWillUpdatePatch,
-      onDidUpdatePatch
+      onDidUpdatePatch,
     }));
 
     const {multiFilePatch} = multiFilePatchBuilder()
@@ -298,12 +298,12 @@ describe('MultiFilePatchView', function() {
     let willUpdate, didUpdate;
     const onWillUpdatePatch = cb => {
       willUpdate = cb;
-      return {dispose: () => {}}
-    }
+      return {dispose: () => {}};
+    };
     const onDidUpdatePatch = cb => {
       didUpdate = cb;
-      return {dispose: () => {}}
-    }
+      return {dispose: () => {}};
+    };
 
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
@@ -312,7 +312,7 @@ describe('MultiFilePatchView', function() {
       selectionMode: 'hunk',
       selectedRowsChanged,
       onWillUpdatePatch,
-      onDidUpdatePatch
+      onDidUpdatePatch,
     }));
 
     const {multiFilePatch: nextMfp} = multiFilePatchBuilder()
