@@ -703,8 +703,8 @@ describe('MultiFilePatch', function() {
     });
   });
 
-  describe('isPatchTooLargeOrCollapsed', function() {
-    it('returns true if patch exceeds large diff threshold', function() {
+  describe('isPatchVisible', function() {
+    it('returns false if patch exceeds large diff threshold', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
@@ -712,20 +712,20 @@ describe('MultiFilePatch', function() {
         })
         .build()
         .multiFilePatch;
-      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
+      assert.isFalse(multiFilePatch.isPatchVisible('file-0'));
     });
 
-    it('returns true if patch is collapsed', function() {
+    it('returns false if patch is collapsed', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
           fp.renderStatus(COLLAPSED);
         }).build().multiFilePatch;
 
-      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
+      assert.isFalse(multiFilePatch.isPatchVisible('file-0'));
     });
 
-    it('returns false if patch is expanded', function() {
+    it('returns true if patch is expanded', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
@@ -734,8 +734,9 @@ describe('MultiFilePatch', function() {
         .build()
         .multiFilePatch;
 
-      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('file-0'));
+      assert.isTrue(multiFilePatch.isPatchVisible('file-0'));
     });
+
     it('multiFilePatch with multiple hunks returns correct values', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
@@ -753,12 +754,12 @@ describe('MultiFilePatch', function() {
         .build()
         .multiFilePatch;
 
-      assert.isFalse(multiFilePatch.isPatchTooLargeOrCollapsed('expanded-file'));
-      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('too-large-file'));
-      assert.isTrue(multiFilePatch.isPatchTooLargeOrCollapsed('collapsed-file'));
+      assert.isTrue(multiFilePatch.isPatchVisible('expanded-file'));
+      assert.isFalse(multiFilePatch.isPatchVisible('too-large-file'));
+      assert.isFalse(multiFilePatch.isPatchVisible('collapsed-file'));
     });
 
-    it('returns null if patch does not exist', function() {
+    it('returns false if patch does not exist', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
@@ -766,10 +767,9 @@ describe('MultiFilePatch', function() {
         })
         .build()
         .multiFilePatch;
-      assert.isNull(multiFilePatch.isPatchTooLargeOrCollapsed('invalid-file-path'));
+      assert.isFalse(multiFilePatch.isPatchVisible('invalid-file-path'));
     });
   });
-
 
   describe('diff position translation', function() {
     it('offsets rows in the first hunk by the first hunk header', function() {

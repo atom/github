@@ -14,7 +14,7 @@ describe('PullRequestCommentsView', function() {
     };
     return shallow(
       <PullRequestCommentsView
-        isPatchTooLargeOrCollapsed={sinon.stub().returns(false)}
+        isPatchVisible={sinon.stub().returns(true)}
         getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition} reviews={pullRequest.reviews}
         commentThreads={pullRequest.commentThreads}
         relay={relay}
@@ -64,7 +64,7 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr, {isPatchTooLargeOrCollapsed: () => { return true; }});
+    const wrapper = buildApp(multiFilePatch, pr, {isPatchVisible: () => { return false; }});
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 0);
   });
