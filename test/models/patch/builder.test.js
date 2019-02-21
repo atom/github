@@ -2,7 +2,6 @@ import dedent from 'dedent-js';
 
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
 import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
-import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import {multiFilePatchBuilder} from '../../builder/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
@@ -926,7 +925,7 @@ describe('buildFilePatch', function() {
       );
     });
 
-    it('re-parse a HiddenPatch as a Patch', function() {
+    it('re-parses a HiddenPatch as a Patch', function() {
       const mfp = buildMultiFilePatch([
         {
           oldPath: 'first', oldMode: '100644', newPath: 'first', newMode: '100644', status: 'modified',
@@ -959,6 +958,44 @@ describe('buildFilePatch', function() {
             {kind: 'addition', string: '+line-1\n', range: [[1, 0], [1, 6]]},
             {kind: 'deletion', string: '-line-2\n', range: [[2, 0], [2, 6]]},
             {kind: 'unchanged', string: ' line-3', range: [[3, 0], [3, 6]]},
+          ],
+        },
+      );
+    });
+
+    it('re-parses a HiddenPatch from a paired symlink diff as a Patch', function() {
+      const {raw} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.status('deleted');
+          fp.setOldFile(f => f.path('big').symlinkTo('/somewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('big'));
+          fp.addHunk(h => h.oldRow(1).added('0', '1', '2', '3', '4', '5'));
+        })
+        .build();
+      const mfp = buildMultiFilePatch(raw, {largeDiffThreshold: 3});
+
+      assert.lengthOf(mfp.getFilePatches(), 1);
+      const [fp] = mfp.getFilePatches();
+
+      assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp.getOldPath(), 'big');
+      assert.strictEqual(fp.getNewPath(), 'big');
+      assert.deepEqual(fp.getStartRange().serialize(), [[0, 0], [0, 0]]);
+      assertInFilePatch(fp).hunks();
+
+      mfp.expandFilePatch(fp);
+
+      assert.strictEqual(fp.getRenderStatus(), EXPANDED);
+      assert.deepEqual(fp.getMarker().getRange().serialize(), [[0, 0], [5, 1]]);
+      assertInFilePatch(fp, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 5, header: '@@ -1,0 +1,6 @@', regions: [
+            {kind: 'addition', string: '+0\n+1\n+2\n+3\n+4\n+5', range: [[0, 0], [5, 1]]},
           ],
         },
       );
@@ -1139,50 +1176,6 @@ describe('buildFilePatch', function() {
         },
       );
     });
-  });
-
-  it('uses an existing PatchBuffer if one is provided', function() {
-    const existing = new PatchBuffer();
-    existing
-      .createInserterAtEnd()
-      .insert('aaa\n')
-      .insertMarked('bbb\n', 'patch', {})
-      .insertMarked('ccc\n', 'addition', {})
-      .insert('ddd\n')
-      .apply();
-
-    const {raw} = multiFilePatchBuilder()
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('file.txt'));
-        fp.addHunk(h => h.oldRow(10).unchanged('000').added('111', '222').unchanged('333'));
-      })
-      .build();
-
-    buildFilePatch(raw, {patchBuffer: existing});
-
-    assert.strictEqual(existing.getBuffer().getText(), dedent`
-      000
-      111
-      222
-      333
-    `);
-
-    assert.deepEqual(
-      existing.findMarkers('patch', {}).map(m => m.getRange().serialize()),
-      [[[0, 0], [3, 3]]],
-    );
-    assert.deepEqual(
-      existing.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
-      [[[0, 0], [3, 3]]],
-    );
-    assert.deepEqual(
-      existing.findMarkers('unchanged', {}).map(m => m.getRange().serialize()),
-      [[[0, 0], [0, 3]], [[3, 0], [3, 3]]],
-    );
-    assert.deepEqual(
-      existing.findMarkers('addition', {}).map(m => m.getRange().serialize()),
-      [[[1, 0], [2, 3]]],
-    );
   });
 
   it('throws an error with an unexpected number of diffs', function() {
