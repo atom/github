@@ -344,6 +344,79 @@ describe('MultiFilePatchView', function() {
     ]);
   });
 
+  describe('when the last line in a non-last file patch is staged', function() {
+    it('updates the selected row to be the first changed line in the next file patch', function() {
+      const selectedRowsChanged = sinon.spy();
+
+      let willUpdate, didUpdate;
+      const onWillUpdatePatch = cb => {
+        willUpdate = cb;
+        return {dispose: () => {}};
+      };
+      const onDidUpdatePatch = cb => {
+        didUpdate = cb;
+        return {dispose: () => {}};
+      };
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('another-path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        }).build();
+
+      const wrapper = mount(buildApp({
+        selectedRows: new Set([3]),
+        selectionMode: 'line',
+        selectedRowsChanged,
+        onWillUpdatePatch,
+        onDidUpdatePatch,
+        multiFilePatch,
+      }));
+
+      assert.deepEqual([...wrapper.prop('selectedRows')], [3]);
+
+      const {multiFilePatch: multiFilePatch2} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').unchanged('0003').unchanged('0004');
+          });
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('another-path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        }).build();
+
+      selectedRowsChanged.resetHistory();
+      willUpdate();
+      wrapper.setProps({multiFilePatch: multiFilePatch2});
+      didUpdate(multiFilePatch2);
+
+      assert.strictEqual(selectedRowsChanged.callCount, 1);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[6, 0], [6, 4]],
+      ]);
+    });
+  });
+
   it('unregisters the mouseup handler on unmount', function() {
     sinon.spy(window, 'addEventListener');
     sinon.spy(window, 'removeEventListener');
