@@ -42,7 +42,7 @@
     "atom-babel6-transpiler": "1.2.0",
     "babel-generator": "6.26.1",
     "babel-plugin-chai-assert-async": "0.1.0",
-    "babel-plugin-relay": "1.7.0",
+    "babel-plugin-relay": "3.0.0",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
     "babel-plugin-transform-object-rest-spread": "6.26.0",
