@@ -162,7 +162,7 @@ We use the following technologies:
 * We interact with GitHub via its [GraphQL](https://graphql.org/) API.
 * [Relay](https://github.com/facebook/relay) is a layer of glue between React and GraphQL queries that handles responsibilities like query composition and caching.
 * Our tests are written with [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) [_(with the "assert" style)_](https://www.chaijs.com/api/assert/). We also use [Enzyme](https://airbnb.io/enzyme/) to assert against React behavior.
-* We use a [custom Babel 6 transpiler pipeline](https://github.com/atom/atom-babel6-transpiler) to write modern source with JSX, `import` statements, and other constructs unavailable natively within Atom's Node.js version.
+* We use a [custom Babel 7 transpiler pipeline](https://github.com/atom/atom-babel7-transpiler) to write modern source with JSX, `import` statements, and other constructs unavailable natively within Atom's Node.js version.
 
 ### Updating the GraphQL Schema
 
