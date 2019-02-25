@@ -185,21 +185,23 @@ This is a high-level overview of the structure of the React component tree that 
 > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 > > [`<AtomTextEditor>`](lib/atom/atom-text-editor.js)
 > >
-> > React implementation of an [Atom TextEditor](https://atom.io/docs/api/latest/TextEditor). Each `MultiFilePatchView` contains one `AtomTextEditor`, regardless of the number of file patch.
+> > React wrapper of an [Atom TextEditor](https://atom.io/docs/api/latest/TextEditor). Each `MultiFilePatchView` contains one `AtomTextEditor`, regardless of the number of file patch.
 > >
 > > > [`<Gutter>`](lib/atom/gutter.js)
 > > >
-> > > gutter explanation
+> > > React wrapper of Atom's [Gutter](https://atom.io/docs/api/latest/Gutter) class.
 > >
 > > > [`<MarkerLayer>`](lib/atom/marker-layer.js)
 > > > >
+> > > > React wrapper of Atom's [MarkerLayer](https://atom.io/docs/api/latest/MarkerLayer) class.
+> > > >
 > > > > [`<Marker>`](lib/atom/marker.js)
 > > > >
-> > > > marker explanation
+> > > > React wrapper of Atom's [DisplayMarker](https://atom.io/docs/api/latest/DisplayMarker) class.
 > > > >
 > > > > > [`<Decoration>`](lib/atom/decoration.js)
 > > > > >
-> > > > > decoration explanation
+> > > > > React wrapper of Atom's [Decoration](https://atom.io/docs/api/latest/Decoration) class.
 > > > > >
 > > > > > > [`<FilePatchHeaderView>`](lib/views/file-patch-header-view.js)
 > > > > >
