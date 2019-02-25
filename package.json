@@ -25,7 +25,7 @@
   "atomTranspilers": [
     {
       "glob": "{lib,test}/**/*.js",
-      "transpiler": "atom-babel6-transpiler",
+      "transpiler": "@atom/babel7-transpiler",
       "options": {
         "cacheKeyFiles": [
           "package.json",
@@ -39,14 +39,13 @@
     }
   ],
   "dependencies": {
-    "atom-babel6-transpiler": "1.2.0",
-    "babel-generator": "6.26.1",
+    "@atom/babel7-transpiler": "1.0.0-1",
+    "@babel/generator": "7.3.4",
+    "@babel/plugin-proposal-class-properties": "7.3.4",
+    "@babel/preset-env": "7.3.4",
+    "@babel/preset-react": "7.0.0",
     "babel-plugin-chai-assert-async": "0.1.0",
     "babel-plugin-relay": "1.7.0",
-    "babel-plugin-transform-class-properties": "6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "6.26.2",
-    "babel-plugin-transform-object-rest-spread": "6.26.0",
-    "babel-preset-react": "6.24.1",
     "bintrees": "1.0.2",
     "bytes": "^3.0.0",
     "classnames": "2.2.6",
