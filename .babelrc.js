@@ -1,9 +1,9 @@
 module.exports = {
   sourceMaps: "inline",
   plugins: [
-    "relay",
+    "babel-plugin-relay",
     "./assert-messages-plugin.js",
-    "babel-plugin-chai-assert-async",
+    "@atom/babel-plugin-chai-assert-async",
     "@babel/plugin-proposal-class-properties",
   ],
   presets: [
