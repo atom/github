@@ -29,7 +29,7 @@
       "options": {
         "cacheKeyFiles": [
           "package.json",
-          ".babelrc",
+          ".babelrc.js",
           "assert-messages-plugin.js",
           "graphql/schema.graphql",
           ".nycrc.json"
