@@ -204,5 +204,9 @@ This is a high-level overview of the structure of the React component tree that 
 > > > > > React wrapper of Atom's [Decoration](https://atom.io/docs/api/latest/Decoration) class.
 > > > > >
 > > > > > > [`<FilePatchHeaderView>`](lib/views/file-patch-header-view.js)
+> > > > > >
+> > > > > > Header above each file patch. Handles file patch level operations (e.g. discard change, stage/unstage, jump to file, expand/collapse file patch, etc.)
 > > > > >
 > > > > > > [`<HunkHeaderView>`](lib/views/hunk-header-view.js)
+> > > > > >
+> > > > > > Header above each hunk. Handles more granular stage/unstage operation (per hunk or per line).
