@@ -74,8 +74,8 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 > > >
-> > > Render a sequence of git-generated file patches within a TextEditor, using decorations to include contextually
-> > > relevant controls.
+> > > Render a sequence of git-generated file patches within a TextEditor, using decorations to include contextually relevant controls.
+> > > See [`MultiFilePatchView` atlas](#multifilepatchview-atlas) below for a more detailed breakdown.
 >
 > > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
 > > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
@@ -178,6 +178,7 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<GithubTileView>`](/lib/views/changed-files-count-view.js)
 > > >
 > > > Displays the GitHub logo. Clicking it opens the GitHub tab.
+
 
 
 ## `MultiFilePatchView` Atlas
