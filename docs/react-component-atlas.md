@@ -178,3 +178,29 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<GithubTileView>`](/lib/views/changed-files-count-view.js)
 > > >
 > > > Displays the GitHub logo. Clicking it opens the GitHub tab.
+
+
+## `MultiFilePatchView` Atlas
+
+> [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
+> > [`<AtomTextEditor>`](lib/atom/atom-text-editor.js)
+> >
+> > React implementation of an [Atom TextEditor](https://atom.io/docs/api/latest/TextEditor). Each `MultiFilePatchView` contains one `AtomTextEditor`, regardless of the number of file patch.
+> >
+> > > [`<Gutter>`](lib/atom/gutter.js)
+> > >
+> > > gutter explanation
+> >
+> > > [`<MarkerLayer>`](lib/atom/marker-layer.js)
+> > > >
+> > > > [`<Marker>`](lib/atom/marker.js)
+> > > >
+> > > > marker explanation
+> > > >
+> > > > > [`<Decoration>`](lib/atom/decoration.js)
+> > > > >
+> > > > > decoration explanation
+> > > > >
+> > > > > > [`<FilePatchHeaderView>`](lib/views/file-patch-header-view.js)
+> > > > >
+> > > > > > [`<HunkHeaderView>`](lib/views/hunk-header-view.js)
