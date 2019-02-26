@@ -7,6 +7,7 @@ import isEqualWith from 'lodash.isequalwith';
 
 import Repository from '../../lib/models/repository';
 import CompositeGitStrategy from '../../lib/composite-git-strategy';
+import {LargeRepoError} from '../../lib/git-shell-out-strategy';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import Author from '../../lib/models/author';
@@ -441,6 +442,60 @@ describe('Repository', function() {
       const stagedPaths = stagedChanges.map(change => change.filePath);
 
       assert.deepStrictEqual(stagedPaths, ['w.txt', zShortPath]);
+    });
+  });
+
+  describe('getStatusBundle', function() {
+    it('transitions to the TooLarge state and returns empty status when too large', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').rejects(new LargeRepoError());
+
+      const result = await repository.getStatusBundle();
+
+      assert.isTrue(repository.isInState('TooLarge'));
+      assert.deepEqual(result.branch, {});
+      assert.deepEqual(result.stagedFiles, {});
+      assert.deepEqual(result.unstagedFiles, {});
+      assert.deepEqual(result.mergeConflictFiles, {});
+    });
+
+    it('propagates unrecognized git errors', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').rejects(new Error('oh no'));
+
+      await assert.isRejected(repository.getStatusBundle(), /oh no/);
+    });
+
+    it('post-processes renamed files to an addition and a deletion', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').resolves({
+        changedEntries: [],
+        untrackedEntries: [],
+        renamedEntries: [
+          {stagedStatus: 'R', origFilePath: 'from0.txt', filePath: 'to0.txt'},
+          {unstagedStatus: 'R', origFilePath: 'from1.txt', filePath: 'to1.txt'},
+          {stagedStatus: 'C', filePath: 'c2.txt'},
+          {unstagedStatus: 'C', filePath: 'c3.txt'},
+        ],
+        unmergedEntries: [],
+      });
+
+      const result = await repository.getStatusBundle();
+      assert.strictEqual(result.stagedFiles['from0.txt'], 'deleted');
+      assert.strictEqual(result.stagedFiles['to0.txt'], 'added');
+      assert.strictEqual(result.unstagedFiles['from1.txt'], 'deleted');
+      assert.strictEqual(result.unstagedFiles['to1.txt'], 'added');
+      assert.strictEqual(result.stagedFiles['c2.txt'], 'added');
+      assert.strictEqual(result.unstagedFiles['c3.txt'], 'added');
     });
   });
 
@@ -928,6 +983,20 @@ describe('Repository', function() {
       localHead = await localRepo.git.getCommit('branch');
       assert.strictEqual(remoteHead.messageSubject, 'second commit');
       assert.strictEqual(localHead.messageSubject, 'second commit');
+    });
+  });
+
+  describe('unsetConfig', function() {
+    it('unsets a git config option', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+
+      await repository.setConfig('some.key', 'value');
+      assert.strictEqual(await repository.getConfig('some.key'), 'value');
+
+      await repository.unsetConfig('some.key');
+      assert.isNull(await repository.getConfig('some.key'));
     });
   });
 
@@ -1432,6 +1501,18 @@ describe('Repository', function() {
           assert.deepEqual(await repo.getUnstagedChanges(), unstagedChanges);
         });
       });
+    });
+  });
+
+  describe('getBlobContents(sha)', function() {
+    it('returns blob contents for sha', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+
+      const sha = await repository.createBlob({stdin: 'aa\nbb\ncc\n'});
+      const contents = await repository.getBlobContents(sha);
+      assert.strictEqual(contents, 'aa\nbb\ncc\n');
     });
   });
 

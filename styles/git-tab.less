@@ -17,63 +17,39 @@
   -webkit-user-select: none;
   cursor: default;
 
-  &.no-repository {
-    padding: @component-padding * 3;
-    text-align: center;
-  }
-
   &.is-loading {
     color: @text-color-subtle;
   }
 
-  &.no-repository {
+  &.no-repository,
+  &.too-many-changes,
+  &.unsupported-directory {
     display: flex;
     justify-content: center;
     font-size: 1.25em;
+    padding: @component-padding * 3;
+    text-align: center;
 
     > * {
       margin: @component-padding 0;
     }
 
-    .git-logo-path {
-      fill: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+    h1 {
+      margin-bottom: @component-padding * 3;
     }
 
-    .btn.btn-primary {
+    button {
       overflow: hidden;
       text-overflow: ellipsis;
     }
   }
-}
 
-atom-dock.bottom {
-  .github-Git {
-    flex-direction: row;
+  &-LargeIcon:before {
+    margin-right: 0;
+    margin-bottom: @component-padding * 5;
+    width: auto;
+    height: auto;
+    font-size: 8em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
   }
-
-  .github-StagingView {
-    display: contents; // make these invisible to layout
-  }
-
-  .github-Git > div {
-    flex: 1;
-  }
-
-  .github-StagedChanges {
-    border-left: 1px solid @base-border-color;
-    border-right: 1px solid @base-border-color;
-  }
-
-  .github-StagingView-header {
-    flex-wrap: wrap;
-  }
-  .github-StagingView-group:first-child .github-StagingView-header {
-    border-top: 1px solid @base-border-color;
-  }
-
-  .github-RecentCommits {
-    max-height: none;
-    border-left: 1px solid @base-border-color;
-  }
-
 }

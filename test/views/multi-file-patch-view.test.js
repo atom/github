@@ -9,6 +9,7 @@ import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ChangedFileItem from '../../lib/items/changed-file-item';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 
 describe('MultiFilePatchView', function() {
   let atomEnv, workspace, repository, filePatches;
@@ -132,6 +133,11 @@ describe('MultiFilePatchView', function() {
 
     assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
     assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
+  });
+
+  it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
+    const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
+    assert.lengthOf(wrapper.find('ForwardRef(Relay(PullRequestReviewsController))'), 1);
   });
 
   it('renders the file patch within an editor', function() {

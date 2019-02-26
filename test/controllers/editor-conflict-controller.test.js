@@ -166,6 +166,49 @@ describe('EditorConflictController', function() {
       assert.strictEqual(conflicts[2].getChosenSide(), conflicts[2].getSide(THEIRS));
     });
 
+    it('resolves multiple conflicts as "ours"', function() {
+      assert.isFalse(conflicts[0].isResolved());
+      assert.isFalse(conflicts[1].isResolved());
+      assert.isFalse(conflicts[2].isResolved());
+
+      editor.setCursorBufferPosition([8, 3]); // On "Your changes"
+      editor.addCursorAtBufferPosition([11, 2]); // On "Text in between 0 and 1."
+      editor.addCursorAtBufferPosition([14, 5]); // On "My middle changes"
+      editor.addCursorAtBufferPosition([15, 0]); // On "======="
+      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+
+      assert.isTrue(conflicts[0].isResolved());
+      assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].getSide(OURS));
+      assert.deepEqual(conflicts[0].getUnchosenSides(), [conflicts[0].getSide(THEIRS)]);
+
+      assert.isTrue(conflicts[1].isResolved());
+      assert.strictEqual(conflicts[1].getChosenSide(), conflicts[1].getSide(OURS));
+      assert.deepEqual(conflicts[1].getUnchosenSides(), [conflicts[1].getSide(THEIRS)]);
+
+      assert.isFalse(conflicts[2].isResolved());
+    });
+
+    it('resolves multiple conflicts as "theirs"', function() {
+      assert.isFalse(conflicts[0].isResolved());
+      assert.isFalse(conflicts[1].isResolved());
+      assert.isFalse(conflicts[2].isResolved());
+
+      editor.setCursorBufferPosition([8, 3]); // On "Your changes"
+      editor.addCursorAtBufferPosition([11, 2]); // On "Text in between 0 and 1."
+      editor.addCursorAtBufferPosition([22, 5]); // On "More of my changes"
+      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+
+      assert.isTrue(conflicts[0].isResolved());
+      assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].getSide(THEIRS));
+      assert.deepEqual(conflicts[0].getUnchosenSides(), [conflicts[0].getSide(OURS)]);
+
+      assert.isFalse(conflicts[1].isResolved());
+
+      assert.isTrue(conflicts[2].isResolved());
+      assert.strictEqual(conflicts[2].getChosenSide(), conflicts[2].getSide(THEIRS));
+      assert.deepEqual(conflicts[2].getUnchosenSides(), [conflicts[2].getSide(OURS)]);
+    });
+
     it('disregards conflicts with cursors on both sides', function() {
       editor.setCursorBufferPosition([6, 3]); // On "Multi-line even"
       editor.addCursorAtBufferPosition([14, 1]); // On "My middle changes"
@@ -316,6 +359,26 @@ describe('EditorConflictController', function() {
 
       await assert.async.isTrue(refreshResolutionProgress.calledWith(fixtureFile));
     });
+
+    it('performs a resolution from the context menu', function() {
+      const conflict = conflicts[1];
+      assert.isFalse(conflict.isResolved());
+
+      wrapper.find('ConflictController').at(1).prop('resolveAsSequence')([OURS]);
+
+      assert.isTrue(conflict.isResolved());
+      assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
+    });
+
+    it('dismisses a conflict from the context menu', function() {
+      const conflict = conflicts[2];
+
+      wrapper.find('ConflictController').at(2).prop('dismiss')();
+      wrapper.update();
+
+      assert.lengthOf(wrapper.find(ConflictController), 2);
+      assert.isFalse(wrapper.find(ConflictController).someWhere(cc => cc.prop('conflict') === conflict));
+    });
   });
 
   describe('on a file with 3-way diff markers', function() {
@@ -441,5 +504,13 @@ describe('EditorConflictController', function() {
       assert.isTrue(conflict.isResolved());
       assert.equal(editor.getText(), 'These are my changes\nThese are your changes\n\nPast the end\n');
     });
+  });
+
+  it('cleans up its subscriptions when unmounting', async function() {
+    await useFixture('triple-2way-diff.txt');
+    wrapper.unmount();
+
+    editor.destroy();
+    assert.isFalse(refreshResolutionProgress.called);
   });
 });

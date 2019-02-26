@@ -146,6 +146,12 @@ describe('Commit', function() {
     });
   });
 
+  it('returns the author name', function() {
+    const authorName = 'Tilde Ann Thurium';
+    const commit = commitBuilder().authorName(authorName).build();
+    assert.strictEqual(commit.getAuthorName(), authorName);
+  });
+
   describe('isEqual()', function() {
     it('returns true when commits are identical', function() {
       const a = commitBuilder()
@@ -175,6 +181,13 @@ describe('Commit', function() {
       const a = commitBuilder().sha('01234').build();
       const b = commitBuilder().sha('56789').build();
 
+      assert.isFalse(a.isEqual(b));
+    });
+
+    it('returns false if author differs', function() {
+      const a = commitBuilder().authorName('Tilde Ann Thurium').build();
+
+      const b = commitBuilder().authorName('Vanessa Yuen').build();
       assert.isFalse(a.isEqual(b));
     });
 

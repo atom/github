@@ -38,6 +38,7 @@ describe('UserStore', function() {
     const opts = {
       owner: 'me',
       name: 'stuff',
+      repositoryFound: true,
       ...options,
     };
 
@@ -50,7 +51,7 @@ describe('UserStore', function() {
         name: 'GetMentionableUsers',
         variables: {owner: opts.owner, name: opts.name, first: 100, after: lastCursor},
       }, {
-        repository: {
+        repository: !opts.repositoryFound ? null : {
           mentionableUsers: {
             nodes: page,
             pageInfo: {
@@ -94,6 +95,21 @@ describe('UserStore', function() {
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
     assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
+  });
+
+  it('falls back to local git users and committers if loadMentionableUsers cannot load any user for whatever reason', async function() {
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    store = new UserStore({repository, config});
+    sinon.stub(store, 'loadMentionableUsers').returns(undefined);
+
+    await store.loadUsers();
+    await nextUpdatePromise();
+
+    assert.deepEqual(store.getUsers(), [
+      new Author('kuychaco@github.com', 'Katrina Uychaco'),
+    ]);
   });
 
   it('loads store with mentionable users from the GitHub API in a repo with a GitHub remote', async function() {
@@ -173,6 +189,27 @@ describe('UserStore', function() {
     ]);
   });
 
+  it('skips GitHub remotes that no longer exist', async function() {
+    await login.setToken('https://api.github.com', '1234');
+
+    const workdirPath = await cloneRepository('multiple-commits');
+    const repository = await buildRepository(workdirPath);
+
+    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+
+    const [{resolve, promise}] = expectPagedRelayQueries({repositoryFound: false}, []);
+
+    store = new UserStore({repository, login, config});
+    await nextUpdatePromise();
+
+    resolve();
+    // nextUpdatePromise will not fire because the update is empty
+    await promise;
+
+    assert.deepEqual(store.getUsers(), []);
+  });
+
   it('infers no-reply emails for users without a public email address', async function() {
     await login.setToken('https://api.github.com', '1234');
 
@@ -201,12 +238,12 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
     store = new UserStore({repository, config});
-    await assert.async.lengthOf(store.getUsers(), 1);
-
     sinon.spy(store, 'addUsers');
+    await assert.async.lengthOf(store.getUsers(), 1);
+    await assert.async.equal(store.addUsers.callCount, 1);
+
     // make a commit with FAKE_USER as committer
     await repository.commit('made a new commit', {allowEmpty: true});
-    await assert.async.equal(store.addUsers.callCount, 1);
 
     // verify that FAKE_USER is in commit history
     const lastCommit = await repository.getLastCommit();
@@ -406,8 +443,8 @@ describe('UserStore', function() {
       const actualToken = await store.getToken(loginModel, 'https://api.github.com');
       assert.strictEqual(expectedToken, actualToken);
     });
-
   });
+
   describe('loadMentionableUsers', function() {
     it('returns undefined if token is null', async function() {
       const workdirPath = await cloneRepository('multiple-commits');

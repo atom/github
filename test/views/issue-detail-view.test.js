@@ -34,7 +34,7 @@ describe('IssueDetailView', function() {
     assert.strictEqual(link.text(), 'user1/repo#200');
     assert.strictEqual(link.prop('href'), 'https://github.com/user1/repo/issues/200');
 
-    assert.isFalse(wrapper.find('Relay(PrStatuses)').exists());
+    assert.isFalse(wrapper.find('ForwardRef(Relay(PrStatuses))').exists());
     assert.isFalse(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
 
     const avatarLink = wrapper.find('.github-IssueishDetailView-avatar');
@@ -49,8 +49,8 @@ describe('IssueDetailView', function() {
 
     assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
 
-    assert.isNotNull(wrapper.find('Relay(IssueishTimelineView)').prop('issue'));
-    assert.notOk(wrapper.find('Relay(IssueishTimelineView)').prop('pullRequest'));
+    assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
+    assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
   });
 
   it('renders a placeholder issue body', function() {

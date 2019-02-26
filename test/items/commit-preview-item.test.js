@@ -96,8 +96,8 @@ describe('CommitPreviewItem', function() {
     const wrapper = mount(buildPaneApp());
     const item = await open(wrapper);
 
-    assert.strictEqual(item.getTitle(), 'Commit preview');
-    assert.strictEqual(item.getIconName(), 'git-commit');
+    assert.strictEqual(item.getTitle(), 'Staged Changes');
+    assert.strictEqual(item.getIconName(), 'tasklist');
   });
 
   it('terminates pending state', async function() {
@@ -171,6 +171,40 @@ describe('CommitPreviewItem', function() {
       item.refInitialFocus.setter(null);
 
       item.focus();
+    });
+  });
+
+  describe('observeEmbeddedTextEditor() to interoperate with find-and-replace', function() {
+    let sub, editor;
+
+    beforeEach(function() {
+      editor = Symbol('editor');
+    });
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    it('calls its callback immediately if an editor is present', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter(editor);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+      assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('calls its callback later if the editor changes', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+
+      wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter(editor);
+      assert.isTrue(cb.calledWith(editor));
     });
   });
 });

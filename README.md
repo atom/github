@@ -10,7 +10,7 @@ The Atom GitHub package provides Git and GitHub integration for Atom. Check out 
 
 <img width="880" alt="git-integration" src="https://user-images.githubusercontent.com/378023/49062970-2f0a1080-f259-11e8-91e9-9402ec76cd66.png">
 
-<img width="880" alt="github-integration" src="https://user-images.githubusercontent.com/378023/49062971-2f0a1080-f259-11e8-9efd-417d2017cd01.png">
+<img width="880" alt="github-integration" src="https://user-images.githubusercontent.com/378023/50207061-b4906480-03b0-11e9-92fb-57f7efa0982b.png">
 
 ## Installation
 

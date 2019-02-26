@@ -1,8 +1,9 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import {parse as parseDiff} from 'what-the-diff';
+import path from 'path';
 
-import rawDiff from '../fixtures/diffs/raw-diff';
+import {rawDiff, rawDiffWithPathPrefix} from '../fixtures/diffs/raw-diff';
 import {buildMultiFilePatch} from '../../lib/models/patch';
 import {getEndpoint} from '../../lib/models/endpoint';
 
@@ -70,6 +71,20 @@ describe('PullRequestChangedFilesContainer', function() {
 
       const diffURL = wrapper.instance().getDiffURL();
       assert.strictEqual(diffURL, 'https://api.github.com/repos/smashwilson/pushbot/pulls/12');
+    });
+
+    it('builds multifilepatch without the a/ and b/ prefixes in file paths', function() {
+      const wrapper = shallow(buildApp());
+      const {filePatches} = wrapper.instance().buildPatch(rawDiffWithPathPrefix);
+      assert.notMatch(filePatches[0].newFile.path, /^[a|b]\//);
+      assert.notMatch(filePatches[0].oldFile.path, /^[a|b]\//);
+    });
+
+    it('converts file paths to use native path separators', function() {
+      const wrapper = shallow(buildApp());
+      const {filePatches} = wrapper.instance().buildPatch(rawDiffWithPathPrefix);
+      assert.strictEqual(filePatches[0].newFile.path, path.join('bad/path.txt'));
+      assert.strictEqual(filePatches[0].oldFile.path, path.join('bad/path.txt'));
     });
 
     it('passes loaded diff data through to the controller', async function() {
