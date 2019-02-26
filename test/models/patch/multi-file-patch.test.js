@@ -1207,6 +1207,52 @@ describe('MultiFilePatch', function() {
         assert.isTrue(fp0.getMarker().isValid());
         assert.isFalse(fp0.getMarker().isDestroyed());
       });
+
+      it('does not insert a trailing newline when expanding a final content-less patch', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt'));
+            fp.addHunk(h => h.unchanged('0').added('1').unchanged('2'));
+          })
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('1.txt').executable());
+            fp.setNewFile(f => f.path('1.txt'));
+            fp.empty();
+          })
+          .build();
+        const [fp0, fp1] = multiFilePatch.getFilePatches();
+
+        assert.isTrue(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+
+        multiFilePatch.collapseFilePatch(fp1);
+
+        assert.isFalse(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+
+        multiFilePatch.expandFilePatch(fp1);
+
+        assert.isTrue(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+      });
     });
   });
 });
