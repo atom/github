@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
-import transpiler from 'atom-babel6-transpiler';
+import transpiler from '@atom/babel7-transpiler';
 
 import React from 'react';
 import ReactDom from 'react-dom';
