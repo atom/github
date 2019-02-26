@@ -23,7 +23,7 @@ describe('FilePatch', function() {
         ],
       }),
     ];
-    const marker = markRange(layers.patch);
+    const marker = markRange(layers.patch, 0, 2);
     const patch = new Patch({status: 'modified', hunks, marker});
     const oldFile = new File({path: 'a.txt', mode: '120000', symlink: 'dest.txt'});
     const newFile = new File({path: 'b.txt', mode: '100755'});
@@ -42,6 +42,14 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getMarker(), marker);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
+
+    assert.deepEqual(filePatch.getFirstChangeRange().serialize(), [[1, 0], [1, Infinity]]);
+    assert.isTrue(filePatch.containsRow(0));
+    assert.isFalse(filePatch.containsRow(3));
+
+    const nMarker = markRange(layers.patch, 0, 2);
+    filePatch.updateMarkers(new Map([[marker, nMarker]]));
+    assert.strictEqual(filePatch.getMarker(), nMarker);
   });
 
   it('accesses a file path from either side of the patch', function() {
@@ -696,6 +704,26 @@ describe('FilePatch', function() {
         }).build();
       const filePatch = multiFilePatch.getFilePatches()[0];
       assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer(), {before: [], after: []}));
+    });
+
+    it('triggerCollapseIn does not delete the trailing line if the collapsed patch has no content', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.added('0'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.setNewFile(f => f.path('1.txt').executable());
+          fp.empty();
+        })
+        .build();
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), '0');
+
+      multiFilePatch.collapseFilePatch(multiFilePatch.getFilePatches()[1]);
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), '0');
     });
 
     it('announces the expansion of a collapsed patch', function() {
