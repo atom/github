@@ -1,7 +1,7 @@
 import {TextBuffer} from 'atom';
 import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
 
-describe('Regions', function() {
+describe('Region', function() {
   let buffer, marker;
 
   beforeEach(function() {
