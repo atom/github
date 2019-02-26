@@ -124,13 +124,12 @@ class FilePatchBuilder {
 
       const hb = new HunkBuilder();
       if (this._oldSymlink !== null) {
-        hb.unchanged(this._oldSymlink);
-      }
-      if (this._oldSymlink !== null && this._newSymlink !== null) {
-        hb.unchanged('--');
+        hb.deleted(this._oldSymlink);
+        hb.noNewline();
       }
       if (this._newSymlink !== null) {
-        hb.unchanged(this._newSymlink);
+        hb.added(this._newSymlink);
+        hb.noNewline();
       }
 
       rawPatch.hunks = [hb.build().raw];
