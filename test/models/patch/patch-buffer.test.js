@@ -92,15 +92,18 @@ describe('PatchBuffer', function() {
       assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
     });
 
-    it("does not destroy zero-length markers at the extraction range's boundaries", function() {
+    it("does not destroy excluded markers at the extraction range's boundaries", function() {
       const before0 = patchBuffer.markRange('patch', [[2, 0], [2, 0]]);
       const before1 = patchBuffer.markRange('patch', [[2, 0], [2, 0]]);
       const within0 = patchBuffer.markRange('patch', [[2, 0], [2, 1]]);
       const within1 = patchBuffer.markRange('patch', [[3, 0], [3, 4]]);
+      const within2 = patchBuffer.markRange('patch', [[4, 0], [4, 0]]);
       const after0 = patchBuffer.markRange('patch', [[4, 0], [4, 0]]);
       const after1 = patchBuffer.markRange('patch', [[4, 0], [4, 0]]);
 
-      const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[2, 0], [4, 0]]);
+      const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.extractPatchBuffer([[2, 0], [4, 0]], {
+        exclude: new Set([before0, before1, after0, after1]),
+      });
 
       assert.strictEqual(patchBuffer.getBuffer().getText(), dedent`
         0000
@@ -125,13 +128,14 @@ describe('PatchBuffer', function() {
       `);
       assert.deepEqual(
         subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
-        [[[0, 0], [0, 1]], [[1, 0], [1, 4]]],
+        [[[0, 0], [0, 1]], [[1, 0], [1, 4]], [[2, 0], [2, 0]]],
       );
 
       assert.isFalse(markerMap.has(before0));
       assert.isFalse(markerMap.has(before1));
       assert.isTrue(markerMap.has(within0));
       assert.isTrue(markerMap.has(within1));
+      assert.isTrue(markerMap.has(within2));
       assert.isFalse(markerMap.has(after0));
       assert.isFalse(markerMap.has(after1));
 
@@ -139,6 +143,7 @@ describe('PatchBuffer', function() {
       assert.isFalse(before1.isDestroyed());
       assert.isTrue(within0.isDestroyed());
       assert.isTrue(within1.isDestroyed());
+      assert.isTrue(within2.isDestroyed());
       assert.isFalse(after0.isDestroyed());
       assert.isFalse(after1.isDestroyed());
     });
