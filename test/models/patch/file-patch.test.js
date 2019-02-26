@@ -683,7 +683,7 @@ describe('FilePatch', function() {
 
       assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
 
-      filePatch.triggerCollapseIn(new PatchBuffer());
+      multiFilePatch.collapseFilePatch(filePatch);
 
       assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
       assert.isTrue(callback.calledWith(filePatch));
@@ -695,7 +695,7 @@ describe('FilePatch', function() {
           fp.renderStatus(TOO_LARGE);
         }).build();
       const filePatch = multiFilePatch.getFilePatches()[0];
-      assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer()));
+      assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer(), {before: [], after: []}));
     });
 
     it('announces the expansion of a collapsed patch', function() {
