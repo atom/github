@@ -1190,7 +1190,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           await git.setConfig('commit.template', commitMsgTemplatePath);
           await git.setConfig('commit.cleanup', 'default');
-          const commitMessage = ['this line should not be stripped', '', 'neither should this one', templateText].join('\n');
+          const commitMessage = ['this line should not be stripped', '', 'neither should this one', '', '# but this one should', templateText].join('\n');
           await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
 
           const lastCommit = await git.getHeadCommit();
