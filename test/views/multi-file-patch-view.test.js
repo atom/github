@@ -88,6 +88,12 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
   });
 
+  it('populates an externally provided refEditor', async function() {
+    const refEditor = new RefHolder();
+    mount(buildApp({refEditor}));
+    assert.isDefined(await refEditor.getPromise());
+  });
+
   describe('file header decoration positioning', function() {
     let wrapper;
 
