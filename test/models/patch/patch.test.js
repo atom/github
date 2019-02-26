@@ -684,6 +684,7 @@ describe('Patch', function() {
     const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
     assert.deepEqual(nullPatch.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+    assert.deepEqual(nullPatch.getRange().serialize(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getStartRange().serialize(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getHunks(), []);
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
@@ -692,6 +693,8 @@ describe('Patch', function() {
     assert.deepEqual(nullPatch.getFirstChangeRange().serialize(), [[0, 0], [0, 0]]);
     assert.strictEqual(nullPatch.toStringIn(), '');
     assert.isFalse(nullPatch.isPresent());
+    assert.lengthOf(nullPatch.getStartingMarkers(), 0);
+    assert.lengthOf(nullPatch.getEndingMarkers(), 0);
   });
 });
 
