@@ -74,4 +74,34 @@ describe('GitTabItem', function() {
       assert.isTrue(spies[method].called);
     }
   });
+
+  describe('destroy and terminatePendingState should be overridden as no-ops', function() {
+    it('does not destroy', async function() {
+      mount(buildApp());
+      const item = await atomEnv.workspace.open(GitTabItem.buildURI());
+      const callback = sinon.spy();
+      const sub = item.onDidDestroy(callback);
+
+      assert.strictEqual(callback.callCount, 0);
+      item.destroy();
+      assert.strictEqual(callback.callCount, 0);
+
+      sub.dispose();
+    });
+
+    it('does not terminate pending state', async function() {
+      mount(buildApp());
+
+      const item = await atomEnv.workspace.open(GitTabItem.buildURI());
+      const callback = sinon.spy();
+      const sub = item.onDidTerminatePendingState(callback);
+
+      assert.strictEqual(callback.callCount, 0);
+      item.terminatePendingState();
+      assert.strictEqual(callback.callCount, 0);
+
+      sub.dispose();
+    });
+  });
+
 });
