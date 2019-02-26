@@ -1176,5 +1176,37 @@ describe('MultiFilePatch', function() {
         }
       });
     });
+
+    describe('when a file patch has no content', function() {
+      it('collapses and expands', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt').executable());
+            fp.setNewFile(f => f.path('0.txt'));
+            fp.empty();
+          })
+          .build();
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+        const [fp0] = multiFilePatch.getFilePatches();
+
+        multiFilePatch.collapseFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+        assert.isTrue(fp0.getMarker().isValid());
+        assert.isFalse(fp0.getMarker().isDestroyed());
+
+        multiFilePatch.expandFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+        assert.isTrue(fp0.getMarker().isValid());
+        assert.isFalse(fp0.getMarker().isDestroyed());
+      });
+    });
   });
 });
