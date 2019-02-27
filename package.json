@@ -15,6 +15,7 @@
     "codecov": "codecov",
     "report:coverage": "nyc report --reporter=cobertura --reporter=html --reporter=lcovonly",
     "lint": "eslint --max-warnings 0 test lib",
+    "format": "eslint --fix test lib",
     "fetch-schema": "node script/fetch-schema",
     "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql"
   },
