@@ -183,32 +183,16 @@
   // Line decorations
 
   &-line {
-    // mixin
-    .hunk-line-mixin(@color) {
-      background-color: fade(@color, 15%);
-
+    &--deleted {
+      background-color: @github-diff-deleted;
       &.line.cursor-line {
-        background-color: fade(@color, 25%);
+        background-color: fadein(@github-diff-deleted, 3%);
       }
     }
-
-    // light themes
-    & when (lightness(@syntax-background-color) >= 50) {
-      &--deleted {
-        .hunk-line-mixin( hsl(353, 100%, 55%) ); // close to .com's hsl(353, 100%, 93%)
-      }
-      &--added {
-        .hunk-line-mixin( hsl(133, 100%, 50%) ); // close to .com's hsl(133, 100%, 90%)
-      }
-    }
-
-    // dark themes
-    & when (lightness(@syntax-background-color) < 50) {
-      &--deleted {
-        .hunk-line-mixin( hsl(353, 100%, 65%) ); // close to .com's hsl(353, 100%, 93%)
-      }
-      &--added {
-        .hunk-line-mixin( hsl(133, 40%, 60%) ); // close to .com's hsl(133, 100%, 90%)
+    &--added {
+      background-color: @github-diff-added;
+      &.line.cursor-line {
+        background-color: fadein(@github-diff-added, 3%);
       }
     }
   }
