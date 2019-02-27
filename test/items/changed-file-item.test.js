@@ -7,7 +7,7 @@ import ChangedFileItem from '../../lib/items/changed-file-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {cloneRepository} from '../helpers';
 
-describe('ChangedFileItem', function() {
+describe.only('ChangedFileItem', function() {
   let atomEnv, repository, pool;
 
   beforeEach(async function() {
