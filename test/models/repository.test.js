@@ -2363,9 +2363,9 @@ describe('Repository', function() {
         'getFilePatchForPath {unstaged} a.txt',
         'getFilePatchForPath {unstaged} b.txt',
         'getFilePatchForPath {unstaged} c.txt',
-        'getFilePatchForPath {unstaged} subdir-1/a.txt',
-        'getFilePatchForPath {unstaged} subdir-1/b.txt',
-        'getFilePatchForPath {unstaged} subdir-1/c.txt',
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/a.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/b.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/c.txt')}`,
       ]);
     });
   });
