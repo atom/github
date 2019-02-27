@@ -30,6 +30,7 @@
   "rules": {
     "linebreak-style": "off",
     "no-param-reassign": "off",
+    "no-unused-vars": "off",
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/anchor-is-valid": "error",
     "prettier/prettier": "error"
