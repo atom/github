@@ -130,6 +130,31 @@ describe('AtomTextEditor', function() {
       });
     });
 
+    it('defaults to no-op handlers', function() {
+      mount(
+        <AtomTextEditor
+          workspace={workspace}
+          refModel={refModel}
+          buffer={buffer}
+        />,
+      );
+
+      const editor = refModel.get();
+
+      // Trigger didChangeCursorPosition
+      editor.setCursorBufferPosition([2, 3]);
+
+      // Trigger didAddSelection
+      editor.addSelectionForBufferRange([[1, 0], [3, 3]]);
+
+      // Trigger didChangeSelectionRange
+      const [selection] = editor.getSelections();
+      selection.setBufferRange([[2, 2], [2, 3]]);
+
+      // Trigger didDestroySelection
+      editor.setSelectedBufferRange([[1, 0], [1, 2]]);
+    });
+
     it('triggers didChangeCursorPosition when the cursor position changes', function() {
       mount(
         <AtomTextEditor
