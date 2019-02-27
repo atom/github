@@ -158,10 +158,7 @@ describe('AsyncQueue', function() {
       return new Promise(res => res(2));
     });
 
-    try {
-      await p1;
-      throw new Error('expected p1 to be rejectd');
-    } catch (err) {}
+    await assert.isRejected(p1);
     assert.equal(await p2, 2);
   });
 });
