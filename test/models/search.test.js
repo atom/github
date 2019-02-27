@@ -6,7 +6,10 @@ describe('Search', function() {
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
 
   it('generates a dotcom URL', function() {
-    const s = new Search('foo', 'repo:smashwilson/remote-repo type:pr something with spaces');
+    const s = new Search(
+      'foo',
+      'repo:smashwilson/remote-repo type:pr something with spaces',
+    );
     assert.strictEqual(
       s.getWebURL(origin),
       'https://github.com/search?q=repo%3Asmashwilson%2Fremote-repo%20type%3Apr%20something%20with%20spaces',
@@ -35,7 +38,9 @@ describe('Search', function() {
     });
 
     it('uses a default empty list tile', function() {
-      assert.isFalse(Search.inRemote(origin, 'name', 'query').showCreateOnEmpty());
+      assert.isFalse(
+        Search.inRemote(origin, 'name', 'query').showCreateOnEmpty(),
+      );
     });
   });
 });

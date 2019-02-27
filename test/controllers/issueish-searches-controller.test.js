@@ -16,7 +16,11 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 describe('IssueishSearchesController', function() {
   let atomEnv;
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
-  const upstreamMaster = Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master');
+  const upstreamMaster = Branch.createRemoteTracking(
+    'origin/master',
+    'origin',
+    'refs/heads/master',
+  );
   const master = new Branch('master', upstreamMaster);
 
   beforeEach(function() {
@@ -36,7 +40,6 @@ describe('IssueishSearchesController', function() {
         token="1234"
         endpoint={getEndpoint('github.com')}
         repository={createRepositoryResult()}
-
         remoteOperationObserver={nullOperationStateObserver}
         workingDirectory={__dirname}
         workspace={atomEnv.workspace}
@@ -45,9 +48,7 @@ describe('IssueishSearchesController', function() {
         branches={branches}
         aheadCount={0}
         pushInProgress={false}
-
         onCreatePr={() => {}}
-
         {...overloadProps}
       />
     );
@@ -73,7 +74,11 @@ describe('IssueishSearchesController', function() {
     assert.isTrue(container.exists());
 
     for (const key in p) {
-      assert.strictEqual(container.prop(key), p[key], `expected prop ${key} to be passed`);
+      assert.strictEqual(
+        container.prop(key),
+        p[key],
+        `expected prop ${key} to be passed`,
+      );
     }
   });
 
@@ -82,7 +87,9 @@ describe('IssueishSearchesController', function() {
     assert.isTrue(wrapper.state('searches').length > 0);
 
     for (const search of wrapper.state('searches')) {
-      const list = wrapper.find('IssueishSearchContainer').filterWhere(w => w.prop('search') === search);
+      const list = wrapper
+        .find('IssueishSearchContainer')
+        .filterWhere(w => w.prop('search') === search);
       assert.isTrue(list.exists());
       assert.strictEqual(list.prop('token'), '1234');
       assert.strictEqual(list.prop('endpoint').getHost(), 'github.com');
@@ -101,10 +108,17 @@ describe('IssueishSearchesController', function() {
     await container.prop('onOpenIssueish')(issueish);
     assert.isTrue(
       atomEnv.workspace.open.calledWith(
-        `atom-github://issueish/github.com/atom/github/123?workdir=${encodeURIComponent(__dirname)}`,
+        `atom-github://issueish/github.com/atom/github/123?workdir=${encodeURIComponent(
+          __dirname,
+        )}`,
         {pending: true, searchAllPanes: true},
       ),
     );
-    assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-list'}));
+    assert.isTrue(
+      reporterProxy.addEvent.calledWith('open-issueish-in-pane', {
+        package: 'github',
+        from: 'issueish-list',
+      }),
+    );
   });
 });

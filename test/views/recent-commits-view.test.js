@@ -17,10 +17,10 @@ describe('RecentCommitsView', function() {
         isLoading={false}
         selectedCommitSha=""
         commandRegistry={atomEnv.commands}
-        undoLastCommit={() => { }}
-        openCommit={() => { }}
-        selectNextCommit={() => { }}
-        selectPreviousCommit={() => { }}
+        undoLastCommit={() => {}}
+        openCommit={() => {}}
+        selectNextCommit={() => {}}
+        selectPreviousCommit={() => {}}
       />
     );
   });
@@ -34,7 +34,10 @@ describe('RecentCommitsView', function() {
     const wrapper = shallow(app);
 
     assert.isFalse(wrapper.find('RecentCommitView').exists());
-    assert.strictEqual(wrapper.find('.github-RecentCommits-message').text(), 'Recent commits');
+    assert.strictEqual(
+      wrapper.find('.github-RecentCommits-message').text(),
+      'Recent commits',
+    );
   });
 
   it('shows a prompting message while commits are empty and not loading', function() {
@@ -42,24 +45,44 @@ describe('RecentCommitsView', function() {
     const wrapper = shallow(app);
 
     assert.isFalse(wrapper.find('RecentCommitView').exists());
-    assert.strictEqual(wrapper.find('.github-RecentCommits-message').text(), 'Make your first commit');
+    assert.strictEqual(
+      wrapper.find('.github-RecentCommits-message').text(),
+      'Make your first commit',
+    );
   });
 
   it('renders a RecentCommitView for each commit', function() {
-    const commits = ['1', '2', '3'].map(sha => commitBuilder().sha(sha).build());
+    const commits = ['1', '2', '3'].map(sha =>
+      commitBuilder()
+        .sha(sha)
+        .build(),
+    );
 
     app = React.cloneElement(app, {commits});
     const wrapper = shallow(app);
 
-    assert.deepEqual(wrapper.find('RecentCommitView').map(w => w.prop('commit')), commits);
+    assert.deepEqual(
+      wrapper.find('RecentCommitView').map(w => w.prop('commit')),
+      commits,
+    );
   });
 
   it('scrolls the selected RecentCommitView into visibility', function() {
-    const commits = ['0', '1', '2', '3'].map(sha => commitBuilder().sha(sha).build());
+    const commits = ['0', '1', '2', '3'].map(sha =>
+      commitBuilder()
+        .sha(sha)
+        .build(),
+    );
 
     app = React.cloneElement(app, {commits, selectedCommitSha: '1'});
     const wrapper = mount(app);
-    const scrollSpy = sinon.spy(wrapper.find('RecentCommitView').at(3).getDOMNode(), 'scrollIntoViewIfNeeded');
+    const scrollSpy = sinon.spy(
+      wrapper
+        .find('RecentCommitView')
+        .at(3)
+        .getDOMNode(),
+      'scrollIntoViewIfNeeded',
+    );
 
     wrapper.setProps({selectedCommitSha: '3'});
 
@@ -67,20 +90,29 @@ describe('RecentCommitsView', function() {
   });
 
   it('renders emojis in the commit subject', function() {
-    const commits = [commitBuilder().messageSubject(':heart: :shirt: :smile:').build()];
+    const commits = [
+      commitBuilder()
+        .messageSubject(':heart: :shirt: :smile:')
+        .build(),
+    ];
 
     app = React.cloneElement(app, {commits});
     const wrapper = mount(app);
-    assert.strictEqual(wrapper.find('.github-RecentCommit-message').text(), '❤️ 👕 😄');
+    assert.strictEqual(
+      wrapper.find('.github-RecentCommit-message').text(),
+      '❤️ 👕 😄',
+    );
   });
 
   it('renders an avatar corresponding to the GitHub user who authored the commit', function() {
-    const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map((authorEmail, i) => {
-      return commitBuilder()
-        .sha(`1111111111${i}`)
-        .authorEmail(authorEmail)
-        .build();
-    });
+    const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map(
+      (authorEmail, i) => {
+        return commitBuilder()
+          .sha(`1111111111${i}`)
+          .authorEmail(authorEmail)
+          .build();
+      },
+    );
 
     app = React.cloneElement(app, {commits});
     const wrapper = mount(app);
@@ -116,15 +148,25 @@ describe('RecentCommitsView', function() {
   });
 
   it("renders the commit's relative age", function() {
-    const commit = commitBuilder().authorDate(1519848555).build();
+    const commit = commitBuilder()
+      .authorDate(1519848555)
+      .build();
 
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
-    assert.isTrue(wrapper.find('Timeago').prop('time').isSame(1519848555000));
+    assert.isTrue(
+      wrapper
+        .find('Timeago')
+        .prop('time')
+        .isSame(1519848555000),
+    );
   });
 
   it('renders emoji in the title attribute', function() {
-    const commit = commitBuilder().messageSubject(':heart:').messageBody('and a commit body').build();
+    const commit = commitBuilder()
+      .messageSubject(':heart:')
+      .messageBody('and a commit body')
+      .build();
 
     app = React.cloneElement(app, {commits: [commit]});
     const wrapper = mount(app);
@@ -147,20 +189,31 @@ describe('RecentCommitsView', function() {
     assert.strictEqual(
       wrapper.find('.github-RecentCommit-message').prop('title'),
       'really really really really really really really long\n\n' +
-      'and a commit body',
+        'and a commit body',
     );
   });
 
   it('opens a commit on click, preserving keyboard focus', function() {
     const openCommit = sinon.spy();
     const commits = [
-      commitBuilder().sha('0').build(),
-      commitBuilder().sha('1').build(),
-      commitBuilder().sha('2').build(),
+      commitBuilder()
+        .sha('0')
+        .build(),
+      commitBuilder()
+        .sha('1')
+        .build(),
+      commitBuilder()
+        .sha('2')
+        .build(),
     ];
-    const wrapper = mount(React.cloneElement(app, {commits, openCommit, selectedCommitSha: '2'}));
+    const wrapper = mount(
+      React.cloneElement(app, {commits, openCommit, selectedCommitSha: '2'}),
+    );
 
-    wrapper.find('RecentCommitView').at(1).simulate('click');
+    wrapper
+      .find('RecentCommitView')
+      .at(1)
+      .simulate('click');
 
     assert.isTrue(openCommit.calledWith({sha: '1', preserveFocus: true}));
   });
@@ -186,7 +239,9 @@ describe('RecentCommitsView', function() {
 
     it('opens the currently selected commit and does not preserve focus on github:dive', function() {
       const openCommit = sinon.spy();
-      const wrapper = mount(React.cloneElement(app, {openCommit, selectedCommitSha: '1234'}));
+      const wrapper = mount(
+        React.cloneElement(app, {openCommit, selectedCommitSha: '1234'}),
+      );
 
       atomEnv.commands.dispatch(wrapper.getDOMNode(), 'github:dive');
 

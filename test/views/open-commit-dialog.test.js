@@ -31,7 +31,11 @@ describe('OpenCommitDialog', function() {
   });
 
   const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
+    wrapper
+      .find(selector)
+      .getDOMNode()
+      .getModel()
+      .setText(text);
   };
 
   describe('entering a commit sha', function() {
@@ -65,7 +69,13 @@ describe('OpenCommitDialog', function() {
       setTextIn('.github-CommitRef atom-text-editor', ref);
       wrapper.find('button.icon-commit').simulate('click');
 
-      await assert.async.strictEqual(wrapper.update().find('.error').text(), `There is no commit associated with "${ref}" in this repository`);
+      await assert.async.strictEqual(
+        wrapper
+          .update()
+          .find('.error')
+          .text(),
+        `There is no commit associated with "${ref}" in this repository`,
+      );
       assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
     });
 

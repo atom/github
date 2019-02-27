@@ -6,12 +6,24 @@ import FilePatch from '../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../lib/models/patch/file';
 import Patch from '../../lib/models/patch/patch';
 import Hunk from '../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../lib/models/patch/region';
+import {
+  Unchanged,
+  Addition,
+  Deletion,
+  NoNewline,
+} from '../../lib/models/patch/region';
 
 class LayeredBuffer {
   constructor() {
     this.buffer = new TextBuffer();
-    this.layers = ['patch', 'hunk', 'unchanged', 'addition', 'deletion', 'noNewline'].reduce((layers, name) => {
+    this.layers = [
+      'patch',
+      'hunk',
+      'unchanged',
+      'addition',
+      'deletion',
+      'noNewline',
+    ].reduce((layers, name) => {
       layers[name] = this.buffer.addMarkerLayer();
       return layers;
     }, {});
@@ -33,7 +45,10 @@ class LayeredBuffer {
     const startPosition = this.buffer.getEndPosition();
     const layer = this.getLayer(markerLayerName);
     this.buffer.append(lines.join('\n'));
-    const marker = layer.markRange([startPosition, this.buffer.getEndPosition()], {exclusive: true});
+    const marker = layer.markRange(
+      [startPosition, this.buffer.getEndPosition()],
+      {exclusive: true},
+    );
     this.buffer.append('\n');
     return marker;
   }
@@ -167,7 +182,13 @@ class FileBuilder {
   }
 
   build() {
-    return {file: new File({path: this._path, mode: this._mode, symlink: this._symlink})};
+    return {
+      file: new File({
+        path: this._path,
+        mode: this._mode,
+        symlink: this._symlink,
+      }),
+    };
   }
 }
 
@@ -185,7 +206,9 @@ class PatchBuilder {
 
   status(st) {
     if (['modified', 'added', 'deleted'].indexOf(st) === -1) {
-      throw new Error(`Unrecognized status: ${st} (must be 'modified', 'added' or 'deleted')`);
+      throw new Error(
+        `Unrecognized status: ${st} (must be 'modified', 'added' or 'deleted')`,
+      );
     }
 
     this._status = st;
@@ -209,12 +232,30 @@ class PatchBuilder {
   build() {
     if (this.hunks.length === 0 && !this.explicitlyEmpty) {
       if (this._status === 'modified') {
-        this.addHunk(hunk => hunk.oldRow(1).unchanged('0000').added('0001').deleted('0002').unchanged('0003'));
-        this.addHunk(hunk => hunk.oldRow(10).unchanged('0004').added('0005').deleted('0006').unchanged('0007'));
+        this.addHunk(hunk =>
+          hunk
+            .oldRow(1)
+            .unchanged('0000')
+            .added('0001')
+            .deleted('0002')
+            .unchanged('0003'),
+        );
+        this.addHunk(hunk =>
+          hunk
+            .oldRow(10)
+            .unchanged('0004')
+            .added('0005')
+            .deleted('0006')
+            .unchanged('0007'),
+        );
       } else if (this._status === 'added') {
-        this.addHunk(hunk => hunk.oldRow(1).added('0000', '0001', '0002', '0003'));
+        this.addHunk(hunk =>
+          hunk.oldRow(1).added('0000', '0001', '0002', '0003'),
+        );
       } else if (this._status === 'deleted') {
-        this.addHunk(hunk => hunk.oldRow(1).deleted('0000', '0001', '0002', '0003'));
+        this.addHunk(hunk =>
+          hunk.oldRow(1).deleted('0000', '0001', '0002', '0003'),
+        );
       }
     }
 
@@ -248,36 +289,55 @@ class HunkBuilder {
   }
 
   unchanged(...lines) {
-    this.regions.push(new Unchanged(this.layeredBuffer.appendMarked('unchanged', lines)));
+    this.regions.push(
+      new Unchanged(this.layeredBuffer.appendMarked('unchanged', lines)),
+    );
     return this;
   }
 
   added(...lines) {
-    this.regions.push(new Addition(this.layeredBuffer.appendMarked('addition', lines)));
+    this.regions.push(
+      new Addition(this.layeredBuffer.appendMarked('addition', lines)),
+    );
     return this;
   }
 
   deleted(...lines) {
-    this.regions.push(new Deletion(this.layeredBuffer.appendMarked('deletion', lines)));
+    this.regions.push(
+      new Deletion(this.layeredBuffer.appendMarked('deletion', lines)),
+    );
     return this;
   }
 
   noNewline() {
-    this.regions.push(new NoNewline(this.layeredBuffer.appendMarked('noNewline', [' No newline at end of file'])));
+    this.regions.push(
+      new NoNewline(
+        this.layeredBuffer.appendMarked('noNewline', [
+          ' No newline at end of file',
+        ]),
+      ),
+    );
     return this;
   }
 
   build() {
     if (this.regions.length === 0) {
-      this.unchanged('0000').added('0001').deleted('0002').unchanged('0003');
+      this.unchanged('0000')
+        .added('0001')
+        .deleted('0002')
+        .unchanged('0003');
     }
 
     if (this.oldRowCount === null) {
-      this.oldRowCount = this.regions.reduce((count, region) => region.when({
-        unchanged: () => count + region.bufferRowCount(),
-        deletion: () => count + region.bufferRowCount(),
-        default: () => count,
-      }), 0);
+      this.oldRowCount = this.regions.reduce(
+        (count, region) =>
+          region.when({
+            unchanged: () => count + region.bufferRowCount(),
+            deletion: () => count + region.bufferRowCount(),
+            default: () => count,
+          }),
+        0,
+      );
     }
 
     if (this.newStartRow === null) {
@@ -285,11 +345,15 @@ class HunkBuilder {
     }
 
     if (this.newRowCount === null) {
-      this.newRowCount = this.regions.reduce((count, region) => region.when({
-        unchanged: () => count + region.bufferRowCount(),
-        addition: () => count + region.bufferRowCount(),
-        default: () => count,
-      }), 0);
+      this.newRowCount = this.regions.reduce(
+        (count, region) =>
+          region.when({
+            unchanged: () => count + region.bufferRowCount(),
+            addition: () => count + region.bufferRowCount(),
+            default: () => count,
+          }),
+        0,
+      );
     }
 
     const marker = this.layeredBuffer.markFrom('hunk', this.hunkStartPoint);

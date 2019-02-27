@@ -9,7 +9,8 @@ describe('integration: opening and closing tabs', function() {
   beforeEach(async function() {
     context = await setup({
       initialRoots: ['three-files'],
-      initConfigDir: configDirPath => fs.writeFile(path.join(configDirPath, 'github.cson'), ''),
+      initConfigDir: configDirPath =>
+        fs.writeFile(path.join(configDirPath, 'github.cson'), ''),
       state: {newProject: false},
     });
 
@@ -76,7 +77,12 @@ describe('integration: opening and closing tabs', function() {
 
     assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    assert.isTrue(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
+    assert.isTrue(
+      wrapper
+        .find('.github-Git[tabIndex]')
+        .getDOMNode()
+        .contains(document.activeElement),
+    );
   });
 
   it('focuses a blurred git tab on github:toggle-git-tab-focus', async function() {
@@ -85,12 +91,22 @@ describe('integration: opening and closing tabs', function() {
 
     assert.isTrue(wrapper.find('.github-Git').exists());
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    await assert.async.isFalse(wrapper.find('.github-Git[tabIndex]').getDOMNode().contains(document.activeElement));
+    await assert.async.isFalse(
+      wrapper
+        .find('.github-Git[tabIndex]')
+        .getDOMNode()
+        .contains(document.activeElement),
+    );
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();
 
-    assert.isTrue(wrapper.find('.github-StagingView').getDOMNode().contains(document.activeElement));
+    assert.isTrue(
+      wrapper
+        .find('.github-StagingView')
+        .getDOMNode()
+        .contains(document.activeElement),
+    );
   });
 
   it('blurs an open and focused git tab on github:toggle-git-tab-focus', async function() {
@@ -100,15 +116,24 @@ describe('integration: opening and closing tabs', function() {
     wrapper.update();
 
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
-    assert.isTrue(wrapper.find('.github-StagingView').getDOMNode().contains(document.activeElement));
+    assert.isTrue(
+      wrapper
+        .find('.github-StagingView')
+        .getDOMNode()
+        .contains(document.activeElement),
+    );
 
     await commands.dispatch(workspaceElement, 'github:toggle-git-tab-focus');
     wrapper.update();
 
     assert.isTrue(atomEnv.workspace.getRightDock().isVisible());
     assert.isTrue(wrapper.find('.github-StagingView').exists());
-    assert.isFalse(wrapper.find('.github-StagingView').getDOMNode().contains(document.activeElement));
+    assert.isFalse(
+      wrapper
+        .find('.github-StagingView')
+        .getDOMNode()
+        .contains(document.activeElement),
+    );
     assert.strictEqual(atomEnv.workspace.getActivePaneItem(), editor);
   });
-
 });

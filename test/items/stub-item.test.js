@@ -7,14 +7,28 @@ class RealItem {
     this.emitter = new Emitter();
   }
 
-  getTitle() { return 'real-title'; }
-  getIconName() { return 'real-icon-name'; }
-  getOne() { return 1; }
-  getElement() { return 'real-element'; }
+  getTitle() {
+    return 'real-title';
+  }
+  getIconName() {
+    return 'real-icon-name';
+  }
+  getOne() {
+    return 1;
+  }
+  getElement() {
+    return 'real-element';
+  }
 
-  onDidChangeTitle(cb) { return this.emitter.on('did-change-title', cb); }
-  onDidChangeIcon(cb) { return this.emitter.on('did-change-icon', cb); }
-  onDidDestroy(cb) { return this.emitter.on('did-destroy', cb); }
+  onDidChangeTitle(cb) {
+    return this.emitter.on('did-change-title', cb);
+  }
+  onDidChangeIcon(cb) {
+    return this.emitter.on('did-change-icon', cb);
+  }
+  onDidDestroy(cb) {
+    return this.emitter.on('did-destroy', cb);
+  }
 
   destroy() {
     this.emitter.emit('did-destroy');

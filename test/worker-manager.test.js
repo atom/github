@@ -52,18 +52,27 @@ describe('WorkerManager', function() {
       const worker2 = workerManager.getActiveWorker();
       await worker2.getReadyPromise();
       assert.notEqual(worker2.getPid(), worker1Pid);
-      assert.equal(worker2.getOperationCountLimit(), worker1.getOperationCountLimit());
-      assert.deepEqual(worker2.getRemainingOperations(), worker1OperationsInFlight);
+      assert.equal(
+        worker2.getOperationCountLimit(),
+        worker1.getOperationCountLimit(),
+      );
+      assert.deepEqual(
+        worker2.getRemainingOperations(),
+        worker1OperationsInFlight,
+      );
     });
   });
 
   describe('when a worker process is sick', function() {
     it('creates a new worker with a new operation count limit that is based on the limit and completed operation count of the last worker', function() {
-
       function createSickWorker(operationCountLimit, completedOperationCount) {
         const sickWorker = workerManager.getActiveWorker();
-        sinon.stub(sickWorker, 'getOperationCountLimit').returns(operationCountLimit);
-        sinon.stub(sickWorker, 'getCompletedOperationCount').returns(completedOperationCount);
+        sinon
+          .stub(sickWorker, 'getOperationCountLimit')
+          .returns(operationCountLimit);
+        sinon
+          .stub(sickWorker, 'getCompletedOperationCount')
+          .returns(completedOperationCount);
         return sickWorker;
       }
 
@@ -73,24 +82,36 @@ describe('WorkerManager', function() {
       const sickWorker1 = createSickWorker(10, 9);
       workerManager.onSick(sickWorker1);
       assert.notEqual(sickWorker1, workerManager.getActiveWorker());
-      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 20);
+      assert.equal(
+        workerManager.getActiveWorker().getOperationCountLimit(),
+        20,
+      );
 
       const sickWorker2 = createSickWorker(50, 50);
       workerManager.onSick(sickWorker2);
       assert.notEqual(sickWorker2, workerManager.getActiveWorker());
-      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 100);
+      assert.equal(
+        workerManager.getActiveWorker().getOperationCountLimit(),
+        100,
+      );
 
       const sickWorker3 = createSickWorker(100, 100);
       workerManager.onSick(sickWorker3);
       assert.notEqual(sickWorker3, workerManager.getActiveWorker());
-      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 100);
+      assert.equal(
+        workerManager.getActiveWorker().getOperationCountLimit(),
+        100,
+      );
 
       // when the last worker operation count limit was less than the completed operation count
       // this means that the system is performing better and we can drop the operationCountLimit back down to the base limit
       const sickWorker4 = createSickWorker(100, 150);
       workerManager.onSick(sickWorker4);
       assert.notEqual(sickWorker4, workerManager.getActiveWorker());
-      assert.equal(workerManager.getActiveWorker().getOperationCountLimit(), 10);
+      assert.equal(
+        workerManager.getActiveWorker().getOperationCountLimit(),
+        10,
+      );
     });
 
     describe('when the sick process crashes', function() {
@@ -141,7 +162,9 @@ describe('WorkerManager', function() {
       assert.isTrue(isProcessAlive(worker1.getPid()));
       assert.isTrue(isProcessAlive(worker2.getPid()));
 
-      [...worker1Operations, ...worker2Operations].forEach(operation => operation.complete());
+      [...worker1Operations, ...worker2Operations].forEach(operation =>
+        operation.complete(),
+      );
       await assert.async.isFalse(isProcessAlive(worker1.getPid()));
       await assert.async.isFalse(isProcessAlive(worker2.getPid()));
     });
@@ -151,9 +174,13 @@ describe('WorkerManager', function() {
     it('destroys all the renderer processes that were created', async function() {
       this.retries(5); // FLAKE
 
-      const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
+      const browserWindow = new BrowserWindow({
+        show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW,
+      });
       browserWindow.loadURL('about:blank');
-      sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
+      sinon
+        .stub(Worker.prototype, 'getWebContentsId')
+        .returns(browserWindow.webContents.id);
 
       const script = `
       const ipc = require('electron').ipcRenderer;
@@ -167,7 +194,9 @@ describe('WorkerManager', function() {
       });
       `;
 
-      await new Promise(resolve => browserWindow.webContents.executeJavaScript(script, resolve));
+      await new Promise(resolve =>
+        browserWindow.webContents.executeJavaScript(script, resolve),
+      );
 
       workerManager.destroy(true);
       workerManager = new WorkerManager();

@@ -31,6 +31,11 @@ describe('ChangedFilesCountView', function() {
     sinon.stub(reporterProxy, 'addEvent');
     wrapper = shallow(<ChangedFilesCountView />);
     wrapper.simulate('click');
-    assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'ChangedFileCountView'}));
+    assert.isTrue(
+      reporterProxy.addEvent.calledWith('click', {
+        package: 'github',
+        component: 'ChangedFileCountView',
+      }),
+    );
   });
 });

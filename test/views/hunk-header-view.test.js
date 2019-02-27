@@ -12,7 +12,12 @@ describe('HunkHeaderView', function() {
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     hunk = new Hunk({
-      oldStartRow: 0, oldRowCount: 10, newStartRow: 1, newRowCount: 11, sectionHeading: 'section heading', changes: [],
+      oldStartRow: 0,
+      oldRowCount: 10,
+      newStartRow: 1,
+      newRowCount: 11,
+      sectionHeading: 'section heading',
+      changes: [],
     });
   });
 
@@ -30,13 +35,10 @@ describe('HunkHeaderView', function() {
         stagingStatus={'unstaged'}
         toggleSelectionLabel={'default'}
         discardSelectionLabel={'default'}
-
         tooltips={atomEnv.tooltips}
         keymaps={atomEnv.keymaps}
-
         toggleSelection={() => {}}
         discardSelection={() => {}}
-
         {...overrideProps}
       />
     );
@@ -44,28 +46,49 @@ describe('HunkHeaderView', function() {
 
   it('applies a CSS class when selected', function() {
     const wrapper = shallow(buildApp({isSelected: true}));
-    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isSelected'));
+    assert.isTrue(
+      wrapper
+        .find('.github-HunkHeaderView')
+        .hasClass('github-HunkHeaderView--isSelected'),
+    );
 
     wrapper.setProps({isSelected: false});
-    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isSelected'));
+    assert.isFalse(
+      wrapper
+        .find('.github-HunkHeaderView')
+        .hasClass('github-HunkHeaderView--isSelected'),
+    );
   });
 
   it('applies a CSS class in hunk selection mode', function() {
     const wrapper = shallow(buildApp({selectionMode: 'hunk'}));
-    assert.isTrue(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isHunkMode'));
+    assert.isTrue(
+      wrapper
+        .find('.github-HunkHeaderView')
+        .hasClass('github-HunkHeaderView--isHunkMode'),
+    );
 
     wrapper.setProps({selectionMode: 'line'});
-    assert.isFalse(wrapper.find('.github-HunkHeaderView').hasClass('github-HunkHeaderView--isHunkMode'));
+    assert.isFalse(
+      wrapper
+        .find('.github-HunkHeaderView')
+        .hasClass('github-HunkHeaderView--isHunkMode'),
+    );
   });
 
   it('renders the hunk header title', function() {
     const wrapper = shallow(buildApp());
-    assert.strictEqual(wrapper.find('.github-HunkHeaderView-title').text(), '@@ -0,10 +1,11 @@ section heading');
+    assert.strictEqual(
+      wrapper.find('.github-HunkHeaderView-title').text(),
+      '@@ -0,10 +1,11 @@ section heading',
+    );
   });
 
   it('renders a button to toggle the selection', function() {
     const toggleSelection = sinon.stub();
-    const wrapper = shallow(buildApp({toggleSelectionLabel: 'Do the thing', toggleSelection}));
+    const wrapper = shallow(
+      buildApp({toggleSelectionLabel: 'Do the thing', toggleSelection}),
+    );
     const button = wrapper.find('button.github-HunkHeaderView-stageButton');
     assert.strictEqual(button.render().text(), 'Do the thing');
     button.simulate('click');
@@ -83,7 +106,9 @@ describe('HunkHeaderView', function() {
       },
     });
 
-    const wrapper = shallow(buildApp({toggleSelectionLabel: 'text', refTarget}));
+    const wrapper = shallow(
+      buildApp({toggleSelectionLabel: 'text', refTarget}),
+    );
     const keystroke = wrapper.find('Keystroke');
     assert.strictEqual(keystroke.prop('command'), 'core:confirm');
     assert.strictEqual(keystroke.prop('refTarget'), refTarget);
@@ -91,7 +116,13 @@ describe('HunkHeaderView', function() {
 
   it('renders a button to discard an unstaged selection', function() {
     const discardSelection = sinon.stub();
-    const wrapper = shallow(buildApp({stagingStatus: 'unstaged', discardSelectionLabel: 'Nope', discardSelection}));
+    const wrapper = shallow(
+      buildApp({
+        stagingStatus: 'unstaged',
+        discardSelectionLabel: 'Nope',
+        discardSelection,
+      }),
+    );
     const button = wrapper.find('button.github-HunkHeaderView-discardButton');
     assert.isTrue(button.exists());
     assert.isTrue(wrapper.find('Tooltip[title="Nope"]').exists());
@@ -113,7 +144,9 @@ describe('HunkHeaderView', function() {
     const wrapper = shallow(buildApp({mouseDown}));
 
     const evt = {stopPropagation: sinon.spy()};
-    wrapper.find('.github-HunkHeaderView-stageButton').simulate('mousedown', evt);
+    wrapper
+      .find('.github-HunkHeaderView-stageButton')
+      .simulate('mousedown', evt);
 
     assert.isFalse(mouseDown.called);
     assert.isTrue(evt.stopPropagation.called);
@@ -122,6 +155,8 @@ describe('HunkHeaderView', function() {
   it('does not render extra buttons when in a CommitDetailItem', function() {
     const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
     assert.isFalse(wrapper.find('.github-HunkHeaderView-stageButton').exists());
-    assert.isFalse(wrapper.find('.github-HunkHeaderView-discardButton').exists());
+    assert.isFalse(
+      wrapper.find('.github-HunkHeaderView-discardButton').exists(),
+    );
   });
 });

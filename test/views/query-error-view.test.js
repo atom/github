@@ -28,17 +28,16 @@ describe('QueryErrorView', function() {
   it('renders GraphQL error messages', function() {
     const error = new Error('GraphQL error');
     error.response = {status: 200, text: () => ''};
-    error.errors = [
-      {message: 'first error'},
-      {message: 'second error'},
-    ];
+    error.errors = [{message: 'first error'}, {message: 'second error'}];
     error.rawStack = error.stack;
 
     const wrapper = shallow(buildApp({error}));
-    assert.isTrue(wrapper.find('ErrorView').someWhere(n => {
-      const ds = n.prop('descriptions');
-      return ds.includes('first error') && ds.includes('second error');
-    }));
+    assert.isTrue(
+      wrapper.find('ErrorView').someWhere(n => {
+        const ds = n.prop('descriptions');
+        return ds.includes('first error') && ds.includes('second error');
+      }),
+    );
   });
 
   it('renders the error response directly for an unrecognized error status', function() {
@@ -51,8 +50,13 @@ describe('QueryErrorView', function() {
 
     const wrapper = shallow(buildApp({error}));
 
-    assert.isTrue(wrapper.find('ErrorView').someWhere(n => {
-      return n.prop('descriptions').includes('response text') && n.prop('preformatted');
-    }));
+    assert.isTrue(
+      wrapper.find('ErrorView').someWhere(n => {
+        return (
+          n.prop('descriptions').includes('response text') &&
+          n.prop('preformatted')
+        );
+      }),
+    );
   });
 });

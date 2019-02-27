@@ -3,7 +3,10 @@ import {CompositeDisposable} from 'event-kit';
 import {setUpLocalAndRemoteRepositories} from '../helpers';
 import Repository from '../../lib/models/repository';
 import getRepoPipelineManager from '../../lib/get-repo-pipeline-manager';
-import OperationStateObserver, {PUSH, FETCH} from '../../lib/models/operation-state-observer';
+import OperationStateObserver, {
+  PUSH,
+  FETCH,
+} from '../../lib/models/operation-state-observer';
 
 describe('OperationStateObserver', function() {
   let atomEnv, repository, observer, subs, handler;
@@ -13,7 +16,9 @@ describe('OperationStateObserver', function() {
 
     handler = sinon.stub();
 
-    const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+    const {localRepoPath} = await setUpLocalAndRemoteRepositories(
+      'multiple-commits',
+    );
     repository = new Repository(localRepoPath, null, {
       pipelineManager: getRepoPipelineManager({
         confirm: () => true,

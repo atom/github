@@ -33,41 +33,81 @@ describe('CloneDialog', function() {
   });
 
   const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
+    wrapper
+      .find(selector)
+      .getDOMNode()
+      .getModel()
+      .setText(text);
   };
 
   describe('entering a remote URL', function() {
     it("updates the project path automatically if it hasn't been modified", function() {
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/github.git',
+      );
 
-      assert.equal(wrapper.instance().getProjectPath(), path.join('home', 'me', 'codes', 'github'));
+      assert.equal(
+        wrapper.instance().getProjectPath(),
+        path.join('home', 'me', 'codes', 'github'),
+      );
     });
 
     it('updates the project path for https URLs', function() {
-      setTextIn('.github-CloneUrl atom-text-editor', 'https://github.com/smashwilson/slack-emojinator.git');
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'https://github.com/smashwilson/slack-emojinator.git',
+      );
 
-      assert.equal(wrapper.instance().getProjectPath(), path.join('home', 'me', 'codes', 'slack-emojinator'));
+      assert.equal(
+        wrapper.instance().getProjectPath(),
+        path.join('home', 'me', 'codes', 'slack-emojinator'),
+      );
     });
 
     it("doesn't update the project path if it has been modified", function() {
-      setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      setTextIn(
+        '.github-ProjectPath atom-text-editor',
+        path.join('somewhere', 'else'),
+      );
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/github.git',
+      );
 
-      assert.equal(wrapper.instance().getProjectPath(), path.join('somewhere', 'else'));
+      assert.equal(
+        wrapper.instance().getProjectPath(),
+        path.join('somewhere', 'else'),
+      );
     });
 
     it('does update the project path if it was modified automatically', function() {
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/atom1.git');
-      assert.equal(wrapper.instance().getProjectPath(), path.join('home', 'me', 'codes', 'atom1'));
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/atom1.git',
+      );
+      assert.equal(
+        wrapper.instance().getProjectPath(),
+        path.join('home', 'me', 'codes', 'atom1'),
+      );
 
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/atom2.git');
-      assert.equal(wrapper.instance().getProjectPath(), path.join('home', 'me', 'codes', 'atom2'));
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/atom2.git',
+      );
+      assert.equal(
+        wrapper.instance().getProjectPath(),
+        path.join('home', 'me', 'codes', 'atom2'),
+      );
     });
   });
 
   describe('clone button enablement', function() {
     it('disables the clone button with no remote URL', function() {
-      setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
+      setTextIn(
+        '.github-ProjectPath atom-text-editor',
+        path.join('somewhere', 'else'),
+      );
       setTextIn('.github-CloneUrl atom-text-editor', '');
       wrapper.update();
 
@@ -76,15 +116,24 @@ describe('CloneDialog', function() {
 
     it('disables the clone button with no project path', function() {
       setTextIn('.github-ProjectPath atom-text-editor', '');
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/github.git',
+      );
       wrapper.update();
 
       assert.isTrue(wrapper.find('button.icon-repo-clone').prop('disabled'));
     });
 
     it('enables the clone button when both text boxes are populated', function() {
-      setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
-      setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/github.git');
+      setTextIn(
+        '.github-ProjectPath atom-text-editor',
+        path.join('somewhere', 'else'),
+      );
+      setTextIn(
+        '.github-CloneUrl atom-text-editor',
+        'git@github.com:atom/github.git',
+      );
       wrapper.update();
 
       assert.isFalse(wrapper.find('button.icon-repo-clone').prop('disabled'));
@@ -93,11 +142,19 @@ describe('CloneDialog', function() {
 
   it('calls the acceptance callback', function() {
     setTextIn('.github-ProjectPath atom-text-editor', '/somewhere/directory/');
-    setTextIn('.github-CloneUrl atom-text-editor', 'git@github.com:atom/atom.git');
+    setTextIn(
+      '.github-CloneUrl atom-text-editor',
+      'git@github.com:atom/atom.git',
+    );
 
     wrapper.find('button.icon-repo-clone').simulate('click');
 
-    assert.isTrue(didAccept.calledWith('git@github.com:atom/atom.git', '/somewhere/directory/'));
+    assert.isTrue(
+      didAccept.calledWith(
+        'git@github.com:atom/atom.git',
+        '/somewhere/directory/',
+      ),
+    );
   });
 
   it('calls the cancellation callback', function() {

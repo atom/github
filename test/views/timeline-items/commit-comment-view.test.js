@@ -17,45 +17,73 @@ describe('CommitCommentView', function() {
   }
 
   it('renders comment data', function() {
-    const wrapper = shallow(buildApp({
-      commitOid: '0000ffff0000ffff',
-      authorLogin: 'me',
-      authorAvatarUrl: 'https://avatars2.githubusercontent.com/u/1?v=2',
-      bodyHTML: '<p>text here</p>',
-      createdAt: '2018-06-28T15:04:05Z',
-    }));
+    const wrapper = shallow(
+      buildApp({
+        commitOid: '0000ffff0000ffff',
+        authorLogin: 'me',
+        authorAvatarUrl: 'https://avatars2.githubusercontent.com/u/1?v=2',
+        bodyHTML: '<p>text here</p>',
+        createdAt: '2018-06-28T15:04:05Z',
+      }),
+    );
 
-    assert.isTrue(wrapper.find('Octicon[icon="comment"]').hasClass('pre-timeline-item-icon'));
+    assert.isTrue(
+      wrapper
+        .find('Octicon[icon="comment"]')
+        .hasClass('pre-timeline-item-icon'),
+    );
 
     const avatarImg = wrapper.find('img.author-avatar');
-    assert.strictEqual(avatarImg.prop('src'), 'https://avatars2.githubusercontent.com/u/1?v=2');
+    assert.strictEqual(
+      avatarImg.prop('src'),
+      'https://avatars2.githubusercontent.com/u/1?v=2',
+    );
     assert.strictEqual(avatarImg.prop('title'), 'me');
 
     const headerText = wrapper.find('.comment-message-header').text();
     assert.match(headerText, /^me commented/);
     assert.match(headerText, /in 0000fff/);
-    assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-06-28T15:04:05Z');
+    assert.strictEqual(
+      wrapper.find('Timeago').prop('time'),
+      '2018-06-28T15:04:05Z',
+    );
 
-    assert.strictEqual(wrapper.find('GithubDotcomMarkdown').prop('html'), '<p>text here</p>');
+    assert.strictEqual(
+      wrapper.find('GithubDotcomMarkdown').prop('html'),
+      '<p>text here</p>',
+    );
   });
 
   it('renders a reply comment', function() {
-    const wrapper = shallow(buildApp({
-      authorLogin: 'me',
-      createdAt: '2018-06-29T15:04:05Z',
-    }, {isReply: true}));
+    const wrapper = shallow(
+      buildApp(
+        {
+          authorLogin: 'me',
+          createdAt: '2018-06-29T15:04:05Z',
+        },
+        {isReply: true},
+      ),
+    );
 
     assert.isFalse(wrapper.find('.pre-timeline-item-icon').exists());
 
     assert.match(wrapper.find('.comment-message-header').text(), /^me replied/);
-    assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-06-29T15:04:05Z');
+    assert.strictEqual(
+      wrapper.find('Timeago').prop('time'),
+      '2018-06-29T15:04:05Z',
+    );
   });
 
   it('renders a path when available', function() {
-    const wrapper = shallow(buildApp({
-      commentPath: 'aaa/bbb/ccc.txt',
-    }));
+    const wrapper = shallow(
+      buildApp({
+        commentPath: 'aaa/bbb/ccc.txt',
+      }),
+    );
 
-    assert.match(wrapper.find('.comment-message-header').text(), /on aaa\/bbb\/ccc.txt/);
+    assert.match(
+      wrapper.find('.comment-message-header').text(),
+      /on aaa\/bbb\/ccc.txt/,
+    );
   });
 });

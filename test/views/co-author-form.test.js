@@ -36,7 +36,10 @@ describe('CoAuthorForm', function() {
       const name = 'Original Name';
       app = React.cloneElement(app, {name});
       wrapper = mount(app);
-      assert.strictEqual(wrapper.find('.github-CoAuthorForm-name').prop('value'), name);
+      assert.strictEqual(
+        wrapper.find('.github-CoAuthorForm-name').prop('value'),
+        name,
+      );
     });
   });
 
@@ -87,7 +90,10 @@ describe('CoAuthorForm', function() {
 
     it('calls cancel prop when `core:cancel` is triggered', function() {
       wrapper = mount(app);
-      atomEnv.commands.dispatch(wrapper.find('.github-CoAuthorForm').getDOMNode(), 'core:cancel');
+      atomEnv.commands.dispatch(
+        wrapper.find('.github-CoAuthorForm').getDOMNode(),
+        'core:cancel',
+      );
       assert.isTrue(didCancel.called);
     });
   });

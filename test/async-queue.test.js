@@ -50,11 +50,31 @@ describe('AsyncQueue', function() {
     const p3 = queue.push(() => tasks[3].run());
     const p4 = queue.push(() => tasks[4].run());
 
-    p0.then(value => { results[0] = value; }).catch(err => { errors[0] = err; });
-    p1.then(value => { results[1] = value; }).catch(err => { errors[1] = err; });
-    p2.then(value => { results[2] = value; }).catch(err => { errors[2] = err; });
-    p3.then(value => { results[3] = value; }).catch(err => { errors[3] = err; });
-    p4.then(value => { results[4] = value; }).catch(err => { errors[4] = err; });
+    p0.then(value => {
+      results[0] = value;
+    }).catch(err => {
+      errors[0] = err;
+    });
+    p1.then(value => {
+      results[1] = value;
+    }).catch(err => {
+      errors[1] = err;
+    });
+    p2.then(value => {
+      results[2] = value;
+    }).catch(err => {
+      errors[2] = err;
+    });
+    p3.then(value => {
+      results[3] = value;
+    }).catch(err => {
+      errors[3] = err;
+    });
+    p4.then(value => {
+      results[4] = value;
+    }).catch(err => {
+      errors[4] = err;
+    });
 
     assert.isTrue(tasks[0].started);
     assert.isTrue(tasks[1].started);

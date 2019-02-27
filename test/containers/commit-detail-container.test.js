@@ -22,7 +22,6 @@ describe('CommitDetailContainer', function() {
   });
 
   function buildApp(override = {}) {
-
     const props = {
       repository,
       sha: VALID_SHA,
@@ -61,7 +60,12 @@ describe('CommitDetailContainer', function() {
 
     assert.isTrue(wrapper.find('LoadingView').exists());
     resolveDelayedPromise(commitPromise);
-    await assert.async.isFalse(wrapper.update().find('LoadingView').exists());
+    await assert.async.isFalse(
+      wrapper
+        .update()
+        .find('LoadingView')
+        .exists(),
+    );
   });
 
   it('renders a CommitDetailController once the commit is loaded', async function() {
@@ -69,7 +73,15 @@ describe('CommitDetailContainer', function() {
     const commit = await repository.getCommit(VALID_SHA);
 
     const wrapper = mount(buildApp());
-    await assert.async.isTrue(wrapper.update().find('CommitDetailController').exists());
-    assert.strictEqual(wrapper.find('CommitDetailController').prop('commit'), commit);
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('CommitDetailController')
+        .exists(),
+    );
+    assert.strictEqual(
+      wrapper.find('CommitDetailController').prop('commit'),
+      commit,
+    );
   });
 });

@@ -55,15 +55,24 @@ describe('RemoteSet', function() {
     ]);
 
     const chosen = set.matchingGitHubRepository('xxx', 'yyy');
-    assert.sameMembers(chosen.map(remote => remote.getName()), ['yes1', 'yes2']);
+    assert.sameMembers(chosen.map(remote => remote.getName()), [
+      'yes1',
+      'yes2',
+    ]);
 
     assert.lengthOf(set.matchingGitHubRepository('no', 'no'), 0);
   });
 
   describe('the most-used protocol', function() {
     it('defaults to the first option if no remotes are present', function() {
-      assert.strictEqual(new RemoteSet().mostUsedProtocol(['https', 'ssh']), 'https');
-      assert.strictEqual(new RemoteSet().mostUsedProtocol(['ssh', 'https']), 'ssh');
+      assert.strictEqual(
+        new RemoteSet().mostUsedProtocol(['https', 'ssh']),
+        'https',
+      );
+      assert.strictEqual(
+        new RemoteSet().mostUsedProtocol(['ssh', 'https']),
+        'ssh',
+      );
     });
 
     it('returns the most frequently occurring protocol', function() {

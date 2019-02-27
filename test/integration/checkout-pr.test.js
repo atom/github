@@ -7,7 +7,10 @@ import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 import {createRepositoryResult} from '../fixtures/factories/repository-result';
 import IDGenerator from '../fixtures/factories/id-generator';
-import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
+import {
+  createPullRequestsResult,
+  createPullRequestDetailResult,
+} from '../fixtures/factories/pull-request-result';
 
 describe('integration: check out a pull request', function() {
   let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
@@ -26,11 +29,17 @@ describe('integration: check out a pull request', function() {
 
     const root = atomEnv.project.getPaths()[0];
     git = new GitShellOutStrategy(root);
-    await git.exec(['remote', 'add', 'dotcom', 'https://github.com/owner/repo.git']);
+    await git.exec([
+      'remote',
+      'add',
+      'dotcom',
+      'https://github.com/owner/repo.git',
+    ]);
 
     const mockGitServer = hock.createHock();
 
-    const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
+    const uploadPackAdvertisement =
+      '001e# service=git-upload-pack\n' +
       '0000' +
       '005b66d11860af6d28eb38349ef83de475597cb0e8b4 HEAD\0multi_ack symref=HEAD:refs/heads/pr-head\n' +
       '004066d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/pr-head\n' +
@@ -38,7 +47,9 @@ describe('integration: check out a pull request', function() {
 
     mockGitServer
       .get('/owner/repo.git/info/refs?service=git-upload-pack')
-      .reply(200, uploadPackAdvertisement, {'Content-Type': 'application/x-git-upload-pack-advertisement'})
+      .reply(200, uploadPackAdvertisement, {
+        'Content-Type': 'application/x-git-upload-pack-advertisement',
+      })
       .get('/owner/repo.git/info/refs?service=git-upload-pack')
       .reply(400);
 
@@ -46,7 +57,10 @@ describe('integration: check out a pull request', function() {
     return new Promise(resolve => {
       server.listen(0, '127.0.0.1', async () => {
         const {address, port} = server.address();
-        await git.setConfig(`url.http://${address}:${port}/.insteadOf`, 'https://github.com/');
+        await git.setConfig(
+          `url.http://${address}:${port}/.insteadOf`,
+          'https://github.com/',
+        );
 
         resolve();
       });
@@ -58,57 +72,66 @@ describe('integration: check out a pull request', function() {
   });
 
   function expectRepositoryQuery() {
-    return expectRelayQuery({
-      name: 'remoteContainerQuery',
-      variables: {
-        owner: 'owner',
-        name: 'repo',
+    return expectRelayQuery(
+      {
+        name: 'remoteContainerQuery',
+        variables: {
+          owner: 'owner',
+          name: 'repo',
+        },
       },
-    }, {
-      repository: createRepositoryResult({id: repositoryID}),
-    });
+      {
+        repository: createRepositoryResult({id: repositoryID}),
+      },
+    );
   }
 
   function expectCurrentPullRequestQuery() {
-    return expectRelayQuery({
-      name: 'currentPullRequestContainerQuery',
-      variables: {
-        headOwner: 'owner',
-        headName: 'repo',
-        headRef: 'refs/heads/pr-head',
-        first: 5,
+    return expectRelayQuery(
+      {
+        name: 'currentPullRequestContainerQuery',
+        variables: {
+          headOwner: 'owner',
+          headName: 'repo',
+          headRef: 'refs/heads/pr-head',
+          first: 5,
+        },
       },
-    }, {
-      repository: {
-        id: repositoryID,
-        ref: {
-          id: idGen.generate('ref'),
-          associatedPullRequests: {
-            totalCount: 0,
-            nodes: [],
+      {
+        repository: {
+          id: repositoryID,
+          ref: {
+            id: idGen.generate('ref'),
+            associatedPullRequests: {
+              totalCount: 0,
+              nodes: [],
+            },
           },
         },
       },
-    });
+    );
   }
 
   function expectIssueishSearchQuery() {
-    return expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'repo:owner/repo type:pr state:open',
-        first: 20,
+    return expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'repo:owner/repo type:pr state:open',
+          first: 20,
+        },
       },
-    }, {
-      search: {
-        issueCount: 10,
-        nodes: createPullRequestsResult(
-          {number: 0},
-          {number: 1},
-          {number: 2},
-        ),
+      {
+        search: {
+          issueCount: 10,
+          nodes: createPullRequestsResult(
+            {number: 0},
+            {number: 1},
+            {number: 2},
+          ),
+        },
       },
-    });
+    );
   }
 
   function expectIssueishDetailQuery() {
@@ -131,41 +154,53 @@ describe('integration: check out a pull request', function() {
       },
     };
 
-    return expectRelayQuery({
-      name: 'issueishDetailContainerQuery',
-      variables: {
-        repoOwner: 'owner',
-        repoName: 'repo',
-        issueishNumber: 1,
-        timelineCount: PAGE_SIZE,
-        timelineCursor: null,
-        commitCount: PAGE_SIZE,
-        commitCursor: null,
-        reviewCount: PAGE_SIZE,
-        reviewCursor: null,
-        commentCount: PAGE_SIZE,
-        commentCursor: null,
+    return expectRelayQuery(
+      {
+        name: 'issueishDetailContainerQuery',
+        variables: {
+          repoOwner: 'owner',
+          repoName: 'repo',
+          issueishNumber: 1,
+          timelineCount: PAGE_SIZE,
+          timelineCursor: null,
+          commitCount: PAGE_SIZE,
+          commitCursor: null,
+          reviewCount: PAGE_SIZE,
+          reviewCursor: null,
+          commentCount: PAGE_SIZE,
+          commentCursor: null,
+        },
       },
-    }, result);
+      result,
+    );
   }
 
   function expectMentionableUsersQuery() {
-    return expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {
-        owner: 'owner',
-        name: 'repo',
-        first: 100,
-        after: null,
-      },
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [{login: 'smashwilson', email: 'smashwilson@github.com', name: 'Me'}],
-          pageInfo: {hasNextPage: false, endCursor: 'zzz'},
+    return expectRelayQuery(
+      {
+        name: 'GetMentionableUsers',
+        variables: {
+          owner: 'owner',
+          name: 'repo',
+          first: 100,
+          after: null,
         },
       },
-    });
+      {
+        repository: {
+          mentionableUsers: {
+            nodes: [
+              {
+                login: 'smashwilson',
+                email: 'smashwilson@github.com',
+                name: 'Me',
+              },
+            ],
+            pageInfo: {hasNextPage: false, endCursor: 'zzz'},
+          },
+        },
+      },
+    );
   }
 
   // achtung! this test is flaky
@@ -184,17 +219,31 @@ describe('integration: check out a pull request', function() {
     resolve2();
     await promise2;
 
-    const {resolve: resolve3, promise: promise3} = expectMentionableUsersQuery();
+    const {
+      resolve: resolve3,
+      promise: promise3,
+    } = expectMentionableUsersQuery();
     resolve3();
     await promise3;
 
-    const {resolve: resolve4, promise: promise4} = expectCurrentPullRequestQuery();
+    const {
+      resolve: resolve4,
+      promise: promise4,
+    } = expectCurrentPullRequestQuery();
     resolve4();
     await promise4;
 
     // Open the GitHub tab and wait for results to be rendered
-    await atomEnv.commands.dispatch(workspaceElement, 'github:toggle-github-tab');
-    await assert.async.isTrue(wrapper.update().find('.github-IssueishList-item').exists());
+    await atomEnv.commands.dispatch(
+      workspaceElement,
+      'github:toggle-github-tab',
+    );
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('.github-IssueishList-item')
+        .exists(),
+    );
 
     // Click on PR #1
     const prOne = wrapper.find('.github-Accordion-listItem').filterWhere(li => {
@@ -207,16 +256,29 @@ describe('integration: check out a pull request', function() {
       atomEnv.workspace.getActivePaneItem().getTitle(),
       'PR: owner/repo#1 — Pull Request 1',
     );
-    assert.strictEqual(wrapper.update().find('.github-IssueishDetailView-title').text(), 'Pull Request 1');
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('.github-IssueishDetailView-title')
+        .text(),
+      'Pull Request 1',
+    );
 
     // Click on the "Checkout" button
-    await wrapper.find('.github-IssueishDetailView-checkoutButton').prop('onClick')();
+    await wrapper
+      .find('.github-IssueishDetailView-checkoutButton')
+      .prop('onClick')();
 
     // Ensure that the correct ref has been fetched and checked out
     const branches = await git.getBranches();
     const head = branches.find(b => b.head);
     assert.strictEqual(head.name, 'pr-1/owner/pr-head');
 
-    await assert.async.isTrue(wrapper.update().find('.github-IssueishDetailView-checkoutButton--current').exists());
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('.github-IssueishDetailView-checkoutButton--current')
+        .exists(),
+    );
   });
 });

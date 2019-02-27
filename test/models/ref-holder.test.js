@@ -4,7 +4,9 @@ describe('RefHolder', function() {
   let sub;
 
   afterEach(function() {
-    if (sub) { sub.dispose(); }
+    if (sub) {
+      sub.dispose();
+    }
   });
 
   it('begins empty', function() {
@@ -62,11 +64,14 @@ describe('RefHolder', function() {
     it('returns a RefHolder returned from its absent block', function() {
       const h0 = new RefHolder();
 
-      const o = h0.map(x => 1, () => {
-        const h1 = new RefHolder();
-        h1.setter(1);
-        return h1;
-      });
+      const o = h0.map(
+        x => 1,
+        () => {
+          const h1 = new RefHolder();
+          h1.setter(1);
+          return h1;
+        },
+      );
       assert.strictEqual(o.get(), 1);
     });
   });

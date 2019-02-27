@@ -17,7 +17,14 @@ describe('Conflict', function() {
   });
 
   const editorOnFixture = function(name) {
-    const fullPath = path.join(path.dirname(__filename), '..', '..', 'fixtures', 'conflict-marker-examples', name);
+    const fullPath = path.join(
+      path.dirname(__filename),
+      '..',
+      '..',
+      'fixtures',
+      'conflict-marker-examples',
+      name,
+    );
     return atomEnv.workspace.open(fullPath);
   };
 
@@ -37,37 +44,102 @@ describe('Conflict', function() {
       return isRangeOnRows(range, row, row, rangeName);
     };
 
-    const ourBannerRange = conflict.getSide(OURS).getBannerMarker().getBufferRange();
+    const ourBannerRange = conflict
+      .getSide(OURS)
+      .getBannerMarker()
+      .getBufferRange();
     isRangeOnRow(ourBannerRange, description.ourBannerRow, '"ours" banner');
 
-    const ourSideRange = conflict.getSide(OURS).getMarker().getBufferRange();
-    isRangeOnRows(ourSideRange, description.ourSideRows[0], description.ourSideRows[1], '"ours"');
-    assert.strictEqual(conflict.getSide(OURS).position, description.ourPosition || TOP, '"ours" in expected position');
+    const ourSideRange = conflict
+      .getSide(OURS)
+      .getMarker()
+      .getBufferRange();
+    isRangeOnRows(
+      ourSideRange,
+      description.ourSideRows[0],
+      description.ourSideRows[1],
+      '"ours"',
+    );
+    assert.strictEqual(
+      conflict.getSide(OURS).position,
+      description.ourPosition || TOP,
+      '"ours" in expected position',
+    );
 
-    const ourBlockRange = conflict.getSide(OURS).getBlockMarker().getBufferRange();
+    const ourBlockRange = conflict
+      .getSide(OURS)
+      .getBlockMarker()
+      .getBufferRange();
     isPointOnRow(ourBlockRange, description.ourBannerRow, '"ours" block range');
 
-    const theirBannerRange = conflict.getSide(THEIRS).getBannerMarker().getBufferRange();
-    isRangeOnRow(theirBannerRange, description.theirBannerRow, '"theirs" banner');
+    const theirBannerRange = conflict
+      .getSide(THEIRS)
+      .getBannerMarker()
+      .getBufferRange();
+    isRangeOnRow(
+      theirBannerRange,
+      description.theirBannerRow,
+      '"theirs" banner',
+    );
 
-    const theirSideRange = conflict.getSide(THEIRS).getMarker().getBufferRange();
-    isRangeOnRows(theirSideRange, description.theirSideRows[0], description.theirSideRows[1], '"theirs"');
-    assert.strictEqual(conflict.getSide(THEIRS).position, description.theirPosition || BOTTOM, '"theirs" in expected position');
+    const theirSideRange = conflict
+      .getSide(THEIRS)
+      .getMarker()
+      .getBufferRange();
+    isRangeOnRows(
+      theirSideRange,
+      description.theirSideRows[0],
+      description.theirSideRows[1],
+      '"theirs"',
+    );
+    assert.strictEqual(
+      conflict.getSide(THEIRS).position,
+      description.theirPosition || BOTTOM,
+      '"theirs" in expected position',
+    );
 
-    const theirBlockRange = conflict.getSide(THEIRS).getBlockMarker().getBufferRange();
-    isPointOnRow(theirBlockRange, description.theirBannerRow, '"theirs" block range');
+    const theirBlockRange = conflict
+      .getSide(THEIRS)
+      .getBlockMarker()
+      .getBufferRange();
+    isPointOnRow(
+      theirBlockRange,
+      description.theirBannerRow,
+      '"theirs" block range',
+    );
 
     if (description.baseBannerRow || description.baseSideRows) {
-      assert.isNotNull(conflict.getSide(BASE), "expected conflict's base side to be non-null");
+      assert.isNotNull(
+        conflict.getSide(BASE),
+        "expected conflict's base side to be non-null",
+      );
 
-      const baseBannerRange = conflict.getSide(BASE).getBannerMarker().getBufferRange();
+      const baseBannerRange = conflict
+        .getSide(BASE)
+        .getBannerMarker()
+        .getBufferRange();
       isRangeOnRow(baseBannerRange, description.baseBannerRow, '"base" banner');
 
-      const baseSideRange = conflict.getSide(BASE).getMarker().getBufferRange();
-      isRangeOnRows(baseSideRange, description.baseSideRows[0], description.baseSideRows[1], '"base"');
-      assert.strictEqual(conflict.getSide(BASE).position, MIDDLE, '"base" in MIDDLE position');
+      const baseSideRange = conflict
+        .getSide(BASE)
+        .getMarker()
+        .getBufferRange();
+      isRangeOnRows(
+        baseSideRange,
+        description.baseSideRows[0],
+        description.baseSideRows[1],
+        '"base"',
+      );
+      assert.strictEqual(
+        conflict.getSide(BASE).position,
+        MIDDLE,
+        '"base" in MIDDLE position',
+      );
     } else {
-      assert.isUndefined(conflict.getSide(BASE), "expected conflict's base side to be undefined");
+      assert.isUndefined(
+        conflict.getSide(BASE),
+        "expected conflict's base side to be undefined",
+      );
     }
 
     const separatorRange = conflict.separator.marker.getBufferRange();
@@ -76,7 +148,11 @@ describe('Conflict', function() {
 
   it('parses 2-way diff markings', async function() {
     const editor = await editorOnFixture('single-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    );
 
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
@@ -90,7 +166,11 @@ describe('Conflict', function() {
 
   it('parses multiple 2-way diff markings', async function() {
     const editor = await editorOnFixture('multi-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    );
 
     assert.equal(conflicts.length, 2);
     assertConflictOnRows(conflicts[0], {
@@ -111,7 +191,11 @@ describe('Conflict', function() {
 
   it('parses 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    );
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
       ourBannerRow: 0,
@@ -126,7 +210,11 @@ describe('Conflict', function() {
 
   it('parses recursive 3-way diff markings', async function() {
     const editor = await editorOnFixture('single-3way-diff-complex.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    );
     assert.equal(conflicts.length, 1);
 
     assertConflictOnRows(conflicts[0], {
@@ -142,7 +230,11 @@ describe('Conflict', function() {
 
   it('flips "ours" and "theirs" sides when rebasing', async function() {
     const editor = await editorOnFixture('rebase-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      true,
+    );
 
     assert.equal(conflicts.length, 1);
     assertConflictOnRows(conflicts[0], {
@@ -158,14 +250,22 @@ describe('Conflict', function() {
 
   it('is resilient to malformed 2-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-2way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      true,
+    );
 
     assert.equal(conflicts.length, 0);
   });
 
   it('is resilient to malformed 3-way diff markings', async function() {
     const editor = await editorOnFixture('corrupted-3way-diff.txt');
-    const conflicts = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true);
+    const conflicts = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      true,
+    );
 
     assert.equal(conflicts.length, 0);
   });
@@ -179,7 +279,9 @@ describe('Conflict', function() {
     });
 
     it('counts conflicts from a streamed file', async function() {
-      readStream.emit('data', `
+      readStream.emit(
+        'data',
+        `
 before
 before
 <<<<<<< HEAD
@@ -189,9 +291,12 @@ bbb
 >>>>>>> master
 middle
 middle
-      `);
+      `,
+      );
 
-      readStream.emit('data', `
+      readStream.emit(
+        'data',
+        `
 middle
 middle
 <<<<<<< HEAD
@@ -201,7 +306,8 @@ bbb
 >>>>>>> master
 end
 end
-      `);
+      `,
+      );
 
       readStream.emit('end');
 
@@ -209,19 +315,25 @@ end
     });
 
     it('counts conflicts that span stream chunks', async function() {
-      readStream.emit('data', `
+      readStream.emit(
+        'data',
+        `
 before
 before
 <<<<<<< HEAD
 aaa
 =======
-`);
+`,
+      );
 
-      readStream.emit('data', `bbb
+      readStream.emit(
+        'data',
+        `bbb
 >>>>>>> master
 end
 end
-      `);
+      `,
+      );
 
       readStream.emit('end');
 
@@ -229,18 +341,24 @@ end
     });
 
     it('handles conflict markers broken across chunks', async function() {
-      readStream.emit('data', `
+      readStream.emit(
+        'data',
+        `
 before
-<<<`);
+<<<`,
+      );
 
-      readStream.emit('data', `<<<< HEAD
+      readStream.emit(
+        'data',
+        `<<<< HEAD
 aaa
 =======
 bbb
 >>>>>>> master
 end
 end
-      `);
+      `,
+      );
 
       readStream.emit('end');
 
@@ -253,7 +371,11 @@ end
 
     beforeEach(async function() {
       editor = await editorOnFixture('single-2way-diff.txt');
-      conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+      conflict = Conflict.allFromEditor(
+        editor,
+        editor.getDefaultMarkerLayer(),
+        false,
+      )[0];
     });
 
     it('detects when a side has been modified', function() {
@@ -294,19 +416,35 @@ end
     describe('from a merge', function() {
       beforeEach(async function() {
         editor = await editorOnFixture('single-3way-diff.txt');
-        conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+        conflict = Conflict.allFromEditor(
+          editor,
+          editor.getDefaultMarkerLayer(),
+          false,
+        )[0];
       });
 
       it('accesses the block decoration position', function() {
         assert.strictEqual(conflict.getSide(OURS).getBlockPosition(), 'before');
         assert.strictEqual(conflict.getSide(BASE).getBlockPosition(), 'before');
-        assert.strictEqual(conflict.getSide(THEIRS).getBlockPosition(), 'after');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBlockPosition(),
+          'after',
+        );
       });
 
       it('accesses the line decoration CSS class', function() {
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictOurs');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictBase');
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictTheirs');
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictOurs',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictBase',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictTheirs',
+        );
       });
 
       it('accesses the line decoration CSS class when modified', function() {
@@ -315,9 +453,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictModified');
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
       });
 
       it('accesses the line decoration CSS class when the banner is modified', function() {
@@ -326,15 +473,33 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictModified');
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
       });
 
       it('accesses the banner CSS class', function() {
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictOursBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictBaseBanner');
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictTheirsBanner');
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictOursBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictBaseBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictTheirsBanner',
+        );
       });
 
       it('accesses the banner CSS class when modified', function() {
@@ -343,9 +508,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
       });
 
       it('accesses the banner CSS class when the banner is modified', function() {
@@ -354,9 +528,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
       });
 
       it('accesses the block CSS classes', function() {
@@ -418,19 +601,35 @@ end
     describe('from a rebase', function() {
       beforeEach(async function() {
         editor = await editorOnFixture('single-3way-diff.txt');
-        conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), true)[0];
+        conflict = Conflict.allFromEditor(
+          editor,
+          editor.getDefaultMarkerLayer(),
+          true,
+        )[0];
       });
 
       it('accesses the block decoration position', function() {
-        assert.strictEqual(conflict.getSide(THEIRS).getBlockPosition(), 'before');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBlockPosition(),
+          'before',
+        );
         assert.strictEqual(conflict.getSide(BASE).getBlockPosition(), 'before');
         assert.strictEqual(conflict.getSide(OURS).getBlockPosition(), 'after');
       });
 
       it('accesses the line decoration CSS class', function() {
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictTheirs');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictBase');
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictOurs');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictTheirs',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictBase',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictOurs',
+        );
       });
 
       it('accesses the line decoration CSS class when modified', function() {
@@ -439,9 +638,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictModified');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
       });
 
       it('accesses the line decoration CSS class when the banner is modified', function() {
@@ -450,15 +658,33 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(THEIRS).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(BASE).getLineCSSClass(), 'github-ConflictModified');
-        assert.strictEqual(conflict.getSide(OURS).getLineCSSClass(), 'github-ConflictModified');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getLineCSSClass(),
+          'github-ConflictModified',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getLineCSSClass(),
+          'github-ConflictModified',
+        );
       });
 
       it('accesses the banner CSS class', function() {
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictTheirsBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictBaseBanner');
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictOursBanner');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictTheirsBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictBaseBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictOursBanner',
+        );
       });
 
       it('accesses the banner CSS class when modified', function() {
@@ -467,9 +693,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
       });
 
       it('accesses the banner CSS class when the banner is modified', function() {
@@ -478,9 +713,18 @@ end
           editor.insertText('change');
         }
 
-        assert.strictEqual(conflict.getSide(THEIRS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(BASE).getBannerCSSClass(), 'github-ConflictModifiedBanner');
-        assert.strictEqual(conflict.getSide(OURS).getBannerCSSClass(), 'github-ConflictModifiedBanner');
+        assert.strictEqual(
+          conflict.getSide(THEIRS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(BASE).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
+        assert.strictEqual(
+          conflict.getSide(OURS).getBannerCSSClass(),
+          'github-ConflictModifiedBanner',
+        );
       });
 
       it('accesses the block CSS classes', function() {
@@ -542,16 +786,42 @@ end
 
   it('accesses a side range that encompasses the banner and content', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
-    assert.deepEqual(conflict.getSide(OURS).getRange().serialize(), [[0, 0], [2, 0]]);
-    assert.deepEqual(conflict.getSide(BASE).getRange().serialize(), [[2, 0], [4, 0]]);
-    assert.deepEqual(conflict.getSide(THEIRS).getRange().serialize(), [[5, 0], [7, 0]]);
+    assert.deepEqual(
+      conflict
+        .getSide(OURS)
+        .getRange()
+        .serialize(),
+      [[0, 0], [2, 0]],
+    );
+    assert.deepEqual(
+      conflict
+        .getSide(BASE)
+        .getRange()
+        .serialize(),
+      [[2, 0], [4, 0]],
+    );
+    assert.deepEqual(
+      conflict
+        .getSide(THEIRS)
+        .getRange()
+        .serialize(),
+      [[5, 0], [7, 0]],
+    );
   });
 
   it('determines the inclusion of points', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     assert.isTrue(conflict.getSide(OURS).includesPoint([0, 1]));
     assert.isTrue(conflict.getSide(OURS).includesPoint([1, 3]));
@@ -560,7 +830,11 @@ end
 
   it('detects when a side is empty', async function() {
     const editor = await editorOnFixture('single-2way-diff-empty.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     assert.isFalse(conflict.getSide(OURS).isEmpty());
     assert.isTrue(conflict.getSide(THEIRS).isEmpty());
@@ -568,7 +842,11 @@ end
 
   it('reverts a modified Side', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     editor.setCursorBufferPosition([5, 10]);
     editor.insertText('MY-CHANGE');
@@ -584,7 +862,11 @@ end
 
   it('reverts a modified Side banner', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     editor.setCursorBufferPosition([6, 4]);
     editor.insertText('MY-CHANGE');
@@ -600,7 +882,11 @@ end
 
   it('deletes a banner', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     assert.match(editor.getText(), /<<<<<<< HEAD/);
     conflict.getSide(OURS).deleteBanner();
@@ -609,7 +895,11 @@ end
 
   it('deletes a side', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     assert.match(editor.getText(), /your/);
     conflict.getSide(THEIRS).delete();
@@ -618,14 +908,21 @@ end
 
   it('appends text to a side', async function() {
     const editor = await editorOnFixture('single-3way-diff.txt');
-    const conflict = Conflict.allFromEditor(editor, editor.getDefaultMarkerLayer(), false)[0];
+    const conflict = Conflict.allFromEditor(
+      editor,
+      editor.getDefaultMarkerLayer(),
+      false,
+    )[0];
 
     assert.notMatch(editor.getText(), /APPENDED/);
     conflict.getSide(THEIRS).appendText('APPENDED\n');
     assert.match(editor.getText(), /APPENDED/);
 
     assert.isTrue(conflict.getSide(THEIRS).isModified());
-    assert.strictEqual(conflict.getSide(THEIRS).getText(), 'These are your changes\nAPPENDED\n');
+    assert.strictEqual(
+      conflict.getSide(THEIRS).getText(),
+      'These are your changes\nAPPENDED\n',
+    );
     assert.isFalse(conflict.getSide(THEIRS).isBannerModified());
   });
 });

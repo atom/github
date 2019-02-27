@@ -44,7 +44,10 @@ describe('CommitPreviewController', function() {
     const extra = Symbol('extra');
     const wrapper = shallow(buildApp({extra}));
 
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('extra'), extra);
+    assert.strictEqual(
+      wrapper.find('MultiFilePatchController').prop('extra'),
+      extra,
+    );
   });
 
   it('calls surfaceToCommitPreviewButton', function() {

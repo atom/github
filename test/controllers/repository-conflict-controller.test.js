@@ -16,7 +16,13 @@ describe('RepositoryConflictController', () => {
     workspace = atomEnv.workspace;
     const commandRegistry = atomEnv.commands;
 
-    app = <RepositoryConflictController workspace={workspace} config={atomEnv.config} commandRegistry={commandRegistry} />;
+    app = (
+      <RepositoryConflictController
+        workspace={workspace}
+        config={atomEnv.config}
+        commandRegistry={commandRegistry}
+      />
+    );
   });
 
   afterEach(() => atomEnv.destroy());
@@ -26,9 +32,13 @@ describe('RepositoryConflictController', () => {
       const workdirPath = await cloneRepository('merge-conflict');
       const repository = await buildRepository(workdirPath);
 
-      await Promise.all(['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(basename => {
-        return workspace.open(path.join(workdirPath, basename));
-      }));
+      await Promise.all(
+        ['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(
+          basename => {
+            return workspace.open(path.join(workdirPath, basename));
+          },
+        ),
+      );
 
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
@@ -58,14 +68,21 @@ describe('RepositoryConflictController', () => {
 
       await assert.isRejected(repository.git.merge('origin/branch'));
 
-      await Promise.all(['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(basename => {
-        return workspace.open(path.join(workdirPath, basename));
-      }));
+      await Promise.all(
+        ['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(
+          basename => {
+            return workspace.open(path.join(workdirPath, basename));
+          },
+        ),
+      );
 
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);
 
-      await assert.async.equal(wrapper.update().find(EditorConflictController).length, 2);
+      await assert.async.equal(
+        wrapper.update().find(EditorConflictController).length,
+        2,
+      );
     });
   });
 
@@ -80,9 +97,13 @@ describe('RepositoryConflictController', () => {
 
       await assert.isRejected(repository.git.merge('origin/branch'));
 
-      await Promise.all(['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(basename => {
-        return workspace.open(path.join(workdirPath, basename));
-      }));
+      await Promise.all(
+        ['modified-on-both-ours.txt', 'modified-on-both-theirs.txt'].map(
+          basename => {
+            return workspace.open(path.join(workdirPath, basename));
+          },
+        ),
+      );
 
       app = React.cloneElement(app, {repository});
       const wrapper = mount(app);

@@ -34,7 +34,10 @@ describe('Commands', function() {
     assert.equal(callback2.callCount, 1);
 
     await new Promise(resolve => {
-      wrapper.setProps({children: <Command command="github:do-thing1" callback={callback1} />}, resolve);
+      wrapper.setProps(
+        {children: <Command command="github:do-thing1" callback={callback1} />},
+        resolve,
+      );
     });
 
     callback1.reset();
@@ -79,7 +82,10 @@ describe('Commands', function() {
     assert.equal(callback1.callCount, 1);
 
     await new Promise(resolve => {
-      wrapper.setProps({command: 'user:command2', callback: callback2}, resolve);
+      wrapper.setProps(
+        {command: 'user:command2', callback: callback2},
+        resolve,
+      );
     });
 
     callback1.reset();

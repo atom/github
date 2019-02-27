@@ -41,7 +41,10 @@ describe('ChangedFileItem', function() {
     };
 
     return (
-      <PaneItem workspace={atomEnv.workspace} uriPattern={ChangedFileItem.uriPattern}>
+      <PaneItem
+        workspace={atomEnv.workspace}
+        uriPattern={ChangedFileItem.uriPattern}
+      >
         {({itemHolder, params}) => {
           return (
             <ChangedFileItem
@@ -64,7 +67,11 @@ describe('ChangedFileItem', function() {
       stagingStatus: 'unstaged',
       ...options,
     };
-    const uri = ChangedFileItem.buildURI(opts.relPath, opts.workingDirectory, opts.stagingStatus);
+    const uri = ChangedFileItem.buildURI(
+      opts.relPath,
+      opts.workingDirectory,
+      opts.stagingStatus,
+    );
     return atomEnv.workspace.open(uri);
   }
 
@@ -72,14 +79,26 @@ describe('ChangedFileItem', function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('repository'), repository);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('ChangedFileContainer')
+        .prop('repository'),
+      repository,
+    );
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper, {workingDirectory: '/nope'});
 
-    assert.isTrue(wrapper.update().find('ChangedFileContainer').prop('repository').isAbsent());
+    assert.isTrue(
+      wrapper
+        .update()
+        .find('ChangedFileContainer')
+        .prop('repository')
+        .isAbsent(),
+    );
   });
 
   it('passes other props to the container', async function() {
@@ -87,7 +106,13 @@ describe('ChangedFileItem', function() {
     const wrapper = mount(buildPaneApp({other}));
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('other'), other);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('ChangedFileContainer')
+        .prop('other'),
+      other,
+    );
   });
 
   describe('getTitle()', function() {
@@ -112,7 +137,11 @@ describe('ChangedFileItem', function() {
       const stagingStatus = 'staged';
       const workdirPath = '/???/!!!';
 
-      const uri = ChangedFileItem.buildURI(filePathWithSpecialChars, workdirPath, stagingStatus);
+      const uri = ChangedFileItem.buildURI(
+        filePathWithSpecialChars,
+        workdirPath,
+        stagingStatus,
+      );
       assert.include(uri, encodeURIComponent(filePathWithSpecialChars));
       assert.include(uri, encodeURIComponent(workdirPath));
       assert.include(uri, encodeURIComponent(stagingStatus));
@@ -151,22 +180,36 @@ describe('ChangedFileItem', function() {
 
   it('serializes itself as a FilePatchControllerStub', async function() {
     const wrapper = mount(buildPaneApp());
-    const item0 = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir0', stagingStatus: 'unstaged'});
+    const item0 = await open(wrapper, {
+      relPath: 'a.txt',
+      workingDirectory: '/dir0',
+      stagingStatus: 'unstaged',
+    });
     assert.deepEqual(item0.serialize(), {
       deserializer: 'FilePatchControllerStub',
-      uri: 'atom-github://file-patch/a.txt?workdir=%2Fdir0&stagingStatus=unstaged',
+      uri:
+        'atom-github://file-patch/a.txt?workdir=%2Fdir0&stagingStatus=unstaged',
     });
 
-    const item1 = await open(wrapper, {relPath: 'b.txt', workingDirectory: '/dir1', stagingStatus: 'staged'});
+    const item1 = await open(wrapper, {
+      relPath: 'b.txt',
+      workingDirectory: '/dir1',
+      stagingStatus: 'staged',
+    });
     assert.deepEqual(item1.serialize(), {
       deserializer: 'FilePatchControllerStub',
-      uri: 'atom-github://file-patch/b.txt?workdir=%2Fdir1&stagingStatus=staged',
+      uri:
+        'atom-github://file-patch/b.txt?workdir=%2Fdir1&stagingStatus=staged',
     });
   });
 
   it('has some item-level accessors', async function() {
     const wrapper = mount(buildPaneApp());
-    const item = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir', stagingStatus: 'unstaged'});
+    const item = await open(wrapper, {
+      relPath: 'a.txt',
+      workingDirectory: '/dir',
+      stagingStatus: 'unstaged',
+    });
 
     assert.strictEqual(item.getStagingStatus(), 'unstaged');
     assert.strictEqual(item.getFilePath(), 'a.txt');
@@ -189,7 +232,11 @@ describe('ChangedFileItem', function() {
       const wrapper = mount(buildPaneApp());
       const item = await open(wrapper);
 
-      wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('ChangedFileContainer')
+        .prop('refEditor')
+        .setter(editor);
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -203,7 +250,11 @@ describe('ChangedFileItem', function() {
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
 
-      wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('ChangedFileContainer')
+        .prop('refEditor')
+        .setter(editor);
       assert.isTrue(cb.calledWith(editor));
     });
   });

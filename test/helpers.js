@@ -43,7 +43,10 @@ export async function cloneRepository(repoName = 'three-files') {
   if (!cachedClonedRepos[repoName]) {
     const cachedPath = temp.mkdirSync('git-fixture-cache-');
     const git = new GitShellOutStrategy(cachedPath);
-    await git.clone(path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'), {noLocal: true});
+    await git.clone(
+      path.join(__dirname, 'fixtures', `repo-${repoName}`, 'dot-git'),
+      {noLocal: true},
+    );
     await git.exec(['config', '--local', 'core.autocrlf', 'false']);
     await git.exec(['config', '--local', 'commit.gpgsign', 'false']);
     await git.exec(['config', '--local', 'user.email', FAKE_USER.email]);
@@ -75,8 +78,10 @@ export async function initRepository() {
   return fs.realpath(workingDirPath);
 }
 
-export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commits', options = {}) {
-
+export async function setUpLocalAndRemoteRepositories(
+  repoName = 'multiple-commits',
+  options = {},
+) {
   if (typeof repoName === 'object') {
     options = repoName;
     repoName = 'multiple-commits';
@@ -91,7 +96,9 @@ export async function setUpLocalAndRemoteRepositories(repoName = 'multiple-commi
   await remoteGit.clone(baseRepoPath, {noLocal: true, bare: true});
 
   // create local repo with one fewer commit
-  if (options.remoteAhead) { await baseGit.exec(['reset', 'HEAD~']); }
+  if (options.remoteAhead) {
+    await baseGit.exec(['reset', 'HEAD~']);
+  }
   const localRepoPath = temp.mkdirSync('git-local-fixture-');
   const localGit = new GitShellOutStrategy(localRepoPath);
   await localGit.clone(baseRepoPath, {noLocal: true});
@@ -130,12 +137,17 @@ export function buildRepositoryWithPipeline(workingDirPath, options) {
 
 export function assertDeepPropertyVals(actual, expected) {
   function extractObjectSubset(actualValue, expectedValue) {
-    if (actualValue !== Object(actualValue)) { return actualValue; }
+    if (actualValue !== Object(actualValue)) {
+      return actualValue;
+    }
 
     const actualSubset = Array.isArray(actualValue) ? [] : {};
     for (const key of Object.keys(expectedValue)) {
       if (actualValue.hasOwnProperty(key)) {
-        actualSubset[key] = extractObjectSubset(actualValue[key], expectedValue[key]);
+        actualSubset[key] = extractObjectSubset(
+          actualValue[key],
+          expectedValue[key],
+        );
       }
     }
 
@@ -205,7 +217,9 @@ export function createRenderer() {
   let node = document.createElement('div');
   // ref function should be reference equal over renders to avoid React
   // calling the "old" one with `null` and the "new" one with the instance
-  const setTopLevelRef = c => { instance = c; };
+  const setTopLevelRef = c => {
+    instance = c;
+  };
   const renderer = {
     render(appWithoutRef) {
       lastInstance = instance;
@@ -263,7 +277,10 @@ export async function disableFilesystemWatchers(atomEnv) {
     },
   });
 
-  await until('directoryProvider is available', () => atomEnv.project.directoryProviders.length > 0);
+  await until(
+    'directoryProvider is available',
+    () => atomEnv.project.directoryProviders.length > 0,
+  );
 }
 
 const packageRoot = path.resolve(__dirname, '..');
@@ -273,10 +290,20 @@ export function transpile(...relPaths) {
   return Promise.all(
     relPaths.map(async relPath => {
       const untranspiledPath = path.resolve(__dirname, '..', relPath);
-      const transpiledPath = path.join(transpiledRoot, path.relative(packageRoot, untranspiledPath));
+      const transpiledPath = path.join(
+        transpiledRoot,
+        path.relative(packageRoot, untranspiledPath),
+      );
 
-      const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
-      const transpiledSource = transpiler.transpile(untranspiledSource, untranspiledPath, {}, {}).code;
+      const untranspiledSource = await fs.readFile(untranspiledPath, {
+        encoding: 'utf8',
+      });
+      const transpiledSource = transpiler.transpile(
+        untranspiledSource,
+        untranspiledPath,
+        {},
+        {},
+      ).code;
 
       await fs.mkdirs(path.dirname(transpiledPath));
       await fs.writeFile(transpiledPath, transpiledSource, {encoding: 'utf8'});
@@ -316,9 +343,15 @@ export function deferSetState(instance) {
     instance.__deferOriginalSetState = instance.setState;
   }
   let resolve, resolveStarted, resolveCompleted;
-  const started = new Promise(r => { resolveStarted = r; });
-  const completed = new Promise(r => { resolveCompleted = r; });
-  const resolved = new Promise(r => { resolve = r; });
+  const started = new Promise(r => {
+    resolveStarted = r;
+  });
+  const completed = new Promise(r => {
+    resolveCompleted = r;
+  });
+  const resolved = new Promise(r => {
+    resolve = r;
+  });
 
   const stub = function(updater, callback) {
     resolveStarted();
@@ -386,15 +419,17 @@ export class ManualStateObserver {
   }
 }
 
-
 // File system event helpers
 let observedEvents, eventCallback;
 
-export async function wireUpObserver(fixtureName = 'multi-commits-files', existingWorkdir = null) {
+export async function wireUpObserver(
+  fixtureName = 'multi-commits-files',
+  existingWorkdir = null,
+) {
   observedEvents = [];
   eventCallback = () => {};
 
-  const workdir = existingWorkdir || await cloneRepository(fixtureName);
+  const workdir = existingWorkdir || (await cloneRepository(fixtureName));
   const repository = new Repository(workdir);
   await repository.getLoadPromise();
 
@@ -407,10 +442,12 @@ export async function wireUpObserver(fixtureName = 'multi-commits-files', existi
     }),
   );
 
-  subscriptions.add(observer.onDidChange(events => {
-    observedEvents.push(...events);
-    eventCallback();
-  }));
+  subscriptions.add(
+    observer.onDidChange(events => {
+      observedEvents.push(...events);
+      eventCallback();
+    }),
+  );
 
   return {repository, observer, subscriptions};
 }
@@ -419,16 +456,15 @@ export function expectEvents(repository, ...suffixes) {
   const pending = new Set(suffixes);
   return new Promise((resolve, reject) => {
     eventCallback = () => {
-      const matchingPaths = observedEvents
-        .filter(event => {
-          for (const suffix of pending) {
-            if (event.path.endsWith(suffix)) {
-              pending.delete(suffix);
-              return true;
-            }
+      const matchingPaths = observedEvents.filter(event => {
+        for (const suffix of pending) {
+          if (event.path.endsWith(suffix)) {
+            pending.delete(suffix);
+            return true;
           }
-          return false;
-        });
+        }
+        return false;
+      });
 
       if (matchingPaths.length > 0) {
         repository.observeFilesystemChange(matchingPaths);

@@ -19,9 +19,15 @@ class Model {
     return new Promise(res => res(this.b));
   }
 
-  onDidUpdate(cb) { return this.emitter.on('did-update', cb); }
-  didUpdate(cb) { return this.emitter.emit('did-update'); }
-  destroy() { this.emitter.dispose(); }
+  onDidUpdate(cb) {
+    return this.emitter.on('did-update', cb);
+  }
+  didUpdate(cb) {
+    return this.emitter.emit('did-update');
+  }
+  destroy() {
+    this.emitter.dispose();
+  }
 }
 
 describe('ModelObserver', function() {
@@ -31,7 +37,10 @@ describe('ModelObserver', function() {
     model1 = new Model('a', 'b');
     model2 = new Model('A', 'B');
     didUpdateStub = sinon.stub();
-    fetchDataStub = sinon.spy(async model => ({a: await model.fetchA(), b: await model.fetchB()}));
+    fetchDataStub = sinon.spy(async model => ({
+      a: await model.fetchA(),
+      b: await model.fetchB(),
+    }));
     observer = new ModelObserver({
       fetchData: fetchDataStub,
       didUpdate: didUpdateStub,

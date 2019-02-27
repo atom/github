@@ -34,7 +34,10 @@ describe('Decoration', function() {
     );
     mount(app);
 
-    assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 1);
+    assert.lengthOf(
+      editor.getLineDecorations({position: 'head', class: 'something'}),
+      1,
+    );
   });
 
   describe('with a subtree', function() {
@@ -44,10 +47,13 @@ describe('Decoration', function() {
 
     it('creates a block decoration', function() {
       const app = (
-        <Decoration editor={editor} decorable={marker} type="block" className="parent">
-          <div className="decoration-subtree">
-            This is a subtree
-          </div>
+        <Decoration
+          editor={editor}
+          decorable={marker}
+          type="block"
+          className="parent"
+        >
+          <div className="decoration-subtree">This is a subtree</div>
         </Decoration>
       );
       mount(app);
@@ -65,9 +71,7 @@ describe('Decoration', function() {
     it('creates an overlay decoration', function() {
       const app = (
         <Decoration editor={editor} decorable={marker} type="overlay">
-          <div className="decoration-subtree">
-            This is a subtree
-          </div>
+          <div className="decoration-subtree">This is a subtree</div>
         </Decoration>
       );
       mount(app);
@@ -83,9 +87,7 @@ describe('Decoration', function() {
     it('creates a gutter decoration', function() {
       const app = (
         <Decoration editor={editor} decorable={marker} type="gutter">
-          <div className="decoration-subtree">
-            This is a subtree
-          </div>
+          <div className="decoration-subtree">This is a subtree</div>
         </Decoration>
       );
       mount(app);
@@ -114,31 +116,50 @@ describe('Decoration', function() {
       );
       wrapper = mount(app);
 
-      originalDecoration = editor.getLineDecorations({position: 'head', class: 'something'})[0];
+      originalDecoration = editor.getLineDecorations({
+        position: 'head',
+        class: 'something',
+      })[0];
     });
 
     it('redecorates when a new Editor and Marker are provided', async function() {
-      const newEditor = await workspace.open(require.resolve('../../package.json'));
+      const newEditor = await workspace.open(
+        require.resolve('../../package.json'),
+      );
       const newMarker = newEditor.markBufferRange([[0, 0], [2, 0]]);
 
       wrapper.setProps({editor: newEditor, decorable: newMarker});
 
       assert.isTrue(originalDecoration.isDestroyed());
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
-      assert.lengthOf(newEditor.getLineDecorations({position: 'head', class: 'something'}), 1);
+      assert.lengthOf(
+        editor.getLineDecorations({position: 'head', class: 'something'}),
+        0,
+      );
+      assert.lengthOf(
+        newEditor.getLineDecorations({position: 'head', class: 'something'}),
+        1,
+      );
     });
 
     it('redecorates when a new MarkerLayer is provided', function() {
       const newLayer = editor.addMarkerLayer();
 
-      wrapper.setProps({decorable: newLayer, decorateMethod: 'decorateMarkerLayer'});
+      wrapper.setProps({
+        decorable: newLayer,
+        decorateMethod: 'decorateMarkerLayer',
+      });
 
       assert.isTrue(originalDecoration.isDestroyed());
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
+      assert.lengthOf(
+        editor.getLineDecorations({position: 'head', class: 'something'}),
+        0,
+      );
 
       // Turns out Atom doesn't provide any public way to query the markers on a layer.
       assert.lengthOf(
-        Array.from(editor.decorationManager.layerDecorationsByMarkerLayer.get(newLayer)),
+        Array.from(
+          editor.decorationManager.layerDecorationsByMarkerLayer.get(newLayer),
+        ),
         1,
       );
     });
@@ -146,14 +167,22 @@ describe('Decoration', function() {
     it('updates decoration properties', function() {
       wrapper.setProps({className: 'different'});
 
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'different'}), 1);
+      assert.lengthOf(
+        editor.getLineDecorations({position: 'head', class: 'something'}),
+        0,
+      );
+      assert.lengthOf(
+        editor.getLineDecorations({position: 'head', class: 'different'}),
+        1,
+      );
       assert.isFalse(originalDecoration.isDestroyed());
       assert.strictEqual(originalDecoration.getProperties().class, 'different');
     });
 
     it('does not redecorate when the decorable is on the wrong TextEditor', async function() {
-      const newEditor = await workspace.open(require.resolve('../../package.json'));
+      const newEditor = await workspace.open(
+        require.resolve('../../package.json'),
+      );
 
       wrapper.setProps({editor: newEditor});
 
@@ -190,7 +219,10 @@ describe('Decoration', function() {
     );
     const theEditor = wrapper.instance().getModel();
 
-    assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
+    assert.lengthOf(
+      theEditor.getLineDecorations({position: 'head', class: 'whatever'}),
+      1,
+    );
   });
 
   it('decorates a parent MarkerLayer', function() {

@@ -2,27 +2,47 @@ import File, {nullFile} from '../../../lib/models/patch/file';
 
 describe('File', function() {
   it("detects when it's a symlink", function() {
-    assert.isTrue(new File({path: 'path', mode: '120000', symlink: null}).isSymlink());
-    assert.isFalse(new File({path: 'path', mode: '100644', symlink: null}).isSymlink());
+    assert.isTrue(
+      new File({path: 'path', mode: '120000', symlink: null}).isSymlink(),
+    );
+    assert.isFalse(
+      new File({path: 'path', mode: '100644', symlink: null}).isSymlink(),
+    );
     assert.isFalse(nullFile.isSymlink());
   });
 
   it("detects when it's a regular file", function() {
-    assert.isTrue(new File({path: 'path', mode: '100644', symlink: null}).isRegularFile());
-    assert.isTrue(new File({path: 'path', mode: '100755', symlink: null}).isRegularFile());
-    assert.isFalse(new File({path: 'path', mode: '120000', symlink: null}).isRegularFile());
+    assert.isTrue(
+      new File({path: 'path', mode: '100644', symlink: null}).isRegularFile(),
+    );
+    assert.isTrue(
+      new File({path: 'path', mode: '100755', symlink: null}).isRegularFile(),
+    );
+    assert.isFalse(
+      new File({path: 'path', mode: '120000', symlink: null}).isRegularFile(),
+    );
     assert.isFalse(nullFile.isRegularFile());
   });
 
   it("detects when it's executable", function() {
-    assert.isTrue(new File({path: 'path', mode: '100755', symlink: null}).isExecutable());
-    assert.isFalse(new File({path: 'path', mode: '100644', symlink: null}).isExecutable());
-    assert.isFalse(new File({path: 'path', mode: '120000', symlink: null}).isExecutable());
+    assert.isTrue(
+      new File({path: 'path', mode: '100755', symlink: null}).isExecutable(),
+    );
+    assert.isFalse(
+      new File({path: 'path', mode: '100644', symlink: null}).isExecutable(),
+    );
+    assert.isFalse(
+      new File({path: 'path', mode: '120000', symlink: null}).isExecutable(),
+    );
     assert.isFalse(nullFile.isExecutable());
   });
 
   it('clones itself with possible overrides', function() {
-    const original = new File({path: 'original', mode: '100644', symlink: null});
+    const original = new File({
+      path: 'original',
+      mode: '100644',
+      symlink: null,
+    });
 
     const dup0 = original.clone();
     assert.notStrictEqual(original, dup0);

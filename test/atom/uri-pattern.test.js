@@ -165,10 +165,15 @@ describe('URIPattern', function() {
 
     it('URI-decodes matched parameters', function() {
       const pattern = new URIPattern('proto://host/root/{child}?q={search}');
-      const m = pattern.matches('proto://host/root/hooray%3E%20for%3C%20encodings?q=%3F%26%3F!');
+      const m = pattern.matches(
+        'proto://host/root/hooray%3E%20for%3C%20encodings?q=%3F%26%3F!',
+      );
 
       assert.isTrue(m.ok());
-      assert.deepEqual(m.getParams(), {child: 'hooray> for< encodings', search: '?&?!'});
+      assert.deepEqual(m.getParams(), {
+        child: 'hooray> for< encodings',
+        search: '?&?!',
+      });
     });
 
     it('ignores the value of an empty capture', function() {
@@ -201,7 +206,10 @@ describe('URIPattern', function() {
     it('prints captured values', function() {
       const pattern = new URIPattern('proto://host/{capture0}/{capture1}');
       const m = pattern.matches('proto://host/first/and%20escaped');
-      assert.strictEqual(m.toString(), '<URIMatch ok capture0="first" capture1="and escaped">');
+      assert.strictEqual(
+        m.toString(),
+        '<URIMatch ok capture0="first" capture1="and escaped">',
+      );
     });
 
     it('remembers the matched URI', function() {

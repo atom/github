@@ -45,7 +45,9 @@ describe('PullRequestChangedFilesContainer', function() {
   describe('when the data is able to be fetched successfully', function() {
     beforeEach(function() {
       setDiffResponse(rawDiff);
-      sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
+      sinon
+        .stub(window, 'fetch')
+        .callsFake(() => Promise.resolve(diffResponse));
     });
     it('renders a loading spinner if data has not yet been fetched', function() {
       const wrapper = shallow(buildApp());
@@ -55,43 +57,70 @@ describe('PullRequestChangedFilesContainer', function() {
       const extraProp = Symbol('really really extra');
 
       const wrapper = shallow(buildApp({extraProp}));
-      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+      await assert.async.isTrue(
+        wrapper
+          .update()
+          .find('MultiFilePatchController')
+          .exists(),
+      );
 
       const controller = wrapper.find('MultiFilePatchController');
       assert.strictEqual(controller.prop('extraProp'), extraProp);
     });
 
     it('builds the diff URL', function() {
-      const wrapper = shallow(buildApp({
-        owner: 'smashwilson',
-        repo: 'pushbot',
-        number: 12,
-        endpoint: getEndpoint('github.com'),
-      }));
+      const wrapper = shallow(
+        buildApp({
+          owner: 'smashwilson',
+          repo: 'pushbot',
+          number: 12,
+          endpoint: getEndpoint('github.com'),
+        }),
+      );
 
       const diffURL = wrapper.instance().getDiffURL();
-      assert.strictEqual(diffURL, 'https://api.github.com/repos/smashwilson/pushbot/pulls/12');
+      assert.strictEqual(
+        diffURL,
+        'https://api.github.com/repos/smashwilson/pushbot/pulls/12',
+      );
     });
 
     it('builds multifilepatch without the a/ and b/ prefixes in file paths', function() {
       const wrapper = shallow(buildApp());
-      const {filePatches} = wrapper.instance().buildPatch(rawDiffWithPathPrefix);
+      const {filePatches} = wrapper
+        .instance()
+        .buildPatch(rawDiffWithPathPrefix);
       assert.notMatch(filePatches[0].newFile.path, /^[a|b]\//);
       assert.notMatch(filePatches[0].oldFile.path, /^[a|b]\//);
     });
 
     it('converts file paths to use native path separators', function() {
       const wrapper = shallow(buildApp());
-      const {filePatches} = wrapper.instance().buildPatch(rawDiffWithPathPrefix);
-      assert.strictEqual(filePatches[0].newFile.path, path.join('bad/path.txt'));
-      assert.strictEqual(filePatches[0].oldFile.path, path.join('bad/path.txt'));
+      const {filePatches} = wrapper
+        .instance()
+        .buildPatch(rawDiffWithPathPrefix);
+      assert.strictEqual(
+        filePatches[0].newFile.path,
+        path.join('bad/path.txt'),
+      );
+      assert.strictEqual(
+        filePatches[0].oldFile.path,
+        path.join('bad/path.txt'),
+      );
     });
 
     it('passes loaded diff data through to the controller', async function() {
-      const wrapper = shallow(buildApp({
-        token: '4321',
-      }));
-      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+      const wrapper = shallow(
+        buildApp({
+          token: '4321',
+        }),
+      );
+      await assert.async.isTrue(
+        wrapper
+          .update()
+          .find('MultiFilePatchController')
+          .exists(),
+      );
 
       const controller = wrapper.find('MultiFilePatchController');
       const expected = buildMultiFilePatch(parseDiff(rawDiff));
@@ -109,7 +138,12 @@ describe('PullRequestChangedFilesContainer', function() {
     });
     it('re fetches data when shouldRefetch is true', async function() {
       const wrapper = shallow(buildApp());
-      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+      await assert.async.isTrue(
+        wrapper
+          .update()
+          .find('MultiFilePatchController')
+          .exists(),
+      );
       assert.strictEqual(window.fetch.callCount, 1);
       wrapper.setProps({shouldRefetch: true});
       assert.isTrue(wrapper.instance().state.isLoading);
@@ -119,21 +153,34 @@ describe('PullRequestChangedFilesContainer', function() {
 
   describe('error states', function() {
     async function assertErrorRendered(expectedErrorMessage, wrapper) {
-      await assert.async.deepEqual(wrapper.update().instance().state.error, expectedErrorMessage);
+      await assert.async.deepEqual(
+        wrapper.update().instance().state.error,
+        expectedErrorMessage,
+      );
       const errorView = wrapper.find('ErrorView');
       assert.deepEqual(errorView.prop('descriptions'), [expectedErrorMessage]);
     }
     it('renders an error if network request fails', async function() {
-      sinon.stub(window, 'fetch').callsFake(() => Promise.reject(new Error('oh shit')));
+      sinon
+        .stub(window, 'fetch')
+        .callsFake(() => Promise.reject(new Error('oh shit')));
       const wrapper = shallow(buildApp());
-      await assertErrorRendered('Network error encountered at fetching https://api.github.com/repos/atom/github/pulls/1804', wrapper);
+      await assertErrorRendered(
+        'Network error encountered at fetching https://api.github.com/repos/atom/github/pulls/1804',
+        wrapper,
+      );
     });
 
     it('renders an error if diff parsing fails', async function() {
       setDiffResponse('bad diff no treat for you');
-      sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(diffResponse));
+      sinon
+        .stub(window, 'fetch')
+        .callsFake(() => Promise.resolve(diffResponse));
       const wrapper = shallow(buildApp());
-      await assertErrorRendered('Unable to parse diff for this pull request.', wrapper);
+      await assertErrorRendered(
+        'Unable to parse diff for this pull request.',
+        wrapper,
+      );
     });
 
     it('renders an error if fetch returns a non-ok response', async function() {
@@ -144,7 +191,10 @@ describe('PullRequestChangedFilesContainer', function() {
       });
       sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(badResponse));
       const wrapper = shallow(buildApp());
-      await assertErrorRendered('Unable to fetch diff for this pull request: oh noes.', wrapper);
+      await assertErrorRendered(
+        'Unable to fetch diff for this pull request: oh noes.',
+        wrapper,
+      );
     });
   });
 });

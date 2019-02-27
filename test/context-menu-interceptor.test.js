@@ -7,9 +7,7 @@ class SampleComponent extends React.Component {
   render() {
     return (
       <div className="parent">
-        <div className="child">
-          This element has content.
-        </div>
+        <div className="child">This element has content.</div>
       </div>
     );
   }
@@ -101,9 +99,7 @@ describe('ContextMenuInterceptor', function() {
           <SampleComponent />
         </ContextMenuInterceptor>
         <div className="unrelated">
-          <div className="otherNode">
-            This is another div.
-          </div>
+          <div className="otherNode">This is another div.</div>
         </div>
       </div>,
       {attachTo: rootElement},

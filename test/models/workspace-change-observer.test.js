@@ -49,7 +49,9 @@ describe('WorkspaceChangeObserver', function() {
     createObserver(repository);
     await observer.start();
 
-    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'change', {encoding: 'utf8'});
+    await fs.writeFile(path.join(workdirPath, 'a.txt'), 'change', {
+      encoding: 'utf8',
+    });
     await repository.stageFiles(['a.txt']);
 
     await assert.async.isTrue(changeSpy.called);
@@ -89,15 +91,19 @@ describe('WorkspaceChangeObserver', function() {
 
       editor.setText('change');
       await editor.save();
-      await assert.async.isTrue(changeSpy.calledWith([{
-        action: 'renamed',
-        path: path.join(workdirPath, 'renamed-path.txt'),
-        oldPath: path.join(workdirPath, 'a.txt'),
-      }]));
+      await assert.async.isTrue(
+        changeSpy.calledWith([
+          {
+            action: 'renamed',
+            path: path.join(workdirPath, 'renamed-path.txt'),
+            oldPath: path.join(workdirPath, 'a.txt'),
+          },
+        ]),
+      );
     });
   });
 
-  it('doesn\'t emit events for unsaved files', async function() {
+  it("doesn't emit events for unsaved files", async function() {
     const workdirPath = await cloneRepository('three-files');
     const repository = await buildRepository(workdirPath);
     const editor = await workspace.open();

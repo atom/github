@@ -81,7 +81,11 @@ describe('Marker', function() {
 
   it('destroys its marker on unmount', function() {
     const wrapper = mount(
-      <Marker editor={editor} handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />,
+      <Marker
+        editor={editor}
+        handleID={setMarkerID}
+        bufferRange={Range.fromObject([[0, 0], [0, 0]])}
+      />,
     );
 
     assert.isDefined(editor.getMarker(markerID));
@@ -93,7 +97,10 @@ describe('Marker', function() {
     const editorHolder = new RefHolder();
     mount(
       <AtomTextEditor workspace={workspace} refModel={editorHolder}>
-        <Marker handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
+        <Marker
+          handleID={setMarkerID}
+          bufferRange={Range.fromObject([[0, 0], [0, 0]])}
+        />
       </AtomTextEditor>,
     );
 
@@ -107,8 +114,15 @@ describe('Marker', function() {
     const editorHolder = new RefHolder();
     mount(
       <AtomTextEditor workspace={workspace} refModel={editorHolder}>
-        <MarkerLayer handleID={id => { layerID = id; }}>
-          <Marker handleID={setMarkerID} bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
+        <MarkerLayer
+          handleID={id => {
+            layerID = id;
+          }}
+        >
+          <Marker
+            handleID={setMarkerID}
+            bufferRange={Range.fromObject([[0, 0], [0, 0]])}
+          />
         </MarkerLayer>
       </AtomTextEditor>,
     );
@@ -136,7 +150,10 @@ describe('Marker', function() {
     });
 
     it('fails on construction if its ID is invalid', function() {
-      assert.throws(() => mount(<Marker editor={editor} id={67} />), /Invalid marker ID: 67/);
+      assert.throws(
+        () => mount(<Marker editor={editor} id={67} />),
+        /Invalid marker ID: 67/,
+      );
     });
 
     it('does not destroy its marker on unmount', function() {

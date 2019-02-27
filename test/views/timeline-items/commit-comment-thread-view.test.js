@@ -16,17 +16,25 @@ describe('CommitCommentThreadView', function() {
   }
 
   it('renders a CommitCommentView for each comment', function() {
-    const wrapper = shallow(buildApp({
-      commitCommentOpts: [
-        {authorLogin: 'user0'},
-        {authorLogin: 'user1'},
-        {authorLogin: 'user2'},
-      ],
-    }));
+    const wrapper = shallow(
+      buildApp({
+        commitCommentOpts: [
+          {authorLogin: 'user0'},
+          {authorLogin: 'user1'},
+          {authorLogin: 'user2'},
+        ],
+      }),
+    );
 
-    const commentViews = wrapper.find('ForwardRef(Relay(BareCommitCommentView))');
+    const commentViews = wrapper.find(
+      'ForwardRef(Relay(BareCommitCommentView))',
+    );
 
-    assert.deepEqual(commentViews.map(c => c.prop('item').author.login), ['user0', 'user1', 'user2']);
+    assert.deepEqual(commentViews.map(c => c.prop('item').author.login), [
+      'user0',
+      'user1',
+      'user2',
+    ]);
 
     assert.isFalse(commentViews.at(0).prop('isReply'));
     assert.isTrue(commentViews.at(1).prop('isReply'));

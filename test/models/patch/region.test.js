@@ -1,11 +1,18 @@
 import {TextBuffer} from 'atom';
-import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
+import {
+  Addition,
+  Deletion,
+  NoNewline,
+  Unchanged,
+} from '../../../lib/models/patch/region';
 
 describe('Regions', function() {
   let buffer, marker;
 
   beforeEach(function() {
-    buffer = new TextBuffer({text: '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n'});
+    buffer = new TextBuffer({
+      text: '0000\n1111\n2222\n3333\n4444\n5555\n6666\n7777\n8888\n9999\n',
+    });
     marker = buffer.markRange([[1, 0], [3, 4]]);
   });
 
@@ -30,7 +37,10 @@ describe('Regions', function() {
     });
 
     it('can be re-marked on a new markable target', function() {
-      assert.strictEqual(addition.getMarker().layer, buffer.getDefaultMarkerLayer());
+      assert.strictEqual(
+        addition.getMarker().layer,
+        buffer.getDefaultMarkerLayer(),
+      );
 
       const nextBuffer = new TextBuffer({text: buffer.getText()});
       const nextLayer = nextBuffer.addMarkerLayer();
@@ -86,7 +96,10 @@ describe('Regions', function() {
     it('inverts to a deletion', function() {
       const inverted = addition.invertIn(buffer);
       assert.isTrue(inverted.isDeletion());
-      assert.deepEqual(inverted.getRange().serialize(), addition.getRange().serialize());
+      assert.deepEqual(
+        inverted.getRange().serialize(),
+        addition.getRange().serialize(),
+      );
     });
   });
 
@@ -143,7 +156,10 @@ describe('Regions', function() {
     it('inverts to an addition', function() {
       const inverted = deletion.invertIn(buffer);
       assert.isTrue(inverted.isAddition());
-      assert.deepEqual(inverted.getRange().serialize(), deletion.getRange().serialize());
+      assert.deepEqual(
+        inverted.getRange().serialize(),
+        deletion.getRange().serialize(),
+      );
     });
   });
 
@@ -200,7 +216,10 @@ describe('Regions', function() {
     it('inverts as itself', function() {
       const inverted = unchanged.invertIn(buffer);
       assert.isTrue(inverted.isUnchanged());
-      assert.deepEqual(inverted.getRange().serialize(), unchanged.getRange().serialize());
+      assert.deepEqual(
+        inverted.getRange().serialize(),
+        unchanged.getRange().serialize(),
+      );
     });
   });
 
@@ -251,19 +270,28 @@ describe('Regions', function() {
     });
 
     it('uses "\\" as a prefix for toStringIn()', function() {
-      assert.strictEqual(noNewline.toStringIn(buffer), '\\1111\n\\2222\n\\3333\n');
+      assert.strictEqual(
+        noNewline.toStringIn(buffer),
+        '\\1111\n\\2222\n\\3333\n',
+      );
     });
 
     it('inverts as another nonewline change', function() {
       const inverted = noNewline.invertIn(buffer);
       assert.isTrue(inverted.isNoNewline());
-      assert.deepEqual(inverted.getRange().serialize(), noNewline.getRange().serialize());
+      assert.deepEqual(
+        inverted.getRange().serialize(),
+        noNewline.getRange().serialize(),
+      );
     });
   });
 
   describe('intersectRows()', function() {
     function assertIntersections(actual, expected) {
-      const serialized = actual.map(({intersection, gap}) => ({intersection: intersection.serialize(), gap}));
+      const serialized = actual.map(({intersection, gap}) => ({
+        intersection: intersection.serialize(),
+        gap,
+      }));
       assert.deepEqual(serialized, expected);
     }
 

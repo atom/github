@@ -15,7 +15,9 @@ describe('GitTempDir', function() {
       assert.isTrue(stat.isFile());
       if (script.endsWith('.sh') && process.platform !== 'win32') {
         // eslint-disable-next-line no-bitwise
-        assert.isTrue((stat.mode & fs.constants.S_IXUSR) === fs.constants.S_IXUSR);
+        assert.isTrue(
+          (stat.mode & fs.constants.S_IXUSR) === fs.constants.S_IXUSR,
+        );
       }
     }
 
@@ -31,9 +33,18 @@ describe('GitTempDir', function() {
     assert.isTrue(scriptPath.startsWith(tempDir.getRootPath()));
     assert.isTrue(scriptPath.endsWith('git-credential-atom.js'));
 
-    assert.strictEqual(tempDir.getCredentialHelperJs(), tempDir.getScriptPath('git-credential-atom.js'));
-    assert.strictEqual(tempDir.getCredentialHelperSh(), tempDir.getScriptPath('git-credential-atom.sh'));
-    assert.strictEqual(tempDir.getAskPassJs(), tempDir.getScriptPath('git-askpass-atom.js'));
+    assert.strictEqual(
+      tempDir.getCredentialHelperJs(),
+      tempDir.getScriptPath('git-credential-atom.js'),
+    );
+    assert.strictEqual(
+      tempDir.getCredentialHelperSh(),
+      tempDir.getScriptPath('git-credential-atom.sh'),
+    );
+    assert.strictEqual(
+      tempDir.getAskPassJs(),
+      tempDir.getScriptPath('git-askpass-atom.js'),
+    );
   });
 
   it('fails when the temp dir is not yet created', function() {

@@ -14,7 +14,7 @@ describe('WorkdirCache', function() {
   });
 
   it('defaults to 1000 entries', function() {
-    assert.strictEqual((new WorkdirCache()).maxSize, 1000);
+    assert.strictEqual(new WorkdirCache().maxSize, 1000);
   });
 
   it('finds a workdir that is the given path', async function() {
@@ -42,7 +42,11 @@ describe('WorkdirCache', function() {
   it('finds a workdir from a gitdir file', async function() {
     const repoDir = await cloneRepository('three-files');
     const expectedDir = await fs.realpath(temp.mkdirSync());
-    fs.writeFileSync(path.join(expectedDir, '.git'), `gitdir: ${path.join(repoDir, '.git')}`, 'utf8');
+    fs.writeFileSync(
+      path.join(expectedDir, '.git'),
+      `gitdir: ${path.join(repoDir, '.git')}`,
+      'utf8',
+    );
     const actualDir = await cache.find(expectedDir);
 
     assert.equal(actualDir, expectedDir);
@@ -56,7 +60,18 @@ describe('WorkdirCache', function() {
   it('returns null when a path does not exist', async function() {
     const nope = path.join(
       __dirname,
-      'does', 'not', 'exist', 'no', 'seriously', 'why', 'did', 'you', 'name', 'a', 'directory', 'this',
+      'does',
+      'not',
+      'exist',
+      'no',
+      'seriously',
+      'why',
+      'did',
+      'you',
+      'name',
+      'a',
+      'directory',
+      'this',
     );
     assert.isNull(await cache.find(nope));
   });
@@ -96,9 +111,7 @@ describe('WorkdirCache', function() {
       path.join(dir0, 'subdir-1', 'b.txt'),
       dir1,
     ];
-    const expectedWorkdirs = [
-      dir0, dir0, dir0, dir0, dir1,
-    ];
+    const expectedWorkdirs = [dir0, dir0, dir0, dir0, dir1];
 
     // Prime the cache
     const initial = await Promise.all(
@@ -125,13 +138,17 @@ describe('WorkdirCache', function() {
     assert.isTrue(cache.revParse.calledWith(dir0));
     assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'a.txt')));
     assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'subdir-1')));
-    assert.isTrue(cache.revParse.calledWith(path.join(dir0, 'subdir-1', 'b.txt')));
+    assert.isTrue(
+      cache.revParse.calledWith(path.join(dir0, 'subdir-1', 'b.txt')),
+    );
     assert.isTrue(cache.revParse.calledWith(dir1));
   });
 
   it('clears the cache when the maximum size is exceeded', async function() {
     const dirs = await Promise.all(
-      Array(6).fill(null, 0, 6).map(() => cloneRepository('three-files')),
+      Array(6)
+        .fill(null, 0, 6)
+        .map(() => cloneRepository('three-files')),
     );
 
     await Promise.all(dirs.slice(0, 5).map(dir => cache.find(dir)));

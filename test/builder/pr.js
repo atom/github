@@ -4,7 +4,8 @@ class CommentBuilder {
     this._path = 'first.txt';
     this._position = 0;
     this._authorLogin = 'someone';
-    this._authorAvatarUrl = 'https://avatars3.githubusercontent.com/u/17565?s=32&v=4';
+    this._authorAvatarUrl =
+      'https://avatars3.githubusercontent.com/u/17565?s=32&v=4';
     this._url = 'https://github.com/atom/github/pull/1829/files#r242224689';
     this._createdAt = 0;
     this._body = 'Lorem ipsum dolor sit amet, te urbanitas appellantur est.';
@@ -135,7 +136,11 @@ class PullRequestBuilder {
     const commentThreads = {};
     this._reviews.forEach(review => {
       review.comments.edges.forEach(({node: comment}) => {
-        if (comment.replyTo && comment.replyTo.id && commentThreads[comment.replyTo.id]) {
+        if (
+          comment.replyTo &&
+          comment.replyTo.id &&
+          commentThreads[comment.replyTo.id]
+        ) {
           commentThreads[comment.replyTo.id].push(comment);
         } else {
           commentThreads[comment.id] = [comment];

@@ -100,7 +100,9 @@ describe('CommitView', function() {
       const coAuthorInput = wrapper.find(ObserveModel);
       assert.deepEqual(coAuthorInput.length, 1);
       assert.isTrue(incrementCounterStub.calledOnce);
-      assert.deepEqual(incrementCounterStub.lastCall.args, ['show-co-author-input']);
+      assert.deepEqual(incrementCounterStub.lastCall.args, [
+        'show-co-author-input',
+      ]);
     });
     it('hides co-author input when toggle is clicked twice', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
@@ -110,13 +112,18 @@ describe('CommitView', function() {
       const coAuthorInput = wrapper.find(ObserveModel);
       assert.deepEqual(coAuthorInput.length, 0);
       assert.isTrue(incrementCounterStub.calledTwice);
-      assert.deepEqual(incrementCounterStub.lastCall.args, ['hide-co-author-input']);
+      assert.deepEqual(incrementCounterStub.lastCall.args, [
+        'hide-co-author-input',
+      ]);
     });
     it('renders co-author form when a new co-author is added', function() {
       const coAuthorButton = wrapper.find('.github-CommitView-coAuthorToggle');
       coAuthorButton.simulate('click');
 
-      const newAuthor = Author.createNew('pizza@unicorn.party', 'Pizza Unicorn');
+      const newAuthor = Author.createNew(
+        'pizza@unicorn.party',
+        'Pizza Unicorn',
+      );
       wrapper.instance().onSelectedCoAuthorsChanged([newAuthor]);
       wrapper.update();
 
@@ -124,9 +131,10 @@ describe('CommitView', function() {
       assert.deepEqual(coAuthorForm.length, 1);
 
       assert.isTrue(incrementCounterStub.calledTwice);
-      assert.deepEqual(incrementCounterStub.lastCall.args, ['selected-co-authors-changed']);
+      assert.deepEqual(incrementCounterStub.lastCall.args, [
+        'selected-co-authors-changed',
+      ]);
     });
-
   });
 
   describe('when the repo is loading', function() {
@@ -144,44 +152,128 @@ describe('CommitView', function() {
 
   it('displays the remaining characters limit based on which line is being edited', function() {
     const wrapper = mount(app);
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '72');
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '72',
+    );
 
     messageBuffer.setText('abcde fghij');
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '61');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '61',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
     messageBuffer.setText('\nklmno');
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '∞',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
     messageBuffer.setText('abcde\npqrst');
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '∞');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '∞',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
-    wrapper.find('AtomTextEditor').instance().getModel().setCursorBufferPosition([0, 3]);
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '67');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    wrapper
+      .find('AtomTextEditor')
+      .instance()
+      .getModel()
+      .setCursorBufferPosition([0, 3]);
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '67',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
     wrapper.setProps({stagedChangesExist: true, maximumCharacterLimit: 50});
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '45');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '45',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
     messageBuffer.setText('a'.repeat(41));
     wrapper.update();
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '9');
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '9',
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isTrue(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
 
     messageBuffer.setText('a'.repeat(58));
     wrapper.update();
-    assert.strictEqual(wrapper.find('.github-CommitView-remaining-characters').text(), '-8');
-    assert.isTrue(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-error'));
-    assert.isFalse(wrapper.find('.github-CommitView-remaining-characters').hasClass('is-warning'));
+    assert.strictEqual(
+      wrapper.find('.github-CommitView-remaining-characters').text(),
+      '-8',
+    );
+    assert.isTrue(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-error'),
+    );
+    assert.isFalse(
+      wrapper
+        .find('.github-CommitView-remaining-characters')
+        .hasClass('is-warning'),
+    );
   });
 
   describe('the commit button', function() {
@@ -205,7 +297,9 @@ describe('CommitView', function() {
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
 
       wrapper.setProps({stagedChangesExist: true});
-      assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
+      assert.isFalse(
+        wrapper.find('.github-CommitView-commit').prop('disabled'),
+      );
     });
 
     it('is disabled when there are merge conflicts', function() {
@@ -213,7 +307,9 @@ describe('CommitView', function() {
       assert.isTrue(wrapper.find('.github-CommitView-commit').prop('disabled'));
 
       wrapper.setProps({mergeConflictsExist: false});
-      assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
+      assert.isFalse(
+        wrapper.find('.github-CommitView-commit').prop('disabled'),
+      );
     });
 
     it('is disabled when the commit message is empty', function() {
@@ -223,28 +319,42 @@ describe('CommitView', function() {
 
       messageBuffer.setText('Not empty');
       wrapper.update();
-      assert.isFalse(wrapper.find('.github-CommitView-commit').prop('disabled'));
+      assert.isFalse(
+        wrapper.find('.github-CommitView-commit').prop('disabled'),
+      );
     });
 
     it('displays the current branch name', function() {
       const currentBranch = new Branch('aw-do-the-stuff');
       wrapper.setProps({currentBranch});
-      assert.strictEqual(wrapper.find('.github-CommitView-commit').text(), 'Commit to aw-do-the-stuff');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commit').text(),
+        'Commit to aw-do-the-stuff',
+      );
     });
 
     it('indicates when a commit will be detached', function() {
       const currentBranch = Branch.createDetached('master~3');
       wrapper.setProps({currentBranch});
-      assert.strictEqual(wrapper.find('.github-CommitView-commit').text(), 'Create detached commit');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commit').text(),
+        'Create detached commit',
+      );
     });
 
     it('displays a progress message while committing', function() {
       wrapper.setState({showWorking: true});
-      assert.strictEqual(wrapper.find('.github-CommitView-commit').text(), 'Working...');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commit').text(),
+        'Working...',
+      );
     });
 
     it('falls back to "commit" with no current branch', function() {
-      assert.strictEqual(wrapper.find('.github-CommitView-commit').text(), 'Commit');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commit').text(),
+        'Commit',
+      );
     });
   });
 
@@ -257,10 +367,17 @@ describe('CommitView', function() {
 
       commit = sinon.spy();
       messageBuffer.setText('Something');
-      app = React.cloneElement(app, {stagedChangesExist: true, prepareToCommit, commit});
+      app = React.cloneElement(app, {
+        stagedChangesExist: true,
+        prepareToCommit,
+        commit,
+      });
       wrapper = mount(app);
 
-      editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      editorElement = wrapper
+        .find('AtomTextEditor')
+        .getDOMNode()
+        .querySelector('atom-text-editor');
       sinon.spy(editorElement, 'focus');
       editor = editorElement.getModel();
 
@@ -327,7 +444,11 @@ describe('CommitView', function() {
 
   it('calls props.abortMerge() when the "Abort Merge" button is clicked', function() {
     const abortMerge = sinon.stub().resolves();
-    app = React.cloneElement(app, {abortMerge, stagedChangesExist: true, isMerging: true});
+    app = React.cloneElement(app, {
+      abortMerge,
+      stagedChangesExist: true,
+      isMerging: true,
+    });
     const wrapper = shallow(app);
 
     wrapper.find('.github-CommitView-abortMerge').simulate('click');
@@ -455,7 +576,9 @@ describe('CommitView', function() {
     });
 
     it('returns null if the focus is not in the commit view', async function() {
-      assert.isNull(await instance.retreatFocusFrom(RecentCommitsView.RECENT_COMMIT));
+      assert.isNull(
+        await instance.retreatFocusFrom(RecentCommitsView.RECENT_COMMIT),
+      );
     });
 
     it('moves focus to the abort merge button if the commit button is focused and a merge is in progress', async function() {
@@ -527,8 +650,14 @@ describe('CommitView', function() {
       ['AtomTextEditor', CommitView.focus.EDITOR, 'atom-text-editor'],
       ['.github-CommitView-abortMerge', CommitView.focus.ABORT_MERGE_BUTTON],
       ['.github-CommitView-commit', CommitView.focus.COMMIT_BUTTON],
-      ['.github-CommitView-coAuthorEditor input', CommitView.focus.COAUTHOR_INPUT],
-      ['.github-CommitView-commitPreview', CommitView.focus.COMMIT_PREVIEW_BUTTON],
+      [
+        '.github-CommitView-coAuthorEditor input',
+        CommitView.focus.COAUTHOR_INPUT,
+      ],
+      [
+        '.github-CommitView-commitPreview',
+        CommitView.focus.COMMIT_PREVIEW_BUTTON,
+      ],
     ];
     for (const [selector, focus, subselector] of foci) {
       let target = wrapper.find(selector).getDOMNode();
@@ -541,7 +670,11 @@ describe('CommitView', function() {
     assert.isNull(wrapper.instance().getFocus(document.body));
 
     const holders = [
-      'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+      'refEditorComponent',
+      'refEditorModel',
+      'refAbortMergeButton',
+      'refCommitButton',
+      'refCoAuthorSelect',
       'refCommitPreviewButton',
     ].map(ivar => wrapper.instance()[ivar]);
     for (const holder of holders) {
@@ -553,16 +686,23 @@ describe('CommitView', function() {
   describe('restoring focus', function() {
     it('to the commit preview button', function() {
       const wrapper = mount(app);
-      const element = wrapper.find('.github-CommitView-commitPreview').getDOMNode();
+      const element = wrapper
+        .find('.github-CommitView-commitPreview')
+        .getDOMNode();
       sinon.spy(element, 'focus');
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.COMMIT_PREVIEW_BUTTON),
+      );
       assert.isTrue(element.focus.called);
     });
 
     it('to the editor', function() {
       const wrapper = mount(app);
-      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      const element = wrapper
+        .find('AtomTextEditor')
+        .getDOMNode()
+        .querySelector('atom-text-editor');
       sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
@@ -573,73 +713,128 @@ describe('CommitView', function() {
       messageBuffer.setText('# Template text here');
 
       const wrapper = mount(app);
-      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      const element = wrapper
+        .find('AtomTextEditor')
+        .getDOMNode()
+        .querySelector('atom-text-editor');
       sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.focus.EDITOR));
       assert.isTrue(element.focus.called);
       assert.deepEqual(
-        element.getModel().getCursorBufferPositions().map(p => p.serialize()),
+        element
+          .getModel()
+          .getCursorBufferPositions()
+          .map(p => p.serialize()),
         [[0, 0]],
       );
     });
 
     it('to the abort merge button', function() {
       const wrapper = mount(React.cloneElement(app, {isMerging: true}));
-      sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
+      sinon.spy(
+        wrapper.find('.github-CommitView-abortMerge').getDOMNode(),
+        'focus',
+      );
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON));
-      assert.isTrue(wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON),
+      );
+      assert.isTrue(
+        wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called,
+      );
     });
 
     it('to the commit button', function() {
       const wrapper = mount(app);
-      sinon.spy(wrapper.find('.github-CommitView-commit').getDOMNode(), 'focus');
+      sinon.spy(
+        wrapper.find('.github-CommitView-commit').getDOMNode(),
+        'focus',
+      );
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COMMIT_BUTTON));
-      assert.isTrue(wrapper.find('.github-CommitView-commit').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.COMMIT_BUTTON),
+      );
+      assert.isTrue(
+        wrapper.find('.github-CommitView-commit').getDOMNode().focus.called,
+      );
     });
 
     it('to the co-author input', function() {
       const wrapper = mount(app);
       wrapper.instance().toggleCoAuthorInput();
 
-      sinon.spy(wrapper.update().find('.github-CommitView-coAuthorEditor input').getDOMNode(), 'focus');
+      sinon.spy(
+        wrapper
+          .update()
+          .find('.github-CommitView-coAuthorEditor input')
+          .getDOMNode(),
+        'focus',
+      );
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
-      assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT),
+      );
+      assert.isTrue(
+        wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode()
+          .focus.called,
+      );
     });
 
     it("to the last element when it's the commit button", function() {
       messageBuffer.setText('non-empty');
-      const wrapper = mount(React.cloneElement(app, {stagedChangesExist: true}));
-      sinon.spy(wrapper.find('.github-CommitView-commit').getDOMNode(), 'focus');
+      const wrapper = mount(
+        React.cloneElement(app, {stagedChangesExist: true}),
+      );
+      sinon.spy(
+        wrapper.find('.github-CommitView-commit').getDOMNode(),
+        'focus',
+      );
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
-      assert.isTrue(wrapper.find('.github-CommitView-commit').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.find('.github-CommitView-commit').getDOMNode().focus.called,
+      );
     });
 
     it("to the last element when it's the abort merge button", function() {
       const wrapper = mount(React.cloneElement(app, {isMerging: true}));
-      sinon.spy(wrapper.find('.github-CommitView-abortMerge').getDOMNode(), 'focus');
+      sinon.spy(
+        wrapper.find('.github-CommitView-abortMerge').getDOMNode(),
+        'focus',
+      );
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
-      assert.isTrue(wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.find('.github-CommitView-abortMerge').getDOMNode().focus.called,
+      );
     });
 
     it("to the last element when it's the coauthor input", function() {
       const wrapper = mount(app);
       wrapper.instance().toggleCoAuthorInput();
 
-      sinon.spy(wrapper.update().find('.github-CommitView-coAuthorEditor input').getDOMNode(), 'focus');
+      sinon.spy(
+        wrapper
+          .update()
+          .find('.github-CommitView-coAuthorEditor input')
+          .getDOMNode(),
+        'focus',
+      );
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
-      assert.isTrue(wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode().focus.called);
+      assert.isTrue(
+        wrapper.find('.github-CommitView-coAuthorEditor input').getDOMNode()
+          .focus.called,
+      );
     });
 
     it("to the last element when it's the editor", function() {
       const wrapper = mount(app);
-      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      const element = wrapper
+        .find('AtomTextEditor')
+        .getDOMNode()
+        .querySelector('atom-text-editor');
       sinon.spy(element, 'focus');
 
       assert.isTrue(wrapper.instance().setFocus(CommitView.lastFocus));
@@ -653,13 +848,20 @@ describe('CommitView', function() {
 
     it('when the named element is no longer rendered', function() {
       const wrapper = mount(app);
-      const element = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+      const element = wrapper
+        .find('AtomTextEditor')
+        .getDOMNode()
+        .querySelector('atom-text-editor');
       sinon.spy(element, 'focus');
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON));
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.ABORT_MERGE_BUTTON),
+      );
       assert.strictEqual(element.focus.callCount, 1);
 
-      assert.isTrue(wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT));
+      assert.isTrue(
+        wrapper.instance().setFocus(CommitView.focus.COAUTHOR_INPUT),
+      );
       assert.strictEqual(element.focus.callCount, 2);
     });
 
@@ -668,7 +870,11 @@ describe('CommitView', function() {
 
       // Simulate an unmounted component by clearing out RefHolders manually.
       const holders = [
-        'refEditorComponent', 'refEditorModel', 'refAbortMergeButton', 'refCommitButton', 'refCoAuthorSelect',
+        'refEditorComponent',
+        'refEditorModel',
+        'refAbortMergeButton',
+        'refCommitButton',
+        'refCoAuthorSelect',
         'refCommitPreviewButton',
       ].map(ivar => wrapper.instance()[ivar]);
       for (const holder of holders) {
@@ -683,26 +889,36 @@ describe('CommitView', function() {
 
   describe('commit preview button', function() {
     it('is enabled when there is staged changes', function() {
-      const wrapper = shallow(React.cloneElement(app, {
-        stagedChangesExist: true,
-      }));
-      assert.isFalse(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+      const wrapper = shallow(
+        React.cloneElement(app, {
+          stagedChangesExist: true,
+        }),
+      );
+      assert.isFalse(
+        wrapper.find('.github-CommitView-commitPreview').prop('disabled'),
+      );
     });
 
-    it('is disabled when there\'s no staged changes', function() {
-      const wrapper = shallow(React.cloneElement(app, {
-        stagedChangesExist: false,
-      }));
-      assert.isTrue(wrapper.find('.github-CommitView-commitPreview').prop('disabled'));
+    it("is disabled when there's no staged changes", function() {
+      const wrapper = shallow(
+        React.cloneElement(app, {
+          stagedChangesExist: false,
+        }),
+      );
+      assert.isTrue(
+        wrapper.find('.github-CommitView-commitPreview').prop('disabled'),
+      );
     });
 
     it('calls a callback when the button is clicked', function() {
       const toggleCommitPreview = sinon.spy();
 
-      const wrapper = shallow(React.cloneElement(app, {
-        toggleCommitPreview,
-        stagedChangesExist: true,
-      }));
+      const wrapper = shallow(
+        React.cloneElement(app, {
+          toggleCommitPreview,
+          stagedChangesExist: true,
+        }),
+      );
 
       wrapper.find('.github-CommitView-commitPreview').simulate('click');
       assert.isTrue(toggleCommitPreview.called);
@@ -711,13 +927,22 @@ describe('CommitView', function() {
     it('displays correct button text depending on prop value', function() {
       const wrapper = shallow(app);
 
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commitPreview').text(),
+        'See All Staged Changes',
+      );
 
       wrapper.setProps({commitPreviewActive: true});
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'Hide All Staged Changes');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commitPreview').text(),
+        'Hide All Staged Changes',
+      );
 
       wrapper.setProps({commitPreviewActive: false});
-      assert.strictEqual(wrapper.find('.github-CommitView-commitPreview').text(), 'See All Staged Changes');
+      assert.strictEqual(
+        wrapper.find('.github-CommitView-commitPreview').text(),
+        'See All Staged Changes',
+      );
     });
   });
 });

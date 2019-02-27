@@ -50,11 +50,16 @@ describe('MergedEventView', function() {
     assert.strictEqual(wrapper.find('.sha').text(), '0000ffff');
     assert.strictEqual(wrapper.find('.merge-ref').text(), 'some-ref');
 
-    assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-07-02T09:00:00Z');
+    assert.strictEqual(
+      wrapper.find('Timeago').prop('time'),
+      '2018-07-02T09:00:00Z',
+    );
   });
 
   it('renders correctly without an actor or commit', function() {
-    const wrapper = shallow(buildApp({includeActor: false, includeCommit: false}));
+    const wrapper = shallow(
+      buildApp({includeActor: false, includeCommit: false}),
+    );
 
     assert.isFalse(wrapper.find('img.author-avatar').exists());
     assert.strictEqual(wrapper.find('.username').text(), 'someone');

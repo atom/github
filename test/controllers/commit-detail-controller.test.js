@@ -13,7 +13,9 @@ describe('CommitDetailController', function() {
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    repository = await buildRepository(await cloneRepository('multiple-commits'));
+    repository = await buildRepository(
+      await cloneRepository('multiple-commits'),
+    );
     commit = await repository.getCommit(VALID_SHA);
   });
 

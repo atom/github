@@ -30,14 +30,11 @@ describe('FilePatchHeaderView', function() {
         hasHunks={true}
         hasUndoHistory={false}
         hasMultipleFileSelections={false}
-
         tooltips={atomEnv.tooltips}
-
         undoLastDiscard={() => {}}
         diveIntoMirrorPatch={() => {}}
         openFile={() => {}}
         toggleFile={() => {}}
-
         {...overrideProps}
       />
     );
@@ -46,18 +43,31 @@ describe('FilePatchHeaderView', function() {
   describe('the title', function() {
     it('renders relative file path', function() {
       const wrapper = shallow(buildApp());
-      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), relPath);
+      assert.strictEqual(
+        wrapper.find('.github-FilePatchView-title').text(),
+        relPath,
+      );
     });
 
     describe('when `ChangedFileItem`', function() {
       it('renders staging status for an unstaged patch', function() {
-        const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'unstaged'}));
-        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `Unstaged Changes for ${relPath}`);
+        const wrapper = shallow(
+          buildApp({itemType: ChangedFileItem, stagingStatus: 'unstaged'}),
+        );
+        assert.strictEqual(
+          wrapper.find('.github-FilePatchView-title').text(),
+          `Unstaged Changes for ${relPath}`,
+        );
       });
 
       it('renders staging status for a staged patch', function() {
-        const wrapper = shallow(buildApp({itemType: ChangedFileItem, stagingStatus: 'staged'}));
-        assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `Staged Changes for ${relPath}`);
+        const wrapper = shallow(
+          buildApp({itemType: ChangedFileItem, stagingStatus: 'staged'}),
+        );
+        assert.strictEqual(
+          wrapper.find('.github-FilePatchView-title').text(),
+          `Staged Changes for ${relPath}`,
+        );
       });
     });
 
@@ -65,19 +75,24 @@ describe('FilePatchHeaderView', function() {
       const oldPath = path.join('dir', 'a.txt');
       const newPath = path.join('dir', 'b.txt');
       const wrapper = shallow(buildApp({relPath: oldPath, newPath}));
-      assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `${oldPath} → ${newPath}`);
+      assert.strictEqual(
+        wrapper.find('.github-FilePatchView-title').text(),
+        `${oldPath} → ${newPath}`,
+      );
     });
   });
 
   describe('the button group', function() {
     it('includes undo discard if ChangedFileItem, undo history is available, and the patch is unstaged', function() {
       const undoLastDiscard = sinon.stub();
-      const wrapper = shallow(buildApp({
-        itemType: ChangedFileItem,
-        hasUndoHistory: true,
-        stagingStatus: 'unstaged',
-        undoLastDiscard,
-      }));
+      const wrapper = shallow(
+        buildApp({
+          itemType: ChangedFileItem,
+          hasUndoHistory: true,
+          stagingStatus: 'unstaged',
+          undoLastDiscard,
+        }),
+      );
       assert.isTrue(wrapper.find('button.icon-history').exists());
 
       wrapper.find('button.icon-history').simulate('click');
@@ -90,18 +105,33 @@ describe('FilePatchHeaderView', function() {
       assert.isFalse(wrapper.find('button.icon-history').exists());
     });
 
-    function createPatchToggleTest({overrideProps, stagingStatus, buttonClass, oppositeButtonClass, tooltip}) {
+    function createPatchToggleTest({
+      overrideProps,
+      stagingStatus,
+      buttonClass,
+      oppositeButtonClass,
+      tooltip,
+    }) {
       return function() {
         const diveIntoMirrorPatch = sinon.stub();
-        const wrapper = shallow(buildApp({stagingStatus, diveIntoMirrorPatch, ...overrideProps}));
+        const wrapper = shallow(
+          buildApp({stagingStatus, diveIntoMirrorPatch, ...overrideProps}),
+        );
 
-        assert.isTrue(wrapper.find(`button.${buttonClass}`).exists(),
-          `${buttonClass} expected, but not found`);
-        assert.isFalse(wrapper.find(`button.${oppositeButtonClass}`).exists(),
-          `${oppositeButtonClass} not expected, but found`);
+        assert.isTrue(
+          wrapper.find(`button.${buttonClass}`).exists(),
+          `${buttonClass} expected, but not found`,
+        );
+        assert.isFalse(
+          wrapper.find(`button.${oppositeButtonClass}`).exists(),
+          `${oppositeButtonClass} not expected, but found`,
+        );
 
         wrapper.find(`button.${buttonClass}`).simulate('click');
-        assert.isTrue(diveIntoMirrorPatch.called, `${buttonClass} click did nothing`);
+        assert.isTrue(
+          diveIntoMirrorPatch.called,
+          `${buttonClass} click did nothing`,
+        );
       };
     }
 
@@ -128,17 +158,29 @@ describe('FilePatchHeaderView', function() {
     describe('when the patch is partially staged', function() {
       const props = {isPartiallyStaged: true};
 
-      it('includes a toggle to staged button when unstaged', createUnstagedPatchToggleTest(props));
+      it(
+        'includes a toggle to staged button when unstaged',
+        createUnstagedPatchToggleTest(props),
+      );
 
-      it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
+      it(
+        'includes a toggle to unstaged button when staged',
+        createStagedPatchToggleTest(props),
+      );
     });
 
     describe('when the patch contains no hunks', function() {
       const props = {hasHunks: false};
 
-      it('includes a toggle to staged button when unstaged', createUnstagedPatchToggleTest(props));
+      it(
+        'includes a toggle to staged button when unstaged',
+        createUnstagedPatchToggleTest(props),
+      );
 
-      it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
+      it(
+        'includes a toggle to unstaged button when staged',
+        createStagedPatchToggleTest(props),
+      );
     });
 
     describe('the jump-to-file button', function() {
@@ -152,41 +194,61 @@ describe('FilePatchHeaderView', function() {
 
       it('is singular when selections exist within a single file patch', function() {
         const wrapper = shallow(buildApp({hasMultipleFileSelections: false}));
-        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump To File');
+        assert.strictEqual(
+          wrapper.find('button.icon-code').text(),
+          'Jump To File',
+        );
       });
 
       it('is plural when selections exist within multiple file patches', function() {
         const wrapper = shallow(buildApp({hasMultipleFileSelections: true}));
-        assert.strictEqual(wrapper.find('button.icon-code').text(), 'Jump To Files');
+        assert.strictEqual(
+          wrapper.find('button.icon-code').text(),
+          'Jump To Files',
+        );
       });
     });
 
-    function createToggleFileTest({stagingStatus, buttonClass, oppositeButtonClass}) {
+    function createToggleFileTest({
+      stagingStatus,
+      buttonClass,
+      oppositeButtonClass,
+    }) {
       return function() {
         const toggleFile = sinon.stub();
         const wrapper = shallow(buildApp({toggleFile, stagingStatus}));
 
-        assert.isTrue(wrapper.find(`button.${buttonClass}`).exists(),
-          `${buttonClass} expected, but not found`);
-        assert.isFalse(wrapper.find(`button.${oppositeButtonClass}`).exists(),
-          `${oppositeButtonClass} not expected, but found`);
+        assert.isTrue(
+          wrapper.find(`button.${buttonClass}`).exists(),
+          `${buttonClass} expected, but not found`,
+        );
+        assert.isFalse(
+          wrapper.find(`button.${oppositeButtonClass}`).exists(),
+          `${oppositeButtonClass} not expected, but found`,
+        );
 
         wrapper.find(`button.${buttonClass}`).simulate('click');
         assert.isTrue(toggleFile.called, `${buttonClass} click did nothing`);
       };
     }
 
-    it('includes a stage file button when unstaged', createToggleFileTest({
-      stagingStatus: 'unstaged',
-      buttonClass: 'icon-move-down',
-      oppositeButtonClass: 'icon-move-up',
-    }));
+    it(
+      'includes a stage file button when unstaged',
+      createToggleFileTest({
+        stagingStatus: 'unstaged',
+        buttonClass: 'icon-move-down',
+        oppositeButtonClass: 'icon-move-up',
+      }),
+    );
 
-    it('includes an unstage file button when staged', createToggleFileTest({
-      stagingStatus: 'staged',
-      buttonClass: 'icon-move-up',
-      oppositeButtonClass: 'icon-move-down',
-    }));
+    it(
+      'includes an unstage file button when staged',
+      createToggleFileTest({
+        stagingStatus: 'staged',
+        buttonClass: 'icon-move-up',
+        oppositeButtonClass: 'icon-move-down',
+      }),
+    );
 
     it('does not render buttons when in a CommitDetailItem', function() {
       const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
@@ -197,6 +259,5 @@ describe('FilePatchHeaderView', function() {
       const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
       assert.isFalse(wrapper.find('.btn-group').exists());
     });
-
   });
 });

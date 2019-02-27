@@ -1,13 +1,21 @@
 import {firstImplementer} from '../lib/helpers';
 
 class A {
-  one() { return 'a-one'; }
-  two() { return 'a-two'; }
+  one() {
+    return 'a-one';
+  }
+  two() {
+    return 'a-two';
+  }
 }
 
 class B {
-  two() { return 'b-two'; }
-  three() { return 'b-three'; }
+  two() {
+    return 'b-two';
+  }
+  three() {
+    return 'b-three';
+  }
 }
 
 describe('firstImplementer', function() {
@@ -49,7 +57,10 @@ describe('firstImplementer', function() {
     assert.equal(descOne.value, a.one);
     const descThree = Object.getOwnPropertyDescriptor(target, 'three');
     assert.equal(descThree.value, b.three);
-    const descTarget = Object.getOwnPropertyDescriptor(target, '__implementations');
+    const descTarget = Object.getOwnPropertyDescriptor(
+      target,
+      '__implementations',
+    );
     assert.deepEqual(descTarget.value, [a, b]);
   });
 

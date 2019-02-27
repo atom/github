@@ -38,7 +38,10 @@ describe('CommitDetailItem', function() {
     };
 
     return (
-      <PaneItem workspace={atomEnv.workspace} uriPattern={CommitDetailItem.uriPattern}>
+      <PaneItem
+        workspace={atomEnv.workspace}
+        uriPattern={CommitDetailItem.uriPattern}
+      >
         {({itemHolder, params}) => {
           return (
             <CommitDetailItem
@@ -67,7 +70,12 @@ describe('CommitDetailItem', function() {
     const wrapper = mount(buildPaneApp());
     await open();
 
-    assert.isTrue(wrapper.update().find('CommitDetailItem').exists());
+    assert.isTrue(
+      wrapper
+        .update()
+        .find('CommitDetailItem')
+        .exists(),
+    );
   });
 
   it('passes extra props to its container', async function() {
@@ -75,7 +83,13 @@ describe('CommitDetailItem', function() {
     const wrapper = mount(buildPaneApp({extra}));
     await open();
 
-    assert.strictEqual(wrapper.update().find('CommitDetailItem').prop('extra'), extra);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('CommitDetailItem')
+        .prop('extra'),
+      extra,
+    );
   });
 
   it('serializes itself as a CommitDetailItem', async function() {
@@ -97,14 +111,26 @@ describe('CommitDetailItem', function() {
     const wrapper = mount(buildPaneApp());
     await open();
 
-    assert.strictEqual(wrapper.update().find('CommitDetailContainer').prop('repository'), repository);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('CommitDetailContainer')
+        .prop('repository'),
+      repository,
+    );
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
     await open({workingDirectory: '/nah'});
 
-    assert.isTrue(wrapper.update().find('CommitDetailContainer').prop('repository').isAbsent());
+    assert.isTrue(
+      wrapper
+        .update()
+        .find('CommitDetailContainer')
+        .prop('repository')
+        .isAbsent(),
+    );
   });
 
   it('returns a fixed title and icon', async function() {
@@ -162,7 +188,9 @@ describe('CommitDetailItem', function() {
       item.focus();
       wrapper.update();
 
-      const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
+      const refInitialFocus = wrapper
+        .find('CommitDetailContainer')
+        .prop('refInitialFocus');
       const focusSpy = sinon.spy();
       refInitialFocus.setter({focus: focusSpy});
       await refInitialFocus.getPromise();
@@ -179,7 +207,9 @@ describe('CommitDetailItem', function() {
       item.focus();
       wrapper.update();
 
-      const refInitialFocus = wrapper.find('CommitDetailContainer').prop('refInitialFocus');
+      const refInitialFocus = wrapper
+        .find('CommitDetailContainer')
+        .prop('refInitialFocus');
       const focusSpy = sinon.spy();
       refInitialFocus.setter({focus: focusSpy});
       await refInitialFocus.getPromise();
@@ -203,7 +233,11 @@ describe('CommitDetailItem', function() {
       const wrapper = mount(buildPaneApp());
       const item = await open(wrapper);
 
-      wrapper.update().find('CommitDetailContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('CommitDetailContainer')
+        .prop('refEditor')
+        .setter(editor);
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -217,7 +251,11 @@ describe('CommitDetailItem', function() {
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
 
-      wrapper.update().find('CommitDetailContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('CommitDetailContainer')
+        .prop('refEditor')
+        .setter(editor);
       assert.isTrue(cb.calledWith(editor));
     });
   });

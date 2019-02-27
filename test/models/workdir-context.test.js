@@ -33,7 +33,7 @@ describe('WorkdirContext', function() {
   });
 
   afterEach(async function() {
-    context && await context.destroy();
+    context && (await context.destroy());
     subs.dispose();
   });
 
@@ -106,7 +106,11 @@ describe('WorkdirContext', function() {
   });
 
   it('exports a singleton containing a Repository in the absent state', function() {
-    assert.isTrue(WorkdirContext.absent().getRepository().isAbsent());
+    assert.isTrue(
+      WorkdirContext.absent()
+        .getRepository()
+        .isAbsent(),
+    );
   });
 
   it('can be constructed containing an undetermined Repository that acts absent', function() {

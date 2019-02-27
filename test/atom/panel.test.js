@@ -8,12 +8,10 @@ import Panel from '../../lib/atom/panel';
 class Component extends React.Component {
   static propTypes = {
     text: PropTypes.string.isRequired,
-  }
+  };
 
   render() {
-    return (
-      <div>{this.props.text}</div>
-    );
+    return <div>{this.props.text}</div>;
   }
 
   getText() {
@@ -62,11 +60,18 @@ describe('Panel', function() {
   it('calls props.onDidClosePanel when the panel is destroyed unexpectedly', function() {
     const onDidClosePanel = sinon.stub();
     const wrapper = mount(
-      <Panel workspace={workspace} location="left" onDidClosePanel={onDidClosePanel}>
+      <Panel
+        workspace={workspace}
+        location="left"
+        onDidClosePanel={onDidClosePanel}
+      >
         <Component text="hello" />
       </Panel>,
     );
-    wrapper.instance().getPanel().destroy();
+    wrapper
+      .instance()
+      .getPanel()
+      .destroy();
     assert.strictEqual(onDidClosePanel.callCount, 1);
   });
 

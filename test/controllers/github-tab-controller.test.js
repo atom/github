@@ -26,7 +26,11 @@ describe('GitHubTabController', function() {
       ...overrideProps,
     };
 
-    return <GitHubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
+    return (
+      <GitHubTabController
+        {...gitHubTabControllerProps(atomEnv, props.repository, props)}
+      />
+    );
   }
 
   describe('derived view props', function() {
@@ -40,7 +44,10 @@ describe('GitHubTabController', function() {
       const branches = new BranchSet([currentBranch, otherBranch]);
       const wrapper = shallow(buildApp({branches}));
 
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentBranch'), currentBranch);
+      assert.strictEqual(
+        wrapper.find('GitHubTabView').prop('currentBranch'),
+        currentBranch,
+      );
     });
 
     it('passes remotes hosted on GitHub', function() {
@@ -55,22 +62,39 @@ describe('GitHubTabController', function() {
 
     it('detects an explicitly specified current remote', function() {
       const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
-      const wrapper = shallow(buildApp({allRemotes, selectedRemoteName: 'yes1'}));
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom1);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+      const wrapper = shallow(
+        buildApp({allRemotes, selectedRemoteName: 'yes1'}),
+      );
+      assert.strictEqual(
+        wrapper.find('GitHubTabView').prop('currentRemote'),
+        dotcom1,
+      );
+      assert.isFalse(
+        wrapper.find('GitHubTabView').prop('manyRemotesAvailable'),
+      );
     });
 
     it('uses a single GitHub-hosted remote', function() {
       const allRemotes = new RemoteSet([dotcom0, nonDotcom]);
       const wrapper = shallow(buildApp({allRemotes}));
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom0);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+      assert.strictEqual(
+        wrapper.find('GitHubTabView').prop('currentRemote'),
+        dotcom0,
+      );
+      assert.isFalse(
+        wrapper.find('GitHubTabView').prop('manyRemotesAvailable'),
+      );
     });
 
     it('indicates when multiple remotes are available', function() {
       const allRemotes = new RemoteSet([dotcom0, dotcom1]);
       const wrapper = shallow(buildApp({allRemotes}));
-      assert.isFalse(wrapper.find('GitHubTabView').prop('currentRemote').isPresent());
+      assert.isFalse(
+        wrapper
+          .find('GitHubTabView')
+          .prop('currentRemote')
+          .isPresent(),
+      );
       assert.isTrue(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
     });
   });
@@ -83,9 +107,16 @@ describe('GitHubTabController', function() {
 
       const branch = new Branch('abc');
       const remote = new Remote('def', 'git@github.com:def/ghi.git');
-      assert.isTrue(await wrapper.find('GitHubTabView').prop('handlePushBranch')(branch, remote));
+      assert.isTrue(
+        await wrapper.find('GitHubTabView').prop('handlePushBranch')(
+          branch,
+          remote,
+        ),
+      );
 
-      assert.isTrue(repository.push.calledWith('abc', {remote, setUpstream: true}));
+      assert.isTrue(
+        repository.push.calledWith('abc', {remote, setUpstream: true}),
+      );
     });
 
     it('chooses a remote', async function() {
@@ -95,10 +126,17 @@ describe('GitHubTabController', function() {
 
       const remote = new Remote('aaa', 'git@github.com:aaa/aaa.git');
       const event = {preventDefault: sinon.spy()};
-      assert.isTrue(await wrapper.find('GitHubTabView').prop('handleRemoteSelect')(event, remote));
+      assert.isTrue(
+        await wrapper.find('GitHubTabView').prop('handleRemoteSelect')(
+          event,
+          remote,
+        ),
+      );
 
       assert.isTrue(event.preventDefault.called);
-      assert.isTrue(repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+      assert.isTrue(
+        repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'),
+      );
     });
   });
 });

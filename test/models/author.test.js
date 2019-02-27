@@ -1,4 +1,7 @@
-import Author, {nullAuthor, NO_REPLY_GITHUB_EMAIL} from '../../lib/models/author';
+import Author, {
+  nullAuthor,
+  NO_REPLY_GITHUB_EMAIL,
+} from '../../lib/models/author';
 
 describe('Author', function() {
   it('recognizes the no-reply GitHub email address', function() {

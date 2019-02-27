@@ -1,9 +1,7 @@
 import {cloneRepository, buildRepositoryWithPipeline} from './helpers';
 import {GitError} from '../lib/git-shell-out-strategy';
 
-
 describe('getRepoPipelineManager()', function() {
-
   let atomEnv, workspace, notificationManager, repo, pipelineManager, confirm;
 
   const getPipeline = (pm, actionName) => {
@@ -46,25 +44,34 @@ describe('getRepoPipelineManager()', function() {
   });
 
   it('has all the action pipelines', function() {
-    const expectedActions = ['PUSH', 'PULL', 'FETCH', 'COMMIT', 'CHECKOUT', 'ADDREMOTE'];
+    const expectedActions = [
+      'PUSH',
+      'PULL',
+      'FETCH',
+      'COMMIT',
+      'CHECKOUT',
+      'ADDREMOTE',
+    ];
     for (const actionName of expectedActions) {
       assert.ok(getPipeline(pipelineManager, actionName));
     }
   });
 
   describe('PUSH pipeline', function() {
-
     it('confirm-force-push', function() {
       it('before confirming', function() {
         const pushPipeline = getPipeline(pipelineManager, 'PUSH');
         const pushStub = sinon.stub();
         sinon.spy(notificationManager, 'addError');
         pushPipeline.run(pushStub, repo, '', {force: true});
-        assert.isTrue(confirm.calledWith({
-          message: 'Are you sure you want to force push?',
-          detailedMessage: 'This operation could result in losing data on the remote.',
-          buttons: ['Force Push', 'Cancel'],
-        }));
+        assert.isTrue(
+          confirm.calledWith({
+            message: 'Are you sure you want to force push?',
+            detailedMessage:
+              'This operation could result in losing data on the remote.',
+            buttons: ['Force Push', 'Cancel'],
+          }),
+        );
         assert.isTrue(pushStub.called());
       });
 
@@ -97,12 +104,19 @@ describe('getRepoPipelineManager()', function() {
       const pushPipeline = getPipeline(pipelineManager, 'PUSH');
       sinon.spy(notificationManager, 'addError');
 
-
       pushPipeline.run(gitErrorStub('rejected failed to push'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Push rejected', {dismissable: true}));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Push rejected', {
+          dismissable: true,
+        }),
+      );
 
       pushPipeline.run(gitErrorStub('something else'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to push', {dismissable: true}));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Unable to push', {
+          dismissable: true,
+        }),
+      );
     });
   });
 
@@ -123,17 +137,53 @@ describe('getRepoPipelineManager()', function() {
       sinon.spy(notificationManager, 'addError');
       sinon.spy(notificationManager, 'addWarning');
 
-      pullPipeline.run(gitErrorStub('error: Your local changes to the following files would be overwritten by merge:\n\ta.txt\n\tb.txt'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Pull aborted', {dismissable: true}));
+      pullPipeline.run(
+        gitErrorStub(
+          'error: Your local changes to the following files would be overwritten by merge:\n\ta.txt\n\tb.txt',
+        ),
+        repo,
+        '',
+        {},
+      );
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Pull aborted', {
+          dismissable: true,
+        }),
+      );
 
-      pullPipeline.run(gitErrorStub('', 'Automatic merge failed; fix conflicts and then commit the result.'), repo, '', {});
-      assert.isTrue(notificationManager.addWarning.calledWithMatch('Merge conflicts', {dismissable: true}));
+      pullPipeline.run(
+        gitErrorStub(
+          '',
+          'Automatic merge failed; fix conflicts and then commit the result.',
+        ),
+        repo,
+        '',
+        {},
+      );
+      assert.isTrue(
+        notificationManager.addWarning.calledWithMatch('Merge conflicts', {
+          dismissable: true,
+        }),
+      );
 
-      pullPipeline.run(gitErrorStub('fatal: Not possible to fast-forward, aborting.'), repo, '', {});
-      assert.isTrue(notificationManager.addWarning.calledWithMatch('Unmerged changes', {dismissable: true}));
+      pullPipeline.run(
+        gitErrorStub('fatal: Not possible to fast-forward, aborting.'),
+        repo,
+        '',
+        {},
+      );
+      assert.isTrue(
+        notificationManager.addWarning.calledWithMatch('Unmerged changes', {
+          dismissable: true,
+        }),
+      );
 
       pullPipeline.run(gitErrorStub('something else'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to pull', {dismissable: true}));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Unable to pull', {
+          dismissable: true,
+        }),
+      );
     });
   });
 
@@ -158,10 +208,12 @@ describe('getRepoPipelineManager()', function() {
       sinon.spy(notificationManager, 'addError');
 
       fetchPipeline.run(gitErrorStub('this is a nice error msg'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to fetch', {
-        detail: 'this is a nice error msg',
-        dismissable: true,
-      }));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Unable to fetch', {
+          detail: 'this is a nice error msg',
+          dismissable: true,
+        }),
+      );
     });
   });
 
@@ -179,23 +231,56 @@ describe('getRepoPipelineManager()', function() {
       });
       checkoutPipeline.run(checkoutStub, repo, '', {});
       assert.isTrue(checkoutStub.called);
-      await assert.async.isFalse(repo.getOperationStates().isCheckoutInProgress());
+      await assert.async.isFalse(
+        repo.getOperationStates().isCheckoutInProgress(),
+      );
     });
 
     it('failed-to-checkout-error', function() {
       sinon.spy(notificationManager, 'addError');
 
-      checkoutPipeline.run(gitErrorStub('local changes would be overwritten: \n\ta.txt\n\tb.txt'), repo, '', {createNew: false});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+      checkoutPipeline.run(
+        gitErrorStub('local changes would be overwritten: \n\ta.txt\n\tb.txt'),
+        repo,
+        '',
+        {createNew: false},
+      );
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Checkout aborted', {
+          dismissable: true,
+        }),
+      );
 
-      checkoutPipeline.run(gitErrorStub('branch x already exists'), repo, '', {createNew: false});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+      checkoutPipeline.run(gitErrorStub('branch x already exists'), repo, '', {
+        createNew: false,
+      });
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Checkout aborted', {
+          dismissable: true,
+        }),
+      );
 
-      checkoutPipeline.run(gitErrorStub('error: you need to resolve your current index first'), repo, '', {createNew: false});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Checkout aborted', {dismissable: true}));
+      checkoutPipeline.run(
+        gitErrorStub('error: you need to resolve your current index first'),
+        repo,
+        '',
+        {createNew: false},
+      );
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Checkout aborted', {
+          dismissable: true,
+        }),
+      );
 
-      checkoutPipeline.run(gitErrorStub('something else'), repo, '', {createNew: true});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create branch', {detail: 'something else', dismissable: true}));
+      checkoutPipeline.run(gitErrorStub('something else'), repo, '', {
+        createNew: true,
+      });
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Cannot create branch', {
+          detail: 'something else',
+          dismissable: true,
+        }),
+      );
     });
   });
 
@@ -213,14 +298,21 @@ describe('getRepoPipelineManager()', function() {
       });
       commitPipeline.run(commitStub, repo, '', {});
       assert.isTrue(commitStub.called);
-      await assert.async.isFalse(repo.getOperationStates().isCommitInProgress());
+      await assert.async.isFalse(
+        repo.getOperationStates().isCommitInProgress(),
+      );
     });
 
     it('failed-to-commit-error', function() {
       sinon.spy(notificationManager, 'addError');
 
       commitPipeline.run(gitErrorStub('a nice msg'), repo, '', {});
-      assert.isTrue(notificationManager.addError.calledWithMatch('Unable to commit', {detail: 'a nice msg', dismissable: true}));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Unable to commit', {
+          detail: 'a nice msg',
+          dismissable: true,
+        }),
+      );
     });
   });
 
@@ -229,17 +321,26 @@ describe('getRepoPipelineManager()', function() {
       const addRemotePipeline = getPipeline(pipelineManager, 'ADDREMOTE');
       sinon.spy(notificationManager, 'addError');
 
-      addRemotePipeline.run(gitErrorStub('fatal: remote x already exists.'), repo, 'existential-crisis');
-      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {
-        detail: 'The repository already contains a remote named existential-crisis.',
-        dismissable: true,
-      }));
+      addRemotePipeline.run(
+        gitErrorStub('fatal: remote x already exists.'),
+        repo,
+        'existential-crisis',
+      );
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Cannot create remote', {
+          detail:
+            'The repository already contains a remote named existential-crisis.',
+          dismissable: true,
+        }),
+      );
 
       addRemotePipeline.run(gitErrorStub('something else'), repo, 'remotename');
-      assert.isTrue(notificationManager.addError.calledWithMatch('Cannot create remote', {
-        detail: 'something else',
-        dismissable: true,
-      }));
+      assert.isTrue(
+        notificationManager.addError.calledWithMatch('Cannot create remote', {
+          detail: 'something else',
+          dismissable: true,
+        }),
+      );
     });
   });
 });

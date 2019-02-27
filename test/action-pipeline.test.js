@@ -7,7 +7,10 @@ describe('ActionPipelineManager', function() {
 
     assert.ok(manager.getPipeline(manager.actionKeys.ONE));
     assert.ok(manager.getPipeline(manager.actionKeys.TWO));
-    assert.throws(() => manager.getPipeline(manager.actionKeys.THREE), /not a known action/);
+    assert.throws(
+      () => manager.getPipeline(manager.actionKeys.THREE),
+      /not a known action/,
+    );
 
     const pipeline = manager.getPipeline(manager.actionKeys.ONE);
     assert.equal(manager.actionKeys.ONE, pipeline.actionKey);
@@ -29,12 +32,18 @@ describe('ActionPipeline', function() {
   });
 
   it('requires middleware to have a name', function() {
-    assert.throws(() => pipeline.addMiddleware(null, () => null), /must be registered with a unique middleware name/);
+    assert.throws(
+      () => pipeline.addMiddleware(null, () => null),
+      /must be registered with a unique middleware name/,
+    );
   });
 
   it('only allows a single instance of a given middleware based on name', function() {
     pipeline.addMiddleware('testMiddleware', () => null);
-    assert.throws(() => pipeline.addMiddleware('testMiddleware', () => null), /testMiddleware.*already registered/);
+    assert.throws(
+      () => pipeline.addMiddleware('testMiddleware', () => null),
+      /testMiddleware.*already registered/,
+    );
   });
 
   it('registers middleware to run around the function', async function() {

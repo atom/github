@@ -1,4 +1,11 @@
-import {addEvent, addTiming, FIVE_MINUTES_IN_MILLISECONDS, FakeReporter, incrementCounter, reporterProxy} from '../lib/reporter-proxy';
+import {
+  addEvent,
+  addTiming,
+  FIVE_MINUTES_IN_MILLISECONDS,
+  FakeReporter,
+  incrementCounter,
+  reporterProxy,
+} from '../lib/reporter-proxy';
 const pjson = require('../package.json');
 
 const version = pjson.version;
@@ -28,7 +35,10 @@ describe('reporterProxy', function() {
       assert.lengthOf(events, 1);
       const actualEvent = events[0];
       assert.deepEqual(actualEvent.eventType, eventType);
-      assert.deepEqual(actualEvent.event, {coAuthorCount: 2, gitHubPackageVersion: version});
+      assert.deepEqual(actualEvent.event, {
+        coAuthorCount: 2,
+        gitHubPackageVersion: version,
+      });
     });
 
     it('adds timing to queue when addTiming is called', function() {
@@ -101,7 +111,10 @@ describe('reporterProxy', function() {
 
       const addCustomEventArgs = addCustomEventStub.lastCall.args;
       assert.deepEqual(addCustomEventArgs[0], eventType);
-      assert.deepEqual(addCustomEventArgs[1], {coAuthorCount: 2, gitHubPackageVersion: version});
+      assert.deepEqual(addCustomEventArgs[1], {
+        coAuthorCount: 2,
+        gitHubPackageVersion: version,
+      });
 
       const addTimingArgs = addTimingStub.lastCall.args;
       assert.deepEqual(addTimingArgs[0], timingEventType);
@@ -113,7 +126,6 @@ describe('reporterProxy', function() {
       assert.lengthOf(reporterProxy.events, 0);
       assert.lengthOf(reporterProxy.timings, 0);
       assert.lengthOf(reporterProxy.counters, 0);
-
     });
     it('calls addCustomEvent directly, bypassing queue', function() {
       assert.isFalse(addCustomEventStub.called);
@@ -124,7 +136,10 @@ describe('reporterProxy', function() {
 
       const addCustomEventArgs = addCustomEventStub.lastCall.args;
       assert.deepEqual(addCustomEventArgs[0], eventType);
-      assert.deepEqual(addCustomEventArgs[1], {coAuthorCount: 2, gitHubPackageVersion: version});
+      assert.deepEqual(addCustomEventArgs[1], {
+        coAuthorCount: 2,
+        gitHubPackageVersion: version,
+      });
     });
     it('calls addTiming directly, bypassing queue', function() {
       assert.isFalse(addTimingStub.called);

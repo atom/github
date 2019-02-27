@@ -33,14 +33,45 @@ describe('snapshot generation', function() {
       mainPath: path.join(__dirname, 'output/transpiled/lib/index.js'),
       cachePath: path.join(__dirname, 'output/snapshot-cache'),
       shouldExcludeModule: ({requiringModulePath, requiredModulePath}) => {
-        const requiredModuleRelativePath = path.relative(baseDirPath, requiredModulePath);
+        const requiredModuleRelativePath = path.relative(
+          baseDirPath,
+          requiredModulePath,
+        );
 
-        if (requiredModulePath.endsWith('.node')) { return true; }
-        if (coreModules.has(requiredModulePath)) { return true; }
-        if (requiredModuleRelativePath.startsWith(path.join('node_modules/dugite'))) { return true; }
-        if (requiredModuleRelativePath.endsWith(path.join('node_modules/temp/lib/temp.js'))) { return true; }
-        if (requiredModuleRelativePath.endsWith(path.join('node_modules/graceful-fs/graceful-fs.js'))) { return true; }
-        if (requiredModuleRelativePath.endsWith(path.join('node_modules/fs-extra/lib/index.js'))) { return true; }
+        if (requiredModulePath.endsWith('.node')) {
+          return true;
+        }
+        if (coreModules.has(requiredModulePath)) {
+          return true;
+        }
+        if (
+          requiredModuleRelativePath.startsWith(
+            path.join('node_modules/dugite'),
+          )
+        ) {
+          return true;
+        }
+        if (
+          requiredModuleRelativePath.endsWith(
+            path.join('node_modules/temp/lib/temp.js'),
+          )
+        ) {
+          return true;
+        }
+        if (
+          requiredModuleRelativePath.endsWith(
+            path.join('node_modules/graceful-fs/graceful-fs.js'),
+          )
+        ) {
+          return true;
+        }
+        if (
+          requiredModuleRelativePath.endsWith(
+            path.join('node_modules/fs-extra/lib/index.js'),
+          )
+        ) {
+          return true;
+        }
 
         return false;
       },
@@ -48,10 +79,16 @@ describe('snapshot generation', function() {
 
     await fs.writeFile(snapshotScriptPath, snapshotScript, 'utf8');
 
-    vm.runInNewContext(snapshotScript, undefined, {filename: snapshotScriptPath, displayErrors: true});
+    vm.runInNewContext(snapshotScript, undefined, {
+      filename: snapshotScriptPath,
+      displayErrors: true,
+    });
 
     childProcess.execFileSync(
-      path.join(__dirname, '../node_modules/electron-mksnapshot/bin/mksnapshot'),
+      path.join(
+        __dirname,
+        '../node_modules/electron-mksnapshot/bin/mksnapshot',
+      ),
       ['--no-use_ic', snapshotScriptPath, '--startup_blob', snapshotBlobPath],
     );
   });

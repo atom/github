@@ -31,9 +31,7 @@ describe('IssueCommentView', function() {
       };
     }
 
-    return (
-      <BareIssueCommentView {...props} />
-    );
+    return <BareIssueCommentView {...props} />;
   }
 
   it('renders the comment data', function() {
@@ -43,16 +41,28 @@ describe('IssueCommentView', function() {
     assert.strictEqual(avatarImg.prop('src'), 'https://avatars.com/u/1');
     assert.strictEqual(avatarImg.prop('title'), 'author');
 
-    assert.match(wrapper.find('.comment-message-header').text(), /^author commented/);
-    assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-07-02T09:00:00Z');
+    assert.match(
+      wrapper.find('.comment-message-header').text(),
+      /^author commented/,
+    );
+    assert.strictEqual(
+      wrapper.find('Timeago').prop('time'),
+      '2018-07-02T09:00:00Z',
+    );
 
-    assert.strictEqual(wrapper.find('GithubDotcomMarkdown').prop('html'), '<p>body</p>');
+    assert.strictEqual(
+      wrapper.find('GithubDotcomMarkdown').prop('html'),
+      '<p>body</p>',
+    );
   });
 
   it('renders when no author is provided', function() {
     const wrapper = shallow(buildApp({includeAuthor: false}));
 
     assert.isFalse(wrapper.find('img.author-avatar').exists());
-    assert.match(wrapper.find('.comment-message-header').text(), /^someone commented/);
+    assert.match(
+      wrapper.find('.comment-message-header').text(),
+      /^someone commented/,
+    );
   });
 });

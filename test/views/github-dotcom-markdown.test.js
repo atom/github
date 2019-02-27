@@ -3,7 +3,11 @@ import {mount} from 'enzyme';
 import {shell} from 'electron';
 
 import {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
-import {handleClickEvent, openIssueishLinkInNewTab, openLinkInBrowser} from '../../lib/views/issueish-link';
+import {
+  handleClickEvent,
+  openIssueishLinkInNewTab,
+  openLinkInBrowser,
+} from '../../lib/views/issueish-link';
 import {getEndpoint} from '../../lib/models/endpoint';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -13,7 +17,10 @@ describe('GithubDotcomMarkdown', function() {
 
   beforeEach(function() {
     const endpoint = getEndpoint('somehost.com');
-    relayEnvironment = RelayNetworkLayerManager.getEnvironmentForHost(endpoint, '1234');
+    relayEnvironment = RelayNetworkLayerManager.getEnvironmentForHost(
+      endpoint,
+      '1234',
+    );
   });
 
   function buildApp(overloadProps = {}) {
@@ -31,18 +38,24 @@ describe('GithubDotcomMarkdown', function() {
   }
 
   it('embeds pre-rendered markdown into a div', function() {
-    const wrapper = mount(buildApp({
-      html: '<pre class="yes">something</pre>',
-    }));
+    const wrapper = mount(
+      buildApp({
+        html: '<pre class="yes">something</pre>',
+      }),
+    );
 
-    assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<pre class="yes">something</pre>');
+    assert.include(
+      wrapper.find('.github-DotComMarkdownHtml').html(),
+      '<pre class="yes">something</pre>',
+    );
   });
 
   it('intercepts click events on issueish links', function() {
     const handleClickEventStub = sinon.stub();
 
-    const wrapper = mount(buildApp({
-      html: `
+    const wrapper = mount(
+      buildApp({
+        html: `
         <p>
           This text has
           <a
@@ -62,22 +75,27 @@ describe('GithubDotcomMarkdown', function() {
           in it
         </p>
       `,
-      handleClickEvent: handleClickEventStub,
-    }));
+        handleClickEvent: handleClickEventStub,
+      }),
+    );
 
     const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
-    issueishLink.dispatchEvent(new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    issueishLink.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
 
     assert.strictEqual(handleClickEventStub.callCount, 1);
 
     const nonIssueishLink = wrapper.getDOMNode().querySelector('a.other');
-    nonIssueishLink.dispatchEvent(new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }));
+    nonIssueishLink.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
 
     assert.strictEqual(handleClickEventStub.callCount, 1);
 
@@ -93,16 +111,18 @@ describe('GithubDotcomMarkdown', function() {
     const openLinkInBrowserStub = sinon.stub();
     const switchToIssueishStub = sinon.stub();
 
-    const wrapper = mount(buildApp({
-      html: `
+    const wrapper = mount(
+      buildApp({
+        html: `
         <p>
           <a data-url="https://github.com/aaa/bbb/issue/123" href="https://github.com/aaa/bbb/issue/123">#123</a>
         </p>
       `,
-      openIssueishLinkInNewTab: openIssueishLinkInNewTabStub,
-      openLinkInBrowser: openLinkInBrowserStub,
-      switchToIssueish: switchToIssueishStub,
-    }));
+        openIssueishLinkInNewTab: openIssueishLinkInNewTabStub,
+        openLinkInBrowser: openLinkInBrowserStub,
+        switchToIssueish: switchToIssueishStub,
+      }),
+    );
 
     const link = wrapper.getDOMNode().querySelector('a');
     const href = 'https://github.com/aaa/bbb/issue/123';
@@ -121,8 +141,9 @@ describe('GithubDotcomMarkdown', function() {
     let wrapper;
 
     beforeEach(function() {
-      wrapper = mount(buildApp({
-        html: `
+      wrapper = mount(
+        buildApp({
+          html: `
           <p>
             <a
               class="issue-link"
@@ -132,10 +153,11 @@ describe('GithubDotcomMarkdown', function() {
             </a>
           </p>
         `,
-        handleClickEvent,
-        openIssueishLinkInNewTab,
-        openLinkInBrowser,
-      }));
+          handleClickEvent,
+          openIssueishLinkInNewTab,
+          openLinkInBrowser,
+        }),
+      );
     });
 
     it('opens item in pane and activates accordingly', async function() {
@@ -143,35 +165,51 @@ describe('GithubDotcomMarkdown', function() {
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
 
       // regular click opens item and activates it
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-      }));
+      issueishLink.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
 
       await assert.async.isTrue(atom.workspace.open.called);
-      assert.deepEqual(atom.workspace.open.lastCall.args[1], {activateItem: true});
+      assert.deepEqual(atom.workspace.open.lastCall.args[1], {
+        activateItem: true,
+      });
 
       // holding down meta key simply opens item
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        metaKey: true,
-      }));
+      issueishLink.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          metaKey: true,
+        }),
+      );
 
       await assert.async.isTrue(atom.workspace.open.calledTwice);
-      assert.deepEqual(atom.workspace.open.lastCall.args[1], {activateItem: false});
+      assert.deepEqual(atom.workspace.open.lastCall.args[1], {
+        activateItem: false,
+      });
     });
 
     it('records event for opening issueish in pane item', async function() {
       sinon.stub(atom.workspace, 'open').returns(Promise.resolve());
       sinon.stub(reporterProxy, 'addEvent');
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-      }));
+      issueishLink.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
 
-      await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-link', target: 'new-tab'}));
+      await assert.async.isTrue(
+        reporterProxy.addEvent.calledWith('open-issueish-in-pane', {
+          package: 'github',
+          from: 'issueish-link',
+          target: 'new-tab',
+        }),
+      );
     });
 
     it('does not record event if opening issueish in pane item fails', function() {
@@ -202,11 +240,13 @@ describe('GithubDotcomMarkdown', function() {
 
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
 
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        shiftKey: true,
-      }));
+      issueishLink.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          shiftKey: true,
+        }),
+      );
 
       assert.isTrue(shell.openExternal.called);
     });
@@ -217,13 +257,20 @@ describe('GithubDotcomMarkdown', function() {
 
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
 
-      issueishLink.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        shiftKey: true,
-      }));
+      issueishLink.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          shiftKey: true,
+        }),
+      );
 
-      await assert.async.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', from: 'issueish-link'}));
+      await assert.async.isTrue(
+        reporterProxy.addEvent.calledWith('open-issueish-in-browser', {
+          package: 'github',
+          from: 'issueish-link',
+        }),
+      );
     });
 
     it('does not record event if opening issueish in browser fails', function() {

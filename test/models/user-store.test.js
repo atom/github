@@ -3,7 +3,10 @@ import dedent from 'dedent-js';
 import UserStore, {source} from '../../lib/models/user-store';
 import Author, {nullAuthor} from '../../lib/models/author';
 import GithubLoginModel from '../../lib/models/github-login-model';
-import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
+import {
+  InMemoryStrategy,
+  UNAUTHENTICATED,
+} from '../../lib/shared/keytar-strategy';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
@@ -15,7 +18,9 @@ describe('UserStore', function() {
     config = atomEnv.config;
 
     login = new GithubLoginModel(InMemoryStrategy);
-    sinon.stub(login, 'getScopes').returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
+    sinon
+      .stub(login, 'getScopes')
+      .returns(Promise.resolve(GithubLoginModel.REQUIRED_SCOPES));
   });
 
   afterEach(function() {
@@ -47,20 +52,30 @@ describe('UserStore', function() {
       const isLast = index === pages.length - 1;
       const nextCursor = isLast ? null : `page-${index + 1}`;
 
-      const result = expectRelayQuery({
-        name: 'GetMentionableUsers',
-        variables: {owner: opts.owner, name: opts.name, first: 100, after: lastCursor},
-      }, {
-        repository: !opts.repositoryFound ? null : {
-          mentionableUsers: {
-            nodes: page,
-            pageInfo: {
-              hasNextPage: !isLast,
-              endCursor: nextCursor,
-            },
+      const result = expectRelayQuery(
+        {
+          name: 'GetMentionableUsers',
+          variables: {
+            owner: opts.owner,
+            name: opts.name,
+            first: 100,
+            after: lastCursor,
           },
         },
-      });
+        {
+          repository: !opts.repositoryFound
+            ? null
+            : {
+                mentionableUsers: {
+                  nodes: page,
+                  pageInfo: {
+                    hasNextPage: !isLast,
+                    endCursor: nextCursor,
+                  },
+                },
+              },
+        },
+      );
 
       lastCursor = nextCursor;
       return result;
@@ -94,7 +109,10 @@ describe('UserStore', function() {
     assert.deepEqual(store.getUsers(), [
       new Author('kuychaco@github.com', 'Katrina Uychaco'),
     ]);
-    assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
+    assert.deepEqual(
+      store.committer,
+      new Author(FAKE_USER.email, FAKE_USER.name),
+    );
   });
 
   it('falls back to local git users and committers if loadMentionableUsers cannot load any user for whatever reason', async function() {
@@ -118,15 +136,35 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
-    await repository.setConfig('remote.old.url', 'git@sourceforge.com:me/stuff.git');
-    await repository.setConfig('remote.old.fetch', '+refs/heads/*:refs/remotes/old/*');
+    await repository.setConfig(
+      'remote.origin.url',
+      'git@github.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.origin.fetch',
+      '+refs/heads/*:refs/remotes/origin/*',
+    );
+    await repository.setConfig(
+      'remote.old.url',
+      'git@sourceforge.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.old.fetch',
+      '+refs/heads/*:refs/remotes/old/*',
+    );
 
     const [{resolve}] = expectPagedRelayQueries({}, [
-      {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      {
+        login: 'annthurium',
+        email: 'annthurium@github.com',
+        name: 'Tilde Ann Thurium',
+      },
       {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {
+        login: 'smashwilson',
+        email: 'smashwilson@github.com',
+        name: 'Ash Wilson',
+      },
     ]);
 
     store = new UserStore({repository, login, config});
@@ -148,14 +186,29 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig(
+      'remote.origin.url',
+      'git@github.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.origin.fetch',
+      '+refs/heads/*:refs/remotes/origin/*',
+    );
 
-    const [{resolve: resolve0}, {resolve: resolve1}] = expectPagedRelayQueries({},
+    const [{resolve: resolve0}, {resolve: resolve1}] = expectPagedRelayQueries(
+      {},
       [
-        {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+        {
+          login: 'annthurium',
+          email: 'annthurium@github.com',
+          name: 'Tilde Ann Thurium',
+        },
         {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-        {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+        {
+          login: 'smashwilson',
+          email: 'smashwilson@github.com',
+          name: 'Ash Wilson',
+        },
       ],
       [
         {login: 'zzz', email: 'zzz@github.com', name: 'Zzzzz'},
@@ -195,10 +248,19 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig(
+      'remote.origin.url',
+      'git@github.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.origin.fetch',
+      '+refs/heads/*:refs/remotes/origin/*',
+    );
 
-    const [{resolve, promise}] = expectPagedRelayQueries({repositoryFound: false}, []);
+    const [{resolve, promise}] = expectPagedRelayQueries(
+      {repositoryFound: false},
+      [],
+    );
 
     store = new UserStore({repository, login, config});
     await nextUpdatePromise();
@@ -216,8 +278,14 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig(
+      'remote.origin.url',
+      'git@github.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.origin.fetch',
+      '+refs/heads/*:refs/remotes/origin/*',
+    );
 
     const [{resolve}] = expectPagedRelayQueries({}, [
       {login: 'simurai', email: '', name: 'simurai'},
@@ -266,10 +334,13 @@ describe('UserStore', function() {
 
       assert.lengthOf(store.getUsers(), 1);
 
-      store.addUsers([
-        new Author('mona@lisa.com', 'Mona Lisa'),
-        new Author('hubot@github.com', 'Hubot Robot'),
-      ], source.GITLOG);
+      store.addUsers(
+        [
+          new Author('mona@lisa.com', 'Mona Lisa'),
+          new Author('hubot@github.com', 'Hubot Robot'),
+        ],
+        source.GITLOG,
+      );
 
       assert.deepEqual(store.getUsers(), [
         new Author('hubot@github.com', 'Hubot Robot'),
@@ -285,7 +356,10 @@ describe('UserStore', function() {
 
     store = new UserStore({repository, config});
     await nextUpdatePromise();
-    assert.deepEqual(store.committer, new Author(FAKE_USER.email, FAKE_USER.name));
+    assert.deepEqual(
+      store.committer,
+      new Author(FAKE_USER.email, FAKE_USER.name),
+    );
 
     const newEmail = 'foo@bar.com';
     const newName = 'Foo Bar';
@@ -315,19 +389,27 @@ describe('UserStore', function() {
     sinon.spy(store, 'addUsers');
 
     // Head changes due to new commit
-    await repository.commit(dedent`
+    await repository.commit(
+      dedent`
       New commit
 
       Co-authored-by: New Author <new-author@email.com>
-    `, {allowEmpty: true});
+    `,
+      {allowEmpty: true},
+    );
 
     repository.refresh();
     await nextUpdatePromise();
 
     await assert.strictEqual(store.addUsers.callCount, 1);
-    assert.isTrue(store.getUsers().some(user => {
-      return user.getFullName() === 'New Author' && user.getEmail() === 'new-author@email.com';
-    }));
+    assert.isTrue(
+      store.getUsers().some(user => {
+        return (
+          user.getFullName() === 'New Author' &&
+          user.getEmail() === 'new-author@email.com'
+        );
+      }),
+    );
 
     // Change head due to branch checkout
     await repository.checkout('new-branch');
@@ -340,9 +422,7 @@ describe('UserStore', function() {
     const workdirPath = await cloneRepository('multiple-commits');
     const repository = await buildRepository(workdirPath);
 
-    const gitAuthors = [
-      new Author('kuychaco@github.com', 'Katrina Uychaco'),
-    ];
+    const gitAuthors = [new Author('kuychaco@github.com', 'Katrina Uychaco')];
 
     const graphqlAuthors = [
       new Author('smashwilson@github.com', 'Ash Wilson', 'smashwilson'),
@@ -351,9 +431,17 @@ describe('UserStore', function() {
     ];
 
     const [{resolve}] = expectPagedRelayQueries({}, [
-      {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+      {
+        login: 'annthurium',
+        email: 'annthurium@github.com',
+        name: 'Tilde Ann Thurium',
+      },
       {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-      {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+      {
+        login: 'smashwilson',
+        email: 'smashwilson@github.com',
+        name: 'Ash Wilson',
+      },
     ]);
     resolve();
 
@@ -362,8 +450,14 @@ describe('UserStore', function() {
 
     assert.deepEqual(store.getUsers(), gitAuthors);
 
-    await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-    await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+    await repository.setConfig(
+      'remote.origin.url',
+      'git@github.com:me/stuff.git',
+    );
+    await repository.setConfig(
+      'remote.origin.fetch',
+      '+refs/heads/*:refs/remotes/origin/*',
+    );
 
     repository.refresh();
 
@@ -379,11 +473,17 @@ describe('UserStore', function() {
   it('refetches users when the repository changes', async function() {
     const workdirPath0 = await cloneRepository('multiple-commits');
     const repository0 = await buildRepository(workdirPath0);
-    await commitAs(repository0, {name: 'committer0', email: 'committer0@github.com'});
+    await commitAs(repository0, {
+      name: 'committer0',
+      email: 'committer0@github.com',
+    });
 
     const workdirPath1 = await cloneRepository('multiple-commits');
     const repository1 = await buildRepository(workdirPath1);
-    await commitAs(repository1, {name: 'committer1', email: 'committer1@github.com'});
+    await commitAs(repository1, {
+      name: 'committer1',
+      email: 'committer1@github.com',
+    });
 
     store = new UserStore({repository: repository0, config});
     await nextUpdatePromise();
@@ -416,7 +516,9 @@ describe('UserStore', function() {
 
     it('returns null if token is INSUFFICIENT', async function() {
       const loginModel = new GithubLoginModel(InMemoryStrategy);
-      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org']));
+      sinon
+        .stub(loginModel, 'getScopes')
+        .returns(Promise.resolve(['repo', 'read:org']));
 
       await loginModel.setToken('https://api.github.com', '1234');
       store = new UserStore({repository, loginModel, config});
@@ -426,21 +528,31 @@ describe('UserStore', function() {
 
     it('returns null if token is UNAUTHENTICATED', async function() {
       const loginModel = new GithubLoginModel(InMemoryStrategy);
-      sinon.stub(loginModel, 'getToken').returns(Promise.resolve(UNAUTHENTICATED));
+      sinon
+        .stub(loginModel, 'getToken')
+        .returns(Promise.resolve(UNAUTHENTICATED));
 
       store = new UserStore({repository, loginModel, config});
-      const getToken = await store.getToken(loginModel, 'https://api.github.com');
+      const getToken = await store.getToken(
+        loginModel,
+        'https://api.github.com',
+      );
       assert.isNull(getToken);
     });
 
     it('return token if token is sufficient and model is truthy', async function() {
       const loginModel = new GithubLoginModel(InMemoryStrategy);
-      sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org', 'user:email']));
+      sinon
+        .stub(loginModel, 'getScopes')
+        .returns(Promise.resolve(['repo', 'read:org', 'user:email']));
 
       const expectedToken = '1234';
       await loginModel.setToken('https://api.github.com', expectedToken);
       store = new UserStore({repository, loginModel, config});
-      const actualToken = await store.getToken(loginModel, 'https://api.github.com');
+      const actualToken = await store.getToken(
+        loginModel,
+        'https://api.github.com',
+      );
       assert.strictEqual(expectedToken, actualToken);
     });
   });
@@ -450,7 +562,10 @@ describe('UserStore', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
+      await repository.setConfig(
+        'remote.origin.url',
+        'git@github.com:me/stuff.git',
+      );
 
       store = new UserStore({repository, login, config});
       sinon.stub(store, 'getToken').returns(null);
@@ -470,13 +585,27 @@ describe('UserStore', function() {
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
 
-      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-      await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+      await repository.setConfig(
+        'remote.origin.url',
+        'git@github.com:me/stuff.git',
+      );
+      await repository.setConfig(
+        'remote.origin.fetch',
+        '+refs/heads/*:refs/remotes/origin/*',
+      );
 
       const [{resolve, disable}] = expectPagedRelayQueries({}, [
-        {login: 'annthurium', email: 'annthurium@github.com', name: 'Tilde Ann Thurium'},
+        {
+          login: 'annthurium',
+          email: 'annthurium@github.com',
+          name: 'Tilde Ann Thurium',
+        },
         {login: 'octocat', email: 'mona@lisa.com', name: 'Mona Lisa'},
-        {login: 'smashwilson', email: 'smashwilson@github.com', name: 'Ash Wilson'},
+        {
+          login: 'smashwilson',
+          email: 'smashwilson@github.com',
+          name: 'Ash Wilson',
+        },
       ]);
       resolve();
 
@@ -509,21 +638,39 @@ describe('UserStore', function() {
 
       const workdirPath0 = await cloneRepository('multiple-commits');
       const repository0 = await buildRepository(workdirPath0);
-      await repository0.setConfig('remote.origin.url', 'git@github.com:me/zero.git');
-      await repository0.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+      await repository0.setConfig(
+        'remote.origin.url',
+        'git@github.com:me/zero.git',
+      );
+      await repository0.setConfig(
+        'remote.origin.fetch',
+        '+refs/heads/*:refs/remotes/origin/*',
+      );
 
       const workdirPath1 = await cloneRepository('multiple-commits');
       const repository1 = await buildRepository(workdirPath1);
-      await repository1.setConfig('remote.origin.url', 'git@github.com:me/one.git');
-      await repository1.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+      await repository1.setConfig(
+        'remote.origin.url',
+        'git@github.com:me/one.git',
+      );
+      await repository1.setConfig(
+        'remote.origin.fetch',
+        '+refs/heads/*:refs/remotes/origin/*',
+      );
 
       const results = id => [
         {login: 'aaa', email: `aaa-${id}@a.com`, name: 'AAA'},
         {login: 'bbb', email: `bbb-${id}@b.com`, name: 'BBB'},
         {login: 'ccc', email: `ccc-${id}@c.com`, name: 'CCC'},
       ];
-      const [{resolve: resolve0, disable: disable0}] = expectPagedRelayQueries({name: 'zero'}, results('0'));
-      const [{resolve: resolve1, disable: disable1}] = expectPagedRelayQueries({name: 'one'}, results('1'));
+      const [{resolve: resolve0, disable: disable0}] = expectPagedRelayQueries(
+        {name: 'zero'},
+        results('0'),
+      );
+      const [{resolve: resolve1, disable: disable1}] = expectPagedRelayQueries(
+        {name: 'one'},
+        results('1'),
+      );
       resolve0();
       resolve1();
 
@@ -555,7 +702,8 @@ describe('UserStore', function() {
 
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
-      await commitAs(repository,
+      await commitAs(
+        repository,
         {name: 'evil0', email: 'evil@evilcorp.org'},
         {name: 'ok', email: 'ok@somewhere.net'},
         {name: 'evil1', email: 'evil@evilcorp.org'},
@@ -571,13 +719,22 @@ describe('UserStore', function() {
     });
 
     it('do not appear in the list from GraphQL', async function() {
-      config.set('github.excludedUsers', 'evil@evilcorp.org, other@evilcorp.org');
+      config.set(
+        'github.excludedUsers',
+        'evil@evilcorp.org, other@evilcorp.org',
+      );
       await login.setToken('https://api.github.com', '1234');
 
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
-      await repository.setConfig('remote.origin.url', 'git@github.com:me/stuff.git');
-      await repository.setConfig('remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*');
+      await repository.setConfig(
+        'remote.origin.url',
+        'git@github.com:me/stuff.git',
+      );
+      await repository.setConfig(
+        'remote.origin.fetch',
+        '+refs/heads/*:refs/remotes/origin/*',
+      );
 
       const [{resolve}] = expectPagedRelayQueries({}, [
         {login: 'evil0', email: 'evil@evilcorp.org', name: 'evil0'},
@@ -599,7 +756,8 @@ describe('UserStore', function() {
 
       const workdirPath = await cloneRepository('multiple-commits');
       const repository = await buildRepository(workdirPath);
-      await commitAs(repository,
+      await commitAs(
+        repository,
         {name: 'evil0', email: 'evil0@evilcorp.org'},
         {name: 'ok', email: 'ok@somewhere.net'},
         {name: 'evil1', email: 'evil1@evilcorp.org'},
@@ -614,7 +772,10 @@ describe('UserStore', function() {
         new Author('ok@somewhere.net', 'ok'),
       ]);
 
-      config.set('github.excludedUsers', 'evil0@evilcorp.org, evil1@evilcorp.org');
+      config.set(
+        'github.excludedUsers',
+        'evil0@evilcorp.org, evil1@evilcorp.org',
+      );
 
       assert.deepEqual(store.getUsers(), [
         new Author('kuychaco@github.com', 'Katrina Uychaco'),

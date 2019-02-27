@@ -18,18 +18,25 @@ describe('GitTabView', function() {
   });
 
   async function buildApp(overrides = {}) {
-    return <GitTabView {...await gitTabViewProps(atomEnv, repository, overrides)} />;
+    return (
+      <GitTabView {...await gitTabViewProps(atomEnv, repository, overrides)} />
+    );
   }
 
   it('gets the current focus', async function() {
     const wrapper = mount(await buildApp());
 
     assert.strictEqual(
-      wrapper.instance().getFocus(wrapper.find('div.github-StagingView').getDOMNode()),
+      wrapper
+        .instance()
+        .getFocus(wrapper.find('div.github-StagingView').getDOMNode()),
       GitTabView.focus.STAGING,
     );
 
-    const editorNode = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+    const editorNode = wrapper
+      .find('AtomTextEditor')
+      .getDOMNode()
+      .querySelector('atom-text-editor');
     assert.strictEqual(
       wrapper.instance().getFocus(editorNode),
       GitTabView.focus.EDITOR,
@@ -41,7 +48,10 @@ describe('GitTabView', function() {
   it('sets a new focus', async function() {
     const wrapper = mount(await buildApp());
     const stagingElement = wrapper.find('div.github-StagingView').getDOMNode();
-    const editorElement = wrapper.find('AtomTextEditor').getDOMNode().querySelector('atom-text-editor');
+    const editorElement = wrapper
+      .find('AtomTextEditor')
+      .getDOMNode()
+      .querySelector('atom-text-editor');
 
     sinon.spy(stagingElement, 'focus');
     assert.isTrue(wrapper.instance().setFocus(GitTabView.focus.STAGING));
@@ -101,12 +111,16 @@ describe('GitTabView', function() {
 
       await instance.advanceFocus(event);
 
-      assert.isTrue(instance.setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(
+        instance.setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON),
+      );
       assert.isTrue(event.stopPropagation.called);
     });
 
     it('advances focus within the commit view', async function() {
-      sinon.stub(instance, 'getFocus').returns(GitTabView.focus.COMMIT_PREVIEW_BUTTON);
+      sinon
+        .stub(instance, 'getFocus')
+        .returns(GitTabView.focus.COMMIT_PREVIEW_BUTTON);
       sinon.spy(stagingView, 'activateNextList');
 
       await instance.advanceFocus(event);
@@ -121,7 +135,9 @@ describe('GitTabView', function() {
 
       await instance.advanceFocus(event);
 
-      assert.isTrue(instance.setFocus.calledWith(GitTabView.focus.RECENT_COMMIT));
+      assert.isTrue(
+        instance.setFocus.calledWith(GitTabView.focus.RECENT_COMMIT),
+      );
       assert.isFalse(stagingView.activateNextList.called);
     });
 
@@ -157,10 +173,15 @@ describe('GitTabView', function() {
     });
 
     it('focuses the enabled commit button if the recent commit view has focus', async function() {
-      const setFocus = sinon.spy(wrapper.find('CommitView').instance(), 'setFocus');
+      const setFocus = sinon.spy(
+        wrapper.find('CommitView').instance(),
+        'setFocus',
+      );
 
       sinon.stub(instance, 'getFocus').returns(GitTabView.focus.RECENT_COMMIT);
-      sinon.stub(wrapper.find('CommitView').instance(), 'commitIsEnabled').returns(true);
+      sinon
+        .stub(wrapper.find('CommitView').instance(), 'commitIsEnabled')
+        .returns(true);
 
       await wrapper.instance().retreatFocus(event);
 
@@ -169,7 +190,10 @@ describe('GitTabView', function() {
     });
 
     it('focuses the editor if the recent commit view has focus and the commit button is disabled', async function() {
-      const setFocus = sinon.spy(wrapper.find('CommitView').instance(), 'setFocus');
+      const setFocus = sinon.spy(
+        wrapper.find('CommitView').instance(),
+        'setFocus',
+      );
 
       sinon.stub(instance, 'getFocus').returns(GitTabView.focus.RECENT_COMMIT);
 
@@ -184,12 +208,16 @@ describe('GitTabView', function() {
 
       await wrapper.instance().retreatFocus(event);
 
-      assert.isTrue(instance.setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON));
+      assert.isTrue(
+        instance.setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON),
+      );
       assert.isTrue(event.stopPropagation.called);
     });
 
     it('focuses the last staging list if the commit preview button has focus', async function() {
-      sinon.stub(instance, 'getFocus').returns(GitTabView.focus.COMMIT_PREVIEW_BUTTON);
+      sinon
+        .stub(instance, 'getFocus')
+        .returns(GitTabView.focus.COMMIT_PREVIEW_BUTTON);
       sinon.stub(stagingView, 'activateLastList').resolves(true);
 
       await wrapper.instance().retreatFocus(event);
@@ -222,9 +250,11 @@ describe('GitTabView', function() {
   });
 
   it('selects a staging item', async function() {
-    const wrapper = mount(await buildApp({
-      unstagedChanges: [{filePath: 'aaa.txt', status: 'modified'}],
-    }));
+    const wrapper = mount(
+      await buildApp({
+        unstagedChanges: [{filePath: 'aaa.txt', status: 'modified'}],
+      }),
+    );
 
     const stagingView = wrapper.prop('refStagingView').get();
     sinon.spy(stagingView, 'quietlySelectItem');
@@ -232,14 +262,18 @@ describe('GitTabView', function() {
 
     await wrapper.instance().quietlySelectItem('aaa.txt', 'unstaged');
 
-    assert.isTrue(stagingView.quietlySelectItem.calledWith('aaa.txt', 'unstaged'));
+    assert.isTrue(
+      stagingView.quietlySelectItem.calledWith('aaa.txt', 'unstaged'),
+    );
     assert.isFalse(stagingView.setFocus.calledWith(GitTabView.focus.STAGING));
   });
 
   it('selects a staging item and focuses itself', async function() {
-    const wrapper = mount(await buildApp({
-      unstagedChanges: [{filePath: 'aaa.txt', status: 'modified'}],
-    }));
+    const wrapper = mount(
+      await buildApp({
+        unstagedChanges: [{filePath: 'aaa.txt', status: 'modified'}],
+      }),
+    );
 
     const stagingView = wrapper.prop('refStagingView').get();
     sinon.spy(stagingView, 'quietlySelectItem');
@@ -247,7 +281,9 @@ describe('GitTabView', function() {
 
     await wrapper.instance().focusAndSelectStagingItem('aaa.txt', 'unstaged');
 
-    assert.isTrue(stagingView.quietlySelectItem.calledWith('aaa.txt', 'unstaged'));
+    assert.isTrue(
+      stagingView.quietlySelectItem.calledWith('aaa.txt', 'unstaged'),
+    );
     assert.isTrue(stagingView.setFocus.calledWith(GitTabView.focus.STAGING));
   });
 
@@ -270,7 +306,10 @@ describe('GitTabView', function() {
   it('imperatively focuses the commit preview button', async function() {
     const wrapper = mount(await buildApp());
 
-    const setFocus = sinon.spy(wrapper.find('CommitController').instance(), 'setFocus');
+    const setFocus = sinon.spy(
+      wrapper.find('CommitController').instance(),
+      'setFocus',
+    );
     wrapper.instance().focusAndSelectCommitPreviewButton();
     assert.isTrue(setFocus.calledWith(GitTabView.focus.COMMIT_PREVIEW_BUTTON));
   });
@@ -278,7 +317,10 @@ describe('GitTabView', function() {
   it('imperatively focuses the recent commits view', async function() {
     const wrapper = mount(await buildApp());
 
-    const setFocus = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
+    const setFocus = sinon.spy(
+      wrapper.find('RecentCommitsView').instance(),
+      'setFocus',
+    );
     wrapper.instance().focusAndSelectRecentCommit();
     assert.isTrue(setFocus.calledWith(GitTabView.focus.RECENT_COMMIT));
   });

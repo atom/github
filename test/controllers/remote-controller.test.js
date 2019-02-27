@@ -33,21 +33,16 @@ describe('RemoteController', function() {
       <RemoteController
         endpoint={getEndpoint('github.com')}
         token="1234"
-
         repository={null}
-
         remoteOperationObserver={nullOperationStateObserver}
         workingDirectory={__dirname}
         workspace={atomEnv.workspace}
         remote={remote}
         remotesByName={new Map()}
         branches={branchSet}
-
         aheadCount={0}
         pushInProgress={false}
-
         onPushBranch={noop}
-
         {...props}
       />
     );
@@ -60,7 +55,9 @@ describe('RemoteController', function() {
 
     await wrapper.instance().onCreatePr();
     assert.equal(reporterProxy.incrementCounter.callCount, 1);
-    assert.deepEqual(reporterProxy.incrementCounter.lastCall.args, ['create-pull-request']);
+    assert.deepEqual(reporterProxy.incrementCounter.lastCall.args, [
+      'create-pull-request',
+    ]);
   });
 
   it('handles error when onCreatePr fails', async function() {

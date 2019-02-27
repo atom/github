@@ -9,16 +9,14 @@ class Component extends React.Component {
   static propTypes = {
     text: PropTypes.string.isRequired,
     didFocus: PropTypes.func,
-  }
+  };
 
   static defaultProps = {
     didFocus: () => {},
-  }
+  };
 
   render() {
-    return (
-      <div>{this.props.text}</div>
-    );
+    return <div>{this.props.text}</div>;
   }
 
   getTitle() {
@@ -106,7 +104,9 @@ describe('PaneItem', function() {
     it('uses the child component as the workspace item', async function() {
       mount(
         <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
-          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" />}
+          {({itemHolder}) => (
+            <Component ref={itemHolder.setter} text="a prop" />
+          )}
         </PaneItem>,
       );
 
@@ -116,8 +116,14 @@ describe('PaneItem', function() {
 
     it('adds a CSS class to the root element', async function() {
       mount(
-        <PaneItem workspace={workspace} uriPattern="atom-github://pattern" className="root">
-          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" />}
+        <PaneItem
+          workspace={workspace}
+          uriPattern="atom-github://pattern"
+          className="root"
+        >
+          {({itemHolder}) => (
+            <Component ref={itemHolder.setter} text="a prop" />
+          )}
         </PaneItem>,
       );
 
@@ -205,7 +211,13 @@ describe('PaneItem', function() {
       const didFocus = sinon.spy();
       mount(
         <PaneItem workspace={workspace} uriPattern="atom-github://pattern">
-          {({itemHolder}) => <Component ref={itemHolder.setter} text="a prop" didFocus={didFocus} />}
+          {({itemHolder}) => (
+            <Component
+              ref={itemHolder.setter}
+              text="a prop"
+              didFocus={didFocus}
+            />
+          )}
         </PaneItem>,
       );
       const item = await workspace.open('atom-github://pattern');
@@ -248,7 +260,10 @@ describe('PaneItem', function() {
       workspace.getActivePane().addItem(stub1);
 
       const wrapper = mount(
-        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
+        <PaneItem
+          workspace={workspace}
+          uriPattern="atom-github://pattern/root/{id}"
+        >
           {({params}) => <Component text={params.id} />}
         </PaneItem>,
       );
@@ -266,8 +281,13 @@ describe('PaneItem', function() {
       workspace.getActivePane().addItem(stub);
 
       mount(
-        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
-          {({params, itemHolder}) => <Component ref={itemHolder.setter} text={params.id} />}
+        <PaneItem
+          workspace={workspace}
+          uriPattern="atom-github://pattern/root/{id}"
+        >
+          {({params, itemHolder}) => (
+            <Component ref={itemHolder.setter} text={params.id} />
+          )}
         </PaneItem>,
       );
 
@@ -283,8 +303,14 @@ describe('PaneItem', function() {
       workspace.getActivePane().addItem(stub);
 
       mount(
-        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}" className="added">
-          {({params, itemHolder}) => <Component ref={itemHolder.setter} text={params.id} />}
+        <PaneItem
+          workspace={workspace}
+          uriPattern="atom-github://pattern/root/{id}"
+          className="added"
+        >
+          {({params, itemHolder}) => (
+            <Component ref={itemHolder.setter} text={params.id} />
+          )}
         </PaneItem>,
       );
 

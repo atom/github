@@ -29,8 +29,16 @@ describe('GitTabContainer', function() {
     });
 
     it('passes default repository props', function() {
-      assert.isFalse(wrapper.find('GitTabController').prop('lastCommit').isPresent());
-      assert.lengthOf(wrapper.find('GitTabController').prop('recentCommits'), 0);
+      assert.isFalse(
+        wrapper
+          .find('GitTabController')
+          .prop('lastCommit')
+          .isPresent(),
+      );
+      assert.lengthOf(
+        wrapper.find('GitTabController').prop('recentCommits'),
+        0,
+      );
     });
 
     it('sets fetchInProgress to true', function() {
@@ -49,21 +57,45 @@ describe('GitTabContainer', function() {
     it('passes them as props', async function() {
       const props = gitTabContainerProps(atomEnv, loadedRepository);
       const wrapper = mount(<GitTabContainer {...props} />);
-      await assert.async.isFalse(wrapper.update().find('GitTabController').prop('fetchInProgress'));
+      await assert.async.isFalse(
+        wrapper
+          .update()
+          .find('GitTabController')
+          .prop('fetchInProgress'),
+      );
 
       const controller = wrapper.find('GitTabController');
 
-      assert.strictEqual(controller.prop('lastCommit'), await loadedRepository.getLastCommit());
-      assert.deepEqual(controller.prop('recentCommits'), await loadedRepository.getRecentCommits({max: 10}));
-      assert.strictEqual(controller.prop('isMerging'), await loadedRepository.isMerging());
-      assert.strictEqual(controller.prop('isRebasing'), await loadedRepository.isRebasing());
+      assert.strictEqual(
+        controller.prop('lastCommit'),
+        await loadedRepository.getLastCommit(),
+      );
+      assert.deepEqual(
+        controller.prop('recentCommits'),
+        await loadedRepository.getRecentCommits({max: 10}),
+      );
+      assert.strictEqual(
+        controller.prop('isMerging'),
+        await loadedRepository.isMerging(),
+      );
+      assert.strictEqual(
+        controller.prop('isRebasing'),
+        await loadedRepository.isRebasing(),
+      );
     });
 
     it('passes other props through', async function() {
       const extraProp = Symbol('extra');
-      const props = gitTabContainerProps(atomEnv, loadedRepository, {extraProp});
+      const props = gitTabContainerProps(atomEnv, loadedRepository, {
+        extraProp,
+      });
       const wrapper = mount(<GitTabContainer {...props} />);
-      await assert.async.isFalse(wrapper.update().find('GitTabController').prop('fetchInProgress'));
+      await assert.async.isFalse(
+        wrapper
+          .update()
+          .find('GitTabController')
+          .prop('fetchInProgress'),
+      );
 
       const controller = wrapper.find('GitTabController');
 

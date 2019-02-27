@@ -12,7 +12,9 @@ describe('GitPromptServer', function() {
     ELECTRON_NO_ATTACH_CONSOLE: '1',
     ATOM_GITHUB_KEYTAR_FILE: null,
     ATOM_GITHUB_DUGITE_PATH: require.resolve('dugite'),
-    ATOM_GITHUB_KEYTAR_STRATEGY_PATH: require.resolve('../lib/shared/keytar-strategy'),
+    ATOM_GITHUB_KEYTAR_STRATEGY_PATH: require.resolve(
+      '../lib/shared/keytar-strategy',
+    ),
     ATOM_GITHUB_ORIGINAL_PATH: process.env.PATH,
     ATOM_GITHUB_WORKDIR_PATH: path.join(__dirname, '..'),
     ATOM_GITHUB_SPEC_MODE: 'true',
@@ -43,7 +45,8 @@ describe('GitPromptServer', function() {
 
       return new Promise((resolve, reject) => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
+          getAtomHelperPath(),
+          [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
           {env: electronEnv},
           (err, stdout, stderr) => {
             resolve({err, stdout, stderr});
@@ -92,16 +95,25 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
 
-      assert.equal(queried.prompt, 'Please enter your credentials for https://what-is-your-favorite-color.com');
+      assert.equal(
+        queried.prompt,
+        'Please enter your credentials for https://what-is-your-favorite-color.com',
+      );
       assert.isTrue(queried.includeUsername);
 
       assert.ifError(err);
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
-        'quit=true\n');
+          'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
+          'quit=true\n',
+      );
 
       assert.isFalse(await fileExists(tempDir.getScriptPath('remember')));
     });
@@ -127,17 +139,26 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
 
       assert.ifError(err);
 
-      assert.equal(queried.prompt, 'Please enter your credentials for https://dent-arthur-dent@ultimate-answer.com');
+      assert.equal(
+        queried.prompt,
+        'Please enter your credentials for https://dent-arthur-dent@ultimate-answer.com',
+      );
       assert.isFalse(queried.includeUsername);
 
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=ultimate-answer.com\n' +
-        'username=dent-arthur-dent\npassword=42\n' +
-        'quit=true\n');
+          'username=dent-arthur-dent\npassword=42\n' +
+          'quit=true\n',
+      );
     });
 
     it('parses input without the terminating blank line', async function() {
@@ -158,13 +179,19 @@ describe('GitPromptServer', function() {
         child.stdin.end();
       }
 
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
 
       assert.ifError(err);
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
-        'quit=true\n');
+          'username=old-man-from-scene-24\npassword=Green. I mean blue! AAAhhhh...\n' +
+          'quit=true\n',
+      );
     });
 
     it('creates a flag file if remember is set to true', async function() {
@@ -185,7 +212,11 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      const {err} = await runCredentialScript('get', queryHandler, processHandler);
+      const {err} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
       assert.isTrue(await fileExists(tempDir.getScriptPath('remember')));
     });
@@ -207,7 +238,9 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(
+        tempDir.getScriptPath('fake-keytar'),
+        `
       {
         "atom-github-git @ https://what-is-your-favorite-color.com": {
           "old-man-from-scene-24": "swordfish",
@@ -217,15 +250,23 @@ describe('GitPromptServer', function() {
           "old-man-from-scene-24": "nope"
         }
       }
-      `, {encoding: 'utf8'});
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      `,
+        {encoding: 'utf8'},
+      );
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
       assert.isFalse(called);
 
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=swordfish\n' +
-        'quit=true\n');
+          'username=old-man-from-scene-24\npassword=swordfish\n' +
+          'quit=true\n',
+      );
     });
 
     it('uses a default username for the appropriate host if one is available', async function() {
@@ -244,7 +285,9 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(
+        tempDir.getScriptPath('fake-keytar'),
+        `
       {
         "atom-github-git-meta @ https://what-is-your-favorite-color.com": {
           "username": "old-man-from-scene-24"
@@ -260,15 +303,23 @@ describe('GitPromptServer', function() {
           "old-man-from-scene-24": "nope"
         }
       }
-      `, {encoding: 'utf8'});
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      `,
+        {encoding: 'utf8'},
+      );
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
       assert.isFalse(called);
 
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=swordfish\n' +
-        'quit=true\n');
+          'username=old-man-from-scene-24\npassword=swordfish\n' +
+          'quit=true\n',
+      );
     });
 
     it('uses credentials from the GitHub tab if available', async function() {
@@ -288,21 +339,31 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), `
+      await fs.writeFile(
+        tempDir.getScriptPath('fake-keytar'),
+        `
       {
         "atom-github": {
           "https://what-is-your-favorite-color.com": "swordfish"
         }
       }
-      `, {encoding: 'utf8'});
-      const {err, stdout} = await runCredentialScript('get', queryHandler, processHandler);
+      `,
+        {encoding: 'utf8'},
+      );
+      const {err, stdout} = await runCredentialScript(
+        'get',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
       assert.isFalse(called);
 
-      assert.equal(stdout,
+      assert.equal(
+        stdout,
         'protocol=https\nhost=what-is-your-favorite-color.com\n' +
-        'username=old-man-from-scene-24\npassword=swordfish\n' +
-        'quit=true\n');
+          'username=old-man-from-scene-24\npassword=swordfish\n' +
+          'quit=true\n',
+      );
     });
 
     it('stores credentials in keytar if a flag file is present', async function() {
@@ -323,12 +384,20 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await fs.writeFile(tempDir.getScriptPath('remember'), '', {encoding: 'utf8'});
-      const {err} = await runCredentialScript('store', queryHandler, processHandler);
+      await fs.writeFile(tempDir.getScriptPath('remember'), '', {
+        encoding: 'utf8',
+      });
+      const {err} = await runCredentialScript(
+        'store',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
       assert.isFalse(called);
 
-      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {encoding: 'utf8'});
+      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {
+        encoding: 'utf8',
+      });
       assert.deepEqual(JSON.parse(stored), {
         'atom-github-git-meta @ https://what-is-your-favorite-color.com': {
           username: 'old-man-from-scene-24',
@@ -355,20 +424,30 @@ describe('GitPromptServer', function() {
         child.stdin.end('\n');
       }
 
-      await fs.writeFile(tempDir.getScriptPath('fake-keytar'), JSON.stringify({
-        'atom-github-git @ https://what-is-your-favorite-color.com': {
-          'old-man-from-scene-24': 'shhhh',
-          'someone-else': 'untouched',
-        },
-        'atom-github-git @ https://github.com': {
-          'old-man-from-scene-24': 'untouched',
-        },
-      }), {encoding: 'utf8'});
+      await fs.writeFile(
+        tempDir.getScriptPath('fake-keytar'),
+        JSON.stringify({
+          'atom-github-git @ https://what-is-your-favorite-color.com': {
+            'old-man-from-scene-24': 'shhhh',
+            'someone-else': 'untouched',
+          },
+          'atom-github-git @ https://github.com': {
+            'old-man-from-scene-24': 'untouched',
+          },
+        }),
+        {encoding: 'utf8'},
+      );
 
-      const {err} = await runCredentialScript('erase', queryHandler, processHandler);
+      const {err} = await runCredentialScript(
+        'erase',
+        queryHandler,
+        processHandler,
+      );
       assert.ifError(err);
 
-      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {encoding: 'utf8'});
+      const stored = await fs.readFile(tempDir.getScriptPath('fake-keytar'), {
+        encoding: 'utf8',
+      });
       assert.deepEqual(JSON.parse(stored), {
         'atom-github-git @ https://what-is-your-favorite-color.com': {
           'someone-else': 'untouched',
@@ -402,7 +481,12 @@ describe('GitPromptServer', function() {
       let err, stdout;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getAskPassJs(), tempDir.getSocketPath(), 'Please enter your password for "updog"'],
+          getAtomHelperPath(),
+          [
+            tempDir.getAskPassJs(),
+            tempDir.getSocketPath(),
+            'Please enter your password for "updog"',
+          ],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;

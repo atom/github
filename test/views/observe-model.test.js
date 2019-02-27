@@ -32,10 +32,19 @@ class TestModel {
 class TestComponent extends React.Component {
   render() {
     return (
-      <ObserveModel model={this.props.testModel} fetchData={model => model.getData()}>
-        {data => (
-          data ? <div>{data.one} - {data.two}</div> : <div>no data</div>
-        )}
+      <ObserveModel
+        model={this.props.testModel}
+        fetchData={model => model.getData()}
+      >
+        {data =>
+          data ? (
+            <div>
+              {data.one} - {data.two}
+            </div>
+          ) : (
+            <div>no data</div>
+          )
+        }
       </ObserveModel>
     );
   }

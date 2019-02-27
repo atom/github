@@ -1,13 +1,17 @@
 describe('assert.async', function() {
   it('allows for asynchronous assertions', async function() {
     let val = false;
-    setTimeout(() => { val = true; });
+    setTimeout(() => {
+      val = true;
+    });
     await assert.async.isTrue(val);
   });
 
   it('allows for setting the timeout', async function() {
     let val = false;
-    setTimeout(() => { val = true; }, 100);
+    setTimeout(() => {
+      val = true;
+    }, 100);
     let caught = false;
     try {
       await assert.async(50).isTrue(val);
@@ -20,7 +24,9 @@ describe('assert.async', function() {
 
   it('retains the assertion message and adds the timeout', async function() {
     let val = false;
-    setTimeout(() => { val = true; }, 100);
+    setTimeout(() => {
+      val = true;
+    }, 100);
     let caught = null;
     try {
       await assert.async(50).isTrue(val);

@@ -18,8 +18,11 @@ class ComponentLike {
       await this.beforeRenderPromise;
     }
     const after = changeCb(this.state);
-    this.state.inProgress = after.inProgress !== undefined ? after.inProgress : this.state.inProgress;
-    if (afterCb) { afterCb(); }
+    this.state.inProgress =
+      after.inProgress !== undefined ? after.inProgress : this.state.inProgress;
+    if (afterCb) {
+      afterCb();
+    }
   }
 }
 

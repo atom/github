@@ -19,7 +19,11 @@ describe('GitHubTabContainer', function() {
 
   function buildApp(overrideProps = {}) {
     const repository = Repository.absent();
-    return <GitHubTabContainer {...gitHubTabContainerProps(atomEnv, repository, overrideProps)} />;
+    return (
+      <GitHubTabContainer
+        {...gitHubTabContainerProps(atomEnv, repository, overrideProps)}
+      />
+    );
   }
 
   describe('operation state observer', function() {
@@ -42,7 +46,10 @@ describe('GitHubTabContainer', function() {
 
       const repository1 = Repository.absent();
       wrapper.setProps({repository: repository1});
-      assert.notStrictEqual(wrapper.state('remoteOperationObserver'), observer0);
+      assert.notStrictEqual(
+        wrapper.state('remoteOperationObserver'),
+        observer0,
+      );
     });
   });
 
@@ -63,8 +70,16 @@ describe('GitHubTabContainer', function() {
       await repository.getLoadPromise();
       const wrapper = mount(buildApp({repository}));
 
-      await assert.async.isFalse(wrapper.update().find('GitHubTabController').prop('isLoading'));
-      assert.strictEqual(wrapper.find('GitHubTabController').prop('workingDirectory'), workdir);
+      await assert.async.isFalse(
+        wrapper
+          .update()
+          .find('GitHubTabController')
+          .prop('isLoading'),
+      );
+      assert.strictEqual(
+        wrapper.find('GitHubTabController').prop('workingDirectory'),
+        workdir,
+      );
     });
   });
 });

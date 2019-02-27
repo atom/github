@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-import {cloneRepository, buildRepository, setUpLocalAndRemoteRepositories} from '../helpers';
+import {
+  cloneRepository,
+  buildRepository,
+  setUpLocalAndRemoteRepositories,
+} from '../helpers';
 
 import FileSystemChangeObserver from '../../lib/models/file-system-change-observer';
 
@@ -91,12 +95,19 @@ describe('FileSystemChangeObserver', function() {
     await repository.git.exec(['checkout', '-b', 'new-branch']);
 
     changeSpy.resetHistory();
-    await repository.git.exec(['push', '--set-upstream', 'origin', 'new-branch']);
+    await repository.git.exec([
+      'push',
+      '--set-upstream',
+      'origin',
+      'new-branch',
+    ]);
     await assert.async.isTrue(changeSpy.called);
   });
 
   it('emits an event when commits have been fetched', async function() {
-    const {localRepoPath} = await setUpLocalAndRemoteRepositories({remoteAhead: true});
+    const {localRepoPath} = await setUpLocalAndRemoteRepositories({
+      remoteAhead: true,
+    });
     const repository = await buildRepository(localRepoPath);
     observer = createObserver(repository);
     await observer.start();

@@ -12,12 +12,9 @@ describe('IssueishListController', function() {
         title="title"
         results={null}
         repository={null}
-
         isLoading={false}
-
         onOpenIssueish={() => {}}
         onOpenMore={() => {}}
-
         {...overrideProps}
       />
     );
@@ -47,20 +44,20 @@ describe('IssueishListController', function() {
     const onOpenIssueish = sinon.stub();
     const onOpenMore = sinon.stub();
 
-    const wrapper = shallow(buildApp({
-      results: [mockPullRequest],
-      total: 1,
-      onOpenIssueish,
-      onOpenMore,
-    }));
+    const wrapper = shallow(
+      buildApp({
+        results: [mockPullRequest],
+        total: 1,
+        onOpenIssueish,
+        onOpenMore,
+      }),
+    );
 
     const view = wrapper.find('IssueishListView');
     assert.isFalse(view.prop('isLoading'));
     assert.strictEqual(view.prop('total'), 1);
     assert.lengthOf(view.prop('issueishes'), 1);
-    assert.deepEqual(view.prop('issueishes'), [
-      new Issueish(mockPullRequest),
-    ]);
+    assert.deepEqual(view.prop('issueishes'), [new Issueish(mockPullRequest)]);
 
     const payload = Symbol('payload');
     view.prop('onIssueishClick')(payload);
@@ -71,14 +68,21 @@ describe('IssueishListController', function() {
   });
 
   it('applies a resultFilter to limit its results', function() {
-    const wrapper = shallow(buildApp({
-      resultFilter: issueish => issueish.getNumber() > 10,
-      results: [0, 11, 13, 5, 12].map(number => createPullRequestResult({number})),
-      total: 5,
-    }));
+    const wrapper = shallow(
+      buildApp({
+        resultFilter: issueish => issueish.getNumber() > 10,
+        results: [0, 11, 13, 5, 12].map(number =>
+          createPullRequestResult({number}),
+        ),
+        total: 5,
+      }),
+    );
 
     const view = wrapper.find('IssueishListView');
     assert.strictEqual(view.prop('total'), 5);
-    assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
+    assert.deepEqual(
+      view.prop('issueishes').map(issueish => issueish.getNumber()),
+      [11, 13, 12],
+    );
   });
 });

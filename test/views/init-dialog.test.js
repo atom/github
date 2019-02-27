@@ -33,12 +33,20 @@ describe('InitDialog', function() {
   });
 
   const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
+    wrapper
+      .find(selector)
+      .getDOMNode()
+      .getModel()
+      .setText(text);
     wrapper.update();
   };
 
   it('defaults to your project home path', function() {
-    const text = wrapper.find('atom-text-editor').getDOMNode().getModel().getText();
+    const text = wrapper
+      .find('atom-text-editor')
+      .getDOMNode()
+      .getModel()
+      .getText();
     assert.equal(text, path.join('home', 'me', 'codes'));
   });
 
@@ -49,7 +57,10 @@ describe('InitDialog', function() {
   });
 
   it('enables the initialize button when the project path is populated', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
+    setTextIn(
+      '.github-ProjectPath atom-text-editor',
+      path.join('somewhere', 'else'),
+    );
 
     assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
   });

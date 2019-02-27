@@ -121,7 +121,12 @@ export async function setup(options = {}) {
   await githubPackage.activate(opts.state);
 
   await Promise.all(
-    projectDirs.map(projectDir => githubPackage.getContextPool().getContext(projectDir).getObserverStartedPromise()),
+    projectDirs.map(projectDir =>
+      githubPackage
+        .getContextPool()
+        .getContext(projectDir)
+        .getObserverStartedPromise(),
+    ),
   );
 
   return {

@@ -13,7 +13,10 @@ global.assert = chai.assert;
 // Give tests that rely on filesystem event delivery lots of breathing room.
 until.setDefaultTimeout(parseInt(process.env.UNTIL_TIMEOUT || '3000', 10));
 
-if (process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' && !process.env.NYC_CONFIG) {
+if (
+  process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' &&
+  !process.env.NYC_CONFIG
+) {
   // Set up Istanbul in this process.
   // This mimics the argument parsing and setup performed in:
   //   https://github.com/istanbuljs/nyc/blob/v13.0.0/bin/nyc.js
@@ -75,47 +78,53 @@ if (process.env.ATOM_GITHUB_BABEL_ENV === 'coverage' && !process.env.NYC_CONFIG)
   global._nyc.wrap();
 }
 
-const testSuffixes = process.env.ATOM_GITHUB_TEST_SUITE === 'snapshot' ? ['snapshot.js'] : ['test.js'];
+const testSuffixes =
+  process.env.ATOM_GITHUB_TEST_SUITE === 'snapshot'
+    ? ['snapshot.js']
+    : ['test.js'];
 
-module.exports = createRunner({
-  htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
-  reporter: process.env.MOCHA_REPORTER || 'list',
-  overrideTestPaths: [/spec$/, /test/],
-  testSuffixes,
-}, (mocha, {terminate}) => {
-  // Ensure that we expect to be deployable to this version of Atom.
-  const engineRange = require('../package.json').engines.atom;
-  const atomEnv = global.buildAtomEnvironment();
-  const atomVersion = atomEnv.getVersion();
-  const atomReleaseChannel = atomEnv.getReleaseChannel();
-  atomEnv.destroy();
+module.exports = createRunner(
+  {
+    htmlTitle: `GitHub Package Tests - pid ${process.pid}`,
+    reporter: process.env.MOCHA_REPORTER || 'list',
+    overrideTestPaths: [/spec$/, /test/],
+    testSuffixes,
+  },
+  (mocha, {terminate}) => {
+    // Ensure that we expect to be deployable to this version of Atom.
+    const engineRange = require('../package.json').engines.atom;
+    const atomEnv = global.buildAtomEnvironment();
+    const atomVersion = atomEnv.getVersion();
+    const atomReleaseChannel = atomEnv.getReleaseChannel();
+    atomEnv.destroy();
 
-  if (!semver.satisfies(semver.coerce(atomVersion), engineRange)) {
-    process.stderr.write(
-      `Atom version ${atomVersion} does not satisfy the range "${engineRange}" specified in package.json.\n` +
-      `This version of atom/github is currently incompatible with the ${atomReleaseChannel} ` +
-      'Atom release channel.\n',
-    );
+    if (!semver.satisfies(semver.coerce(atomVersion), engineRange)) {
+      process.stderr.write(
+        `Atom version ${atomVersion} does not satisfy the range "${engineRange}" specified in package.json.\n` +
+          `This version of atom/github is currently incompatible with the ${atomReleaseChannel} ` +
+          'Atom release channel.\n',
+      );
 
-    terminate(0);
-  }
+      terminate(0);
+    }
 
-  const Enzyme = require('enzyme');
-  const Adapter = require('enzyme-adapter-react-16');
-  Enzyme.configure({adapter: new Adapter()});
+    const Enzyme = require('enzyme');
+    const Adapter = require('enzyme-adapter-react-16');
+    Enzyme.configure({adapter: new Adapter()});
 
-  require('mocha-stress');
+    require('mocha-stress');
 
-  mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
+    mocha.timeout(parseInt(process.env.MOCHA_TIMEOUT || '5000', 10));
 
-  if (process.env.TEST_JUNIT_XML_PATH) {
-    mocha.reporter(require('mocha-multi-reporters'), {
-      reporterEnabled: 'mocha-junit-reporter, list',
-      mochaJunitReporterReporterOptions: {
-        mochaFile: process.env.TEST_JUNIT_XML_PATH,
-        useFullSuiteTitle: true,
-        suiteTitleSeparedBy: ' / ',
-      },
-    });
-  }
-});
+    if (process.env.TEST_JUNIT_XML_PATH) {
+      mocha.reporter(require('mocha-multi-reporters'), {
+        reporterEnabled: 'mocha-junit-reporter, list',
+        mochaJunitReporterReporterOptions: {
+          mochaFile: process.env.TEST_JUNIT_XML_PATH,
+          useFullSuiteTitle: true,
+          suiteTitleSeparedBy: ' / ',
+        },
+      });
+    }
+  },
+);

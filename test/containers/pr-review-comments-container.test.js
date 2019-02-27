@@ -14,9 +14,13 @@ describe('PullRequestReviewCommentsContainer', function() {
 
   function buildApp(opts, overrideProps = {}) {
     const o = {
-      relayHasMore: () => { return false; },
+      relayHasMore: () => {
+        return false;
+      },
       relayLoadMore: () => {},
-      relayIsLoading: () => { return false; },
+      relayIsLoading: () => {
+        return false;
+      },
       ...opts,
     };
 
@@ -51,7 +55,10 @@ describe('PullRequestReviewCommentsContainer', function() {
     const wrapper = shallow(buildApp());
     sinon.stub(wrapper.instance(), '_attemptToLoadMoreComments');
     wrapper.instance().componentDidMount();
-    assert.strictEqual(wrapper.instance()._attemptToLoadMoreComments.callCount, 1);
+    assert.strictEqual(
+      wrapper.instance()._attemptToLoadMoreComments.callCount,
+      1,
+    );
   });
 
   describe('_loadMoreComments', function() {
@@ -60,14 +67,19 @@ describe('PullRequestReviewCommentsContainer', function() {
       const wrapper = shallow(buildApp({relayLoadMore: relayLoadMoreStub}));
       wrapper.instance()._loadMoreComments();
 
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [
+        PAGE_SIZE,
+        wrapper.instance().accumulateComments,
+      ]);
     });
   });
 
   describe('accumulateComments', function() {
     it('collects comments and attempts to load more comments', function() {
       const collectCommentsStub = sinon.stub();
-      const wrapper = shallow(buildApp({}, {collectComments: collectCommentsStub}));
+      const wrapper = shallow(
+        buildApp({}, {collectComments: collectCommentsStub}),
+      );
       // collect comments is called when mounted, we don't care about that in this test so reset the count
       collectCommentsStub.reset();
       sinon.stub(wrapper.instance(), '_attemptToLoadMoreComments');
@@ -97,21 +109,38 @@ describe('PullRequestReviewCommentsContainer', function() {
 
     it('calls loadMore immediately if hasMore is true and isLoading is false', function() {
       const relayLoadMoreStub = sinon.stub();
-      const relayHasMore = () => { return true; };
-      const wrapper = shallow(buildApp({relayHasMore, relayLoadMore: relayLoadMoreStub}));
+      const relayHasMore = () => {
+        return true;
+      };
+      const wrapper = shallow(
+        buildApp({relayHasMore, relayLoadMore: relayLoadMoreStub}),
+      );
       relayLoadMoreStub.reset();
 
       wrapper.instance()._attemptToLoadMoreComments();
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [
+        PAGE_SIZE,
+        wrapper.instance().accumulateComments,
+      ]);
     });
 
     it('calls loadMore after a timeout if hasMore is true and isLoading is true', function() {
       const clock = sinon.useFakeTimers();
       const relayLoadMoreStub = sinon.stub();
-      const relayHasMore = () => { return true; };
-      const relayIsLoading = () => { return true; };
-      const wrapper = shallow(buildApp({relayHasMore, relayIsLoading, relayLoadMore: relayLoadMoreStub}));
+      const relayHasMore = () => {
+        return true;
+      };
+      const relayIsLoading = () => {
+        return true;
+      };
+      const wrapper = shallow(
+        buildApp({
+          relayHasMore,
+          relayIsLoading,
+          relayLoadMore: relayLoadMoreStub,
+        }),
+      );
       // advancing the timer and resetting the stub to clear the initial calls of
       // _attemptToLoadMoreComments when the component is initially mounted.
       clock.tick(PAGINATION_WAIT_TIME_MS);
@@ -122,7 +151,10 @@ describe('PullRequestReviewCommentsContainer', function() {
 
       clock.tick(PAGINATION_WAIT_TIME_MS);
       assert.strictEqual(relayLoadMoreStub.callCount, 1);
-      assert.deepEqual(relayLoadMoreStub.lastCall.args, [PAGE_SIZE, wrapper.instance().accumulateComments]);
+      assert.deepEqual(relayLoadMoreStub.lastCall.args, [
+        PAGE_SIZE,
+        wrapper.instance().accumulateComments,
+      ]);
 
       // buybye fake timer it was nice knowing you
       sinon.restore();

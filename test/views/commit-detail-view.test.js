@@ -15,7 +15,9 @@ describe('CommitDetailView', function() {
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    repository = await buildRepository(await cloneRepository('multiple-commits'));
+    repository = await buildRepository(
+      await cloneRepository('multiple-commits'),
+    );
   });
 
   afterEach(function() {
@@ -25,7 +27,9 @@ describe('CommitDetailView', function() {
   function buildApp(override = {}) {
     const props = {
       repository,
-      commit: commitBuilder().setMultiFileDiff().build(),
+      commit: commitBuilder()
+        .setMultiFileDiff()
+        .build(),
       currentRemote: new Remote('origin', 'git@github.com:atom/github'),
       messageCollapsible: false,
       messageOpen: true,
@@ -38,9 +42,9 @@ describe('CommitDetailView', function() {
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
 
-      destroy: () => { },
-      toggleMessage: () => { },
-      surfaceCommit: () => { },
+      destroy: () => {},
+      toggleMessage: () => {},
+      surfaceCommit: () => {},
       ...override,
     };
 
@@ -49,13 +53,19 @@ describe('CommitDetailView', function() {
 
   it('has a MultiFilePatchController that its itemType set', function() {
     const wrapper = shallow(buildApp({itemType: CommitDetailItem}));
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('itemType'), CommitDetailItem);
+    assert.strictEqual(
+      wrapper.find('MultiFilePatchController').prop('itemType'),
+      CommitDetailItem,
+    );
   });
 
   it('passes unrecognized props to a MultiFilePatchController', function() {
     const extra = Symbol('extra');
     const wrapper = shallow(buildApp({extra}));
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('extra'), extra);
+    assert.strictEqual(
+      wrapper.find('MultiFilePatchController').prop('extra'),
+      extra,
+    );
   });
 
   it('renders commit details properly', function() {
@@ -63,18 +73,37 @@ describe('CommitDetailView', function() {
       .sha('420')
       .authorEmail('very@nice.com')
       .authorName('Forthe Win')
-      .authorDate(moment().subtract(2, 'days').unix())
+      .authorDate(
+        moment()
+          .subtract(2, 'days')
+          .unix(),
+      )
       .messageSubject('subject')
       .messageBody('body')
       .setMultiFileDiff()
       .build();
     const wrapper = shallow(buildApp({commit}));
 
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-title').text(), 'subject');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), 'body');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-metaText').text(), 'Forthe Win committed 2 days ago');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha').text(), '420');
-    assert.strictEqual(wrapper.find('.github-CommitDetailView-sha a').prop('href'), 'https://github.com/atom/github/commit/420');
+    assert.strictEqual(
+      wrapper.find('.github-CommitDetailView-title').text(),
+      'subject',
+    );
+    assert.strictEqual(
+      wrapper.find('.github-CommitDetailView-moreText').text(),
+      'body',
+    );
+    assert.strictEqual(
+      wrapper.find('.github-CommitDetailView-metaText').text(),
+      'Forthe Win committed 2 days ago',
+    );
+    assert.strictEqual(
+      wrapper.find('.github-CommitDetailView-sha').text(),
+      '420',
+    );
+    assert.strictEqual(
+      wrapper.find('.github-CommitDetailView-sha a').prop('href'),
+      'https://github.com/atom/github/commit/420',
+    );
     assert.strictEqual(
       wrapper.find('img.github-RecentCommit-avatar').prop('src'),
       'https://avatars.githubusercontent.com/u/e?email=very%40nice.com&s=32',
@@ -112,45 +141,67 @@ describe('CommitDetailView', function() {
 
   describe('dotcom link rendering', function() {
     it('renders a link to GitHub', function() {
-      const wrapper = shallow(buildApp({
-        commit: commitBuilder().sha('0123').build(),
-        currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
-        isCommitPushed: true,
-      }));
+      const wrapper = shallow(
+        buildApp({
+          commit: commitBuilder()
+            .sha('0123')
+            .build(),
+          currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
+          isCommitPushed: true,
+        }),
+      );
 
       const link = wrapper.find('a');
       assert.strictEqual(link.text(), '0123');
-      assert.strictEqual(link.prop('href'), 'https://github.com/atom/github/commit/0123');
+      assert.strictEqual(
+        link.prop('href'),
+        'https://github.com/atom/github/commit/0123',
+      );
     });
 
     it('omits the link if there is no current remote', function() {
-      const wrapper = shallow(buildApp({
-        commit: commitBuilder().sha('0123').build(),
-        currentRemote: nullRemote,
-        isCommitPushed: true,
-      }));
+      const wrapper = shallow(
+        buildApp({
+          commit: commitBuilder()
+            .sha('0123')
+            .build(),
+          currentRemote: nullRemote,
+          isCommitPushed: true,
+        }),
+      );
 
       assert.isFalse(wrapper.find('a').exists());
       assert.include(wrapper.find('span').map(w => w.text()), '0123');
     });
 
     it('omits the link if the current remote is not a GitHub remote', function() {
-      const wrapper = shallow(buildApp({
-        commit: commitBuilder().sha('0123').build(),
-        currentRemote: new Remote('elsewhere', 'git@somehost.com:atom/github'),
-        isCommitPushed: true,
-      }));
+      const wrapper = shallow(
+        buildApp({
+          commit: commitBuilder()
+            .sha('0123')
+            .build(),
+          currentRemote: new Remote(
+            'elsewhere',
+            'git@somehost.com:atom/github',
+          ),
+          isCommitPushed: true,
+        }),
+      );
 
       assert.isFalse(wrapper.find('a').exists());
       assert.include(wrapper.find('span').map(w => w.text()), '0123');
     });
 
     it('omits the link if the commit is not pushed', function() {
-      const wrapper = shallow(buildApp({
-        commit: commitBuilder().sha('0123').build(),
-        currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
-        isCommitPushed: false,
-      }));
+      const wrapper = shallow(
+        buildApp({
+          commit: commitBuilder()
+            .sha('0123')
+            .build(),
+          currentRemote: new Remote('dotcom', 'git@github.com:atom/github'),
+          isCommitPushed: false,
+        }),
+      );
 
       assert.isFalse(wrapper.find('a').exists());
       assert.include(wrapper.find('span').map(w => w.text()), '0123');
@@ -165,7 +216,10 @@ describe('CommitDetailView', function() {
           .authorEmail('steven@universe.com')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Steven Universe');
+        assert.strictEqual(
+          wrapper.instance().getAuthorInfo(),
+          'Steven Universe',
+        );
       });
     });
 
@@ -176,7 +230,10 @@ describe('CommitDetailView', function() {
           .addCoAuthor('Sapphire', 'sapphire@thecrystalgems.party')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Ruby and Sapphire');
+        assert.strictEqual(
+          wrapper.instance().getAuthorInfo(),
+          'Ruby and Sapphire',
+        );
       });
     });
 
@@ -188,7 +245,10 @@ describe('CommitDetailView', function() {
           .addCoAuthor('Pearl', 'p@pinkhair.club')
           .build();
         const wrapper = shallow(buildApp({commit}));
-        assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Amethyst and 2 others');
+        assert.strictEqual(
+          wrapper.instance().getAuthorInfo(),
+          'Amethyst and 2 others',
+        );
       });
     });
   });
@@ -213,27 +273,40 @@ describe('CommitDetailView', function() {
 
     describe('when messageCollapsible is false', function() {
       beforeEach(function() {
-        const commit = commitBuilder().messageBody(shortMessage).build();
+        const commit = commitBuilder()
+          .messageBody(shortMessage)
+          .build();
         wrapper = shallow(buildApp({commit, messageCollapsible: false}));
       });
 
       it('renders the full message body', function() {
-        assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), shortMessage);
+        assert.strictEqual(
+          wrapper.find('.github-CommitDetailView-moreText').text(),
+          shortMessage,
+        );
       });
 
       it('does not render a button', function() {
-        assert.isFalse(wrapper.find('.github-CommitDetailView-moreButton').exists());
+        assert.isFalse(
+          wrapper.find('.github-CommitDetailView-moreButton').exists(),
+        );
       });
     });
 
     describe('when messageCollapsible is true and messageOpen is false', function() {
       beforeEach(function() {
-        const commit = commitBuilder().messageBody(longMessage).build();
-        wrapper = shallow(buildApp({commit, messageCollapsible: true, messageOpen: false}));
+        const commit = commitBuilder()
+          .messageBody(longMessage)
+          .build();
+        wrapper = shallow(
+          buildApp({commit, messageCollapsible: true, messageOpen: false}),
+        );
       });
 
       it('renders an abbreviated commit message', function() {
-        const messageText = wrapper.find('.github-CommitDetailView-moreText').text();
+        const messageText = wrapper
+          .find('.github-CommitDetailView-moreText')
+          .text();
         assert.notStrictEqual(messageText, longMessage);
         assert.isAtMost(messageText.length, Commit.LONG_MESSAGE_THRESHOLD);
       });
@@ -250,12 +323,24 @@ describe('CommitDetailView', function() {
 
       beforeEach(function() {
         toggleMessage = sinon.spy();
-        const commit = commitBuilder().messageBody(longMessage).build();
-        wrapper = shallow(buildApp({commit, messageCollapsible: true, messageOpen: true, toggleMessage}));
+        const commit = commitBuilder()
+          .messageBody(longMessage)
+          .build();
+        wrapper = shallow(
+          buildApp({
+            commit,
+            messageCollapsible: true,
+            messageOpen: true,
+            toggleMessage,
+          }),
+        );
       });
 
       it('renders the full message', function() {
-        assert.strictEqual(wrapper.find('.github-CommitDetailView-moreText').text(), longMessage);
+        assert.strictEqual(
+          wrapper.find('.github-CommitDetailView-moreText').text(),
+          longMessage,
+        );
       });
 
       it('renders a button to collapse the message text', function() {
@@ -286,7 +371,10 @@ describe('CommitDetailView', function() {
       const surfaceCommit = sinon.spy();
       const wrapper = mount(buildApp({surfaceCommit}));
 
-      atomEnv.commands.dispatch(wrapper.find('.github-FilePatchView').getDOMNode(), 'github:surface');
+      atomEnv.commands.dispatch(
+        wrapper.find('.github-FilePatchView').getDOMNode(),
+        'github:surface',
+      );
 
       assert.isTrue(surfaceCommit.called);
     });

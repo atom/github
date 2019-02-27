@@ -22,10 +22,8 @@ describe('IssueishSearchContainer', function() {
         endpoint={getEndpoint('github.com')}
         search={new Search('default', 'type:pr')}
         remoteOperationObserver={observer}
-
         onOpenIssueish={() => {}}
         onOpenSearch={() => {}}
-
         {...overrideProps}
       />
     );
@@ -43,32 +41,41 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('renders a query for the Search', async function() {
-    const {resolve, promise} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
+    const {resolve, promise} = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr author:me',
+        },
       },
-    }, {
-      search: {issueCount: 0, nodes: []},
-    });
+      {
+        search: {issueCount: 0, nodes: []},
+      },
+    );
 
     const search = new Search('pull requests', 'type:pr author:me');
     const wrapper = shallow(buildApp({search}));
-    assert.strictEqual(wrapper.find('ReactRelayQueryRenderer').prop('variables').query, 'type:pr author:me');
+    assert.strictEqual(
+      wrapper.find('ReactRelayQueryRenderer').prop('variables').query,
+      'type:pr author:me',
+    );
     resolve();
     await promise;
   });
 
   it('passes an empty result list and an isLoading prop to the controller while loading', async function() {
-    const {resolve, promise} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
+    const {resolve, promise} = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr author:me',
+          first: 20,
+        },
       },
-    }, {
-      search: {issueCount: 0, nodes: []},
-    });
+      {
+        search: {issueCount: 0, nodes: []},
+      },
+    );
 
     const search = new Search('pull requests', 'type:pr author:me');
     const wrapper = mount(buildApp({search}));
@@ -81,13 +88,16 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('passes an empty result list and an error prop to the controller when errored', async function() {
-    const {reject} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr',
-        first: 20,
+    const {reject} = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr',
+          first: 20,
+        },
       },
-    }, {});
+      {},
+    );
     const e = new Error('error');
     e.rawStack = e.stack;
     reject(e);
@@ -95,7 +105,11 @@ describe('IssueishSearchContainer', function() {
     const wrapper = mount(buildApp({}));
 
     await assert.async.isTrue(
-      wrapper.update().find('BareIssueishListController').filterWhere(n => !n.prop('isLoading')).exists(),
+      wrapper
+        .update()
+        .find('BareIssueishListController')
+        .filterWhere(n => !n.prop('isLoading'))
+        .exists(),
     );
     const controller = wrapper.find('BareIssueishListController');
     assert.strictEqual(controller.prop('error'), e);
@@ -103,21 +117,24 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('passes results to the controller', async function() {
-    const {promise, resolve} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
+    const {promise, resolve} = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr author:me',
+          first: 20,
+        },
       },
-    }, {
-      search: {
-        issueCount: 2,
-        nodes: [
-          createPullRequestResult({id: 'pr0', number: 1}),
-          createPullRequestResult({id: 'pr1', number: 2}),
-        ],
+      {
+        search: {
+          issueCount: 2,
+          nodes: [
+            createPullRequestResult({id: 'pr0', number: 1}),
+            createPullRequestResult({id: 'pr1', number: 2}),
+          ],
+        },
       },
-    });
+    );
 
     const search = new Search('pull requests', 'type:pr author:me');
     const wrapper = mount(buildApp({search}));
@@ -133,18 +150,25 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('performs the query again when a remote operation completes', async function() {
-    const {promise: promise0, resolve: resolve0, disable: disable0} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
+    const {
+      promise: promise0,
+      resolve: resolve0,
+      disable: disable0,
+    } = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr author:me',
+          first: 20,
+        },
       },
-    }, {
-      search: {
-        issueCount: 1,
-        nodes: [createPullRequestResult({number: 1})],
+      {
+        search: {
+          issueCount: 1,
+          nodes: [createPullRequestResult({number: 1})],
+        },
       },
-    });
+    );
 
     const search = new Search('pull requests', 'type:pr author:me');
     const wrapper = mount(buildApp({search}));
@@ -152,34 +176,49 @@ describe('IssueishSearchContainer', function() {
     await promise0;
 
     assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
+      wrapper
+        .update()
+        .find('BareIssueishListController')
+        .prop('results')
+        .some(node => node.number === 1),
     );
 
     disable0();
-    const {promise: promise1, resolve: resolve1} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
+    const {promise: promise1, resolve: resolve1} = expectRelayQuery(
+      {
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr author:me',
+          first: 20,
+        },
       },
-    }, {
-      search: {
-        issueCount: 1,
-        nodes: [createPullRequestResult({number: 2})],
+      {
+        search: {
+          issueCount: 1,
+          nodes: [createPullRequestResult({number: 2})],
+        },
       },
-    });
+    );
 
     resolve1();
     await promise1;
 
     assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
+      wrapper
+        .update()
+        .find('BareIssueishListController')
+        .prop('results')
+        .some(node => node.number === 1),
     );
 
     observer.trigger();
 
     await assert.async.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 2),
+      wrapper
+        .update()
+        .find('BareIssueishListController')
+        .prop('results')
+        .some(node => node.number === 2),
     );
   });
 });

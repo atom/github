@@ -1,7 +1,12 @@
 import {TextBuffer} from 'atom';
 
 import Hunk from '../../../lib/models/patch/hunk';
-import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
+import {
+  Unchanged,
+  Addition,
+  Deletion,
+  NoNewline,
+} from '../../../lib/models/patch/region';
 
 describe('Hunk', function() {
   const buffer = new TextBuffer({
@@ -251,22 +256,25 @@ describe('Hunk', function() {
         ],
       });
 
-      assert.strictEqual(h.toStringIn(nBuffer), [
-        '@@ -1,6 +1,6 @@\n',
-        ' 0111\n',
-        '+0222\n',
-        '+0333\n',
-        ' 0444\n',
-        '-0555\n',
-        ' 0666\n',
-        '+0777\n',
-        '-0888\n',
-        '-0999\n',
-        '+1000\n',
-        ' 1111\n',
-        ' 1222\n',
-        '\\ No newline at end of file\n',
-      ].join(''));
+      assert.strictEqual(
+        h.toStringIn(nBuffer),
+        [
+          '@@ -1,6 +1,6 @@\n',
+          ' 0111\n',
+          '+0222\n',
+          '+0333\n',
+          ' 0444\n',
+          '-0555\n',
+          ' 0666\n',
+          '+0777\n',
+          '-0888\n',
+          '-0999\n',
+          '+1000\n',
+          ' 1111\n',
+          ' 1222\n',
+          '\\ No newline at end of file\n',
+        ].join(''),
+      );
     });
 
     it('renders a hunk without a nonewline', function() {
@@ -287,13 +295,12 @@ describe('Hunk', function() {
         ],
       });
 
-      assert.strictEqual(h.toStringIn(nBuffer), [
-        '@@ -1,1 +1,1 @@\n',
-        ' 0000\n',
-        '+1111\n',
-        '-2222\n',
-        ' 3333\n',
-      ].join(''));
+      assert.strictEqual(
+        h.toStringIn(nBuffer),
+        ['@@ -1,1 +1,1 @@\n', ' 0000\n', '+1111\n', '-2222\n', ' 3333\n'].join(
+          '',
+        ),
+      );
     });
   });
 });

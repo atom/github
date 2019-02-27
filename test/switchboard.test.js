@@ -106,7 +106,9 @@ describe('Switchboard', function() {
 
             positiveResolver = functionTriple.resolver;
 
-            const positiveSubscription = functionTriple.subscriber(payload => positiveResults.push(payload));
+            const positiveSubscription = functionTriple.subscriber(payload =>
+              positiveResults.push(payload),
+            );
             subscriptions.add(positiveSubscription);
           } else {
             const negativePromise = functionTriple.getter().then(payload => {
@@ -116,7 +118,9 @@ describe('Switchboard', function() {
 
             negativeResolvers.push(functionTriple.resolver);
 
-            const negativeSubscription = functionTriple.subscriber(payload => negativeResults.push(payload));
+            const negativeSubscription = functionTriple.subscriber(payload =>
+              negativeResults.push(payload),
+            );
             subscriptions.add(negativeSubscription);
           }
         }

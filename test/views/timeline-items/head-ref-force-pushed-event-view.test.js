@@ -71,26 +71,49 @@ describe('HeadRefForcePushedEventView', function() {
     assert.strictEqual(avatarImg.prop('title'), 'actor');
 
     assert.strictEqual(wrapper.find('.username').text(), 'actor');
-    assert.match(wrapper.find('.head-ref-force-pushed-event').text(), /force-pushed the head-repo-owner:head-ref/);
-    assert.deepEqual(wrapper.find('.sha').map(n => n.text()), ['00001111', '00002222']);
-    assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-07-02T09:00:00Z');
+    assert.match(
+      wrapper.find('.head-ref-force-pushed-event').text(),
+      /force-pushed the head-repo-owner:head-ref/,
+    );
+    assert.deepEqual(wrapper.find('.sha').map(n => n.text()), [
+      '00001111',
+      '00002222',
+    ]);
+    assert.strictEqual(
+      wrapper.find('Timeago').prop('time'),
+      '2018-07-02T09:00:00Z',
+    );
   });
 
   it('omits the branch prefix when the head and base repositories match', function() {
-    const wrapper = shallow(buildApp({
-      headRepositoryOwnerLogin: 'same',
-      repositoryOwnerLogin: 'same',
-    }));
+    const wrapper = shallow(
+      buildApp({
+        headRepositoryOwnerLogin: 'same',
+        repositoryOwnerLogin: 'same',
+      }),
+    );
 
-    assert.match(wrapper.find('.head-ref-force-pushed-event').text(), /force-pushed the head-ref/);
+    assert.match(
+      wrapper.find('.head-ref-force-pushed-event').text(),
+      /force-pushed the head-ref/,
+    );
   });
 
   it('renders with a missing actor and before and after commits', function() {
-    const wrapper = shallow(buildApp({includeActor: false, includeBeforeCommit: false, includeAfterCommit: false}));
+    const wrapper = shallow(
+      buildApp({
+        includeActor: false,
+        includeBeforeCommit: false,
+        includeAfterCommit: false,
+      }),
+    );
 
     assert.isFalse(wrapper.find('img.author-avatar').exists());
     assert.strictEqual(wrapper.find('.username').text(), 'someone');
     assert.isFalse(wrapper.find('.sha').exists());
-    assert.match(wrapper.find('.head-ref-force-pushed-event').text(), /an old commit to a new commit/);
+    assert.match(
+      wrapper.find('.head-ref-force-pushed-event').text(),
+      /an old commit to a new commit/,
+    );
   });
 });

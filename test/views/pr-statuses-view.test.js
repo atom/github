@@ -28,32 +28,57 @@ describe('PrStatusesView', function() {
   });
 
   it('renders a styled octicon with displayType: check', function() {
-    const wrapper = shallow(buildApp({summaryState: 'EXPECTED'}, {displayType: 'check'}));
-    assert.isTrue(wrapper.find('Octicon[icon="primitive-dot"]').hasClass('github-PrStatuses--warning'));
+    const wrapper = shallow(
+      buildApp({summaryState: 'EXPECTED'}, {displayType: 'check'}),
+    );
+    assert.isTrue(
+      wrapper
+        .find('Octicon[icon="primitive-dot"]')
+        .hasClass('github-PrStatuses--warning'),
+    );
 
     wrapper.setProps({
       pullRequest: buildPullRequestResult({summaryState: 'PENDING'}),
     });
-    assert.isTrue(wrapper.find('Octicon[icon="primitive-dot"]').hasClass('github-PrStatuses--warning'));
+    assert.isTrue(
+      wrapper
+        .find('Octicon[icon="primitive-dot"]')
+        .hasClass('github-PrStatuses--warning'),
+    );
 
     wrapper.setProps({
       pullRequest: buildPullRequestResult({summaryState: 'SUCCESS'}),
     });
-    assert.isTrue(wrapper.find('Octicon[icon="check"]').hasClass('github-PrStatuses--success'));
+    assert.isTrue(
+      wrapper
+        .find('Octicon[icon="check"]')
+        .hasClass('github-PrStatuses--success'),
+    );
 
     wrapper.setProps({
       pullRequest: buildPullRequestResult({summaryState: 'ERROR'}),
     });
-    assert.isTrue(wrapper.find('Octicon[icon="alert"]').hasClass('github-PrStatuses--error'));
+    assert.isTrue(
+      wrapper
+        .find('Octicon[icon="alert"]')
+        .hasClass('github-PrStatuses--error'),
+    );
 
     wrapper.setProps({
       pullRequest: buildPullRequestResult({summaryState: 'FAILURE'}),
     });
-    assert.isTrue(wrapper.find('Octicon[icon="x"]').hasClass('github-PrStatuses--error'));
+    assert.isTrue(
+      wrapper.find('Octicon[icon="x"]').hasClass('github-PrStatuses--error'),
+    );
   });
 
   it('renders a donut chart', function() {
-    const wrapper = shallow(buildApp({summaryState: 'FAILURE', states: ['SUCCESS', 'FAILURE', 'ERROR']}));
+    const wrapper = shallow(
+      buildApp({
+        summaryState: 'FAILURE',
+        states: ['SUCCESS', 'FAILURE', 'ERROR'],
+      }),
+    );
 
     const donutChart = wrapper.find('StatusDonutChart');
     assert.strictEqual(donutChart.prop('pending'), 0);
@@ -62,71 +87,158 @@ describe('PrStatusesView', function() {
   });
 
   it('renders a summary sentence', function() {
-    const wrapper = shallow(buildApp({summaryState: 'SUCCESS', states: ['SUCCESS', 'SUCCESS', 'SUCCESS']}));
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), 'All checks succeeded');
+    const wrapper = shallow(
+      buildApp({
+        summaryState: 'SUCCESS',
+        states: ['SUCCESS', 'SUCCESS', 'SUCCESS'],
+      }),
+    );
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      'All checks succeeded',
+    );
 
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'FAILURE', states: ['FAILURE', 'ERROR', 'FAILURE']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'FAILURE',
+        states: ['FAILURE', 'ERROR', 'FAILURE'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), 'All checks failed');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      'All checks failed',
+    );
 
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'PENDING', states: ['PENDING', 'PENDING', 'PENDING']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'PENDING',
+        states: ['PENDING', 'PENDING', 'PENDING'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '3 pending checks');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '3 pending checks',
+    );
 
     // No pending checks
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'FAILURE', states: ['SUCCESS', 'SUCCESS', 'FAILURE']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'FAILURE',
+        states: ['SUCCESS', 'SUCCESS', 'FAILURE'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '1 failing and 2 successful checks');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '1 failing and 2 successful checks',
+    );
 
     // No failing checks
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'PENDING', states: ['SUCCESS', 'PENDING', 'PENDING']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'PENDING',
+        states: ['SUCCESS', 'PENDING', 'PENDING'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '2 pending and 1 successful checks');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '2 pending and 1 successful checks',
+    );
 
     // No succeeding checks
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'FAILURE', states: ['FAILURE', 'ERROR', 'PENDING']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'FAILURE',
+        states: ['FAILURE', 'ERROR', 'PENDING'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '1 pending and 2 failing checks');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '1 pending and 2 failing checks',
+    );
 
     // All three categories
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'FAILURE', states: ['PENDING', 'SUCCESS', 'SUCCESS', 'FAILURE', 'FAILURE', 'FAILURE']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'FAILURE',
+        states: [
+          'PENDING',
+          'SUCCESS',
+          'SUCCESS',
+          'FAILURE',
+          'FAILURE',
+          'FAILURE',
+        ],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '1 pending, 3 failing, and 2 successful checks');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '1 pending, 3 failing, and 2 successful checks',
+    );
 
     // Singular
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({summaryState: 'PENDING', states: ['PENDING']}),
+      pullRequest: buildPullRequestResult({
+        summaryState: 'PENDING',
+        states: ['PENDING'],
+      }),
     });
-    assert.strictEqual(wrapper.find('.github-PrStatuses-summary').text(), '1 pending check');
+    assert.strictEqual(
+      wrapper.find('.github-PrStatuses-summary').text(),
+      '1 pending check',
+    );
   });
 
   it('renders a context view for each status context', function() {
-    const wrapper = shallow(buildApp({summaryState: 'FAILURE', states: ['SUCCESS', 'FAILURE', 'ERROR']}));
+    const wrapper = shallow(
+      buildApp({
+        summaryState: 'FAILURE',
+        states: ['SUCCESS', 'FAILURE', 'ERROR'],
+      }),
+    );
 
-    const contextViews = wrapper.find('ForwardRef(Relay(BarePrStatusContextView))');
-    assert.deepEqual(contextViews.map(v => v.prop('context').state), ['SUCCESS', 'FAILURE', 'ERROR']);
+    const contextViews = wrapper.find(
+      'ForwardRef(Relay(BarePrStatusContextView))',
+    );
+    assert.deepEqual(contextViews.map(v => v.prop('context').state), [
+      'SUCCESS',
+      'FAILURE',
+      'ERROR',
+    ]);
   });
 
   it('constructs a PeriodicRefresher to update the status checks', function() {
     const refetch = sinon.stub();
-    const wrapper = shallow(buildApp({id: 'pullrequest0', summaryState: 'PENDING', states: ['PENDING', 'PENDING']}, {
-      relay: {
-        refetch,
-      },
-    }));
+    const wrapper = shallow(
+      buildApp(
+        {
+          id: 'pullrequest0',
+          summaryState: 'PENDING',
+          states: ['PENDING', 'PENDING'],
+        },
+        {
+          relay: {
+            refetch,
+          },
+        },
+      ),
+    );
     const refresher = wrapper.instance().refresher;
-    assert.strictEqual(refresher.options.interval(), BarePrStatusesView.PENDING_REFRESH_TIMEOUT);
+    assert.strictEqual(
+      refresher.options.interval(),
+      BarePrStatusesView.PENDING_REFRESH_TIMEOUT,
+    );
 
     wrapper.setProps({
-      pullRequest: buildPullRequestResult({id: 'pullrequest0', summaryState: 'FAILURE', state: ['FAILURE', 'SUCCESS']}),
+      pullRequest: buildPullRequestResult({
+        id: 'pullrequest0',
+        summaryState: 'FAILURE',
+        state: ['FAILURE', 'SUCCESS'],
+      }),
     });
-    assert.strictEqual(refresher.options.interval(), BarePrStatusesView.SUCCESS_REFRESH_TIMEOUT);
+    assert.strictEqual(
+      refresher.options.interval(),
+      BarePrStatusesView.SUCCESS_REFRESH_TIMEOUT,
+    );
 
     assert.isFalse(refetch.called);
     refresher.refreshNow(true);
@@ -142,6 +254,10 @@ describe('PrStatusesView', function() {
   });
 
   it('throws an error on an unknown displayType', function() {
-    assert.throws(() => shallow(buildApp({states: ['SUCCESS']}, {displayType: 'crazypants'})), /crazypants/);
+    assert.throws(
+      () =>
+        shallow(buildApp({states: ['SUCCESS']}, {displayType: 'crazypants'})),
+      /crazypants/,
+    );
   });
 });

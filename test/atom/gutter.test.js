@@ -27,9 +27,7 @@ describe('Gutter', function() {
   it('adds a custom gutter to an editor supplied by prop', async function() {
     const editor = await atomEnv.workspace.open(__filename);
 
-    const app = (
-      <Gutter editor={editor} name="aaa" priority={10} />
-    );
+    const app = <Gutter editor={editor} name="aaa" priority={10} />;
     const wrapper = mount(app);
 
     const gutter = editor.gutterWithName('aaa');
@@ -58,8 +56,11 @@ describe('Gutter', function() {
   });
 
   it('uses a function to derive number labels', async function() {
-    const buffer = new TextBuffer({text: '000\n111\n222\n333\n444\n555\n666\n777\n888\n999\n'});
-    const labelFn = ({bufferRow, screenRow}) => `custom ${bufferRow} ${screenRow}`;
+    const buffer = new TextBuffer({
+      text: '000\n111\n222\n333\n444\n555\n666\n777\n888\n999\n',
+    });
+    const labelFn = ({bufferRow, screenRow}) =>
+      `custom ${bufferRow} ${screenRow}`;
 
     const app = (
       <AtomTextEditor workspace={atomEnv.workspace} buffer={buffer}>
@@ -75,7 +76,10 @@ describe('Gutter', function() {
     const wrapper = mount(app, {attachTo: domRoot});
 
     const editorRoot = wrapper.getDOMNode();
-    await assert.async.lengthOf(editorRoot.querySelectorAll('.yyy .line-number'), 12);
+    await assert.async.lengthOf(
+      editorRoot.querySelectorAll('.yyy .line-number'),
+      12,
+    );
 
     const lineNumbers = editorRoot.querySelectorAll('.yyy .line-number');
     assert.strictEqual(lineNumbers[1].innerText, 'custom 0 0');

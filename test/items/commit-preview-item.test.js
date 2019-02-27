@@ -40,7 +40,10 @@ describe('CommitPreviewItem', function() {
     };
 
     return (
-      <PaneItem workspace={atomEnv.workspace} uriPattern={CommitPreviewItem.uriPattern}>
+      <PaneItem
+        workspace={atomEnv.workspace}
+        uriPattern={CommitPreviewItem.uriPattern}
+      >
         {({itemHolder, params}) => {
           return (
             <CommitPreviewItem
@@ -67,7 +70,12 @@ describe('CommitPreviewItem', function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
 
-    assert.isTrue(wrapper.update().find('CommitPreviewItem').exists());
+    assert.isTrue(
+      wrapper
+        .update()
+        .find('CommitPreviewItem')
+        .exists(),
+    );
   });
 
   it('passes extra props to its container', async function() {
@@ -75,21 +83,39 @@ describe('CommitPreviewItem', function() {
     const wrapper = mount(buildPaneApp({extra}));
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('extra'), extra);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('CommitPreviewContainer')
+        .prop('extra'),
+      extra,
+    );
   });
 
   it('locates the repository from the context pool', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper);
 
-    assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('repository'), repository);
+    assert.strictEqual(
+      wrapper
+        .update()
+        .find('CommitPreviewContainer')
+        .prop('repository'),
+      repository,
+    );
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
     await open(wrapper, {workingDirectory: '/nah'});
 
-    assert.isTrue(wrapper.update().find('CommitPreviewContainer').prop('repository').isAbsent());
+    assert.isTrue(
+      wrapper
+        .update()
+        .find('CommitPreviewContainer')
+        .prop('repository')
+        .isAbsent(),
+    );
   });
 
   it('returns a fixed title and icon', async function() {
@@ -189,7 +215,11 @@ describe('CommitPreviewItem', function() {
       const wrapper = mount(buildPaneApp());
       const item = await open(wrapper);
 
-      wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('CommitPreviewContainer')
+        .prop('refEditor')
+        .setter(editor);
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -203,7 +233,11 @@ describe('CommitPreviewItem', function() {
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
 
-      wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter(editor);
+      wrapper
+        .update()
+        .find('CommitPreviewContainer')
+        .prop('refEditor')
+        .setter(editor);
       assert.isTrue(cb.calledWith(editor));
     });
   });

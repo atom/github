@@ -42,16 +42,21 @@ describe('ChangedFileController', function() {
     const extra = Symbol('extra');
     const wrapper = shallow(buildApp({extra}));
 
-    assert.strictEqual(wrapper.find('MultiFilePatchController').prop('extra'), extra);
+    assert.strictEqual(
+      wrapper.find('MultiFilePatchController').prop('extra'),
+      extra,
+    );
   });
 
   it('calls surfaceFileAtPath with fixed arguments', function() {
     const surfaceFileAtPath = sinon.spy();
-    const wrapper = shallow(buildApp({
-      relPath: 'whatever.js',
-      stagingStatus: 'staged',
-      surfaceFileAtPath,
-    }));
+    const wrapper = shallow(
+      buildApp({
+        relPath: 'whatever.js',
+        stagingStatus: 'staged',
+        surfaceFileAtPath,
+      }),
+    );
     wrapper.find('MultiFilePatchController').prop('surface')();
 
     assert.isTrue(surfaceFileAtPath.calledWith('whatever.js', 'staged'));

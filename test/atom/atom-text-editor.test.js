@@ -167,7 +167,10 @@ describe('AtomTextEditor', function() {
 
       assert.isTrue(handler.called);
       const [selection] = handler.lastCall.args;
-      assert.deepEqual(selection.getBufferRange().serialize(), [[1, 0], [3, 3]]);
+      assert.deepEqual(selection.getBufferRange().serialize(), [
+        [1, 0],
+        [3, 3],
+      ]);
     });
 
     it("triggers didChangeSelectionRange when an existing selection's range is altered", function() {
@@ -209,10 +212,7 @@ describe('AtomTextEditor', function() {
       );
 
       const editor = refModel.get();
-      editor.setSelectedBufferRanges([
-        [[2, 0], [2, 1]],
-        [[3, 0], [3, 1]],
-      ]);
+      editor.setSelectedBufferRanges([[[2, 0], [2, 1]], [[3, 0], [3, 1]]]);
       const selection1 = editor.getSelections()[1];
       assert.isFalse(handler.called);
 

@@ -51,7 +51,9 @@ describe('CredentialDialog', function() {
     it('omits the username if includeUsername is false', function() {
       wrapper = mount(React.cloneElement(app, {includeUsername: false}));
 
-      assert.isFalse(wrapper.find('.github-CredentialDialog-Username').exists());
+      assert.isFalse(
+        wrapper.find('.github-CredentialDialog-Username').exists(),
+      );
       setTextIn('.github-CredentialDialog-Password', 'twowordsuppercase');
 
       wrapper.find('.btn-primary').simulate('click');
@@ -82,7 +84,9 @@ describe('CredentialDialog', function() {
 
     it('omits the "remember me" checkbox', function() {
       wrapper = mount(app);
-      assert.isFalse(wrapper.find('.github-CredentialDialog-remember').exists());
+      assert.isFalse(
+        wrapper.find('.github-CredentialDialog-remember').exists(),
+      );
     });
   });
 
@@ -105,7 +109,10 @@ describe('CredentialDialog', function() {
     it('sets the passwords input type back to "password" on the second click', function() {
       wrapper = mount(app);
 
-      wrapper.find('.github-DialogLabelButton').simulate('click').simulate('click');
+      wrapper
+        .find('.github-DialogLabelButton')
+        .simulate('click')
+        .simulate('click');
 
       const passwordInput = wrapper.find('.github-CredentialDialog-Password');
       assert.equal(passwordInput.prop('type'), 'password');

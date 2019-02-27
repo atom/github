@@ -20,7 +20,11 @@ describe('GitHubTabView', function() {
   });
 
   function buildApp(overrideProps = {}) {
-    const props = gitHubTabViewProps(atomEnv, overrideProps.repository || Repository.absent(), overrideProps);
+    const props = gitHubTabViewProps(
+      atomEnv,
+      overrideProps.repository || Repository.absent(),
+      overrideProps,
+    );
     return <GitHubTabView {...props} />;
   }
 
@@ -33,7 +37,9 @@ describe('GitHubTabView', function() {
     const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const currentBranch = new Branch('bbb');
     const handlePushBranch = sinon.spy();
-    const wrapper = shallow(buildApp({currentRemote, currentBranch, handlePushBranch}));
+    const wrapper = shallow(
+      buildApp({currentRemote, currentBranch, handlePushBranch}),
+    );
 
     const container = wrapper.find('RemoteContainer');
     assert.isTrue(container.exists());
@@ -45,12 +51,14 @@ describe('GitHubTabView', function() {
   it('renders a RemoteSelectorView when many remote choices are available', function() {
     const remotes = new RemoteSet();
     const handleRemoteSelect = sinon.spy();
-    const wrapper = shallow(buildApp({
-      remotes,
-      currentRemote: nullRemote,
-      manyRemotesAvailable: true,
-      handleRemoteSelect,
-    }));
+    const wrapper = shallow(
+      buildApp({
+        remotes,
+        currentRemote: nullRemote,
+        manyRemotesAvailable: true,
+        handleRemoteSelect,
+      }),
+    );
 
     const selector = wrapper.find('RemoteSelectorView');
     assert.isTrue(selector.exists());
@@ -60,7 +68,9 @@ describe('GitHubTabView', function() {
   });
 
   it('renders a static message when no remotes are available', function() {
-    const wrapper = shallow(buildApp({currentRemote: nullRemote, manyRemotesAvailable: false}));
+    const wrapper = shallow(
+      buildApp({currentRemote: nullRemote, manyRemotesAvailable: false}),
+    );
     assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
   });
 });

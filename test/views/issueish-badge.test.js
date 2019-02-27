@@ -5,22 +5,18 @@ import IssueishBadge from '../../lib/views/issueish-badge';
 
 describe('IssueishBadge', function() {
   function buildApp(overloadProps = {}) {
-    return (
-      <IssueishBadge
-        type="Issue"
-        state="OPEN"
-        {...overloadProps}
-      />
-    );
+    return <IssueishBadge type="Issue" state="OPEN" {...overloadProps} />;
   }
 
   it('applies a className and any other properties to the span', function() {
     const extra = Symbol('extra');
-    const wrapper = shallow(buildApp({
-      className: 'added',
-      state: 'CLOSED',
-      extra,
-    }));
+    const wrapper = shallow(
+      buildApp({
+        className: 'added',
+        state: 'CLOSED',
+        extra,
+      }),
+    );
 
     const span = wrapper.find('span.github-IssueishBadge');
     assert.isTrue(span.hasClass('added'));

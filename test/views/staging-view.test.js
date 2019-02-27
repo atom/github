@@ -21,9 +21,9 @@ describe('StagingView', function() {
     notificationManager = atomEnv.notifications;
 
     sinon.stub(workspace, 'open');
-    sinon.stub(workspace, 'paneForItem').returns({activateItem: () => { }});
+    sinon.stub(workspace, 'paneForItem').returns({activateItem: () => {}});
 
-    const noop = () => { };
+    const noop = () => {};
 
     app = (
       <StagingView
@@ -55,10 +55,14 @@ describe('StagingView', function() {
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const wrapper = mount(React.cloneElement(app, {unstagedChanges: filePatches}));
+      const wrapper = mount(
+        React.cloneElement(app, {unstagedChanges: filePatches}),
+      );
 
       assert.deepEqual(
-        wrapper.find('.github-UnstagedChanges .github-FilePatchListView-item').map(n => n.text()),
+        wrapper
+          .find('.github-UnstagedChanges .github-FilePatchListView-item')
+          .map(n => n.text()),
         ['a.txt', 'b.txt'],
       );
     });
@@ -68,10 +72,14 @@ describe('StagingView', function() {
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const wrapper = mount(React.cloneElement(app, {stagedChanges: filePatches}));
+      const wrapper = mount(
+        React.cloneElement(app, {stagedChanges: filePatches}),
+      );
 
       assert.deepEqual(
-        wrapper.find('.github-StagedChanges .github-FilePatchListView-item').map(n => n.text()),
+        wrapper
+          .find('.github-StagedChanges .github-FilePatchListView-item')
+          .map(n => n.text()),
         ['a.txt', 'b.txt'],
       );
     });
@@ -89,33 +97,47 @@ describe('StagingView', function() {
       });
 
       it('calls attemptFileStageOperation with the paths to stage and the staging status', async function() {
-        const wrapper = mount(React.cloneElement(app, {
-          unstagedChanges: filePatches,
-          attemptFileStageOperation,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            unstagedChanges: filePatches,
+            attemptFileStageOperation,
+          }),
+        );
 
-        wrapper.find('.github-StagingView-unstaged').find('.github-FilePatchListView-item').at(1)
+        wrapper
+          .find('.github-StagingView-unstaged')
+          .find('.github-FilePatchListView-item')
+          .at(1)
           .simulate('mousedown', {button: 0});
         await wrapper.instance().mouseup();
 
         commandRegistry.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
-        await assert.async.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
+        await assert.async.isTrue(
+          attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'),
+        );
       });
 
       it('calls attemptFileStageOperation with the paths to unstage and the staging status', async function() {
-        const wrapper = mount(React.cloneElement(app, {
-          stagedChanges: filePatches,
-          attemptFileStageOperation,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            stagedChanges: filePatches,
+            attemptFileStageOperation,
+          }),
+        );
 
-        wrapper.find('.github-StagingView-staged').find('.github-FilePatchListView-item').at(1)
+        wrapper
+          .find('.github-StagingView-staged')
+          .find('.github-FilePatchListView-item')
+          .at(1)
           .simulate('mousedown', {button: 0});
         await wrapper.instance().mouseup();
 
         commandRegistry.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
-        await assert.async.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
+        await assert.async.isTrue(
+          attemptFileStageOperation.calledWith(['b.txt'], 'staged'),
+        );
       });
     });
   });
@@ -145,35 +167,53 @@ describe('StagingView', function() {
     it('shows "calculating" while calculating the number of conflicts', function() {
       const resolutionProgress = new ResolutionProgress();
 
-      const wrapper = mount(React.cloneElement(app, {
-        mergeConflicts,
-        resolutionProgress,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          mergeConflicts,
+          resolutionProgress,
+        }),
+      );
 
       assert.lengthOf(wrapper.find('.github-RemainingConflicts'), 1);
-      assert.strictEqual(wrapper.find('.github-RemainingConflicts').text(), 'calculating');
+      assert.strictEqual(
+        wrapper.find('.github-RemainingConflicts').text(),
+        'calculating',
+      );
     });
 
     it('shows the number of remaining conflicts', function() {
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 10);
+      resolutionProgress.reportMarkerCount(
+        path.join(workingDirectoryPath, 'conflicted-path'),
+        10,
+      );
 
-      const wrapper = mount(React.cloneElement(app, {
-        mergeConflicts,
-        resolutionProgress,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          mergeConflicts,
+          resolutionProgress,
+        }),
+      );
 
-      assert.strictEqual(wrapper.find('.github-RemainingConflicts').text(), '10 conflicts remaining');
+      assert.strictEqual(
+        wrapper.find('.github-RemainingConflicts').text(),
+        '10 conflicts remaining',
+      );
     });
 
     it('shows a checkmark when there are no remaining conflicts', function() {
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
+      resolutionProgress.reportMarkerCount(
+        path.join(workingDirectoryPath, 'conflicted-path'),
+        0,
+      );
 
-      const wrapper = mount(React.cloneElement(app, {
-        mergeConflicts,
-        resolutionProgress,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          mergeConflicts,
+          resolutionProgress,
+        }),
+      );
 
       assert.lengthOf(wrapper.find('.icon-check'), 1);
     });
@@ -191,15 +231,24 @@ describe('StagingView', function() {
       ];
 
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-0.txt'), 2);
-      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path-1.txt'), 0);
+      resolutionProgress.reportMarkerCount(
+        path.join(workingDirectoryPath, 'conflicted-path-0.txt'),
+        2,
+      );
+      resolutionProgress.reportMarkerCount(
+        path.join(workingDirectoryPath, 'conflicted-path-1.txt'),
+        0,
+      );
 
-      const wrapper = mount(React.cloneElement(app, {
-        mergeConflicts: multiMergeConflicts,
-        resolutionProgress,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          mergeConflicts: multiMergeConflicts,
+          resolutionProgress,
+        }),
+      );
 
-      const conflictButton = wrapper.find('.github-MergeConflictPaths')
+      const conflictButton = wrapper
+        .find('.github-MergeConflictPaths')
         .find('.github-StagingView-headerButton');
       assert.strictEqual(conflictButton.text(), 'Stage All');
       assert.isTrue(conflictButton.prop('disabled'));
@@ -207,14 +256,20 @@ describe('StagingView', function() {
 
     it('enables the "stage all" button when all conflicts are resolved', function() {
       const resolutionProgress = new ResolutionProgress();
-      resolutionProgress.reportMarkerCount(path.join(workingDirectoryPath, 'conflicted-path'), 0);
+      resolutionProgress.reportMarkerCount(
+        path.join(workingDirectoryPath, 'conflicted-path'),
+        0,
+      );
 
-      const wrapper = mount(React.cloneElement(app, {
-        mergeConflicts,
-        resolutionProgress,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          mergeConflicts,
+          resolutionProgress,
+        }),
+      );
 
-      const conflictButton = wrapper.find('.github-MergeConflictPaths')
+      const conflictButton = wrapper
+        .find('.github-MergeConflictPaths')
         .find('.github-StagingView-headerButton');
       assert.strictEqual(conflictButton.text(), 'Stage All');
       assert.isFalse(conflictButton.prop('disabled'));
@@ -233,12 +288,21 @@ describe('StagingView', function() {
         };
         workspace.open.returns(changedFileItem);
 
-        await wrapper.instance().showFilePatchItem('file.txt', 'staged', {activate: true});
+        await wrapper
+          .instance()
+          .showFilePatchItem('file.txt', 'staged', {activate: true});
 
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: true, pane: undefined, activateItem: true},
+          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(
+            workingDirectoryPath,
+          )}&stagingStatus=staged`,
+          {
+            pending: true,
+            activatePane: true,
+            pane: undefined,
+            activateItem: true,
+          },
         ]);
         assert.isTrue(changedFileItem.focus.called);
       });
@@ -252,12 +316,21 @@ describe('StagingView', function() {
         const activateItem = sinon.spy();
         workspace.paneForItem.returns({activateItem});
 
-        await wrapper.instance().showFilePatchItem('file.txt', 'staged', {activate: false});
+        await wrapper
+          .instance()
+          .showFilePatchItem('file.txt', 'staged', {activate: false});
 
         assert.equal(workspace.open.callCount, 1);
         assert.deepEqual(workspace.open.args[0], [
-          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(workingDirectoryPath)}&stagingStatus=staged`,
-          {pending: true, activatePane: false, pane: undefined, activateItem: false},
+          `atom-github://file-patch/file.txt?workdir=${encodeURIComponent(
+            workingDirectoryPath,
+          )}&stagingStatus=staged`,
+          {
+            pending: true,
+            activatePane: false,
+            pane: undefined,
+            activateItem: false,
+          },
         ]);
         assert.isFalse(focus.called);
         assert.equal(activateItem.callCount, 1);
@@ -281,7 +354,9 @@ describe('StagingView', function() {
       ]);
 
       workspace.open.reset();
-      await wrapper.instance().showMergeConflictFileForPath('conflict.txt', {activate: true});
+      await wrapper
+        .instance()
+        .showMergeConflictFileForPath('conflict.txt', {activate: true});
       assert.equal(workspace.open.callCount, 1);
       assert.deepEqual(workspace.open.args[0], [
         path.join(workingDirectoryPath, 'conflict.txt'),
@@ -289,7 +364,7 @@ describe('StagingView', function() {
       ]);
     });
 
-    describe('when the file doesn\'t exist', function() {
+    describe("when the file doesn't exist", function() {
       it('shows an info notification and does not open the file', async function() {
         sinon.spy(notificationManager, 'addInfo');
 
@@ -302,7 +377,9 @@ describe('StagingView', function() {
         assert.equal(notificationManager.getNotifications().length, 1);
         assert.equal(workspace.open.callCount, 0);
         assert.equal(notificationManager.addInfo.callCount, 1);
-        assert.deepEqual(notificationManager.addInfo.args[0], ['File has been deleted.']);
+        assert.deepEqual(notificationManager.addInfo.args[0], [
+          'File has been deleted.',
+        ]);
       });
     });
   });
@@ -317,7 +394,10 @@ describe('StagingView', function() {
       });
       const wrapper = mount(app);
 
-      assert.deepEqual(wrapper.instance().getPanesWithStalePendingFilePatchItem(), []);
+      assert.deepEqual(
+        wrapper.instance().getPanesWithStalePendingFilePatchItem(),
+        [],
+      );
     });
   });
 
@@ -325,8 +405,14 @@ describe('StagingView', function() {
     let showFilePatchItem, showMergeConflictFileForPath;
 
     beforeEach(function() {
-      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
-      showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
+      showFilePatchItem = sinon.stub(
+        StagingView.prototype,
+        'showFilePatchItem',
+      );
+      showMergeConflictFileForPath = sinon.stub(
+        StagingView.prototype,
+        'showMergeConflictFileForPath',
+      );
     });
 
     afterEach(function() {
@@ -345,15 +431,16 @@ describe('StagingView', function() {
           {filePath: 'b.txt', status: 'deleted'},
         ];
 
-        const wrapper = mount(React.cloneElement(app, {
-          unstagedChanges: filePatches,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            unstagedChanges: filePatches,
+          }),
+        );
         sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
-        const getPanesWithStalePendingFilePatchItem = sinon.stub(
-          wrapper.instance(),
-          'getPanesWithStalePendingFilePatchItem',
-        ).returns([]);
+        const getPanesWithStalePendingFilePatchItem = sinon
+          .stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem')
+          .returns([]);
         await wrapper.instance().selectNext();
         assert.isFalse(showFilePatchItem.called);
 
@@ -361,14 +448,26 @@ describe('StagingView', function() {
 
         await wrapper.instance().selectPrevious();
         assert.isTrue(showFilePatchItem.calledTwice);
-        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[0].filePath);
-        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[0].filePath);
+        assert.strictEqual(
+          showFilePatchItem.args[0][0],
+          filePatches[0].filePath,
+        );
+        assert.strictEqual(
+          showFilePatchItem.args[1][0],
+          filePatches[0].filePath,
+        );
         showFilePatchItem.reset();
 
         await wrapper.instance().selectNext();
         assert.isTrue(showFilePatchItem.calledTwice);
-        assert.strictEqual(showFilePatchItem.args[0][0], filePatches[1].filePath);
-        assert.strictEqual(showFilePatchItem.args[1][0], filePatches[1].filePath);
+        assert.strictEqual(
+          showFilePatchItem.args[0][0],
+          filePatches[1].filePath,
+        );
+        assert.strictEqual(
+          showFilePatchItem.args[1][0],
+          filePatches[1].filePath,
+        );
       });
 
       it('does not call showMergeConflictFileForPath', async function() {
@@ -394,12 +493,17 @@ describe('StagingView', function() {
           },
         ];
 
-        const wrapper = mount(React.cloneElement(app, {
-          mergeConflicts,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            mergeConflicts,
+          }),
+        );
 
         await wrapper.instance().selectNext();
-        const selectedItems = wrapper.instance().getSelectedItems().map(item => item.filePath);
+        const selectedItems = wrapper
+          .instance()
+          .getSelectedItems()
+          .map(item => item.filePath);
         assert.deepEqual(selectedItems, ['conflicted-path-2']);
         assert.isFalse(showMergeConflictFileForPath.called);
       });
@@ -416,25 +520,34 @@ describe('StagingView', function() {
           {filePath: 'b.txt', status: 'deleted'},
         ];
 
-        const wrapper = mount(React.cloneElement(app, {
-          unstagedChanges: filePatches,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            unstagedChanges: filePatches,
+          }),
+        );
         sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
-        const getPanesWithStalePendingFilePatchItem = sinon.stub(
-          wrapper.instance(),
-          'getPanesWithStalePendingFilePatchItem',
-        ).returns([]);
+        const getPanesWithStalePendingFilePatchItem = sinon
+          .stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem')
+          .returns([]);
         await wrapper.instance().selectNext();
         assert.isFalse(showFilePatchItem.called);
 
-        getPanesWithStalePendingFilePatchItem.returns(['item1', 'item2', 'item3']);
+        getPanesWithStalePendingFilePatchItem.returns([
+          'item1',
+          'item2',
+          'item3',
+        ]);
         await wrapper.instance().selectPrevious();
-        await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[0].filePath));
+        await assert.async.isTrue(
+          showFilePatchItem.calledWith(filePatches[0].filePath),
+        );
         assert.isTrue(showFilePatchItem.calledThrice);
         showFilePatchItem.reset();
         await wrapper.instance().selectNext();
-        await assert.async.isTrue(showFilePatchItem.calledWith(filePatches[1].filePath));
+        await assert.async.isTrue(
+          showFilePatchItem.calledWith(filePatches[1].filePath),
+        );
         assert.isTrue(showFilePatchItem.calledThrice);
       });
     });
@@ -453,14 +566,19 @@ describe('StagingView', function() {
       root.style.top = '75%';
       document.body.appendChild(root);
 
-      const wrapper = mount(React.cloneElement(app, {
-        unstagedChanges,
-      }), {attachTo: root});
+      const wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges,
+        }),
+        {attachTo: root},
+      );
 
       // Actually loading the style sheet is complicated and prone to timing
       // issues, so this applies some minimal styling to allow the unstaged
       // changes list to scroll.
-      const unstagedChangesList = wrapper.find('.github-StagingView-unstaged').getDOMNode();
+      const unstagedChangesList = wrapper
+        .find('.github-StagingView-unstaged')
+        .getDOMNode();
       unstagedChangesList.style.flex = 'inherit';
       unstagedChangesList.style.overflow = 'scroll';
       unstagedChangesList.style.height = '50px';
@@ -484,7 +602,10 @@ describe('StagingView', function() {
 
     beforeEach(function() {
       atom.config.set('github.keyboardNavigationDelay', 0);
-      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+      showFilePatchItem = sinon.stub(
+        StagingView.prototype,
+        'showFilePatchItem',
+      );
     });
 
     afterEach(function() {
@@ -498,15 +619,19 @@ describe('StagingView', function() {
         {filePath: 'b.txt', status: 'deleted'},
       ];
 
-      const wrapper = mount(React.cloneElement(app, {
-        unstagedChanges: filePatches,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges: filePatches,
+        }),
+      );
       sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
       let selectedItems = wrapper.instance().getSelectedItems();
       assert.lengthOf(selectedItems, 1);
       assert.strictEqual(selectedItems[0].filePath, 'a.txt');
-      sinon.stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem').returns(['item1']);
+      sinon
+        .stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem')
+        .returns(['item1']);
       const newFilePatches = filePatches.slice(1); // remove first item, as though it was staged or discarded
 
       wrapper.setProps({unstagedChanges: newFilePatches});
@@ -518,27 +643,37 @@ describe('StagingView', function() {
     });
 
     it('does not call showFilePatchItem if a new set of file patches are being fetched', function() {
-      const wrapper = mount(React.cloneElement(app, {
-        unstagedChanges: [{filePath: 'a.txt', status: 'modified'}],
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges: [{filePath: 'a.txt', status: 'modified'}],
+        }),
+      );
       sinon.stub(wrapper.instance(), 'hasFocus').returns(true);
 
-      sinon.stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem').returns(['item1']);
+      sinon
+        .stub(wrapper.instance(), 'getPanesWithStalePendingFilePatchItem')
+        .returns(['item1']);
       wrapper.setProps({unstagedChanges: []}); // when repo is changed, lists are cleared out and data is fetched for new repo
       assert.isFalse(showFilePatchItem.called);
 
-      wrapper.setProps({unstagedChanges: [{filePath: 'b.txt', status: 'deleted'}]}); // data for new repo is loaded
+      wrapper.setProps({
+        unstagedChanges: [{filePath: 'b.txt', status: 'deleted'}],
+      }); // data for new repo is loaded
       assert.isFalse(showFilePatchItem.called);
 
-      wrapper.setProps({unstagedChanges: [{filePath: 'c.txt', status: 'added'}]});
+      wrapper.setProps({
+        unstagedChanges: [{filePath: 'c.txt', status: 'added'}],
+      });
       assert.isTrue(showFilePatchItem.called);
     });
   });
 
   it('updates the selection when there is an `activeFilePatch`', function() {
-    const wrapper = mount(React.cloneElement(app, {
-      unstagedChanges: [{filePath: 'file.txt', status: 'modified'}],
-    }));
+    const wrapper = mount(
+      React.cloneElement(app, {
+        unstagedChanges: [{filePath: 'file.txt', status: 'modified'}],
+      }),
+    );
 
     let selectedItems = wrapper.instance().getSelectedItems();
     assert.lengthOf(selectedItems, 1);
@@ -563,7 +698,10 @@ describe('StagingView', function() {
     let showFilePatchItem;
 
     beforeEach(function() {
-      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
+      showFilePatchItem = sinon.stub(
+        StagingView.prototype,
+        'showFilePatchItem',
+      );
     });
 
     afterEach(function() {
@@ -578,15 +716,22 @@ describe('StagingView', function() {
         {filePath: 'c.txt', status: 'modified'},
       ];
 
-      const wrapper = mount(React.cloneElement(app, {
-        unstagedChanges,
-      }));
+      const wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges,
+        }),
+      );
 
-      await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[0]);
+      await wrapper
+        .instance()
+        .mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[0]);
       await wrapper.instance().mousemoveOnItem({}, unstagedChanges[1]);
       wrapper.instance().mouseup();
-      assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set(unstagedChanges.slice(0, 2)));
+      assertEqualSets(
+        wrapper.state('selection').getSelectedItems(),
+        new Set(unstagedChanges.slice(0, 2)),
+      );
       assert.equal(showFilePatchItem.callCount, 0);
     });
   });
@@ -601,21 +746,36 @@ describe('StagingView', function() {
         {filePath: 'unstaged-3.txt', status: 'modified'},
       ];
       const mergeConflicts = [
-        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
-        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+        {
+          filePath: 'conflict-1.txt',
+          status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+        },
+        {
+          filePath: 'conflict-2.txt',
+          status: {file: 'modified', ours: 'added', theirs: 'modified'},
+        },
       ];
       stagedChanges = [
         {filePath: 'staged-1.txt', status: 'staged'},
         {filePath: 'staged-2.txt', status: 'staged'},
       ];
 
-      wrapper = mount(React.cloneElement(app, {
-        unstagedChanges, stagedChanges, mergeConflicts,
-      }));
+      wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges,
+          stagedChanges,
+          mergeConflicts,
+        }),
+      );
     });
 
     const assertSelected = expected => {
-      const actual = Array.from(wrapper.update().state('selection').getSelectedItems()).map(item => item.filePath);
+      const actual = Array.from(
+        wrapper
+          .update()
+          .state('selection')
+          .getSelectedItems(),
+      ).map(item => item.filePath);
       assert.deepEqual(actual, expected);
     };
 
@@ -631,7 +791,9 @@ describe('StagingView', function() {
     });
 
     it("selects the previous list, retaining that list's selection", async function() {
-      wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, stagedChanges[1]);
+      wrapper
+        .instance()
+        .mousedownOnItem({button: 0, persist: () => {}}, stagedChanges[1]);
       wrapper.instance().mouseup();
       assertSelected(['staged-2.txt']);
 
@@ -662,17 +824,31 @@ describe('StagingView', function() {
         {filePath: 'unstaged-2.txt', status: 'modified'},
       ];
       const mergeConflicts = [
-        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
-        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'modified', theirs: 'modified'}},
+        {
+          filePath: 'conflict-1.txt',
+          status: {file: 'modified', ours: 'modified', theirs: 'modified'},
+        },
+        {
+          filePath: 'conflict-2.txt',
+          status: {file: 'modified', ours: 'modified', theirs: 'modified'},
+        },
       ];
 
-      wrapper = mount(React.cloneElement(app, {
-        unstagedChanges,
-        mergeConflicts,
-      }));
+      wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges,
+          mergeConflicts,
+        }),
+      );
 
-      showFilePatchItem = sinon.stub(StagingView.prototype, 'showFilePatchItem');
-      showMergeConflictFileForPath = sinon.stub(StagingView.prototype, 'showMergeConflictFileForPath');
+      showFilePatchItem = sinon.stub(
+        StagingView.prototype,
+        'showFilePatchItem',
+      );
+      showMergeConflictFileForPath = sinon.stub(
+        StagingView.prototype,
+        'showMergeConflictFileForPath',
+      );
     });
 
     afterEach(function() {
@@ -685,12 +861,19 @@ describe('StagingView', function() {
 
       commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
-      assert.isTrue(showFilePatchItem.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
+      assert.isTrue(
+        showFilePatchItem.calledWith('unstaged-1.txt'),
+        'Callback invoked with unstaged-1.txt',
+      );
 
       showFilePatchItem.reset();
 
       await wrapper.instance().selectAll();
-      const selectedFilePaths = wrapper.instance().getSelectedItems().map(item => item.filePath).sort();
+      const selectedFilePaths = wrapper
+        .instance()
+        .getSelectedItems()
+        .map(item => item.filePath)
+        .sort();
       assert.deepEqual(selectedFilePaths, ['unstaged-1.txt', 'unstaged-2.txt']);
 
       commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
@@ -704,11 +887,18 @@ describe('StagingView', function() {
 
       commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
-      assert.isTrue(showMergeConflictFileForPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
+      assert.isTrue(
+        showMergeConflictFileForPath.calledWith('conflict-1.txt'),
+        'Callback invoked with conflict-1.txt',
+      );
 
       showMergeConflictFileForPath.reset();
       await wrapper.instance().selectAll();
-      const selectedFilePaths = wrapper.instance().getSelectedItems().map(item => item.filePath).sort();
+      const selectedFilePaths = wrapper
+        .instance()
+        .getSelectedItems()
+        .map(item => item.filePath)
+        .sort();
       assert.deepEqual(selectedFilePaths, ['conflict-1.txt', 'conflict-2.txt']);
 
       commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
@@ -724,16 +914,28 @@ describe('StagingView', function() {
       {filePath: 'b.txt', status: 'modified'},
       {filePath: 'c.txt', status: 'modified'},
     ];
-    const wrapper = mount(React.cloneElement(app, {
-      unstagedChanges,
-    }));
+    const wrapper = mount(
+      React.cloneElement(app, {
+        unstagedChanges,
+      }),
+    );
 
-    await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[0]);
+    await wrapper
+      .instance()
+      .mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[0]);
     wrapper.instance().mouseup();
-    assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[0]]));
+    assertEqualSets(
+      wrapper.state('selection').getSelectedItems(),
+      new Set([unstagedChanges[0]]),
+    );
 
-    await wrapper.instance().mousedownOnItem({button: 0, persist: () => { }}, unstagedChanges[2]);
-    assertEqualSets(wrapper.state('selection').getSelectedItems(), new Set([unstagedChanges[2]]));
+    await wrapper
+      .instance()
+      .mousedownOnItem({button: 0, persist: () => {}}, unstagedChanges[2]);
+    assertEqualSets(
+      wrapper.state('selection').getSelectedItems(),
+      new Set([unstagedChanges[2]]),
+    );
   });
 
   if (process.platform !== 'win32') {
@@ -745,15 +947,24 @@ describe('StagingView', function() {
           {filePath: 'b.txt', status: 'modified'},
           {filePath: 'c.txt', status: 'modified'},
         ];
-        const wrapper = mount(React.cloneElement(app, {
-          unstagedChanges,
-        }));
+        const wrapper = mount(
+          React.cloneElement(app, {
+            unstagedChanges,
+          }),
+        );
 
         sinon.spy(wrapper.state('selection'), 'addOrSubtractSelection');
         sinon.spy(wrapper.state('selection'), 'selectItem');
 
-        await wrapper.instance().mousedownOnItem({button: 0, ctrlKey: true, persist: () => { }}, unstagedChanges[0]);
-        assert.isFalse(wrapper.state('selection').addOrSubtractSelection.called);
+        await wrapper
+          .instance()
+          .mousedownOnItem(
+            {button: 0, ctrlKey: true, persist: () => {}},
+            unstagedChanges[0],
+          );
+        assert.isFalse(
+          wrapper.state('selection').addOrSubtractSelection.called,
+        );
         assert.isFalse(wrapper.state('selection').selectItem.called);
         assert.isFalse(wrapper.instance().mouseSelectionInProgress);
       });
@@ -770,24 +981,37 @@ describe('StagingView', function() {
         {filePath: 'unstaged-3.txt', status: 'modified'},
       ];
       const mergeConflicts = [
-        {filePath: 'conflict-1.txt', status: {file: 'modified', ours: 'deleted', theirs: 'modified'}},
-        {filePath: 'conflict-2.txt', status: {file: 'modified', ours: 'added', theirs: 'modified'}},
+        {
+          filePath: 'conflict-1.txt',
+          status: {file: 'modified', ours: 'deleted', theirs: 'modified'},
+        },
+        {
+          filePath: 'conflict-2.txt',
+          status: {file: 'modified', ours: 'added', theirs: 'modified'},
+        },
       ];
       const stagedChanges = [
         {filePath: 'staged-1.txt', status: 'staged'},
         {filePath: 'staged-2.txt', status: 'staged'},
       ];
 
-      wrapper = mount(React.cloneElement(app, {
-        unstagedChanges, stagedChanges, mergeConflicts,
-      }));
+      wrapper = mount(
+        React.cloneElement(app, {
+          unstagedChanges,
+          stagedChanges,
+          mergeConflicts,
+        }),
+      );
       instance = wrapper.instance();
     });
 
     it('gets the current focus', function() {
       const rootElement = wrapper.find('.github-StagingView').getDOMNode();
 
-      assert.strictEqual(instance.getFocus(rootElement), StagingView.focus.STAGING);
+      assert.strictEqual(
+        instance.getFocus(rootElement),
+        StagingView.focus.STAGING,
+      );
       assert.isNull(instance.getFocus(document.body));
 
       instance.refRoot.setter(null);
@@ -852,16 +1076,20 @@ describe('StagingView', function() {
         {filePath: 'a.txt', status: 'modified'},
         {filePath: 'b.txt', status: 'deleted'},
       ];
-      const wrapper = mount(React.cloneElement(app, {unstagedChanges: filePatches}));
+      const wrapper = mount(
+        React.cloneElement(app, {unstagedChanges: filePatches}),
+      );
       sinon.stub(reporterProxy, 'addEvent');
       wrapper.instance().discardAll();
-      assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
-        package: 'github',
-        component: 'StagingView',
-        fileCount: 2,
-        type: 'all',
-        eventSource: undefined,
-      }));
+      assert.isTrue(
+        reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+          package: 'github',
+          component: 'StagingView',
+          fileCount: 2,
+          type: 'all',
+          eventSource: undefined,
+        }),
+      );
     });
   });
 
@@ -869,15 +1097,19 @@ describe('StagingView', function() {
     it('records an event', function() {
       const wrapper = mount(app);
       sinon.stub(reporterProxy, 'addEvent');
-      sinon.stub(wrapper.instance(), 'getSelectedItemFilePaths').returns(['a.txt', 'b.txt']);
+      sinon
+        .stub(wrapper.instance(), 'getSelectedItemFilePaths')
+        .returns(['a.txt', 'b.txt']);
       wrapper.instance().discardChanges();
-      assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
-        package: 'github',
-        component: 'StagingView',
-        fileCount: 2,
-        type: 'selected',
-        eventSource: undefined,
-      }));
+      assert.isTrue(
+        reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+          package: 'github',
+          component: 'StagingView',
+          fileCount: 2,
+          type: 'selected',
+          eventSource: undefined,
+        }),
+      );
     });
   });
 
@@ -885,13 +1117,17 @@ describe('StagingView', function() {
     it('records an event', function() {
       const wrapper = mount(React.cloneElement(app, {hasUndoHistory: true}));
       sinon.stub(reporterProxy, 'addEvent');
-      sinon.stub(wrapper.instance(), 'getSelectedItemFilePaths').returns(['a.txt', 'b.txt']);
+      sinon
+        .stub(wrapper.instance(), 'getSelectedItemFilePaths')
+        .returns(['a.txt', 'b.txt']);
       wrapper.instance().undoLastDiscard();
-      assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
-        package: 'github',
-        component: 'StagingView',
-        eventSource: undefined,
-      }));
+      assert.isTrue(
+        reporterProxy.addEvent.calledWith('undo-last-discard', {
+          package: 'github',
+          component: 'StagingView',
+          eventSource: undefined,
+        }),
+      );
     });
   });
 });

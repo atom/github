@@ -21,7 +21,10 @@ describe('MultiFilePatchController', function() {
 
     // a.txt: unstaged changes
     const filePath = 'a.txt';
-    await fs.writeFile(path.join(workdirPath, filePath), '00\n01\n02\n03\n04\n05\n06');
+    await fs.writeFile(
+      path.join(workdirPath, filePath),
+      '00\n01\n02\n03\n04\n05\n06',
+    );
 
     multiFilePatch = await repository.getFilePatchForPath(filePath);
     [filePatch] = multiFilePatch.getFilePatches();
@@ -62,7 +65,9 @@ describe('MultiFilePatchController', function() {
 
   it('calls undoLastDiscard through with set arguments', function() {
     const undoLastDiscard = sinon.spy();
-    const wrapper = shallow(buildApp({undoLastDiscard, stagingStatus: 'staged'}));
+    const wrapper = shallow(
+      buildApp({undoLastDiscard, stagingStatus: 'staged'}),
+    );
 
     wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
 
@@ -75,13 +80,19 @@ describe('MultiFilePatchController', function() {
       sinon.stub(atomEnv.workspace, 'open').resolves();
       const wrapper = shallow(buildApp({stagingStatus: 'unstaged', destroy}));
 
-      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(filePatch);
+      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(
+        filePatch,
+      );
 
       assert.isTrue(destroy.called);
-      assert.isTrue(atomEnv.workspace.open.calledWith(
-        `atom-github://file-patch/${filePatch.getPath()}` +
-        `?workdir=${encodeURIComponent(repository.getWorkingDirectoryPath())}&stagingStatus=staged`,
-      ));
+      assert.isTrue(
+        atomEnv.workspace.open.calledWith(
+          `atom-github://file-patch/${filePatch.getPath()}` +
+            `?workdir=${encodeURIComponent(
+              repository.getWorkingDirectoryPath(),
+            )}&stagingStatus=staged`,
+        ),
+      );
     });
 
     it('destroys the current pane and opens the unstaged changes', async function() {
@@ -89,37 +100,62 @@ describe('MultiFilePatchController', function() {
       sinon.stub(atomEnv.workspace, 'open').resolves();
       const wrapper = shallow(buildApp({stagingStatus: 'staged', destroy}));
 
-
-      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(filePatch);
+      await wrapper.find('MultiFilePatchView').prop('diveIntoMirrorPatch')(
+        filePatch,
+      );
 
       assert.isTrue(destroy.called);
-      assert.isTrue(atomEnv.workspace.open.calledWith(
-        `atom-github://file-patch/${filePatch.getPath()}` +
-        `?workdir=${encodeURIComponent(repository.getWorkingDirectoryPath())}&stagingStatus=unstaged`,
-      ));
+      assert.isTrue(
+        atomEnv.workspace.open.calledWith(
+          `atom-github://file-patch/${filePatch.getPath()}` +
+            `?workdir=${encodeURIComponent(
+              repository.getWorkingDirectoryPath(),
+            )}&stagingStatus=unstaged`,
+        ),
+      );
     });
   });
 
   describe('openFile()', function() {
     it('opens an editor on the current file', async function() {
       const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, []);
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(
+        filePatch,
+        [],
+      );
 
-      assert.strictEqual(editor.getPath(), path.join(repository.getWorkingDirectoryPath(), filePatch.getPath()));
+      assert.strictEqual(
+        editor.getPath(),
+        path.join(repository.getWorkingDirectoryPath(), filePatch.getPath()),
+      );
     });
 
     it('sets the cursor to a single position', async function() {
-      const wrapper = shallow(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, [[1, 1]]);
+      const wrapper = shallow(
+        buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}),
+      );
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(
+        filePatch,
+        [[1, 1]],
+      );
 
-      assert.deepEqual(editor.getCursorBufferPositions().map(p => p.serialize()), [[1, 1]]);
+      assert.deepEqual(
+        editor.getCursorBufferPositions().map(p => p.serialize()),
+        [[1, 1]],
+      );
     });
 
     it('adds cursors at a set of positions', async function() {
       const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
-      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(filePatch, [[1, 1], [3, 1], [5, 0]]);
+      const editor = await wrapper.find('MultiFilePatchView').prop('openFile')(
+        filePatch,
+        [[1, 1], [3, 1], [5, 0]],
+      );
 
-      assert.deepEqual(editor.getCursorBufferPositions().map(p => p.serialize()), [[1, 1], [3, 1], [5, 0]]);
+      assert.deepEqual(
+        editor.getCursorBufferPositions().map(p => p.serialize()),
+        [[1, 1], [3, 1], [5, 0]],
+      );
     });
   });
 
@@ -147,16 +183,23 @@ describe('MultiFilePatchController', function() {
       sinon.stub(repository, 'unstageFiles').resolves('unstaged');
 
       const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
-      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
+      assert.strictEqual(
+        await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch),
+        'staged',
+      );
 
       // No-op
-      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
+      assert.isNull(
+        await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch),
+      );
 
       // Simulate an identical patch arriving too soon
       wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
 
       // Still a no-op
-      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
+      assert.isNull(
+        await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch),
+      );
 
       // Simulate updated patch arrival
       const promise = wrapper.instance().patchChangePromise;
@@ -164,64 +207,143 @@ describe('MultiFilePatchController', function() {
       await promise;
 
       // Performs an operation again
-      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
+      assert.strictEqual(
+        await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch),
+        'staged',
+      );
     });
   });
 
   describe('selected row and selection mode tracking', function() {
     it('captures the selected row set', function() {
       const wrapper = shallow(buildApp());
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), []);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
-      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'hunk',
+      );
+      assert.isFalse(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
 
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line', true);
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
-      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1, 2]),
+        'line',
+        true,
+      );
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [1, 2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'line',
+      );
+      assert.isTrue(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
     });
 
     it('does not re-render if the row set, selection mode, and file spanning are unchanged', function() {
       const wrapper = shallow(buildApp());
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), []);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
-      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'hunk',
+      );
+      assert.isFalse(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
 
       sinon.spy(wrapper.instance(), 'render');
 
       // All changed
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'line', true);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1, 2]),
+        'line',
+        true,
+      );
 
       assert.isTrue(wrapper.instance().render.called);
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
-      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [1, 2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'line',
+      );
+      assert.isTrue(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
 
       // Nothing changed
       wrapper.instance().render.resetHistory();
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2, 1]), 'line', true);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([2, 1]),
+        'line',
+        true,
+      );
 
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'line');
-      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [1, 2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'line',
+      );
+      assert.isTrue(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
       assert.isFalse(wrapper.instance().render.called);
 
       // Selection mode changed
       wrapper.instance().render.resetHistory();
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', true);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1, 2]),
+        'hunk',
+        true,
+      );
 
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
-      assert.isTrue(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [1, 2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'hunk',
+      );
+      assert.isTrue(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
       assert.isTrue(wrapper.instance().render.called);
 
       // Selection file spanning changed
       wrapper.instance().render.resetHistory();
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1, 2]),
+        'hunk',
+        false,
+      );
 
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [1, 2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
-      assert.isFalse(wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'));
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [1, 2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'hunk',
+      );
+      assert.isFalse(
+        wrapper.find('MultiFilePatchView').prop('hasMultipleFileSelections'),
+      );
       assert.isTrue(wrapper.instance().render.called);
     });
 
@@ -229,13 +351,18 @@ describe('MultiFilePatchController', function() {
       it('records an event', async function() {
         const wrapper = shallow(buildApp());
         sinon.stub(reporterProxy, 'addEvent');
-        await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([1, 2]), 'hunk');
-        assert.isTrue(reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
-          package: 'github',
-          component: 'MultiFilePatchController',
-          lineCount: 2,
-          eventSource: undefined,
-        }));
+        await wrapper.find('MultiFilePatchView').prop('discardRows')(
+          new Set([1, 2]),
+          'hunk',
+        );
+        assert.isTrue(
+          reporterProxy.addEvent.calledWith('discard-unstaged-changes', {
+            package: 'github',
+            component: 'MultiFilePatchController',
+            lineCount: 2,
+            eventSource: undefined,
+          }),
+        );
       });
 
       it('is a no-op when multiple patches are present', async function() {
@@ -246,7 +373,9 @@ describe('MultiFilePatchController', function() {
         const discardLines = sinon.spy();
         const wrapper = shallow(buildApp({discardLines, multiFilePatch: mfp}));
         sinon.stub(reporterProxy, 'addEvent');
-        await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([1, 2]));
+        await wrapper.find('MultiFilePatchView').prop('discardRows')(
+          new Set([1, 2]),
+        );
         assert.isFalse(reporterProxy.addEvent.called);
         assert.isFalse(discardLines.called);
       });
@@ -257,11 +386,13 @@ describe('MultiFilePatchController', function() {
         const wrapper = shallow(buildApp());
         sinon.stub(reporterProxy, 'addEvent');
         wrapper.find('MultiFilePatchView').prop('undoLastDiscard')(filePatch);
-        assert.isTrue(reporterProxy.addEvent.calledWith('undo-last-discard', {
-          package: 'github',
-          component: 'MultiFilePatchController',
-          eventSource: undefined,
-        }));
+        assert.isTrue(
+          reporterProxy.addEvent.calledWith('undo-last-discard', {
+            package: 'github',
+            component: 'MultiFilePatchController',
+            eventSource: undefined,
+          }),
+        );
       });
     });
   });
@@ -278,46 +409,95 @@ describe('MultiFilePatchController', function() {
 
     it('applies a stage patch to the index', async function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'hunk', false);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1]),
+        'hunk',
+        false,
+      );
 
       sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
       await wrapper.find('MultiFilePatchView').prop('toggleRows')();
 
-      assert.sameMembers(Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]), [1]);
-      assert.isTrue(repository.applyPatchToIndex.calledWith(multiFilePatch.getStagePatchForLines.returnValues[0]));
+      assert.sameMembers(
+        Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]),
+        [1],
+      );
+      assert.isTrue(
+        repository.applyPatchToIndex.calledWith(
+          multiFilePatch.getStagePatchForLines.returnValues[0],
+        ),
+      );
     });
 
     it('toggles a different row set if provided', async function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1]), 'line', false);
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([1]),
+        'line',
+        false,
+      );
 
       sinon.spy(multiFilePatch, 'getStagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
-      await wrapper.find('MultiFilePatchView').prop('toggleRows')(new Set([2]), 'hunk');
+      await wrapper.find('MultiFilePatchView').prop('toggleRows')(
+        new Set([2]),
+        'hunk',
+      );
 
-      assert.sameMembers(Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]), [2]);
-      assert.isTrue(repository.applyPatchToIndex.calledWith(multiFilePatch.getStagePatchForLines.returnValues[0]));
+      assert.sameMembers(
+        Array.from(multiFilePatch.getStagePatchForLines.lastCall.args[0]),
+        [2],
+      );
+      assert.isTrue(
+        repository.applyPatchToIndex.calledWith(
+          multiFilePatch.getStagePatchForLines.returnValues[0],
+        ),
+      );
 
-      assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [2]);
-      assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+      assert.sameMembers(
+        Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+        [2],
+      );
+      assert.strictEqual(
+        wrapper.find('MultiFilePatchView').prop('selectionMode'),
+        'hunk',
+      );
     });
 
     it('applies an unstage patch to the index', async function() {
       await repository.stageFiles(['a.txt']);
-      const otherPatch = await repository.getFilePatchForPath('a.txt', {staged: true});
-      const wrapper = shallow(buildApp({multiFilePatch: otherPatch, stagingStatus: 'staged'}));
-      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([2]), 'hunk', false);
+      const otherPatch = await repository.getFilePatchForPath('a.txt', {
+        staged: true,
+      });
+      const wrapper = shallow(
+        buildApp({multiFilePatch: otherPatch, stagingStatus: 'staged'}),
+      );
+      wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+        new Set([2]),
+        'hunk',
+        false,
+      );
 
       sinon.spy(otherPatch, 'getUnstagePatchForLines');
       sinon.spy(repository, 'applyPatchToIndex');
 
-      await wrapper.find('MultiFilePatchView').prop('toggleRows')(new Set([2]), 'hunk');
+      await wrapper.find('MultiFilePatchView').prop('toggleRows')(
+        new Set([2]),
+        'hunk',
+      );
 
-      assert.sameMembers(Array.from(otherPatch.getUnstagePatchForLines.lastCall.args[0]), [2]);
-      assert.isTrue(repository.applyPatchToIndex.calledWith(otherPatch.getUnstagePatchForLines.returnValues[0]));
+      assert.sameMembers(
+        Array.from(otherPatch.getUnstagePatchForLines.lastCall.args[0]),
+        [2],
+      );
+      assert.isTrue(
+        repository.applyPatchToIndex.calledWith(
+          otherPatch.getUnstagePatchForLines.returnValues[0],
+        ),
+      );
     });
   });
 
@@ -327,15 +507,24 @@ describe('MultiFilePatchController', function() {
         const p = path.join(repository.getWorkingDirectoryPath(), 'a.txt');
         await fs.chmod(p, 0o755);
         repository.refresh();
-        const newMultiFilePatch = await repository.getFilePatchForPath('a.txt', {staged: false});
+        const newMultiFilePatch = await repository.getFilePatchForPath(
+          'a.txt',
+          {staged: false},
+        );
 
-        const wrapper = shallow(buildApp({filePatch: newMultiFilePatch, stagingStatus: 'unstaged'}));
+        const wrapper = shallow(
+          buildApp({filePatch: newMultiFilePatch, stagingStatus: 'unstaged'}),
+        );
         const [newFilePatch] = newMultiFilePatch.getFilePatches();
 
         sinon.spy(repository, 'stageFileModeChange');
-        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(newFilePatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(
+          newFilePatch,
+        );
 
-        assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100755'));
+        assert.isTrue(
+          repository.stageFileModeChange.calledWith('a.txt', '100755'),
+        );
       });
 
       it("it stages a staged file's old mode", async function() {
@@ -343,15 +532,24 @@ describe('MultiFilePatchController', function() {
         await fs.chmod(p, 0o755);
         await repository.stageFiles(['a.txt']);
         repository.refresh();
-        const newMultiFilePatch = await repository.getFilePatchForPath('a.txt', {staged: true});
+        const newMultiFilePatch = await repository.getFilePatchForPath(
+          'a.txt',
+          {staged: true},
+        );
         const [newFilePatch] = newMultiFilePatch.getFilePatches();
 
-        const wrapper = shallow(buildApp({filePatch: newMultiFilePatch, stagingStatus: 'staged'}));
+        const wrapper = shallow(
+          buildApp({filePatch: newMultiFilePatch, stagingStatus: 'staged'}),
+        );
 
         sinon.spy(repository, 'stageFileModeChange');
-        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(newFilePatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleModeChange')(
+          newFilePatch,
+        );
 
-        assert.isTrue(repository.stageFileModeChange.calledWith('a.txt', '100644'));
+        assert.isTrue(
+          repository.stageFileModeChange.calledWith('a.txt', '100644'),
+        );
       });
     });
 
@@ -362,8 +560,14 @@ describe('MultiFilePatchController', function() {
           return;
         }
 
-        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        const p = path.join(
+          repository.getWorkingDirectoryPath(),
+          'waslink.txt',
+        );
+        const dest = path.join(
+          repository.getWorkingDirectoryPath(),
+          'destination',
+        );
         await fs.writeFile(dest, 'asdf\n', 'utf8');
         await fs.symlink(dest, p);
 
@@ -374,15 +578,28 @@ describe('MultiFilePatchController', function() {
         await fs.writeFile(p, 'fdsa\n', 'utf8');
 
         repository.refresh();
-        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath(
+          'waslink.txt',
+          {staged: false},
+        );
+        const wrapper = shallow(
+          buildApp({
+            filePatch: symlinkMultiPatch,
+            relPath: 'waslink.txt',
+            stagingStatus: 'unstaged',
+          }),
+        );
         const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(
+          symlinkPatch,
+        );
 
-        assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
+        assert.isTrue(
+          repository.stageFileSymlinkChange.calledWith('waslink.txt'),
+        );
       });
 
       it('stages non-addition typechanges normally', async function() {
@@ -391,8 +608,14 @@ describe('MultiFilePatchController', function() {
           return;
         }
 
-        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        const p = path.join(
+          repository.getWorkingDirectoryPath(),
+          'waslink.txt',
+        );
+        const dest = path.join(
+          repository.getWorkingDirectoryPath(),
+          'destination',
+        );
         await fs.writeFile(dest, 'asdf\n', 'utf8');
         await fs.symlink(dest, p);
 
@@ -402,20 +625,37 @@ describe('MultiFilePatchController', function() {
         await fs.unlink(p);
 
         repository.refresh();
-        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: false});
-        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'unstaged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath(
+          'waslink.txt',
+          {staged: false},
+        );
+        const wrapper = shallow(
+          buildApp({
+            filePatch: symlinkMultiPatch,
+            relPath: 'waslink.txt',
+            stagingStatus: 'unstaged',
+          }),
+        );
 
         sinon.spy(repository, 'stageFiles');
 
         const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(
+          symlinkPatch,
+        );
 
         assert.isTrue(repository.stageFiles.calledWith(['waslink.txt']));
       });
 
       it('handles a deletion and typechange with a special repository method', async function() {
-        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        const p = path.join(
+          repository.getWorkingDirectoryPath(),
+          'waslink.txt',
+        );
+        const dest = path.join(
+          repository.getWorkingDirectoryPath(),
+          'destination',
+        );
         await fs.writeFile(dest, 'asdf\n', 'utf8');
         await fs.writeFile(p, 'fdsa\n', 'utf8');
 
@@ -427,20 +667,39 @@ describe('MultiFilePatchController', function() {
         await repository.stageFiles(['waslink.txt']);
 
         repository.refresh();
-        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-        const wrapper = shallow(buildApp({filePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath(
+          'waslink.txt',
+          {staged: true},
+        );
+        const wrapper = shallow(
+          buildApp({
+            filePatch: symlinkMultiPatch,
+            relPath: 'waslink.txt',
+            stagingStatus: 'staged',
+          }),
+        );
 
         sinon.spy(repository, 'stageFileSymlinkChange');
 
         const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(
+          symlinkPatch,
+        );
 
-        assert.isTrue(repository.stageFileSymlinkChange.calledWith('waslink.txt'));
+        assert.isTrue(
+          repository.stageFileSymlinkChange.calledWith('waslink.txt'),
+        );
       });
 
       it('unstages non-deletion typechanges normally', async function() {
-        const p = path.join(repository.getWorkingDirectoryPath(), 'waslink.txt');
-        const dest = path.join(repository.getWorkingDirectoryPath(), 'destination');
+        const p = path.join(
+          repository.getWorkingDirectoryPath(),
+          'waslink.txt',
+        );
+        const dest = path.join(
+          repository.getWorkingDirectoryPath(),
+          'destination',
+        );
         await fs.writeFile(dest, 'asdf\n', 'utf8');
         await fs.symlink(dest, p);
 
@@ -452,13 +711,24 @@ describe('MultiFilePatchController', function() {
         await repository.stageFiles(['waslink.txt']);
 
         repository.refresh();
-        const symlinkMultiPatch = await repository.getFilePatchForPath('waslink.txt', {staged: true});
-        const wrapper = shallow(buildApp({multiFilePatch: symlinkMultiPatch, relPath: 'waslink.txt', stagingStatus: 'staged'}));
+        const symlinkMultiPatch = await repository.getFilePatchForPath(
+          'waslink.txt',
+          {staged: true},
+        );
+        const wrapper = shallow(
+          buildApp({
+            multiFilePatch: symlinkMultiPatch,
+            relPath: 'waslink.txt',
+            stagingStatus: 'staged',
+          }),
+        );
 
         sinon.spy(repository, 'unstageFiles');
 
         const [symlinkPatch] = symlinkMultiPatch.getFilePatches();
-        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(symlinkPatch);
+        await wrapper.find('MultiFilePatchView').prop('toggleSymlinkChange')(
+          symlinkPatch,
+        );
 
         assert.isTrue(repository.unstageFiles.calledWith(['waslink.txt']));
       });
@@ -468,7 +738,11 @@ describe('MultiFilePatchController', function() {
   it('calls discardLines with selected rows', async function() {
     const discardLines = sinon.spy();
     const wrapper = shallow(buildApp({discardLines}));
-    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
+    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+      new Set([1, 2]),
+      'hunk',
+      false,
+    );
 
     await wrapper.find('MultiFilePatchView').prop('discardRows')();
 
@@ -481,16 +755,29 @@ describe('MultiFilePatchController', function() {
   it('calls discardLines with explicitly provided rows', async function() {
     const discardLines = sinon.spy();
     const wrapper = shallow(buildApp({discardLines}));
-    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(new Set([1, 2]), 'hunk', false);
+    wrapper.find('MultiFilePatchView').prop('selectedRowsChanged')(
+      new Set([1, 2]),
+      'hunk',
+      false,
+    );
 
-    await wrapper.find('MultiFilePatchView').prop('discardRows')(new Set([4, 5]), 'hunk');
+    await wrapper.find('MultiFilePatchView').prop('discardRows')(
+      new Set([4, 5]),
+      'hunk',
+    );
 
     const lastArgs = discardLines.lastCall.args;
     assert.strictEqual(lastArgs[0], multiFilePatch);
     assert.sameMembers(Array.from(lastArgs[1]), [4, 5]);
     assert.strictEqual(lastArgs[2], repository);
 
-    assert.sameMembers(Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')), [4, 5]);
-    assert.strictEqual(wrapper.find('MultiFilePatchView').prop('selectionMode'), 'hunk');
+    assert.sameMembers(
+      Array.from(wrapper.find('MultiFilePatchView').prop('selectedRows')),
+      [4, 5],
+    );
+    assert.strictEqual(
+      wrapper.find('MultiFilePatchView').prop('selectionMode'),
+      'hunk',
+    );
   });
 });

@@ -20,7 +20,6 @@ describe('CommitPreviewContainer', function() {
   });
 
   function buildApp(override = {}) {
-
     const props = {
       repository,
       itemType: CommitPreviewItem,
@@ -60,7 +59,12 @@ describe('CommitPreviewContainer', function() {
 
     assert.isTrue(wrapper.find('LoadingView').exists());
     resolveDelayedPromise(patchPromise);
-    await assert.async.isFalse(wrapper.update().find('LoadingView').exists());
+    await assert.async.isFalse(
+      wrapper
+        .update()
+        .find('LoadingView')
+        .exists(),
+    );
   });
 
   it('renders a CommitPreviewController once the file patch is loaded', async function() {
@@ -68,7 +72,15 @@ describe('CommitPreviewContainer', function() {
     const patch = await repository.getStagedChangesPatch();
 
     const wrapper = mount(buildApp());
-    await assert.async.isTrue(wrapper.update().find('CommitPreviewController').exists());
-    assert.strictEqual(wrapper.find('CommitPreviewController').prop('multiFilePatch'), patch);
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('CommitPreviewController')
+        .exists(),
+    );
+    assert.strictEqual(
+      wrapper.find('CommitPreviewController').prop('multiFilePatch'),
+      patch,
+    );
   });
 });

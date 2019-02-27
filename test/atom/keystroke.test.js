@@ -45,7 +45,11 @@ describe('Keystroke', function() {
 
   it('renders nothing for a command that does not apply to the current target', function() {
     const wrapper = shallow(
-      <Keystroke keymaps={keymaps} command="keystroke-test:child" refTarget={RefHolder.on(root)} />,
+      <Keystroke
+        keymaps={keymaps}
+        command="keystroke-test:child"
+        refTarget={RefHolder.on(root)}
+      />,
     );
 
     assert.isFalse(wrapper.find('span.keystroke').exists());
@@ -53,10 +57,17 @@ describe('Keystroke', function() {
 
   it('renders a registered keystroke', function() {
     const wrapper = shallow(
-      <Keystroke keymaps={keymaps} command="keystroke-test:root" refTarget={RefHolder.on(root)} />,
+      <Keystroke
+        keymaps={keymaps}
+        command="keystroke-test:root"
+        refTarget={RefHolder.on(root)}
+      />,
     );
 
-    assert.strictEqual(wrapper.find('span.keystroke').text(), process.platform === 'darwin' ? '\u2303X' : 'Ctrl+X');
+    assert.strictEqual(
+      wrapper.find('span.keystroke').text(),
+      process.platform === 'darwin' ? '\u2303X' : 'Ctrl+X',
+    );
 
     // Exercise some other edge cases in the component lifecycle that are not particularly interesting
     wrapper.setProps({});
@@ -65,24 +76,44 @@ describe('Keystroke', function() {
 
   it('uses the target to disambiguate keystroke bindings', function() {
     const wrapper = shallow(
-      <Keystroke keymaps={keymaps} command="keystroke-test:root" refTarget={RefHolder.on(root)} />,
+      <Keystroke
+        keymaps={keymaps}
+        command="keystroke-test:root"
+        refTarget={RefHolder.on(root)}
+      />,
     );
 
-    assert.strictEqual(wrapper.find('span.keystroke').text(), process.platform === 'darwin' ? '\u2303X' : 'Ctrl+X');
+    assert.strictEqual(
+      wrapper.find('span.keystroke').text(),
+      process.platform === 'darwin' ? '\u2303X' : 'Ctrl+X',
+    );
 
     wrapper.setProps({refTarget: RefHolder.on(child)});
 
-    assert.strictEqual(wrapper.find('span.keystroke').text(), process.platform === 'darwin' ? '\u2325X' : 'Alt+X');
+    assert.strictEqual(
+      wrapper.find('span.keystroke').text(),
+      process.platform === 'darwin' ? '\u2325X' : 'Alt+X',
+    );
   });
 
   it('re-renders if the command prop changes', function() {
     const wrapper = shallow(
-      <Keystroke keymaps={keymaps} command="keystroke-test:root" refTarget={RefHolder.on(child)} />,
+      <Keystroke
+        keymaps={keymaps}
+        command="keystroke-test:root"
+        refTarget={RefHolder.on(child)}
+      />,
     );
-    assert.strictEqual(wrapper.find('span.keystroke').text(), process.platform === 'darwin' ? '\u2325X' : 'Alt+X');
+    assert.strictEqual(
+      wrapper.find('span.keystroke').text(),
+      process.platform === 'darwin' ? '\u2325X' : 'Alt+X',
+    );
 
     wrapper.setProps({command: 'keystroke-test:child'});
 
-    assert.strictEqual(wrapper.find('span.keystroke').text(), process.platform === 'darwin' ? '\u2303Y' : 'Ctrl+Y');
+    assert.strictEqual(
+      wrapper.find('span.keystroke').text(),
+      process.platform === 'darwin' ? '\u2303Y' : 'Ctrl+Y',
+    );
   });
 });

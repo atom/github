@@ -24,6 +24,11 @@ describe('GithubTileView', function() {
   it('records an event on click', function() {
     sinon.stub(reporterProxy, 'addEvent');
     wrapper.simulate('click');
-    assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'GithubTileView'}));
+    assert.isTrue(
+      reporterProxy.addEvent.calledWith('click', {
+        package: 'github',
+        component: 'GithubTileView',
+      }),
+    );
   });
 });

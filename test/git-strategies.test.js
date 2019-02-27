@@ -9,10 +9,17 @@ import hock from 'hock';
 import {GitProcess} from 'dugite';
 
 import CompositeGitStrategy from '../lib/composite-git-strategy';
-import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
+import GitShellOutStrategy, {
+  LargeRepoError,
+} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
 
-import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
+import {
+  cloneRepository,
+  initRepository,
+  assertDeepPropertyVals,
+  setUpLocalAndRemoteRepositories,
+} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
 import * as reporterProxy from '../lib/reporter-proxy';
 
@@ -22,14 +29,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
  *  output that we rely on, to serve as documentation
  */
 
-[
-  [GitShellOutStrategy],
-].forEach(function(strategies) {
+[[GitShellOutStrategy]].forEach(function(strategies) {
   const createTestStrategy = (...args) => {
     return CompositeGitStrategy.withStrategies(strategies)(...args);
   };
 
-  describe(`Git commands for CompositeGitStrategy made of [${strategies.map(s => s.name).join(', ')}]`, function() {
+  describe(`Git commands for CompositeGitStrategy made of [${strategies
+    .map(s => s.name)
+    .join(', ')}]`, function() {
     describe('exec', function() {
       let git, incrementCounterStub;
 
@@ -53,14 +60,19 @@ import * as reporterProxy from '../lib/reporter-proxy';
             username=me
 
           `;
-          await git.exec(['credential', 'fill'], {useGitPromptServer: true, stdin});
+          await git.exec(['credential', 'fill'], {
+            useGitPromptServer: true,
+            stdin,
+          });
 
           assert.isTrue(promptStub.called);
         });
       });
 
       it('rejects if the process fails to spawn for an unexpected reason', async function() {
-        sinon.stub(git, 'executeGitCommand').returns({promise: Promise.reject(new Error('wat'))});
+        sinon
+          .stub(git, 'executeGitCommand')
+          .returns({promise: Promise.reject(new Error('wat'))});
         await assert.isRejected(git.exec(['version']), /wat/);
       });
 
@@ -70,7 +82,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('does call incrementCounter when git command is NOT on the ignore list', async function() {
-        await git.exec(['commit', '--allow-empty', '-m', 'make an empty commit']);
+        await git.exec([
+          'commit',
+          '--allow-empty',
+          '-m',
+          'make an empty commit',
+        ]);
 
         assert.equal(incrementCounterStub.callCount, 1);
         assert.deepEqual(incrementCounterStub.lastCall.args, ['commit']);
@@ -101,7 +118,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
       fs.chmodSync(hookPath, 0o755);
 
       delete process.env.ALLOWCOMMIT;
-      await assert.isRejected(git.exec(['commit', '--allow-empty', '-m', 'commit yo']), /ALLOWCOMMIT/);
+      await assert.isRejected(
+        git.exec(['commit', '--allow-empty', '-m', 'commit yo']),
+        /ALLOWCOMMIT/,
+      );
 
       process.env.ALLOWCOMMIT = 'true';
       await git.exec(['commit', '--allow-empty', '-m', 'commit for real']);
@@ -128,7 +148,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
         );
 
         const git = createTestStrategy(workingDirPathWithDotGitFile);
-        const dotGitFolder = await git.resolveDotGitDir(workingDirPathWithDotGitFile);
+        const dotGitFolder = await git.resolveDotGitDir(
+          workingDirPathWithDotGitFile,
+        );
         assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
       });
     });
@@ -144,7 +166,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
       it('gets commit message from template', async function() {
         const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
-        await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+        await fs.writeFile(commitMsgTemplatePath, templateText, {
+          encoding: 'utf8',
+        });
 
         await git.setConfig('commit.template', commitMsgTemplatePath);
         assert.equal(await git.fetchCommitMessageTemplate(), templateText);
@@ -156,7 +180,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
 
       it('if config is set but file does not exist throw an error', async function() {
-        const nonExistentCommitTemplatePath = path.join(workingDirPath, 'file-that-doesnt-exist');
+        const nonExistentCommitTemplatePath = path.join(
+          workingDirPath,
+          'file-that-doesnt-exist',
+        );
         await git.setConfig('commit.template', nonExistentCommitTemplatePath);
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
@@ -169,12 +196,18 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await git.setConfig('commit.template', '~/does-not-exist.txt');
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
-          `Invalid commit template path set in Git config: ${path.join(os.homedir(), 'does-not-exist.txt')}`,
+          `Invalid commit template path set in Git config: ${path.join(
+            os.homedir(),
+            'does-not-exist.txt',
+          )}`,
         );
       });
 
       it("replaces ~user with user's home directory", async function() {
-        const expectedFullPath = path.join(path.dirname(os.homedir()), 'nope/does-not-exist.txt');
+        const expectedFullPath = path.join(
+          path.dirname(os.homedir()),
+          'nope/does-not-exist.txt',
+        );
         await git.setConfig('commit.template', '~nope/does-not-exist.txt');
         await assert.isRejected(
           git.fetchCommitMessageTemplate(),
@@ -187,22 +220,35 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const subPath = path.join(subDir, 'template.txt');
         await fs.mkdirs(subDir);
         await fs.writeFile(subPath, templateText, {encoding: 'utf8'});
-        await git.setConfig('commit.template', path.join('abc/def/ghi/template.txt'));
-        assert.strictEqual(await git.fetchCommitMessageTemplate(), templateText);
+        await git.setConfig(
+          'commit.template',
+          path.join('abc/def/ghi/template.txt'),
+        );
+        assert.strictEqual(
+          await git.fetchCommitMessageTemplate(),
+          templateText,
+        );
       });
     });
-
 
     describe('getStatusBundle()', function() {
       if (process.platform === 'win32') {
         it('normalizes the path separator on Windows', async function() {
           const workingDir = await cloneRepository('three-files');
           const git = createTestStrategy(workingDir);
-          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName => path.join('subdir-1', fileName));
-          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath => path.join(workingDir, relPath));
+          const [relPathA, relPathB] = ['a.txt', 'b.txt'].map(fileName =>
+            path.join('subdir-1', fileName),
+          );
+          const [absPathA, absPathB] = [relPathA, relPathB].map(relPath =>
+            path.join(workingDir, relPath),
+          );
 
-          await fs.writeFile(absPathA, 'some changes here\n', {encoding: 'utf8'});
-          await fs.writeFile(absPathB, 'more changes here\n', {encoding: 'utf8'});
+          await fs.writeFile(absPathA, 'some changes here\n', {
+            encoding: 'utf8',
+          });
+          await fs.writeFile(absPathB, 'more changes here\n', {
+            encoding: 'utf8',
+          });
           await git.stageFiles([relPathB]);
 
           const {changedEntries} = await git.getStatusBundle();
@@ -323,13 +369,16 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        await git.commit(dedent`
+        await git.commit(
+          dedent`
           Implemented feature collaboratively
 
           Co-authored-by: name <name@example.com>
           Co-authored-by: another-name <another-name@example.com>
           Co-authored-by: yet-another <yet-another@example.com>
-        `, {allowEmpty: true});
+        `,
+          {allowEmpty: true},
+        );
 
         const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
@@ -353,20 +402,25 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
 
-        await git.commit(dedent`
+        await git.commit(
+          dedent`
           Implemented feature
 
           Detailed explanation paragraph 1
 
           Detailed explanation paragraph 2
           #123 with an issue reference
-        `.trim(), {allowEmpty: true, verbatim: true});
+        `.trim(),
+          {allowEmpty: true, verbatim: true},
+        );
 
         const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
         assert.strictEqual(commits[0].messageSubject, 'Implemented feature');
-        assert.strictEqual(commits[0].messageBody,
-          'Detailed explanation paragraph 1\n\nDetailed explanation paragraph 2\n#123 with an issue reference');
+        assert.strictEqual(
+          commits[0].messageBody,
+          'Detailed explanation paragraph 1\n\nDetailed explanation paragraph 2\n#123 with an issue reference',
+        );
       });
 
       describe('when patch option is true', function() {
@@ -376,67 +430,65 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           const commits = await git.getCommits({max: 3, includePatch: true});
 
-          assertDeepPropertyVals(commits[0].patch, [{
-            oldPath: 'file.txt',
-            newPath: 'file.txt',
-            oldMode: '100644',
-            newMode: '100644',
-            hunks: [
-              {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: [
-                  '-two',
-                  '+three',
-                ],
-              },
-            ],
-            status: 'modified',
-          }]);
+          assertDeepPropertyVals(commits[0].patch, [
+            {
+              oldPath: 'file.txt',
+              newPath: 'file.txt',
+              oldMode: '100644',
+              newMode: '100644',
+              hunks: [
+                {
+                  oldStartLine: 1,
+                  oldLineCount: 1,
+                  newStartLine: 1,
+                  newLineCount: 1,
+                  heading: '',
+                  lines: ['-two', '+three'],
+                },
+              ],
+              status: 'modified',
+            },
+          ]);
 
-          assertDeepPropertyVals(commits[1].patch, [{
-            oldPath: 'file.txt',
-            newPath: 'file.txt',
-            oldMode: '100644',
-            newMode: '100644',
-            hunks: [
-              {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: [
-                  '-one',
-                  '+two',
-                ],
-              },
-            ],
-            status: 'modified',
-          }]);
+          assertDeepPropertyVals(commits[1].patch, [
+            {
+              oldPath: 'file.txt',
+              newPath: 'file.txt',
+              oldMode: '100644',
+              newMode: '100644',
+              hunks: [
+                {
+                  oldStartLine: 1,
+                  oldLineCount: 1,
+                  newStartLine: 1,
+                  newLineCount: 1,
+                  heading: '',
+                  lines: ['-one', '+two'],
+                },
+              ],
+              status: 'modified',
+            },
+          ]);
 
-          assertDeepPropertyVals(commits[2].patch, [{
-            oldPath: null,
-            newPath: 'file.txt',
-            oldMode: null,
-            newMode: '100644',
-            hunks: [
-              {
-                oldStartLine: 0,
-                oldLineCount: 0,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: [
-                  '+one',
-                ],
-              },
-            ],
-            status: 'added',
-          }]);
+          assertDeepPropertyVals(commits[2].patch, [
+            {
+              oldPath: null,
+              newPath: 'file.txt',
+              oldMode: null,
+              newMode: '100644',
+              hunks: [
+                {
+                  oldStartLine: 0,
+                  oldLineCount: 0,
+                  newStartLine: 1,
+                  newLineCount: 1,
+                  heading: '',
+                  lines: ['+one'],
+                },
+              ],
+              status: 'added',
+            },
+          ]);
         });
       });
     });
@@ -472,7 +524,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         await git.exec(['config', 'user.name', 'Com Mitter']);
         await git.exec(['config', 'user.email', 'comitter@place.com']);
-        await git.exec(['commit', '--allow-empty', '--author="A U Thor <author@site.org>"', '-m', 'Commit together!']);
+        await git.exec([
+          'commit',
+          '--allow-empty',
+          '--author="A U Thor <author@site.org>"',
+          '-m',
+          'Commit together!',
+        ]);
 
         const authors = await git.getAuthors({max: 1});
         assert.deepEqual(authors, {
@@ -488,13 +546,16 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await git.exec(['config', 'user.name', 'Com Mitter']);
         await git.exec(['config', 'user.email', 'comitter@place.com']);
 
-        await git.commit(dedent`
+        await git.commit(
+          dedent`
           Implemented feature collaboratively
 
           Co-authored-by: name <name@example.com>
           Co-authored-by: another name <another-name@example.com>
           Co-authored-by: yet another name <yet-another@example.com>
-        `, {allowEmpty: true});
+        `,
+          {allowEmpty: true},
+        );
 
         const authors = await git.getAuthors({max: 1});
         assert.deepEqual(authors, {
@@ -526,9 +587,16 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        fs.writeFileSync(
+          path.join(workingDirPath, 'a.txt'),
+          'qux\nfoo\nbar\n',
+          'utf8',
+        );
         fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
-        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+        fs.renameSync(
+          path.join(workingDirPath, 'c.txt'),
+          path.join(workingDirPath, 'd.txt'),
+        );
         fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8');
         const diffOutput = await git.diffFileStatus({target: 'HEAD'});
         assert.deepEqual(diffOutput, {
@@ -550,7 +618,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('only returns untracked files if the staged option is not passed', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8');
+        fs.writeFileSync(
+          path.join(workingDirPath, 'new-file.txt'),
+          'qux',
+          'utf8',
+        );
         let diffOutput = await git.diffFileStatus({target: 'HEAD'});
         assert.deepEqual(diffOutput, {'new-file.txt': 'added'});
         diffOutput = await git.diffFileStatus({target: 'HEAD', staged: true});
@@ -565,7 +637,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
         fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8');
         fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8');
-        assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt']);
+        assert.deepEqual(await git.getUntrackedFiles(), [
+          'd.txt',
+          'e.txt',
+          'f.txt',
+        ]);
       });
 
       it('handles untracked files in nested folders', async function() {
@@ -610,7 +686,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        fs.writeFileSync(
+          path.join(workingDirPath, 'a.txt'),
+          'qux\nfoo\nbar\n',
+          'utf8',
+        );
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
         const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
@@ -651,73 +731,85 @@ import * as reporterProxy from '../lib/reporter-proxy';
            003
         `);
 
-        await assert.isRejected(git.getDiffsForFilePath('aaa.txt'), /Expected between 0 and 2 diffs/);
+        await assert.isRejected(
+          git.getDiffsForFilePath('aaa.txt'),
+          /Expected between 0 and 2 diffs/,
+        );
       });
 
       describe('when the file is unstaged', function() {
         it('returns a diff comparing the working directory copy of the file and the version on the index', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+          fs.writeFileSync(
+            path.join(workingDirPath, 'a.txt'),
+            'qux\nfoo\nbar\n',
+            'utf8',
+          );
+          fs.renameSync(
+            path.join(workingDirPath, 'c.txt'),
+            path.join(workingDirPath, 'd.txt'),
+          );
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [{
-            oldPath: 'a.txt',
-            newPath: 'a.txt',
-            oldMode: '100644',
-            newMode: '100644',
-            hunks: [
-              {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 1,
-                newLineCount: 3,
-                heading: '',
-                lines: [
-                  '+qux',
-                  ' foo',
-                  '+bar',
-                ],
-              },
-            ],
-            status: 'modified',
-          }]);
+          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [
+            {
+              oldPath: 'a.txt',
+              newPath: 'a.txt',
+              oldMode: '100644',
+              newMode: '100644',
+              hunks: [
+                {
+                  oldStartLine: 1,
+                  oldLineCount: 1,
+                  newStartLine: 1,
+                  newLineCount: 3,
+                  heading: '',
+                  lines: ['+qux', ' foo', '+bar'],
+                },
+              ],
+              status: 'modified',
+            },
+          ]);
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt'), [{
-            oldPath: 'c.txt',
-            newPath: null,
-            oldMode: '100644',
-            newMode: null,
-            hunks: [
-              {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 0,
-                newLineCount: 0,
-                heading: '',
-                lines: ['-baz'],
-              },
-            ],
-            status: 'deleted',
-          }]);
+          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt'), [
+            {
+              oldPath: 'c.txt',
+              newPath: null,
+              oldMode: '100644',
+              newMode: null,
+              hunks: [
+                {
+                  oldStartLine: 1,
+                  oldLineCount: 1,
+                  newStartLine: 0,
+                  newLineCount: 0,
+                  heading: '',
+                  lines: ['-baz'],
+                },
+              ],
+              status: 'deleted',
+            },
+          ]);
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt'), [{
-            oldPath: null,
-            newPath: 'd.txt',
-            oldMode: null,
-            newMode: '100644',
-            hunks: [
-              {
-                oldStartLine: 0,
-                oldLineCount: 0,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: ['+baz'],
-              },
-            ],
-            status: 'added',
-          }]);
+          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt'), [
+            {
+              oldPath: null,
+              newPath: 'd.txt',
+              oldMode: null,
+              newMode: '100644',
+              hunks: [
+                {
+                  oldStartLine: 0,
+                  oldLineCount: 0,
+                  newStartLine: 1,
+                  newLineCount: 1,
+                  heading: '',
+                  lines: ['+baz'],
+                },
+              ],
+              status: 'added',
+            },
+          ]);
         });
       });
 
@@ -725,67 +817,85 @@ import * as reporterProxy from '../lib/reporter-proxy';
         it('returns a diff comparing the index and head versions of the file', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+          fs.writeFileSync(
+            path.join(workingDirPath, 'a.txt'),
+            'qux\nfoo\nbar\n',
+            'utf8',
+          );
+          fs.renameSync(
+            path.join(workingDirPath, 'c.txt'),
+            path.join(workingDirPath, 'd.txt'),
+          );
           await git.exec(['add', '.']);
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt', {staged: true}), [{
-            oldPath: 'a.txt',
-            newPath: 'a.txt',
-            oldMode: '100644',
-            newMode: '100644',
-            hunks: [
+          assertDeepPropertyVals(
+            await git.getDiffsForFilePath('a.txt', {staged: true}),
+            [
               {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 1,
-                newLineCount: 3,
-                heading: '',
-                lines: [
-                  '+qux',
-                  ' foo',
-                  '+bar',
+                oldPath: 'a.txt',
+                newPath: 'a.txt',
+                oldMode: '100644',
+                newMode: '100644',
+                hunks: [
+                  {
+                    oldStartLine: 1,
+                    oldLineCount: 1,
+                    newStartLine: 1,
+                    newLineCount: 3,
+                    heading: '',
+                    lines: ['+qux', ' foo', '+bar'],
+                  },
                 ],
+                status: 'modified',
               },
             ],
-            status: 'modified',
-          }]);
+          );
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('c.txt', {staged: true}), [{
-            oldPath: 'c.txt',
-            newPath: null,
-            oldMode: '100644',
-            newMode: null,
-            hunks: [
+          assertDeepPropertyVals(
+            await git.getDiffsForFilePath('c.txt', {staged: true}),
+            [
               {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 0,
-                newLineCount: 0,
-                heading: '',
-                lines: ['-baz'],
+                oldPath: 'c.txt',
+                newPath: null,
+                oldMode: '100644',
+                newMode: null,
+                hunks: [
+                  {
+                    oldStartLine: 1,
+                    oldLineCount: 1,
+                    newStartLine: 0,
+                    newLineCount: 0,
+                    heading: '',
+                    lines: ['-baz'],
+                  },
+                ],
+                status: 'deleted',
               },
             ],
-            status: 'deleted',
-          }]);
+          );
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('d.txt', {staged: true}), [{
-            oldPath: null,
-            newPath: 'd.txt',
-            oldMode: null,
-            newMode: '100644',
-            hunks: [
+          assertDeepPropertyVals(
+            await git.getDiffsForFilePath('d.txt', {staged: true}),
+            [
               {
-                oldStartLine: 0,
-                oldLineCount: 0,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: ['+baz'],
+                oldPath: null,
+                newPath: 'd.txt',
+                oldMode: null,
+                newMode: '100644',
+                hunks: [
+                  {
+                    oldStartLine: 0,
+                    oldLineCount: 0,
+                    newStartLine: 1,
+                    newLineCount: 1,
+                    heading: '',
+                    lines: ['+baz'],
+                  },
+                ],
+                status: 'added',
               },
             ],
-            status: 'added',
-          }]);
+          );
         });
       });
 
@@ -794,23 +904,31 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('multiple-commits');
           const git = createTestStrategy(workingDirPath);
 
-          assertDeepPropertyVals(await git.getDiffsForFilePath('file.txt', {staged: true, baseCommit: 'HEAD~'}), [{
-            oldPath: 'file.txt',
-            newPath: 'file.txt',
-            oldMode: '100644',
-            newMode: '100644',
-            hunks: [
+          assertDeepPropertyVals(
+            await git.getDiffsForFilePath('file.txt', {
+              staged: true,
+              baseCommit: 'HEAD~',
+            }),
+            [
               {
-                oldStartLine: 1,
-                oldLineCount: 1,
-                newStartLine: 1,
-                newLineCount: 1,
-                heading: '',
-                lines: ['-two', '+three'],
+                oldPath: 'file.txt',
+                newPath: 'file.txt',
+                oldMode: '100644',
+                newMode: '100644',
+                hunks: [
+                  {
+                    oldStartLine: 1,
+                    oldLineCount: 1,
+                    newStartLine: 1,
+                    newLineCount: 1,
+                    heading: '',
+                    lines: ['-two', '+three'],
+                  },
+                ],
+                status: 'modified',
               },
             ],
-            status: 'modified',
-          }]);
+          );
         });
       });
 
@@ -818,29 +936,33 @@ import * as reporterProxy from '../lib/reporter-proxy';
         it('returns a diff representing the addition of the file', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.txt'), [{
-            oldPath: null,
-            newPath: 'new-file.txt',
-            oldMode: null,
-            newMode: '100644',
-            hunks: [
+          fs.writeFileSync(
+            path.join(workingDirPath, 'new-file.txt'),
+            'qux\nfoo\nbar\n',
+            'utf8',
+          );
+          assertDeepPropertyVals(
+            await git.getDiffsForFilePath('new-file.txt'),
+            [
               {
-                oldStartLine: 0,
-                oldLineCount: 0,
-                newStartLine: 1,
-                newLineCount: 3,
-                heading: '',
-                lines: [
-                  '+qux',
-                  '+foo',
-                  '+bar',
+                oldPath: null,
+                newPath: 'new-file.txt',
+                oldMode: null,
+                newMode: '100644',
+                hunks: [
+                  {
+                    oldStartLine: 0,
+                    oldLineCount: 0,
+                    newStartLine: 1,
+                    newLineCount: 3,
+                    heading: '',
+                    lines: ['+qux', '+foo', '+bar'],
+                  },
                 ],
+                status: 'added',
               },
             ],
-            status: 'added',
-          }]);
-
+          );
         });
 
         describe('when the file is binary', function() {
@@ -852,18 +974,26 @@ import * as reporterProxy from '../lib/reporter-proxy';
               data.writeUInt8(i + 200, i);
             }
             // make the file executable so we test that executable mode is set correctly
-            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
+            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {
+              mode: 0o755,
+            });
 
-            const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+            const expectedFileMode =
+              process.platform === 'win32' ? '100644' : '100755';
 
-            assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.bin'), [{
-              oldPath: null,
-              newPath: 'new-file.bin',
-              oldMode: null,
-              newMode: expectedFileMode,
-              hunks: [],
-              status: 'added',
-            }]);
+            assertDeepPropertyVals(
+              await git.getDiffsForFilePath('new-file.bin'),
+              [
+                {
+                  oldPath: null,
+                  newPath: 'new-file.bin',
+                  oldMode: null,
+                  newMode: expectedFileMode,
+                  hunks: [],
+                  status: 'added',
+                },
+              ],
+            );
           });
         });
       });
@@ -882,8 +1012,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workdir);
 
         await assert.isRejected(git.merge('origin/branch'));
-        await fs.writeFile(path.join(workdir, 'unstaged-1.txt'), 'Unstaged file');
-        await fs.writeFile(path.join(workdir, 'unstaged-2.txt'), 'Unstaged file');
+        await fs.writeFile(
+          path.join(workdir, 'unstaged-1.txt'),
+          'Unstaged file',
+        );
+        await fs.writeFile(
+          path.join(workdir, 'unstaged-2.txt'),
+          'Unstaged file',
+        );
 
         await fs.writeFile(path.join(workdir, 'staged-1.txt'), 'Staged file');
         await fs.writeFile(path.join(workdir, 'staged-2.txt'), 'Staged file');
@@ -891,7 +1027,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         await git.stageFiles(['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
 
         const diffs = await git.getStagedChangesPatch();
-        assert.deepEqual(diffs.map(diff => diff.newPath), ['staged-1.txt', 'staged-2.txt', 'staged-3.txt']);
+        assert.deepEqual(diffs.map(diff => diff.newPath), [
+          'staged-1.txt',
+          'staged-2.txt',
+          'staged-3.txt',
+        ]);
       });
     });
 
@@ -921,24 +1061,45 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('returns the current branch name', async function() {
         const workingDirPath = await cloneRepository('merge-conflict');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'master');
+        assert.deepEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'master',
+        );
         await git.checkout('branch');
-        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
+        assert.deepEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'branch',
+        );
 
         // newBranch does not yet exist
         await assert.isRejected(git.checkout('newBranch'));
-        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
-        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'branch');
+        assert.deepEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'branch',
+        );
+        assert.deepEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'branch',
+        );
         await git.checkout('newBranch', {createNew: true});
-        assert.deepEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'newBranch');
+        assert.deepEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'newBranch',
+        );
       });
 
       it('specifies a different starting point with startPoint', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
-        await git.checkout('new-branch', {createNew: true, startPoint: 'HEAD^'});
+        await git.checkout('new-branch', {
+          createNew: true,
+          startPoint: 'HEAD^',
+        });
 
-        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        assert.strictEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'new-branch',
+        );
         const commit = await git.getCommit('HEAD');
         assert.strictEqual(commit.messageSubject, 'second commit');
       });
@@ -946,13 +1107,26 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('establishes a tracking relationship with track', async function() {
         const workingDirPath = await cloneRepository('multiple-commits');
         const git = createTestStrategy(workingDirPath);
-        await git.checkout('other-branch', {createNew: true, startPoint: 'HEAD^^'});
-        await git.checkout('new-branch', {createNew: true, startPoint: 'other-branch', track: true});
+        await git.checkout('other-branch', {
+          createNew: true,
+          startPoint: 'HEAD^^',
+        });
+        await git.checkout('new-branch', {
+          createNew: true,
+          startPoint: 'other-branch',
+          track: true,
+        });
 
-        assert.strictEqual((await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(), 'new-branch');
+        assert.strictEqual(
+          (await git.exec(['symbolic-ref', '--short', 'HEAD'])).trim(),
+          'new-branch',
+        );
         const commit = await git.getCommit('HEAD');
         assert.strictEqual(commit.messageSubject, 'first commit');
-        assert.strictEqual(await git.getConfig('branch.new-branch.merge'), 'refs/heads/other-branch');
+        assert.strictEqual(
+          await git.getConfig('branch.new-branch.merge'),
+          'refs/heads/other-branch',
+        );
       });
     });
 
@@ -962,7 +1136,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
 
-          fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+          fs.appendFileSync(
+            path.join(workingDirPath, 'a.txt'),
+            'bar\n',
+            'utf8',
+          );
           await git.exec(['add', '.']);
           await git.commit('add stuff');
 
@@ -973,7 +1151,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const commitAfterReset = await git.getCommit('HEAD');
           assert.strictEqual(commitAfterReset.sha, parentCommit.sha);
 
-          const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+          const stagedChanges = await git.getDiffsForFilePath('a.txt', {
+            staged: true,
+          });
           assert.lengthOf(stagedChanges, 1);
           const stagedChange = stagedChanges[0];
           assert.strictEqual(stagedChange.newPath, 'a.txt');
@@ -1005,7 +1185,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const after = await git.getCommit('HEAD');
         assert.isTrue(after.unbornRef);
 
-        const stagedChanges = await git.getDiffsForFilePath('a.txt', {staged: true});
+        const stagedChanges = await git.getDiffsForFilePath('a.txt', {
+          staged: true,
+        });
         assert.lengthOf(stagedChanges, 1);
         const stagedChange = stagedChanges[0];
         assert.strictEqual(stagedChange.newPath, 'a.txt');
@@ -1020,8 +1202,16 @@ import * as reporterProxy from '../lib/reporter-proxy';
         name: 'master',
         head: false,
         sha,
-        upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
-        push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        upstream: {
+          trackingRef: 'refs/remotes/origin/master',
+          remoteName: 'origin',
+          remoteRef: 'refs/heads/master',
+        },
+        push: {
+          trackingRef: 'refs/remotes/origin/master',
+          remoteName: 'origin',
+          remoteRef: 'refs/heads/master',
+        },
       };
 
       const currentMaster = {
@@ -1035,7 +1225,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
+        assert.deepEqual(await git.getBranches(), [
+          master,
+          {name: 'new-branch', head: true, sha},
+        ]);
         await git.checkout('another-branch', {createNew: true});
         assert.deepEqual(await git.getBranches(), [
           {name: 'another-branch', head: true, sha},
@@ -1049,7 +1242,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workingDirPath);
         assert.deepEqual(await git.getBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
+        assert.deepEqual(await git.getBranches(), [
+          {name: 'a/fancy/new/branch', head: true, sha},
+          master,
+        ]);
       });
     });
 
@@ -1059,18 +1255,29 @@ import * as reporterProxy from '../lib/reporter-proxy';
       const SHA = '18920c900bfa6e4844853e7e246607a31c3e2e8c';
 
       beforeEach(async function() {
-        const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories(
+          'multiple-commits',
+        );
         git = createTestStrategy(localRepoPath);
       });
 
       it('includes only local refs', async function() {
-        assert.sameMembers(await git.getBranchesWithCommit(SHA), ['refs/heads/master']);
+        assert.sameMembers(await git.getBranchesWithCommit(SHA), [
+          'refs/heads/master',
+        ]);
       });
 
       it('includes both local and remote refs', async function() {
         assert.sameMembers(
-          await git.getBranchesWithCommit(SHA, {showLocal: true, showRemote: true}),
-          ['refs/heads/master', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
+          await git.getBranchesWithCommit(SHA, {
+            showLocal: true,
+            showRemote: true,
+          }),
+          [
+            'refs/heads/master',
+            'refs/remotes/origin/HEAD',
+            'refs/remotes/origin/master',
+          ],
         );
       });
 
@@ -1086,9 +1293,24 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('returns an array of remotes', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        await git.exec(['remote', 'set-url', 'origin', 'git@github.com:other/origin.git']);
-        await git.exec(['remote', 'add', 'upstream', 'git@github.com:my/upstream.git']);
-        await git.exec(['remote', 'add', 'another.remote', 'git@github.com:another/upstream.git']);
+        await git.exec([
+          'remote',
+          'set-url',
+          'origin',
+          'git@github.com:other/origin.git',
+        ]);
+        await git.exec([
+          'remote',
+          'add',
+          'upstream',
+          'git@github.com:my/upstream.git',
+        ]);
+        await git.exec([
+          'remote',
+          'add',
+          'another.remote',
+          'git@github.com:another/upstream.git',
+        ]);
         const remotes = await git.getRemotes();
         // Note: nodegit returns remote names in alphabetical order
         assert.equal(remotes.length, 3);
@@ -1116,7 +1338,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workingDirPath);
         assert.isNull(await git.getConfig('awesome.devs'));
         await git.setConfig('awesome.devs', 'BinaryMuse,kuychaco,smashwilson');
-        assert.equal('BinaryMuse,kuychaco,smashwilson', await git.getConfig('awesome.devs'));
+        assert.equal(
+          'BinaryMuse,kuychaco,smashwilson',
+          await git.getConfig('awesome.devs'),
+        );
       });
 
       it('propagates unexpected git errors', async function() {
@@ -1157,7 +1382,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           const lastCommit = await git.getHeadCommit();
           assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
-          assert.strictEqual(lastCommit.messageBody, 'other stuff\n\nand things');
+          assert.strictEqual(
+            lastCommit.messageBody,
+            'other stuff\n\nand things',
+          );
         });
 
         it('passes a message through verbatim', async function() {
@@ -1169,32 +1397,50 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           const lastCommit = await git.getHeadCommit();
           assert.strictEqual(lastCommit.messageSubject, 'Make a commit');
-          assert.strictEqual(lastCommit.messageBody, [
-            '# Comments:',
-            '#  blah blah blah',
-            '',
-            '',
-            '',
-            'other stuff        ',
-            '',
-            'and things',
-          ].join('\n'));
+          assert.strictEqual(
+            lastCommit.messageBody,
+            [
+              '# Comments:',
+              '#  blah blah blah',
+              '',
+              '',
+              '',
+              'other stuff        ',
+              '',
+              'and things',
+            ].join('\n'),
+          );
         });
         it('strips commented lines if commit template is used', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const templateText = '# this line should be stripped';
 
-          const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
-          await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+          const commitMsgTemplatePath = path.join(
+            workingDirPath,
+            '.gitmessage',
+          );
+          await fs.writeFile(commitMsgTemplatePath, templateText, {
+            encoding: 'utf8',
+          });
 
           await git.setConfig('commit.template', commitMsgTemplatePath);
           await git.setConfig('commit.cleanup', 'default');
-          const commitMessage = ['this line should not be stripped', '', 'neither should this one', '', '# but this one should', templateText].join('\n');
+          const commitMessage = [
+            'this line should not be stripped',
+            '',
+            'neither should this one',
+            '',
+            '# but this one should',
+            templateText,
+          ].join('\n');
           await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.strictEqual(lastCommit.messageSubject, 'this line should not be stripped');
+          assert.strictEqual(
+            lastCommit.messageSubject,
+            'this line should not be stripped',
+          );
           //  message body should not contain the template text
           assert.strictEqual(lastCommit.messageBody, 'neither should this one');
         });
@@ -1203,18 +1449,31 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const git = createTestStrategy(workingDirPath);
           const templateText = 'templates are just the best';
 
-          const commitMsgTemplatePath = path.join(workingDirPath, '.gitmessage');
-          await fs.writeFile(commitMsgTemplatePath, templateText, {encoding: 'utf8'});
+          const commitMsgTemplatePath = path.join(
+            workingDirPath,
+            '.gitmessage',
+          );
+          await fs.writeFile(commitMsgTemplatePath, templateText, {
+            encoding: 'utf8',
+          });
 
           await git.setConfig('commit.template', commitMsgTemplatePath);
           await git.setConfig('commit.cleanup', 'default');
           await git.setConfig('core.commentChar', '$');
 
-          const commitMessage = ['# this line should not be stripped', '$ but this one should', '', 'ch-ch-changes'].join('\n');
+          const commitMessage = [
+            '# this line should not be stripped',
+            '$ but this one should',
+            '',
+            'ch-ch-changes',
+          ].join('\n');
           await git.commit(commitMessage, {allowEmpty: true, verbatim: true});
 
           const lastCommit = await git.getHeadCommit();
-          assert.strictEqual(lastCommit.messageSubject, '# this line should not be stripped');
+          assert.strictEqual(
+            lastCommit.messageSubject,
+            '# this line should not be stripped',
+          );
           assert.strictEqual(lastCommit.messageBody, 'ch-ch-changes');
         });
       });
@@ -1225,7 +1484,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const git = createTestStrategy(workingDirPath);
           const lastCommit = await git.getHeadCommit();
           const lastCommitParent = await git.getCommit('HEAD~');
-          await git.commit('amend last commit', {amend: true, allowEmpty: true});
+          await git.commit('amend last commit', {
+            amend: true,
+            allowEmpty: true,
+          });
           const amendedCommit = await git.getHeadCommit();
           const amendedCommitParent = await git.getCommit('HEAD~');
 
@@ -1249,7 +1511,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await initRepository();
           const git = createTestStrategy(workingDirPath);
 
-          await assert.isRejected(git.commit('', {amend: true, allowEmpty: true}), /You have nothing to amend/);
+          await assert.isRejected(
+            git.commit('', {amend: true, allowEmpty: true}),
+            /You have nothing to amend/,
+          );
         });
       });
     });
@@ -1277,7 +1542,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
           },
         ];
 
-        assert.equal(await git.addCoAuthorsToMessage('foo', coAuthors),
+        assert.equal(
+          await git.addCoAuthorsToMessage('foo', coAuthors),
           dedent`
             foo
 
@@ -1391,10 +1657,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
         },
       ];
 
-      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+      const notCancelled = () =>
+        assert.fail('', '', 'Unexpected operation cancel');
 
       operations.forEach(op => {
-        it(`tries a ${op.command} without a GPG prompt first`, async function() {
+        it(`tries a ${
+          op.command
+        } without a GPG prompt first`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns({
             promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
@@ -1404,11 +1673,18 @@ import * as reporterProxy from '../lib/reporter-proxy';
           await op.action();
 
           const [args, options] = execStub.getCall(0).args;
-          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+          assertGitConfigSetting(
+            args,
+            op.command,
+            'gpg.program',
+            '.*gpg-wrapper\\.sh$',
+          );
           assert.isUndefined(options.env.ATOM_GITHUB_GPG_PROMPT);
         });
 
-        it(`retries and overrides gpg.program when ${op.progressiveTense}`, async function() {
+        it(`retries and overrides gpg.program when ${
+          op.progressiveTense
+        }`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.onCall(0).returns({
             promise: Promise.resolve({
@@ -1426,13 +1702,20 @@ import * as reporterProxy from '../lib/reporter-proxy';
           await op.action();
 
           const [args, options] = execStub.getCall(1).args;
-          assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+          assertGitConfigSetting(
+            args,
+            op.command,
+            'gpg.program',
+            '.*gpg-wrapper\\.sh$',
+          );
           assert.isDefined(options.env.ATOM_GITHUB_SOCK_PATH);
           assert.isDefined(options.env.ATOM_GITHUB_GPG_PROMPT);
         });
 
         if (!op.usesPromptServerAlready) {
-          it(`retries a ${op.command} with a GitPromptServer and gpg.program when GPG signing fails`, async function() {
+          it(`retries a ${
+            op.command
+          } with a GitPromptServer and gpg.program when GPG signing fails`, async function() {
             const execStub = sinon.stub(git, 'executeGitCommand');
             execStub.onCall(0).returns({
               promise: Promise.resolve({
@@ -1442,7 +1725,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
               }),
               cancel: notCancelled,
             });
-            execStub.returns(Promise.resolve({stdout: '', stderr: '', exitCode: 0}));
+            execStub.returns(
+              Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
+            );
             execStub.returns({
               promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
               cancel: notCancelled,
@@ -1452,12 +1737,22 @@ import * as reporterProxy from '../lib/reporter-proxy';
             await op.action();
 
             const [args0, options0] = execStub.getCall(0).args;
-            assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+            assertGitConfigSetting(
+              args0,
+              op.command,
+              'gpg.program',
+              '.*gpg-wrapper\\.sh$',
+            );
             assert.isUndefined(options0.env.ATOM_GITHUB_SOCK_PATH);
             assert.isUndefined(options0.env.ATOM_GITHUB_GPG_PROMPT);
 
             const [args1, options1] = execStub.getCall(1).args;
-            assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
+            assertGitConfigSetting(
+              args1,
+              op.command,
+              'gpg.program',
+              '.*gpg-wrapper\\.sh$',
+            );
             assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
             assert.isDefined(options1.env.ATOM_GITHUB_GPG_PROMPT);
           });
@@ -1475,7 +1770,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
 
         originalEnv = {};
-        ['PATH', 'DISPLAY', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_SSH_COMMAND'].forEach(varName => {
+        [
+          'PATH',
+          'DISPLAY',
+          'GIT_ASKPASS',
+          'SSH_ASKPASS',
+          'GIT_SSH_COMMAND',
+        ].forEach(varName => {
           originalEnv[varName] = process.env[varName];
         });
       });
@@ -1509,10 +1810,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
         },
       ];
 
-      const notCancelled = () => assert.fail('', '', 'Unexpected operation cancel');
+      const notCancelled = () =>
+        assert.fail('', '', 'Unexpected operation cancel');
 
       operations.forEach(op => {
-        it(`temporarily supplements credential.helper when ${op.progressiveTense}`, async function() {
+        it(`temporarily supplements credential.helper when ${
+          op.progressiveTense
+        }`, async function() {
           const execStub = sinon.stub(git, 'executeGitCommand');
           execStub.returns({
             promise: Promise.resolve({stdout: '', stderr: '', exitCode: 0}),
@@ -1521,7 +1825,6 @@ import * as reporterProxy from '../lib/reporter-proxy';
           if (op.configureStub) {
             op.configureStub(git);
           }
-
 
           delete process.env.DISPLAY;
           process.env.GIT_ASKPASS = '/some/git-askpass.sh';
@@ -1533,7 +1836,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const [args, options] = execStub.getCall(0).args;
 
           // Used by https remotes
-          assertGitConfigSetting(args, op.command, 'credential.helper', '.*git-credential-atom\\.sh');
+          assertGitConfigSetting(
+            args,
+            op.command,
+            'credential.helper',
+            '.*git-credential-atom\\.sh',
+          );
 
           // Used by SSH remotes
           assert.match(options.env.DISPLAY, /^.+$/);
@@ -1544,9 +1852,18 @@ import * as reporterProxy from '../lib/reporter-proxy';
           }
 
           // Preserved environment variables for subprocesses
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS, '/some/git-askpass.sh');
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS, '/some/ssh-askpass.sh');
-          assert.equal(options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND, '/original/ssh-command');
+          assert.equal(
+            options.env.ATOM_GITHUB_ORIGINAL_GIT_ASKPASS,
+            '/some/git-askpass.sh',
+          );
+          assert.equal(
+            options.env.ATOM_GITHUB_ORIGINAL_SSH_ASKPASS,
+            '/some/ssh-askpass.sh',
+          );
+          assert.equal(
+            options.env.ATOM_GITHUB_ORIGINAL_GIT_SSH_COMMAND,
+            '/original/ssh-command',
+          );
         });
       });
     });
@@ -1555,7 +1872,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('creates a blob for the file path specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        fs.writeFileSync(
+          path.join(workingDirPath, 'a.txt'),
+          'qux\nfoo\nbar\n',
+          'utf8',
+        );
         const sha = await git.createBlob({filePath: 'a.txt'});
         assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
         const contents = await git.exec(['cat-file', '-p', sha]);
@@ -1582,7 +1903,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('rejects if neither file path or stdin are provided', async function() {
         const workingDirPath = await cloneRepository();
         const git = createTestStrategy(workingDirPath);
-        await assert.isRejected(git.createBlob(), /Must supply file path or stdin/);
+        await assert.isRejected(
+          git.createBlob(),
+          /Must supply file path or stdin/,
+        );
       });
     });
 
@@ -1633,7 +1957,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.equal(await git.getFileMode('new-file.txt'), '100644');
 
         fs.chmodSync(absFilePath, executableMode);
-        const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
+        const expectedFileMode =
+          process.platform === 'win32' ? '100644' : '100755';
         assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
 
         const targetPath = path.join(workingDirPath, 'a.txt');
@@ -1656,20 +1981,39 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const git = createTestStrategy(workingDirPath);
 
           const aPath = path.join(workingDirPath, 'a.txt');
-          const withoutConflictPath = path.join(workingDirPath, 'results-without-conflict.txt');
-          const withConflictPath = path.join(workingDirPath, 'results-with-conflict.txt');
+          const withoutConflictPath = path.join(
+            workingDirPath,
+            'results-without-conflict.txt',
+          );
+          const withConflictPath = path.join(
+            workingDirPath,
+            'results-with-conflict.txt',
+          );
 
           // current and other paths are the same, so no conflicts
-          const resultsWithoutConflict = await git.mergeFile('a.txt', 'b.txt', 'a.txt', 'results-without-conflict.txt');
+          const resultsWithoutConflict = await git.mergeFile(
+            'a.txt',
+            'b.txt',
+            'a.txt',
+            'results-without-conflict.txt',
+          );
           assert.deepEqual(resultsWithoutConflict, {
             filePath: 'a.txt',
             resultPath: 'results-without-conflict.txt',
             conflict: false,
           });
-          assert.equal(fs.readFileSync(withoutConflictPath, 'utf8'), fs.readFileSync(aPath, 'utf8'));
+          assert.equal(
+            fs.readFileSync(withoutConflictPath, 'utf8'),
+            fs.readFileSync(aPath, 'utf8'),
+          );
 
           // contents of current and other paths conflict
-          const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
+          const resultsWithConflict = await git.mergeFile(
+            'a.txt',
+            'b.txt',
+            'c.txt',
+            'results-with-conflict.txt',
+          );
           assert.deepEqual(resultsWithConflict, {
             filePath: 'a.txt',
             resultPath: 'results-with-conflict.txt',
@@ -1685,7 +2029,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const git = createTestStrategy(workingDirPath);
           sinon.stub(git, 'exec').rejects(new Error('ouch'));
 
-          await assert.isRejected(git.mergeFile('a.txt', 'b.txt', 'c.txt', 'result.txt'), /ouch/);
+          await assert.isRejected(
+            git.mergeFile('a.txt', 'b.txt', 'c.txt', 'result.txt'),
+            /ouch/,
+          );
         });
       });
 
@@ -1700,14 +2047,22 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
           const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
           const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
-          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, theirsSha);
+          await git.writeMergeConflictToIndex(
+            'a.txt',
+            commonBaseSha,
+            oursSha,
+            theirsSha,
+          );
 
           const index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
-          assert.equal(index.trim(), dedent`
+          assert.equal(
+            index.trim(),
+            dedent`
             100755 ${commonBaseSha} 1\ta.txt
             100755 ${oursSha} 2\ta.txt
             100755 ${theirsSha} 3\ta.txt
-          `);
+          `,
+          );
         });
 
         it('handles the case when oursSha, commonBaseSha, or theirsSha is null', async function() {
@@ -1720,29 +2075,53 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
           const oursSha = '95d4c5b7b96b3eb0853f586576dc8b5ac54837e0';
           const theirsSha = '5da808cc8998a762ec2761f8be2338617f8f12d9';
-          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, null, theirsSha);
+          await git.writeMergeConflictToIndex(
+            'a.txt',
+            commonBaseSha,
+            null,
+            theirsSha,
+          );
 
           let index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
-          assert.equal(index.trim(), dedent`
+          assert.equal(
+            index.trim(),
+            dedent`
             100755 ${commonBaseSha} 1\ta.txt
             100755 ${theirsSha} 3\ta.txt
-          `);
+          `,
+          );
 
-          await git.writeMergeConflictToIndex('a.txt', commonBaseSha, oursSha, null);
+          await git.writeMergeConflictToIndex(
+            'a.txt',
+            commonBaseSha,
+            oursSha,
+            null,
+          );
 
           index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
-          assert.equal(index.trim(), dedent`
+          assert.equal(
+            index.trim(),
+            dedent`
             100755 ${commonBaseSha} 1\ta.txt
             100755 ${oursSha} 2\ta.txt
-          `);
+          `,
+          );
 
-          await git.writeMergeConflictToIndex('a.txt', null, oursSha, theirsSha);
+          await git.writeMergeConflictToIndex(
+            'a.txt',
+            null,
+            oursSha,
+            theirsSha,
+          );
 
           index = await git.exec(['ls-files', '--stage', '--', 'a.txt']);
-          assert.equal(index.trim(), dedent`
+          assert.equal(
+            index.trim(),
+            dedent`
             100755 ${oursSha} 2\ta.txt
             100755 ${theirsSha} 3\ta.txt
-          `);
+          `,
+          );
         });
       });
     });
@@ -1811,7 +2190,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         const mockGitServer = hock.createHock();
 
-        const uploadPackAdvertisement = '001e# service=git-upload-pack\n' +
+        const uploadPackAdvertisement =
+          '001e# service=git-upload-pack\n' +
           '0000' +
           '005a66d11860af6d28eb38349ef83de475597cb0e8b4 HEAD\0multi_ack symref=HEAD:refs/heads/master\n' +
           '003f66d11860af6d28eb38349ef83de475597cb0e8b4 refs/heads/master\n' +
@@ -1822,8 +2202,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
         mockGitServer
           .get('/some/repo.git/info/refs?service=git-upload-pack')
           .reply(401, '', {'WWW-Authenticate': 'Basic realm="SomeRealm"'})
-          .get('/some/repo.git/info/refs?service=git-upload-pack', {Authorization: 'Basic bWU6b3Blbi1zZXNhbWU='})
-          .reply(200, uploadPackAdvertisement, {'Content-Type': 'application/x-git-upload-pack-advertisement'})
+          .get('/some/repo.git/info/refs?service=git-upload-pack', {
+            Authorization: 'Basic bWU6b3Blbi1zZXNhbWU=',
+          })
+          .reply(200, uploadPackAdvertisement, {
+            'Content-Type': 'application/x-git-upload-pack-advertisement',
+          })
           .get('/some/repo.git/info/refs?service=git-upload-pack')
           .reply(400);
 
@@ -1831,8 +2215,14 @@ import * as reporterProxy from '../lib/reporter-proxy';
         return new Promise(resolve => {
           server.listen(0, '127.0.0.1', async () => {
             const {address, port} = server.address();
-            await git.setConfig('remote.mock.url', `http://${address}:${port}/some/repo.git`);
-            await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+            await git.setConfig(
+              'remote.mock.url',
+              `http://${address}:${port}/some/repo.git`,
+            );
+            await git.setConfig(
+              'remote.mock.fetch',
+              '+refs/heads/*:refs/remotes/origin/*',
+            );
 
             resolve(git);
           });
@@ -1913,7 +2303,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-success.sh')),
+          normalizeGitHelperPath(
+            path.join(__dirname, 'scripts', 'credential-helper-success.sh'),
+          ),
         );
 
         await git.fetch('mock', 'master');
@@ -1932,7 +2324,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-notfound.sh')),
+          normalizeGitHelperPath(
+            path.join(__dirname, 'scripts', 'credential-helper-notfound.sh'),
+          ),
         );
 
         await git.fetch('mock', 'master');
@@ -1956,7 +2350,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         await git.setConfig(
           'credential.helper',
-          normalizeGitHelperPath(path.join(__dirname, 'scripts', 'credential-helper-kaboom.sh')),
+          normalizeGitHelperPath(
+            path.join(__dirname, 'scripts', 'credential-helper-kaboom.sh'),
+          ),
         );
 
         await git.fetch('mock', 'master');
@@ -1970,7 +2366,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
     });
 
     describe('ssh authentication', function() {
-      const envKeys = ['GIT_SSH_COMMAND', 'SSH_AUTH_SOCK', 'SSH_ASKPASS', 'GIT_ASKPASS'];
+      const envKeys = [
+        'GIT_SSH_COMMAND',
+        'SSH_AUTH_SOCK',
+        'SSH_ASKPASS',
+        'GIT_ASKPASS',
+      ];
       let preserved;
 
       beforeEach(function() {
@@ -1997,11 +2398,17 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workdir, options);
 
         await git.setConfig('remote.mock.url', 'git@github.com:atom/nope.git');
-        await git.setConfig('remote.mock.fetch', '+refs/heads/*:refs/remotes/origin/*');
+        await git.setConfig(
+          'remote.mock.fetch',
+          '+refs/heads/*:refs/remotes/origin/*',
+        );
 
         // Append ' #' to ensure the script is run with sh on Windows.
         // https://github.com/git/git/blob/027a3b943b444a3e3a76f9a89803fc10245b858f/run-command.c#L196-L221
-        process.env.GIT_SSH_COMMAND = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'ssh-remote.sh')) + ' #';
+        process.env.GIT_SSH_COMMAND =
+          normalizeGitHelperPath(
+            path.join(__dirname, 'scripts', 'ssh-remote.sh'),
+          ) + ' #';
         process.env.GIT_SSH_VARIANT = 'simple';
 
         return git;
@@ -2061,7 +2468,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-success.sh'));
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(
+          path.join(__dirname, 'scripts', 'askpass-success.sh'),
+        );
 
         await git.fetch('mock', 'master');
         assert.isNull(query);
@@ -2076,7 +2485,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
           },
         });
 
-        process.env.SSH_ASKPASS = normalizeGitHelperPath(path.join(__dirname, 'scripts', 'askpass-kaboom.sh'));
+        process.env.SSH_ASKPASS = normalizeGitHelperPath(
+          path.join(__dirname, 'scripts', 'askpass-kaboom.sh'),
+        );
 
         await git.fetch('mock', 'master');
 
@@ -2087,9 +2498,18 @@ import * as reporterProxy from '../lib/reporter-proxy';
   });
 });
 
-function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$') {
+function assertGitConfigSetting(
+  args,
+  command,
+  settingName,
+  valuePattern = '.*$',
+) {
   const commandIndex = args.indexOf(command);
-  assert.notEqual(commandIndex, -1, `${command} not found in exec arguments ${args.join(' ')}`);
+  assert.notEqual(
+    commandIndex,
+    -1,
+    `${command} not found in exec arguments ${args.join(' ')}`,
+  );
 
   const settingNamePattern = settingName.replace(/[.\\()[\]{}+*^$]/, '\\$&');
 
@@ -2101,5 +2521,9 @@ function assertGitConfigSetting(args, command, settingName, valuePattern = '.*$'
     }
   }
 
-  assert.fail('', '', `Setting ${settingName} not found in exec arguments ${args.join(' ')}`);
+  assert.fail(
+    '',
+    '',
+    `Setting ${settingName} not found in exec arguments ${args.join(' ')}`,
+  );
 }

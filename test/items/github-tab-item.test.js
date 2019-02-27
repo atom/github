@@ -24,13 +24,11 @@ describe('GitHubTabItem', function() {
     const props = gitHubTabItemProps(atomEnv, repository, overrideProps);
 
     return (
-      <PaneItem workspace={props.workspace} uriPattern={GitHubTabItem.uriPattern}>
-        {({itemHolder}) => (
-          <GitHubTabItem
-            ref={itemHolder.setter}
-            {...props}
-          />
-        )}
+      <PaneItem
+        workspace={props.workspace}
+        uriPattern={GitHubTabItem.uriPattern}
+      >
+        {({itemHolder}) => <GitHubTabItem ref={itemHolder.setter} {...props} />}
       </PaneItem>
     );
   }
@@ -40,7 +38,9 @@ describe('GitHubTabItem', function() {
 
     await atomEnv.workspace.open(GitHubTabItem.buildURI());
 
-    const paneItem = atomEnv.workspace.getRightDock().getPaneItems()
+    const paneItem = atomEnv.workspace
+      .getRightDock()
+      .getPaneItems()
       .find(item => item.getURI() === 'atom-github://dock-item/github');
     assert.strictEqual(paneItem.getTitle(), 'GitHub');
     assert.strictEqual(paneItem.getIconName(), 'octoface');
@@ -50,7 +50,10 @@ describe('GitHubTabItem', function() {
     mount(buildApp());
     const item = await atomEnv.workspace.open(GitHubTabItem.buildURI());
 
-    assert.strictEqual(item.getWorkingDirectory(), repository.getWorkingDirectoryPath());
+    assert.strictEqual(
+      item.getWorkingDirectory(),
+      repository.getWorkingDirectoryPath(),
+    );
   });
 
   it('serializes itself', async function() {
@@ -65,11 +68,18 @@ describe('GitHubTabItem', function() {
 
   it('detects when it has focus', async function() {
     let activeElement = document.body;
-    const wrapper = mount(buildApp({
-      documentActiveElement: () => activeElement,
-    }));
+    const wrapper = mount(
+      buildApp({
+        documentActiveElement: () => activeElement,
+      }),
+    );
     const item = await atomEnv.workspace.open(GitHubTabItem.buildURI());
-    await assert.async.isTrue(wrapper.update().find('.github-GitHub').exists());
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('.github-GitHub')
+        .exists(),
+    );
 
     assert.isFalse(item.hasFocus());
 

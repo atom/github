@@ -56,9 +56,7 @@ describe('CommitsView', function() {
   });
 
   it('only renders the header if there are multiple commits', function() {
-    const nodes = [
-      {id: 1, author: {name: 'FirstName', user: null}},
-    ];
+    const nodes = [{id: 1, author: {name: 'FirstName', user: null}}];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
     assert.notMatch(instance.text(), /added/);

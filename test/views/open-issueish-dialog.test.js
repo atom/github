@@ -29,22 +29,44 @@ describe('OpenIssueishDialog', function() {
   });
 
   const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
+    wrapper
+      .find(selector)
+      .getDOMNode()
+      .getModel()
+      .setText(text);
   };
 
   describe('entering a issueish url', function() {
     it("updates the issue url automatically if it hasn't been modified", function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
+      setTextIn(
+        '.github-IssueishUrl atom-text-editor',
+        'https://github.com/atom/github/pull/1807',
+      );
 
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/pull/1807');
+      assert.equal(
+        wrapper.instance().getIssueishUrl(),
+        'https://github.com/atom/github/pull/1807',
+      );
     });
 
     it('does update the issue url if it was modified automatically', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/pull/1807');
+      setTextIn(
+        '.github-IssueishUrl atom-text-editor',
+        'https://github.com/atom/github/pull/1807',
+      );
+      assert.equal(
+        wrapper.instance().getIssueishUrl(),
+        'https://github.com/atom/github/pull/1807',
+      );
 
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/issues/1655');
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/issues/1655');
+      setTextIn(
+        '.github-IssueishUrl atom-text-editor',
+        'https://github.com/atom/github/issues/1655',
+      );
+      assert.equal(
+        wrapper.instance().getIssueishUrl(),
+        'https://github.com/atom/github/issues/1655',
+      );
     });
   });
 
@@ -53,20 +75,30 @@ describe('OpenIssueishDialog', function() {
       setTextIn('.github-IssueishUrl atom-text-editor', '');
       wrapper.update();
 
-      assert.isTrue(wrapper.find('button.icon-git-pull-request').prop('disabled'));
+      assert.isTrue(
+        wrapper.find('button.icon-git-pull-request').prop('disabled'),
+      );
     });
 
     it('enables the open button when issue url box is populated', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
+      setTextIn(
+        '.github-IssueishUrl atom-text-editor',
+        'https://github.com/atom/github/pull/1807',
+      );
       wrapper.update();
 
-      assert.isFalse(wrapper.find('button.icon-git-pull-request').prop('disabled'));
+      assert.isFalse(
+        wrapper.find('button.icon-git-pull-request').prop('disabled'),
+      );
     });
   });
 
   describe('parseUrl', function() {
     it('returns an object with repo owner, repo name, and issueish number', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
+      setTextIn(
+        '.github-IssueishUrl atom-text-editor',
+        'https://github.com/atom/github/pull/1807',
+      );
 
       assert.deepEqual(wrapper.instance().parseUrl(), {
         repoOwner: 'atom',
@@ -77,15 +109,20 @@ describe('OpenIssueishDialog', function() {
   });
 
   it('calls the acceptance callback', function() {
-    setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
+    setTextIn(
+      '.github-IssueishUrl atom-text-editor',
+      'https://github.com/atom/github/pull/1807',
+    );
 
     wrapper.find('button.icon-git-pull-request').simulate('click');
 
-    assert.isTrue(didAccept.calledWith({
-      repoOwner: 'atom',
-      repoName: 'github',
-      issueishNumber: '1807',
-    }));
+    assert.isTrue(
+      didAccept.calledWith({
+        repoOwner: 'atom',
+        repoName: 'github',
+        issueishNumber: '1807',
+      }),
+    );
   });
 
   it('calls the cancellation callback', function() {

@@ -21,10 +21,9 @@ describe('FilePatchMetaView', function() {
         title=""
         actionIcon="icon-move-up"
         actionText="action"
-
         action={() => {}}
-
-        {...overrideProps}>
+        {...overrideProps}
+      >
         {children}
       </FilePatchMetaView>
     );
@@ -32,12 +31,21 @@ describe('FilePatchMetaView', function() {
 
   it('renders the title', function() {
     const wrapper = shallow(buildApp({title: 'Yes'}));
-    assert.strictEqual(wrapper.find('.github-FilePatchView-metaTitle').text(), 'Yes');
+    assert.strictEqual(
+      wrapper.find('.github-FilePatchView-metaTitle').text(),
+      'Yes',
+    );
   });
 
   it('renders a control button with the correct text and callback', function() {
     const action = sinon.stub();
-    const wrapper = shallow(buildApp({action, actionText: 'do the thing', actionIcon: 'icon-move-down'}));
+    const wrapper = shallow(
+      buildApp({
+        action,
+        actionText: 'do the thing',
+        actionIcon: 'icon-move-down',
+      }),
+    );
 
     const button = wrapper.find('button.icon-move-down');
 
@@ -49,7 +57,9 @@ describe('FilePatchMetaView', function() {
 
   it('renders child elements as details', function() {
     const wrapper = shallow(buildApp({}, <div className="child" />));
-    assert.isTrue(wrapper.find('.github-FilePatchView-metaDetails .child').exists());
+    assert.isTrue(
+      wrapper.find('.github-FilePatchView-metaDetails .child').exists(),
+    );
   });
 
   it('omits controls when rendered in a CommitDetailItem', function() {

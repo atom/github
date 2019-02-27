@@ -6,7 +6,9 @@ import {commitBuilder} from '../builder/commit';
 describe('Commit', function() {
   describe('isBodyLong()', function() {
     it('returns false if the commit message body is short', function() {
-      const commit = commitBuilder().messageBody('short').build();
+      const commit = commitBuilder()
+        .messageBody('short')
+        .build();
       assert.isFalse(commit.isBodyLong());
     });
 
@@ -30,7 +32,9 @@ describe('Commit', function() {
         delicatissimi sea in. Est id putent accusata convenire, no tibique molestie accommodare quo, cu est fuisset
         offendit evertitur.
       `;
-      const commit = commitBuilder().messageBody(messageBody).build();
+      const commit = commitBuilder()
+        .messageBody(messageBody)
+        .build();
       assert.isTrue(commit.isBodyLong());
     });
 
@@ -39,7 +43,9 @@ describe('Commit', function() {
       for (let i = 0; i < 50; i++) {
         messageBody += 'a\n';
       }
-      const commit = commitBuilder().messageBody(messageBody).build();
+      const commit = commitBuilder()
+        .messageBody(messageBody)
+        .build();
       assert.isTrue(commit.isBodyLong());
     });
 
@@ -50,7 +56,9 @@ describe('Commit', function() {
 
   describe('abbreviatedBody()', function() {
     it('returns the message body as-is when the body is short', function() {
-      const commit = commitBuilder().messageBody('short').build();
+      const commit = commitBuilder()
+        .messageBody('short')
+        .build();
       assert.strictEqual(commit.abbreviatedBody(), 'short');
     });
 
@@ -72,15 +80,20 @@ describe('Commit', function() {
         omnes voluptua sit.
       `;
 
-      const commit = commitBuilder().messageBody(body).build();
-      assert.strictEqual(commit.abbreviatedBody(), dedent`
+      const commit = commitBuilder()
+        .messageBody(body)
+        .build();
+      assert.strictEqual(
+        commit.abbreviatedBody(),
+        dedent`
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei.
 
         Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam tantas nullam corrumpit ad, in
         oratio luptatum eleifend vim.
         ...
-      `);
+      `,
+      );
     });
 
     it('truncates the message body at the nearest word boundary before the cutoff if one is present', function() {
@@ -100,18 +113,24 @@ describe('Commit', function() {
         tibique molestie accommodare quo, cu est fuisset offendit evertitur.
       `;
 
-      const commit = commitBuilder().messageBody(body).build();
-      assert.strictEqual(commit.abbreviatedBody(), dedent`
+      const commit = commitBuilder()
+        .messageBody(body)
+        .build();
+      assert.strictEqual(
+        commit.abbreviatedBody(),
+        dedent`
         Lorem ipsum dolor sit amet, et his justo deleniti, omnium fastidii adversarium at has. Mazim alterum sea ea,
         essent malorum persius ne mei. Nam ea tempor qualisque, modus doming te has. Affert dolore albucius te vis, eam
         tantas nullam corrumpit ad, in oratio luptatum eleifend vim. Ea salutatus contentiones eos. Eam in veniam facete
         volutpat, solum appetere adversarium ut quo. Vel cu appetere...
-      `);
+      `,
+      );
     });
 
     it('truncates the message body at the character cutoff if no word or paragraph boundaries can be found', function() {
       // The | is at the 400-character mark.
-      const body = 'Loremipsumdolorsitametethisjustodelenitiomniumfastidiiadversariumathas' +
+      const body =
+        'Loremipsumdolorsitametethisjustodelenitiomniumfastidiiadversariumathas' +
         'MazimalterumseaeaessentmalorumpersiusnemeiNameatemporqualisquemodusdomingtehasAffertdolore' +
         'albuciusteviseamtantasnullamcorrumpitadinoratioluptatumeleifendvimEasalutatuscontentioneseos' +
         'EaminveniamfacetevolutpatsolumappetereadversariumutquoVelcuappetereurbanitasusuutaperiri' +
@@ -125,14 +144,16 @@ describe('Commit', function() {
         'accusataconvenirenotibiquemolestieaccommodarequocuestfuissetoffenditevertitur';
 
       // Note that the elision happens three characters before the 400-mark to leave room for the "..."
-      const commit = commitBuilder().messageBody(body).build();
+      const commit = commitBuilder()
+        .messageBody(body)
+        .build();
       assert.strictEqual(
         commit.abbreviatedBody(),
         'Loremipsumdolorsitametethisjustodelenitiomniumfastidiiadversariumathas' +
-        'MazimalterumseaeaessentmalorumpersiusnemeiNameatemporqualisquemodusdomingtehasAffertdolore' +
-        'albuciusteviseamtantasnullamcorrumpitadinoratioluptatumeleifendvimEasalutatuscontentioneseos' +
-        'EaminveniamfacetevolutpatsolumappetereadversariumutquoVelcuappetereurbanitasusuutaperiri' +
-        'mediocritatemaliamolestieurbanitascuquiVelitantiopamerror...',
+          'MazimalterumseaeaessentmalorumpersiusnemeiNameatemporqualisquemodusdomingtehasAffertdolore' +
+          'albuciusteviseamtantasnullamcorrumpitadinoratioluptatumeleifendvimEasalutatuscontentioneseos' +
+          'EaminveniamfacetevolutpatsolumappetereadversariumutquoVelcuappetereurbanitasusuutaperiri' +
+          'mediocritatemaliamolestieurbanitascuquiVelitantiopamerror...',
       );
     });
 
@@ -141,14 +162,18 @@ describe('Commit', function() {
       for (let i = 0; i < 50; i++) {
         messageBody += `${i}\n`;
       }
-      const commit = commitBuilder().messageBody(messageBody).build();
+      const commit = commitBuilder()
+        .messageBody(messageBody)
+        .build();
       assert.strictEqual(commit.abbreviatedBody(), '0\n1\n2\n3\n4\n5\n...');
     });
   });
 
   it('returns the author name', function() {
     const authorName = 'Tilde Ann Thurium';
-    const commit = commitBuilder().authorName(authorName).build();
+    const commit = commitBuilder()
+      .authorName(authorName)
+      .build();
     assert.strictEqual(commit.getAuthorName(), authorName);
   });
 
@@ -178,26 +203,41 @@ describe('Commit', function() {
     });
 
     it('returns false if a directly comparable attribute differs', function() {
-      const a = commitBuilder().sha('01234').build();
-      const b = commitBuilder().sha('56789').build();
+      const a = commitBuilder()
+        .sha('01234')
+        .build();
+      const b = commitBuilder()
+        .sha('56789')
+        .build();
 
       assert.isFalse(a.isEqual(b));
     });
 
     it('returns false if author differs', function() {
-      const a = commitBuilder().authorName('Tilde Ann Thurium').build();
+      const a = commitBuilder()
+        .authorName('Tilde Ann Thurium')
+        .build();
 
-      const b = commitBuilder().authorName('Vanessa Yuen').build();
+      const b = commitBuilder()
+        .authorName('Vanessa Yuen')
+        .build();
       assert.isFalse(a.isEqual(b));
     });
 
     it('returns false if a co-author differs', function() {
-      const a = commitBuilder().addCoAuthor('me', 'me@email.com').build();
+      const a = commitBuilder()
+        .addCoAuthor('me', 'me@email.com')
+        .build();
 
-      const b0 = commitBuilder().addCoAuthor('me', 'me@email.com').addCoAuthor('extra', 'extra@email.com').build();
+      const b0 = commitBuilder()
+        .addCoAuthor('me', 'me@email.com')
+        .addCoAuthor('extra', 'extra@email.com')
+        .build();
       assert.isFalse(a.isEqual(b0));
 
-      const b1 = commitBuilder().addCoAuthor('different', 'me@email.com').build();
+      const b1 = commitBuilder()
+        .addCoAuthor('different', 'me@email.com')
+        .build();
       assert.isFalse(a.isEqual(b1));
     });
 
@@ -205,7 +245,13 @@ describe('Commit', function() {
       const a = commitBuilder()
         .setMultiFileDiff(mfp => {
           mfp.addFilePatch(fp => {
-            fp.addHunk(hunk => hunk.unchanged('-').added('plus').deleted('minus').unchanged('-'));
+            fp.addHunk(hunk =>
+              hunk
+                .unchanged('-')
+                .added('plus')
+                .deleted('minus')
+                .unchanged('-'),
+            );
           });
         })
         .build();
@@ -213,7 +259,13 @@ describe('Commit', function() {
       const b = commitBuilder()
         .setMultiFileDiff(mfp => {
           mfp.addFilePatch(fp => {
-            fp.addHunk(hunk => hunk.unchanged('-').added('different').deleted('patch').unchanged('-'));
+            fp.addHunk(hunk =>
+              hunk
+                .unchanged('-')
+                .added('different')
+                .deleted('patch')
+                .unchanged('-'),
+            );
           });
         })
         .build();

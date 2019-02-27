@@ -60,44 +60,91 @@ describe('ChangedFileContainer', function() {
   });
 
   it('renders a ChangedFileController', async function() {
-    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
+    const wrapper = mount(
+      buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}),
+    );
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('ChangedFileController')
+        .exists(),
+    );
   });
 
   it('adopts the buffer from the previous FilePatch when a new one arrives', async function() {
-    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
+    const wrapper = mount(
+      buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}),
+    );
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('ChangedFileController')
+        .exists(),
+    );
 
-    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
+    const prevPatch = wrapper
+      .find('ChangedFileController')
+      .prop('multiFilePatch');
     const prevBuffer = prevPatch.getBuffer();
 
-    await fs.writeFile(path.join(repository.getWorkingDirectoryPath(), 'a.txt'), 'changed\nagain\n');
+    await fs.writeFile(
+      path.join(repository.getWorkingDirectoryPath(), 'a.txt'),
+      'changed\nagain\n',
+    );
     repository.refresh();
 
-    await assert.async.notStrictEqual(wrapper.update().find('ChangedFileController').prop('multiFilePatch'), prevPatch);
+    await assert.async.notStrictEqual(
+      wrapper
+        .update()
+        .find('ChangedFileController')
+        .prop('multiFilePatch'),
+      prevPatch,
+    );
 
-    const nextBuffer = wrapper.find('ChangedFileController').prop('multiFilePatch').getBuffer();
+    const nextBuffer = wrapper
+      .find('ChangedFileController')
+      .prop('multiFilePatch')
+      .getBuffer();
     assert.strictEqual(nextBuffer, prevBuffer);
   });
 
   it('does not adopt a buffer from an unchanged patch', async function() {
-    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}));
-    await assert.async.isTrue(wrapper.update().find('ChangedFileController').exists());
+    const wrapper = mount(
+      buildApp({relPath: 'a.txt', stagingStatus: 'unstaged'}),
+    );
+    await assert.async.isTrue(
+      wrapper
+        .update()
+        .find('ChangedFileController')
+        .exists(),
+    );
 
-    const prevPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
+    const prevPatch = wrapper
+      .find('ChangedFileController')
+      .prop('multiFilePatch');
     sinon.spy(prevPatch, 'adoptBufferFrom');
 
     wrapper.setProps({});
 
     assert.isFalse(prevPatch.adoptBufferFrom.called);
 
-    const nextPatch = wrapper.find('ChangedFileController').prop('multiFilePatch');
+    const nextPatch = wrapper
+      .find('ChangedFileController')
+      .prop('multiFilePatch');
     assert.strictEqual(nextPatch, prevPatch);
   });
 
   it('passes unrecognized props to the FilePatchView', async function() {
     const extra = Symbol('extra');
-    const wrapper = mount(buildApp({relPath: 'a.txt', stagingStatus: 'unstaged', extra}));
-    await assert.async.strictEqual(wrapper.update().find('MultiFilePatchView').prop('extra'), extra);
+    const wrapper = mount(
+      buildApp({relPath: 'a.txt', stagingStatus: 'unstaged', extra}),
+    );
+    await assert.async.strictEqual(
+      wrapper
+        .update()
+        .find('MultiFilePatchView')
+        .prop('extra'),
+      extra,
+    );
   });
 });
