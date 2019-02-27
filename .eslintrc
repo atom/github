@@ -1,5 +1,6 @@
 {
   "root": true,
+  "parser": "babel-eslint",
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
@@ -12,42 +13,28 @@
       "atom"
     ]
   },
+  "env": {
+    "es6": true,
+    "node": true,
+    "browser": true
+  },
   "plugins": [
+    "babel",
+    "prettier",
     "jsx-a11y"
   ],
-  "extends": ["prettier"],
+  "extends": [
+    "eslint:recommended",
+    "prettier"
+  ],
   "rules": {
-    "linebreak-style": 0,
-    "no-param-reassign": 0,
-    "jsx-a11y/alt-text": 2,
-    "jsx-a11y/anchor-is-valid": 2
+    "linebreak-style": "off",
+    "no-param-reassign": "off",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/anchor-is-valid": "error",
+    "prettier/prettier": "error"
   },
   "globals": {
-    "atom": true,
-    "advanceClock": true,
-    "assert": true,
-    "HTMLElement": true,
-    "MouseEvent": true,
-    "IDBKeyRange": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true,
-    "describe": true,
-    "fdescribe": true,
-    "xdescribe": true,
-    "it": true,
-    "xit": true,
-    "stress": true,
-    "waitsForPromise": true,
-    "oneTick": true,
-    "until": true,
-    "runs": true,
-    "openAndActivated": true,
-    "jasmine": true,
-    "expect": true,
-    "spyOn": true,
-    "waitsFor": true,
-    "sinon": true,
+    "atom": true
   }
 }
