@@ -2316,8 +2316,12 @@ describe('Repository', function() {
       const readerMethods = await getCacheReaderMethods({repository});
       function readerValues() {
         return new Map(
-          Array.from(readerMethods.entries(), method => {
-            return [method[0], method[1]()];
+          Array.from(readerMethods.entries(), ([name, call]) => {
+            const promise = call();
+            if (process.platform === 'win32') {
+              promise.catch(() => {});
+            }
+            return [name, promise];
           }),
         );
       }
