@@ -13,14 +13,16 @@ describe('PatchBuffer', function() {
   it('has simple accessors', function() {
     assert.strictEqual(patchBuffer.getBuffer().getText(), TEXT);
     assert.deepEqual(patchBuffer.getInsertionPoint().serialize(), [10, 0]);
+    assert.isDefined(patchBuffer.getLayer('patch'));
   });
 
   it('creates and finds markers on specified layers', function() {
     const patchMarker = patchBuffer.markRange('patch', [[1, 0], [2, 4]]);
     const hunkMarker = patchBuffer.markRange('hunk', [[2, 0], [3, 4]]);
 
-    assert.deepEqual(patchBuffer.findMarkers('patch', {}), [patchMarker]);
-    assert.deepEqual(patchBuffer.findMarkers('hunk', {}), [hunkMarker]);
+    assert.sameDeepMembers(patchBuffer.findMarkers('patch', {}), [patchMarker]);
+    assert.sameDeepMembers(patchBuffer.findMarkers('hunk', {}), [hunkMarker]);
+    assert.sameDeepMembers(patchBuffer.findAllMarkers({}), [patchMarker, hunkMarker]);
   });
 
   it('clears markers from all layers at once', function() {
@@ -179,6 +181,67 @@ describe('PatchBuffer', function() {
     });
   });
 
+  describe('adopt', function() {
+    it('destroys existing content and markers and replaces them with those from the argument', function() {
+      const original = new PatchBuffer();
+      original.getBuffer().setText(dedent`
+        before 0
+        before 1
+        before 2
+      `);
+
+      const originalMarkers = [
+        original.markRange('patch', [[0, 0], [2, 3]]),
+        original.markRange('patch', [[1, 3], [2, 0]]),
+        original.markRange('hunk', [[0, 0], [0, 7]]),
+      ];
+
+      const adoptee = new PatchBuffer();
+      adoptee.getBuffer().setText(dedent`
+        after 0
+        after 1
+        after 2
+        after 3
+      `);
+
+      const adopteeMarkers = [
+        adoptee.markRange('addition', [[2, 0], [3, 7]]),
+        adoptee.markRange('patch', [[1, 0], [2, 0]]),
+      ];
+
+      const map = original.adopt(adoptee);
+
+      assert.strictEqual(original.getBuffer().getText(), dedent`
+        after 0
+        after 1
+        after 2
+        after 3
+      `);
+
+      assert.sameDeepMembers(
+        original.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[1, 0], [2, 0]]],
+      );
+      assert.sameDeepMembers(
+        original.findMarkers('addition', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [3, 7]]],
+      );
+      assert.lengthOf(original.findMarkers('hunk', {}), 0);
+
+      for (const originalMarker of originalMarkers) {
+        assert.isFalse(map.has(originalMarker));
+        assert.isTrue(originalMarker.isDestroyed());
+      }
+
+      for (const adopteeMarker of adopteeMarkers) {
+        assert.isTrue(map.has(adopteeMarker));
+        assert.isFalse(adopteeMarker.isDestroyed());
+        assert.isFalse(map.get(adopteeMarker).isDestroyed());
+        assert.deepEqual(adopteeMarker.getRange().serialize(), map.get(adopteeMarker).getRange().serialize());
+      }
+    });
+  });
+
   describe('deferred-marking modifications', function() {
     it('performs multiple modifications and only creates markers at the end', function() {
       const inserter = patchBuffer.createInserterAtEnd();
@@ -263,13 +326,20 @@ describe('PatchBuffer', function() {
     });
 
     it('preserves markers that should be before or after the modification region', function() {
+      const invalidBefore = patchBuffer.markRange('patch', [[1, 0], [1, 0]]);
       const before0 = patchBuffer.markRange('patch', [[1, 0], [4, 0]], {exclusive: true});
       const before1 = patchBuffer.markRange('hunk', [[4, 0], [4, 0]], {exclusive: true});
+      const before2 = patchBuffer.markRange('addition', [[3, 0], [4, 0]], {exclusive: true, reversed: true});
+      const before3 = patchBuffer.markRange('nonewline', [[4, 0], [4, 0]], {exclusive: true, reversed: true});
       const after0 = patchBuffer.markPosition('patch', [4, 0], {exclusive: true});
+      const after1 = patchBuffer.markRange('patch', [[4, 0], [4, 3]], {exclusive: true});
+      const after2 = patchBuffer.markRange('deletion', [[4, 0], [5, 0]], {exclusive: true, reversed: true});
+      const after3 = patchBuffer.markRange('nonewline', [[4, 0], [4, 0]], {exclusive: true, reversed: true});
+      const invalidAfter = patchBuffer.markRange('hunk', [[5, 0], [6, 0]]);
 
       const inserter = patchBuffer.createInserterAt([4, 0]);
-      inserter.keepBefore([before0, before1]);
-      inserter.keepAfter([after0]);
+      inserter.keepBefore([before0, before1, before2, before3, invalidBefore]);
+      inserter.keepAfter([after0, after1, after2, after3, invalidAfter]);
 
       let marker = null;
       const callback = m => { marker = m; };
@@ -279,8 +349,16 @@ describe('PatchBuffer', function() {
 
       assert.deepEqual(before0.getRange().serialize(), [[1, 0], [4, 0]]);
       assert.deepEqual(before1.getRange().serialize(), [[4, 0], [4, 0]]);
+      assert.deepEqual(before2.getRange().serialize(), [[3, 0], [4, 0]]);
+      assert.deepEqual(before3.getRange().serialize(), [[4, 0], [4, 0]]);
       assert.deepEqual(marker.getRange().serialize(), [[4, 0], [9, 0]]);
       assert.deepEqual(after0.getRange().serialize(), [[9, 0], [9, 0]]);
+      assert.deepEqual(after1.getRange().serialize(), [[9, 0], [9, 3]]);
+      assert.deepEqual(after2.getRange().serialize(), [[9, 0], [10, 0]]);
+      assert.deepEqual(after3.getRange().serialize(), [[9, 0], [9, 0]]);
+
+      assert.deepEqual(invalidBefore.getRange().serialize(), [[1, 0], [1, 0]]);
+      assert.deepEqual(invalidAfter.getRange().serialize(), [[10, 0], [11, 0]]);
     });
 
     it('appends another PatchBuffer at its insertion point', function() {
