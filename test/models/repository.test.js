@@ -124,6 +124,7 @@ describe('Repository', function() {
         'push', 'setConfig', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
         'updateDiscardHistory', 'storeBeforeAndAfterBlobs', 'restoreLastDiscardInTempFiles', 'popDiscardHistory',
         'clearDiscardHistory', 'discardWorkDirChangesForPaths', 'addRemote', 'setCommitMessage',
+        'fetchCommitMessageTemplate',
       ]) {
         await assert.isRejected(repository[method](), new RegExp(`${method} is not available in Destroyed state`));
       }
@@ -1602,6 +1603,31 @@ describe('Repository', function() {
       // Also should not throw
       const repo2 = new Repository(workingDirPath);
       await repo2.getLoadPromise();
+    });
+
+    it('passes unexpected git errors to the caller', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').rejects(new Error('oh no'));
+
+      await assert.isRejected(repo.updateDiscardHistory(), /oh no/);
+    });
+
+    it('is resilient to malformed history blobs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').resolves('lol not JSON');
+
+      // Should not throw
+      await repo.updateDiscardHistory();
     });
   });
 
