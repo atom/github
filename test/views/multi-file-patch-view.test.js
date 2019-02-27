@@ -236,6 +236,36 @@ describe('MultiFilePatchView', function() {
     assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
   });
 
+  it('triggers a FilePatch collapse from file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+    const fp1 = multiFilePatch.getFilePatches()[1];
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+
+    sinon.stub(multiFilePatch, 'collapseFilePatch');
+
+    wrapper.find('FilePatchHeaderView[relPath="1"]').prop('triggerCollapse')();
+    assert.isTrue(multiFilePatch.collapseFilePatch.calledWith(fp1));
+  });
+
+  it('triggers a FilePatch expansion from file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+    const fp0 = multiFilePatch.getFilePatches()[0];
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+
+    sinon.stub(multiFilePatch, 'expandFilePatch');
+
+    wrapper.find('FilePatchHeaderView[relPath="0"]').prop('triggerExpand')();
+    assert.isTrue(multiFilePatch.expandFilePatch.calledWith(fp0));
+  });
+
   it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
     const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
     assert.lengthOf(wrapper.find('ForwardRef(Relay(PullRequestReviewsController))'), 1);
