@@ -138,6 +138,71 @@
       }
     }
 
+    // These styles are mostly copied from the Primer tooltips
+    .tooltipped {
+      position: relative;
+
+      // This is the tooltip bubble
+      &::after {
+        position: absolute;
+        z-index: 1000000;
+        display: none;
+        width: max-content;
+        max-width: 22em;
+        padding: .5em .6em;
+        font-weight: 500;
+        color: @base-background-color;
+        text-align: center;
+        pointer-events: none;
+        content: attr(aria-label);
+        background: @background-color-info;
+        border-radius: @component-border-radius;
+      }
+
+      // This is the tooltip arrow
+      &::before {
+        position: absolute;
+        z-index: 1000001;
+        display: none;
+        width: 0;
+        height: 0;
+        color: @background-color-info;
+        pointer-events: none;
+        content: "";
+        border: 6px solid transparent;
+      }
+
+      // This will indicate when we'll activate the tooltip
+      &:hover,
+      &:active,
+      &:focus {
+        &::before,
+        &::after {
+          display: inline-block;
+          text-decoration: none;
+        }
+      }
+
+      // Tooltipped south
+      &::after {
+        top: 100%;
+        right: 50%;
+        margin-top: 6px;
+      }
+      &::before {
+        top: auto;
+        right: 50%;
+        bottom: -7px;
+        margin-right: -6px;
+        border-bottom-color: @background-color-info;
+      }
+
+      // Move the tooltip body to the center of the object.
+      &::after {
+        transform: translateX(50%);
+      }
+    }
+
   }
 
 }
