@@ -120,8 +120,8 @@ describe('IssueishTimelineView', function() {
 
     assert.lengthOf(wrapper.find('.github-PrTimeline').children(), 2);
 
-    // eslint-disable-next-line no-console
     assert.isTrue(
+      // eslint-disable-next-line no-console
       console.warn.calledWith(
         'unrecognized timeline event type: FancyNewDotcomFeature',
       ),
