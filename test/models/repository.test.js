@@ -11,6 +11,7 @@ import {LargeRepoError} from '../../lib/git-shell-out-strategy';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import Author from '../../lib/models/author';
+import {FOCUS} from '../../lib/models/workspace-change-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
@@ -2305,6 +2306,37 @@ describe('Repository', function() {
           );
         });
       });
+    });
+
+    it('manually invalidates some keys when the WorkspaceChangeObserver indicates the window is focused', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      const readerMethods = await getCacheReaderMethods({repository});
+      function readerValues() {
+        return new Map(
+          Array.from(readerMethods.entries(), method => {
+            return [method[0], method[1]()];
+          }),
+        );
+      }
+
+      const before = readerValues();
+      repository.observeFilesystemChange([{special: FOCUS}]);
+      const after = readerValues();
+
+      const invalidated = Array.from(readerMethods.keys()).filter(key => before.get(key) !== after.get(key));
+
+      assert.sameMembers(invalidated, [
+        'getStatusBundle',
+        'getFilePatchForPath {unstaged} a.txt',
+        'getFilePatchForPath {unstaged} b.txt',
+        'getFilePatchForPath {unstaged} c.txt',
+        'getFilePatchForPath {unstaged} subdir-1/a.txt',
+        'getFilePatchForPath {unstaged} subdir-1/b.txt',
+        'getFilePatchForPath {unstaged} subdir-1/c.txt',
+      ]);
     });
   });
 
