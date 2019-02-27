@@ -1,4 +1,5 @@
-lib/shared/*
+/lib/shared/**/*
+/test/output/transpiled/**
 /test/fixtures/**/*
 !/test/fixtures/factories/**
 !/test/fixtures/props/**
