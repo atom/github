@@ -23,22 +23,28 @@
     padding: @component-padding;
   }
 
-  .github-FilePatchView-controlBlock {
-    padding: @component-padding*4 @component-padding @component-padding 0;
+  &-controlBlock {
     background-color: @syntax-background-color;
+    display: flow-root;
+  }
 
-    & + .github-FilePatchView-controlBlock {
-      padding-top: 0;
+  &-controlBlock &-header {
+    margin: @component-padding*4 @component-padding @component-padding 0;
+  }
+
+  &-controlBlock .github-HunkHeaderView {
+    margin: @component-padding @component-padding @component-padding 0;
+  }
+
+  &-controlBlock + &-controlBlock {
+    .github-FilePatchView-header , .github-HunkHeaderView {
+      margin-top: 0;
     }
   }
 
   &-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding-top: @component-padding*2;
-    padding: @component-padding/2;
-    padding-left: @component-padding;
     border: 1px solid @base-border-color;
     border-radius: @component-border-radius;
     font-family: @font-family;
@@ -54,6 +60,10 @@
         margin-right: .5em;
       }
     }
+
+    .btn-group {
+      margin: @component-padding/2;
+    }
   }
 
   &-title {
@@ -61,7 +71,42 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-right: @component-padding;
+    margin-left: @component-padding;
+  }
+
+  &-message {
+    font-family: @font-family;
+    text-align: center;
+    margin: 15px 0 0 0;
+  }
+
+  &-showDiffButton {
+    background: transparent;
+    border: none;
+    color: @text-color-highlight;
+    font-size: 18px;
+    margin-bottom: 15px;
+
+    &:hover {
+        color: @gh-background-color-blue;
+      }
+  }
+
+  &-collapseButton {
+    background: transparent;
+    border: none;
+    padding: @component-padding/1.5;
+
+    & + .github-FilePatchView-title {
+      margin-left: 0; // chevron already has margin
+    }
+  }
+
+  &-collapseButtonIcon {
+    &:before {
+      margin-right: 0;
+      vertical-align: -2px;
+    }
   }
 
   &-container {

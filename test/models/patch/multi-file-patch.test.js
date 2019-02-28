@@ -2,12 +2,15 @@ import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
+import {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
+
 import {assertInFilePatch} from '../../helpers';
 
 describe('MultiFilePatch', function() {
-  it('creates an empty patch when constructed with no arguments', function() {
-    const empty = new MultiFilePatch({});
+  it('creates an empty patch', function() {
+    const empty = MultiFilePatch.createNull();
     assert.isFalse(empty.anyPresent());
     assert.lengthOf(empty.getFilePatches(), 0);
   });
@@ -48,17 +51,17 @@ describe('MultiFilePatch', function() {
       assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
     });
 
-    it('creates a copy with a new buffer and layer set', function() {
-      const {buffer, layers} = multiFilePatchBuilder().build();
-      const dup = original.clone({buffer, layers});
+    it('creates a copy with a new PatchBuffer', function() {
+      const {multiFilePatch} = multiFilePatchBuilder().build();
+      const dup = original.clone({patchBuffer: multiFilePatch.getPatchBuffer()});
 
-      assert.strictEqual(dup.getBuffer(), buffer);
-      assert.strictEqual(dup.getPatchLayer(), layers.patch);
-      assert.strictEqual(dup.getHunkLayer(), layers.hunk);
-      assert.strictEqual(dup.getUnchangedLayer(), layers.unchanged);
-      assert.strictEqual(dup.getAdditionLayer(), layers.addition);
-      assert.strictEqual(dup.getDeletionLayer(), layers.deletion);
-      assert.strictEqual(dup.getNoNewlineLayer(), layers.noNewline);
+      assert.strictEqual(dup.getBuffer(), multiFilePatch.getBuffer());
+      assert.strictEqual(dup.getPatchLayer(), multiFilePatch.getPatchLayer());
+      assert.strictEqual(dup.getHunkLayer(), multiFilePatch.getHunkLayer());
+      assert.strictEqual(dup.getUnchangedLayer(), multiFilePatch.getUnchangedLayer());
+      assert.strictEqual(dup.getAdditionLayer(), multiFilePatch.getAdditionLayer());
+      assert.strictEqual(dup.getDeletionLayer(), multiFilePatch.getDeletionLayer());
+      assert.strictEqual(dup.getNoNewlineLayer(), multiFilePatch.getNoNewlineLayer());
       assert.strictEqual(dup.getFilePatches(), original.getFilePatches());
     });
 
@@ -267,13 +270,12 @@ describe('MultiFilePatch', function() {
        1;1;0
       +1;1;1
       -1;1;2
-       1;1;3
-
+       1;1;3\n
     `);
   });
 
-  it('adopts a buffer from a previous patch', function() {
-    const {multiFilePatch: lastMultiPatch, buffer: lastBuffer, layers: lastLayers} = multiFilePatchBuilder()
+  it('adopts a new buffer', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('A0.txt'));
         fp.addHunk(h => h.unchanged('a0').added('a1').deleted('a2').unchanged('a3'));
@@ -285,82 +287,62 @@ describe('MultiFilePatch', function() {
       })
       .addFilePatch(fp => {
         fp.setOldFile(f => f.path('A2.txt'));
-        fp.addHunk(h => h.oldRow(99).deleted('7').noNewline());
+        fp.addHunk(h => h.oldRow(99).deleted('a10').noNewline());
       })
       .build();
 
-    const {multiFilePatch: nextMultiPatch, buffer: nextBuffer, layers: nextLayers} = multiFilePatchBuilder()
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B0.txt'));
-        fp.addHunk(h => h.unchanged('b0', 'b1').added('b2').unchanged('b3', 'b4'));
-      })
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B1.txt'));
-        fp.addHunk(h => h.unchanged('b5', 'b6').added('b7'));
-      })
-      .addFilePatch(fp => {
-        fp.setOldFile(f => f.path('B2.txt'));
-        fp.addHunk(h => h.unchanged('b8', 'b9').deleted('b10').unchanged('b11'));
-        fp.addHunk(h => h.oldRow(99).deleted('b12').noNewline());
-      })
-      .build();
+    const nextBuffer = new PatchBuffer();
 
-    assert.notStrictEqual(nextBuffer, lastBuffer);
-    assert.notStrictEqual(nextLayers, lastLayers);
+    multiFilePatch.adoptBuffer(nextBuffer);
 
-    nextMultiPatch.adoptBufferFrom(lastMultiPatch);
+    assert.strictEqual(nextBuffer.getBuffer(), multiFilePatch.getBuffer());
+    assert.strictEqual(nextBuffer.getLayer('patch'), multiFilePatch.getPatchLayer());
+    assert.strictEqual(nextBuffer.getLayer('hunk'), multiFilePatch.getHunkLayer());
+    assert.strictEqual(nextBuffer.getLayer('unchanged'), multiFilePatch.getUnchangedLayer());
+    assert.strictEqual(nextBuffer.getLayer('addition'), multiFilePatch.getAdditionLayer());
+    assert.strictEqual(nextBuffer.getLayer('deletion'), multiFilePatch.getDeletionLayer());
+    assert.strictEqual(nextBuffer.getLayer('nonewline'), multiFilePatch.getNoNewlineLayer());
 
-    assert.strictEqual(nextMultiPatch.getBuffer(), lastBuffer);
-    assert.strictEqual(nextMultiPatch.getPatchLayer(), lastLayers.patch);
-    assert.strictEqual(nextMultiPatch.getHunkLayer(), lastLayers.hunk);
-    assert.strictEqual(nextMultiPatch.getUnchangedLayer(), lastLayers.unchanged);
-    assert.strictEqual(nextMultiPatch.getAdditionLayer(), lastLayers.addition);
-    assert.strictEqual(nextMultiPatch.getDeletionLayer(), lastLayers.deletion);
-    assert.strictEqual(nextMultiPatch.getNoNewlineLayer(), lastLayers.noNewline);
-
-    assert.deepEqual(lastBuffer.getText(), dedent`
-      b0
-      b1
-      b2
-      b3
-      b4
-      b5
-      b6
-      b7
-      b8
-      b9
-      b10
-      b11
-      b12
+    assert.deepEqual(nextBuffer.getBuffer().getText(), dedent`
+      a0
+      a1
+      a2
+      a3
+      a4
+      a5
+      a6
+      a7
+      a8
+      a9
+      a10
        No newline at end of file
-
     `);
 
     const assertMarkedLayerRanges = (layer, ranges) => {
       assert.deepEqual(layer.getMarkers().map(m => m.getRange().serialize()), ranges);
     };
 
-    assertMarkedLayerRanges(lastLayers.patch, [
-      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('patch'), [
+      [[0, 0], [3, 2]], [[4, 0], [9, 2]], [[10, 0], [11, 26]],
     ]);
-    assertMarkedLayerRanges(lastLayers.hunk, [
-      [[0, 0], [4, 2]], [[5, 0], [7, 2]], [[8, 0], [11, 3]], [[12, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('hunk'), [
+      [[0, 0], [3, 2]], [[4, 0], [6, 2]], [[7, 0], [9, 2]], [[10, 0], [11, 26]],
     ]);
-    assertMarkedLayerRanges(lastLayers.unchanged, [
-      [[0, 0], [1, 2]], [[3, 0], [4, 2]], [[5, 0], [6, 2]], [[8, 0], [9, 2]], [[11, 0], [11, 3]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('unchanged'), [
+      [[0, 0], [0, 2]], [[3, 0], [3, 2]], [[4, 0], [4, 2]], [[6, 0], [6, 2]], [[7, 0], [7, 2]], [[9, 0], [9, 2]],
     ]);
-    assertMarkedLayerRanges(lastLayers.addition, [
-      [[2, 0], [2, 2]], [[7, 0], [7, 2]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('addition'), [
+      [[1, 0], [1, 2]], [[8, 0], [8, 2]],
     ]);
-    assertMarkedLayerRanges(lastLayers.deletion, [
-      [[10, 0], [10, 3]], [[12, 0], [12, 3]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('deletion'), [
+      [[2, 0], [2, 2]], [[5, 0], [5, 2]], [[10, 0], [10, 3]],
     ]);
-    assertMarkedLayerRanges(lastLayers.noNewline, [
-      [[13, 0], [13, 26]],
+    assertMarkedLayerRanges(nextBuffer.getLayer('nonewline'), [
+      [[11, 0], [11, 26]],
     ]);
 
-    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B0.txt', 1), 0);
-    assert.strictEqual(nextMultiPatch.getBufferRowForDiffPosition('B2.txt', 5), 12);
+    assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('A0.txt', 1), 0);
+    assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('A1.txt', 5), 7);
   });
 
   describe('derived patch generation', function() {
@@ -569,24 +551,14 @@ describe('MultiFilePatch', function() {
     });
   });
 
-  describe('next selection range derivation', function() {
-    it('selects the origin if the new patch is empty', function() {
-      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder().addFilePatch().build();
-      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder().build();
-
-      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set());
-      assert.deepEqual(nextSelectionRange.serialize(), [[0, 0], [0, 0]]);
+  describe('maximum selection index', function() {
+    it('returns zero if there are no selections', function() {
+      const {multiFilePatch} = multiFilePatchBuilder().addFilePatch().build();
+      assert.strictEqual(multiFilePatch.getMaxSelectionIndex(new Set()), 0);
     });
 
-    it('selects the first change row if there was no prior selection', function() {
-      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder().build();
-      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder().addFilePatch().build();
-      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set());
-      assert.deepEqual(nextSelectionRange.serialize(), [[1, 0], [1, Infinity]]);
-    });
-
-    it('preserves the numeric index of the highest selected change row', function() {
-      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+    it('returns the ordinal index of the highest selected change row', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.addHunk(h => h.unchanged('.').added('0', '1', 'x *').unchanged('.'));
           fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
@@ -597,83 +569,48 @@ describe('MultiFilePatch', function() {
         })
         .build();
 
-      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
+      assert.strictEqual(multiFilePatch.getMaxSelectionIndex(new Set([3])), 2);
+      assert.strictEqual(multiFilePatch.getMaxSelectionIndex(new Set([3, 11])), 5);
+    });
+  });
+
+  describe('selection range by change index', function() {
+    it('selects the last change row if no longer present', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').added('0', '1').unchanged('x', '.'));
-          fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('0', '1', '2').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('3').added('4').unchanged('.'));
         })
         .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').deleted('4', '6 *').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.').added('7').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('5', '6', '7').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('8').unchanged('.'));
         })
         .build();
 
-      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set([3, 11]));
-      assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(9).serialize(), [[15, 0], [15, Infinity]]);
     });
 
-    describe('when the bottom-most changed row is selected', function() {
-      it('selects the bottom-most changed row of the new patch', function() {
-        const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
-          .addFilePatch(fp => {
-            fp.addHunk(h => h.unchanged('.').added('0', '1', 'x').unchanged('.'));
-            fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
-          })
-          .addFilePatch(fp => {
-            fp.addHunk(h => h.unchanged('.').deleted('4', '5', '6').unchanged('.'));
-            fp.addHunk(h => h.unchanged('.').added('7', '8 *').unchanged('.'));
-          })
-          .build();
-
-        const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
-          .addFilePatch(fp => {
-            fp.addHunk(h => h.unchanged('.').added('0', '1', 'x').unchanged('.'));
-            fp.addHunk(h => h.unchanged('.').deleted('2').added('3').unchanged('.'));
-          })
-          .addFilePatch(fp => {
-            fp.addHunk(h => h.unchanged('.').deleted('4', '5', '6').unchanged('.'));
-            fp.addHunk(h => h.unchanged('.').added('7').unchanged('.'));
-          })
-          .build();
-
-        const nextSelectionRange = nextMultiPatch.getNextSelectionRange(lastMultiPatch, new Set([16]));
-        assert.deepEqual(nextSelectionRange.serialize(), [[15, 0], [15, Infinity]]);
-      });
-    });
-
-    it('skips hunks that were completely selected', function() {
-      const {multiFilePatch: lastMultiPatch} = multiFilePatchBuilder()
+    it('returns the range of the change row by ordinal', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').added('0').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.').added('x *', 'x *').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('0', '1', '2').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').deleted('3').added('4').unchanged('.'));
         })
         .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').deleted('x *').unchanged('.'));
-        })
-        .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').added('x *', '1').deleted('2').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.').deleted('x *').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.', '.').deleted('4', '5 *', '6').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.').deleted('7', '8').unchanged('.', '.'));
+          fp.addHunk(h => h.unchanged('.').deleted('5', '6', '7').unchanged('.'));
+          fp.addHunk(h => h.unchanged('.').added('8').unchanged('.'));
         })
         .build();
 
-      const {multiFilePatch: nextMultiPatch} = multiFilePatchBuilder()
-        .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.').added('0').unchanged('.'));
-        })
-        .addFilePatch(fp => {
-          fp.addHunk(h => h.unchanged('.', 'x').added('1').deleted('2').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.', '.').deleted('4', '6 +').unchanged('.'));
-          fp.addHunk(h => h.unchanged('.').deleted('7', '8').unchanged('.', '.'));
-        })
-        .build();
-
-      const nextSelectionRange = nextMultiPatch.getNextSelectionRange(
-        lastMultiPatch,
-        new Set([4, 5, 8, 11, 16, 21]),
-      );
-      assert.deepEqual(nextSelectionRange.serialize(), [[11, 0], [11, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(0).serialize(), [[1, 0], [1, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(1).serialize(), [[2, 0], [2, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(2).serialize(), [[3, 0], [3, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(3).serialize(), [[6, 0], [6, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(4).serialize(), [[7, 0], [7, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(5).serialize(), [[10, 0], [10, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(6).serialize(), [[11, 0], [11, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(7).serialize(), [[12, 0], [12, Infinity]]);
+      assert.deepEqual(multiFilePatch.getSelectionRangeForIndex(8).serialize(), [[15, 0], [15, Infinity]]);
     });
   });
 
@@ -701,6 +638,74 @@ describe('MultiFilePatch', function() {
 
     it('with buffer positions belonging to multiple patches', function() {
       assert.isTrue(multiFilePatch.spansMultipleFiles([6, 10]));
+    });
+  });
+
+  describe('isPatchVisible', function() {
+    it('returns false if patch exceeds large diff threshold', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(TOO_LARGE);
+        })
+        .build()
+        .multiFilePatch;
+      assert.isFalse(multiFilePatch.isPatchVisible('file-0'));
+    });
+
+    it('returns false if patch is collapsed', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(COLLAPSED);
+        }).build().multiFilePatch;
+
+      assert.isFalse(multiFilePatch.isPatchVisible('file-0'));
+    });
+
+    it('returns true if patch is expanded', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(EXPANDED);
+        })
+        .build()
+        .multiFilePatch;
+
+      assert.isTrue(multiFilePatch.isPatchVisible('file-0'));
+    });
+
+    it('multiFilePatch with multiple hunks returns correct values', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('expanded-file'));
+          fp.renderStatus(EXPANDED);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('too-large-file'));
+          fp.renderStatus(TOO_LARGE);
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('collapsed-file'));
+          fp.renderStatus(COLLAPSED);
+        })
+        .build()
+        .multiFilePatch;
+
+      assert.isTrue(multiFilePatch.isPatchVisible('expanded-file'));
+      assert.isFalse(multiFilePatch.isPatchVisible('too-large-file'));
+      assert.isFalse(multiFilePatch.isPatchVisible('collapsed-file'));
+    });
+
+    it('returns false if patch does not exist', function() {
+      const multiFilePatch = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file-0'));
+          fp.renderStatus(EXPANDED);
+        })
+        .build()
+        .multiFilePatch;
+      assert.isFalse(multiFilePatch.isPatchVisible('invalid-file-path'));
     });
   });
 
@@ -774,6 +779,480 @@ describe('MultiFilePatch', function() {
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 11), 29);
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 13), 30);
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 15), 32);
+    });
+  });
+
+  describe('collapsing and expanding file patches', function() {
+    function hunk({index, start, last}) {
+      return {
+        startRow: start, endRow: start + 3,
+        header: '@@ -1,4 +1,2 @@',
+        regions: [
+          {kind: 'unchanged', string: ` ${index}-0\n`, range: [[start, 0], [start, 3]]},
+          {kind: 'deletion', string: `-${index}-1\n-${index}-2\n`, range: [[start + 1, 0], [start + 2, 3]]},
+          {kind: 'unchanged', string: ` ${index}-3${last ? '' : '\n'}`, range: [[start + 3, 0], [start + 3, 3]]},
+        ],
+      };
+    }
+
+    function patchTextForIndexes(indexes) {
+      return indexes.map(index => {
+        return dedent`
+        ${index}-0
+        ${index}-1
+        ${index}-2
+        ${index}-3
+        `;
+      }).join('\n');
+    }
+
+    describe('when there is a single file patch', function() {
+      it('collapses and expands the only file patch', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('0-0').deleted('0-1', '0-2').unchanged('0-3'));
+          })
+          .build();
+
+        const [fp0] = multiFilePatch.getFilePatches();
+
+        multiFilePatch.collapseFilePatch(fp0);
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+
+        multiFilePatch.expandFilePatch(fp0);
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+      });
+    });
+
+    describe('when there are multiple file patches', function() {
+      let multiFilePatch, fp0, fp1, fp2, fp3;
+      beforeEach(function() {
+        const {multiFilePatch: mfp} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('0-0').deleted('0-1', '0-2').unchanged('0-3'));
+          })
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('1.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('1-0').deleted('1-1', '1-2').unchanged('1-3'));
+          })
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('2.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('2-0').deleted('2-1', '2-2').unchanged('2-3'));
+          })
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('3.txt'));
+            fp.addHunk(h => h.oldRow(1).unchanged('3-0').deleted('3-1', '3-2').unchanged('3-3'));
+          })
+          .build();
+
+        multiFilePatch = mfp;
+        const patches = multiFilePatch.getFilePatches();
+        fp0 = patches[0];
+        fp1 = patches[1];
+        fp2 = patches[2];
+        fp3 = patches[3];
+      });
+
+      it('collapses and expands the first file patch with all following expanded', function() {
+        multiFilePatch.collapseFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([1, 2, 3]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 0}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 4}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
+
+        multiFilePatch.expandFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2, 3]));
+
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+      });
+
+      it('collapses and expands an intermediate file patch while all previous patches are collapsed', function() {
+        // collapse pervious files
+        multiFilePatch.collapseFilePatch(fp0);
+        multiFilePatch.collapseFilePatch(fp1);
+
+        // collapse intermediate file
+        multiFilePatch.collapseFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([3]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
+
+        multiFilePatch.expandFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([2, 3]));
+
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 0}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 4, last: true}));
+      });
+
+      it('collapses and expands an intermediate file patch while all following patches are collapsed', function() {
+        // collapse following files
+        multiFilePatch.collapseFilePatch(fp2);
+        multiFilePatch.collapseFilePatch(fp3);
+
+        // collapse intermediate file
+        multiFilePatch.collapseFilePatch(fp1);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+        multiFilePatch.expandFilePatch(fp1);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1]));
+
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4, last: true}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+      });
+
+      it('collapses and expands a file patch with uncollapsed file patches before and after it', function() {
+        multiFilePatch.collapseFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 3]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
+
+        multiFilePatch.expandFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2, 3]));
+
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+      });
+
+      it('collapses and expands the final file patch with all previous expanded', function() {
+        multiFilePatch.collapseFilePatch(fp3);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8, last: true}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+        multiFilePatch.expandFilePatch(fp3);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2, 3]));
+
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+      });
+
+      it('collapses and expands the final two file patches', function() {
+        multiFilePatch.collapseFilePatch(fp3);
+        multiFilePatch.collapseFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4, last: true}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+        multiFilePatch.expandFilePatch(fp3);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 3]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
+
+        multiFilePatch.expandFilePatch(fp2);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0, 1, 2, 3]));
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+        assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+        assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+        assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+      });
+
+      describe('when all patches are collapsed', function() {
+        beforeEach(function() {
+          multiFilePatch.collapseFilePatch(fp0);
+          multiFilePatch.collapseFilePatch(fp1);
+          multiFilePatch.collapseFilePatch(fp2);
+          multiFilePatch.collapseFilePatch(fp3);
+        });
+
+        it('expands the first file patch', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp0);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([0]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+        });
+
+        it('expands a non-first file patch', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp2);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([2]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 0, last: true}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+        });
+
+        it('expands the final file patch', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp3);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes([3]));
+
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
+        });
+
+        it('expands all patches in order', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp0);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0, last: true}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp1);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4, last: true}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp2);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8, last: true}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks();
+
+          multiFilePatch.expandFilePatch(fp3);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+        });
+
+        it('expands all patches in reverse order', function() {
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+          multiFilePatch.expandFilePatch(fp3);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 0, last: true}));
+
+          multiFilePatch.expandFilePatch(fp2);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 0}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 4, last: true}));
+
+          multiFilePatch.expandFilePatch(fp1);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 0}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 4}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 8, last: true}));
+
+          multiFilePatch.expandFilePatch(fp0);
+          assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks(hunk({index: 0, start: 0}));
+          assertInFilePatch(fp1, multiFilePatch.getBuffer()).hunks(hunk({index: 1, start: 4}));
+          assertInFilePatch(fp2, multiFilePatch.getBuffer()).hunks(hunk({index: 2, start: 8}));
+          assertInFilePatch(fp3, multiFilePatch.getBuffer()).hunks(hunk({index: 3, start: 12, last: true}));
+        });
+      });
+
+      it('is deterministic regardless of the order in which collapse and expand operations are performed', function() {
+        this.timeout(60000);
+
+        const patches = multiFilePatch.getFilePatches();
+
+        function expectVisibleAfter(ops, i) {
+          return ops.reduce((visible, op) => (op.index === i ? op.visibleAfter : visible), true);
+        }
+
+        const operations = [];
+        for (let i = 0; i < patches.length; i++) {
+          operations.push({
+            index: i,
+            visibleAfter: false,
+            name: `collapse fp${i}`,
+            canHappenAfter: ops => expectVisibleAfter(ops, i),
+            action: () => multiFilePatch.collapseFilePatch(patches[i]),
+          });
+
+          operations.push({
+            index: i,
+            visibleAfter: true,
+            name: `expand fp${i}`,
+            canHappenAfter: ops => !expectVisibleAfter(ops, i),
+            action: () => multiFilePatch.expandFilePatch(patches[i]),
+          });
+        }
+
+        const operationSequences = [];
+
+        function generateSequencesAfter(prefix) {
+          const possible = operations
+            .filter(op => !prefix.includes(op))
+            .filter(op => op.canHappenAfter(prefix));
+          if (possible.length === 0) {
+            operationSequences.push(prefix);
+          } else {
+            for (const next of possible) {
+              generateSequencesAfter([...prefix, next]);
+            }
+          }
+        }
+        generateSequencesAfter([]);
+
+        for (const sequence of operationSequences) {
+          // Uncomment to see which sequence is causing problems
+          // console.log(sequence.map(op => op.name).join(' -> '));
+
+          // Reset to the all-expanded state
+          multiFilePatch.expandFilePatch(fp0);
+          multiFilePatch.expandFilePatch(fp1);
+          multiFilePatch.expandFilePatch(fp2);
+          multiFilePatch.expandFilePatch(fp3);
+
+          // Perform the operations
+          for (const operation of sequence) {
+            operation.action();
+          }
+
+          // Ensure the TextBuffer and Markers are in the expected states
+          const visibleIndexes = [];
+          for (let i = 0; i < patches.length; i++) {
+            if (patches[i].getRenderStatus().isVisible()) {
+              visibleIndexes.push(i);
+            }
+          }
+          const lastVisibleIndex = Math.max(...visibleIndexes);
+
+          assert.strictEqual(multiFilePatch.getBuffer().getText(), patchTextForIndexes(visibleIndexes));
+
+          let start = 0;
+          for (let i = 0; i < patches.length; i++) {
+            const patchAssertions = assertInFilePatch(patches[i], multiFilePatch.getBuffer());
+            if (patches[i].getRenderStatus().isVisible()) {
+              patchAssertions.hunks(hunk({index: i, start, last: lastVisibleIndex === i}));
+              start += 4;
+            } else {
+              patchAssertions.hunks();
+            }
+          }
+        }
+      });
+    });
+
+    describe('when a file patch has no content', function() {
+      it('collapses and expands', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt').executable());
+            fp.setNewFile(f => f.path('0.txt'));
+            fp.empty();
+          })
+          .build();
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+        const [fp0] = multiFilePatch.getFilePatches();
+
+        multiFilePatch.collapseFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+        assert.isTrue(fp0.getMarker().isValid());
+        assert.isFalse(fp0.getMarker().isDestroyed());
+
+        multiFilePatch.expandFilePatch(fp0);
+
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+        assertInFilePatch(fp0, multiFilePatch.getBuffer()).hunks();
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+        assert.isTrue(fp0.getMarker().isValid());
+        assert.isFalse(fp0.getMarker().isDestroyed());
+      });
+
+      it('does not insert a trailing newline when expanding a final content-less patch', function() {
+        const {multiFilePatch} = multiFilePatchBuilder()
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('0.txt'));
+            fp.addHunk(h => h.unchanged('0').added('1').unchanged('2'));
+          })
+          .addFilePatch(fp => {
+            fp.setOldFile(f => f.path('1.txt').executable());
+            fp.setNewFile(f => f.path('1.txt'));
+            fp.empty();
+          })
+          .build();
+        const [fp0, fp1] = multiFilePatch.getFilePatches();
+
+        assert.isTrue(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+
+        multiFilePatch.collapseFilePatch(fp1);
+
+        assert.isFalse(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+
+        multiFilePatch.expandFilePatch(fp1);
+
+        assert.isTrue(fp1.getRenderStatus().isVisible());
+        assert.strictEqual(multiFilePatch.getBuffer().getText(), dedent`
+          0
+          1
+          2
+        `);
+        assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [2, 1]]);
+        assert.deepEqual(fp1.getMarker().getRange().serialize(), [[2, 1], [2, 1]]);
+      });
     });
   });
 });

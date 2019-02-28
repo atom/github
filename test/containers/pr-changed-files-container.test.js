@@ -115,6 +115,17 @@ describe('PullRequestChangedFilesContainer', function() {
       assert.isTrue(wrapper.instance().state.isLoading);
       await assert.async.strictEqual(window.fetch.callCount, 2);
     });
+    it('disposes MFP subscription on unmount', async function() {
+      const wrapper = shallow(buildApp());
+      await assert.async.isTrue(wrapper.update().find('MultiFilePatchController').exists());
+
+      const mfp = wrapper.find('MultiFilePatchController').prop('multiFilePatch');
+      const [fp] = mfp.getFilePatches();
+      assert.strictEqual(fp.emitter.listenerCountForEventName('change-render-status'), 1);
+
+      wrapper.unmount();
+      assert.strictEqual(fp.emitter.listenerCountForEventName('change-render-status'), 0);
+    });
   });
 
   describe('error states', function() {

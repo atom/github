@@ -1,7 +1,10 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
+
 import {cloneRepository, buildRepository} from '../helpers';
+import {EXPANDED, COLLAPSED, TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {nullFile} from '../../lib/models/patch/file';
@@ -85,6 +88,104 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
   });
 
+  it('populates an externally provided refEditor', async function() {
+    const refEditor = new RefHolder();
+    mount(buildApp({refEditor}));
+    assert.isDefined(await refEditor.getPromise());
+  });
+
+  describe('file header decoration positioning', function() {
+    let wrapper;
+
+    function decorationForFileHeader(fileName) {
+      return wrapper.find('Decoration').filterWhere(dw => dw.exists(`FilePatchHeaderView[relPath="${fileName}"]`));
+    }
+
+    it('renders visible file headers with position: before', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.unchanged('a-0').deleted('a-1').unchanged('a-2'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.unchanged('b-0').added('b-1').unchanged('b-2'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('2.txt'));
+          fp.addHunk(h => h.unchanged('c-0').deleted('c-1').unchanged('c-2'));
+        })
+        .build();
+
+      wrapper = shallow(buildApp({multiFilePatch}));
+
+      assert.strictEqual(decorationForFileHeader('0.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('1.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('2.txt').prop('position'), 'before');
+    });
+
+    it('renders a final collapsed file header with position: after', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(COLLAPSED);
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.unchanged('a-0').added('a-1').unchanged('a-2'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.unchanged('b-0').added('b-1').unchanged('b-2'));
+        })
+        .addFilePatch(fp => {
+          fp.renderStatus(COLLAPSED);
+          fp.setOldFile(f => f.path('2.txt'));
+          fp.addHunk(h => h.unchanged('c-0').added('c-1').unchanged('c-2'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('3.txt'));
+          fp.addHunk(h => h.unchanged('d-0').added('d-1').unchanged('d-2'));
+        })
+        .addFilePatch(fp => {
+          fp.renderStatus(COLLAPSED);
+          fp.setOldFile(f => f.path('4.txt'));
+          fp.addHunk(h => h.unchanged('e-0').added('e-1').unchanged('e-2'));
+        })
+        .build();
+
+      wrapper = shallow(buildApp({multiFilePatch}));
+
+      assert.strictEqual(decorationForFileHeader('0.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('1.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('2.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('3.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('4.txt').prop('position'), 'after');
+    });
+
+    it('renders a final mode change-only file header with position: after', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.setNewFile(f => f.path('0.txt').executable());
+          fp.empty();
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.unchanged('b-0').added('b-1').unchanged('b-2'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('2.txt').executable());
+          fp.setNewFile(f => f.path('2.txt'));
+          fp.empty();
+        })
+        .build();
+
+      wrapper = shallow(buildApp({multiFilePatch}));
+
+      assert.strictEqual(decorationForFileHeader('0.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('1.txt').prop('position'), 'before');
+      assert.strictEqual(decorationForFileHeader('2.txt').prop('position'), 'after');
+    });
+  });
+
   it('undoes the last discard from the file header button', function() {
     const undoLastDiscard = sinon.spy();
     const wrapper = shallow(buildApp({undoLastDiscard}));
@@ -133,6 +234,36 @@ describe('MultiFilePatchView', function() {
 
     assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="0"]').prop('hasMultipleFileSelections'));
     assert.isFalse(wrapper.find('FilePatchHeaderView[relPath="1"]').prop('hasMultipleFileSelections'));
+  });
+
+  it('triggers a FilePatch collapse from file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+    const fp1 = multiFilePatch.getFilePatches()[1];
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+
+    sinon.stub(multiFilePatch, 'collapseFilePatch');
+
+    wrapper.find('FilePatchHeaderView[relPath="1"]').prop('triggerCollapse')();
+    assert.isTrue(multiFilePatch.collapseFilePatch.calledWith(fp1));
+  });
+
+  it('triggers a FilePatch expansion from file headers', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => fp.setOldFile(f => f.path('0')))
+      .addFilePatch(fp => fp.setOldFile(f => f.path('1')))
+      .build();
+    const fp0 = multiFilePatch.getFilePatches()[0];
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+
+    sinon.stub(multiFilePatch, 'expandFilePatch');
+
+    wrapper.find('FilePatchHeaderView[relPath="0"]').prop('triggerExpand')();
+    assert.isTrue(multiFilePatch.expandFilePatch.calledWith(fp0));
   });
 
   it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
@@ -186,10 +317,23 @@ describe('MultiFilePatchView', function() {
 
   it('preserves the selection index when a new file patch arrives in line selection mode', function() {
     const selectedRowsChanged = sinon.spy();
+
+    let willUpdate, didUpdate;
+    const onWillUpdatePatch = cb => {
+      willUpdate = cb;
+      return {dispose: () => {}};
+    };
+    const onDidUpdatePatch = cb => {
+      didUpdate = cb;
+      return {dispose: () => {}};
+    };
+
     const wrapper = mount(buildApp({
       selectedRows: new Set([2]),
       selectionMode: 'line',
       selectedRowsChanged,
+      onWillUpdatePatch,
+      onDidUpdatePatch,
     }));
 
     const {multiFilePatch} = multiFilePatchBuilder()
@@ -201,7 +345,9 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    willUpdate();
     wrapper.setProps({multiFilePatch});
+    didUpdate(multiFilePatch);
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [3]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
 
@@ -237,12 +383,24 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    let willUpdate, didUpdate;
+    const onWillUpdatePatch = cb => {
+      willUpdate = cb;
+      return {dispose: () => {}};
+    };
+    const onDidUpdatePatch = cb => {
+      didUpdate = cb;
+      return {dispose: () => {}};
+    };
+
     const selectedRowsChanged = sinon.spy();
     const wrapper = mount(buildApp({
       multiFilePatch,
       selectedRows: new Set([6, 7, 8]),
       selectionMode: 'hunk',
       selectedRowsChanged,
+      onWillUpdatePatch,
+      onDidUpdatePatch,
     }));
 
     const {multiFilePatch: nextMfp} = multiFilePatchBuilder()
@@ -262,7 +420,9 @@ describe('MultiFilePatchView', function() {
         });
       }).build();
 
+    willUpdate();
     wrapper.setProps({multiFilePatch: nextMfp});
+    didUpdate(nextMfp);
 
     assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
     assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
@@ -270,6 +430,79 @@ describe('MultiFilePatchView', function() {
     assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
       [[5, 0], [8, 4]],
     ]);
+  });
+
+  describe('when the last line in a non-last file patch is staged', function() {
+    it('updates the selected row to be the first changed line in the next file patch', function() {
+      const selectedRowsChanged = sinon.spy();
+
+      let willUpdate, didUpdate;
+      const onWillUpdatePatch = cb => {
+        willUpdate = cb;
+        return {dispose: () => {}};
+      };
+      const onDidUpdatePatch = cb => {
+        didUpdate = cb;
+        return {dispose: () => {}};
+      };
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('another-path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        }).build();
+
+      const wrapper = mount(buildApp({
+        selectedRows: new Set([3]),
+        selectionMode: 'line',
+        selectedRowsChanged,
+        onWillUpdatePatch,
+        onDidUpdatePatch,
+        multiFilePatch,
+      }));
+
+      assert.deepEqual([...wrapper.prop('selectedRows')], [3]);
+
+      const {multiFilePatch: multiFilePatch2} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').unchanged('0003').unchanged('0004');
+          });
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('another-path.txt'));
+          fp.addHunk(h => {
+            h.oldRow(5);
+            h.unchanged('0000').added('0001').unchanged('0002').deleted('0003').unchanged('0004');
+          });
+        }).build();
+
+      selectedRowsChanged.resetHistory();
+      willUpdate();
+      wrapper.setProps({multiFilePatch: multiFilePatch2});
+      didUpdate(multiFilePatch2);
+
+      assert.strictEqual(selectedRowsChanged.callCount, 1);
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'line');
+
+      const editor = wrapper.find('AtomTextEditor').instance().getModel();
+      assert.deepEqual(editor.getSelectedBufferRanges().map(r => r.serialize()), [
+        [[6, 0], [6, 4]],
+      ]);
+    });
   });
 
   it('unregisters the mouseup handler on unmount', function() {
@@ -1034,7 +1267,13 @@ describe('MultiFilePatchView', function() {
 
       const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
+          fp.status('deleted');
           fp.setOldFile(f => f.path('f0').symlinkTo('elsewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
           fp.setNewFile(f => f.path('f0'));
           tenLineHunk(fp);
         })
@@ -1043,12 +1282,18 @@ describe('MultiFilePatchView', function() {
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
-          fp.setNewFile(f => f.path('f2'));
+          fp.status('deleted');
           fp.setOldFile(f => f.path('f2').symlinkTo('somewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('f2'));
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
-          fp.setOldFile(f => f.path('f3').symlinkTo('unchanged'));
+          fp.setOldFile(f => f.path('f3'));
           tenLineHunk(fp);
         })
         .addFilePatch(fp => {
@@ -1436,6 +1681,52 @@ describe('MultiFilePatchView', function() {
           });
         });
       });
+    });
+  });
+
+  describe('large diff gate', function() {
+    let wrapper, mfp;
+
+    beforeEach(function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(TOO_LARGE);
+        }).build();
+      mfp = multiFilePatch;
+      wrapper = mount(buildApp({multiFilePatch: mfp}));
+    });
+
+    it('displays diff gate when diff exceeds a certain number of lines', function() {
+      assert.include(
+        wrapper.find('.github-FilePatchView-controlBlock .github-FilePatchView-message').first().text(),
+        'Large diffs are collapsed by default for performance reasons.',
+      );
+      assert.isTrue(wrapper.find('.github-FilePatchView-showDiffButton').exists());
+      assert.isFalse(wrapper.find('.github-HunkHeaderView').exists());
+    });
+
+    it('loads large diff and sends event when show diff button is clicked', function() {
+      const addEventStub = sinon.stub(reporterProxy, 'addEvent');
+      const expandFilePatch = sinon.spy(mfp, 'expandFilePatch');
+
+      assert.isFalse(addEventStub.called);
+      wrapper.find('.github-FilePatchView-showDiffButton').first().simulate('click');
+      wrapper.update();
+
+      assert.isTrue(addEventStub.calledOnce);
+      assert.deepEqual(addEventStub.lastCall.args, ['expand-file-patch', {component: 'MultiFilePatchView', package: 'github'}]);
+      assert.isTrue(expandFilePatch.calledOnce);
+    });
+
+    it('does not display diff gate if diff size is below large diff threshold', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(EXPANDED);
+        }).build();
+      mfp = multiFilePatch;
+      wrapper = mount(buildApp({multiFilePatch: mfp}));
+      assert.isFalse(wrapper.find('.github-FilePatchView-showDiffButton').exists());
+      assert.isTrue(wrapper.find('.github-HunkHeaderView').exists());
     });
   });
 });

@@ -11,6 +11,7 @@ import {LargeRepoError} from '../../lib/git-shell-out-strategy';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import Author from '../../lib/models/author';
+import {FOCUS} from '../../lib/models/workspace-change-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
@@ -123,6 +124,7 @@ describe('Repository', function() {
         'push', 'setConfig', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
         'updateDiscardHistory', 'storeBeforeAndAfterBlobs', 'restoreLastDiscardInTempFiles', 'popDiscardHistory',
         'clearDiscardHistory', 'discardWorkDirChangesForPaths', 'addRemote', 'setCommitMessage',
+        'fetchCommitMessageTemplate',
       ]) {
         await assert.isRejected(repository[method](), new RegExp(`${method} is not available in Destroyed state`));
       }
@@ -393,8 +395,7 @@ describe('Repository', function() {
         @@ -0,0 +1,3 @@
         +qux
         +foo
-        +bar
-
+        +bar\n
       `);
 
       // Unstage symlink change, leaving deleted file staged
@@ -415,8 +416,7 @@ describe('Repository', function() {
         -foo
         -bar
         -baz
-        -
-
+        -\n
       `);
     });
 
@@ -1604,6 +1604,31 @@ describe('Repository', function() {
       const repo2 = new Repository(workingDirPath);
       await repo2.getLoadPromise();
     });
+
+    it('passes unexpected git errors to the caller', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').rejects(new Error('oh no'));
+
+      await assert.isRejected(repo.updateDiscardHistory(), /oh no/);
+    });
+
+    it('is resilient to malformed history blobs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').resolves('lol not JSON');
+
+      // Should not throw
+      await repo.updateDiscardHistory();
+    });
   });
 
   describe('cache invalidation', function() {
@@ -2307,6 +2332,41 @@ describe('Repository', function() {
           );
         });
       });
+    });
+
+    it('manually invalidates some keys when the WorkspaceChangeObserver indicates the window is focused', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      const readerMethods = await getCacheReaderMethods({repository});
+      function readerValues() {
+        return new Map(
+          Array.from(readerMethods.entries(), ([name, call]) => {
+            const promise = call();
+            if (process.platform === 'win32') {
+              promise.catch(() => {});
+            }
+            return [name, promise];
+          }),
+        );
+      }
+
+      const before = readerValues();
+      repository.observeFilesystemChange([{special: FOCUS}]);
+      const after = readerValues();
+
+      const invalidated = Array.from(readerMethods.keys()).filter(key => before.get(key) !== after.get(key));
+
+      assert.sameMembers(invalidated, [
+        'getStatusBundle',
+        'getFilePatchForPath {unstaged} a.txt',
+        'getFilePatchForPath {unstaged} b.txt',
+        'getFilePatchForPath {unstaged} c.txt',
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/a.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/b.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/c.txt')}`,
+      ]);
     });
   });
 
