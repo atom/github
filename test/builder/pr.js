@@ -17,7 +17,7 @@ class CommentBuilder {
     return this;
   }
 
-  minmized(m) {
+  minimized(m) {
     this._isMinimized = m;
     return this;
   }
