@@ -53,7 +53,7 @@ describe('MultiFilePatch', function() {
 
     it('creates a copy with a new PatchBuffer', function() {
       const {multiFilePatch} = multiFilePatchBuilder().build();
-      const dup = original.clone({patchBuffer: multiFilePatch.getLayeredBuffer()});
+      const dup = original.clone({patchBuffer: multiFilePatch.getPatchBuffer()});
 
       assert.strictEqual(dup.getBuffer(), multiFilePatch.getBuffer());
       assert.strictEqual(dup.getPatchLayer(), multiFilePatch.getPatchLayer());
