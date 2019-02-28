@@ -1,4 +1,4 @@
-const generate = require('babel-generator').default;
+const generate = require('@babel/generator').default;
 
 module.exports = function({types: t}) {
   return {
