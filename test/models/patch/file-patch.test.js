@@ -180,10 +180,10 @@ describe('FilePatch', function() {
   });
 
   describe('buildStagePatchForLines()', function() {
-    let stagedLayeredBuffer;
+    let stagedPatchBuffer;
 
     beforeEach(function() {
-      stagedLayeredBuffer = new PatchBuffer();
+      stagedPatchBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that applies only the selected lines', function() {
@@ -207,12 +207,12 @@ describe('FilePatch', function() {
       const newFile = new File({path: 'file.txt', mode: '100644'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
 
-      const stagedPatch = filePatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([1, 3]));
+      const stagedPatch = filePatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([1, 3]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
       assert.strictEqual(stagedPatch.getOldFile(), oldFile);
       assert.strictEqual(stagedPatch.getNewFile(), newFile);
-      assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0003\n0004\n');
-      assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+      assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0003\n0004\n');
+      assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 3,
@@ -250,13 +250,13 @@ describe('FilePatch', function() {
       });
 
       it('handles staging part of the file', function() {
-        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([1, 2]));
+        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([1, 2]));
 
         assert.strictEqual(stagedPatch.getStatus(), 'modified');
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.strictEqual(stagedPatch.getNewFile(), oldFile);
-        assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n');
-        assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+        assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0002\n');
+        assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -270,12 +270,12 @@ describe('FilePatch', function() {
       });
 
       it('handles staging all lines, leaving nothing unstaged', function() {
-        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([0, 1, 2]));
+        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(stagedPatch.getStatus(), 'deleted');
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.isFalse(stagedPatch.getNewFile().isPresent());
-        assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n');
-        assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+        assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0002\n');
+        assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -305,7 +305,7 @@ describe('FilePatch', function() {
         const newFile = new File({path: 'file.txt', mode: '120000'});
         const replacePatch = new FilePatch(oldFile, newFile, patch);
 
-        const stagedPatch = replacePatch.buildStagePatchForLines(nBuffer, stagedLayeredBuffer, new Set([0, 1, 2]));
+        const stagedPatch = replacePatch.buildStagePatchForLines(nBuffer, stagedPatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.isFalse(stagedPatch.getNewFile().isPresent());
       });
@@ -313,10 +313,10 @@ describe('FilePatch', function() {
   });
 
   describe('getUnstagePatchForLines()', function() {
-    let unstageLayeredBuffer;
+    let unstagePatchBuffer;
 
     beforeEach(function() {
-      unstageLayeredBuffer = new PatchBuffer();
+      unstagePatchBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that unstages only the specified lines', function() {
@@ -340,12 +340,12 @@ describe('FilePatch', function() {
       const newFile = new File({path: 'file.txt', mode: '100644'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
 
-      const unstagedPatch = filePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([1, 3]));
+      const unstagedPatch = filePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([1, 3]));
       assert.strictEqual(unstagedPatch.getStatus(), 'modified');
       assert.strictEqual(unstagedPatch.getOldFile(), newFile);
       assert.strictEqual(unstagedPatch.getNewFile(), newFile);
-      assert.strictEqual(unstageLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n0003\n0004\n');
-      assertInFilePatch(unstagedPatch, unstageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(unstagePatchBuffer.buffer.getText(), '0000\n0001\n0002\n0003\n0004\n');
+      assertInFilePatch(unstagedPatch, unstagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 4,
@@ -384,11 +384,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging part of the file', function() {
-        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([2]));
+        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([2]));
         assert.strictEqual(unstagePatch.getStatus(), 'modified');
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.strictEqual(unstagePatch.getNewFile(), newFile);
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -402,11 +402,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging all lines, leaving nothing staged', function() {
-        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(unstagePatch.getStatus(), 'deleted');
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.isFalse(unstagePatch.getNewFile().isPresent());
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -421,10 +421,10 @@ describe('FilePatch', function() {
       it('unsets the newFile when a symlink is deleted and a file is created in its place', function() {
         const oldSymlink = new File({path: 'file.txt', mode: '120000', symlink: 'wat.txt'});
         const patch = new FilePatch(oldSymlink, newFile, addedPatch);
-        const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+        const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.isFalse(unstagePatch.getNewFile().isPresent());
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -459,11 +459,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging part of the file', function() {
-        const discardPatch = removedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([1]));
+        const discardPatch = removedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([1]));
         assert.strictEqual(discardPatch.getStatus(), 'added');
         assert.strictEqual(discardPatch.getOldFile(), nullFile);
         assert.strictEqual(discardPatch.getNewFile(), oldFile);
-        assertInFilePatch(discardPatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(discardPatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 0,
@@ -478,13 +478,13 @@ describe('FilePatch', function() {
       it('handles unstaging the entire file', function() {
         const discardPatch = removedFilePatch.buildUnstagePatchForLines(
           buffer,
-          unstageLayeredBuffer,
+          unstagePatchBuffer,
           new Set([0, 1, 2]),
         );
         assert.strictEqual(discardPatch.getStatus(), 'added');
         assert.strictEqual(discardPatch.getOldFile(), nullFile);
         assert.strictEqual(discardPatch.getNewFile(), oldFile);
-        assertInFilePatch(discardPatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(discardPatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,

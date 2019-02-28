@@ -36,7 +36,7 @@ describe('PatchBuffer', function() {
   });
 
   describe('extractPatchBuffer', function() {
-    it('extracts a subset of the buffer and layers as a new LayeredBuffer', function() {
+    it('extracts a subset of the buffer and layers as a new PatchBuffer', function() {
       const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
       const m1 = patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
       const m2 = patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
