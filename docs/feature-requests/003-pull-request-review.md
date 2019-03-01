@@ -104,7 +104,7 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 
 ![resolve a review](https://user-images.githubusercontent.com/378023/46927875-c08b3d80-d072-11e8-978b-024111312d79.png)
 
-* Review comments can be resolved by clicking on the "Resolve conversation" buttons.
+* Review comments can be resolved by clicking on the "Mark as resolved" buttons.
 * If the "reply..." editor has non-whitespace content, it is submitted as a final comment first.
 
 ### PullRequestReviewsItem
