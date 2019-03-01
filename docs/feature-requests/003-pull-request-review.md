@@ -51,7 +51,7 @@ A panel at the bottom of the pane shows the progress for resolved review comment
 
 When the pull request is checked out, an "open" button is shown in the review footer. Clicking "open" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
 
-### Files Changed (tab)
+### Files (tab)
 
 Clicking on the "Files Changed" tab displays the full, multi-file diff associated with the pull request. This is akin to the "Files changed" tab on dotcom.
 
