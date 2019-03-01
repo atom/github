@@ -204,7 +204,8 @@
     "GithubDockItem": "createDockItemStub",
     "FilePatchControllerStub": "createFilePatchControllerStub",
     "CommitPreviewStub": "createCommitPreviewStub",
-    "CommitDetailStub": "createCommitDetailStub"
+    "CommitDetailStub": "createCommitDetailStub",
+    "ReviewsStub": "createReviewsStub"
   },
   "greenkeeper": {
     "ignore": [
