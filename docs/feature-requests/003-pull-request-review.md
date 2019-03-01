@@ -117,7 +117,7 @@ This item is opened in the workspace's right dock when the user:
 
 It shows a scrollable view of all of the reviews and comments associated with a specific pull request,
 
-![pull request reviews item](https://user-images.githubusercontent.com/378023/51306720-6939a680-1a81-11e9-8eaa-ffd480e3d47f.png)
+![pull request reviews item](https://user-images.githubusercontent.com/3781742/53610984-c85f0080-3b81-11e9-9a82-9df43b6410f3.png)
 
 Reviews are sorted by "urgency," showing reviews that still need to be addressed at the top. Within each group, sorting is done by "newest first".
 
