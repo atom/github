@@ -129,7 +129,14 @@ Reviews are sorted by "urgency," showing reviews that still need to be addressed
 
 Clicking on a review summary comment expands or collapses the associated review comments.
 
-Clicking on a review comment opens a `TextEditor` on the corresponding position of the file under review. The clicked review comment is highlighted as the "current" one.
+<img width="429" alt="screen shot 2019-02-28 at 6 03 50 pm" src="https://user-images.githubusercontent.com/3781742/53611421-5a1b3d80-3b83-11e9-9e50-ac4c54a67c13.png">
+
+In addition to the comment, users see an abbreviated version of the diff, with 4 context lines. 
+
+Clicking on the "Jump To File" button opens a `TextEditor` on the corresponding position of the file under review. The clicked review comment is highlighted as the "current" one.
+
+Clicking on the "View Changes" button opens the "Files" tab of the `PullRequestDetailsView`, so the user can see the full diff. 
+
 
 #### Within an open TextEditor
 
