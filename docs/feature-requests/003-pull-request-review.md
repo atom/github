@@ -49,7 +49,7 @@ Below the tabs is a "tools bar" with controls to toggle review comments or colla
 
 A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review. This panel is persistent throughout all sub-views. It allows creating new reviews no matter where you are.
 
-When the pull request is checked out, an "open" button is shown in the review footer. Clicking "open" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
+When the pull request is checked out, an "Open Reviews" button is shown in the review footer. Clicking "Open Reviews" opens a `PullRequestReviewsItem` for this pull request's review comments as an item in the right workspace dock.
 
 ### Files (tab)
 
