@@ -200,6 +200,8 @@ Long comments can disrupt the code editing experience.  Our third iteration keep
 
 Since this approach different from previous approaches, we performed a series of [usability studies](https://github.com/github/pe-editor-tools/blob/master/community/usability-testing/atom_rcid_research_summary.md) to validate that users would find this approach useful.
 
+We may at some point want to migrate the entire PullRequestDetailView from the pane item to the dock, so as not to duplicate information.  However, in the interest of getting code review in the editor shipped, we'll keep the pane item around in the short term.
+
 
 ## Unresolved questions
 
