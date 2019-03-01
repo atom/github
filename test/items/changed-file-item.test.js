@@ -3,6 +3,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 
 import PaneItem from '../../lib/atom/pane-item';
+import ItemWrapper from '../../lib/items/item-wrapper';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {cloneRepository} from '../helpers';
@@ -42,17 +43,18 @@ describe.only('ChangedFileItem', function() {
 
     return (
       <PaneItem workspace={atomEnv.workspace} uriPattern={ChangedFileItem.uriPattern}>
-        {({itemHolder, params}) => {
-          return (
+        {({itemHolder, params}) =>
+          <ItemWrapper needsDestroy needsPending needsEmbeddedTextEditor ref={itemHolder.setter} item={extraProps => (
             <ChangedFileItem
-              ref={itemHolder.setter}
               workingDirectory={params.workingDirectory}
               relPath={path.join(...params.relPath)}
               stagingStatus={params.stagingStatus}
+              {...extraProps}
               {...props}
             />
-          );
-        }}
+          )}
+          />
+        }
       </PaneItem>
     );
   }
