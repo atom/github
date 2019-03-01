@@ -119,7 +119,7 @@ Clicking "Finish your review" from a comment or clicking "Review Changes" in the
 This item is opened in the workspace's right dock when the user:
 
 * Clicks the review progress bar in the GitHub tab.
-* Clicks the "open" button on the review summary footer of a `PullRequestDetailItem`.
+* Clicks the "open reviews" button on the review summary footer of a `PullRequestDetailItem`.
 * Clicks the "<>" button on a review comment in the "Files Changed" tab of a `PullRequestDetailItem`.
 
 It shows a scrollable view of all of the reviews and comments associated with a specific pull request,
@@ -200,6 +200,12 @@ It was a great improvement, but filtering the diff with radio buttons and checkb
 - Bring back the sub-navigation, but make it look less .com-y.
 - Keep using an editable editor for the diffs, but add some padding.
 - Introduce a "Reviews" footer to all sub-views to allow creating/submit a review, no matter where you are.
+
+#### Third iteration
+
+Long comments can disrupt the code editing experience.  Our third iteration keeps the review comments in a dock, a la Google Docs.  This helps code authors more easily address comments, because they can see the comments and also get them out of the way.
+
+Since this approach different from previous approaches, we performed a series of [usability studies](https://github.com/github/pe-editor-tools/blob/master/community/usability-testing/atom_rcid_research_summary.md) to validate that users would find this approach useful.
 
 
 ## Unresolved questions
