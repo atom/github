@@ -45,7 +45,7 @@ Below the tabs is a "tools bar" with controls to toggle review comments or colla
 
 #### Footer
 
-![reviews panel](https://user-images.githubusercontent.com/378023/51305353-f2e77500-1a7d-11e9-96f0-da879d49da3a.png)
+![reviews panel](https://user-images.githubusercontent.com/3781742/53611708-5805ae80-3b84-11e9-915d-fb29476e3001.png)
 
 A panel at the bottom of the pane shows the progress for resolved review comments. It also has a "Review Changes" button to create a new review. This panel is persistent throughout all sub-views. It allows creating new reviews no matter where you are.
 
