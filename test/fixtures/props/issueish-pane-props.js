@@ -171,6 +171,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     switchToIssueish: () => {},
     destroy: () => {},
     openCommit: () => {},
+    openReviews: () => {},
 
     // atom env props
     workspace: {},

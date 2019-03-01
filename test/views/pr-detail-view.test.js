@@ -64,6 +64,14 @@ describe('PullRequestDetailView', function() {
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
   });
 
+  it('renders footer and passes openReviews prop through', function() {
+    const wrapper = shallow(buildApp());
+    const footer = wrapper.find('ReviewsFooterView');
+    assert.lengthOf(footer, 1);
+
+    assert.strictEqual(footer.prop('openReviews'), wrapper.instance().props.openReviews);
+  });
+
   it('renders tabs', function() {
     const pullRequestCommitCount = 11;
     const pullRequestChangedFileCount = 22;
