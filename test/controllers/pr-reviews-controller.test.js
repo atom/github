@@ -1,19 +1,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import {reviewBuilder} from '../builder/pr';
-import {inspect} from 'util';
 
 import PullRequestReviewsController from '../../lib/controllers/pr-reviews-controller';
 import PullRequestReviewCommentsContainer from '../../lib/containers/pr-review-comments-container';
 
 import {PAGE_SIZE, PAGINATION_WAIT_TIME_MS} from '../../lib/helpers';
 
-function SomeView(props) {
-  return <pre>{inspect(props, {depth: 3})}</pre>;
-}
-
 describe('PullRequestReviewsController', function() {
-  function buildApp(opts, overrideProps = {}, childFn = SomeView) {
+  function buildApp(opts, overrideProps = {}) {
     const o = {
       relayHasMore: () => false,
       relayLoadMore: () => {},
@@ -47,15 +42,13 @@ describe('PullRequestReviewsController', function() {
         isLoading: o.relayIsLoading,
       },
       pullRequest: {reviews},
+      children: () => {},
       ...overrideProps,
     };
 
-    return (
-      <PullRequestReviewsController {...props}>
-        {childFn}
-      </PullRequestReviewsController>
-    );
+    return <PullRequestReviewsController {...props} />;
   }
+
   it('returns null if props.pullRequest is falsy', function() {
     const wrapper = shallow(buildApp({}, {pullRequest: null}));
     assert.isNull(wrapper.getElement());
@@ -79,7 +72,7 @@ describe('PullRequestReviewsController', function() {
     assert.strictEqual(containers.at(1).prop('review').id, review2.id);
   });
 
-  it('calls the child render prop for each comment thread', function() {
+  it('calls the render prop with all reviews and all comment threads', function() {
     const review1 = reviewBuilder()
       .id(10)
       .submittedAt('2019-01-01T10:00:00Z')
@@ -100,11 +93,19 @@ describe('PullRequestReviewsController', function() {
     const reviewSpecs = [review1, review2];
     const passThroughProp = 'I only exist for the children';
 
-    const wrapper = shallow(buildApp({reviewSpecs}, {}, thread => {
-      return <ChildComponent thread={thread} passThroughProp={passThroughProp} />;
+    const wrapper = shallow(buildApp({reviewSpecs}, {
+      children: ({reviews, commentThreads}) => (
+        <ChildComponent
+          reviews={reviews}
+          threads={commentThreads}
+          passThroughProp={passThroughProp}
+        />
+      ),
     }));
 
-    assert.isFalse(wrapper.exists('ChildComponent'));
+    assert.strictEqual(wrapper.find('ChildComponent').prop('passThroughProp'), passThroughProp);
+    assert.deepEqual(wrapper.find('ChildComponent').prop('reviews').map(review => review.id), [10, 20]);
+    assert.lengthOf(wrapper.find('ChildComponent').prop('threads'), 0);
 
     wrapper.find(PullRequestReviewCommentsContainer).at(0).prop('collectComments')({
       reviewId: review1.id,
@@ -113,12 +114,11 @@ describe('PullRequestReviewsController', function() {
       fetchingMoreComments: false,
     });
 
-    assert.lengthOf(wrapper.find('ChildComponent'), 1);
-    assert.strictEqual(wrapper.find('ChildComponent').at(0).prop('passThroughProp'), passThroughProp);
-    assert.deepEqual(wrapper.find('ChildComponent').at(0).prop('thread'), {
-      rootCommentId: '1',
-      comments: [review1.comments.edges[0].node],
-    });
+    assert.strictEqual(wrapper.find('ChildComponent').prop('passThroughProp'), passThroughProp);
+    assert.deepEqual(wrapper.find('ChildComponent').prop('reviews').map(review => review.id), [10, 20]);
+    assert.deepEqual(wrapper.find('ChildComponent').prop('threads'), [
+      {rootCommentId: '1', comments: [review1.comments.edges[0].node]},
+    ]);
 
     wrapper.find(PullRequestReviewCommentsContainer).at(1).prop('collectComments')({
       reviewId: review2.id,
@@ -127,25 +127,13 @@ describe('PullRequestReviewsController', function() {
       fetchingMoreComments: false,
     });
 
-    assert.lengthOf(wrapper.find('ChildComponent'), 3);
-
-    assert.strictEqual(wrapper.find('ChildComponent').at(0).prop('passThroughProp'), passThroughProp);
-    assert.deepEqual(wrapper.find('ChildComponent').at(0).prop('thread'), {
-      rootCommentId: '4',
-      comments: [review2.comments.edges[2].node],
-    });
-
-    assert.strictEqual(wrapper.find('ChildComponent').at(1).prop('passThroughProp'), passThroughProp);
-    assert.deepEqual(wrapper.find('ChildComponent').at(1).prop('thread'), {
-      rootCommentId: '2',
-      comments: [review2.comments.edges[0].node],
-    });
-
-    assert.strictEqual(wrapper.find('ChildComponent').at(2).prop('passThroughProp'), passThroughProp);
-    assert.deepEqual(wrapper.find('ChildComponent').at(2).prop('thread'), {
-      rootCommentId: '1',
-      comments: [review1.comments.edges[0].node, review2.comments.edges[1].node],
-    });
+    assert.strictEqual(wrapper.find('ChildComponent').prop('passThroughProp'), passThroughProp);
+    assert.deepEqual(wrapper.find('ChildComponent').prop('reviews').map(review => review.id), [10, 20]);
+    assert.deepEqual(wrapper.find('ChildComponent').prop('threads'), [
+      {rootCommentId: '4', comments: [review2.comments.edges[2].node]},
+      {rootCommentId: '2', comments: [review2.comments.edges[0].node]},
+      {rootCommentId: '1', comments: [review1.comments.edges[0].node, review2.comments.edges[1].node]},
+    ]);
   });
 
   describe('collectComments', function() {
