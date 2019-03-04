@@ -1,0 +1,388 @@
+@import "variables";
+
+@avatar-size: 16px;
+@font-size-default: @font-size;
+@font-size-body: @font-size + 1px;
+@nav-size: 2.5em;
+@background-color: mix(@base-background-color, @tool-panel-background-color, 66%);
+
+
+// PR ------------------------------------
+
+.github-Pr {
+  flex: 1;
+  overflow-x: auto;
+}
+
+
+// Reviews  ----------------------------------------------
+
+.github-Reviews {
+  flex: 1;
+  overflow-y: auto;
+
+  &-section {
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    padding: @component-padding;
+    cursor: default;
+  }
+
+  &-title {
+    flex: 1;
+    font-size: 1.15em;
+    margin: 0;
+  }
+
+  &-count {
+    color: @text-color-subtle;
+  }
+
+  &-countNr {
+    color: @text-color-highlight;
+  }
+
+  &-progessBar {
+    width: 5em;
+    margin-left: @component-padding;
+  }
+
+  &-container {
+    font-size: @font-size-default;
+    padding: @component-padding;
+    padding-top: 0;
+
+    &.is-resolved {
+      padding-top: @component-padding;
+      border-top: 1px solid @base-border-color;
+    }
+  }
+}
+
+
+// Review Summaries ------------------------------------------
+
+.github-ReviewSummary {
+  padding: @component-padding;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius;
+  background-color: @background-color;
+
+  & + & {
+    margin-top: @component-padding;
+  }
+
+  &-header {
+    display: flex;
+  }
+
+  &-icon  {
+    vertical-align: -3px;
+    &.icon-check {
+      color: @text-color-success;
+    }
+    &.icon-alert {
+      color: @text-color-warning;
+    }
+    &.icon-comment {
+      color: @text-color-subtle;
+    }
+  }
+
+  &-avatar {
+    margin-right: .5em;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  &-username {
+    margin-right: .3em;
+    font-weight: 500;
+  }
+
+  &-type {
+    color: @text-color-subtle;
+  }
+
+  &-timeAgo {
+    margin-left: auto;
+    color: @text-color-subtle;
+  }
+
+  &-comment {
+    position: relative;
+    margin-top: @component-padding/2;
+    margin-left: 7px;
+    padding-left: 12px;
+    font-size: @font-size-body;
+    border-left: 2px solid @base-border-color;
+  }
+}
+
+
+// Review Comments  ----------------------------------------------
+
+.github-Review {
+  position: relative;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius;
+  background-color: @background-color;
+
+  & + & {
+    margin-top: @component-padding;
+  }
+
+  // Header ------------------
+
+  &-reference {
+    display: flex;
+    align-items: center;
+    padding-left: @component-padding;
+    height: @nav-size;
+    cursor: default;
+
+    &::-webkit-details-marker {
+      margin-right: @component-padding/1.5;
+    }
+
+    .is-resolved & {
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+  }
+
+  &-resolvedIcon {
+    display: none;
+
+    .is-resolved & {
+      display: inline-block;
+    }
+
+    &:before {
+      font-size: 12px;
+      width: 15px; // magic to match the triangle
+      margin-right: 0;
+    }
+  }
+
+  &-path {
+    color: @text-color-subtle;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  &-file {
+    color: @text-color;
+    margin-right: @component-padding/2;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  &-lineNr {
+    color: @text-color-subtle;
+    margin-right: @component-padding/2;
+  }
+
+  &-referenceAvatar {
+    margin-left: auto;
+    margin-right: @component-padding/2;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+
+    .github-Review[open] & {
+      display: none;
+    }
+  }
+
+  &-referenceTimeAgo {
+    color: @text-color-subtle;
+    margin-right: @component-padding/2;
+    .github-Review[open] & {
+      display: none;
+    }
+  }
+
+  &-nav {
+    display: none;
+    margin-left: auto;
+    .github-Review[open] & {
+      display: initial;
+    }
+  }
+  &-navButton {
+    width: @nav-size;
+    height: @nav-size;
+    padding: 0;
+    border: none;
+    border-left: 1px solid @base-border-color;
+    background-color: transparent;
+    cursor: default;
+
+    &:hover {
+      background-color: @background-color-highlight;
+    }
+    &:active {
+      background-color: @background-color-selected;
+    }
+
+    &:before {
+      width: auto;
+      margin-right: 0;
+    }
+  }
+
+
+  // Diff ------------------
+
+  &-diff {
+    padding: 0;
+    color: @text-color;
+    font-family: var(--editor-font-family);
+    border-top: 1px solid @base-border-color;
+    border-bottom: 1px solid @base-border-color;
+    border-radius: 0;
+    background: @base-background-color;
+  }
+
+  &-diffLine {
+    padding: 0 @component-padding/2;
+    line-height: 1.75;
+
+    &:last-child {
+      font-weight: 500;
+    }
+
+    &::before {
+      content: " ";
+      margin-right: .5em;
+    }
+
+    &.is-added {
+      color: mix(@text-color-success, @text-color-highlight, 25%);
+      background-color: mix(@background-color-success, @base-background-color, 20%);
+      &::before {
+        content: "+";
+      }
+    }
+    &.is-deleted {
+      color: mix(@text-color-error, @text-color-highlight, 25%);
+      background-color: mix(@background-color-error, @base-background-color, 20%);
+      &::before {
+        content: "-";
+      }
+    }
+  }
+
+  &-diffLineIcon {
+    margin-right: .5em;
+  }
+
+
+  // Comments ------------------
+
+  &-comments {
+    padding: @component-padding;
+    padding-left: @component-padding + @avatar-size + 5px; // space for avatar
+  }
+
+  &-comment  {
+    margin-bottom: @component-padding*1.5;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: @component-padding/4;
+  }
+
+  &-avatar {
+    position: absolute;
+    left: @component-padding;
+    margin-right: .5em;
+    width: @avatar-size;
+    height: @avatar-size;
+    border-radius: @component-border-radius;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  &-username {
+    margin-right: .5em;
+    font-weight: 500;
+  }
+
+  &-timeAgo {
+    color: @text-color-subtle;
+  }
+
+  &-text  {
+    font-size: @font-size-body;
+
+    a {
+      font-weight: 500;
+    }
+  }
+
+  &-reply {
+    margin-top: @component-padding;
+  }
+
+  &-replyInput {
+    width: 100%;
+    height: 2.125em; // one line
+    min-height: 2.125em;
+    resize: vertical;
+
+    &:focus {
+      height: 3.75em; // two lines
+    }
+
+    &:focus + .github-ReviewComment-replyButton {
+      display: block;
+    }
+  }
+
+  &-replyButton {
+    display: none;
+    margin-top: @component-padding;
+  }
+
+
+  // Footer ------------------
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: @component-padding;
+    border-top: 1px solid @base-border-color;
+  }
+
+  &-resolveText {
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+  }
+
+  &-resolveButton {
+    margin-left: auto;
+    &.btn.icon {
+      &:before {
+        font-size: 14px;
+      }
+    }
+  }
+
+}
