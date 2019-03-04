@@ -3,26 +3,21 @@ import {shallow} from 'enzyme';
 
 import {multiFilePatchBuilder} from '../builder/patch';
 import {pullRequestBuilder} from '../builder/pr';
-import PullRequestCommentsView, {PullRequestCommentView} from '../../lib/views/pr-review-comments-view';
+import PullRequestReviewCommentThreadView, {PullRequestCommentView} from '../../lib/views/pr-review-comment-thread-view';
 
-describe('PullRequestCommentsView', function() {
-  function buildApp(multiFilePatch, pullRequest, overrideProps) {
-    const relay = {
-      hasMore: () => {},
-      loadMore: () => {},
-      isLoading: () => {},
-    };
+describe('PullRequestReviewCommentThreadView', function() {
+  function buildApp(multiFilePatch, commentThread, overrideProps = {}) {
     return shallow(
-      <PullRequestCommentsView
-        isPatchVisible={sinon.stub().returns(true)}
-        getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition} reviews={pullRequest.reviews}
-        commentThreads={pullRequest.commentThreads}
-        relay={relay}
+      <PullRequestReviewCommentThreadView
+        isPatchVisible={() => true}
+        getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition}
+        commentThread={commentThread}
         switchToIssueish={() => {}}
         {...overrideProps}
       />,
     );
   }
+
   it('adjusts the position for comments after hunk headers', function() {
     const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
@@ -48,11 +43,14 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr, {});
+    const wrapper0 = buildApp(multiFilePatch, pr.commentThreads[0]);
+    assert.deepEqual(wrapper0.find('Marker').prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
 
-    assert.deepEqual(wrapper.find('Marker').at(0).prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
-    assert.deepEqual(wrapper.find('Marker').at(1).prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
-    assert.deepEqual(wrapper.find('Marker').at(2).prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
+    const wrapper1 = buildApp(multiFilePatch, pr.commentThreads[1]);
+    assert.deepEqual(wrapper1.find('Marker').prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
+
+    const wrapper2 = buildApp(multiFilePatch, pr.commentThreads[2]);
+    assert.deepEqual(wrapper2.find('Marker').prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
   });
 
   it('does not render comment if patch is too large or collapsed', function() {
@@ -64,9 +62,8 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr, {isPatchVisible: () => { return false; }});
-    const comments = wrapper.find('PullRequestCommentView');
-    assert.lengthOf(comments, 0);
+    const wrapper = buildApp(multiFilePatch, pr.commentThreads[0], {isPatchVisible: () => false});
+    assert.isFalse(wrapper.exists('PullRequestCommentView'));
   });
 
   it('does not render comment if position is null', function() {
@@ -88,11 +85,11 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr, {});
+    const wrapper = buildApp(multiFilePatch, pr.commentThreads[0]);
 
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 1);
-    assert.strictEqual(comments.at(0).prop('comment').body, 'one');
+    assert.strictEqual(comments.prop('comment').body, 'one');
   });
 });
 
@@ -132,7 +129,7 @@ describe('PullRequestCommentView', function() {
     assert.strictEqual(avatar.getElement('src').props.src, avatarUrl);
     assert.strictEqual(avatar.getElement('alt').props.alt, login);
 
-    assert.isTrue(wrapper.text().includes(`${login} commented`));
+    assert.include(wrapper.text(), `${login} commented`);
 
     const a = wrapper.find('.github-PrComment-timeAgo');
     assert.strictEqual(a.getElement('href').props.href, commentUrl);
@@ -147,12 +144,12 @@ describe('PullRequestCommentView', function() {
 
   it('contains the text `someone commented` for null authors', function() {
     const wrapper = shallow(buildApp({author: null}));
-    assert.isTrue(wrapper.text().includes('someone commented'));
+    assert.include(wrapper.text(), 'someone commented');
   });
 
   it('hides minimized comment', function() {
     const wrapper = shallow(buildApp({isMinimized: true}));
-    assert.isTrue(wrapper.find('.github-PrComment-hidden').exists());
-    assert.isFalse(wrapper.find('.github-PrComment-header').exists());
+    assert.isTrue(wrapper.exists('.github-PrComment-hidden'));
+    assert.isFalse(wrapper.exists('.github-PrComment-header'));
   });
 });
