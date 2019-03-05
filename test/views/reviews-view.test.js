@@ -6,12 +6,24 @@ import ReviewsView from '../../lib/views/reviews-view';
 describe('ReviewsView', function() {
   let atomEnv;
 
-  const mockReview = {
-    state: 'APPROVED',
-    author: {avatarUrl: ''},
-    login: {login: 'Monkey King'},
-    submittedAt: new Date(),
-    body: 'wow such changes!',
+  const mocks = {
+    reviews: [{
+      state: 'CHANGES_REQUESTED',
+      author: {avatarUrl: ''},
+      login: {login: 'dolphin'},
+      submittedAt: new Date(),
+      body: 'thanks for all the fish',
+    }],
+    commentThreads: [{
+      comments: [{
+        id: 13,
+        author: {avatarUrl: '', login: 'deepthought'},
+        createdAt: new Date(),
+        path: 'src/what-is-life.js',
+        position: 42,
+        bodyHTML: 'Forty-two.',
+      }],
+    }],
   };
 
   beforeEach(function() {
@@ -24,9 +36,7 @@ describe('ReviewsView', function() {
 
   function buildApp(override = {}) {
     const props = {
-      repository: {
-        pullRequest: {}
-      },
+      repository: {pullRequest: {}},
       ...override,
     };
 
@@ -47,9 +57,10 @@ describe('ReviewsView', function() {
   });
 
   it('renders summary and comment sections', function() {
+    const {reviews, commentThreads} = mocks;
     const wrapper = shallow(buildApp())
       .find('ForwardRef(Relay(PullRequestReviewsController))')
-      .renderProp('children')({reviews: [mockReview], commentThreads: [{}]});
+      .renderProp('children')({reviews, commentThreads});
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 1);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 1);
   });
