@@ -6,16 +6,20 @@ import {pullRequestBuilder} from '../builder/pr';
 import PullRequestReviewCommentThreadView, {PullRequestCommentView} from '../../lib/views/pr-review-comment-thread-view';
 
 describe('PullRequestReviewCommentThreadView', function() {
-  function buildApp(multiFilePatch, commentThread, overrideProps = {}) {
+  function buildApp(multiFilePatch, comments, overrideProps = {}) {
     return shallow(
       <PullRequestReviewCommentThreadView
         isPatchVisible={() => true}
         getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition}
-        commentThread={commentThread}
+        comments={comments}
         switchToIssueish={() => {}}
         {...overrideProps}
       />,
     );
+  }
+
+  function commentsFromThread(pr, index) {
+    return pr.reviewThreads.edges[index].node.comments.edges.map(edge => edge.node);
   }
 
   it('adjusts the position for comments after hunk headers', function() {
@@ -36,33 +40,37 @@ describe('PullRequestReviewCommentThreadView', function() {
       .build();
 
     const pr = pullRequestBuilder()
-      .addReview(r => {
-        r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
-        r.addComment(c => c.id(1).path('file0.txt').position(15).body('three'));
-        r.addComment(c => c.id(2).path('file1.txt').position(7).body('three'));
+      .addReviewThread(t => {
+        t.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+      })
+      .addReviewThread(t => {
+        t.addComment(c => c.id(1).path('file0.txt').position(15).body('three'));
+      })
+      .addReviewThread(t => {
+        t.addComment(c => c.id(2).path('file1.txt').position(7).body('three'));
       })
       .build();
 
-    const wrapper0 = buildApp(multiFilePatch, pr.commentThreads[0]);
+    const wrapper0 = buildApp(multiFilePatch, commentsFromThread(pr, 0));
     assert.deepEqual(wrapper0.find('Marker').prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
 
-    const wrapper1 = buildApp(multiFilePatch, pr.commentThreads[1]);
+    const wrapper1 = buildApp(multiFilePatch, commentsFromThread(pr, 1));
     assert.deepEqual(wrapper1.find('Marker').prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
 
-    const wrapper2 = buildApp(multiFilePatch, pr.commentThreads[2]);
+    const wrapper2 = buildApp(multiFilePatch, commentsFromThread(pr, 2));
     assert.deepEqual(wrapper2.find('Marker').prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
   });
 
-  it('does not render comment if patch is too large or collapsed', function() {
+  it('does not render comments if the patch is too large or collapsed', function() {
     const {multiFilePatch} = multiFilePatchBuilder().build();
 
     const pr = pullRequestBuilder()
-      .addReview(r => {
-        r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+      .addReviewThread(t => {
+        t.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr.commentThreads[0], {isPatchVisible: () => false});
+    const wrapper = buildApp(multiFilePatch, commentsFromThread(pr, 0), {isPatchVisible: () => false});
     assert.isFalse(wrapper.exists('PullRequestCommentView'));
   });
 
@@ -79,17 +87,14 @@ describe('PullRequestReviewCommentThreadView', function() {
       .build();
 
     const pr = pullRequestBuilder()
-      .addReview(r => {
-        r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
-        r.addComment(c => c.id(1).path('file0.txt').position(null).body('three'));
+      .addReviewThread(t => {
+        t.addComment(c => c.id(1).path('file0.txt').position(null).body('three'));
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, pr.commentThreads[0]);
+    const wrapper = buildApp(multiFilePatch, commentsFromThread(pr, 0));
 
-    const comments = wrapper.find('PullRequestCommentView');
-    assert.lengthOf(comments, 1);
-    assert.strictEqual(comments.prop('comment').body, 'one');
+    assert.isFalse(wrapper.exists('PullRequestCommentView'));
   });
 });
 
