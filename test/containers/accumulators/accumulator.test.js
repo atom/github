@@ -32,7 +32,7 @@ describe('Accumulator', function() {
       children: fn,
     }));
 
-    assert.isTrue(fn.calledWith(null, [1, 2, 3]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3], false));
   });
 
   it('continues to paginate and accumulate results', function() {
@@ -53,16 +53,16 @@ describe('Accumulator', function() {
     };
 
     const wrapper = shallow(buildApp({relay, resultBatch: [1, 2, 3], children: fn}));
-    assert.isTrue(fn.calledWith(null, [1, 2, 3]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3], true));
 
     wrapper.setProps({resultBatch: [4, 5, 6]});
     loadMoreCallback();
-    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6], true));
 
     hasMore = false;
     wrapper.setProps({resultBatch: [7, 8, 9]});
     loadMoreCallback();
-    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6, 7, 8, 9]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6, 7, 8, 9], false));
     assert.isNull(loadMoreCallback);
   });
 
@@ -79,7 +79,7 @@ describe('Accumulator', function() {
     };
 
     shallow(buildApp({relay, children: fn}));
-    assert.isTrue(fn.calledWith(error, []));
+    assert.isTrue(fn.calledWith(error, [], true));
   });
 
   it('reports results to a non-render callback prop', function() {
@@ -100,15 +100,15 @@ describe('Accumulator', function() {
     };
 
     const wrapper = shallow(buildApp({relay, resultBatch: [1, 2, 3], handleResults: fn}));
-    assert.isTrue(fn.calledWith(null, [1, 2, 3]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3], true));
 
     wrapper.setProps({resultBatch: [4, 5, 6]});
     loadMoreCallback();
-    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6], true));
 
     hasMore = false;
     wrapper.setProps({resultBatch: [7, 8, 9]});
     loadMoreCallback();
-    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6, 7, 8, 9]));
+    assert.isTrue(fn.calledWith(null, [1, 2, 3, 4, 5, 6, 7, 8, 9], false));
   });
 });
