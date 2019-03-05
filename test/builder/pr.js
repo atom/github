@@ -1,3 +1,5 @@
+import IDSequence from './id-sequence';
+
 class CommentBuilder {
   constructor() {
     this._id = 0;
@@ -80,9 +82,41 @@ class CommentBuilder {
   }
 }
 
+class ReviewThreadBuilder {
+  constructor(commentIDs = new IDSequence()) {
+    this._isResolved = false;
+    this._comments = [];
+
+    this.commentIDs = commentIDs;
+  }
+
+  resolved() {
+    this._isResolved = true;
+    return this;
+  }
+
+  addComment(block = () => {}) {
+    const builder = new CommentBuilder();
+    builder.id(this.commentIDs.nextID());
+
+    block(builder);
+
+    this._comments.push(builder.build());
+
+    return this;
+  }
+
+  build() {
+    return {
+      isResolved: this._isResolved,
+      comments: {edges: this._comments.map(comment => ({node: comment}))},
+    };
+  }
+}
+
 class ReviewBuilder {
-  constructor() {
-    this.nextCommentID = 0;
+  constructor(commentIDs = new IDSequence()) {
+    this.commentIDs = commentIDs;
     this._id = 0;
     this._comments = [];
     this._submittedAt = '2018-12-28T20:40:55Z';
@@ -100,8 +134,7 @@ class ReviewBuilder {
 
   addComment(block = () => {}) {
     const builder = new CommentBuilder();
-    builder.id(this.nextCommentID);
-    this.nextCommentID++;
+    builder.id(this.commentIDs.nextID());
 
     block(builder);
     this._comments.push(builder.build());
@@ -123,46 +156,42 @@ class ReviewBuilder {
 
 class PullRequestBuilder {
   constructor() {
-    this.nextCommentID = 0;
-    this.nextReviewID = 0;
+    this.commentIDs = new IDSequence();
+    this.reviewIDs = new IDSequence();
     this._reviews = [];
+    this._reviewThreads = [];
   }
 
   addReview(block = () => {}) {
-    const builder = new ReviewBuilder();
-    builder.id(this.nextReviewID);
-    this.nextReviewID++;
+    const builder = new ReviewBuilder(this.commentIDs);
+    builder.id(this.reviewIDs.nextID());
 
     block(builder);
     this._reviews.push(builder.build());
     return this;
   }
 
+  addReviewThread(block = () => {}) {
+    const builder = new ReviewThreadBuilder(this.commentIDs);
+    block(builder);
+    this._reviewThreads.push(builder.build());
+    return this;
+  }
+
   build() {
-    const commentThreads = {};
-    this._reviews.forEach(review => {
-      review.comments.edges.forEach(({node: comment}) => {
-        if (comment.replyTo && comment.replyTo.id && commentThreads[comment.replyTo.id]) {
-          commentThreads[comment.replyTo.id].push(comment);
-        } else {
-          commentThreads[comment.id] = [comment];
-        }
-      });
-    });
     return {
-      reviews: {nodes: this._reviews},
-      commentThreads: Object.keys(commentThreads).map(rootCommentId => {
-        return {
-          rootCommentId,
-          comments: commentThreads[rootCommentId],
-        };
-      }),
+      reviews: {edges: this._reviews.map(r => ({node: r}))},
+      reviewThreads: {edges: this._reviewThreads.map(t => ({node: t}))},
     };
   }
 }
 
 export function reviewBuilder() {
   return new ReviewBuilder();
+}
+
+export function reviewThreadBuilder() {
+  return new ReviewThreadBuilder();
 }
 
 export function pullRequestBuilder() {
