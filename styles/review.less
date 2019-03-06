@@ -240,30 +240,28 @@
 
   &-nav {
     display: none;
-    margin-left: auto;
     .github-Review[open] & {
-      display: initial;
+      display: flex;
     }
+    border-top: 1px solid @base-border-color;
   }
+
   &-navButton {
-    width: @nav-size;
     height: @nav-size;
     padding: 0;
     border: none;
-    border-left: 1px solid @base-border-color;
     background-color: transparent;
     cursor: default;
+    flex-basis: 50%;
+    &:last-child {
+      border-left: 1px solid @base-border-color;
+    }
 
     &:hover {
       background-color: @background-color-highlight;
     }
     &:active {
       background-color: @background-color-selected;
-    }
-
-    &:before {
-      width: auto;
-      margin-right: 0;
     }
   }
 
