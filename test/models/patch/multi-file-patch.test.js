@@ -780,6 +780,41 @@ describe('MultiFilePatch', function() {
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 13), 30);
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('2.txt', 15), 32);
     });
+
+    it('set the offset for diff-gated file patch upon expanding', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.addHunk(h => h.unchanged('0 (1)').added('1 (2)', '2 (3)').deleted('3 (4)').unchanged('4 (5)'));
+          fp.addHunk(h => h.unchanged('5 (7)').added('6 (8)', '7 (9)', '8 (10)').unchanged('9 (11)'));
+          fp.addHunk(h => h.unchanged('10 (13)').deleted('11 (14)').unchanged('12 (15)'));
+          fp.renderStatus(TOO_LARGE);
+        })
+        .build();
+      assert.strictEqual(multiFilePatch.diffRowOffsetIndices.get('1.txt').index.size, 0);
+      const [fp] = multiFilePatch.getFilePatches();
+      multiFilePatch.expandFilePatch(fp);
+      assert.strictEqual(multiFilePatch.diffRowOffsetIndices.get('1.txt').index.size, 3);
+      assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 11), 9);
+    });
+
+    it('does not reset the offset for normally collapsed file patch upon expanding', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.oldRow(1).unchanged('0-0').deleted('0-1', '0-2').unchanged('0-3'));
+        })
+        .build();
+
+      const [fp] = multiFilePatch.getFilePatches();
+      const stub = sinon.stub(multiFilePatch, 'populateDiffRowOffsetIndices');
+
+      multiFilePatch.collapseFilePatch(fp);
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), '');
+
+      multiFilePatch.expandFilePatch(fp);
+      assert.isFalse(stub.called);
+    });
   });
 
   describe('collapsing and expanding file patches', function() {
