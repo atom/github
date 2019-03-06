@@ -13,6 +13,20 @@ describe('PullRequestDetailView', function() {
     return <BarePullRequestDetailView {...pullRequestDetailViewProps(opts, overrideProps)} />;
   }
 
+  function findTabIndex(wrapper, tabText) {
+    let finalIndex;
+    let tempIndex = 0;
+    wrapper.find('Tab').forEach(t => {
+      t.children().forEach(child => {
+        if (child.text() === tabText) {
+          finalIndex = tempIndex;
+        }
+      });
+      tempIndex++;
+    });
+    return finalIndex;
+  }
+
   it('renders pull request information', function() {
     const baseRefName = 'master';
     const headRefName = 'tt/heck-yes';
@@ -106,6 +120,15 @@ describe('PullRequestDetailView', function() {
 
     assert.lengthOf(wrapper.find(TabPanel), 4);
   });
+
+  it('manages selectedTab index', function() {
+    const wrapper = shallow(buildApp());
+    assert.strictEqual(wrapper.state('selectedTab'), 0);
+    const index = findTabIndex(wrapper, 'Commits');
+
+    wrapper.find('Tabs').prop('onSelect')(index);
+    assert.strictEqual(wrapper.state('selectedTab'), index);
+  })
 
   it('tells its tabs when the pull request is currently checked out', function() {
     const wrapper = shallow(buildApp({}, {
@@ -271,20 +294,6 @@ describe('PullRequestDetailView', function() {
 
       assert.isTrue(reporterProxy.addEvent.calledWith('open-pull-request-in-browser', {package: 'github', component: 'BarePullRequestDetailView'}));
     });
-
-    function findTabIndex(wrapper, tabText) {
-      let finalIndex;
-      let tempIndex = 0;
-      wrapper.find('Tab').forEach(t => {
-        t.children().forEach(child => {
-          if (child.text() === tabText) {
-            finalIndex = tempIndex;
-          }
-        });
-        tempIndex++;
-      });
-      return finalIndex;
-    }
 
     it('records opening the Overview tab', function() {
       const wrapper = shallow(buildApp());
