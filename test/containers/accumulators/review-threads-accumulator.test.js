@@ -54,7 +54,22 @@ describe('ReviewThreadsAccumulator', function() {
     );
   });
 
-  it('renders a ReviewCommentsAccumulator for each reviewThread');
+  it('renders a ReviewCommentsAccumulator for each reviewThread', function() {
+    function buildPullRequest(b) {
+      b.addReviewThread(t => {
+        t.addComment(c => c.id(10));
+        t.addComment(c => c.id(11));
+      });
+      b.addReviewThread(t => {
+        t.addComment(c => c.id(20));
+        t.addComment(c => c.id(21));
+        t.addComment(c => c.id(22));
+      });
+    }
+
+    const wrapper = shallow(buildApp({buildPullRequest}));
+    const reviewCommentsAccumulators = wrapper.find('ReviewCommentsAccumulator');
+  });
 
   it('handles an error from the thread query results');
 
