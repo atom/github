@@ -791,10 +791,10 @@ describe('MultiFilePatch', function() {
           fp.renderStatus(TOO_LARGE);
         })
         .build();
-      assert.strictEqual(multiFilePatch.diffRowOffsetIndices.get('1.txt').index.size, 0);
+      assert.isTrue(multiFilePatch.isDiffRowOffsetIndexEmpty('1.txt'));
       const [fp] = multiFilePatch.getFilePatches();
       multiFilePatch.expandFilePatch(fp);
-      assert.strictEqual(multiFilePatch.diffRowOffsetIndices.get('1.txt').index.size, 3);
+      assert.isFalse(multiFilePatch.isDiffRowOffsetIndexEmpty('1.txt'));
       assert.strictEqual(multiFilePatch.getBufferRowForDiffPosition('1.txt', 11), 9);
     });
 
