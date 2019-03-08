@@ -6,7 +6,7 @@ import {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 
-import {assertInFilePatch} from '../../helpers';
+import {assertInFilePatch, assertMarkerRanges} from '../../helpers';
 
 describe('MultiFilePatch', function() {
   it('creates an empty patch', function() {
@@ -706,6 +706,92 @@ describe('MultiFilePatch', function() {
         .build()
         .multiFilePatch;
       assert.isFalse(multiFilePatch.isPatchVisible('invalid-file-path'));
+    });
+  });
+
+  describe('getPreviewPatchBuffer', function() {
+    it('returns a PatchBuffer containing nearby rows of the MultiFilePatch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0').added('1', '2').unchanged('3').deleted('4', '5').unchanged('6'));
+          fp.addHunk(h => h.unchanged('7').deleted('8').unchanged('9', '10'));
+        })
+        .build();
+
+      const subPatch = multiFilePatch.getPreviewPatchBuffer('file.txt', 6, 4);
+      assert.strictEqual(subPatch.getBuffer().getText(), dedent`
+        2
+        3
+        4
+        5
+      `);
+      assertMarkerRanges(subPatch.getLayer('patch'), [[0, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('hunk'), [[0, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('unchanged'), [[1, 0], [1, 1]]);
+      assertMarkerRanges(subPatch.getLayer('addition'), [[0, 0], [0, 1]]);
+      assertMarkerRanges(subPatch.getLayer('deletion'), [[2, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('nonewline'));
+    });
+
+    it('truncates the returned buffer at hunk boundaries', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0').added('1', '2').unchanged('3'));
+          fp.addHunk(h => h.unchanged('7').deleted('8').unchanged('9', '10'));
+        })
+        .build();
+
+      // diff row 8 = buffer row 9
+      const subPatch = multiFilePatch.getPreviewPatchBuffer('file.txt', 8, 4);
+
+      assert.strictEqual(subPatch.getBuffer().getText(), dedent`
+        7
+        8
+        9
+      `);
+      assertMarkerRanges(subPatch.getLayer('patch'), [[0, 0], [2, 1]]);
+      assertMarkerRanges(subPatch.getLayer('hunk'), [[0, 0], [2, 1]]);
+      assertMarkerRanges(subPatch.getLayer('unchanged'), [[0, 0], [0, 1]], [[2, 0], [2, 1]]);
+      assertMarkerRanges(subPatch.getLayer('addition'));
+      assertMarkerRanges(subPatch.getLayer('deletion'), [[1, 0], [1, 1]]);
+      assertMarkerRanges(subPatch.getLayer('nonewline'));
+    });
+
+    it('excludes zero-length markers from adjacent patches, hunks, and regions', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('mode-change-0.txt'));
+          fp.setNewFile(f => f.path('mode-change-0.txt').executable());
+          fp.empty();
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0').added('1', '2').unchanged('3'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('mode-change-1.txt').executable());
+          fp.setNewFile(f => f.path('mode-change-1.txt'));
+          fp.empty();
+        })
+        .build();
+
+      // diff row 4 = buffer row 3
+      const subPatch = multiFilePatch.getPreviewPatchBuffer('file.txt', 4, 4);
+
+      assert.strictEqual(subPatch.getBuffer().getText(), dedent`
+        0
+        1
+        2
+        3
+      `);
+      assertMarkerRanges(subPatch.getLayer('patch'), [[0, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('hunk'), [[0, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('unchanged'), [[0, 0], [0, 1]], [[3, 0], [3, 1]]);
+      assertMarkerRanges(subPatch.getLayer('addition'), [[1, 0], [2, 1]]);
+      assertMarkerRanges(subPatch.getLayer('deletion'));
+      assertMarkerRanges(subPatch.getLayer('nonewline'));
     });
   });
 
