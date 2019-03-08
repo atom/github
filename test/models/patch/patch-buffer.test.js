@@ -1,6 +1,7 @@
 import dedent from 'dedent-js';
 
 import PatchBuffer from '../../../lib/models/patch/patch-buffer';
+import {assertMarkerRanges} from '../../helpers';
 
 describe('PatchBuffer', function() {
   let patchBuffer;
@@ -84,6 +85,24 @@ describe('PatchBuffer', function() {
       );
       assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[0, 0], [1, 0]]);
       assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
+    });
+
+    it('includes markers that cross into or across the chosen range', function() {
+      patchBuffer.markRange('patch', [[0, 0], [4, 2]]); // before -> within
+      patchBuffer.markRange('hunk', [[6, 1], [8, 0]]); // within -> after
+      patchBuffer.markRange('addition', [[1, 0], [9, 4]]); // before -> after
+
+      const {patchBuffer: subPatchBuffer} = patchBuffer.createSubBuffer([[3, 1], [7, 3]]);
+      assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
+        003
+        0004
+        0005
+        0006
+        000
+      `);
+      assertMarkerRanges(subPatchBuffer.getLayer('patch'), [[0, 0], [1, 2]]);
+      assertMarkerRanges(subPatchBuffer.getLayer('hunk'), [[3, 1], [4, 3]]);
+      assertMarkerRanges(subPatchBuffer.getLayer('addition'), [[0, 0], [4, 3]]);
     });
   });
 
