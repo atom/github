@@ -35,6 +35,58 @@ describe('PatchBuffer', function() {
     assert.lengthOf(patchBuffer.findMarkers('hunk', {}), 0);
   });
 
+  describe('createSubBuffer', function() {
+    it('creates a new PatchBuffer containing a subset of the original', function() {
+      const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
+      const m1 = patchBuffer.markRange('hunk', [[2, 0], [4, 2]]); // before, ending at the extraction point
+      const m2 = patchBuffer.markRange('hunk', [[4, 2], [5, 0]]); // within
+      const m3 = patchBuffer.markRange('patch', [[6, 0], [7, 1]]); // within
+      const m4 = patchBuffer.markRange('hunk', [[7, 1], [9, 0]]); // after, starting at the extraction point
+      const m5 = patchBuffer.markRange('patch', [[8, 0], [10, 0]]); // after
+
+      const {patchBuffer: subPatchBuffer, markerMap} = patchBuffer.createSubBuffer([[4, 2], [7, 1]]);
+
+      // Original PatchBuffer should not be modified
+      assert.strictEqual(patchBuffer.getBuffer().getText(), TEXT);
+      assert.deepEqual(
+        patchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[1, 0], [3, 0]], [[6, 0], [7, 1]], [[8, 0], [10, 0]]],
+      );
+      assert.deepEqual(
+        patchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [4, 2]], [[4, 2], [5, 0]], [[7, 1], [9, 0]]],
+      );
+      assert.deepEqual(m0.getRange().serialize(), [[1, 0], [3, 0]]);
+      assert.deepEqual(m1.getRange().serialize(), [[2, 0], [4, 2]]);
+      assert.deepEqual(m2.getRange().serialize(), [[4, 2], [5, 0]]);
+      assert.deepEqual(m3.getRange().serialize(), [[6, 0], [7, 1]]);
+      assert.deepEqual(m4.getRange().serialize(), [[7, 1], [9, 0]]);
+      assert.deepEqual(m5.getRange().serialize(), [[8, 0], [10, 0]]);
+
+      assert.isFalse(markerMap.has(m0));
+      assert.isFalse(markerMap.has(m1));
+      assert.isFalse(markerMap.has(m4));
+      assert.isFalse(markerMap.has(m5));
+
+      assert.strictEqual(subPatchBuffer.getBuffer().getText(), dedent`
+        04
+        0005
+        0006
+        0
+      `);
+      assert.deepEqual(
+        subPatchBuffer.findMarkers('hunk', {}).map(m => m.getRange().serialize()),
+        [[[0, 0], [1, 0]]],
+      );
+      assert.deepEqual(
+        subPatchBuffer.findMarkers('patch', {}).map(m => m.getRange().serialize()),
+        [[[2, 0], [3, 1]]],
+      );
+      assert.deepEqual(markerMap.get(m2).getRange().serialize(), [[0, 0], [1, 0]]);
+      assert.deepEqual(markerMap.get(m3).getRange().serialize(), [[2, 0], [3, 1]]);
+    });
+  });
+
   describe('extractPatchBuffer', function() {
     it('extracts a subset of the buffer and layers as a new PatchBuffer', function() {
       const m0 = patchBuffer.markRange('patch', [[1, 0], [3, 0]]); // before
