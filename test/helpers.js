@@ -199,7 +199,8 @@ export function assertInFilePatch(filePatch, buffer) {
 }
 
 export function assertMarkerRanges(markerLayer, ...expectedRanges) {
-  const actualRanges = markerLayer.getMarkers().map(m => m.getRange().serialize());
+  const bufferLayer = markerLayer.bufferMarkerLayer || markerLayer;
+  const actualRanges = bufferLayer.getMarkers().map(m => m.getRange().serialize());
   assert.deepEqual(actualRanges, expectedRanges);
 }
 
