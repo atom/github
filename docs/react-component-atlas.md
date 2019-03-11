@@ -74,8 +74,8 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<MultiFilePatchController>`](/lib/controllers/multi-file-patch-controller.js)
 > > > [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
 > > >
-> > > Render a sequence of git-generated file patches within a TextEditor, using decorations to include contextually
-> > > relevant controls.
+> > > Render a sequence of git-generated file patches within a TextEditor, using decorations to include contextually relevant controls.
+> > > See [`MultiFilePatchView` atlas](#multifilepatchview-atlas) below for a more detailed breakdown.
 >
 > > [`<CommitPreviewItem>`](/lig/items/commit-preview-item.js)
 > > [`<CommitPreviewContainer>`](/lib/containers/commit-preview-container.js)
@@ -178,3 +178,36 @@ This is a high-level overview of the structure of the React component tree that 
 > > > [`<GithubTileView>`](/lib/views/changed-files-count-view.js)
 > > >
 > > > Displays the GitHub logo. Clicking it opens the GitHub tab.
+
+
+
+## `MultiFilePatchView` Atlas
+
+> [`<MultiFilePatchView>`](/lib/views/multi-file-patch-view.js)
+> > [`<AtomTextEditor>`](lib/atom/atom-text-editor.js)
+> >
+> > React wrapper of an [Atom TextEditor](https://atom.io/docs/api/latest/TextEditor). Each `MultiFilePatchView` contains one `AtomTextEditor`, regardless of the number of file patch.
+> >
+> > > [`<Gutter>`](lib/atom/gutter.js)
+> > >
+> > > React wrapper of Atom's [Gutter](https://atom.io/docs/api/latest/Gutter) class.
+> >
+> > > [`<MarkerLayer>`](lib/atom/marker-layer.js)
+> > > >
+> > > > React wrapper of Atom's [MarkerLayer](https://atom.io/docs/api/latest/MarkerLayer) class.
+> > > >
+> > > > [`<Marker>`](lib/atom/marker.js)
+> > > >
+> > > > React wrapper of Atom's [DisplayMarker](https://atom.io/docs/api/latest/DisplayMarker) class.
+> > > >
+> > > > > [`<Decoration>`](lib/atom/decoration.js)
+> > > > >
+> > > > > React wrapper of Atom's [Decoration](https://atom.io/docs/api/latest/Decoration) class.
+> > > > >
+> > > > > > [`<FilePatchHeaderView>`](lib/views/file-patch-header-view.js)
+> > > > > >
+> > > > > > Header above each file patch. Handles file patch level operations (e.g. discard change, stage/unstage, jump to file, expand/collapse file patch, etc.)
+> > > > >
+> > > > > > [`<HunkHeaderView>`](lib/views/hunk-header-view.js)
+> > > > > >
+> > > > > > Header above each hunk. Handles more granular stage/unstage operation (per hunk or per line).

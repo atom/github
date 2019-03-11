@@ -193,19 +193,61 @@ describe('Hunk', function() {
     assert.strictEqual(h1.getMaxLineNumberWidth(), 5);
   });
 
-  it('creates a new marker on a different markable target', function() {
+  it('updates markers from a marker map', function() {
+    const oMarker = buffer.markRange([[0, 0], [10, 4]]);
+
     const h = new Hunk({
-      ...attrs,
-      marker: buffer.markRange([[1, 0], [4, 4]]),
+      oldStartRow: 0,
+      newStartRow: 1,
+      oldRowCount: 2,
+      newRowCount: 3,
+      sectionHeading: 'sectionHeading',
+      marker: oMarker,
+      regions: [
+        new Addition(buffer.markRange([[1, 0], [2, 4]])),
+        new Deletion(buffer.markRange([[3, 0], [4, 4]])),
+        new Deletion(buffer.markRange([[5, 0], [6, 4]])),
+        new Unchanged(buffer.markRange([[7, 0], [10, 4]])),
+      ],
     });
 
-    assert.strictEqual(h.getMarker().layer, buffer.getDefaultMarkerLayer());
+    h.updateMarkers(new Map());
+    assert.strictEqual(h.getMarker(), oMarker);
 
-    const nextBuffer = new TextBuffer({text: buffer.getText()});
-    h.reMarkOn(nextBuffer);
+    const regionUpdateMaps = h.getRegions().map(r => sinon.spy(r, 'updateMarkers'));
 
-    assert.deepEqual(h.getRange().serialize(), [[1, 0], [4, 4]]);
-    assert.strictEqual(h.getMarker().layer, nextBuffer.getDefaultMarkerLayer());
+    const layer = buffer.addMarkerLayer();
+    const nMarker = layer.markRange([[0, 0], [10, 4]]);
+    const map = new Map([[oMarker, nMarker]]);
+
+    h.updateMarkers(map);
+
+    assert.strictEqual(h.getMarker(), nMarker);
+    assert.isTrue(regionUpdateMaps.every(spy => spy.calledWith(map)));
+  });
+
+  it('destroys all of its markers', function() {
+    const h = new Hunk({
+      oldStartRow: 0,
+      newStartRow: 1,
+      oldRowCount: 2,
+      newRowCount: 3,
+      sectionHeading: 'sectionHeading',
+      marker: buffer.markRange([[0, 0], [10, 4]]),
+      regions: [
+        new Addition(buffer.markRange([[1, 0], [2, 4]])),
+        new Deletion(buffer.markRange([[3, 0], [4, 4]])),
+        new Deletion(buffer.markRange([[5, 0], [6, 4]])),
+        new Unchanged(buffer.markRange([[7, 0], [10, 4]])),
+      ],
+    });
+
+    const allMarkers = [h.getMarker(), ...h.getRegions().map(r => r.getMarker())];
+    assert.isFalse(allMarkers.some(m => m.isDestroyed()));
+
+    h.destroyMarkers();
+
+    assert.isTrue(allMarkers.every(m => m.isDestroyed()));
   });
 
   describe('toStringIn()', function() {

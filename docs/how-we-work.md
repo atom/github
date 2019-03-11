@@ -139,8 +139,8 @@ At the end of each development sprint:
 4. Run `apm uninstall github` and `apm uninstall --dev github` to ensure that you don't have any [locally installed atom/github versions](/CONTRIBUTING.md#living-on-the-edge) that would override the bundled one.
 6. Create a [QA issue](https://github.com/atom/github/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquality) in the atom/github repository. Its title should be "_prerelease version_ QA Review" and it should have the "quality" label applied. Populate the issue body with a checklist containing the pull requests that were included in this release; these should be the ones in the "Merged" column of the project board. Omit pull requests that don't have verification steps (like renames, refactoring, adding tests or metrics, or dependency upgrades, for example).
 7. Use your `atom-dev` build to verify each and check it off the list.
-  * :boom: _If verification fails,_ 
-    1. Note the failure in an issue comment. Close the issue. 
+  * :boom: _If verification fails,_
+    1. Note the failure in an issue comment. Close the issue.
     1. Correct the failure with more work in the current sprint board. Make changes on master branch.
     1. Cherry changes from master to release branch.
     1. Begin again by cutting a new pre-release and proceeding through the above steps once again.

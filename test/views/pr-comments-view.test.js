@@ -6,6 +6,23 @@ import {pullRequestBuilder} from '../builder/pr';
 import PullRequestCommentsView, {PullRequestCommentView} from '../../lib/views/pr-review-comments-view';
 
 describe('PullRequestCommentsView', function() {
+  function buildApp(multiFilePatch, pullRequest, overrideProps) {
+    const relay = {
+      hasMore: () => {},
+      loadMore: () => {},
+      isLoading: () => {},
+    };
+    return shallow(
+      <PullRequestCommentsView
+        isPatchVisible={sinon.stub().returns(true)}
+        getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition} reviews={pullRequest.reviews}
+        commentThreads={pullRequest.commentThreads}
+        relay={relay}
+        switchToIssueish={() => {}}
+        {...overrideProps}
+      />,
+    );
+  }
   it('adjusts the position for comments after hunk headers', function() {
     const {multiFilePatch} = multiFilePatchBuilder()
       .addFilePatch(fp => {
@@ -31,11 +48,25 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PullRequestCommentsView getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition} reviews={pr.reviews} commentThreads={pr.commentThreads} />);
+    const wrapper = buildApp(multiFilePatch, pr, {});
 
     assert.deepEqual(wrapper.find('Marker').at(0).prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
     assert.deepEqual(wrapper.find('Marker').at(1).prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
     assert.deepEqual(wrapper.find('Marker').at(2).prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
+  });
+
+  it('does not render comment if patch is too large or collapsed', function() {
+    const {multiFilePatch} = multiFilePatchBuilder().build();
+
+    const pr = pullRequestBuilder()
+      .addReview(r => {
+        r.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+      })
+      .build();
+
+    const wrapper = buildApp(multiFilePatch, pr, {isPatchVisible: () => { return false; }});
+    const comments = wrapper.find('PullRequestCommentView');
+    assert.lengthOf(comments, 0);
   });
 
   it('does not render comment if position is null', function() {
@@ -57,7 +88,7 @@ describe('PullRequestCommentsView', function() {
       })
       .build();
 
-    const wrapper = shallow(<PullRequestCommentsView multiFilePatch={multiFilePatch} reviews={pr.reviews} commentThreads={pr.commentThreads} getBufferRowForDiffPosition={multiFilePatch.getBufferRowForDiffPosition} />);
+    const wrapper = buildApp(multiFilePatch, pr, {});
 
     const comments = wrapper.find('PullRequestCommentView');
     assert.lengthOf(comments, 1);

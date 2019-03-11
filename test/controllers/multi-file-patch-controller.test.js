@@ -160,7 +160,7 @@ describe('MultiFilePatchController', function() {
 
       // Simulate updated patch arrival
       const promise = wrapper.instance().patchChangePromise;
-      wrapper.setProps({multiFilePatch: new MultiFilePatch({})});
+      wrapper.setProps({multiFilePatch: MultiFilePatch.createNull()});
       await promise;
 
       // Performs an operation again

@@ -130,6 +130,31 @@ describe('AtomTextEditor', function() {
       });
     });
 
+    it('defaults to no-op handlers', function() {
+      mount(
+        <AtomTextEditor
+          workspace={workspace}
+          refModel={refModel}
+          buffer={buffer}
+        />,
+      );
+
+      const editor = refModel.get();
+
+      // Trigger didChangeCursorPosition
+      editor.setCursorBufferPosition([2, 3]);
+
+      // Trigger didAddSelection
+      editor.addSelectionForBufferRange([[1, 0], [3, 3]]);
+
+      // Trigger didChangeSelectionRange
+      const [selection] = editor.getSelections();
+      selection.setBufferRange([[2, 2], [2, 3]]);
+
+      // Trigger didDestroySelection
+      editor.setSelectedBufferRange([[1, 0], [1, 2]]);
+    });
+
     it('triggers didChangeCursorPosition when the cursor position changes', function() {
       mount(
         <AtomTextEditor
@@ -218,6 +243,41 @@ describe('AtomTextEditor', function() {
 
       editor.setSelectedBufferRange([[1, 0], [1, 2]]);
       assert.isTrue(handler.calledWith(selection1));
+    });
+  });
+
+  describe('hideEmptiness', function() {
+    it('adds the github-AtomTextEditor-empty class when constructed with an empty TextBuffer', function() {
+      const emptyBuffer = new TextBuffer();
+
+      const wrapper = mount(<AtomTextEditor workspace={workspace} buffer={emptyBuffer} hideEmptiness={true} />);
+      const element = wrapper.instance().refElement.get();
+
+      assert.isTrue(element.classList.contains('github-AtomTextEditor-empty'));
+    });
+
+    it('removes the github-AtomTextEditor-empty class when constructed with a non-empty TextBuffer', function() {
+      const nonEmptyBuffer = new TextBuffer({text: 'nonempty\n'});
+
+      const wrapper = mount(<AtomTextEditor workspace={workspace} buffer={nonEmptyBuffer} hideEmptiness={true} />);
+      const element = wrapper.instance().refElement.get();
+
+      assert.isFalse(element.classList.contains('github-AtomTextEditor-empty'));
+    });
+
+    it('adds and removes the github-AtomTextEditor-empty class as its TextBuffer becomes empty and non-empty', function() {
+      const buffer = new TextBuffer({text: 'nonempty\n...to start with\n'});
+
+      const wrapper = mount(<AtomTextEditor workspace={workspace} buffer={buffer} hideEmptiness={true} />);
+      const element = wrapper.instance().refElement.get();
+
+      assert.isFalse(element.classList.contains('github-AtomTextEditor-empty'));
+
+      buffer.setText('');
+      assert.isTrue(element.classList.contains('github-AtomTextEditor-empty'));
+
+      buffer.setText('asdf\n');
+      assert.isFalse(element.classList.contains('github-AtomTextEditor-empty'));
     });
   });
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Range} from 'atom';
+import path from 'path';
 
 import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
@@ -99,66 +100,66 @@ describe('Decoration', function() {
     });
   });
 
-  describe('when called with changed props', function() {
-    let wrapper, originalDecoration;
+  describe('when props update', function() {
+    it('creates a new decoration on a different TextEditor and marker', async function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
 
-    beforeEach(function() {
-      const app = (
-        <Decoration
-          editor={editor}
-          decorable={marker}
-          type="line"
-          position="head"
-          className="something"
-        />
-      );
-      wrapper = mount(app);
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
 
-      originalDecoration = editor.getLineDecorations({position: 'head', class: 'something'})[0];
-    });
-
-    it('redecorates when a new Editor and Marker are provided', async function() {
-      const newEditor = await workspace.open(require.resolve('../../package.json'));
-      const newMarker = newEditor.markBufferRange([[0, 0], [2, 0]]);
+      const newEditor = await workspace.open(path.join(__dirname, 'marker.test.js'));
+      const newMarker = newEditor.markBufferRange([[0, 0], [1, 0]]);
 
       wrapper.setProps({editor: newEditor, decorable: newMarker});
 
-      assert.isTrue(originalDecoration.isDestroyed());
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
-      assert.lengthOf(newEditor.getLineDecorations({position: 'head', class: 'something'}), 1);
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 0);
+
+      assert.lengthOf(newEditor.getLineDecorations({class: 'pretty'}), 1);
+      const [newDecoration] = newEditor.getLineDecorations({class: 'pretty'});
+      assert.strictEqual(newDecoration.getMarker(), newMarker);
     });
 
-    it('redecorates when a new MarkerLayer is provided', function() {
-      const newLayer = editor.addMarkerLayer();
+    it('creates a new decoration on a different Marker', function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
 
-      wrapper.setProps({decorable: newLayer, decorateMethod: 'decorateMarkerLayer'});
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
 
-      assert.isTrue(originalDecoration.isDestroyed());
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
+      const newMarker = editor.markBufferRange([[1, 0], [3, 0]]);
+      wrapper.setProps({decorable: newMarker});
 
-      // Turns out Atom doesn't provide any public way to query the markers on a layer.
-      assert.lengthOf(
-        Array.from(editor.decorationManager.layerDecorationsByMarkerLayer.get(newLayer)),
-        1,
-      );
+      assert.isTrue(original.isDestroyed());
+
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [newDecoration] = editor.getLineDecorations({class: 'pretty'});
+      assert.strictEqual(newDecoration.getMarker(), newMarker);
     });
 
-    it('updates decoration properties', function() {
-      wrapper.setProps({className: 'different'});
+    it('destroys and re-creates its decoration', function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
 
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'something'}), 0);
-      assert.lengthOf(editor.getLineDecorations({position: 'head', class: 'different'}), 1);
-      assert.isFalse(originalDecoration.isDestroyed());
-      assert.strictEqual(originalDecoration.getProperties().class, 'different');
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      wrapper.setProps({type: 'line-number', className: 'prettier'});
+
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineNumberDecorations({class: 'prettier'}), 1);
     });
 
-    it('does not redecorate when the decorable is on the wrong TextEditor', async function() {
-      const newEditor = await workspace.open(require.resolve('../../package.json'));
+    it('does not create a decoration when the Marker is not on the TextEditor', async function() {
+      const wrapper = mount(<Decoration editor={editor} decorable={marker} type="line" className="pretty" />);
 
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 1);
+      const [original] = editor.getLineDecorations({class: 'pretty'});
+
+      const newEditor = await workspace.open(path.join(__dirname, 'marker.test.js'));
       wrapper.setProps({editor: newEditor});
 
-      assert.isTrue(originalDecoration.isDestroyed());
-      assert.lengthOf(editor.getLineDecorations({}), 0);
+      assert.isTrue(original.isDestroyed());
+      assert.lengthOf(editor.getLineDecorations({class: 'pretty'}), 0);
+      assert.lengthOf(newEditor.getLineDecorations({class: 'pretty'}), 0);
     });
   });
 

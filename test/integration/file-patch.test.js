@@ -513,8 +513,8 @@ describe('integration: file patches', function() {
 
         await patchContent(
           'unstaged', 'sample.js',
-          [repoPath('target.txt'), 'selected'],
-          [' No newline at end of file'],
+          [repoPath('target.txt'), 'added', 'selected'],
+          [' No newline at end of file', 'nonewline'],
         );
 
         assert.isTrue(getPatchItem('unstaged', 'sample.js').find('.github-FilePatchView-metaTitle').exists());

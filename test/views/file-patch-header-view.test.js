@@ -2,6 +2,8 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import path from 'path';
 
+import * as reporterProxy from '../../lib/reporter-proxy';
+
 import FilePatchHeaderView from '../../lib/views/file-patch-header-view';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
@@ -25,6 +27,7 @@ describe('FilePatchHeaderView', function() {
       <FilePatchHeaderView
         itemType={CommitPreviewItem}
         relPath={relPath}
+        isCollapsed={false}
         stagingStatus="unstaged"
         isPartiallyStaged={false}
         hasHunks={true}
@@ -37,6 +40,8 @@ describe('FilePatchHeaderView', function() {
         diveIntoMirrorPatch={() => {}}
         openFile={() => {}}
         toggleFile={() => {}}
+        triggerExpand={() => {}}
+        triggerCollapse={() => {}}
 
         {...overrideProps}
       />
@@ -68,6 +73,61 @@ describe('FilePatchHeaderView', function() {
       assert.strictEqual(wrapper.find('.github-FilePatchView-title').text(), `${oldPath} → ${newPath}`);
     });
   });
+
+  describe('collapsing and expanding', function() {
+    describe('when itemType is ChangedFileItem', function() {
+      it('does not render collapse button', function() {
+        const wrapper = shallow(buildApp({itemType: ChangedFileItem}));
+        assert.lengthOf(wrapper.find('.github-FilePatchView-collapseButton'), 0);
+      });
+    });
+    describe('when itemType is not ChangedFileItem', function() {
+      describe('when patch is collapsed', function() {
+        it('renders a button with a chevron-right icon', function() {
+          const wrapper = shallow(buildApp({isCollapsed: true}));
+          assert.lengthOf(wrapper.find('.github-FilePatchView-collapseButton'), 1);
+          const iconProps = wrapper.find('.github-FilePatchView-collapseButtonIcon').getElements()[0].props;
+          assert.deepEqual(iconProps, {className: 'github-FilePatchView-collapseButtonIcon', icon: 'chevron-right'});
+        });
+        it('calls this.props.triggerExpand and records event when clicked', function() {
+          const triggerExpandStub = sinon.stub();
+          const addEventStub = sinon.stub(reporterProxy, 'addEvent');
+          const wrapper = shallow(buildApp({isCollapsed: true, triggerExpand: triggerExpandStub}));
+
+          assert.isFalse(triggerExpandStub.called);
+
+          wrapper.find('.github-FilePatchView-collapseButton').simulate('click');
+
+          assert.isTrue(triggerExpandStub.called);
+          assert.strictEqual(addEventStub.callCount, 1);
+          assert.isTrue(addEventStub.calledWith('expand-file-patch', {package: 'github', component: 'FilePatchHeaderView'}));
+        });
+      });
+      describe('when patch is expanded', function() {
+        it('renders a button with a chevron-down icon', function() {
+          const wrapper = shallow(buildApp({isCollapsed: false}));
+          assert.lengthOf(wrapper.find('.github-FilePatchView-collapseButton'), 1);
+          const iconProps = wrapper.find('.github-FilePatchView-collapseButtonIcon').getElements()[0].props;
+          assert.deepEqual(iconProps, {className: 'github-FilePatchView-collapseButtonIcon', icon: 'chevron-down'});
+        });
+        it('calls this.props.triggerCollapse and records event when clicked', function() {
+          const triggerCollapseStub = sinon.stub();
+          const addEventStub = sinon.stub(reporterProxy, 'addEvent');
+          const wrapper = shallow(buildApp({isCollapsed: false, triggerCollapse: triggerCollapseStub}));
+
+          assert.isFalse(triggerCollapseStub.called);
+          assert.isFalse(addEventStub.called);
+
+          wrapper.find('.github-FilePatchView-collapseButton').simulate('click');
+
+          assert.isTrue(triggerCollapseStub.called);
+          assert.strictEqual(addEventStub.callCount, 1);
+          assert.isTrue(addEventStub.calledWith('collapse-file-patch', {package: 'github', component: 'FilePatchHeaderView'}));
+        });
+      });
+    });
+  });
+
 
   describe('the button group', function() {
     it('includes undo discard if ChangedFileItem, undo history is available, and the patch is unstaged', function() {
@@ -127,14 +187,6 @@ describe('FilePatchHeaderView', function() {
 
     describe('when the patch is partially staged', function() {
       const props = {isPartiallyStaged: true};
-
-      it('includes a toggle to staged button when unstaged', createUnstagedPatchToggleTest(props));
-
-      it('includes a toggle to unstaged button when staged', createStagedPatchToggleTest(props));
-    });
-
-    describe('when the patch contains no hunks', function() {
-      const props = {hasHunks: false};
 
       it('includes a toggle to staged button when unstaged', createUnstagedPatchToggleTest(props));
 

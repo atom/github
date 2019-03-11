@@ -43,6 +43,7 @@ describe('PullRequestReviewsController', function() {
 
       switchToIssueish: () => {},
       getBufferRowForDiffPosition: () => {},
+      isPatchVisible: () => true,
       pullRequest: {reviews},
       ...overrideProps,
     };

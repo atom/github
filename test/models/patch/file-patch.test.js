@@ -2,10 +2,12 @@ import {TextBuffer} from 'atom';
 
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
-import Patch from '../../../lib/models/patch/patch';
+import Patch, {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInFilePatch} from '../../helpers';
+import {multiFilePatchBuilder} from '../../builder/patch';
 
 describe('FilePatch', function() {
   it('delegates methods to its files and patch', function() {
@@ -21,7 +23,7 @@ describe('FilePatch', function() {
         ],
       }),
     ];
-    const marker = markRange(layers.patch);
+    const marker = markRange(layers.patch, 0, 2);
     const patch = new Patch({status: 'modified', hunks, marker});
     const oldFile = new File({path: 'a.txt', mode: '120000', symlink: 'dest.txt'});
     const newFile = new File({path: 'b.txt', mode: '100755'});
@@ -40,6 +42,14 @@ describe('FilePatch', function() {
 
     assert.strictEqual(filePatch.getMarker(), marker);
     assert.strictEqual(filePatch.getMaxLineNumberWidth(), 1);
+
+    assert.deepEqual(filePatch.getFirstChangeRange().serialize(), [[1, 0], [1, Infinity]]);
+    assert.isTrue(filePatch.containsRow(0));
+    assert.isFalse(filePatch.containsRow(3));
+
+    const nMarker = markRange(layers.patch, 0, 2);
+    filePatch.updateMarkers(new Map([[marker, nMarker]]));
+    assert.strictEqual(filePatch.getMarker(), nMarker);
   });
 
   it('accesses a file path from either side of the patch', function() {
@@ -170,12 +180,10 @@ describe('FilePatch', function() {
   });
 
   describe('buildStagePatchForLines()', function() {
-    let stagedLayeredBuffer;
+    let stagedPatchBuffer;
 
     beforeEach(function() {
-      const buffer = new TextBuffer();
-      const layers = buildLayers(buffer);
-      stagedLayeredBuffer = {buffer, layers};
+      stagedPatchBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that applies only the selected lines', function() {
@@ -199,12 +207,12 @@ describe('FilePatch', function() {
       const newFile = new File({path: 'file.txt', mode: '100644'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
 
-      const stagedPatch = filePatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([1, 3]));
+      const stagedPatch = filePatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([1, 3]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
       assert.strictEqual(stagedPatch.getOldFile(), oldFile);
       assert.strictEqual(stagedPatch.getNewFile(), newFile);
-      assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0003\n0004\n');
-      assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+      assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0003\n0004\n');
+      assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 3,
@@ -242,13 +250,13 @@ describe('FilePatch', function() {
       });
 
       it('handles staging part of the file', function() {
-        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([1, 2]));
+        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([1, 2]));
 
         assert.strictEqual(stagedPatch.getStatus(), 'modified');
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.strictEqual(stagedPatch.getNewFile(), oldFile);
-        assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n');
-        assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+        assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0002\n');
+        assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -262,12 +270,12 @@ describe('FilePatch', function() {
       });
 
       it('handles staging all lines, leaving nothing unstaged', function() {
-        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedLayeredBuffer, new Set([0, 1, 2]));
+        const stagedPatch = deletionPatch.buildStagePatchForLines(buffer, stagedPatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(stagedPatch.getStatus(), 'deleted');
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.isFalse(stagedPatch.getNewFile().isPresent());
-        assert.strictEqual(stagedLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n');
-        assertInFilePatch(stagedPatch, stagedLayeredBuffer.buffer).hunks(
+        assert.strictEqual(stagedPatchBuffer.buffer.getText(), '0000\n0001\n0002\n');
+        assertInFilePatch(stagedPatch, stagedPatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -297,7 +305,7 @@ describe('FilePatch', function() {
         const newFile = new File({path: 'file.txt', mode: '120000'});
         const replacePatch = new FilePatch(oldFile, newFile, patch);
 
-        const stagedPatch = replacePatch.buildStagePatchForLines(nBuffer, stagedLayeredBuffer, new Set([0, 1, 2]));
+        const stagedPatch = replacePatch.buildStagePatchForLines(nBuffer, stagedPatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(stagedPatch.getOldFile(), oldFile);
         assert.isFalse(stagedPatch.getNewFile().isPresent());
       });
@@ -305,12 +313,10 @@ describe('FilePatch', function() {
   });
 
   describe('getUnstagePatchForLines()', function() {
-    let unstageLayeredBuffer;
+    let unstagePatchBuffer;
 
     beforeEach(function() {
-      const buffer = new TextBuffer();
-      const layers = buildLayers(buffer);
-      unstageLayeredBuffer = {buffer, layers};
+      unstagePatchBuffer = new PatchBuffer();
     });
 
     it('returns a new FilePatch that unstages only the specified lines', function() {
@@ -334,12 +340,12 @@ describe('FilePatch', function() {
       const newFile = new File({path: 'file.txt', mode: '100644'});
       const filePatch = new FilePatch(oldFile, newFile, patch);
 
-      const unstagedPatch = filePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([1, 3]));
+      const unstagedPatch = filePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([1, 3]));
       assert.strictEqual(unstagedPatch.getStatus(), 'modified');
       assert.strictEqual(unstagedPatch.getOldFile(), newFile);
       assert.strictEqual(unstagedPatch.getNewFile(), newFile);
-      assert.strictEqual(unstageLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n0003\n0004\n');
-      assertInFilePatch(unstagedPatch, unstageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(unstagePatchBuffer.buffer.getText(), '0000\n0001\n0002\n0003\n0004\n');
+      assertInFilePatch(unstagedPatch, unstagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 4,
@@ -378,11 +384,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging part of the file', function() {
-        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([2]));
+        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([2]));
         assert.strictEqual(unstagePatch.getStatus(), 'modified');
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.strictEqual(unstagePatch.getNewFile(), newFile);
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -396,11 +402,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging all lines, leaving nothing staged', function() {
-        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+        const unstagePatch = addedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(unstagePatch.getStatus(), 'deleted');
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.isFalse(unstagePatch.getNewFile().isPresent());
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -415,10 +421,10 @@ describe('FilePatch', function() {
       it('unsets the newFile when a symlink is deleted and a file is created in its place', function() {
         const oldSymlink = new File({path: 'file.txt', mode: '120000', symlink: 'wat.txt'});
         const patch = new FilePatch(oldSymlink, newFile, addedPatch);
-        const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+        const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
         assert.strictEqual(unstagePatch.getOldFile(), newFile);
         assert.isFalse(unstagePatch.getNewFile().isPresent());
-        assertInFilePatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -453,11 +459,11 @@ describe('FilePatch', function() {
       });
 
       it('handles unstaging part of the file', function() {
-        const discardPatch = removedFilePatch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([1]));
+        const discardPatch = removedFilePatch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([1]));
         assert.strictEqual(discardPatch.getStatus(), 'added');
         assert.strictEqual(discardPatch.getOldFile(), nullFile);
         assert.strictEqual(discardPatch.getNewFile(), oldFile);
-        assertInFilePatch(discardPatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(discardPatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 0,
@@ -472,13 +478,13 @@ describe('FilePatch', function() {
       it('handles unstaging the entire file', function() {
         const discardPatch = removedFilePatch.buildUnstagePatchForLines(
           buffer,
-          unstageLayeredBuffer,
+          unstagePatchBuffer,
           new Set([0, 1, 2]),
         );
         assert.strictEqual(discardPatch.getStatus(), 'added');
         assert.strictEqual(discardPatch.getOldFile(), nullFile);
         assert.strictEqual(discardPatch.getNewFile(), oldFile);
-        assertInFilePatch(discardPatch, unstageLayeredBuffer.buffer).hunks(
+        assertInFilePatch(discardPatch, unstagePatchBuffer.buffer).hunks(
           {
             startRow: 0,
             endRow: 2,
@@ -668,6 +674,87 @@ describe('FilePatch', function() {
     assert.isFalse(nullFilePatch.buildStagePatchForLines(new Set([0])).isPresent());
     assert.isFalse(nullFilePatch.buildUnstagePatchForLines(new Set([0])).isPresent());
     assert.strictEqual(nullFilePatch.toStringIn(new TextBuffer()), '');
+  });
+
+  describe('render status changes', function() {
+    let sub;
+
+    afterEach(function() {
+      sub && sub.dispose();
+    });
+
+    it('announces the collapse of an expanded patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder().addFilePatch().build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.strictEqual(EXPANDED, filePatch.getRenderStatus());
+
+      multiFilePatch.collapseFilePatch(filePatch);
+
+      assert.strictEqual(COLLAPSED, filePatch.getRenderStatus());
+      assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('triggerCollapseIn returns false if patch is not visible', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(TOO_LARGE);
+        }).build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
+      assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer(), {before: [], after: []}));
+    });
+
+    it('triggerCollapseIn does not delete the trailing line if the collapsed patch has no content', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('0.txt'));
+          fp.addHunk(h => h.added('0'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('1.txt'));
+          fp.setNewFile(f => f.path('1.txt').executable());
+          fp.empty();
+        })
+        .build();
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), '0');
+
+      multiFilePatch.collapseFilePatch(multiFilePatch.getFilePatches()[1]);
+
+      assert.strictEqual(multiFilePatch.getBuffer().getText(), '0');
+    });
+
+    it('announces the expansion of a collapsed patch', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(COLLAPSED);
+        }).build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.deepEqual(COLLAPSED, filePatch.getRenderStatus());
+      multiFilePatch.expandFilePatch(filePatch);
+
+      assert.deepEqual(EXPANDED, filePatch.getRenderStatus());
+      assert.isTrue(callback.calledWith(filePatch));
+    });
+
+    it('does not announce non-changes', function() {
+      const {multiFilePatch} = multiFilePatchBuilder().addFilePatch().build();
+      const filePatch = multiFilePatch.getFilePatches()[0];
+
+      const callback = sinon.spy();
+      sub = filePatch.onDidChangeRenderStatus(callback);
+
+      assert.deepEqual(EXPANDED, filePatch.getRenderStatus());
+
+      multiFilePatch.expandFilePatch(filePatch);
+      assert.isFalse(callback.called);
+    });
   });
 });
 

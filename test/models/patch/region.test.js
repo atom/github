@@ -1,7 +1,7 @@
 import {TextBuffer} from 'atom';
 import {Addition, Deletion, NoNewline, Unchanged} from '../../../lib/models/patch/region';
 
-describe('Regions', function() {
+describe('Region', function() {
   let buffer, marker;
 
   beforeEach(function() {
@@ -27,17 +27,6 @@ describe('Regions', function() {
       assert.sameMembers(Array.from(addition.getBufferRows()), [1, 2, 3]);
       assert.strictEqual(addition.bufferRowCount(), 3);
       assert.isTrue(addition.includesBufferRow(2));
-    });
-
-    it('can be re-marked on a new markable target', function() {
-      assert.strictEqual(addition.getMarker().layer, buffer.getDefaultMarkerLayer());
-
-      const nextBuffer = new TextBuffer({text: buffer.getText()});
-      const nextLayer = nextBuffer.addMarkerLayer();
-      addition.reMarkOn(nextLayer);
-
-      assert.strictEqual(addition.getMarker().layer, nextLayer);
-      assert.deepEqual(addition.getRange().serialize(), [[1, 0], [3, 4]]);
     });
 
     it('can be recognized by the isAddition predicate', function() {
