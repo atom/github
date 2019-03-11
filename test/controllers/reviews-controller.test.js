@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import ReviewsController from '../../lib/controllers/reviews-controller';
+import ReviewsView from '../../lib/views/reviews-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 
 describe('ReviewsController', function() {
@@ -34,43 +35,44 @@ describe('ReviewsController', function() {
     return <ReviewsController {...props} />;
   }
 
-  it('renders a ReviewsView', function() {
+  it('renders a ReviewsView inside a PullRequestCheckoutController', function() {
     const extra = Symbol('extra');
     const wrapper = shallow(buildApp({extra}));
-    assert.isTrue(wrapper.exists('ReviewsView'));
-    assert.strictEqual(wrapper.find('ReviewsView').prop('extra'), extra);
+    assert.isTrue(wrapper.exists('PullRequestCheckoutController'));
+    assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('childComponent'), ReviewsView);
+    assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('extra'), extra);
   });
 
   describe('context lines', function() {
     it('defaults to 4 lines of context', function() {
       const wrapper = shallow(buildApp());
-      assert.strictEqual(wrapper.find('ReviewsView').prop('contextLines'), 4);
+      assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('contextLines'), 4);
     });
 
     it('increases context lines with moreContext', function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('ReviewsView').prop('moreContext')();
+      wrapper.find('PullRequestCheckoutController').prop('moreContext')();
 
-      assert.strictEqual(wrapper.find('ReviewsView').prop('contextLines'), 5);
+      assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('contextLines'), 5);
     });
 
     it('decreases context lines with lessContext', function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('ReviewsView').prop('lessContext')();
+      wrapper.find('PullRequestCheckoutController').prop('lessContext')();
 
-      assert.strictEqual(wrapper.find('ReviewsView').prop('contextLines'), 3);
+      assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('contextLines'), 3);
     });
 
     it('ensures that at least one context line is present', function() {
       const wrapper = shallow(buildApp());
       for (let i = 0; i < 3; i++) {
-        wrapper.find('ReviewsView').prop('lessContext')();
+        wrapper.find('PullRequestCheckoutController').prop('lessContext')();
       }
 
-      assert.strictEqual(wrapper.find('ReviewsView').prop('contextLines'), 1);
+      assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('contextLines'), 1);
 
-      wrapper.find('ReviewsView').prop('lessContext')();
-      assert.strictEqual(wrapper.find('ReviewsView').prop('contextLines'), 1);
+      wrapper.find('PullRequestCheckoutController').prop('lessContext')();
+      assert.strictEqual(wrapper.find('PullRequestCheckoutController').prop('contextLines'), 1);
     });
   });
 });

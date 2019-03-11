@@ -137,8 +137,12 @@ describe('ReviewsContainer', function() {
     assert.strictEqual(patchWrapper.find('ObserveModel').prop('model'), repository);
     assert.deepEqual(await patchWrapper.find('ObserveModel').prop('fetchData')(repository), {
       branches: await repository.getBranches(),
+      remotes: await repository.getRemotes(),
+      isAbsent: repository.isAbsent(),
       isLoading: repository.isLoading(),
       isPresent: repository.isPresent(),
+      isMerging: await repository.isMerging(),
+      isRebasing: await repository.isRebasing(),
     });
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
 
