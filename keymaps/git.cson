@@ -132,3 +132,13 @@
   'end': 'github:co-author:end'
   'delete': 'github:co-author:delete'
   'shift-backspace': 'github:co-author-exclude'
+
+'.platform-darwin .github-Reviews':
+  'cmd-=': 'github:more-context'
+  'cmd--': 'github:less-context'
+'.platform-win32 .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
+'.platform-linux .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
