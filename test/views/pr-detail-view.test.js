@@ -2,8 +2,11 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
-import {BarePullRequestDetailView, checkoutStates} from '../../lib/views/pr-detail-view';
+import {BarePullRequestDetailView} from '../../lib/views/pr-detail-view';
+import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
+import PullRequestCommitsView from '../../lib/views/pr-commits-view';
+import PullRequestTimelineController from '../../lib/controllers/pr-timeline-controller';
 import {pullRequestDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import EnableableOperation from '../../lib/models/enableable-operation';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -121,23 +124,24 @@ describe('PullRequestDetailView', function() {
     assert.lengthOf(wrapper.find(TabPanel), 4);
   });
 
-  it('manages selectedTab index', function() {
-    const wrapper = shallow(buildApp());
-    assert.strictEqual(wrapper.state('selectedTab'), 0);
-    const index = findTabIndex(wrapper, 'Commits');
+  it('passes selected tab index to tabs', function() {
+    const onTabSelected = sinon.spy();
 
+    const wrapper = shallow(buildApp({}, {selectedTab: 0, onTabSelected}));
+    assert.strictEqual(wrapper.find('Tabs').prop('selectedIndex'), 0);
+
+    const index = findTabIndex(wrapper, 'Commits');
     wrapper.find('Tabs').prop('onSelect')(index);
-    assert.strictEqual(wrapper.state('selectedTab'), index);
-  })
+    assert.isTrue(onTabSelected.calledWith(index));
+  });
 
   it('tells its tabs when the pull request is currently checked out', function() {
     const wrapper = shallow(buildApp({}, {
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
     }));
 
-    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isTrue(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    assert.isTrue(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isTrue(wrapper.find(PullRequestCommitsView).prop('onBranch'));
   });
 
   it('tells its tabs when the pull request is not checked out', function() {
