@@ -7,10 +7,11 @@ import Repository from '../../lib/models/repository';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {getEndpoint} from '../../lib/models/endpoint';
+import {multiFilePatchBuilder} from '../builder/patch';
 import {cloneRepository} from '../helpers';
 
 describe('ReviewsContainer', function() {
-  let atomEnv, repository, loginModel;
+  let atomEnv, repository, loginModel, repoData, queryData;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -19,6 +20,22 @@ describe('ReviewsContainer', function() {
     await repository.getLoadPromise();
     loginModel = new GithubLoginModel(InMemoryStrategy);
     sinon.stub(loginModel, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+
+    repoData = {
+      branches: await repository.getBranches(),
+      remotes: await repository.getRemotes(),
+      isAbsent: repository.isAbsent(),
+      isLoading: repository.isLoading(),
+      isPresent: repository.isPresent(),
+      isMerging: await repository.isMerging(),
+      isRebasing: await repository.isRebasing(),
+    };
+
+    queryData = {
+      repository: {
+        pullRequest: {},
+      },
+    };
   });
 
   afterEach(function() {
@@ -28,11 +45,19 @@ describe('ReviewsContainer', function() {
   function buildApp(override = {}) {
     const props = {
       endpoint: getEndpoint('github.com'),
+
       owner: 'atom',
       repo: 'github',
       number: 1234,
+      workdir: repository.getWorkingDirectoryPath(),
+
       repository,
       loginModel,
+
+      workspace: atomEnv.workspace,
+      config: atomEnv.config,
+      commands: atomEnv.commands,
+
       ...override,
     };
 
@@ -75,8 +100,8 @@ describe('ReviewsContainer', function() {
     const wrapper = shallow(buildApp());
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, null);
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')({});
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: {}, retry: () => {}});
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
     assert.isTrue(resultWrapper.exists('LoadingView'));
   });
@@ -86,7 +111,7 @@ describe('ReviewsContainer', function() {
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, {});
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(null);
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: {}, retry: () => {}});
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
     assert.isTrue(resultWrapper.exists('LoadingView'));
   });
@@ -95,7 +120,7 @@ describe('ReviewsContainer', function() {
     const wrapper = shallow(buildApp());
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, {});
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')({});
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: () => {}});
 
     assert.isTrue(resultWrapper.exists('LoadingView'));
@@ -109,7 +134,7 @@ describe('ReviewsContainer', function() {
       endpoint: getEndpoint('github.enterprise.com'),
     }));
 
-    const PATCH = Symbol('multi-file patch');
+    const {multiFilePatch} = multiFilePatchBuilder().build();
 
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
 
@@ -118,38 +143,30 @@ describe('ReviewsContainer', function() {
     assert.strictEqual(tokenWrapper.find('PullRequestPatchContainer').prop('number'), 123);
     assert.strictEqual(tokenWrapper.find('PullRequestPatchContainer').prop('endpoint').getHost(), 'github.enterprise.com');
     assert.strictEqual(tokenWrapper.find('PullRequestPatchContainer').prop('token'), 'shhh');
-    const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, PATCH);
+    const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, multiFilePatch);
 
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')({});
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: {}, retry: () => {}});
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('multiFilePatch'), PATCH);
+    assert.strictEqual(resultWrapper.find('ReviewsController').prop('multiFilePatch'), multiFilePatch);
   });
 
   it('passes loaded repository data to the controller', async function() {
     const wrapper = shallow(buildApp());
 
-    const repoData = {one: Symbol('one'), two: Symbol('two')};
+    const extraRepoData = {...repoData, one: Symbol('one'), two: Symbol('two')};
 
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, {});
 
     assert.strictEqual(patchWrapper.find('ObserveModel').prop('model'), repository);
-    assert.deepEqual(await patchWrapper.find('ObserveModel').prop('fetchData')(repository), {
-      branches: await repository.getBranches(),
-      remotes: await repository.getRemotes(),
-      isAbsent: repository.isAbsent(),
-      isLoading: repository.isLoading(),
-      isPresent: repository.isPresent(),
-      isMerging: await repository.isMerging(),
-      isRebasing: await repository.isRebasing(),
-    });
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
+    assert.deepEqual(await patchWrapper.find('ObserveModel').prop('fetchData')(repository), repoData);
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(extraRepoData);
 
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: {}, retry: () => {}});
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('one'), repoData.one);
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('two'), repoData.two);
+    assert.strictEqual(resultWrapper.find('ReviewsController').prop('one'), extraRepoData.one);
+    assert.strictEqual(resultWrapper.find('ReviewsController').prop('two'), extraRepoData.two);
   });
 
   it('passes extra properties to the controller', function() {
@@ -160,9 +177,9 @@ describe('ReviewsContainer', function() {
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, {});
 
     assert.strictEqual(patchWrapper.find('ObserveModel').prop('model'), repository);
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')({});
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
 
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: {}, retry: () => {}});
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
     assert.strictEqual(resultWrapper.find('ReviewsController').prop('extra'), extra);
   });
@@ -185,7 +202,7 @@ describe('ReviewsContainer', function() {
 
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, {});
-    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')({});
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: err, props: null, retry});
 
     assert.strictEqual(resultWrapper.find('QueryErrorView').prop('error'), err);
