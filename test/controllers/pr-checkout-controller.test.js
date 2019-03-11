@@ -8,69 +8,64 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
 import {GitError} from '../../lib/git-shell-out-strategy';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe.skip('PullRequestCheckoutController', function() {
-  let localRepository;
+describe('PullRequestCheckoutController', function() {
+  let localRepository, children;
 
   beforeEach(async function() {
     localRepository = await buildRepository(await cloneRepository());
+    children = sinon.spy();
   });
 
   function buildApp(override = {}) {
     const props = {
       localRepository,
+      children,
       ...override,
     };
 
     return <BarePullRequestCheckoutController {...props} />;
   }
 
-  /*
-  it('checkout is disabled if the issueish is an issue', function() {
-    const wrapper = shallow(buildApp({pullRequestKind: 'Issue'}));
-    const op = wrapper.instance().checkoutOp;
-    assert.isFalse(op.isEnabled());
-    assert.strictEqual(op.getMessage(), 'Cannot check out an issue');
-  });
   it('is disabled if the repository is loading or absent', function() {
-    const wrapper = shallow(buildApp({}, {isAbsent: true}));
-    const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const wrapper = shallow(buildApp({isAbsent: true}));
+    const [op] = children.lastCall.args;
     assert.isFalse(op.isEnabled());
     assert.strictEqual(op.getMessage(), 'No repository found');
 
     wrapper.setProps({isAbsent: false, isLoading: true});
-    const op1 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const [op1] = children.lastCall.args;
     assert.isFalse(op1.isEnabled());
     assert.strictEqual(op1.getMessage(), 'Loading');
 
     wrapper.setProps({isAbsent: false, isLoading: false, isPresent: false});
-    const op2 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const [op2] = children.lastCall.args;
     assert.isFalse(op2.isEnabled());
     assert.strictEqual(op2.getMessage(), 'No repository found');
   });
 
   it('is disabled if the local repository is merging or rebasing', function() {
-    const wrapper = shallow(buildApp({}, {isMerging: true}));
-    const op0 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const wrapper = shallow(buildApp({isMerging: true}));
+    const [op0] = children.lastCall.args;
     assert.isFalse(op0.isEnabled());
     assert.strictEqual(op0.getMessage(), 'Merge in progress');
 
     wrapper.setProps({isMerging: false, isRebasing: true});
-    const op1 = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const [op1] = children.lastCall.args;
     assert.isFalse(op1.isEnabled());
     assert.strictEqual(op1.getMessage(), 'Rebase in progress');
   });
-  it('is disabled if pullRequest.headRepository is null', function() {
-    const props = issueishDetailControllerProps({}, {});
-    props.repository.pullRequest.headRepository = null;
-    const wrapper = shallow(buildApp({}, {...props}));
-    const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+
+  it.skip('is disabled if the pullRequest has no headRepository', function() {
+    shallow(buildApp({}));
+    const [op] = children.lastCall.args;
     assert.isFalse(op.isEnabled());
     assert.strictEqual(op.getMessage(), 'Pull request head repository does not exist');
   });
 
 
-  it('is disabled if the current branch already corresponds to the pull request', function() {
+  it.skip('is disabled if the current branch already corresponds to the pull request', function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/feature', 'origin', 'refs/heads/feature');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -93,7 +88,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.strictEqual(op.getMessage(), 'Current');
   });
 
-  it('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
+  it.skip('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/pull/123/head', 'origin', 'refs/pull/123/head');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -119,7 +114,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.strictEqual(op.getMessage(), 'Current');
   });
 
-  it('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
+  it.skip('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -159,7 +154,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
+  it.skip('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
     const branches = new BranchSet([
       new Branch('current', nullBranch, nullBranch, true),
     ]);
@@ -196,7 +191,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it('checks out an existing local branch that corresponds to the pull request', async function() {
+  it.skip('checks out an existing local branch that corresponds to the pull request', async function() {
     const currentUpstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
       new Branch('current', currentUpstream, currentUpstream, true),
@@ -234,7 +229,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it('squelches git errors', async function() {
+  it.skip('squelches git errors', async function() {
     const addRemote = sinon.stub().rejects(new GitError('handled by the pipeline'));
     const wrapper = shallow(buildApp({}, {addRemote}));
 
@@ -243,7 +238,7 @@ describe.skip('PullRequestCheckoutController', function() {
     assert.isTrue(addRemote.called);
   });
 
-  it('propagates non-git errors', async function() {
+  it.skip('propagates non-git errors', async function() {
     const addRemote = sinon.stub().rejects(new Error('not handled by the pipeline'));
     const wrapper = shallow(buildApp({}, {addRemote}));
 
@@ -253,5 +248,4 @@ describe.skip('PullRequestCheckoutController', function() {
     );
     assert.isTrue(addRemote.called);
   });
-  */
 });
