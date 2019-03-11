@@ -31,10 +31,12 @@ describe('IssueishDetailContainer', function() {
         timelineCursor: null,
         commitCount: PAGE_SIZE,
         commitCursor: null,
-        commentCount: PAGE_SIZE,
-        commentCursor: null,
         reviewCount: PAGE_SIZE,
         reviewCursor: null,
+        threadCount: PAGE_SIZE,
+        threadCursor: null,
+        commentCount: PAGE_SIZE,
+        commentCursor: null,
       },
     }, {
       repository: {
