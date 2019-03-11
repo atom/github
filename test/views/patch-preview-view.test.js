@@ -54,19 +54,41 @@ describe('PatchPreviewView', function() {
     `);
   });
 
-  it('retains sub-PatchBuffers unless the MultiFilePatch changes', function() {
-    const wrapper = mount(buildApp({fileName: 'file.txt', diffRow: 1, maxRowCount: 1}));
+  it('retains sub-PatchBuffers, adopting new content if the MultiFilePatch changes', function() {
+    const wrapper = mount(buildApp({fileName: 'file.txt', diffRow: 4, maxRowCount: 4}));
     const previewPatchBuffer = wrapper.state('previewPatchBuffer');
+    assert.strictEqual(previewPatchBuffer.getBuffer().getText(), dedent`
+      000
+      001
+      002
+      003
+    `);
 
     wrapper.setProps({});
     assert.strictEqual(wrapper.state('previewPatchBuffer'), previewPatchBuffer);
+    assert.strictEqual(previewPatchBuffer.getBuffer().getText(), dedent`
+      000
+      001
+      002
+      003
+    `);
 
     const {multiFilePatch: newPatch} = multiFilePatchBuilder()
-      .addFilePatch(fp => fp.setOldFile(f => f.path('file.txt')))
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file.txt'));
+        fp.addHunk(h => h.unchanged('000').added('001').unchanged('changed').deleted('003', '004'));
+        fp.addHunk(h => h.unchanged('005').deleted('006').added('007').unchanged('008'));
+      })
       .build();
     wrapper.setProps({multiFilePatch: newPatch});
 
-    assert.notStrictEqual(wrapper.state('previewPatchBuffer'), previewPatchBuffer);
+    assert.strictEqual(wrapper.state('previewPatchBuffer'), previewPatchBuffer);
+    assert.strictEqual(previewPatchBuffer.getBuffer().getText(), dedent`
+      000
+      001
+      changed
+      003
+    `);
   });
 
   it('decorates the addition and deletion marker layers', function() {
