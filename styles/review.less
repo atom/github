@@ -256,12 +256,18 @@
     &:last-child {
       border-left: 1px solid @base-border-color;
     }
-
     &:hover {
       background-color: @background-color-highlight;
     }
     &:active {
       background-color: @background-color-selected;
+    }
+    &[disabled] {
+      opacity: 0.65;
+      cursor: not-allowed;
+      &:hover {
+        background-color: transparent;
+      }
     }
   }
 
