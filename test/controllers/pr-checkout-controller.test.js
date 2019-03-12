@@ -90,8 +90,7 @@ describe('PullRequestCheckoutController', function() {
     assert.strictEqual(op.getMessage(), 'Pull request head repository does not exist');
   });
 
-
-  it.skip('is disabled if the current branch already corresponds to the pull request', function() {
+  it('is disabled if the current branch already corresponds to the pull request', function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/feature', 'origin', 'refs/heads/feature');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -100,21 +99,26 @@ describe('PullRequestCheckoutController', function() {
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
     ]);
 
-    const wrapper = shallow(buildApp({
-      pullRequestHeadRef: 'feature',
-      pullRequestHeadRepoOwner: 'aaa',
-      pullRequestHeadRepoName: 'bbb',
-    }, {
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .headRefName('feature')
+      .headRepository(r => {
+        r.owner(o => o.login('aaa'));
+        r.name('bbb');
+      })
+      .build();
+
+    shallow(buildApp({
+      pullRequest,
       branches,
       remotes,
     }));
 
-    const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const [op] = children.lastCall.args;
     assert.isFalse(op.isEnabled());
     assert.strictEqual(op.getMessage(), 'Current');
   });
 
-  it.skip('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
+  it('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/pull/123/head', 'origin', 'refs/pull/123/head');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -123,24 +127,33 @@ describe('PullRequestCheckoutController', function() {
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
     ]);
 
-    const wrapper = shallow(buildApp({
-      repositoryName: 'bbb',
-      ownerLogin: 'aaa',
-      pullRequestHeadRef: 'feature',
-      issueishNumber: 123,
-      pullRequestHeadRepoOwner: 'ccc',
-      pullRequestHeadRepoName: 'ddd',
-    }, {
+    const repository = repositoryBuilder(repositoryQuery)
+      .owner(o => o.login('aaa'))
+      .name('bbb')
+      .build();
+
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .number(123)
+      .headRefName('feature')
+      .headRepository(r => {
+        r.owner(o => o.login('ccc'));
+        r.name('ddd');
+      })
+      .build();
+
+    shallow(buildApp({
+      repository,
+      pullRequest,
       branches,
       remotes,
     }));
 
-    const op = wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp');
+    const [op] = children.lastCall.args;
     assert.isFalse(op.isEnabled());
     assert.strictEqual(op.getMessage(), 'Current');
   });
 
-  it.skip('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
+  it('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
     const upstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
       new Branch('current', upstream, upstream, true),
@@ -149,29 +162,32 @@ describe('PullRequestCheckoutController', function() {
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
     ]);
 
-    const addRemote = sinon.stub().resolves(new Remote('ccc', 'git@github.com:ccc/ddd.git'));
-    const fetch = sinon.stub().resolves();
-    const checkout = sinon.stub().resolves();
+    const addRemote = sinon.stub(localRepository, 'addRemote').resolves(new Remote('ccc', 'git@github.com:ccc/ddd.git'));
+    const fetch = sinon.stub(localRepository, 'fetch').resolves();
+    const checkout = sinon.stub(localRepository, 'checkout').resolves();
 
-    const wrapper = shallow(buildApp({
-      issueishNumber: 456,
-      pullRequestHeadRef: 'feature',
-      pullRequestHeadRepoOwner: 'ccc',
-      pullRequestHeadRepoName: 'ddd',
-    }, {
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .number(456)
+      .headRefName('feature')
+      .headRepository(r => {
+        r.owner(o => o.login('ccc'));
+        r.name('ddd');
+      })
+      .build();
+
+    shallow(buildApp({
+      pullRequest,
       branches,
       remotes,
-      addRemote,
-      fetch,
-      checkout,
     }));
 
     sinon.spy(reporterProxy, 'incrementCounter');
-    await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
+    const [op] = children.lastCall.args;
+    await op.run();
 
-    assert.isTrue(addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
-    assert.isTrue(fetch.calledWith('refs/heads/feature', {remoteName: 'ccc'}));
-    assert.isTrue(checkout.calledWith('pr-456/ccc/feature', {
+    assert.isTrue(localRepository.addRemote.calledWith('ccc', 'git@github.com:ccc/ddd.git'));
+    assert.isTrue(localRepository.fetch.calledWith('refs/heads/feature', {remoteName: 'ccc'}));
+    assert.isTrue(localRepository.checkout.calledWith('pr-456/ccc/feature', {
       createNew: true,
       track: true,
       startPoint: 'refs/remotes/ccc/feature',
@@ -180,7 +196,10 @@ describe('PullRequestCheckoutController', function() {
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it.skip('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
+  it('fetches a PR branch from an existing remote and checks it out into a new local branch', async function() {
+    sinon.stub(localRepository, 'fetch').resolves();
+    sinon.stub(localRepository, 'checkout').resolves();
+
     const branches = new BranchSet([
       new Branch('current', nullBranch, nullBranch, true),
     ]);
@@ -189,26 +208,27 @@ describe('PullRequestCheckoutController', function() {
       new Remote('existing', 'git@github.com:ccc/ddd.git'),
     ]);
 
-    const fetch = sinon.stub().resolves();
-    const checkout = sinon.stub().resolves();
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .number(789)
+      .headRefName('clever-name')
+      .headRepository(r => {
+        r.owner(o => o.login('ccc'));
+        r.name('ddd');
+      })
+      .build();
 
-    const wrapper = shallow(buildApp({
-      issueishNumber: 789,
-      pullRequestHeadRef: 'clever-name',
-      pullRequestHeadRepoOwner: 'ccc',
-      pullRequestHeadRepoName: 'ddd',
-    }, {
+    shallow(buildApp({
+      pullRequest,
       branches,
       remotes,
-      fetch,
-      checkout,
     }));
 
     sinon.spy(reporterProxy, 'incrementCounter');
-    await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
+    const [op] = children.lastCall.args;
+    await op.run();
 
-    assert.isTrue(fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
-    assert.isTrue(checkout.calledWith('pr-789/ccc/clever-name', {
+    assert.isTrue(localRepository.fetch.calledWith('refs/heads/clever-name', {remoteName: 'existing'}));
+    assert.isTrue(localRepository.checkout.calledWith('pr-789/ccc/clever-name', {
       createNew: true,
       track: true,
       startPoint: 'refs/remotes/existing/clever-name',
@@ -217,7 +237,10 @@ describe('PullRequestCheckoutController', function() {
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it.skip('checks out an existing local branch that corresponds to the pull request', async function() {
+  it('checks out an existing local branch that corresponds to the pull request', async function() {
+    sinon.stub(localRepository, 'pull').resolves();
+    sinon.stub(localRepository, 'checkout').resolves();
+
     const currentUpstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
       new Branch('current', currentUpstream, currentUpstream, true),
@@ -231,47 +254,46 @@ describe('PullRequestCheckoutController', function() {
       new Remote('wrong', 'git@github.com:eee/fff.git'),
     ]);
 
-    const pull = sinon.stub().resolves();
-    const checkout = sinon.stub().resolves();
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .number(456)
+      .headRefName('yes')
+      .headRepository(r => {
+        r.owner(o => o.login('ccc'));
+        r.name('ddd');
+      })
+      .build();
 
-    const wrapper = shallow(buildApp({
-      issueishNumber: 456,
-      pullRequestHeadRef: 'yes',
-      pullRequestHeadRepoOwner: 'ccc',
-      pullRequestHeadRepoName: 'ddd',
-    }, {
+    shallow(buildApp({
+      pullRequest,
       branches,
       remotes,
-      fetch,
-      pull,
-      checkout,
     }));
 
     sinon.spy(reporterProxy, 'incrementCounter');
-    await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
+    const [op] = children.lastCall.args;
+    await op.run();
 
-    assert.isTrue(checkout.calledWith('existing'));
-    assert.isTrue(pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
+    assert.isTrue(localRepository.checkout.calledWith('existing'));
+    assert.isTrue(localRepository.pull.calledWith('refs/heads/yes', {remoteName: 'upstream', ffOnly: true}));
     assert.isTrue(reporterProxy.incrementCounter.calledWith('checkout-pr'));
   });
 
-  it.skip('squelches git errors', async function() {
-    const addRemote = sinon.stub().rejects(new GitError('handled by the pipeline'));
-    const wrapper = shallow(buildApp({}, {addRemote}));
+  it('squelches git errors', async function() {
+    sinon.stub(localRepository, 'addRemote').rejects(new GitError('handled by the pipeline'));
+    shallow(buildApp({}));
 
     // Should not throw
-    await wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run();
-    assert.isTrue(addRemote.called);
+    const [op] = children.lastCall.args;
+    await op.run();
+    assert.isTrue(localRepository.addRemote.called);
   });
 
-  it.skip('propagates non-git errors', async function() {
-    const addRemote = sinon.stub().rejects(new Error('not handled by the pipeline'));
-    const wrapper = shallow(buildApp({}, {addRemote}));
+  it('propagates non-git errors', async function() {
+    sinon.stub(localRepository, 'addRemote').rejects(new Error('not handled by the pipeline'));
+    shallow(buildApp({}));
 
-    await assert.isRejected(
-      wrapper.find('ForwardRef(Relay(BarePullRequestDetailView))').prop('checkoutOp').run(),
-      /not handled by the pipeline/,
-    );
-    assert.isTrue(addRemote.called);
+    const [op] = children.lastCall.args;
+    await assert.isRejected(op.run(), /not handled by the pipeline/);
+    assert.isTrue(localRepository.addRemote.called);
   });
 });
