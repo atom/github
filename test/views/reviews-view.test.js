@@ -6,26 +6,6 @@ import ReviewsView from '../../lib/views/reviews-view';
 describe('ReviewsView', function() {
   let atomEnv;
 
-  const mocks = {
-    reviews: [{
-      state: 'CHANGES_REQUESTED',
-      author: {avatarUrl: ''},
-      login: {login: 'dolphin'},
-      submittedAt: new Date(),
-      body: 'thanks for all the fish',
-    }],
-    commentThreads: [{
-      comments: [{
-        id: 13,
-        author: {avatarUrl: '', login: 'deepthought'},
-        createdAt: new Date(),
-        path: 'src/what-is-life.js',
-        position: 42,
-        bodyHTML: 'Forty-two.',
-      }],
-    }],
-  };
-
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
   });
@@ -33,6 +13,18 @@ describe('ReviewsView', function() {
   afterEach(function() {
     atomEnv.destroy();
   });
+
+  function aggregatePullRequest(pullRequest, override = {}) {
+    const reviewThreads = pullRequest.reviewThreads.edges.map(e => e.node);
+    const summaries = pullRequest.reviews.edges.map(e => e.node);
+    const commentThreads = reviewThreads.map(thread => {
+      return {
+        thread,
+        comments: thread.comments.edges.map(e => e.node),
+      };
+    });
+    return {summaries, commentThreads, errors: [], loading: false, ...override};
+  }
 
   function buildApp(override = {}) {
     const props = {
