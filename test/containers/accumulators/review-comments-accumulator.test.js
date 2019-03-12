@@ -2,7 +2,9 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareReviewCommentsAccumulator} from '../../../lib/containers/accumulators/review-comments-accumulator';
-import {reviewThreadBuilder} from '../../builder/pr';
+import {reviewThreadBuilder} from '../../builder/graphql/pr';
+
+import reviewThreadQuery from '../../../lib/containers/accumulators/__generated__/reviewCommentsAccumulator_reviewThread.graphql.js';
 
 describe('ReviewCommentsAccumulator', function() {
   function buildApp(opts = {}) {
@@ -12,7 +14,7 @@ describe('ReviewCommentsAccumulator', function() {
       ...opts,
     };
 
-    const builder = reviewThreadBuilder();
+    const builder = reviewThreadBuilder(reviewThreadQuery);
     options.buildReviewThread(builder);
 
     const props = {
@@ -30,9 +32,11 @@ describe('ReviewCommentsAccumulator', function() {
 
   it('passes the review thread comments as its result batch', function() {
     function buildReviewThread(b) {
-      b.addComment(c => c.id(10));
-      b.addComment(c => c.id(20));
-      b.addComment(c => c.id(30));
+      b.comments(conn => {
+        conn.addEdge(e => e.node(c => c.id(10)));
+        conn.addEdge(e => e.node(c => c.id(20)));
+        conn.addEdge(e => e.node(c => c.id(30)));
+      });
     }
 
     const wrapper = shallow(buildApp({buildReviewThread}));

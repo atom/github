@@ -2,7 +2,9 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareReviewSummariesAccumulator} from '../../../lib/containers/accumulators/review-summaries-accumulator';
-import {pullRequestBuilder} from '../../builder/pr';
+import {pullRequestBuilder} from '../../builder/graphql/pr';
+
+import pullRequestQuery from '../../../lib/containers/accumulators/__generated__/reviewSummariesAccumulator_pullRequest.graphql.js';
 
 describe('ReviewSummariesAccumulator', function() {
   function buildApp(opts = {}) {
@@ -12,7 +14,7 @@ describe('ReviewSummariesAccumulator', function() {
       ...opts,
     };
 
-    const builder = pullRequestBuilder();
+    const builder = pullRequestBuilder(pullRequestQuery);
     options.buildPullRequest(builder);
 
     const props = {
@@ -30,9 +32,11 @@ describe('ReviewSummariesAccumulator', function() {
 
   it('passes pull request reviews as its result batches', function() {
     function buildPullRequest(b) {
-      b.addReview(r => r.id(0));
-      b.addReview(r => r.id(1));
-      b.addReview(r => r.id(3));
+      b.reviews(conn => {
+        conn.addEdge(e => e.node(r => r.id(0)));
+        conn.addEdge(e => e.node(r => r.id(1)));
+        conn.addEdge(e => e.node(r => r.id(3)));
+      });
     }
 
     const wrapper = shallow(buildApp({buildPullRequest}));

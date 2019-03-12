@@ -3,12 +3,14 @@ import {shallow} from 'enzyme';
 
 import {BareReviewThreadsAccumulator} from '../../../lib/containers/accumulators/review-threads-accumulator';
 import ReviewCommentsAccumulator from '../../../lib/containers/accumulators/review-comments-accumulator';
-import {pullRequestBuilder} from '../../builder/pr';
+import {pullRequestBuilder} from '../../builder/graphql/pr';
+
+import pullRequestQuery from '../../../lib/containers/accumulators/__generated__/reviewThreadsAccumulator_pullRequest.graphql.js';
 
 describe('ReviewThreadsAccumulator', function() {
   function buildApp(opts = {}) {
     const options = {
-      pullRequest: pullRequestBuilder().build(),
+      pullRequest: pullRequestBuilder(pullRequestQuery).build(),
       props: {},
       ...opts,
     };
@@ -27,29 +29,18 @@ describe('ReviewThreadsAccumulator', function() {
   }
 
   it('passes reviewThreads as its result batch', function() {
-    const pullRequest = pullRequestBuilder()
-      .addReviewThread(t => {
-        t.addComment(c => c.id(10));
-        t.addComment(c => c.id(11));
-      })
-      .addReviewThread(t => {
-        t.addComment(c => c.id(20));
-        t.addComment(c => c.id(21));
-        t.addComment(c => c.id(22));
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
       })
       .build();
 
     const wrapper = shallow(buildApp({pullRequest}));
 
-    const reviewThreads = wrapper.find('Accumulator').prop('resultBatch');
-    assert.deepEqual(
-      reviewThreads[0].comments.edges.map(e => e.node.id),
-      [10, 11],
-    );
-    assert.deepEqual(
-      reviewThreads[1].comments.edges.map(e => e.node.id),
-      [20, 21, 22],
-    );
+    const actualThreads = wrapper.find('Accumulator').prop('resultBatch');
+    const expectedThreads = pullRequest.reviewThreads.edges.map(e => e.node);
+    assert.deepEqual(actualThreads, expectedThreads);
   });
 
   it('handles an error from the thread query results', function() {
@@ -65,15 +56,10 @@ describe('ReviewThreadsAccumulator', function() {
   });
 
   it('renders a ReviewCommentsAccumulator for each reviewThread', function() {
-    const pullRequest = pullRequestBuilder()
-      .addReviewThread(t => {
-        t.addComment(c => c.id(10));
-        t.addComment(c => c.id(11));
-      })
-      .addReviewThread(t => {
-        t.addComment(c => c.id(20));
-        t.addComment(c => c.id(21));
-        t.addComment(c => c.id(22));
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
       })
       .build();
     const handleResults = sinon.spy();
@@ -96,9 +82,11 @@ describe('ReviewThreadsAccumulator', function() {
   });
 
   it('handles the arrival of additional review thread batches', function() {
-    const pr0 = pullRequestBuilder()
-      .addReviewThread()
-      .addReviewThread()
+    const pr0 = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
+      })
       .build();
 
     const handleResults = sinon.spy();
@@ -117,10 +105,12 @@ describe('ReviewThreadsAccumulator', function() {
     handleResults.resetHistory();
     children.resetHistory();
 
-    const pr1 = pullRequestBuilder()
-      .addReviewThread()
-      .addReviewThread()
-      .addReviewThread()
+    const pr1 = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
+        conn.addEdge();
+      })
       .build();
     const batch1 = pr1.reviewThreads.edges.map(e => e.node);
 
@@ -137,8 +127,10 @@ describe('ReviewThreadsAccumulator', function() {
     handleResults.resetHistory();
     children.resetHistory();
 
-    const pr2 = pullRequestBuilder()
-      .addReviewThread()
+    const pr2 = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+      })
       .build();
     const batch2 = pr2.reviewThreads.edges.map(e => e.node);
 
@@ -157,9 +149,11 @@ describe('ReviewThreadsAccumulator', function() {
   });
 
   it('handles errors from each ReviewCommentsAccumulator', function() {
-    const pullRequest = pullRequestBuilder()
-      .addReviewThread()
-      .addReviewThread()
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
+      })
       .build();
     const batch = pullRequest.reviewThreads.edges.map(e => e.node);
 
@@ -189,18 +183,15 @@ describe('ReviewThreadsAccumulator', function() {
   });
 
   it('handles comment results from each ReviewCommentsAccumulator', function() {
-    const pr0 = pullRequestBuilder()
-      .addReviewThread(t => {
-        t.addComment(c => c.id(0));
-        t.addComment(c => c.id(1));
-      })
-      .addReviewThread(t => {
-        t.addComment(c => c.id(10));
+    const pr0 = pullRequestBuilder(pullRequestQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
       })
       .build();
     const batch0 = pr0.reviewThreads.edges.map(e => e.node);
-    const b0comments0 = batch0[0].comments.edges.map(e => e.node);
-    const b0comments1 = batch0[1].comments.edges.map(e => e.node);
+    const b0comments0 = ['batch 0 thread 0 comment 0', 'batch 0 thread 0 comment 1'];
+    const b0comments1 = ['batch 0 thread 1 comment 0'];
 
     const handleResults = sinon.spy();
     const children = sinon.stub().returns(null);
