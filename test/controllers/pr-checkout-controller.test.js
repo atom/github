@@ -8,7 +8,12 @@ import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
 import {GitError} from '../../lib/git-shell-out-strategy';
+import {repositoryBuilder} from '../builder/graphql/repository';
+import {pullRequestBuilder} from '../builder/graphql/pr';
 import * as reporterProxy from '../../lib/reporter-proxy';
+
+import repositoryQuery from '../../lib/controllers/__generated__/prCheckoutController_repository.graphql';
+import pullRequestQuery from '../../lib/controllers/__generated__/prCheckoutController_pullRequest.graphql';
 
 describe('PullRequestCheckoutController', function() {
   let localRepository, children;
@@ -19,8 +24,26 @@ describe('PullRequestCheckoutController', function() {
   });
 
   function buildApp(override = {}) {
+    const branches = new BranchSet([
+      new Branch('master', nullBranch, nullBranch, true),
+    ]);
+
+    const remotes = new RemoteSet([
+      new Remote('origin', 'git@github.com:atom/github.git'),
+    ]);
+
     const props = {
+      repository: repositoryBuilder(repositoryQuery).build(),
+      pullRequest: pullRequestBuilder(pullRequestQuery).build(),
+
       localRepository,
+      isAbsent: false,
+      isLoading: false,
+      isPresent: true,
+      isMerging: false,
+      isRebasing: false,
+      branches,
+      remotes,
       children,
       ...override,
     };
@@ -57,8 +80,11 @@ describe('PullRequestCheckoutController', function() {
     assert.strictEqual(op1.getMessage(), 'Rebase in progress');
   });
 
-  it.skip('is disabled if the pullRequest has no headRepository', function() {
-    shallow(buildApp({}));
+  it('is disabled if the pullRequest has no headRepository', function() {
+    shallow(buildApp({
+      pullRequest: pullRequestBuilder(pullRequestQuery).nullHeadRepository().build(),
+    }));
+
     const [op] = children.lastCall.args;
     assert.isFalse(op.isEnabled());
     assert.strictEqual(op.getMessage(), 'Pull request head repository does not exist');
