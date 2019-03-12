@@ -177,9 +177,9 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
     };
   }
 
-  function installScalarAdder(fieldName) {
-    Builder.prototype[makeAdderFunctionName(fieldName)] = function(_value) {
-      return this.pluralScalarFieldAdder(fieldName, _value);
+  function installScalarAdder(pluralFieldName, singularFieldName) {
+    Builder.prototype[makeAdderFunctionName(singularFieldName)] = function(_value) {
+      return this.pluralScalarFieldAdder(pluralFieldName, _value);
     };
   }
 
@@ -189,9 +189,9 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
     };
   }
 
-  function installLinkedAdder(fieldName, LinkedBuilder) {
-    Builder.prototype[makeAdderFunctionName(fieldName)] = function(_block = () => {}) {
-      return this.pluralLinkedFieldAdder(fieldName, LinkedBuilder, _block);
+  function installLinkedAdder(pluralFieldName, singularFieldName, LinkedBuilder) {
+    Builder.prototype[makeAdderFunctionName(singularFieldName)] = function(_block = () => {}) {
+      return this.pluralLinkedFieldAdder(pluralFieldName, LinkedBuilder, _block);
     };
   }
 
@@ -222,15 +222,17 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
 
   for (const fieldName in fieldDescriptions) {
     const description = fieldDescriptions[fieldName];
+    const singularFieldName = description.singularName || fieldName;
+
     if (description.linked === undefined) {
       if (description.plural) {
-        installScalarAdder(fieldName);
+        installScalarAdder(fieldName, singularFieldName);
       } else {
         installScalarSetter(fieldName);
       }
     } else {
       if (description.plural) {
-        installLinkedAdder(fieldName, description.linked);
+        installLinkedAdder(fieldName, singularFieldName, description.linked);
       } else {
         installLinkedSetter(fieldName, description.linked);
       }
