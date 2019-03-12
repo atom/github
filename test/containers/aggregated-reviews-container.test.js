@@ -4,12 +4,17 @@ import {shallow} from 'enzyme';
 import {BareAggregatedReviewsContainer} from '../../lib/containers/aggregated-reviews-container';
 import ReviewSummariesAccumulator from '../../lib/containers/accumulators/review-summaries-accumulator';
 import ReviewThreadsAccumulator from '../../lib/containers/accumulators/review-threads-accumulator';
-import {pullRequestBuilder} from '../builder/pr';
+import {pullRequestBuilder, reviewThreadBuilder} from '../builder/graphql/pr';
+
+import pullRequestQuery from '../../lib/containers/__generated__/aggregatedReviewsContainer_pullRequest.graphql.js';
+import summariesQuery from '../../lib/containers/accumulators/__generated__/reviewSummariesAccumulator_pullRequest.graphql.js';
+import threadsQuery from '../../lib/containers/accumulators/__generated__/reviewThreadsAccumulator_pullRequest.graphql.js';
+import commentsQuery from '../../lib/containers/accumulators/__generated__/reviewCommentsAccumulator_reviewThread.graphql.js';
 
 describe('AggregatedReviewsContainer', function() {
   function buildApp(override = {}) {
     const props = {
-      pullRequest: pullRequestBuilder().build(),
+      pullRequest: pullRequestBuilder(pullRequestQuery).build(),
       children: () => {},
       ...override,
     };
@@ -41,10 +46,12 @@ describe('AggregatedReviewsContainer', function() {
   });
 
   it('collects and sorts review summaries', function() {
-    const pullRequest0 = pullRequestBuilder()
-      .addReview(r => r.id(0).submittedAt('2019-01-05T10:00:00Z'))
-      .addReview(r => r.id(1).submittedAt('2019-01-02T10:00:00Z'))
-      .addReview(r => r.id(2).submittedAt('2019-01-03T10:00:00Z'))
+    const pullRequest0 = pullRequestBuilder(summariesQuery)
+      .reviews(conn => {
+        conn.addEdge(e => e.node(r => r.id(0).submittedAt('2019-01-05T10:00:00Z')));
+        conn.addEdge(e => e.node(r => r.id(1).submittedAt('2019-01-02T10:00:00Z')));
+        conn.addEdge(e => e.node(r => r.id(2).submittedAt('2019-01-03T10:00:00Z')));
+      })
       .build();
     const batch0 = pullRequest0.reviews.edges.map(e => e.node);
 
@@ -60,9 +67,11 @@ describe('AggregatedReviewsContainer', function() {
       loading: true,
     }));
 
-    const pullRequest1 = pullRequestBuilder()
-      .addReview(r => r.id(3).submittedAt('2019-01-07T10:00:00Z'))
-      .addReview(r => r.id(4).submittedAt('2019-01-01T10:00:00Z'))
+    const pullRequest1 = pullRequestBuilder(summariesQuery)
+      .reviews(conn => {
+        conn.addEdge(e => e.node(r => r.id(3).submittedAt('2019-01-07T10:00:00Z')));
+        conn.addEdge(e => e.node(r => r.id(4).submittedAt('2019-01-01T10:00:00Z')));
+      })
       .build();
     const batch1 = pullRequest1.reviews.edges.map(e => e.node);
 
@@ -77,24 +86,41 @@ describe('AggregatedReviewsContainer', function() {
   });
 
   it('collects and aggregates review threads and comments', function() {
-    const pullRequest = pullRequestBuilder()
-      .addReviewThread(t => {
-        t.addComment(c => c.id(10));
-        t.addComment(c => c.id(11));
-      })
-      .addReviewThread(t => {
-        t.addComment(c => c.id(20));
-      })
-      .addReviewThread(t => {
-        t.addComment(c => c.id(30));
-        t.addComment(c => c.id(31));
-        t.addComment(c => c.id(32));
+    const pullRequest = pullRequestBuilder(threadsQuery)
+      .reviewThreads(conn => {
+        conn.addEdge();
+        conn.addEdge();
+        conn.addEdge();
       })
       .build();
+
+    const thread0 = reviewThreadBuilder(commentsQuery)
+      .comments(conn => {
+        conn.addEdge(e => e.node(c => c.id(10)));
+        conn.addEdge(e => e.node(c => c.id(11)));
+      })
+      .build();
+
+    const thread1 = reviewThreadBuilder(commentsQuery)
+      .comments(conn => {
+        conn.addEdge(e => e.node(c => c.id(20)));
+      })
+      .build();
+
+    const thread2 = reviewThreadBuilder(commentsQuery)
+      .comments(conn => {
+        conn.addEdge(e => e.node(c => c.id(30)));
+        conn.addEdge(e => e.node(c => c.id(31)));
+        conn.addEdge(e => e.node(c => c.id(32)));
+      })
+      .build();
+
     const threads = pullRequest.reviewThreads.edges.map(e => e.node);
-    const commentMap = new Map(
-      threads.map(thread => [thread, thread.comments.edges.map(e => e.node)]),
-    );
+    const commentMap = new Map([
+      [threads[0], thread0.comments.edges.map(e => e.node)],
+      [threads[1], thread1.comments.edges.map(e => e.node)],
+      [threads[2], thread2.comments.edges.map(e => e.node)],
+    ]);
 
     const children = sinon.spy();
     const wrapper = shallow(buildApp({pullRequest, children}));
@@ -107,9 +133,9 @@ describe('AggregatedReviewsContainer', function() {
       errors: [],
       summaries: [],
       commentThreads: [
-        {thread: threads[0], comments: threads[0].comments.edges.map(e => e.node)},
-        {thread: threads[1], comments: threads[1].comments.edges.map(e => e.node)},
-        {thread: threads[2], comments: threads[2].comments.edges.map(e => e.node)},
+        {thread: threads[0], comments: thread0.comments.edges.map(e => e.node)},
+        {thread: threads[1], comments: thread1.comments.edges.map(e => e.node)},
+        {thread: threads[2], comments: thread2.comments.edges.map(e => e.node)},
       ],
       loading: true,
     }));
