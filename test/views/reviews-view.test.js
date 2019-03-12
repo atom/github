@@ -74,5 +74,22 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('renders reviews with correct data');
+
+  describe('checkout button', function() {
+    it('triggers checkout op on click');
+    it('is disabled when checkout state is disabled');
+  });
+
+  describe('comment threads', function() {
+    it('renders progress bar');
+    it('renders comment threads');
+    it('renders a PatchPreviewView per comment thread');
+    describe('navigation buttons', function() {
+      it('opens PR diff view and navigate to comment when "Open Diff" is clicked');
+      it('opens file on disk and navigate to the commented line when "Jump To File" is clicked');
+      it('"Jump To File" button is disabled with tooltip when PR is not checked out');
+    });
+  });
 
 });
