@@ -210,7 +210,9 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
   }
 
   function installDefaultPluralGetter(fieldName) {
-    installDefaultGetter(fieldName, function() { return []; });
+    installDefaultGetter(fieldName, function() {
+      return [];
+    });
   }
 
   function installDefaultLinkedGetter(fieldName) {
