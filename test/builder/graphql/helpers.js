@@ -135,6 +135,11 @@ class SpecBuilder {
     const populators = {};
     for (const fieldName of fieldNames) {
       const defaultGetterName = makeDefaultGetterName(fieldName);
+      if (this.fields[fieldName] === UNSET && typeof this[defaultGetterName] !== 'function') {
+        missingFieldNames.push(fieldName);
+        continue;
+      }
+
       Object.defineProperty(populators, fieldName, {
         get: () => {
           if (this.fields[fieldName] !== UNSET) {
