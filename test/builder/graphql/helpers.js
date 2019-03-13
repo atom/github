@@ -278,6 +278,9 @@ class DeferredSpecBuilder {
   resolve() {
     if (this.Class === undefined) {
       this.Class = require(this.modulePath)[this.className];
+      if (!this.Class) {
+        throw new Error(`No class ${this.className} exported from ${this.modulePath}.`);
+      }
     }
     return this.Class;
   }
