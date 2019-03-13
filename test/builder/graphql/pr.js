@@ -3,10 +3,11 @@ import {createSpecBuilderClass} from './helpers';
 import {RepositoryBuilder} from './repository';
 import {UserBuilder} from './user';
 import {createConnectionBuilderClass} from './connection';
+import {nextID} from '../id-sequence';
 
 const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
   __typename: {default: 'PullRequestReviewComment'},
-  id: {default: 0},
+  id: {default: nextID},
   path: {default: 'first.txt'},
   position: {default: 0, nullable: true},
   author: {linked: UserBuilder},
@@ -21,14 +22,14 @@ const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReview
 
 const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder', {
   __typename: {default: 'PullRequestReviewThread'},
-  id: {default: 0},
+  id: {default: nextID},
   isResolved: {default: false},
   comments: {linked: CommentConnectionBuilder},
 });
 
 const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', {
   __typename: {default: 'PullRequestReview'},
-  id: {default: 0},
+  id: {default: nextID},
   submittedAt: {default: '2018-12-28T20:40:55Z'},
   body: {default: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit'},
   state: {default: 'COMMENTED'},
