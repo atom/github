@@ -1,15 +1,18 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
+import {QueryRenderer} from 'react-relay';
 
+import CurrentPullRequestContainer from '../../lib/containers/current-pull-request-container';
 import {ManualStateObserver} from '../helpers';
-import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
-import {createRepositoryResult} from '../fixtures/factories/repository-result';
+import {queryBuilder} from '../builder/graphql/query';
 import Remote from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
-import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
-import CurrentPullRequestContainer from '../../lib/containers/current-pull-request-container';
+import IssueishListController, {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
+
+import repositoryQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql.js';
+import currentQuery from '../../lib/containers/__generated__/currentPullRequestContainerQuery.graphql.js';
 
 describe('CurrentPullRequestContainer', function() {
   let observer;
@@ -18,71 +21,26 @@ describe('CurrentPullRequestContainer', function() {
     observer = new ManualStateObserver();
   });
 
-  function useEmptyResult() {
-    return expectRelayQuery({
-      name: 'currentPullRequestContainerQuery',
-      variables: {
-        headOwner: 'atom',
-        headName: 'github',
-        headRef: 'refs/heads/master',
-        first: 5,
-      },
-    }, {
-      repository: {
-        ref: {
-          associatedPullRequests: {
-            totalCount: 0,
-            nodes: [],
-          },
-          id: 'ref0',
-        },
-        id: 'repository0',
-      },
-    });
-  }
-
-  function useResults(...attrs) {
-    return expectRelayQuery({
-      name: 'currentPullRequestContainerQuery',
-      variables: {
-        headOwner: 'atom',
-        headName: 'github',
-        headRef: 'refs/heads/master',
-        first: 5,
-      },
-    }, {
-      repository: {
-        ref: {
-          associatedPullRequests: {
-            totalCount: attrs.length,
-            nodes: attrs.map(createPullRequestResult),
-          },
-          id: 'ref0',
-        },
-        id: 'repository0',
-      },
-    });
-  }
-
   function buildApp(overrideProps = {}) {
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
     const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
     const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
-    const branchSet = new BranchSet();
-    branchSet.add(branch);
 
+    const branches = new BranchSet([branch]);
     const remotes = new RemoteSet([origin]);
+
+    const {repository} = queryBuilder(repositoryQuery).build();
 
     return (
       <CurrentPullRequestContainer
-        repository={createRepositoryResult()}
+        repository={repository}
 
         token="1234"
         endpoint={origin.getEndpoint()}
         remoteOperationObserver={observer}
         remote={origin}
         remotes={remotes}
-        branches={branchSet}
+        branches={branches}
         aheadCount={0}
         pushInProgress={false}
 
@@ -99,110 +57,104 @@ describe('CurrentPullRequestContainer', function() {
     const branchSet = new BranchSet();
     branchSet.add(branch);
 
-    const wrapper = mount(buildApp({branches: branchSet}));
+    const wrapper = shallow(buildApp({branches: branchSet}));
 
-    assert.isFalse(wrapper.find('ReactRelayQueryRenderer').exists());
-    const list = wrapper.find('BareIssueishListController');
+    assert.isFalse(wrapper.find(QueryRenderer).exists());
+
+    const list = wrapper.find(BareIssueishListController);
     assert.isTrue(list.exists());
     assert.isFalse(list.prop('isLoading'));
     assert.strictEqual(list.prop('total'), 0);
     assert.lengthOf(list.prop('results'), 0);
   });
 
-  it('passes an empty result list and an isLoading prop to the controller while loading', async function() {
-    const {resolve, promise} = useEmptyResult();
+  it('passes an empty result list and an isLoading prop to the controller while loading', function() {
+    const wrapper = shallow(buildApp());
 
-    const wrapper = mount(buildApp());
-    assert.isTrue(wrapper.find('BareIssueishListController').prop('isLoading'));
-
-    resolve();
-    await promise;
-
-    assert.isFalse(wrapper.update().find('BareIssueishListController').prop('isLoading'));
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: () => {}});
+    assert.isTrue(resultWrapper.find(BareIssueishListController).prop('isLoading'));
   });
 
-  it('passes an empty result list and an error prop to the controller when errored', async function() {
-    const {reject, promise} = useEmptyResult();
+  it('passes an empty result list and an error prop to the controller when errored', function() {
+    const error = new Error('oh no');
+    error.rawStack = error.stack;
 
-    const e = new Error('oh no');
-    e.rawStack = e.stack;
-    reject(e);
-    await promise.catch(() => null);
+    const wrapper = shallow(buildApp());
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error, props: null, retry: () => {}});
 
-    const wrapper = mount(buildApp());
-    await assert.async.isFalse(wrapper.update().find('BareIssueishListController').prop('isLoading'));
-
-    assert.strictEqual(wrapper.find('BareIssueishListController').prop('error'), e);
+    assert.strictEqual(resultWrapper.find(BareIssueishListController).prop('error'), error);
+    assert.isFalse(resultWrapper.find(BareIssueishListController).prop('isLoading'));
   });
 
-  it('passes a configured pull request creation tile to the controller', async function() {
-    const {resolve, promise} = useEmptyResult();
+  it('passes a configured pull request creation tile to the controller', function() {
+    const {repository} = queryBuilder(repositoryQuery).build();
+    const remote = new Remote('home', 'git@github.com:atom/atom.git');
+    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/home/master', 'home', 'refs/heads/master');
+    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const branches = new BranchSet([branch]);
+    const remotes = new RemoteSet([remote]);
+    const onCreatePr = sinon.spy();
 
-    resolve();
-    await promise;
+    const wrapper = shallow(buildApp({repository, remote, remotes, branches, aheadCount: 2, pushInProgress: false, onCreatePr}));
 
-    const wrapper = mount(buildApp());
-    await assert.async.isFalse(wrapper.update().find('BareIssueishListController').prop('isLoading'));
+    const props = queryBuilder(currentQuery).build();
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
 
-    assert.isTrue(wrapper.find('CreatePullRequestTile').exists());
+    const emptyTileWrapper = resultWrapper.find(IssueishListController).renderProp('emptyComponent')();
+
+    const tile = emptyTileWrapper.find('CreatePullRequestTile');
+    assert.strictEqual(tile.prop('repository'), repository);
+    assert.strictEqual(tile.prop('remote'), remote);
+    assert.strictEqual(tile.prop('branches'), branches);
+    assert.strictEqual(tile.prop('aheadCount'), 2);
+    assert.isFalse(tile.prop('pushInProgress'));
+    assert.strictEqual(tile.prop('onCreatePr'), onCreatePr);
   });
 
-  it('passes results to the controller', async function() {
-    const {resolve, promise} = useResults({number: 10});
+  it('passes results to the controller', function() {
+    const wrapper = shallow(buildApp());
 
-    const wrapper = mount(buildApp());
+    const props = queryBuilder(currentQuery)
+      .repository(r => {
+        r.ref(r0 => {
+          r0.associatedPullRequests(conn => {
+            conn.addNode();
+            conn.addNode();
+            conn.addNode();
+          });
+        });
+      })
+      .build();
 
-    resolve();
-    await promise;
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
 
-    const controller = wrapper.update().find('BareIssueishListController');
-    assert.strictEqual(controller.prop('total'), 1);
-    assert.deepEqual(controller.prop('results').map(result => result.number), [10]);
+    const controller = resultWrapper.find(IssueishListController);
+    assert.strictEqual(controller.prop('total'), 3);
   });
 
-  it('filters out pull requests opened on different repositories', async function() {
-    const repository = createRepositoryResult({id: 'upstream-repo'});
+  it('filters out pull requests opened on different repositories', function() {
+    const {repository} = queryBuilder(repositoryQuery)
+      .repository(r => r.id('100'))
+      .build();
 
-    const {resolve, promise} = useResults(
-      {id: 'pr0', number: 11, repositoryID: 'upstream-repo'},
-      {id: 'pr1', number: 22, repositoryID: 'someones-fork'},
-    );
+    const wrapper = shallow(buildApp({repository}));
 
-    const wrapper = mount(buildApp({repository}));
-    resolve();
-    await promise;
-    wrapper.update();
+    const props = queryBuilder(currentQuery).build();
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
 
-    const numbers = wrapper.find('IssueishListView').prop('issueishes').map(i => i.getNumber());
-    assert.deepEqual(numbers, [11]);
+    const filterFn = resultWrapper.find(IssueishListController).prop('resultFilter');
+    assert.isTrue(filterFn({getHeadRepositoryID: () => '100'}));
+    assert.isFalse(filterFn({getHeadRepositoryID: () => '12'}));
   });
 
-  it('performs the query again when a remote operation completes', async function() {
-    const {resolve: resolve0, promise: promise0, disable: disable0} = useResults({number: 0});
+  it('performs the query again when a remote operation completes', function() {
+    const wrapper = shallow(buildApp());
 
-    const wrapper = mount(buildApp());
-
-    resolve0();
-    await promise0;
-
-    wrapper.update();
-    const controller = wrapper.find('BareIssueishListController');
-    assert.deepEqual(controller.prop('results').map(result => result.number), [0]);
-
-    disable0();
-    const {resolve: resolve1, promise: promise1} = useResults({number: 1});
-
-    resolve1();
-    await promise1;
-
-    wrapper.update();
-    assert.deepEqual(controller.prop('results').map(result => result.number), [0]);
+    const props = queryBuilder(currentQuery).build();
+    const retry = sinon.spy();
+    wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry});
 
     observer.trigger();
-
-    await assert.async.deepEqual(
-      wrapper.update().find('BareIssueishListController').prop('results').map(result => result.number),
-      [1],
-    );
+    assert.isTrue(retry.called);
   });
 });

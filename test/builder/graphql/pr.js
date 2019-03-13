@@ -5,7 +5,7 @@ import {UserBuilder} from './user';
 import {createConnectionBuilderClass} from './connection';
 import {nextID} from '../id-sequence';
 
-const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
+export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
   __typename: {default: 'PullRequestReviewComment'},
   id: {default: nextID},
   path: {default: 'first.txt'},
@@ -18,16 +18,16 @@ const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder',
   isMinimized: {default: false},
 });
 
-const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewCommentConnectionBuilder', CommentBuilder);
+export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewCommentConnectionBuilder', CommentBuilder);
 
-const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder', {
+export const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder', {
   __typename: {default: 'PullRequestReviewThread'},
   id: {default: nextID},
   isResolved: {default: false},
   comments: {linked: CommentConnectionBuilder},
 });
 
-const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', {
+export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', {
   __typename: {default: 'PullRequestReview'},
   id: {default: nextID},
   submittedAt: {default: '2018-12-28T20:40:55Z'},
@@ -37,7 +37,7 @@ const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', {
   comments: {linked: CommentConnectionBuilder},
 });
 
-const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
+export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
   number: {default: 123},
   headRefName: {default: 'head-ref'},
   url: {default: 'https://github.com/aaa/bbb/pull/1'},
