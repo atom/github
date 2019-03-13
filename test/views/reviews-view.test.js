@@ -48,8 +48,8 @@ describe('ReviewsView', function() {
   it('renders summary and comment sections', function() {
     const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
-      .addReviewThread(t => t.addComment(c => c.id(1)))
-      .addReviewThread(t => t.addComment(c => c.id(2)))
+      .addReviewThread(t => t.addComment())
+      .addReviewThread(t => t.addComment())
       .build();
 
     const wrapper = shallow(buildApp())
@@ -69,9 +69,46 @@ describe('ReviewsView', function() {
   });
 
   describe('comment threads', function() {
+
+    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
+      .addReviewThread(t => {
+        t.addComment(c =>
+          c.id(0).path('file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
+        );
+        t.addComment(c =>
+          c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')),
+        );
+        return t;
+      }).addReviewThread(
+        t => t.addComment(c =>
+          c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')),
+        ),
+      ).build();
+
+    const wrapper = shallow(buildApp())
+      .find(AggregatedReviewsContainer)
+      .renderProp('children')({errors, summaries, commentThreads});
+
+    it('renders comment threads', function() {
+      const threads = wrapper.find('details.github-Review');
+      assert.lengthOf(threads, 2);
+      assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
+      assert.lengthOf(threads.at(1).find('.github-Review-comment'), 1);
+    });
+
+    it('each comment', function() {
+      const comment = wrapper.find('.github-Review-comment').at(0);
+      assert.strictEqual(comment.find('.github-Review-avatar').prop('src'), 'user0.jpg');
+      assert.strictEqual(comment.find('.github-Review-avatar').prop('alt'), 'user0');
+      assert.strictEqual(comment.find('.github-Review-username').prop('href'), 'https://github.com/user0');
+      assert.strictEqual(comment.find('.github-Review-username').text(), 'user0');
+      assert.strictEqual(comment.find('GithubDotcomMarkdown').prop('html'), 'i have opinions.');
+    });
+
     it('renders progress bar');
-    it('renders comment threads');
     it('renders a PatchPreviewView per comment thread');
+
     describe('navigation buttons', function() {
       it('opens PR diff view and navigate to comment when "Open Diff" is clicked');
       it('opens file on disk and navigate to the commented line when "Jump To File" is clicked');
