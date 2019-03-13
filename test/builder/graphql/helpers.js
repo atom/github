@@ -295,6 +295,12 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
 
   for (const fieldName in fieldDescriptions) {
     const description = fieldDescriptions[fieldName];
+
+    if (description.custom !== undefined) {
+      Builder.prototype[fieldName] = description.custom;
+      continue;
+    }
+
     const singularFieldName = description.singularName || fieldName;
 
     if (description.linked === undefined) {
