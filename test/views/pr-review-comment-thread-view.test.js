@@ -2,7 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {multiFilePatchBuilder} from '../builder/patch';
-import {pullRequestBuilder} from '../builder/pr';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import PullRequestReviewCommentThreadView, {PullRequestCommentView} from '../../lib/views/pr-review-comment-thread-view';
 
 describe('PullRequestReviewCommentThreadView', function() {
@@ -16,10 +16,6 @@ describe('PullRequestReviewCommentThreadView', function() {
         {...overrideProps}
       />,
     );
-  }
-
-  function commentsFromThread(pr, index) {
-    return pr.reviewThreads.edges[index].node.comments.edges.map(edge => edge.node);
   }
 
   it('adjusts the position for comments after hunk headers', function() {
@@ -39,38 +35,38 @@ describe('PullRequestReviewCommentThreadView', function() {
       })
       .build();
 
-    const pr = pullRequestBuilder()
+    const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
-        t.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+        t.addComment(c => c.id(0).path('file0.txt').position(2).bodyHTML('one'));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id(1).path('file0.txt').position(15).body('three'));
+        t.addComment(c => c.id(1).path('file0.txt').position(15).bodyHTML('two'));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id(2).path('file1.txt').position(7).body('three'));
+        t.addComment(c => c.id(2).path('file1.txt').position(7).bodyHTML('three'));
       })
       .build();
 
-    const wrapper0 = buildApp(multiFilePatch, commentsFromThread(pr, 0));
+    const wrapper0 = buildApp(multiFilePatch, commentThreads[0].comments);
     assert.deepEqual(wrapper0.find('Marker').prop('bufferRange').serialize(), [[1, 0], [1, 0]]);
 
-    const wrapper1 = buildApp(multiFilePatch, commentsFromThread(pr, 1));
+    const wrapper1 = buildApp(multiFilePatch, commentThreads[1].comments);
     assert.deepEqual(wrapper1.find('Marker').prop('bufferRange').serialize(), [[12, 0], [12, 0]]);
 
-    const wrapper2 = buildApp(multiFilePatch, commentsFromThread(pr, 2));
+    const wrapper2 = buildApp(multiFilePatch, commentThreads[2].comments);
     assert.deepEqual(wrapper2.find('Marker').prop('bufferRange').serialize(), [[20, 0], [20, 0]]);
   });
 
   it('does not render comments if the patch is too large or collapsed', function() {
     const {multiFilePatch} = multiFilePatchBuilder().build();
 
-    const pr = pullRequestBuilder()
+    const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
-        t.addComment(c => c.id(0).path('file0.txt').position(2).body('one'));
+        t.addComment(c => c.id(0).path('file0.txt').position(2).bodyHTML('one'));
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, commentsFromThread(pr, 0), {isPatchVisible: () => false});
+    const wrapper = buildApp(multiFilePatch, commentThreads[0].comments, {isPatchVisible: () => false});
     assert.isFalse(wrapper.exists('PullRequestCommentView'));
   });
 
@@ -86,13 +82,13 @@ describe('PullRequestReviewCommentThreadView', function() {
       })
       .build();
 
-    const pr = pullRequestBuilder()
+    const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
-        t.addComment(c => c.id(1).path('file0.txt').position(null).body('three'));
+        t.addComment(c => c.id(1).path('file0.txt').position(null).bodyHTML('three'));
       })
       .build();
 
-    const wrapper = buildApp(multiFilePatch, commentsFromThread(pr, 0));
+    const wrapper = buildApp(multiFilePatch, commentThreads[0].comments);
 
     assert.isFalse(wrapper.exists('PullRequestCommentView'));
   });
