@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 
 import ReviewsView from '../../lib/views/reviews-view';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
+import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -29,7 +30,7 @@ describe('ReviewsView', function() {
 
   it('renders a BareAggregatedReviewsContainer', function() {
     const wrapper = shallow(buildApp());
-    assert.lengthOf(wrapper.find('ForwardRef(Relay(BareAggregatedReviewsContainer))'), 1);
+    assert.lengthOf(wrapper.find(AggregatedReviewsContainer), 1);
   });
 
   it('registers atom commands');
@@ -37,7 +38,7 @@ describe('ReviewsView', function() {
   it('renders empty state if there is no review', function() {
     const {errors, summaries, commentThreads} = aggregatedReviewsBuilder().build();
     const wrapper = shallow(buildApp())
-      .find('ForwardRef(Relay(BareAggregatedReviewsContainer))')
+      .find(AggregatedReviewsContainer)
       .renderProp('children')({errors, summaries, commentThreads});
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 0);
@@ -52,7 +53,7 @@ describe('ReviewsView', function() {
       .build();
 
     const wrapper = shallow(buildApp())
-      .find('ForwardRef(Relay(BareAggregatedReviewsContainer))')
+      .find(AggregatedReviewsContainer)
       .renderProp('children')({errors, summaries, commentThreads});
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 1);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 1);
